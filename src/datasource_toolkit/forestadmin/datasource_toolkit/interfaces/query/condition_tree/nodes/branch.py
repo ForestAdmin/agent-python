@@ -1,0 +1,119 @@
+import enum
+from functools import reduce
+from typing import Any, List, Literal, Union
+
+from typing_extensions import Self, TypeGuard
+
+from forestadmin.datasource_toolkit.interfaces.models.collections import Collection
+from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.base import (
+    AsyncReplacerAlias,
+    CallbackAlias,
+    ConditionTree,
+    ConditionTreeComponent,
+    ConditionTreeException,
+    ReplacerAlias,
+)
+from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.leaf import (
+    ConditionTreeLeaf,
+    LeafComponents,
+)
+from forestadmin.datasource_toolkit.interfaces.query.projections import Projection
+from forestadmin.datasource_toolkit.interfaces.records import RecordsDataAlias
+
+
+class Aggregator(enum.Enum):
+    OR = "or"
+    AND = "and"
+
+
+LiteralAggregator = Union[Literal["or"], Literal["and"]]
+
+
+class BranchComponents(ConditionTreeComponent):
+    aggregator: LiteralAggregator
+    conditions: List[Union["BranchComponents", LeafComponents]]
+
+
+def is_branch_component(tree: Any) -> TypeGuard[BranchComponents]:
+    return hasattr(tree, "keys") and sorted(tree.keys()) == [
+        "aggregators",
+        "conditions",
+    ]
+
+
+class ConditionTreeBranch(ConditionTree):
+    def __init__(self, aggregator: Aggregator, conditions: List[ConditionTree]):
+        super().__init__()
+        self.aggregator = aggregator
+        self.conditions = conditions
+
+    def __repr__(self):
+        return f"{self.aggregator}[{self.conditions}]"
+
+    def __eq__(self: Self, obj: Self) -> bool:
+        return (
+            self.__class__ == obj.__class__ and self.aggregator == obj.aggregator and self.conditions == obj.conditions
+        )
+
+    @property
+    def projection(self) -> Projection:
+        def reducer(memo: Projection, condition: ConditionTree):
+            return memo.union(condition.projection)
+
+        return reduce(reducer, self.conditions, Projection())
+
+    def inverse(self) -> "ConditionTree":
+        aggregator = Aggregator.OR
+        if self.aggregator == Aggregator.OR:
+            aggregator = Aggregator.AND
+        return ConditionTreeBranch(aggregator, [condition.inverse() for condition in self.conditions])
+
+    def match(self, record: RecordsDataAlias, collection: Collection, timezone: str) -> bool:
+        meth = all
+        if self.aggregator == Aggregator.OR:
+            meth = any
+        return meth([condition.match(record, collection, timezone) for condition in self.conditions])
+
+    def apply(self, handler: "CallbackAlias") -> None:
+        for condition in self.conditions:
+            condition.apply(handler)
+
+    def replace(self, handler: "ReplacerAlias") -> "ConditionTree":
+        return ConditionTreeBranch(
+            self.aggregator,
+            [condition.replace(handler) for condition in self.conditions],
+        )
+
+    async def replace_async(self, handler: "AsyncReplacerAlias") -> "ConditionTree":
+        return ConditionTreeBranch(
+            self.aggregator,
+            [await condition.replace_async(handler) for condition in self.conditions],
+        )
+
+    def nest(self, prefix: str) -> "ConditionTreeBranch":
+        return ConditionTreeBranch(self.aggregator, [condition.nest(prefix) for condition in self.conditions])
+
+    def __get_prefix(self) -> str:
+        prefixes: List[str] = []
+
+        def __split(tree: ConditionTree) -> None:
+            if isinstance(tree, ConditionTreeLeaf) and ":" in tree.field:
+                prefixes.append(tree.field.split(":")[0])
+
+        self.apply(__split)
+
+        if len(set(prefixes)) != 1:
+            raise ConditionTreeException("Cannot unnest condition tree")
+        return prefixes[0]
+
+    def __remove_prefix(self, prefix: str) -> ConditionTree:
+        def __rename(tree: ConditionTree) -> ConditionTree:
+            if isinstance(tree, ConditionTreeLeaf):
+                return tree.replace_field(tree.field.removeprefix(f"{prefix}:"))
+            return tree
+
+        return self.replace(__rename)
+
+    def unnest(self) -> ConditionTree:
+        prefix = self.__get_prefix()
+        return self.__remove_prefix(prefix)

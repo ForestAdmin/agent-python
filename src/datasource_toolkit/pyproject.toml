@@ -11,3 +11,7 @@ find = {}  # Scanning implicit namespaces is active by default
 
 [tool.isort]
 profile = "black"
+
+[tool.black]
+line-length = 120
+include = '\.pyi?$'
