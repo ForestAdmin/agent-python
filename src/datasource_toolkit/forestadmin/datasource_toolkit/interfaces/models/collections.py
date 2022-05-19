@@ -1,7 +1,7 @@
 import abc
-from typing import Dict, List
+from typing import Dict, Generic, List, TypeVar
 
-from typing_extensions import TypedDict
+from typing_extensions import Self, TypedDict
 
 from forestadmin.datasource_toolkit.interfaces.actions import Action
 from forestadmin.datasource_toolkit.interfaces.fields import FieldAlias
@@ -16,7 +16,7 @@ class CollectionSchema(TypedDict):
 
 class Collection(abc.ABC):
     @abc.abstractproperty
-    def datasource(self) -> "Datasource":
+    def datasource(self) -> "Datasource[Self]":
         raise NotImplementedError
 
     @abc.abstractproperty
@@ -28,15 +28,18 @@ class Collection(abc.ABC):
         raise NotImplementedError
 
 
-class Datasource(abc.ABC):
+BoundCollection = TypeVar("BoundCollection", bound=Collection)
+
+
+class Datasource(Generic[BoundCollection], abc.ABC):
     @abc.abstractproperty
-    def collections(self) -> Dict[str, Collection]:
+    def collections(self) -> List[BoundCollection]:
         raise NotImplementedError
 
     @abc.abstractmethod
-    def get_collection(self, name: str) -> Collection:
+    def get_collection(self, name: str) -> BoundCollection:
         raise NotImplementedError
 
     @abc.abstractmethod
-    def add_collection(self, collection: Collection) -> None:
+    def add_collection(self, collection: BoundCollection) -> None:
         raise NotImplementedError

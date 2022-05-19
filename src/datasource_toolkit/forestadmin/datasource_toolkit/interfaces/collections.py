@@ -21,7 +21,7 @@ class Collection(CollectionModel, abc.ABC):
     async def execute(
         self,
         name: str,
-        form_values: RecordsDataAlias,
+        data: RecordsDataAlias,
         filter: Optional[PaginatedFilter],
     ) -> ActionResult:
         pass
@@ -30,7 +30,7 @@ class Collection(CollectionModel, abc.ABC):
     async def get_form(
         self,
         name: str,
-        form_values: Optional[RecordsDataAlias],
+        data: Optional[RecordsDataAlias],
         filter: Optional[PaginatedFilter],
     ) -> ActionField:
         pass
