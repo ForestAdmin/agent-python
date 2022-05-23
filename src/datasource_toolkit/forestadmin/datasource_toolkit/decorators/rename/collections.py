@@ -2,7 +2,6 @@ from typing import Any, Dict, List, Optional
 
 from forestadmin.datasource_toolkit.decorators.collections import CollectionDecorator
 from forestadmin.datasource_toolkit.exceptions import DatasourceToolkitException
-from forestadmin.datasource_toolkit.interfaces.collections import Collection
 from forestadmin.datasource_toolkit.interfaces.fields import (
     FieldAlias,
     is_column,
@@ -39,7 +38,7 @@ class RenameCollectionException(DatasourceToolkitException):
 
 
 class RenameCollectionDecorator(CollectionDecorator):
-    def __init__(self, collection: Collection, datasource: Datasource["RenameCollectionDecorator"]):
+    def __init__(self, collection: CollectionDecorator, datasource: Datasource[CollectionDecorator]):
         super().__init__(collection, datasource)
         self.to_child_collection: Dict[str, str] = {}
         self.from_child_collection: Dict[str, str] = {}

@@ -21,7 +21,7 @@ from forestadmin.datasource_toolkit.interfaces.records import RecordsDataAlias
 
 
 class CollectionDecorator(Collection, abc.ABC):
-    def __init__(self, collection: Collection, datasource: Datasource[Self]):
+    def __init__(self, collection: "CollectionDecorator", datasource: Datasource["CollectionDecorator"]):
         super().__init__()
         self.child_collection = collection
         self._datasource = datasource

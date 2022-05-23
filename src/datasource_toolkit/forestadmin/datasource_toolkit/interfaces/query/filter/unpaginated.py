@@ -1,4 +1,4 @@
-from typing import Generic, TypedDict, TypeVar, cast
+from typing import Generic, Optional, TypedDict, TypeVar, cast
 
 from typing_extensions import Self
 
@@ -10,7 +10,7 @@ from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.base i
 
 class FilterComponent(TypedDict, total=False):
     condition_tree: "ConditionTree"
-    search: str
+    search: Optional[str]
     search_extended: bool
     segment: str
     timezone: str

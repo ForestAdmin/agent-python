@@ -2,7 +2,6 @@ from typing import Set
 
 from forestadmin.datasource_toolkit.decorators.collections import CollectionDecorator
 from forestadmin.datasource_toolkit.exceptions import DatasourceToolkitException
-from forestadmin.datasource_toolkit.interfaces.collections import Collection
 from forestadmin.datasource_toolkit.interfaces.fields import (
     is_column,
     is_many_to_many,
@@ -22,7 +21,7 @@ class PublicationCollectionException(DatasourceToolkitException):
 
 
 class PublicationCollectionDecorator(CollectionDecorator):
-    def __init__(self, collection: Collection, datasource: Datasource["PublicationCollectionDecorator"]):
+    def __init__(self, collection: CollectionDecorator, datasource: Datasource[CollectionDecorator]):
         super().__init__(collection, datasource)
         self._unpublished: Set[str] = set()
 
