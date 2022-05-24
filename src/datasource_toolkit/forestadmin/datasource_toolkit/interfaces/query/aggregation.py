@@ -4,7 +4,7 @@ import zoneinfo
 from datetime import datetime, timedelta
 from typing import Any, Callable, Dict, List, Optional, TypedDict
 
-from typing_extensions import NotRequired, Self
+from typing_extensions import NotRequired, Self, TypeGuard
 
 from forestadmin.datasource_toolkit.interfaces.query.projections import Projection
 from forestadmin.datasource_toolkit.interfaces.records import RecordsDataAlias
@@ -177,3 +177,7 @@ class Aggregation:
             elif operation == DateOperation.WEEK:
                 return (dt - timedelta(days=dt.weekday())).isoformat()
         return value
+
+
+def is_aggregation(aggregation: Any) -> TypeGuard[Aggregation]:
+    return isinstance(aggregation, Aggregation)

@@ -28,6 +28,7 @@ class Collection(abc.ABC):
         raise NotImplementedError
 
 
+CovBoundCollection = TypeVar("CovBoundCollection", bound=Collection, covariant=True)
 BoundCollection = TypeVar("BoundCollection", bound=Collection)
 
 

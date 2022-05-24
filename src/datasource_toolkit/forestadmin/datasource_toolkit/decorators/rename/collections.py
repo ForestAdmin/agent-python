@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Union, cast
 
 from forestadmin.datasource_toolkit.decorators.collections import CollectionDecorator
 from forestadmin.datasource_toolkit.exceptions import DatasourceToolkitException
@@ -27,6 +27,12 @@ from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.leaf i
 from forestadmin.datasource_toolkit.interfaces.query.filter.paginated import (
     PaginatedFilter,
     PaginatedFilterComponent,
+    is_paginated_filter,
+)
+from forestadmin.datasource_toolkit.interfaces.query.filter.unpaginated import (
+    Filter,
+    FilterComponent,
+    is_filter,
 )
 from forestadmin.datasource_toolkit.interfaces.query.projections import Projection
 from forestadmin.datasource_toolkit.interfaces.query.sort import PlainSortClause
@@ -87,14 +93,21 @@ class RenameCollectionDecorator(CollectionDecorator):
     def _refine_sort_clause(self, clause: PlainSortClause):
         return PlainSortClause(field=self.path_from_child_collection(clause["field"]), ascending=clause["ascending"])
 
-    async def refine_filter(self, filter: Optional[PaginatedFilter]) -> Optional[PaginatedFilter]:
+    async def refine_filter(
+        self, filter: Optional[Union[PaginatedFilter, Filter]]
+    ) -> Optional[Union[PaginatedFilter, Filter]]:
         if filter:
-            overrided: PaginatedFilterComponent = {}
+            overrided = {}
             if filter.condition_tree:
                 overrided["condition_tree"] = filter.condition_tree.replace(self._refine_leaf_tree)
-            if filter.sort:
-                overrided["sort"] = filter.sort.replace_clauses(self._refine_sort_clause)
-            filter.override(overrided)
+            if is_paginated_filter(filter):
+                overrided = cast(PaginatedFilterComponent, overrided)
+                if filter.sort:
+                    overrided["sort"] = filter.sort.replace_clauses(self._refine_sort_clause)
+                filter.override(overrided)
+            elif is_filter(filter):
+                overrided = cast(FilterComponent, overrided)
+                filter.override(overrided)
         return filter
 
     def record_to_child_collection(self, record: RecordsDataAlias) -> RecordsDataAlias:
@@ -152,7 +165,7 @@ class RenameCollectionDecorator(CollectionDecorator):
         records = await super().list(filter, child_projection)
         return [self.record_from_child_collection(record) for record in records]
 
-    async def update(self, filter: PaginatedFilter, patch: RecordsDataAlias) -> None:
+    async def update(self, filter: Optional[Filter], patch: RecordsDataAlias) -> None:
         return await super().update(filter, self.record_to_child_collection(patch))
 
     def _build_group_aggregate(self, row: AggregateResult) -> Dict[str, Any]:
@@ -162,7 +175,7 @@ class RenameCollectionDecorator(CollectionDecorator):
         return group
 
     async def aggregate(
-        self, filter: PaginatedFilter, aggregation: Aggregation, limit: Optional[int]
+        self, filter: Optional[Filter], aggregation: Aggregation, limit: Optional[int]
     ) -> List[AggregateResult]:
         rows = await super().aggregate(
             filter,

@@ -1,15 +1,24 @@
-from typing import Generic, Optional, TypedDict, TypeVar, cast
+from typing import Any, Generic, Optional, TypedDict, TypeVar, cast
 
-from typing_extensions import Self
+from typing_extensions import Self, TypeGuard
 
 from forestadmin.datasource_toolkit.exceptions import DatasourceToolkitException
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.base import (
     ConditionTree,
+    ConditionTreeComponent,
 )
 
 
 class FilterComponent(TypedDict, total=False):
-    condition_tree: "ConditionTree"
+    condition_tree: ConditionTree
+    search: Optional[str]
+    search_extended: bool
+    segment: str
+    timezone: str
+
+
+class PlainFilter(TypedDict, total=False):
+    condition_tree: ConditionTreeComponent
     search: Optional[str]
     search_extended: bool
     segment: str
@@ -73,3 +82,7 @@ class BaseFilter(Generic[T]):
 
 class Filter(BaseFilter[FilterComponent]):
     pass
+
+
+def is_filter(filter: Any) -> TypeGuard[Filter]:
+    return isinstance(filter, Filter)

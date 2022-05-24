@@ -12,6 +12,7 @@ from forestadmin.datasource_toolkit.interfaces.query.aggregation import (
 from forestadmin.datasource_toolkit.interfaces.query.filter.paginated import (
     PaginatedFilter,
 )
+from forestadmin.datasource_toolkit.interfaces.query.filter.unpaginated import Filter
 from forestadmin.datasource_toolkit.interfaces.query.projections import Projection
 from forestadmin.datasource_toolkit.interfaces.records import RecordsDataAlias
 
@@ -22,7 +23,7 @@ class Collection(CollectionModel, abc.ABC):
         self,
         name: str,
         data: RecordsDataAlias,
-        filter: Optional[PaginatedFilter],
+        filter: Optional[Filter],
     ) -> ActionResult:
         pass
 
@@ -31,7 +32,7 @@ class Collection(CollectionModel, abc.ABC):
         self,
         name: str,
         data: Optional[RecordsDataAlias],
-        filter: Optional[PaginatedFilter],
+        filter: Optional[Filter],
     ) -> ActionField:
         pass
 
@@ -44,15 +45,15 @@ class Collection(CollectionModel, abc.ABC):
         pass
 
     @abc.abstractmethod
-    async def update(self, filter: PaginatedFilter, patch: RecordsDataAlias) -> None:
+    async def update(self, filter: Optional[Filter], patch: RecordsDataAlias) -> None:
         pass
 
     @abc.abstractmethod
-    async def delete(self, filter: PaginatedFilter) -> None:
+    async def delete(self, filter: Optional[Filter]) -> None:
         pass
 
     @abc.abstractmethod
     async def aggregate(
-        self, filter: PaginatedFilter, aggregation: Aggregation, limit: Optional[int]
+        self, filter: Optional[Filter], aggregation: Aggregation, limit: Optional[int]
     ) -> List[AggregateResult]:
         pass

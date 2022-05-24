@@ -1,5 +1,5 @@
 import abc
-from typing import List, Optional, cast
+from typing import List, Optional, Union, cast
 
 from typing_extensions import Self
 
@@ -16,6 +16,7 @@ from forestadmin.datasource_toolkit.interfaces.query.aggregation import (
 from forestadmin.datasource_toolkit.interfaces.query.filter.paginated import (
     PaginatedFilter,
 )
+from forestadmin.datasource_toolkit.interfaces.query.filter.unpaginated import Filter
 from forestadmin.datasource_toolkit.interfaces.query.projections import Projection
 from forestadmin.datasource_toolkit.interfaces.records import RecordsDataAlias
 
@@ -44,14 +45,16 @@ class CollectionDecorator(Collection, abc.ABC):
             self._last_child_schema = child_schema
         return child_schema
 
-    async def execute(self, name: str, data: RecordsDataAlias, filter: Optional[PaginatedFilter]) -> ActionResult:
+    async def execute(self, name: str, data: RecordsDataAlias, filter: Optional[Filter]) -> ActionResult:
         refined_filter = await self.refine_filter(filter)
+        if refined_filter:
+            refined_filter = cast(Filter, refined_filter)
         return await self.child_collection.execute(name, data, refined_filter)
 
-    async def get_form(
-        self, name: str, data: Optional[RecordsDataAlias], filter: Optional[PaginatedFilter]
-    ) -> ActionField:
+    async def get_form(self, name: str, data: Optional[RecordsDataAlias], filter: Optional[Filter]) -> ActionField:
         refined_filter = await self.refine_filter(filter)
+        if refined_filter:
+            refined_filter = cast(Filter, refined_filter)
         return await self.child_collection.get_form(name, data, refined_filter)
 
     async def create(self, data: List[RecordsDataAlias]) -> List[RecordsDataAlias]:
@@ -61,24 +64,26 @@ class CollectionDecorator(Collection, abc.ABC):
         refined_filter = cast(PaginatedFilter, await self.refine_filter(filter))
         return await self.child_collection.list(refined_filter, projection)
 
-    async def update(self, filter: PaginatedFilter, patch: RecordsDataAlias) -> None:
-        refined_filter = cast(PaginatedFilter, await self.refine_filter(filter))
+    async def update(self, filter: Optional[Filter], patch: RecordsDataAlias) -> None:
+        refined_filter = cast(Filter, await self.refine_filter(filter))
         return await self.child_collection.update(refined_filter, patch)
 
-    async def delete(self, filter: PaginatedFilter) -> None:
-        refined_filter = cast(PaginatedFilter, await self.refine_filter(filter))
+    async def delete(self, filter: Optional[Filter]) -> None:
+        refined_filter = cast(Filter, await self.refine_filter(filter))
         await self.child_collection.delete(refined_filter)
 
     async def aggregate(
-        self, filter: PaginatedFilter, aggregation: Aggregation, limit: Optional[int]
+        self, filter: Optional[Filter], aggregation: Aggregation, limit: Optional[int]
     ) -> List[AggregateResult]:
-        refined_filter = cast(PaginatedFilter, await self.refine_filter(filter))
+        refined_filter = cast(Filter, await self.refine_filter(filter))
         return await self.child_collection.aggregate(refined_filter, aggregation, limit)
 
     def mark_schema_as_dirty(self) -> None:
         self._last_schema = None
 
-    async def refine_filter(self, filter: Optional[PaginatedFilter]) -> Optional[PaginatedFilter]:
+    async def refine_filter(
+        self, filter: Optional[Union[PaginatedFilter, Filter]]
+    ) -> Optional[Union[PaginatedFilter, Filter]]:
         return filter
 
     @abc.abstractmethod

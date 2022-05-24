@@ -1,5 +1,7 @@
 from functools import reduce
-from typing import Callable, DefaultDict, Dict, List, Optional, Union, cast
+from typing import Any, Callable, DefaultDict, Dict, List, Optional, Union, cast
+
+from typing_extensions import TypeGuard
 
 from forestadmin.datasource_toolkit.exceptions import DatasourceToolkitException
 from forestadmin.datasource_toolkit.interfaces.fields import RelationAlias
@@ -89,3 +91,7 @@ class Projection(list[str]):
                 result[relation] = projection.__reproject(record["relation"])
 
         return result
+
+
+def is_projection(projection: Any) -> TypeGuard[Projection]:
+    return isinstance(projection, Projection)

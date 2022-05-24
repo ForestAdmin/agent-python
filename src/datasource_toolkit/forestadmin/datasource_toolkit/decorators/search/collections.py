@@ -29,6 +29,7 @@ from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.leaf i
 from forestadmin.datasource_toolkit.interfaces.query.filter.paginated import (
     PaginatedFilter,
 )
+from forestadmin.datasource_toolkit.interfaces.query.filter.unpaginated import Filter
 from forestadmin.datasource_toolkit.validations.type_getter import TypeGetter
 
 
@@ -46,7 +47,9 @@ class SearchCollectionDecorator(CollectionDecorator):
         schema["searchable"] = True
         return schema
 
-    async def refine_filter(self, filter: Optional[PaginatedFilter]) -> Optional[PaginatedFilter]:
+    async def refine_filter(
+        self, filter: Optional[Union[PaginatedFilter, Filter]]
+    ) -> Optional[Union[PaginatedFilter, Filter]]:
 
         if not filter or not filter.search or self.child_collection.schema["searchable"]:
             return filter

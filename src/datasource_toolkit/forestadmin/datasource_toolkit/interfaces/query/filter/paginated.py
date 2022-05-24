@@ -1,16 +1,24 @@
-from typing import cast
+from typing import Any, List, Optional, cast
+
+from typing_extensions import TypeGuard
 
 from forestadmin.datasource_toolkit.interfaces.query.filter.unpaginated import (
     BaseFilter,
     FilterComponent,
+    PlainFilter,
 )
-from forestadmin.datasource_toolkit.interfaces.query.page import Page
-from forestadmin.datasource_toolkit.interfaces.query.sort import Sort
+from forestadmin.datasource_toolkit.interfaces.query.page import Page, PlainPage
+from forestadmin.datasource_toolkit.interfaces.query.sort import PlainSortClause, Sort
 
 
 class PaginatedFilterComponent(FilterComponent, total=False):
     page: Page
     sort: Sort
+
+
+class PlainPaginatedFilter(PlainFilter):
+    sort: Optional[List[PlainSortClause]]
+    page: Optional[PlainPage]
 
 
 class PaginatedFilter(BaseFilter[PaginatedFilterComponent]):
@@ -32,3 +40,7 @@ class PaginatedFilter(BaseFilter[PaginatedFilterComponent]):
         if self.sort:
             args["sort"] = self.sort
         return cast(PaginatedFilterComponent, args)
+
+
+def is_paginated_filter(filter: Any) -> TypeGuard[PaginatedFilter]:
+    return isinstance(filter, PaginatedFilter)

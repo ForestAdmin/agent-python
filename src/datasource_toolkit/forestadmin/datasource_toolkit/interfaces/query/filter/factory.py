@@ -108,10 +108,7 @@ class FilterFactory:
                 origin_value,
             )
 
-        target = cast(
-            Collection,
-            collection.datasource.get_collection(relation["foreign_collection"]),
-        )
+        target = collection.datasource.get_collection(relation["foreign_collection"])
 
         records = await target.list(
             await cls.make_foreign_filter(collection, id, relation_name, base_foreign_key_filter),
@@ -148,10 +145,7 @@ class FilterFactory:
         if isinstance(relation, OneToMany):
             origin_tree = ConditionTreeLeaf(relation["origin_key"], Operator.EQUAL, origin_value)
         else:
-            through = cast(
-                Collection,
-                collection.datasource.get_collection(relation["through_collection"]),
-            )
+            through = collection.datasource.get_collection(relation["through_collection"])
             through_tree = ConditionTreeLeaf(relation["origin_key"], Operator.EQUAL, origin_value)
             records = await through.list(
                 PaginatedFilter({"condition_tree": through_tree}),
