@@ -3,13 +3,7 @@ from datetime import date
 from unittest import mock
 
 import pytest
-
-from forestadmin.datasource_toolkit.interfaces.query.aggregation import (
-    Aggregation,
-    Aggregator,
-    DateOperation,
-    Summary,
-)
+from forestadmin.datasource_toolkit.interfaces.query.aggregation import Aggregation, Aggregator, DateOperation, Summary
 from forestadmin.datasource_toolkit.interfaces.query.projections import Projection
 from forestadmin.datasource_toolkit.interfaces.records import RecordsDataAlias
 
@@ -85,7 +79,7 @@ def test_projection():
             "operation": Aggregator.COUNT,
         }
     )
-    assert aggregation.projection == Projection([])
+    assert aggregation.projection == Projection()
 
     aggregation = Aggregation(
         {
@@ -93,7 +87,7 @@ def test_projection():
             "operation": Aggregator.SUM,
         }
     )
-    assert aggregation.projection == Projection(["stock"])
+    assert aggregation.projection == Projection("stock")
 
     aggregation = Aggregation(
         {
@@ -102,7 +96,7 @@ def test_projection():
             "groups": [{"field": "updated_at", "operation": DateOperation.MONTH}],
         }
     )
-    assert aggregation.projection == Projection(["updated_at"])
+    assert aggregation.projection == Projection("updated_at")
 
     aggregation = Aggregation(
         {
@@ -111,7 +105,7 @@ def test_projection():
             "groups": [{"field": "updated_at", "operation": DateOperation.MONTH}],
         }
     )
-    assert aggregation.projection == Projection(["stock", "updated_at"])
+    assert aggregation.projection == Projection("stock", "updated_at")
 
 
 @mock.patch("forestadmin.datasource_toolkit.interfaces.query.aggregation.Aggregation._format_summaries")

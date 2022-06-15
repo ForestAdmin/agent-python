@@ -4,11 +4,10 @@ import zoneinfo
 from datetime import datetime, timedelta
 from typing import Any, Callable, Dict, List, Optional, TypedDict
 
-from typing_extensions import NotRequired, Self, TypeGuard
-
 from forestadmin.datasource_toolkit.interfaces.query.projections import Projection
 from forestadmin.datasource_toolkit.interfaces.records import RecordsDataAlias
 from forestadmin.datasource_toolkit.utils.records import RecordUtils
+from typing_extensions import NotRequired, Self, TypeGuard
 
 
 class Aggregator(enum.Enum):
@@ -68,7 +67,7 @@ class Aggregation:
     @property
     def projection(self) -> Projection:
         aggregate_fields = [self.field, *[group["field"] for group in self.groups]]
-        return Projection([field for field in aggregate_fields if field is not None])
+        return Projection(*[field for field in aggregate_fields if field is not None])
 
     def apply(self, records: List[RecordsDataAlias], timezone: str) -> List[AggregateResult]:
         return self._format_summaries(self._create_summaries(records, timezone))

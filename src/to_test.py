@@ -4,35 +4,16 @@ import enum
 from forestadmin.datasource_sqlalchemy.datasource import SqlAlchemyDatasource
 from forestadmin.datasource_toolkit.interfaces.fields import Operator
 from forestadmin.datasource_toolkit.interfaces.query.aggregation import Aggregation
-from forestadmin.datasource_toolkit.interfaces.query.aggregation import (
-    Aggregator as AggregationOperation,
-)
+from forestadmin.datasource_toolkit.interfaces.query.aggregation import Aggregator as AggregationOperation
 from forestadmin.datasource_toolkit.interfaces.query.aggregation import DateOperation
-from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.branch import (
-    Aggregator,
-    ConditionTreeBranch,
-)
-from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.leaf import (
-    ConditionTreeLeaf,
-)
-from forestadmin.datasource_toolkit.interfaces.query.filter.paginated import (
-    PaginatedFilter,
-)
+from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.branch import Aggregator, ConditionTreeBranch
+from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.leaf import ConditionTreeLeaf
+from forestadmin.datasource_toolkit.interfaces.query.filter.paginated import PaginatedFilter
 from forestadmin.datasource_toolkit.interfaces.query.filter.unpaginated import Filter
 from forestadmin.datasource_toolkit.interfaces.query.page import Page
 from forestadmin.datasource_toolkit.interfaces.query.projections import Projection
 from forestadmin.datasource_toolkit.interfaces.query.sort import Sort
-from sqlalchemy import (
-    Column,
-    DateTime,
-    Enum,
-    ForeignKey,
-    Integer,
-    String,
-    Table,
-    create_engine,
-    func,
-)
+from sqlalchemy import Column, DateTime, Enum, ForeignKey, Integer, String, Table, create_engine, func
 from sqlalchemy.orm import backref, declarative_base, relationship
 
 engine = create_engine("sqlite:///:memory:", echo=True)
@@ -48,9 +29,9 @@ engine = create_engine("sqlite:///:memory:", echo=True)
 # pip install psycopg2
 # docker run --name some-postgres -e POSTGRES_DB=db_test -e POSTGRES_PASSWORD=my-secret-pw \
 # -e POSTGRES_USER=root -p 5467:5432 -d postgres
-engine = create_engine(
-    "postgresql://root:my-secret-pw@localhost:5467/db_test", echo=True
-)
+# engine = create_engine(
+#    "postgresql://root:my-secret-pw@localhost:5467/db_test", echo=True
+# )
 
 # docker run --name some-mssql -e "ACCEPT_EULA=Y" -e "SA_PASSWORD=YourStrong_Passw0rd" \
 # -p 1433:1433 -d mcr.microsoft.com/mssql/server:2019-latest
@@ -116,7 +97,7 @@ async def main():
     Base.metadata.create_all()
     datasource = SqlAlchemyDatasource(Base)
 
-    projection = Projection(["id", "first_name", "parent:first_name", "parent:id"])
+    projection = Projection("id", "first_name", "parent:first_name", "parent:id")
     filter = PaginatedFilter(
         {
             "condition_tree": ConditionTreeBranch(
@@ -130,9 +111,7 @@ async def main():
                                 operator=Operator.EQUAL,
                                 value="valentin",
                             ),
-                            ConditionTreeLeaf(
-                                field="id", operator=Operator.NOT_EQUAL, value="1"
-                            ),
+                            ConditionTreeLeaf(field="id", operator=Operator.NOT_EQUAL, value="1"),
                         ],
                     ),
                     ConditionTreeLeaf(
@@ -140,9 +119,7 @@ async def main():
                         operator=Operator.NOT_EQUAL,
                         value="1",
                     ),
-                    ConditionTreeLeaf(
-                        field="parent:id", operator=Operator.EQUAL, value="1"
-                    ),
+                    ConditionTreeLeaf(field="parent:id", operator=Operator.EQUAL, value="1"),
                 ],
             ),
             "sort": Sort([{"field": "parent:company:id", "ascending": False}]),
@@ -167,9 +144,7 @@ async def main():
     )
 
     place_collection = datasource.collections[3]
-    await place_collection.create(
-        [{"address": "12 av charles de gaulle", "company_id": 1}]
-    )
+    await place_collection.create([{"address": "12 av charles de gaulle", "company_id": 1}])
     await place_collection.create([{"address": "16 av de l'europe", "company_id": 1}])
 
     res = await place_collection.list(
@@ -186,59 +161,35 @@ async def main():
                 "page": Page(limit=2, skip=0),
             }
         ),
-        Projection(["id", "address", "company:name"]),
+        Projection("id", "address", "company:name"),
     )
     print("prout", res)
 
     await place_collection.update(
-        Filter(
-            {
-                "condition_tree": ConditionTreeLeaf(
-                    field="address", operator=Operator.CONTAINS, value="charles"
-                )
-            }
-        ),
+        Filter({"condition_tree": ConditionTreeLeaf(field="address", operator=Operator.CONTAINS, value="charles")}),
         {"address": "test update"},
     )
-    res = await place_collection.list(
-        PaginatedFilter({}), Projection(["id", "address", "company:name"])
-    )
+    res = await place_collection.list(PaginatedFilter({}), Projection("id", "address", "company:name"))
     print(res)
     await place_collection.delete(
-        Filter(
-            {
-                "condition_tree": ConditionTreeLeaf(
-                    field="id", operator=Operator.EQUAL, value="2"
-                )
-            }
-        ),
+        Filter({"condition_tree": ConditionTreeLeaf(field="id", operator=Operator.EQUAL, value="2")}),
     )
-    res = await place_collection.list(
-        PaginatedFilter({}), Projection(["id", "address", "company:name"])
-    )
+    res = await place_collection.list(PaginatedFilter({}), Projection("id", "address", "company:name"))
     print(res)
     res = await company_collection.list(
         PaginatedFilter(
             {
-                "condition_tree": ConditionTreeLeaf(
-                    field="name", operator=Operator.EQUAL, value="company1"
-                ),
+                "condition_tree": ConditionTreeLeaf(field="name", operator=Operator.EQUAL, value="company1"),
             }
         ),
-        Projection(["id", "name", "place:address"]),
+        Projection("id", "name", "place:address"),
     )
     print(res)
     parent_collection = datasource.collections[2]
     await parent_collection.create([{"first_name": "toto", "company_id": "1"}])
 
     res = await child_collection.aggregate(
-        Filter(
-            {
-                "condition_tree": ConditionTreeLeaf(
-                    field="parent:id", operator=Operator.EQUAL, value="1"
-                )
-            }
-        ),
+        Filter({"condition_tree": ConditionTreeLeaf(field="parent:id", operator=Operator.EQUAL, value="1")}),
         Aggregation(
             {
                 "operation": AggregationOperation.COUNT,
@@ -257,9 +208,7 @@ async def main():
     res = await child_collection.aggregate(
         Filter(
             {
-                "condition_tree": ConditionTreeLeaf(
-                    field="parent:company:id", operator=Operator.EQUAL, value="1"
-                ),
+                "condition_tree": ConditionTreeLeaf(field="parent:company:id", operator=Operator.EQUAL, value="1"),
             }
         ),
         Aggregation(

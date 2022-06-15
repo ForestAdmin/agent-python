@@ -3,26 +3,14 @@ from typing import Any, Dict, List, Optional, Tuple, TypedDict
 
 from forestadmin.datasource_sqlalchemy.interfaces import BaseSqlAlchemyCollection
 from forestadmin.datasource_sqlalchemy.utils.aggregation import AggregationFactory
-from forestadmin.datasource_sqlalchemy.utils.relationships import (
-    Relationships,
-    merge_relationships,
-)
+from forestadmin.datasource_sqlalchemy.utils.relationships import Relationships, merge_relationships
 from forestadmin.datasource_sqlalchemy.utils.type_converter import FilterOperator
 from forestadmin.datasource_toolkit.exceptions import DatasourceToolkitException
 from forestadmin.datasource_toolkit.interfaces.query.aggregation import Aggregation
-from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.base import (
-    ConditionTree,
-)
-from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.branch import (
-    Aggregator,
-    ConditionTreeBranch,
-)
-from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.leaf import (
-    ConditionTreeLeaf,
-)
-from forestadmin.datasource_toolkit.interfaces.query.filter.paginated import (
-    PaginatedFilter,
-)
+from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.base import ConditionTree
+from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.branch import Aggregator, ConditionTreeBranch
+from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.leaf import ConditionTreeLeaf
+from forestadmin.datasource_toolkit.interfaces.query.filter.paginated import PaginatedFilter
 from forestadmin.datasource_toolkit.interfaces.query.filter.unpaginated import Filter
 from forestadmin.datasource_toolkit.interfaces.query.projections import Projection
 from forestadmin.datasource_toolkit.interfaces.records import RecordsDataAlias
@@ -42,9 +30,7 @@ class ConditionTreeFactory:
     AGGREGATORS = {Aggregator.AND: and_, Aggregator.OR: or_}
 
     @classmethod
-    def _build_leaf_condition(
-        cls, collection: BaseSqlAlchemyCollection, leaf: ConditionTreeLeaf
-    ) -> Tuple[Any, Any]:
+    def _build_leaf_condition(cls, collection: BaseSqlAlchemyCollection, leaf: ConditionTreeLeaf) -> Tuple[Any, Any]:
         projection = leaf.projection
         columns, relationships = collection.get_columns(projection)
         operator = FilterOperator.get_operator(columns, leaf.operator)
@@ -55,9 +41,7 @@ class ConditionTreeFactory:
         try:
             return cls.AGGREGATORS[aggregator]
         except KeyError:
-            raise DatasourceToolkitException(
-                f"Unable to handle the aggregator {aggregator}"
-            )
+            raise DatasourceToolkitException(f"Unable to handle the aggregator {aggregator}")
 
     @classmethod
     def _build_branch_condition(
@@ -73,16 +57,12 @@ class ConditionTreeFactory:
         return aggregator(*clauses), relationships
 
     @classmethod
-    def _build(
-        cls, collection: BaseSqlAlchemyCollection, condition_tree: ConditionTree
-    ):
+    def _build(cls, collection: BaseSqlAlchemyCollection, condition_tree: ConditionTree):
         if isinstance(condition_tree, ConditionTreeLeaf):
             return cls._build_leaf_condition(collection, condition_tree)
         elif isinstance(condition_tree, ConditionTreeBranch):
             return cls._build_branch_condition(collection, condition_tree)
-        raise ConditionTreeFactoryException(
-            f"Unable to handle the type {condition_tree.__class__}"
-        )
+        raise ConditionTreeFactoryException(f"Unable to handle the type {condition_tree.__class__}")
 
     @classmethod
     def build(cls, collection: BaseSqlAlchemyCollection, condition_tree: ConditionTree):
@@ -100,34 +80,24 @@ class PaginatedFilterOptions(FilterOptions):
 
 class FilterFactory:
     @classmethod
-    def build(
-        cls, collection: BaseSqlAlchemyCollection, filter: Optional[Filter]
-    ) -> FilterOptions:
+    def build(cls, collection: BaseSqlAlchemyCollection, filter: Optional[Filter]) -> FilterOptions:
         res: FilterOptions = {
             "relationships": defaultdict(list),
             "clauses": None,
         }
         if filter and filter.condition_tree:
-            res["clauses"], clauses_relationships = ConditionTreeFactory.build(
-                collection, filter.condition_tree
-            )
-            res["relationships"] = merge_relationships(
-                res["relationships"], clauses_relationships
-            )
+            res["clauses"], clauses_relationships = ConditionTreeFactory.build(collection, filter.condition_tree)
+            res["relationships"] = merge_relationships(res["relationships"], clauses_relationships)
         return res
 
 
 class PaginatedFilterFactory:
     @staticmethod
-    def get_order_by(
-        collection: BaseSqlAlchemyCollection, filter: PaginatedFilter
-    ) -> Tuple[List[Any], Relationships]:
+    def get_order_by(collection: BaseSqlAlchemyCollection, filter: PaginatedFilter) -> Tuple[List[Any], Relationships]:
         relationships: Relationships = defaultdict(list)
         order_clauses: List[Any] = []
         for sort in filter.sort or []:
-            columns, nested_relationships = collection.get_columns(
-                Projection([sort["field"]])
-            )
+            columns, nested_relationships = collection.get_columns(Projection(sort["field"]))
             relationships = merge_relationships(relationships, nested_relationships)
             if sort["ascending"]:
                 order_clauses.append(columns[0].asc())  # type: ignore
@@ -136,9 +106,7 @@ class PaginatedFilterFactory:
         return order_clauses, relationships
 
     @classmethod
-    def build(
-        cls, collection: BaseSqlAlchemyCollection, filter: PaginatedFilter
-    ) -> PaginatedFilterOptions:
+    def build(cls, collection: BaseSqlAlchemyCollection, filter: PaginatedFilter) -> PaginatedFilterOptions:
         filter_ = FilterFactory.build(collection, filter.to_base_filter())
         res: PaginatedFilterOptions = {
             "relationships": filter_["relationships"],
@@ -147,12 +115,8 @@ class PaginatedFilterFactory:
         }
 
         if filter.sort:
-            res["order_by"], order_by_relationships = cls.get_order_by(
-                collection, filter
-            )
-            res["relationships"] = merge_relationships(
-                res["relationships"], order_by_relationships
-            )
+            res["order_by"], order_by_relationships = cls.get_order_by(collection, filter)
+            res["relationships"] = merge_relationships(res["relationships"], order_by_relationships)
         return res
 
 
@@ -176,9 +140,7 @@ class QueryFactory:
 
         if filter:
             options = PaginatedFilterFactory.build(collection, filter)
-            relationships = merge_relationships(
-                relationships, options.get("relationships", {})
-            )
+            relationships = merge_relationships(relationships, options.get("relationships", {}))
 
             if options.get("clauses") is not None:
                 query = query.where(options["clauses"])
@@ -215,15 +177,11 @@ class QueryFactory:
         limit: Optional[int],
     ):
         if collection.mapper:
-            column, relationships = AggregationFactory.build_column(
-                collection, aggregation
-            )
+            column, relationships = AggregationFactory.build_column(collection, aggregation)
             _filter = None
             if filter is not None:
                 _filter = PaginatedFilter.from_base_filter(filter)
-            groups, group_relationships = AggregationFactory.build_group(
-                dialect, collection, aggregation
-            )
+            groups, group_relationships = AggregationFactory.build_group(dialect, collection, aggregation)
             query = cls._build_list(
                 collection,
                 _filter,

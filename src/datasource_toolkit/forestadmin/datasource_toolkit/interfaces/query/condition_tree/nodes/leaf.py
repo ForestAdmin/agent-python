@@ -38,9 +38,7 @@ class OverrideLeafComponents(ConditionTreeComponent, total=False):
 
 
 class ConditionTreeLeaf(ConditionTree):
-    def __init__(
-        self, field: str, operator: Operator, value: Optional[Any] = None
-    ) -> None:
+    def __init__(self, field: str, operator: Operator, value: Optional[Any] = None) -> None:
         super().__init__()
         self.field = field
         self.operator = operator
@@ -63,7 +61,7 @@ class ConditionTreeLeaf(ConditionTree):
 
     @property
     def projection(self) -> Projection:
-        return Projection([self.field])
+        return Projection(self.field)
 
     def inverse(self) -> ConditionTree:
         operator_value: str = self.operator.value
@@ -83,13 +81,9 @@ class ConditionTreeLeaf(ConditionTree):
         elif self.operator == Operator.PRESENT:
             return self.override({"operator": Operator.BLANK})
         else:
-            raise ConditionTreeLeafException(
-                f"Operator '{self.operator}' cannot be inverted."
-            )
+            raise ConditionTreeLeafException(f"Operator '{self.operator}' cannot be inverted.")
 
-    def __handle_replace_tree(
-        self, tree: Union[ConditionTree, ConditionTreeComponent]
-    ) -> "ConditionTree":
+    def __handle_replace_tree(self, tree: Union[ConditionTree, ConditionTreeComponent]) -> "ConditionTree":
         if is_leaf_component(tree):
             return ConditionTreeLeaf.load(tree)
         else:
@@ -121,9 +115,7 @@ class ConditionTreeLeaf(ConditionTree):
     def replace_field(self, field: str) -> "ConditionTreeLeaf":
         return self.override({"field": field})
 
-    def match(
-        self, record: RecordsDataAlias, collection: Collection, timezone: str
-    ) -> bool:
+    def match(self, record: RecordsDataAlias, collection: Collection, timezone: str) -> bool:
         field_value = RecordUtils.get_field_value(record, self.field)
         return {
             Operator.EQUAL: field_value == self.value,
@@ -133,9 +125,7 @@ class ConditionTreeLeaf(ConditionTree):
             Operator.LONGER_THAN: len(cast(str, field_value)) > int(self.value),
             Operator.SHORTER_THAN: len(cast(str, field_value)) < int(self.value),
             Operator.INCLUDES_ALL: self.__includes_all(field_value),
-            Operator.NOT_CONTAINS: not self.inverse().match(
-                record, collection, timezone
-            ),
+            Operator.NOT_CONTAINS: not self.inverse().match(record, collection, timezone),
             Operator.NOT_EQUAL: not self.inverse().match(record, collection, timezone),
         }[self.operator]
 
@@ -166,9 +156,7 @@ class ConditionTreeLeaf(ConditionTree):
         if not value:
             return False
 
-        escaped_pattern: str = re.sub(
-            r"([\.\\\+\*\?\[\^\]\$\(\)\{\}\=\!\<\>\|\:\-])", "\\\1", self.value
-        )
+        escaped_pattern: str = re.sub(r"([\.\\\+\*\?\[\^\]\$\(\)\{\}\=\!\<\>\|\:\-])", "\\\1", self.value)
         escaped_pattern = escaped_pattern.replace("%", ".*").replace("_", ".")
         return (
             re.match(

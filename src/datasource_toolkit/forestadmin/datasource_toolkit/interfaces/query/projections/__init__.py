@@ -14,6 +14,9 @@ class ProjectionException(DatasourceToolkitException):
 
 
 class Projection(list[str]):
+    def __init__(self, *items: Any):
+        super(Projection, self).__init__(items)
+
     @property
     def columns(self) -> List[str]:
         return list(filter(lambda x: ":" not in x, self))
@@ -26,15 +29,11 @@ class Projection(list[str]):
             field = splited[0]
             if len(splited) > 1:
                 relation = splited[1:]
-                relations[field] = Projection([*relations[field], ":".join(relation)])
+                relations[field] = Projection(*relations[field], ":".join(relation))
         return relations
 
-    def replace(
-        self, handler: Callable[[str], Union["Projection", str, List[str]]]
-    ) -> "Projection":
-        def reducer(
-            memo: Projection, paths: Union["Projection", str, List[str]]
-        ) -> Projection:
+    def replace(self, handler: Callable[[str], Union["Projection", str, List[str]]]) -> "Projection":
+        def reducer(memo: Projection, paths: Union["Projection", str, List[str]]) -> Projection:
 
             if isinstance(paths, str):
                 new_paths = [paths]
@@ -65,12 +64,8 @@ class Projection(list[str]):
 
         for relation, projection in self.relations.items():
             schema = cast(RelationAlias, collection.schema["fields"][relation])
-            association = collection.datasource.get_collection(
-                schema["foreign_collection"]
-            )
-            projection_with_pk: Projection = projection.with_pks(association).nest(
-                relation
-            )
+            association = collection.datasource.get_collection(schema["foreign_collection"])
+            projection_with_pk: Projection = projection.with_pks(association).nest(relation)
             for field in projection_with_pk:
                 if field not in result:
                     result.append(field)
@@ -88,9 +83,7 @@ class Projection(list[str]):
 
         return Projection(*map(lambda path: path[len(prefix) + 1 :], self))
 
-    def __reproject(
-        self, record: Optional[RecordsDataAlias] = None
-    ) -> Optional[RecordsDataAlias]:
+    def __reproject(self, record: Optional[RecordsDataAlias] = None) -> Optional[RecordsDataAlias]:
         result: Optional[RecordsDataAlias] = None
         if record:
             result = {}

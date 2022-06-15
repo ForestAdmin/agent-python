@@ -1,10 +1,9 @@
 from typing import Callable, List, TypedDict, Union
 
-from typing_extensions import Self
-
 from forestadmin.datasource_toolkit.interfaces.query.projections import Projection
 from forestadmin.datasource_toolkit.interfaces.records import RecordsDataAlias
 from forestadmin.datasource_toolkit.utils.records import RecordUtils
+from typing_extensions import Self
 
 
 class PlainSortClause(TypedDict):
@@ -18,7 +17,7 @@ ReplaceCallback = Callable[[PlainSortClause], Union["Sort", List[PlainSortClause
 class Sort(list[PlainSortClause]):
     @property
     def projection(self) -> Projection:
-        return Projection([plain_sort["field"] for plain_sort in self])
+        return Projection(*[plain_sort["field"] for plain_sort in self])
 
     def replace_clauses(self, callback: "ReplaceCallback"):
         clauses: List[PlainSortClause] = []
