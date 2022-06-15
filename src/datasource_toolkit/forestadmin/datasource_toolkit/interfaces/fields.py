@@ -1,8 +1,7 @@
 import enum
-from dataclasses import dataclass
 from typing import Any, Dict, List, Literal, Optional, Set, TypedDict, Union
 
-from typing_extensions import TypeGuard
+from typing_extensions import NotRequired, TypeGuard
 
 
 class Operator(enum.Enum):
@@ -103,10 +102,9 @@ class FieldType(enum.Enum):
     MANY_TO_MANY = "ManyToMany"
 
 
-@dataclass
-class Validation:
+class Validation(TypedDict):
     operator: Operator
-    value: Optional[Any]
+    value: NotRequired[Optional[Any]]
 
 
 class Column(TypedDict):

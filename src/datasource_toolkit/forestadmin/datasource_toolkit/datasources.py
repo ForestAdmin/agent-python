@@ -13,7 +13,7 @@ class DatasourceException(DatasourceToolkitException):
 
 class Datasource(DatasourceInterface[BoundCollection]):
     def __init__(self) -> None:
-        self._collections: Dict[str, BoundCollection]
+        self._collections: Dict[str, BoundCollection] = {}
 
     @property
     def collections(self) -> List[BoundCollection]:
@@ -29,5 +29,7 @@ class Datasource(DatasourceInterface[BoundCollection]):
 
     def add_collection(self, collection: BoundCollection) -> None:
         if collection.name in self._collections:
-            raise DatasourceException(f"Collection '{collection.name}' already defined in datasource")
+            raise DatasourceException(
+                f"Collection '{collection.name}' already defined in datasource"
+            )
         self._collections[collection.name] = collection

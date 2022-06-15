@@ -1,13 +1,12 @@
 from functools import reduce
 from typing import Any, Callable, DefaultDict, Dict, List, Optional, Union, cast
 
-from typing_extensions import TypeGuard
-
 from forestadmin.datasource_toolkit.exceptions import DatasourceToolkitException
 from forestadmin.datasource_toolkit.interfaces.fields import RelationAlias
 from forestadmin.datasource_toolkit.interfaces.models.collections import Collection
 from forestadmin.datasource_toolkit.interfaces.records import RecordsDataAlias
 from forestadmin.datasource_toolkit.utils.schema import SchemaUtils
+from typing_extensions import TypeGuard
 
 
 class ProjectionException(DatasourceToolkitException):
@@ -23,13 +22,19 @@ class Projection(list[str]):
     def relations(self) -> Dict[str, "Projection"]:
         relations: Dict[str, Projection] = DefaultDict(Projection)
         for path in self:
-            field, relation = path.split(":")
-            if relation:
-                relations[field] = Projection(*[*relations[field], relation])
+            splited = path.split(":")
+            field = splited[0]
+            if len(splited) > 1:
+                relation = splited[1:]
+                relations[field] = Projection([*relations[field], ":".join(relation)])
         return relations
 
-    def replace(self, handler: Callable[[str], Union["Projection", str, List[str]]]) -> "Projection":
-        def reducer(memo: Projection, paths: Union["Projection", str, List[str]]) -> Projection:
+    def replace(
+        self, handler: Callable[[str], Union["Projection", str, List[str]]]
+    ) -> "Projection":
+        def reducer(
+            memo: Projection, paths: Union["Projection", str, List[str]]
+        ) -> Projection:
 
             if isinstance(paths, str):
                 new_paths = [paths]
@@ -60,8 +65,12 @@ class Projection(list[str]):
 
         for relation, projection in self.relations.items():
             schema = cast(RelationAlias, collection.schema["fields"][relation])
-            association = collection.datasource.get_collection(schema["foreign_collection"])
-            projection_with_pk: Projection = projection.with_pks(association).nest(relation)
+            association = collection.datasource.get_collection(
+                schema["foreign_collection"]
+            )
+            projection_with_pk: Projection = projection.with_pks(association).nest(
+                relation
+            )
             for field in projection_with_pk:
                 if field not in result:
                     result.append(field)
@@ -79,7 +88,9 @@ class Projection(list[str]):
 
         return Projection(*map(lambda path: path[len(prefix) + 1 :], self))
 
-    def __reproject(self, record: Optional[RecordsDataAlias] = None) -> Optional[RecordsDataAlias]:
+    def __reproject(
+        self, record: Optional[RecordsDataAlias] = None
+    ) -> Optional[RecordsDataAlias]:
         result: Optional[RecordsDataAlias] = None
         if record:
             result = {}
