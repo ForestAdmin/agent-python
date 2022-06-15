@@ -1,14 +1,14 @@
-from typing import Any, List, Optional, cast
-
-from typing_extensions import TypeGuard
+from typing import Any, Dict, List, Optional, cast
 
 from forestadmin.datasource_toolkit.interfaces.query.filter.unpaginated import (
     BaseFilter,
+    Filter,
     FilterComponent,
     PlainFilter,
 )
 from forestadmin.datasource_toolkit.interfaces.query.page import Page, PlainPage
 from forestadmin.datasource_toolkit.interfaces.query.sort import PlainSortClause, Sort
+from typing_extensions import TypeGuard
 
 
 class PaginatedFilterComponent(FilterComponent, total=False):
@@ -26,6 +26,31 @@ class PaginatedFilter(BaseFilter[PaginatedFilterComponent]):
         super().__init__(filter)
         self.sort = filter.get("sort")
         self.page = filter.get("page")
+
+    @staticmethod
+    def from_base_filter(filter: Filter) -> "PaginatedFilter":
+        kwargs: Dict[str, Any] = {"sort": None, "page": None}
+        if filter.condition_tree:
+            kwargs["condition_tree"] = filter.condition_tree
+        if filter.search:
+            kwargs["search"] = filter.search
+        if filter.segment:
+            kwargs["segment"] = filter.segment
+        if filter.timezone:
+            kwargs["timezone"] = filter.timezone
+        return PaginatedFilter(PaginatedFilterComponent(**kwargs))
+
+    def to_base_filter(self) -> Filter:
+        kwargs = {}
+        if self.condition_tree:
+            kwargs["condition_tree"] = self.condition_tree
+        if self.search:
+            kwargs["search"] = self.search
+        if self.segment:
+            kwargs["segment"] = self.segment
+        if self.timezone:
+            kwargs["timezone"] = self.timezone
+        return Filter(FilterComponent(**kwargs))
 
     def to_filter_component(self) -> PaginatedFilterComponent:
         paginated_filter_component = {**super().to_filter_component()}
