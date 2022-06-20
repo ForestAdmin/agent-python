@@ -1,8 +1,8 @@
 import re
-from typing import Any, List, Optional, Pattern, Union, cast
+from typing import Any, Callable, List, Optional, Union, cast
 
 from forestadmin.datasource_toolkit.exceptions import DatasourceToolkitException
-from forestadmin.datasource_toolkit.interfaces.fields import LITERAL_OPERATORS, Operator
+from forestadmin.datasource_toolkit.interfaces.fields import LITERAL_OPERATORS, Operator, is_column
 from forestadmin.datasource_toolkit.interfaces.models.collections import Collection
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.base import (
     AsyncReplacerAlias,
@@ -11,6 +11,7 @@ from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.base i
     ConditionTreeComponent,
     ReplacerAlias,
 )
+from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.operators import UNIQUE_OPERATORS
 from forestadmin.datasource_toolkit.interfaces.query.projections import Projection
 from forestadmin.datasource_toolkit.interfaces.records import RecordsDataAlias
 from forestadmin.datasource_toolkit.utils.records import RecordUtils
@@ -28,7 +29,9 @@ class LeafComponents(ConditionTreeComponent):
 
 
 def is_leaf_component(tree: Any) -> TypeGuard[LeafComponents]:
-    return hasattr(tree, "keys") and sorted(tree.keys()) == ["field", "operator"]
+    keys = ["field", "operator"]
+    keys = [keys, [*keys, "value"]]
+    return hasattr(tree, "keys") and sorted(tree.keys()) in keys
 
 
 class OverrideLeafComponents(ConditionTreeComponent, total=False):
@@ -66,15 +69,16 @@ class ConditionTreeLeaf(ConditionTree):
     def inverse(self) -> ConditionTree:
         operator_value: str = self.operator.value
 
-        if f"not_{operator_value}" in Operator.__members__:
+        print([o.value for o in Operator])
+        if f"not_{operator_value}" in [o.value for o in Operator]:
             return self.override(
                 {
-                    "operator": Operator[f"not_{self.operator}"],
+                    "operator": Operator(f"not_{operator_value}"),
                 }
             )
 
         if operator_value.startswith("not_"):
-            return self.override({"operator": Operator[self.operator.value[4:]]})
+            return self.override({"operator": Operator(self.operator.value[4:])})
 
         if self.operator == Operator.BLANK:
             return self.override({"operator": Operator.PRESENT})
@@ -83,7 +87,8 @@ class ConditionTreeLeaf(ConditionTree):
         else:
             raise ConditionTreeLeafException(f"Operator '{self.operator}' cannot be inverted.")
 
-    def __handle_replace_tree(self, tree: Union[ConditionTree, ConditionTreeComponent]) -> "ConditionTree":
+    @classmethod
+    def _handle_replace_tree(cls, tree: Union[ConditionTree, ConditionTreeComponent]) -> "ConditionTree":
         if is_leaf_component(tree):
             return ConditionTreeLeaf.load(tree)
         else:
@@ -91,17 +96,17 @@ class ConditionTreeLeaf(ConditionTree):
 
     def replace(self, handler: ReplacerAlias) -> "ConditionTree":
         tree: Union[ConditionTree, ConditionTreeComponent] = handler(self)
-        return self.__handle_replace_tree(tree)
+        return ConditionTreeLeaf._handle_replace_tree(tree)
 
     async def replace_async(self, handler: AsyncReplacerAlias) -> "ConditionTree":
         tree: Union[ConditionTree, ConditionTreeComponent] = await handler(self)
-        return self.__handle_replace_tree(tree)
+        return ConditionTreeLeaf._handle_replace_tree(tree)
 
     def apply(self, handler: CallbackAlias) -> None:
         return handler(self)
 
     @property
-    def __to_leaf_components(self) -> "LeafComponents":
+    def _to_leaf_components(self) -> "LeafComponents":
         return {
             "field": self.field,
             "operator": self.operator.value,
@@ -109,60 +114,134 @@ class ConditionTreeLeaf(ConditionTree):
         }
 
     def override(self, params: "OverrideLeafComponents") -> "ConditionTreeLeaf":
-        leaf = cast(LeafComponents, {**self.__to_leaf_components, **params})
+        leaf = cast(LeafComponents, {**self._to_leaf_components, **params})
         return ConditionTreeLeaf.load(leaf)
 
     def replace_field(self, field: str) -> "ConditionTreeLeaf":
         return self.override({"field": field})
 
+    def _verify_is_number_values(self, value: Union[float, int]):
+        if not all([(isinstance(v, int) or isinstance(v, float)) for v in [value, self.value]]):
+            raise ConditionTreeLeafException(f"Should be numbers ({value}, {self.value})")
+
+    def _equal(self, value: Any) -> bool:
+        return self.value == value
+
+    def _less_than(self, value: Union[int, float]) -> bool:
+        self._verify_is_number_values(value)
+        return value < self.value  # type: ignore
+
+    def _greater_than(self, value: Union[int, float]) -> bool:
+        self._verify_is_number_values(value)
+        return value > self.value  # type: ignore
+
+    def _longer_than(self, value: str) -> bool:
+        try:
+            return len(value) > self.value  # type: ignore
+        except TypeError:
+            raise ConditionTreeLeafException(
+                f"Should have a string and an integer as argument \
+                 to compare length to something ({value} {self.value}"
+            )
+
+    def _shorter_than(self, value: str) -> bool:
+        try:
+            return len(value) < self.value  # type: ignore
+        except TypeError:
+            raise ConditionTreeLeafException(
+                f"Should have a string and an integer as argument \
+                 to compare length to something ({value} {self.value}"
+            )
+
+    def _not_equal_not_contains(
+        self, record: RecordsDataAlias, collection: Collection, timezone: str
+    ) -> Callable[[Any], bool]:
+        def wrapper(value: Any) -> bool:
+            return not self.inverse().match(record, collection, timezone)
+
+        return wrapper
+
     def match(self, record: RecordsDataAlias, collection: Collection, timezone: str) -> bool:
+        from forestadmin.datasource_toolkit.utils.collections import CollectionUtils
+
         field_value = RecordUtils.get_field_value(record, self.field)
-        return {
-            Operator.EQUAL: field_value == self.value,
-            Operator.LESS_THAN: field_value < self.value,
-            Operator.GREATER_THAN: field_value > self.value,
-            Operator.LIKE: self.__like(field_value),
-            Operator.LONGER_THAN: len(cast(str, field_value)) > int(self.value),
-            Operator.SHORTER_THAN: len(cast(str, field_value)) < int(self.value),
-            Operator.INCLUDES_ALL: self.__includes_all(field_value),
-            Operator.NOT_CONTAINS: not self.inverse().match(record, collection, timezone),
-            Operator.NOT_EQUAL: not self.inverse().match(record, collection, timezone),
-        }[self.operator]
+        not_equal_not_contains = self._not_equal_not_contains(record, collection, timezone)
+        try:
+            return {
+                Operator.EQUAL: self._equal,
+                Operator.LESS_THAN: self._less_than,
+                Operator.GREATER_THAN: self._greater_than,
+                Operator.LIKE: self._like,
+                Operator.LONGER_THAN: self._longer_than,
+                Operator.SHORTER_THAN: self._shorter_than,
+                Operator.INCLUDES_ALL: self._includes_all,
+                Operator.NOT_CONTAINS: not_equal_not_contains,
+                Operator.NOT_EQUAL: not_equal_not_contains,
+            }[self.operator](field_value)
+        except KeyError:
+            from forestadmin.datasource_toolkit.interfaces.query.condition_tree.equivalence import (
+                ConditionTreeEquivalent,
+            )
+
+            column_type = CollectionUtils.get_field_schema(collection, self.field)
+            if is_column(column_type):
+                equivalent_tree = ConditionTreeEquivalent.get_equivalent_tree(
+                    self,
+                    UNIQUE_OPERATORS,
+                    column_type["column_type"],
+                    timezone,
+                )
+                if equivalent_tree:
+                    return equivalent_tree.match(record, collection, timezone)
+            else:
+                raise ConditionTreeLeafException(
+                    f"You can't find an equivalent for this kind of field ({column_type['type']})"
+                )
+        return False
 
     def unnest(self) -> "ConditionTreeLeaf":
-        _, name = self.field.split(":")
-        return self.override(
-            {
-                "field": name,
-            }
-        )
+        splited = self.field.split(":")
+        try:
+            return self.override(
+                {
+                    "field": splited[1],
+                }
+            )
+        except IndexError:
+            raise ConditionTreeLeafException(f"Unable to unset {self.field}")
 
     def nest(self, prefix: str) -> "ConditionTree":
         name = self.field
         if prefix:
             name = f"{prefix}:{name}"
+        else:
+            raise ConditionTreeLeafException("Unable to nest with an empty prefix")
         return self.override(
             {
                 "field": name,
             }
         )
 
-    def __includes_all(self, value: Any) -> bool:
+    def _includes_all(self, value: Any) -> bool:
         self_values = cast(List[Any], self.value)
         field_values = cast(List[Any], value)
         return all([value in self_values for value in field_values])
 
-    def __like(self, value: str) -> bool:
+    def _like(self, value: str) -> bool:
         if not value:
             return False
 
-        escaped_pattern: str = re.sub(r"([\.\\\+\*\?\[\^\]\$\(\)\{\}\=\!\<\>\|\:\-])", "\\\1", self.value)
+        escaped_pattern: str = re.sub(
+            r"([\.\\\+\*\?\[\^\]\$\(\)\{\}\=\!\<\>\|\:\-])",
+            "\\\1",  # type: ignore
+            self.value,  # type: ignore
+        )
         escaped_pattern = escaped_pattern.replace("%", ".*").replace("_", ".")
         return (
             re.match(
-                cast(Pattern[str], f"^{escaped_pattern}$"),
+                f"^{escaped_pattern}$",
                 value,
-                cast(re.RegexFlag, "gi"),
+                re.I,
             )
             is not None
         )

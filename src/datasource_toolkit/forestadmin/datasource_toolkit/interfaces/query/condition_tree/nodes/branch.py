@@ -2,8 +2,6 @@ import enum
 from functools import reduce
 from typing import Any, List, Literal, Union
 
-from typing_extensions import Self, TypeGuard
-
 from forestadmin.datasource_toolkit.interfaces.models.collections import Collection
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.base import (
     AsyncReplacerAlias,
@@ -13,12 +11,10 @@ from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.base i
     ConditionTreeException,
     ReplacerAlias,
 )
-from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.leaf import (
-    ConditionTreeLeaf,
-    LeafComponents,
-)
+from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.leaf import ConditionTreeLeaf, LeafComponents
 from forestadmin.datasource_toolkit.interfaces.query.projections import Projection
 from forestadmin.datasource_toolkit.interfaces.records import RecordsDataAlias
+from typing_extensions import Self, TypeGuard
 
 
 class Aggregator(enum.Enum):
@@ -36,7 +32,7 @@ class BranchComponents(ConditionTreeComponent):
 
 def is_branch_component(tree: Any) -> TypeGuard[BranchComponents]:
     return hasattr(tree, "keys") and sorted(tree.keys()) == [
-        "aggregators",
+        "aggregator",
         "conditions",
     ]
 
@@ -93,7 +89,7 @@ class ConditionTreeBranch(ConditionTree):
     def nest(self, prefix: str) -> "ConditionTreeBranch":
         return ConditionTreeBranch(self.aggregator, [condition.nest(prefix) for condition in self.conditions])
 
-    def __get_prefix(self) -> str:
+    def _get_prefix(self) -> str:
         prefixes: List[str] = []
 
         def __split(tree: ConditionTree) -> None:
@@ -106,7 +102,7 @@ class ConditionTreeBranch(ConditionTree):
             raise ConditionTreeException("Cannot unnest condition tree")
         return prefixes[0]
 
-    def __remove_prefix(self, prefix: str) -> ConditionTree:
+    def _remove_prefix(self, prefix: str) -> ConditionTree:
         def __rename(tree: ConditionTree) -> ConditionTree:
             if isinstance(tree, ConditionTreeLeaf):
                 return tree.replace_field(tree.field.removeprefix(f"{prefix}:"))
@@ -115,5 +111,6 @@ class ConditionTreeBranch(ConditionTree):
         return self.replace(__rename)
 
     def unnest(self) -> ConditionTree:
-        prefix = self.__get_prefix()
-        return self.__remove_prefix(prefix)
+        prefix = self._get_prefix()
+        print(prefix)
+        return self._remove_prefix(prefix)

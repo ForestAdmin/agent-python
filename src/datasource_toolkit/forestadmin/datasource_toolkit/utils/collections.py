@@ -2,21 +2,10 @@ from typing import Union, cast
 
 from forestadmin.datasource_toolkit.exceptions import DatasourceToolkitException
 from forestadmin.datasource_toolkit.interfaces.collections import Collection
-from forestadmin.datasource_toolkit.interfaces.fields import (
-    FieldAlias,
-    RelationAlias,
-    is_many_to_one,
-    is_one_to_one,
-)
-from forestadmin.datasource_toolkit.interfaces.models.collections import (
-    Collection as CollectionModel,
-)
-from forestadmin.datasource_toolkit.interfaces.query.condition_tree.factory import (
-    ConditionTreeFactory,
-)
-from forestadmin.datasource_toolkit.interfaces.query.filter.paginated import (
-    PaginatedFilter,
-)
+from forestadmin.datasource_toolkit.interfaces.fields import FieldAlias, RelationAlias, is_many_to_one, is_one_to_one
+from forestadmin.datasource_toolkit.interfaces.models.collections import Collection as CollectionModel
+from forestadmin.datasource_toolkit.interfaces.query.condition_tree.factory import ConditionTreeFactory
+from forestadmin.datasource_toolkit.interfaces.query.filter.paginated import PaginatedFilter
 from forestadmin.datasource_toolkit.interfaces.query.projections import Projection
 from forestadmin.datasource_toolkit.interfaces.records import CompositeIdAlias
 from forestadmin.datasource_toolkit.utils.schema import SchemaUtils
@@ -31,8 +20,12 @@ class CollectionUtils:
     def get_field_schema(cls, collection: CollectionModel, path: str) -> FieldAlias:
 
         fields = collection.schema["fields"]
-        field_name, sub_path = path.split(":")
-
+        field_name = path
+        sub_path = None
+        splited = path.split(":")
+        if len(splited) > 1:
+            field_name = splited[0]
+            sub_path = splited[1]
         try:
             schema = fields[field_name]
         except KeyError:

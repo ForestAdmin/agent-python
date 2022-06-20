@@ -45,8 +45,8 @@ class Projection(list[str]):
         return reduce(reducer, handled, Projection())
 
     def union(self, *projections: Union["Projection", List[str]]) -> "Projection":
-        fields: List[str] = reduce(lambda x, y: [*x, *y], [*self, *projections], [])
-        return Projection(*set(fields))
+        fields: List[str] = reduce(lambda x, y: [*x, *y], [self, *projections], [])
+        return Projection(*sorted(set(fields)))
 
     def apply(self, records: List[RecordsDataAlias]) -> List[RecordsDataAlias]:
         results: List[RecordsDataAlias] = []
