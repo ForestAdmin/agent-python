@@ -465,7 +465,13 @@ def test_condition_tree_leaf_unnest(mock_override: mock.MagicMock):
     assert tree.unnest() == ConditionTreeLeaf(field="subtest", operator=Operator.BLANK)
     mock_override.assert_called_once_with({"field": "subtest"})
 
-    tree.field = "test"
+    mock_override.reset_mock()
+    mock_override.return_value = ConditionTreeLeaf(field="test:subtest", operator=Operator.BLANK)
+    tree = ConditionTreeLeaf(field="test1:test:subtest", operator=Operator.BLANK)
+    assert tree.unnest() == ConditionTreeLeaf(field="test:subtest", operator=Operator.BLANK)
+    mock_override.assert_called_once_with({"field": "test:subtest"})
+
+    tree = ConditionTreeLeaf(field="test", operator=Operator.BLANK)
     with pytest.raises(ConditionTreeLeafException):
         tree.unnest()
 

@@ -10,30 +10,16 @@ from forestadmin.datasource_toolkit.interfaces.fields import (
     is_one_to_many,
     is_one_to_one,
 )
-from forestadmin.datasource_toolkit.interfaces.models.collections import (
-    CollectionSchema,
-    Datasource,
-)
-from forestadmin.datasource_toolkit.interfaces.query.aggregation import (
-    AggregateResult,
-    Aggregation,
-)
-from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.base import (
-    ConditionTree,
-)
-from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.leaf import (
-    ConditionTreeLeaf,
-)
+from forestadmin.datasource_toolkit.interfaces.models.collections import CollectionSchema, Datasource
+from forestadmin.datasource_toolkit.interfaces.query.aggregation import AggregateResult, Aggregation
+from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.base import ConditionTree
+from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.leaf import ConditionTreeLeaf
 from forestadmin.datasource_toolkit.interfaces.query.filter.paginated import (
     PaginatedFilter,
     PaginatedFilterComponent,
     is_paginated_filter,
 )
-from forestadmin.datasource_toolkit.interfaces.query.filter.unpaginated import (
-    Filter,
-    FilterComponent,
-    is_filter,
-)
+from forestadmin.datasource_toolkit.interfaces.query.filter.unpaginated import Filter, FilterComponent, is_filter
 from forestadmin.datasource_toolkit.interfaces.query.projections import Projection
 from forestadmin.datasource_toolkit.interfaces.query.sort import PlainSortClause
 from forestadmin.datasource_toolkit.interfaces.records import RecordsDataAlias
@@ -140,7 +126,7 @@ class RenameCollectionDecorator(CollectionDecorator):
             schema = self.schema["fields"][self_field]
             if is_many_to_many(schema) or is_one_to_many(schema) or is_one_to_one(schema) or is_many_to_one(schema):
                 relation = self.datasource.get_collection(schema["foreign_collection"])
-                return f"{self_field}:{relation.path_from_child_collection(related_field)}"
+                return f"{self_field}:{relation.path_from_child_collection(':'.join(related_field))}"
             else:
                 raise RenameCollectionException(f"The field {self_field} is not a relation")
         return self_field

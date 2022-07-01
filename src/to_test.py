@@ -8,6 +8,7 @@ from forestadmin.datasource_toolkit.interfaces.query.aggregation import Aggregat
 from forestadmin.datasource_toolkit.interfaces.query.aggregation import DateOperation
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.branch import Aggregator, ConditionTreeBranch
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.leaf import ConditionTreeLeaf
+from forestadmin.datasource_toolkit.interfaces.query.filter.factory import FilterFactory
 from forestadmin.datasource_toolkit.interfaces.query.filter.paginated import PaginatedFilter
 from forestadmin.datasource_toolkit.interfaces.query.filter.unpaginated import Filter
 from forestadmin.datasource_toolkit.interfaces.query.page import Page
@@ -16,7 +17,7 @@ from forestadmin.datasource_toolkit.interfaces.query.sort import Sort
 from sqlalchemy import Column, DateTime, Enum, ForeignKey, Integer, String, Table, create_engine, func
 from sqlalchemy.orm import backref, declarative_base, relationship
 
-engine = create_engine("sqlite:///:memory:", echo=True)
+# engine = create_engine("sqlite:///:memory:", echo=True)
 
 # pip install pymysql
 # docker run --name some-mysql -p 3306:3306 -e MYSQL_DATABASE=db_test -e MYSQL_ROOT_PASSWORD=my-secret-pw -d mysql
@@ -29,9 +30,7 @@ engine = create_engine("sqlite:///:memory:", echo=True)
 # pip install psycopg2
 # docker run --name some-postgres -e POSTGRES_DB=db_test -e POSTGRES_PASSWORD=my-secret-pw \
 # -e POSTGRES_USER=root -p 5467:5432 -d postgres
-# engine = create_engine(
-#    "postgresql://root:my-secret-pw@localhost:5467/db_test", echo=True
-# )
+engine = create_engine("postgresql://root:my-secret-pw@localhost:5467/db_test", echo=True)
 
 # docker run --name some-mssql -e "ACCEPT_EULA=Y" -e "SA_PASSWORD=YourStrong_Passw0rd" \
 # -p 1433:1433 -d mcr.microsoft.com/mssql/server:2019-latest
@@ -127,11 +126,14 @@ async def main():
         }
     )
 
-    child_collection = datasource.collections[0]
+    child_collection = datasource.get_collection("child")
+    print(child_collection.schema["fields"])
     res = await child_collection.list(filter, projection)
     print(res)
 
-    company_collection = datasource.collections[1]
+    await child_collection.create([{"age": 12, "first_name": "toto", "gender": "M"}])
+
+    company_collection = datasource.get_collection("company")
     await company_collection.create(
         [
             {
@@ -143,7 +145,7 @@ async def main():
         ]
     )
 
-    place_collection = datasource.collections[3]
+    place_collection = datasource.get_collection("place")
     await place_collection.create([{"address": "12 av charles de gaulle", "company_id": 1}])
     await place_collection.create([{"address": "16 av de l'europe", "company_id": 1}])
 
@@ -233,6 +235,37 @@ async def main():
         1,
     )
     print(res)
+
+    association_collection = datasource.collections[-1]
+    res = await association_collection.list(PaginatedFilter({}), Projection("child_id", "parent_id"))
+    print("\n\n\n", association_collection)
+
+    # await association_collection.create([{'child_id': 1, 'parent_id': 2}])
+    res = await association_collection.list(PaginatedFilter({}), Projection("child_id", "parent_id"))
+    print(res)
+
+    res = await FilterFactory.make_through_filter(
+        child_collection,
+        [1],
+        "parent",
+        PaginatedFilter(
+            {"search": "a", "timezone": "UTC", "condition_tree": ConditionTreeLeaf("company_id", Operator.EQUAL, 1)}
+        ),
+    )
+    print(res.condition_tree)
+
+    res = await FilterFactory.make_foreign_filter(
+        company_collection,
+        [1],
+        "parents",
+        PaginatedFilter(
+            {
+                "timezone": "UTC",
+            }
+        ),
+    )
+
+    print("\n\n", res.condition_tree)
 
 
 if __name__ == "__main__":

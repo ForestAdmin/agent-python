@@ -1,17 +1,10 @@
 from typing import Dict, List
 
-from build.lib.build.lib.forestadmin.datasource_toolkit.datasources import (
-    DatasourceException,
-)
-from forestadmin.datasource_toolkit.datasources import Datasource
+from forestadmin.datasource_toolkit.datasources import Datasource, DatasourceException
 from forestadmin.datasource_toolkit.interfaces.actions import Action
-from forestadmin.datasource_toolkit.interfaces.collections import (
-    Collection as CollectionInterface,
-)
+from forestadmin.datasource_toolkit.interfaces.collections import Collection as CollectionInterface
 from forestadmin.datasource_toolkit.interfaces.fields import FieldAlias
-from forestadmin.datasource_toolkit.interfaces.models.collections import (
-    CollectionSchema,
-)
+from forestadmin.datasource_toolkit.interfaces.models.collections import CollectionSchema
 from typing_extensions import Self
 
 
@@ -55,6 +48,12 @@ class Collection(CollectionInterface):
         if name in self.schema["fields"]:
             raise CollectionException(f'Field "{name}" already defined in collection')
         self.schema["fields"][name] = field
+
+    def get_field(self, name: str):
+        try:
+            return self.schema["fields"][name]
+        except KeyError:
+            raise CollectionException(f"No such field {name} in the collection {self.name}")
 
     def add_fields(self, fields: Dict[str, FieldAlias]):
         for name, field in fields.items():

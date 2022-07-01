@@ -1,5 +1,6 @@
 from typing import Callable, List, TypedDict, Union
 
+from forestadmin.datasource_toolkit.exceptions import DatasourceToolkitException
 from forestadmin.datasource_toolkit.interfaces.query.projections import Projection
 from forestadmin.datasource_toolkit.interfaces.records import RecordsDataAlias
 from forestadmin.datasource_toolkit.utils.records import RecordUtils
@@ -12,6 +13,10 @@ class PlainSortClause(TypedDict):
 
 
 ReplaceCallback = Callable[[PlainSortClause], Union["Sort", List[PlainSortClause], PlainSortClause]]
+
+
+class SortException(DatasourceToolkitException):
+    pass
 
 
 class Sort(list[PlainSortClause]):
@@ -27,7 +32,7 @@ class Sort(list[PlainSortClause]):
                 clauses.append(*clause)
             else:
                 clauses.append(clause)
-        return Sort(*clauses)
+        return Sort(clauses)
 
     def nest(self, prefix: str) -> Self:
         if prefix:
@@ -41,15 +46,18 @@ class Sort(list[PlainSortClause]):
         return self
 
     def unnest(self) -> Self:
-        prefix, _ = self[0]["field"].split(":")
+        splited = self[0]["field"].split(":")
+        prefix = splited[0]
+        plain_sorts: List[PlainSortClause] = []
         for plain_sort in self:
             if not plain_sort["field"].startswith(prefix):
-                raise
-            plain_sort["field"].removeprefix(f"{prefix}:")
-        return self
+                raise SortException("Cannot unnest sort")
+            plain_sort["field"] = plain_sort["field"].removeprefix(f"{prefix}:")
+            plain_sorts.append(plain_sort)
+        return Sort(plain_sorts)
 
     def apply(self, records: List[RecordsDataAlias]) -> List[RecordsDataAlias]:
-        for plain_sort in self:
+        for plain_sort in self[::-1]:
             records.sort(
                 key=lambda record: RecordUtils.get_field_value(record, plain_sort["field"]),
                 reverse=not plain_sort["ascending"],

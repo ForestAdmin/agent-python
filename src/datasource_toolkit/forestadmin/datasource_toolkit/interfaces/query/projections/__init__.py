@@ -42,6 +42,7 @@ class Projection(list[str]):
             return memo.union(new_paths)
 
         handled = map(handler, self)
+
         return reduce(reducer, handled, Projection())
 
     def union(self, *projections: Union["Projection", List[str]]) -> "Projection":
@@ -51,7 +52,7 @@ class Projection(list[str]):
     def apply(self, records: List[RecordsDataAlias]) -> List[RecordsDataAlias]:
         results: List[RecordsDataAlias] = []
         for record in records:
-            result = self.__reproject(record)
+            result = self._reproject(record)
             if result:
                 results.append(result)
         return results
@@ -77,22 +78,29 @@ class Projection(list[str]):
         return self
 
     def unnest(self) -> "Projection":
-        prefix, _ = self[0].split(":")
+        splited = self[0].split(":")
+        prefix = splited[0]
         if not all([path.startswith(prefix) for path in self]):
             raise ProjectionException("Cannot unnest projection.")
 
         return Projection(*map(lambda path: path[len(prefix) + 1 :], self))
 
-    def __reproject(self, record: Optional[RecordsDataAlias] = None) -> Optional[RecordsDataAlias]:
+    def _reproject(self, record: Optional[RecordsDataAlias] = None) -> Optional[RecordsDataAlias]:
         result: Optional[RecordsDataAlias] = None
         if record:
             result = {}
 
             for column in self.columns:
-                result[column] = record[column]
+                try:
+                    result[column] = record[column]
+                except KeyError:
+                    raise ProjectionException(f"the column ‘{column}‘ is missing in your record")
 
             for relation, projection in self.relations.items():
-                result[relation] = projection.__reproject(record["relation"])
+                try:
+                    result[relation] = projection._reproject(record[relation])
+                except KeyError:
+                    raise ProjectionException(f"the relation ‘{relation}‘ is missing in your record")
 
         return result
 

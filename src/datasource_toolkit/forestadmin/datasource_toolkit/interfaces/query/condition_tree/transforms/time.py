@@ -2,7 +2,7 @@
 import enum
 import sys
 from datetime import datetime, timedelta
-from typing import Any, Callable, Dict, List, NamedTuple, Optional, cast
+from typing import Any, Callable, Dict, List, NamedTuple, Optional, Set, cast
 
 import pandas as pd
 from forestadmin.datasource_toolkit.interfaces.fields import Operator, PrimitiveType
@@ -177,7 +177,6 @@ def previous_interval(
 
 def format(value: datetime) -> str:
     utc_datetime: datetime = value.astimezone(tz=zoneinfo.ZoneInfo("UTC"))
-    print("fuck", utc_datetime)
     return utc_datetime.isoformat(timespec="seconds")
 
 
@@ -210,3 +209,17 @@ def time_transforms(shift: int = 0) -> Dict[Operator, List[Alternative]]:
             )
         ],
     }
+
+
+SHIFTED_OPERATORS: Set[Operator] = {
+    Operator.PREVIOUS_YEAR,
+    Operator.PREVIOUS_QUARTER,
+    Operator.PREVIOUS_MONTH,
+    Operator.PREVIOUS_WEEK,
+    Operator.YESTERDAY,
+    Operator.PREVIOUS_YEAR_TO_DATE,
+    Operator.PREVIOUS_QUARTER_TO_DATE,
+    Operator.PREVIOUS_MONTH_TO_DATE,
+    Operator.PREVIOUS_WEEK_TO_DATE,
+    Operator.TODAY,
+}

@@ -3,12 +3,8 @@ from typing import Any, DefaultDict, List, Optional, cast
 
 from forestadmin.datasource_toolkit.exceptions import DatasourceToolkitException
 from forestadmin.datasource_toolkit.interfaces.fields import Column, Operator
-from forestadmin.datasource_toolkit.interfaces.models.collections import (
-    CollectionSchema,
-)
-from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.base import (
-    ConditionTree,
-)
+from forestadmin.datasource_toolkit.interfaces.models.collections import CollectionSchema
+from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.base import ConditionTree
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.branch import (
     Aggregator,
     BranchComponents,
@@ -19,10 +15,7 @@ from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.leaf i
     ConditionTreeLeaf,
     is_leaf_component,
 )
-from forestadmin.datasource_toolkit.interfaces.records import (
-    CompositeIdAlias,
-    RecordsDataAlias,
-)
+from forestadmin.datasource_toolkit.interfaces.records import CompositeIdAlias, RecordsDataAlias
 from forestadmin.datasource_toolkit.utils.records import RecordUtils
 from forestadmin.datasource_toolkit.utils.schema import SchemaUtils
 
@@ -58,8 +51,8 @@ class ConditionTreeFactory:
 
     @classmethod
     def intersect(cls, trees: List[ConditionTree]) -> ConditionTree:
-        result = cast(ConditionTreeBranch, ConditionTreeFactory._group(Aggregator.AND, trees))
-        if not result.conditions:
+        result = ConditionTreeFactory._group(Aggregator.AND, trees)
+        if isinstance(result, ConditionTreeBranch) and not result.conditions:
             raise ConditionTreeFactoryException("Empty intersect")
         return result
 

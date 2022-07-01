@@ -1,12 +1,11 @@
 from typing import Any, Generic, Optional, TypedDict, TypeVar, cast
 
-from typing_extensions import Self, TypeGuard
-
 from forestadmin.datasource_toolkit.exceptions import DatasourceToolkitException
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.base import (
     ConditionTree,
     ConditionTreeComponent,
 )
+from typing_extensions import Self, TypeGuard
 
 
 class FilterComponent(TypedDict, total=False):
@@ -40,6 +39,19 @@ class BaseFilter(Generic[T]):
         self.segment = filter.get("segment")
         self.timezone = filter.get("timezone")
 
+    def __eq__(self, obj: Self):
+        res = False
+        if self.__class__ == obj.__class__:
+            res = (
+                self.condition_tree == obj.condition_tree
+                and self.search == obj.search
+                and self.search_extended == obj.search_extended
+                and self.segment == obj.segment
+                and self.timezone == obj.timezone
+            )
+
+        return res
+
     @property
     def is_nestable(self) -> bool:
         return not self.search and not self.segment
@@ -47,7 +59,7 @@ class BaseFilter(Generic[T]):
     def to_filter_component(self) -> T:
         kw = {}
         if self.condition_tree:
-            kw["condtion_tree"] = self.condition_tree
+            kw["condition_tree"] = self.condition_tree
         if self.search:
             kw["search"] = self.search
         if self.search_extended:

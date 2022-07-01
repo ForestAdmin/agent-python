@@ -112,5 +112,4 @@ class ConditionTreeBranch(ConditionTree):
 
     def unnest(self) -> ConditionTree:
         prefix = self._get_prefix()
-        print(prefix)
         return self._remove_prefix(prefix)

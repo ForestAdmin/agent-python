@@ -18,14 +18,13 @@ class CollectionUtilsException(DatasourceToolkitException):
 class CollectionUtils:
     @classmethod
     def get_field_schema(cls, collection: CollectionModel, path: str) -> FieldAlias:
-
         fields = collection.schema["fields"]
         field_name = path
         sub_path = None
         splited = path.split(":")
         if len(splited) > 1:
             field_name = splited[0]
-            sub_path = splited[1]
+            sub_path = ":".join(splited[1:])
         try:
             schema = fields[field_name]
         except KeyError:

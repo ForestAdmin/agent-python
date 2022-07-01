@@ -69,7 +69,6 @@ class ConditionTreeLeaf(ConditionTree):
     def inverse(self) -> ConditionTree:
         operator_value: str = self.operator.value
 
-        print([o.value for o in Operator])
         if f"not_{operator_value}" in [o.value for o in Operator]:
             return self.override(
                 {
@@ -201,14 +200,13 @@ class ConditionTreeLeaf(ConditionTree):
 
     def unnest(self) -> "ConditionTreeLeaf":
         splited = self.field.split(":")
-        try:
+        if len(splited) > 1:
             return self.override(
                 {
-                    "field": splited[1],
+                    "field": ":".join(splited[1:]),
                 }
             )
-        except IndexError:
-            raise ConditionTreeLeafException(f"Unable to unset {self.field}")
+        raise ConditionTreeLeafException(f"Unable to unset {self.field}")
 
     def nest(self, prefix: str) -> "ConditionTree":
         name = self.field
@@ -232,7 +230,7 @@ class ConditionTreeLeaf(ConditionTree):
             return False
 
         escaped_pattern: str = re.sub(
-            r"([\.\\\+\*\?\[\^\]\$\(\)\{\}\=\!\<\>\|\:\-])",
+            r"([\.\\\+\*\?\[\^\]\$\(\)\{\}\=\!\<\>\|\:\-])",  # type: ignore
             "\\\1",  # type: ignore
             self.value,  # type: ignore
         )
