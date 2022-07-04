@@ -60,7 +60,8 @@ class ConditionTreeLeaf(ConditionTree):
 
     @classmethod
     def load(cls, json: LeafComponents) -> "ConditionTreeLeaf":
-        return cls(json["field"], Operator(json["operator"]), json.get("value"))
+        op = re.sub("(?!^)([A-Z]+)", r"_\1", json["operator"]).lower()
+        return cls(json["field"], Operator(op), json.get("value"))
 
     @property
     def projection(self) -> Projection:

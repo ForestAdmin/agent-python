@@ -12,8 +12,8 @@ from typing_extensions import Self, TypeGuard
 
 
 class PaginatedFilterComponent(FilterComponent, total=False):
-    page: Page
-    sort: Sort
+    page: Optional[Page]
+    sort: Optional[Sort]
 
 
 class PlainPaginatedFilter(PlainFilter):

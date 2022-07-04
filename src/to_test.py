@@ -92,6 +92,10 @@ class Place(Base):
     company = relationship("Company", backref=backref("place", uselist=False))
 
 
+async def test():
+    return "aaaa"
+
+
 async def main():
     Base.metadata.create_all()
     datasource = SqlAlchemyDatasource(Base)

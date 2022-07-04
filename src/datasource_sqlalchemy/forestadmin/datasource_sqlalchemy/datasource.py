@@ -38,6 +38,7 @@ class SqlAlchemyCollectionFactory(BaseSqlAlchemyCollectionFactory):
 
     def _unknown_fields(self, data: RecordsDataAlias) -> List[str]:
         fields: List[str] = []
+        print(data)
         for name in data.keys():
             try:
                 self.collection.get_column(name)
@@ -146,7 +147,9 @@ class SqlAlchemyCollection(BaseSqlAlchemyCollection):
 
     async def update(self, filter: Optional[Filter], patch: RecordsDataAlias) -> None:
         with self.datasource.Session.begin() as session:  #  type: ignore
+            print("fuckkk")
             query = QueryFactory.update(self, filter, patch)
+            print(query)
             session.execute(query)  # type: ignore
 
     async def list(self, filter: PaginatedFilter, projection: Projection) -> List[RecordsDataAlias]:

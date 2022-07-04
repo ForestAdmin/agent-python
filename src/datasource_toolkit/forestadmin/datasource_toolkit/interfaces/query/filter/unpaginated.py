@@ -9,7 +9,7 @@ from typing_extensions import Self, TypeGuard
 
 
 class FilterComponent(TypedDict, total=False):
-    condition_tree: ConditionTree
+    condition_tree: Optional[ConditionTree]
     search: Optional[str]
     search_extended: bool
     segment: str

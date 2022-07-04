@@ -210,6 +210,7 @@ class QueryFactory:
         if collection.model:
             options: FilterOptions = FilterFactory.build(collection, filter)
             query = update(collection.model).values(**patch)
+            print(query)
             if options["clauses"] is not None:
                 query = query.where(options["clauses"])
             return query.execution_options(synchronize_session="fetch")
@@ -220,6 +221,7 @@ class QueryFactory:
         if collection.model:
             instances: List[Any] = []
             for record in data:
+                print("record", record)
                 instances.append(collection.factory.init_instance(record))
             return instances
         raise QueryFactoryException("Unable to request a collection without mapper")
