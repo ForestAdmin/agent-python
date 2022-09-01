@@ -1,7 +1,5 @@
 from typing import List, Optional, Union, cast
 
-from typing_extensions import Self
-
 from forestadmin.datasource_toolkit.datasources import DatasourceException
 from forestadmin.datasource_toolkit.interfaces.actions import ActionField, ActionResult
 from forestadmin.datasource_toolkit.interfaces.collections import Collection
@@ -12,9 +10,7 @@ from forestadmin.datasource_toolkit.interfaces.query.aggregation import (
     PlainAggregation,
     is_aggregation,
 )
-from forestadmin.datasource_toolkit.interfaces.query.condition_tree.factory import (
-    ConditionTreeFactory,
-)
+from forestadmin.datasource_toolkit.interfaces.query.condition_tree.factory import ConditionTreeFactory
 from forestadmin.datasource_toolkit.interfaces.query.filter.paginated import (
     PaginatedFilter,
     PaginatedFilterComponent,
@@ -28,12 +24,10 @@ from forestadmin.datasource_toolkit.interfaces.query.filter.unpaginated import (
     is_filter,
 )
 from forestadmin.datasource_toolkit.interfaces.query.page import Page, PlainPage
-from forestadmin.datasource_toolkit.interfaces.query.projections import (
-    Projection,
-    is_projection,
-)
+from forestadmin.datasource_toolkit.interfaces.query.projections import Projection, is_projection
 from forestadmin.datasource_toolkit.interfaces.query.sort import PlainSortClause, Sort
 from forestadmin.datasource_toolkit.interfaces.records import RecordsDataAlias
+from typing_extensions import Self
 
 
 class RelaxedDatasourceException(DatasourceException):
@@ -155,7 +149,7 @@ class RelaxedCollection(Collection):
         return await self.collection.delete(filter_instance)
 
     async def aggregate(
-        self, filter: Optional[Filter], aggregation: Aggregation, limit: Optional[int]
+        self, filter: Optional[Filter], aggregation: Aggregation, limit: Optional[int] = None
     ) -> List[AggregateResult]:
         filter_instance = self._build_filter(filter)
         aggregation_instance = self._build_aggregation(aggregation)

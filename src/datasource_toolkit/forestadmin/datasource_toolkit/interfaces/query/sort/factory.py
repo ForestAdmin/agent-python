@@ -6,4 +6,4 @@ from forestadmin.datasource_toolkit.utils.schema import SchemaUtils
 class SortFactory:
     @staticmethod
     def by_primary_keys(collection: Collection) -> Sort:
-        return Sort(*[{"field": pk, "ascending": True} for pk in SchemaUtils.get_primary_keys(collection.schema)])
+        return Sort([{"field": pk, "ascending": True} for pk in SchemaUtils.get_primary_keys(collection.schema)])

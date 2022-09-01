@@ -1,15 +1,12 @@
-from typing import List, Union
+from typing import List
 
-from forestadmin.datasource_toolkit.interfaces.fields import (
-    ManyToMany,
-    OneToMany,
-    is_column,
-    is_many_to_many,
-    is_one_to_many,
-)
-from forestadmin.datasource_toolkit.interfaces.models.collections import (
-    CollectionSchema,
-)
+from forestadmin.datasource_toolkit.exceptions import DatasourceToolkitException
+from forestadmin.datasource_toolkit.interfaces.fields import is_column, is_many_to_many
+from forestadmin.datasource_toolkit.interfaces.models.collections import CollectionSchema
+
+
+class SchemaUtilsException(DatasourceToolkitException):
+    pass
 
 
 class SchemaUtils:
@@ -30,13 +27,3 @@ class SchemaUtils:
         else:
             return False
         return is_column(field)
-
-    @staticmethod
-    def get_to_many_relation(schema: CollectionSchema, relation_name: str) -> Union[ManyToMany, OneToMany]:
-        relation_field_schema = schema["fields"][relation_name]
-        if not relation_field_schema:
-            raise
-
-        if is_one_to_many(relation_field_schema) or is_many_to_many(relation_field_schema):
-            return relation_field_schema
-        raise

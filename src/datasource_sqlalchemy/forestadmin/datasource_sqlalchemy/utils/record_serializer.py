@@ -1,13 +1,13 @@
-from typing import Any, List, Tuple
+from typing import Any, Dict, List, Tuple
 
 from forestadmin.datasource_sqlalchemy.interfaces import BaseSqlAlchemyCollection
+from forestadmin.datasource_sqlalchemy.utils.aggregation import AggregationFactory
+from forestadmin.datasource_toolkit.interfaces.query.aggregation import AggregateResult
 from forestadmin.datasource_toolkit.interfaces.query.projections import Projection
 from forestadmin.datasource_toolkit.interfaces.records import RecordsDataAlias
 
 
-def instances_to_records(
-    collection: BaseSqlAlchemyCollection, instances: List[Any]
-) -> List[RecordsDataAlias]:
+def instances_to_records(collection: BaseSqlAlchemyCollection, instances: List[Any]) -> List[RecordsDataAlias]:
     records: List[RecordsDataAlias] = []
     for instance in instances:
         record: RecordsDataAlias = {}
@@ -17,34 +17,24 @@ def instances_to_records(
     return records
 
 
-def projections_to_records(
-    projection: Projection, items: List[Tuple[Any]]
-) -> List[RecordsDataAlias]:
+def projections_to_records(projection: Projection, items: List[Tuple[Any]]) -> List[RecordsDataAlias]:
     records: List[RecordsDataAlias] = []
     for item in items:
         result = dict(zip(projection, item))
-        record: RecordsDataAlias = {}
-        for key in result.keys():
-            res: RecordsDataAlias = {}
-            if ":" in key:
-                for sub_key in key.split(":")[::-1]:
-                    if not res or sub_key not in record:
-                        value: Any = res or result[key]
-                        res = dict(((sub_key, value),))
-                    else:
-                        record[sub_key] = res
-                        break
-                else:
-                    record.update(res)
+        record: RecordsDataAlias = dict([(field_name, result[field_name]) for field_name in projection.columns])
+        for field_name, sub_fields in projection.relations.items():
+            res: Dict[str, Any] = {}
+            for sub_field in sub_fields:
+                res[sub_field] = result[f"{field_name}:{sub_field}"]
             else:
-                record[key] = result[key]
+                if any(res.values()):
+                    record[field_name] = res
         records.append(record)
-
     return records
 
 
-def aggregations_to_records(items: List[Tuple[Any]]):
-    records: List[RecordsDataAlias] = []
+def aggregations_to_records(items: List[Dict[str, Any]]):
+    records: List[AggregateResult] = []
     for item in items:
-        records.append(dict(zip(item.keys(), item)))  #  type: ignore
+        records.append(AggregateResult(value=item[AggregationFactory.LABEL], group={}))
     return records

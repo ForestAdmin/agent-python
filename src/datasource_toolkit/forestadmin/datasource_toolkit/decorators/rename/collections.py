@@ -161,7 +161,7 @@ class RenameCollectionDecorator(CollectionDecorator):
         return group
 
     async def aggregate(
-        self, filter: Optional[Filter], aggregation: Aggregation, limit: Optional[int]
+        self, filter: Optional[Filter], aggregation: Aggregation, limit: Optional[int] = None
     ) -> List[AggregateResult]:
         rows = await super().aggregate(
             filter,

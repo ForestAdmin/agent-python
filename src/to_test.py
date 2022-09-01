@@ -14,10 +14,10 @@ from forestadmin.datasource_toolkit.interfaces.query.filter.unpaginated import F
 from forestadmin.datasource_toolkit.interfaces.query.page import Page
 from forestadmin.datasource_toolkit.interfaces.query.projections import Projection
 from forestadmin.datasource_toolkit.interfaces.query.sort import Sort
-from sqlalchemy import Column, DateTime, Enum, ForeignKey, Integer, String, Table, create_engine, func
-from sqlalchemy.orm import backref, declarative_base, relationship
+from sqlalchemy import Column, DateTime, Enum, ForeignKey, Integer, String, create_engine, func
+from sqlalchemy.orm import declarative_base, relationship
 
-# engine = create_engine("sqlite:///:memory:", echo=True)
+engine = create_engine("sqlite:///toto.sql", echo=True)
 
 # pip install pymysql
 # docker run --name some-mysql -p 3306:3306 -e MYSQL_DATABASE=db_test -e MYSQL_ROOT_PASSWORD=my-secret-pw -d mysql
@@ -30,7 +30,7 @@ from sqlalchemy.orm import backref, declarative_base, relationship
 # pip install psycopg2
 # docker run --name some-postgres -e POSTGRES_DB=db_test -e POSTGRES_PASSWORD=my-secret-pw \
 # -e POSTGRES_USER=root -p 5467:5432 -d postgres
-engine = create_engine("postgresql://root:my-secret-pw@localhost:5467/db_test", echo=True)
+# engine = create_engine("postgresql://root:my-secret-pw@localhost:5467/db_test", echo=True)
 
 # docker run --name some-mssql -e "ACCEPT_EULA=Y" -e "SA_PASSWORD=YourStrong_Passw0rd" \
 # -p 1433:1433 -d mcr.microsoft.com/mssql/server:2019-latest
@@ -50,16 +50,14 @@ class Gender(enum.Enum):
     F = "F2"
 
 
-association_table = Table(
-    "association",
-    Base.metadata,
-    Column("child_id", ForeignKey("child.id"), primary_key=True),
-    Column("parent_id", ForeignKey("parent.id"), primary_key=True),
-)
+class AssociationTable(Base):
+    __tablename__ = "association"
+    child_id = Column(Integer, ForeignKey("django_admin_log.id"), primary_key=True)
+    parent_id = Column(Integer, ForeignKey("users_user.id"), primary_key=True)
 
 
 class Child(Base):
-    __tablename__ = "child"
+    __tablename__ = "django_admin_log"
     id = Column(Integer, primary_key=True)
     age = Column(Integer)
     first_name = Column(String(254), nullable=False)
@@ -68,28 +66,29 @@ class Child(Base):
 
 
 class Parent(Base):
-    __tablename__ = "parent"
+    __tablename__ = "users_user"
     id = Column(Integer, primary_key=True)
     first_name = Column(String(254), nullable=False)
     age = Column(Integer)
     children = relationship("Child", secondary="association", back_populates="parent")
-    company_id = Column(Integer, ForeignKey("company.id"))
+    company_id = Column(Integer, ForeignKey("users_licence.id"))
     company = relationship("Company", backref="parents")
 
 
 class Company(Base):
-    __tablename__ = "company"
+    __tablename__ = "users_licence"
     id = Column(Integer, primary_key=True)
     created_at = Column(DateTime, server_default=func.now())
     name = Column(String(254), nullable=False)
+    place = relationship("Place", back_populates="company", uselist=False)
 
 
 class Place(Base):
     __tablename__ = "place"
     id = Column(Integer, primary_key=True)
     address = Column(String(254), nullable=False)
-    company_id = Column(Integer, ForeignKey("company.id"))
-    company = relationship("Company", backref=backref("place", uselist=False))
+    company_id = Column(Integer, ForeignKey("users_licence.id"))
+    company = relationship("Company", back_populates="place", uselist=False)
 
 
 async def main():

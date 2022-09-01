@@ -46,5 +46,4 @@ def test_get_field_schema():
             "foreign_collection": "t2",
         }
         collection3.schema["fields"] = {"r2": many_to_one_schema}
-        print("\n\n\n")
         assert CollectionUtils.get_field_schema(collection3, "r2:r1:c1") == column_schema

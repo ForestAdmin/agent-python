@@ -137,7 +137,6 @@ class QueryFactory:
             relationships = defaultdict(list)
 
         query: Any = select(columns).select_from(collection.mapper)
-
         if filter:
             options = PaginatedFilterFactory.build(collection, filter)
             relationships = merge_relationships(relationships, options.get("relationships", {}))
@@ -151,7 +150,7 @@ class QueryFactory:
                 query = query.limit(filter.page.limit).offset(filter.page.skip)
 
         for level in sorted(relationships.keys()):
-            query = query.join(*relationships[level])
+            query = query.join(*relationships[level], isouter=True)
 
         return query
 

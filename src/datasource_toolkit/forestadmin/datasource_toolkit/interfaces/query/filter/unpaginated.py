@@ -1,4 +1,5 @@
 from typing import Any, Generic, Optional, TypedDict, TypeVar, cast
+from zoneinfo import ZoneInfo
 
 from forestadmin.datasource_toolkit.exceptions import DatasourceToolkitException
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.base import (
@@ -13,7 +14,7 @@ class FilterComponent(TypedDict, total=False):
     search: Optional[str]
     search_extended: bool
     segment: str
-    timezone: str
+    timezone: ZoneInfo
 
 
 class PlainFilter(TypedDict, total=False):

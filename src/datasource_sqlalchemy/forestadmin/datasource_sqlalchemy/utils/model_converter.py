@@ -63,9 +63,15 @@ class ColumnFactory:
         }
 
 
+def is_composite_fk(relation: Any):
+    return len(relation.remote_side) > 1 or len(relation.local_columns) > 1
+
+
 class CollectionFactory:
     @staticmethod
-    def _build_one_to_many(relation: Any) -> OneToMany:
+    def _build_one_to_many(relation: Any) -> Optional[OneToMany]:
+        if is_composite_fk(relation):
+            return None
         return {
             "foreign_collection": relation.target.name,
             "origin_key": list(relation.remote_side)[0].name,
@@ -74,7 +80,9 @@ class CollectionFactory:
         }
 
     @staticmethod
-    def _build_many_to_one(relation: Any) -> ManyToOne:
+    def _build_many_to_one(relation: Any) -> Optional[ManyToOne]:
+        if is_composite_fk(relation):
+            return None
         return {
             "foreign_collection": relation.target.name,
             "foreign_key": list(relation.local_columns)[0].name,
@@ -83,18 +91,22 @@ class CollectionFactory:
         }
 
     @staticmethod
-    def _build_one_to_one(relation: Any) -> OneToOne:
+    def _build_one_to_one(relation: Any) -> Optional[OneToOne]:
+        if is_composite_fk(relation):
+            return None
         return {
             "foreign_collection": relation.target.name,
-            "origin_key": list(relation.local_columns)[0].name,
-            "origin_key_target": list(relation.remote_side)[0].name,
+            "origin_key": list(relation.remote_side)[0].name,
+            "origin_key_target": list(relation.local_columns)[0].name,
             "type": FieldType.ONE_TO_ONE,
         }
 
     @staticmethod
-    def _build_many_to_many(model: Table, relation: Any) -> ManyToMany:
+    def _build_many_to_many(model: Table, relation: Any) -> Optional[ManyToMany]:
         kwargs: Dict[str, str] = {}
         for column in relation.remote_side:
+            if len(column.foreign_keys) > 1:  # composite fk
+                return None
             fk = list(column.foreign_keys)[0]
             if fk.column.table.name == model.name:
                 kwargs["origin_key_target"] = fk.column.name
@@ -134,6 +146,8 @@ class CollectionFactory:
                         relation = cls._build_many_to_many(model, relationship)
                     else:
                         relation = cls._build_one_to_many(relationship)
-                fields[relationship.key] = relation  # type: ignore
+
+                    if relation:
+                        fields[relationship.key] = relation  # type: ignore
 
         return {"actions": {}, "fields": fields, "searchable": False, "segments": []}

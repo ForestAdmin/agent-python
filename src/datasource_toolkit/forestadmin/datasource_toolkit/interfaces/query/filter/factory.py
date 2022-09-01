@@ -2,7 +2,7 @@ from typing import List, Union, cast
 
 from forestadmin.datasource_toolkit.collections import Collection
 from forestadmin.datasource_toolkit.exceptions import DatasourceToolkitException
-from forestadmin.datasource_toolkit.interfaces.fields import FieldType, Operator
+from forestadmin.datasource_toolkit.interfaces.fields import FieldType, ManyToMany, OneToMany, Operator
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.factory import ConditionTreeFactory
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.base import ConditionTree
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.leaf import ConditionTreeLeaf
@@ -12,11 +12,10 @@ from forestadmin.datasource_toolkit.interfaces.query.condition_tree.transforms.t
     time_transforms,
 )
 from forestadmin.datasource_toolkit.interfaces.query.filter.paginated import PaginatedFilter
-from forestadmin.datasource_toolkit.interfaces.query.filter.unpaginated import Filter
+from forestadmin.datasource_toolkit.interfaces.query.filter.unpaginated import Filter, is_filter
 from forestadmin.datasource_toolkit.interfaces.query.projections import Projection
 from forestadmin.datasource_toolkit.interfaces.records import CompositeIdAlias
 from forestadmin.datasource_toolkit.utils.collections import CollectionUtils
-from forestadmin.datasource_toolkit.utils.schema import SchemaUtils
 
 
 class FilterFactoryException(DatasourceToolkitException):
@@ -74,12 +73,13 @@ class FilterFactory:
         cls,
         collection: Collection,
         id: CompositeIdAlias,
-        relation_name: str,
-        base_foreign_key_filter: PaginatedFilter,
+        relation: ManyToMany,
+        _base_foreign_key_filter: Union[PaginatedFilter, Filter],
     ):
-        relation = collection.get_field(relation_name)
-        if relation["type"] != FieldType.MANY_TO_MANY:
-            raise FilterFactoryException("origin_key_targent doesn't exist for this field")
+        if is_filter(_base_foreign_key_filter):
+            base_foreign_key_filter: PaginatedFilter = PaginatedFilter.from_base_filter(_base_foreign_key_filter)
+        else:
+            base_foreign_key_filter = cast(PaginatedFilter, _base_foreign_key_filter)
         origin_value = await CollectionUtils.get_value(collection, id, relation["origin_key_target"])
         if relation["foreign_relation"] and base_foreign_key_filter.is_nestable:
             return cls._build_for_through_relation(
@@ -90,7 +90,7 @@ class FilterFactory:
             )
         target = collection.datasource.get_collection(relation["foreign_collection"])
         records = await target.list(
-            await cls.make_foreign_filter(collection, id, relation_name, base_foreign_key_filter),
+            await cls.make_foreign_filter(collection, id, relation, base_foreign_key_filter),
             Projection(relation["foreign_key_target"]),
         )
 
@@ -113,10 +113,13 @@ class FilterFactory:
     async def make_foreign_filter(
         collection: Collection,
         id: CompositeIdAlias,
-        relation_name: str,
-        base_foreign_key_filter: PaginatedFilter,
+        relation: Union[ManyToMany, OneToMany],
+        _base_foreign_key_filter: Union[PaginatedFilter, Filter],
     ) -> PaginatedFilter:
-        relation = SchemaUtils.get_to_many_relation(collection.schema, relation_name)
+        if is_filter(_base_foreign_key_filter):
+            base_foreign_key_filter: PaginatedFilter = PaginatedFilter.from_base_filter(_base_foreign_key_filter)
+        else:
+            base_foreign_key_filter = cast(PaginatedFilter, _base_foreign_key_filter)
         origin_value = await CollectionUtils.get_value(collection, id, relation["origin_key_target"])
 
         origin_tree: ConditionTree

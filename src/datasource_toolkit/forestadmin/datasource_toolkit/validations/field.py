@@ -10,11 +10,7 @@ from forestadmin.datasource_toolkit.interfaces.fields import (
 )
 from forestadmin.datasource_toolkit.interfaces.models.collections import Collection
 from forestadmin.datasource_toolkit.validations.type_getter import TypeGetter
-from forestadmin.datasource_toolkit.validations.types import (
-    ValidationPrimaryType,
-    ValidationType,
-    ValidationTypesArray,
-)
+from forestadmin.datasource_toolkit.validations.types import ValidationPrimaryType, ValidationType, ValidationTypesArray
 
 
 class FieldValidatorException(DatasourceToolkitException):
@@ -24,7 +20,9 @@ class FieldValidatorException(DatasourceToolkitException):
 class FieldValidator:
     @classmethod
     def validate(cls, collection: Collection, field: str, values: Optional[List[Any]] = None) -> None:
-        field, nested_field = field.split(":")
+        nested_field = None
+        if ":" in field:
+            field, nested_field = field.split(":")
         try:
             schema = collection.schema["fields"][field]
         except KeyError:

@@ -1,18 +1,10 @@
 from typing import cast
 
 from forestadmin.datasource_toolkit.exceptions import DatasourceToolkitException
-from forestadmin.datasource_toolkit.interfaces.fields import (
-    Column,
-    PrimitiveType,
-    is_column,
-)
+from forestadmin.datasource_toolkit.interfaces.fields import Column, PrimitiveType, is_column
 from forestadmin.datasource_toolkit.interfaces.models.collections import Collection
-from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.base import (
-    ConditionTree,
-)
-from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.leaf import (
-    ConditionTreeLeaf,
-)
+from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.base import ConditionTree
+from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.leaf import ConditionTreeLeaf
 from forestadmin.datasource_toolkit.utils.collections import CollectionUtils
 from forestadmin.datasource_toolkit.validations.field import FieldValidator
 from forestadmin.datasource_toolkit.validations.rules import (
@@ -44,7 +36,7 @@ class ConditionTreeValidator:
         return validate_condition_tree
 
     @classmethod
-    def validate(cls, condition_tree: ConditionTreeLeaf, collection: Collection):
+    def validate(cls, condition_tree: ConditionTree, collection: Collection):
         condition_tree.apply(cls._validate_leaf_condition(collection))
 
     @staticmethod

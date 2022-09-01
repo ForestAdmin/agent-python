@@ -1,5 +1,5 @@
 from collections import defaultdict
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from typing import Any, Awaitable, Callable, Dict, List, Optional, Tuple, cast
 
 from forestadmin.datasource_sqlalchemy.interfaces import BaseSqlAlchemyCollection, BaseSqlAlchemyCollectionFactory
 from forestadmin.datasource_sqlalchemy.utils.model_converter import CollectionFactory
@@ -12,7 +12,7 @@ from forestadmin.datasource_sqlalchemy.utils.record_serializer import (
 from forestadmin.datasource_sqlalchemy.utils.relationships import Relationships, merge_relationships
 from forestadmin.datasource_toolkit.datasources import Datasource, DatasourceException
 from forestadmin.datasource_toolkit.interfaces.actions import ActionField, ActionResult
-from forestadmin.datasource_toolkit.interfaces.fields import FieldType, ManyToMany, ManyToOne
+from forestadmin.datasource_toolkit.interfaces.fields import FieldType, ManyToMany, ManyToOne, RelationAlias
 from forestadmin.datasource_toolkit.interfaces.query.aggregation import AggregateResult, Aggregation
 from forestadmin.datasource_toolkit.interfaces.query.filter.paginated import PaginatedFilter
 from forestadmin.datasource_toolkit.interfaces.query.filter.unpaginated import Filter
@@ -21,11 +21,22 @@ from forestadmin.datasource_toolkit.interfaces.records import RecordsDataAlias
 from sqlalchemy import Table
 from sqlalchemy import column as SqlAlchemyColumn
 from sqlalchemy.engine import Dialect
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Mapper, RelationshipProperty, sessionmaker
 
 
 class SqlAlchemyCollectionException(DatasourceException):
     pass
+
+
+def handle_sqlalchemy_error(fn: Callable[..., Awaitable[Any]]):
+    async def wrapped(self: Any, *args: Any, **kwargs: Any) -> Any:
+        try:
+            return await fn(self, *args, **kwargs)
+        except SQLAlchemyError as e:
+            raise SqlAlchemyCollectionException(str(e))
+
+    return wrapped
 
 
 class SqlAlchemyCollectionFactory(BaseSqlAlchemyCollectionFactory):
@@ -118,26 +129,36 @@ class SqlAlchemyCollection(BaseSqlAlchemyCollection):
     ) -> Tuple[List[SqlAlchemyColumn], Relationships]:
         relationships: Dict[int, List[SqlAlchemyColumn]] = defaultdict(list)
         columns: List[SqlAlchemyColumn] = []
-        for related_collection_name, related_projection in projection.relations.items():
-            relationships[level].append(self._get_relationship(related_collection_name).class_attribute)  # type: ignore
-            related_collection = self.datasource.get_collection(related_collection_name)
+        for related_field_name, related_projection in projection.relations.items():
+            relationships[level].append(self._get_relationship(related_field_name).class_attribute)  # type: ignore
+            related_field: RelationAlias = cast(RelationAlias, self.get_field(related_field_name))
+            related_collection = self.datasource.get_collection(related_field["foreign_collection"])
             nested_columns, nested_relationships = related_collection.get_columns(related_projection, level + 1)
             columns.extend(nested_columns)
             merge_relationships(relationships, nested_relationships)
         return columns, relationships
 
+    def _normalize_projection(self, projection: Projection):
+        # needed to be compliant with the orm result orm
+        normalized_projection = projection.columns
+        for parent_field, child_fields in projection.relations.items():
+            for field in child_fields:
+                normalized_projection.append(f"{parent_field}:{field}")
+        return Projection(*normalized_projection)
+
     async def execute(self, name: str, data: RecordsDataAlias, filter: Optional[Filter]) -> ActionResult:
         return await super().execute(name, data, filter)
 
     async def aggregate(
-        self, filter: Optional[Filter], aggregation: Aggregation, limit: Optional[int]
+        self, filter: Optional[Filter], aggregation: Aggregation, limit: Optional[int] = None
     ) -> List[AggregateResult]:
         with self.datasource.Session.begin() as session:  #  type: ignore
             dialect: Dialect = session.bind.dialect  #  type: ignore
             query = QueryFactory.build_aggregate(dialect, self, filter, aggregation, limit)
-            res = session.execute(query)  #  type: ignore
-            return aggregations_to_records(res)  #  type: ignore
+            res: List[Dict[str, Any]] = session.execute(query)  #  type: ignore
+            return aggregations_to_records(res)
 
+    @handle_sqlalchemy_error
     async def create(self, data: List[RecordsDataAlias]) -> List[RecordsDataAlias]:
         with self.datasource.Session.begin() as session:  #  type: ignore
             instances = QueryFactory.create(self, data)
@@ -151,6 +172,7 @@ class SqlAlchemyCollection(BaseSqlAlchemyCollection):
 
     async def list(self, filter: PaginatedFilter, projection: Projection) -> List[RecordsDataAlias]:
         with self.datasource.Session.begin() as session:  #  type: ignore
+            projection = self._normalize_projection(projection)
             query = QueryFactory.build_list(self, filter, projection)
             res = session.execute(query).all()  #  type: ignore
             return projections_to_records(projection, res)  # type: ignore
@@ -203,21 +225,7 @@ class SqlAlchemyDatasource(Datasource[SqlAlchemyCollection]):
 
     def _create_collections(self):
         mappers = self.build_mappers()
-        many_to_many_schema: Dict[SqlAlchemyCollection, Dict[str, ManyToMany]] = defaultdict(dict)
-        secondary_tables: Dict[str, Table] = {}
         for table in self._base.metadata.sorted_tables:
             if table.name in mappers:
                 collection = SqlAlchemyCollection(table.name, self, table, mappers[table.name])
                 self.add_collection(collection)
-                for field_name, field in collection.schema["fields"].items():
-                    if field["type"] == FieldType.MANY_TO_MANY:
-                        many_to_many_schema[collection][field_name] = field
-            else:
-                secondary_tables[table.name] = table
-
-        for related_collection, field_many_to_many in many_to_many_schema.items():
-            for field_name, many_to_many in field_many_to_many.items():
-                table = secondary_tables[many_to_many["through_collection"]]
-                collection = self._create_secondary_collection(table)
-                relation_name = self._create_secondary_relation(collection, related_collection.name, many_to_many)
-                related_collection.schema["fields"][field_name]["foreign_relation"] = relation_name  # type: ignore
