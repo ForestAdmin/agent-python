@@ -8,6 +8,7 @@ from forestadmin.agent_toolkit.services.permissions.options import RoleOptions
 from forestadmin.agent_toolkit.utils.context import Response, User
 from forestadmin.agent_toolkit.utils.http import ForestHttpApi
 from forestadmin.datasource_toolkit.collections import Collection
+from forestadmin.datasource_toolkit.decorators.collections import CustomizedCollection
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.factory import ConditionTreeFactory
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.base import ConditionTree
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.branch import ConditionTreeBranch
@@ -157,7 +158,9 @@ class PermissionService:
             await self._can(action, request.user)
 
     async def get_scope(
-        self, request: Union[RequestCollection, RequestRelationCollection], collection: Optional[Collection] = None
+        self,
+        request: Union[RequestCollection, RequestRelationCollection],
+        collection: Union[Collection, CustomizedCollection, None] = None,
     ) -> Optional[ConditionTree]:
         if not request.user:
             raise PermissionServiceException("Unauthenticated request", 401)

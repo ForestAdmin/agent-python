@@ -1,4 +1,5 @@
 import json
+from typing import Literal
 from urllib.parse import urljoin
 
 from forestadmin.agent_toolkit.options import Options
@@ -9,11 +10,17 @@ from forestadmin.agent_toolkit.utils.context import Request, Response
 from forestadmin.agent_toolkit.utils.http import ForestHttpApi
 from forestadmin.agent_toolkit.utils.token import build_jwt
 
+LiteralMethod = Literal["authenticate", "callback"]
+
 
 class Authentication(BaseResource):
     def __init__(self, options: Options):
         super(Authentication, self).__init__(options)
-        self.callback_url = urljoin(options["agent_url"], "/forest/callback")
+        self.callback_url = urljoin(options["agent_url"], "/forest/authentication/callback")
+
+    async def dispatch(self, request: Request, method_name: LiteralMethod) -> Response:
+        method = getattr(self, method_name)
+        return await method(request)
 
     async def authenticate(self, request: Request) -> Response:
         client: CustomClientOic = await ClientFactory.build(self.callback_url, self.option)

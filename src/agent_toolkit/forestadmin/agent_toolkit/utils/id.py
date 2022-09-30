@@ -15,7 +15,6 @@ def pack_id(schema: CollectionSchema, record: RecordsDataAlias):
     schema_pks = SchemaUtils.get_primary_keys(schema)
     if len(schema_pks) == 0:
         raise IdException("")
-
     pks = [str(record.get(pk, "")) for pk in schema_pks]
     if not all(pks):
         raise IdException("")

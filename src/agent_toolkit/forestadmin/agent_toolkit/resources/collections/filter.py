@@ -61,12 +61,11 @@ def parse_selection_ids(request: Request) -> Tuple[List[CompositeIdAlias], bool]
             attributes: Dict[str, Any] = request.body.get("data", {}).get("attributes", {})  # type: ignore
         except AttributeError:
             attributes = {}
-
         exclude_ids = bool(attributes.get("all_records", False))  # type: ignore
         if "ids" in attributes:
-            ids = attributes["ids"]
+            ids = [[id] for id in attributes["ids"]]
         elif isinstance(request.body.get("data"), list):
-            ids = [r["id"] for r in request.body["data"]]
+            ids = [[r["id"]] for r in request.body["data"]]
         else:
             ids = []
         return ids, exclude_ids
@@ -178,26 +177,27 @@ def parse_condition_tree(request: Union[RequestCollection, RequestRelationCollec
     return condition_tree
 
 
-def _parse_projection_fields(query: Dict[str, Any], collection: Collection, is_related: bool = False) -> List[str]:
+def _parse_projection_fields(
+    query: Dict[str, Any], collection: Collection, front_collection_name: str, is_related: bool = False
+) -> List[str]:
     projection_fields: List[str] = []
     try:
-        fields: str = query[f"fields[{collection.name}]"]
+        fields: str = query[f"fields[{front_collection_name}]"]
     except KeyError:
         return ProjectionFactory.all(collection)
 
     if fields == "":
         return ProjectionFactory.all(collection)
-
     for field_name in fields.split(","):
         field_schema = collection.get_field(field_name)
         if is_column(field_schema):
             if is_related:
-                projection_fields.append(f"{collection.name}:{field_name}")
+                projection_fields.append(f"{front_collection_name}:{field_name}")
             else:
                 projection_fields.append(field_name)
         elif is_one_to_one(field_schema) or is_many_to_one(field_schema):
             fk_collection = collection.datasource.get_collection(field_schema["foreign_collection"])
-            projection_fields.extend(_parse_projection_fields(query, fk_collection, True))
+            projection_fields.extend(_parse_projection_fields(query, fk_collection, field_name, True))
     return projection_fields
 
 
@@ -206,7 +206,7 @@ def parse_projection(request: Union[RequestCollection, RequestRelationCollection
     if not request.query:
         return ProjectionFactory.all(collection)
 
-    projection_fields = _parse_projection_fields(request.query, collection)
+    projection_fields = _parse_projection_fields(request.query, collection, collection.name)
     ProjectionValidator.validate(_get_collection(request), projection_fields)
     return Projection(*projection_fields)
 

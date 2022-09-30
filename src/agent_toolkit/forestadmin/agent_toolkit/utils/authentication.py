@@ -75,6 +75,7 @@ class ClientFactory:
             ProviderConfigurationResponse(  # type: ignore
                 jwks_uri=urljoin(issuer_metadata["issuer"], "oidc/jwks"),
                 token_endpoint=urljoin(issuer_metadata["issuer"], "oidc/token"),
+                authorization_endpoint=urljoin(issuer_metadata["issuer"], "oidc/auth"),
             ),
             issuer_metadata["issuer"],
         )

@@ -5,6 +5,8 @@ from forestadmin.agent_toolkit.resources.collections.exceptions import Collectio
 from forestadmin.agent_toolkit.utils.context import Request, RequestMethod, User
 from forestadmin.datasource_toolkit.collections import Collection, CollectionException
 from forestadmin.datasource_toolkit.datasources import Datasource, DatasourceException
+from forestadmin.datasource_toolkit.decorators.collections import CustomizedCollection
+from forestadmin.datasource_toolkit.decorators.datasource import CustomizedDatasource
 from forestadmin.datasource_toolkit.interfaces.fields import (
     ManyToMany,
     ManyToOne,
@@ -26,7 +28,7 @@ class RequestCollectionException(AgentToolkitException):
 
 class RequestArgs(TypedDict):
     method: RequestMethod
-    collection: Collection
+    collection: Union[Collection, CustomizedCollection]
     body: Optional[Dict[str, Any]]
     query: Optional[Dict[str, str]]
     headers: Optional[Dict[str, str]]
@@ -37,7 +39,7 @@ class RequestCollection(Request):
     def __init__(
         self,
         method: RequestMethod,
-        collection: Collection,
+        collection: Union[Collection, CustomizedCollection],
         body: Optional[Dict[str, Any]] = None,
         query: Optional[Dict[str, str]] = None,
         headers: Optional[Dict[str, str]] = None,
@@ -47,7 +49,9 @@ class RequestCollection(Request):
         self.collection = collection
 
     @staticmethod
-    def from_request_args(request: Request, datasource: Datasource[BoundCollection]) -> RequestArgs:
+    def from_request_args(
+        request: Request, datasource: Union[Datasource[BoundCollection], CustomizedDatasource]
+    ) -> RequestArgs:
         if not request.query:
             raise RequestCollectionException("'collection_name' is missing in the request")
         try:
@@ -69,7 +73,9 @@ class RequestCollection(Request):
         )
 
     @classmethod
-    def from_request(cls, request: Request, datasource: Datasource[BoundCollection]) -> Self:
+    def from_request(
+        cls, request: Request, datasource: Union[Datasource[BoundCollection], CustomizedDatasource]
+    ) -> Self:
         return cls(**cls.from_request_args(request, datasource))
 
     @property
@@ -87,9 +93,10 @@ class RequestRelationCollection(RequestCollection):
     def __init__(
         self,
         method: RequestMethod,
-        collection: Collection,
-        foreign_collection: Collection,
+        collection: Union[Collection, CustomizedCollection],
+        foreign_collection: Union[Collection, CustomizedCollection],
         relation: Union[ManyToMany, OneToMany, OneToOne, ManyToOne],
+        relation_name: str,
         body: Optional[Dict[str, Any]] = None,
         query: Optional[Dict[str, str]] = None,
         headers: Optional[Dict[str, str]] = None,
@@ -98,9 +105,12 @@ class RequestRelationCollection(RequestCollection):
         super(RequestRelationCollection, self).__init__(method, collection, body, query, headers, user)
         self.foreign_collection = foreign_collection
         self.relation = relation
+        self.relation_name = relation_name
 
     @classmethod
-    def from_request(cls, request: Request, datasource: Datasource[BoundCollection]) -> Self:
+    def from_request(
+        cls, request: Request, datasource: Union[Datasource[BoundCollection], CustomizedDatasource]
+    ) -> Self:
         kwargs = cls.from_request_args(request, datasource)
         if not request.query:
             raise RequestCollectionException("'relation_name' is missing in the request")
@@ -126,6 +136,8 @@ class RequestRelationCollection(RequestCollection):
                 foreign_collection = datasource.get_collection(related_field["foreign_collection"])
             except DatasourceException:
                 raise RequestCollectionException(f"Collection '{relation_name}' not found")
-            return cls(relation=related_field, foreign_collection=foreign_collection, **kwargs)
+            return cls(
+                relation=related_field, relation_name=relation_name, foreign_collection=foreign_collection, **kwargs
+            )
         else:
             raise RequestCollectionException(f"'{relation_name}' is not a related field")

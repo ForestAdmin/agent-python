@@ -1,4 +1,17 @@
-from typing import TypedDict
+from typing import Literal, TypedDict
+
+
+class AgentStackMeta(TypedDict, total=False):
+    engine: Literal["python"]
+    engine_version: str
+    database_type: str
+    orm_version: str
+
+
+class AgentMeta(TypedDict):
+    liana: str
+    liana_version: str
+    stack: AgentStackMeta
 
 
 class Options(TypedDict):

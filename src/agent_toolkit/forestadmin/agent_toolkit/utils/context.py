@@ -1,10 +1,9 @@
 import enum
 import json
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional
 
 
-@dataclass
 class RequestMethod(enum.Enum):
     GET = "GET"
     POST = "POST"
@@ -50,7 +49,7 @@ class Request:
 class Response:
     status: int
     body: Optional[str] = None
-    headers: Optional[Dict[str, str]] = None
+    headers: Dict[str, str] = field(default_factory=lambda: {})
 
 
 def build_json_response(status: int, body: Dict[str, Any]):

@@ -36,6 +36,7 @@ from forestadmin.datasource_toolkit.interfaces.fields import (
     is_one_to_many,
     is_one_to_one,
 )
+from forestadmin.datasource_toolkit.interfaces.query.aggregation import Aggregation, Aggregator
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.factory import ConditionTreeFactory
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.base import ConditionTree
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.leaf import ConditionTreeLeaf
@@ -230,7 +231,7 @@ class CrudRelatedResource(BaseCollectionResource):
     @authenticate
     @authorize("delete")
     @check_method(RequestMethod.DELETE)
-    async def delete(self, request: RequestRelationCollection) -> Response:
+    async def delete_list(self, request: RequestRelationCollection) -> Response:
         try:
             parent_ids = unpack_id(request.collection.schema, request.pks)
         except (FieldValidatorException, CollectionResourceException) as e:
@@ -347,3 +348,24 @@ class CrudRelatedResource(BaseCollectionResource):
                 return build_client_error_response([str(e)])
             return build_no_content_response()
         return build_client_error_response(["Unhandled relation type"])
+
+    @authenticate
+    @authorize("browse")
+    @check_method(RequestMethod.GET)
+    async def count(self, request: RequestRelationCollection) -> Response:
+        try:
+            parent_id = unpack_id(request.collection.schema, request.pks)
+        except (FieldValidatorException, CollectionResourceException) as e:
+            return build_client_error_response([str(e)])
+        scope_tree = await self.permission.get_scope(request, request.foreign_collection)
+        filter = build_filter(request, scope_tree)
+        aggregation = Aggregation({"operation": Aggregator.COUNT})
+
+        result = await CollectionUtils.aggregate_relation(
+            request.collection, parent_id, request.relation_name, filter, aggregation
+        )
+        try:
+            count = result[0]["value"]
+        except IndexError:
+            count = 0
+        return build_success_response({"count": count})

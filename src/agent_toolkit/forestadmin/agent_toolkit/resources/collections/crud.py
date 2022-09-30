@@ -32,6 +32,7 @@ from forestadmin.datasource_toolkit.interfaces.fields import (
     OneToOne,
     Operator,
     is_column,
+    is_many_to_many,
     is_many_to_one,
     is_one_to_one,
 )
@@ -83,15 +84,18 @@ class CrudResource(BaseCollectionResource):
 
         filter = PaginatedFilter({"condition_tree": ConditionTreeFactory.intersect(trees)})
 
-        projections = ProjectionFactory.all(collection)
+        projections = ProjectionFactory.all(cast(Collection, collection))
         records = await collection.list(filter, projections)
-
+        for name, schema in collection.schema["fields"].items():
+            if is_many_to_many(schema):
+                projections.append(f"{name}:id")
+                records[0][name] = None
         if not len(records):
             return build_unknown_response()
         else:
             schema = JsonApiSerializer.get(collection)
             try:
-                dumped = schema(projections=projections).dump(records[0])
+                dumped: Dict[str, Any] = schema(projections=projections).dump(records[0])  # type: ignore
             except JsonApiException as e:
                 return build_client_error_response([str(e)])
 
@@ -105,14 +109,14 @@ class CrudResource(BaseCollectionResource):
         collection = request.collection
         schema = JsonApiSerializer.get(collection)
         try:
-            data = schema().load(request.body)
+            data: RecordsDataAlias = schema().load(request.body)  # type: ignore
         except JsonApiException as e:
             return build_client_error_response([str(e)])
 
-        record, one_to_one_relations = await self.extract_data(collection, data)
+        record, one_to_one_relations = await self.extract_data(cast(Collection, collection), data)
 
         try:
-            RecordValidator.validate(collection, record)
+            RecordValidator.validate(cast(Collection, collection), record)
         except RecordValidatorException as e:
             return build_client_error_response([str(e)])
 
@@ -126,25 +130,28 @@ class CrudResource(BaseCollectionResource):
         except CollectionResourceException as e:
             return build_client_error_response([str(e)])
 
-        return build_no_content_response()
+        return build_success_response(
+            schema(projections=list(records[0].keys())).dump(records[0], many=False)  # type: ignore
+        )
 
     @check_method(RequestMethod.GET)
     @authenticate
     @authorize("browse")
     async def list(self, request: RequestCollection) -> Response:
-
         scope_tree = await self.permission.get_scope(request)
-        paginated_filter = build_paginated_filter(request, scope_tree)
+        try:
+            paginated_filter = build_paginated_filter(request, scope_tree)
+        except FilterException as e:
+            return build_client_error_response([str(e)])
         try:
             projections = parse_projection(request)
         except DatasourceException as e:
             return build_client_error_response([str(e)])
 
         records = await request.collection.list(paginated_filter, projections)
-
         schema = JsonApiSerializer.get(request.collection)
         try:
-            dumped = schema(projections=projections).dump(records, many=True)
+            dumped: Dict[str, Any] = schema(projections=projections).dump(records, many=True)  # type: ignore
         except JsonApiException as e:
             return build_client_error_response([str(e)])
         return build_success_response(dumped)
@@ -178,12 +185,11 @@ class CrudResource(BaseCollectionResource):
 
         schema = JsonApiSerializer.get(collection)
         try:
-            data = schema().load(request.body)
+            data: RecordsDataAlias = schema().load(request.body)  # type: ignore
         except JsonApiException as e:
             return build_client_error_response([str(e)])
-
         try:
-            RecordValidator.validate(collection, data)
+            RecordValidator.validate(cast(Collection, collection), data)
         except RecordValidatorException as e:
             return build_client_error_response([str(e)])
 
@@ -195,12 +201,12 @@ class CrudResource(BaseCollectionResource):
         filter = Filter({"condition_tree": ConditionTreeFactory.intersect(trees)})
 
         await collection.update(filter, data)
-        projection = ProjectionFactory.all(collection)
+        projection = ProjectionFactory.all(cast(Collection, collection))
         records = await collection.list(PaginatedFilter.from_base_filter(filter), projection)
 
         schema = JsonApiSerializer.get(collection)
         try:
-            dumped = schema(projections=projection).dump(records[0])
+            dumped: Dict[str, Any] = schema(projections=projection).dump(records[0])  # type: ignore
         except JsonApiException as e:
             return build_client_error_response([str(e)])
 
@@ -304,7 +310,7 @@ class CrudResource(BaseCollectionResource):
                 else:
                     field = cast(ManyToOne, field)
                     record[field["foreign_key"]] = await CollectionUtils.get_value(
-                        foreign_collection, value, field["foreign_key_target"]
+                        cast(Collection, foreign_collection), value, field["foreign_key_target"]
                     )
 
         return record, one_to_one_relations
