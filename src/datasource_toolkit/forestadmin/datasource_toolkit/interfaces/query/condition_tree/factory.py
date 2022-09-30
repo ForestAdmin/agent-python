@@ -43,7 +43,8 @@ class ConditionTreeFactory:
             operators = cast(Column, schema["fields"][name])["filter_operators"]
             if not operators or not (Operator.EQUAL in operators or Operator.IN in operators):
                 raise ConditionTreeFactoryException(f"Field {name} must support opperators: [equal, in]")
-        return cls._match_fields(primary_key_names, ids)
+        res = cls._match_fields(primary_key_names, ids)
+        return res
 
     @classmethod
     def union(cls, trees: List[ConditionTree]) -> ConditionTree:
@@ -68,7 +69,6 @@ class ConditionTreeFactory:
     def _match_fields(cls, fields: List[str], values: List[List[Any]]) -> ConditionTree:
         if not values:
             return cls.MATCH_NONE
-
         if len(fields) == 1:
             field_values = [value[0] for value in values if len(value)]
             if len(field_values) > 1:

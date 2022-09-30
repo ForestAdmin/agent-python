@@ -1,9 +1,8 @@
-from typing import Any, Dict, List, Optional, Union, cast
+from typing import Any, Callable, Dict, List, Optional, cast
 
-from forestadmin.datasource_toolkit.decorators.collections import CollectionDecorator
+from forestadmin.agent_toolkit.resources.collections import BoundCollection
 from forestadmin.datasource_toolkit.exceptions import DatasourceToolkitException
 from forestadmin.datasource_toolkit.interfaces.fields import (
-    FieldAlias,
     is_column,
     is_many_to_many,
     is_many_to_one,
@@ -14,12 +13,8 @@ from forestadmin.datasource_toolkit.interfaces.models.collections import Collect
 from forestadmin.datasource_toolkit.interfaces.query.aggregation import AggregateResult, Aggregation
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.base import ConditionTree
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.leaf import ConditionTreeLeaf
-from forestadmin.datasource_toolkit.interfaces.query.filter.paginated import (
-    PaginatedFilter,
-    PaginatedFilterComponent,
-    is_paginated_filter,
-)
-from forestadmin.datasource_toolkit.interfaces.query.filter.unpaginated import Filter, FilterComponent, is_filter
+from forestadmin.datasource_toolkit.interfaces.query.filter.paginated import PaginatedFilter
+from forestadmin.datasource_toolkit.interfaces.query.filter.unpaginated import Filter
 from forestadmin.datasource_toolkit.interfaces.query.projections import Projection
 from forestadmin.datasource_toolkit.interfaces.query.sort import PlainSortClause
 from forestadmin.datasource_toolkit.interfaces.records import RecordsDataAlias
@@ -29,143 +24,151 @@ class RenameCollectionException(DatasourceToolkitException):
     pass
 
 
-class RenameCollectionDecorator(CollectionDecorator):
-    def __init__(self, collection: CollectionDecorator, datasource: Datasource[CollectionDecorator]):
-        super().__init__(collection, datasource)
-        self.to_child_collection: Dict[str, str] = {}
-        self.from_child_collection: Dict[str, str] = {}
+class RenameMixin:
+
+    datasource: property
+    mark_schema_as_dirty: Callable[..., None]
+
+    def __init__(self, *args: Any, **kwargs: Any):
+        super(RenameMixin, self).__init__(*args, **kwargs)
+        self._to_child_collection: Dict[str, str] = {}
+        self._from_child_collection: Dict[str, str] = {}
 
     def rename_field(self, current_name: str, new_name: str):
-        if current_name not in self.schema["fields"]:
-            raise RenameCollectionException(f"So such field {current_name}")
+        schema = self.schema
+        if current_name not in schema["fields"]:
+            raise RenameCollectionException(f"No such field {current_name}")
 
         initial_name = current_name
-        if current_name in self.to_child_collection:
-            child_name = self.to_child_collection[current_name]
-            del self.to_child_collection[current_name]
-            del self.from_child_collection[child_name]
+        if current_name in self._to_child_collection:
+            child_name = self._to_child_collection[current_name]
+            del self._to_child_collection[current_name]
+            del self._from_child_collection[child_name]
             initial_name = child_name
-            self.mark_schema_as_dirty()
 
         if initial_name != new_name:
-            self.from_child_collection[initial_name] = new_name
-            self.to_child_collection[new_name] = initial_name
-            self.mark_schema_as_dirty()
+            self._from_child_collection[initial_name] = new_name
+            self._to_child_collection[new_name] = initial_name
 
-    def _refine_schema(self, child_schema: CollectionSchema) -> CollectionSchema:
-        fields: Dict[str, FieldAlias] = {}
-        for old_name, old_schema in child_schema["fields"].items():
-            schema = old_schema.copy()
-            if is_many_to_many(schema):
-                schema["foreign_key"] = self.from_child_collection.get(schema["foreign_key"], schema["foreign_key"])
-            elif is_one_to_many(schema) or is_one_to_one(schema):
-                relation = self.datasource.get_collection(schema["foreign_collection"])
-                schema["origin_key"] = relation.from_child_collection.get(schema["origin_key"], schema["origin_key"])
-            elif is_many_to_many(schema):
-                through = self.datasource.get_collection(schema["through_collection"])
-                schema["foreign_key"] = through.from_child_collection.get(schema["foreign_key"], schema["foreign_key"])
-                schema["origin_key"] = through.from_child_collection.get(schema["origin_key"], schema["origin_key"])
-            fields[self.from_child_collection.get(old_name, old_name)] = schema
-
-        refined_schema = child_schema.copy()
-        refined_schema["fields"] = fields
-        return refined_schema
-
-    def _refine_leaf_tree(self, tree: ConditionTree) -> ConditionTree:
-        if isinstance(tree, ConditionTreeLeaf):
-            tree.field = self.path_from_child_collection(tree.field)
-        return tree
-
-    def _refine_sort_clause(self, clause: PlainSortClause):
-        return PlainSortClause(field=self.path_from_child_collection(clause["field"]), ascending=clause["ascending"])
-
-    async def refine_filter(
-        self, filter: Optional[Union[PaginatedFilter, Filter]]
-    ) -> Optional[Union[PaginatedFilter, Filter]]:
-        if filter:
-            overrided = {}
-            if filter.condition_tree:
-                overrided["condition_tree"] = filter.condition_tree.replace(self._refine_leaf_tree)
-            if is_paginated_filter(filter):
-                overrided = cast(PaginatedFilterComponent, overrided)
-                if filter.sort:
-                    overrided["sort"] = filter.sort.replace_clauses(self._refine_sort_clause)
-                filter.override(overrided)
-            elif is_filter(filter):
-                overrided = cast(FilterComponent, overrided)
-                filter.override(overrided)
-        return filter
-
-    def record_to_child_collection(self, record: RecordsDataAlias) -> RecordsDataAlias:
-        child_record: RecordsDataAlias = {}
-        for field_name, value in record.items():
-            child_record[self.to_child_collection.get(field_name, field_name)] = value
-        return child_record
-
-    def record_from_child_collection(self, record: RecordsDataAlias) -> RecordsDataAlias:
-        new_record: RecordsDataAlias = {}
-
-        for field_name, value in record.items():
-            new_field_name = self.from_child_collection.get(field_name, field_name)
-            schema = self.schema["fields"][new_field_name]
-            if is_column(schema) or value is None:
-                new_record[new_field_name] = value
-            elif is_many_to_many(schema) or is_many_to_one(schema) or is_one_to_many(schema) or is_one_to_one(schema):
-                relation = self.datasource.get_collection(schema["foreign_collection"])
-                new_record[new_field_name] = relation.record_from_child_collection(value)
-        return new_record
-
-    async def create(self, data: List[RecordsDataAlias]) -> List[RecordsDataAlias]:
-        records = await super().create([self.record_to_child_collection(d) for d in data])
-        return [self.record_from_child_collection(record) for record in records]
-
-    def path_from_child_collection(self, child_path: str) -> str:
-        field, related_field = child_path.split(":")
-        self_field = self.from_child_collection.get(field, field)
-        if related_field:
-            schema = self.schema["fields"][self_field]
-            if is_many_to_many(schema) or is_one_to_many(schema) or is_one_to_one(schema) or is_many_to_one(schema):
-                relation = self.datasource.get_collection(schema["foreign_collection"])
-                return f"{self_field}:{relation.path_from_child_collection(':'.join(related_field))}"
-            else:
-                raise RenameCollectionException(f"The field {self_field} is not a relation")
-        return self_field
-
-    def path_to_child_collection(self, path: str) -> str:
-        field_name, related_field = path.split(":")
-        if related_field:
-            schema = self.schema["fields"][field_name]
-            if is_many_to_many(schema) or is_one_to_many(schema) or is_one_to_one(schema) or is_many_to_one(schema):
-                relation = self.datasource.get_collection(schema["foreign_collection"])
-                child_field = self.to_child_collection.get(field_name, field_name)
-                return f"{child_field}:{relation.path_to_child_collection(related_field)}"
-            else:
-                raise RenameCollectionException(f"The field {field_name} is not a relation")
-        return self.to_child_collection.get(field_name, field_name)
-
-    def _field_replacer(self, field: str) -> str:
-        return self.path_to_child_collection(field)
+        self.mark_schema_as_dirty()
 
     async def list(self, filter: PaginatedFilter, projection: Projection) -> List[RecordsDataAlias]:
-        child_projection = projection.replace(self._field_replacer)
-        records = await super().list(filter, child_projection)
-        return [self.record_from_child_collection(record) for record in records]
+        child_projection = projection.replace(lambda field_name: self._path_to_child_collection(field_name))
+        records: List[RecordsDataAlias] = await super(RenameMixin, self).list(filter, child_projection)  # type: ignore
+        return [self._record_from_child_collection(record) for record in records]
+
+    async def create(self, data: List[RecordsDataAlias]) -> List[RecordsDataAlias]:
+        records: List[RecordsDataAlias] = await super().create(  # type: ignore
+            [self._record_to_child_collection(d) for d in data]
+        )
+        return [self._record_from_child_collection(record) for record in records]
 
     async def update(self, filter: Optional[Filter], patch: RecordsDataAlias) -> None:
-        return await super().update(filter, self.record_to_child_collection(patch))
-
-    def _build_group_aggregate(self, row: AggregateResult) -> Dict[str, Any]:
-        group: Dict[str, Any] = {}
-        for path, value in row["group"]:
-            group[self.path_from_child_collection(path)] = value
-        return group
+        refined_patch = self._record_to_child_collection(patch)
+        return await super(RenameMixin, self).update(filter, refined_patch)  # type: ignore
 
     async def aggregate(
         self, filter: Optional[Filter], aggregation: Aggregation, limit: Optional[int] = None
     ) -> List[AggregateResult]:
-        rows = await super().aggregate(
-            filter,
-            aggregation.replace_fields(self._field_replacer),
-            limit,
+        rows: List[AggregateResult] = await super().aggregate(  # type: ignore
+            filter, aggregation.replace_fields(lambda name: self._path_to_child_collection(name)), limit
         )
         return [AggregateResult(value=row["value"], group=self._build_group_aggregate(row)) for row in rows]
+
+    def _build_group_aggregate(self, row: AggregateResult) -> Dict[str, Any]:
+        group: Dict[str, Any] = {}
+        for path, value in row["group"]:
+            group[self._path_from_child_collection(path)] = value
+        return group
+
+    @property
+    def schema(self) -> CollectionSchema:
+        schema: CollectionSchema = super(RenameMixin, self).schema  # type: ignore
+
+        new_fields_schema = {}
+        datasource = cast(Datasource[BoundCollection], self.datasource)
+        for old_field_name, field_schema in schema["fields"].items():
+            if is_many_to_many(field_schema):
+                field_schema["foreign_key"] = self._from_child_collection.get(
+                    field_schema["foreign_key"], field_schema["foreign_key"]
+                )
+            elif is_one_to_many(field_schema) or is_one_to_one(field_schema):
+                relation = datasource.get_collection(field_schema["foreign_collection"])
+                relation = cast("RenameMixin", relation)
+                field_schema["origin_key"] = relation._from_child_collection.get(
+                    field_schema["origin_key"], field_schema["origin_key"]
+                )
+            elif is_many_to_many(field_schema):
+                through = datasource.get_collection(field_schema["through_collection"])
+                through = cast("RenameMixin", through)
+                field_schema["foreign_key"] = through._from_child_collection.get(
+                    field_schema["foreign_key"], field_schema["foreign_key"]
+                )
+                field_schema["origin_key"] = through._from_child_collection.get(
+                    field_schema["origin_key"], field_schema["origin_key"]
+                )
+
+            new_fields_schema[self._from_child_collection.get(old_field_name, old_field_name)] = field_schema
+
+        schema["fields"] = new_fields_schema
+        return schema
+
+    def _path_from_child_collection(self, child_path: str) -> str:
+        datasource = cast(Datasource[BoundCollection], self.datasource)
+        field, related_field = child_path, None
+        if ":" in child_path:
+            field, related_field = child_path.split(":")
+        self_field = self._from_child_collection.get(field, field)
+        if related_field:
+            schema = self.schema["fields"][self_field]
+            if is_many_to_many(schema) or is_one_to_many(schema) or is_one_to_one(schema) or is_many_to_one(schema):
+                relation = datasource.get_collection(schema["foreign_collection"])
+                relation = cast("RenameMixin", relation)
+                return f"{self_field}:{relation._path_from_child_collection(':'.join(related_field))}"
+            else:
+                raise RenameCollectionException(f"The field {self_field} is not a relation")
+        return self_field
+
+    def _refine_leaf_tree(self, tree: ConditionTree) -> ConditionTree:
+        if isinstance(tree, ConditionTreeLeaf):
+            tree.field = self._path_to_child_collection(tree.field)
+        return tree
+
+    def _refine_sort_clause(self, clause: PlainSortClause):
+        return PlainSortClause(field=self._path_to_child_collection(clause["field"]), ascending=clause["ascending"])
+
+    def _record_to_child_collection(self, record: RecordsDataAlias) -> RecordsDataAlias:
+        child_record: RecordsDataAlias = {}
+        for field_name, value in record.items():
+            child_record[self._to_child_collection.get(field_name, field_name)] = value
+        return child_record
+
+    def _record_from_child_collection(self, record: RecordsDataAlias) -> RecordsDataAlias:
+        new_record: RecordsDataAlias = {}
+        datasource = cast(Datasource[BoundCollection], self.datasource)
+        for field_name, value in record.items():
+            new_field_name = self._from_child_collection.get(field_name, field_name)
+            schema = self.schema["fields"][new_field_name]
+            if is_column(schema) or value is None:
+                new_record[new_field_name] = value
+            elif is_many_to_many(schema) or is_many_to_one(schema) or is_one_to_many(schema) or is_one_to_one(schema):
+                relation = datasource.get_collection(schema["foreign_collection"])
+                relation = cast("RenameMixin", relation)
+                new_record[new_field_name] = relation._record_from_child_collection(value)
+        return new_record
+
+    def _path_to_child_collection(self, path: str) -> str:
+        datasource = cast(Datasource[BoundCollection], self.datasource)
+        field_name, related_field = path, None
+        if ":" in path:
+            field_name, related_field = path.split(":")
+        if related_field:
+            schema = self.schema["fields"][field_name]
+            if is_many_to_many(schema) or is_one_to_many(schema) or is_one_to_one(schema) or is_many_to_one(schema):
+                relation = datasource.get_collection(schema["foreign_collection"])
+                relation = cast("RenameMixin", relation)
+                child_field = self._to_child_collection.get(field_name, field_name)
+                return f"{child_field}:{relation._path_to_child_collection(related_field)}"
+            else:
+                raise RenameCollectionException(f"The field {field_name} is not a relation")
+        return self._to_child_collection.get(field_name, field_name)

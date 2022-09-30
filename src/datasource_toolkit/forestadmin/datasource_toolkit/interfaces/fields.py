@@ -94,12 +94,18 @@ class PrimitiveType(enum.Enum):
     UUID = "Uuid"
 
 
+LiteralManyToOne = Literal["ManyToOne"]
+LiteralOneToOne = Literal["OneToOne"]
+LiteralOneToMany = Literal["OneToMany"]
+LiteralManyToMany = Literal["ManyToMany"]
+
+
 class FieldType(enum.Enum):
     COLUMN = "Column"
-    MANY_TO_ONE = "ManyToOne"
-    ONE_TO_ONE = "OneToOne"
-    ONE_TO_MANY = "OneToMany"
-    MANY_TO_MANY = "ManyToMany"
+    MANY_TO_ONE = LiteralManyToOne
+    ONE_TO_ONE = LiteralOneToOne
+    ONE_TO_MANY = LiteralOneToMany
+    MANY_TO_MANY = LiteralManyToMany
 
 
 class Validation(TypedDict):
@@ -174,3 +180,7 @@ def is_one_to_one(field: "FieldAlias") -> TypeGuard[OneToOne]:
 
 def is_many_to_many(field: "FieldAlias") -> TypeGuard[ManyToMany]:
     return field["type"] == FieldType.MANY_TO_MANY
+
+
+def is_relation(field: "FieldAlias") -> TypeGuard[RelationAlias]:
+    return is_many_to_one(field) or is_one_to_many(field) or is_one_to_one(field) or is_many_to_many(field)
