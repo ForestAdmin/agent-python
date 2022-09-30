@@ -78,7 +78,7 @@ class SqlAlchemyCollection(BaseSqlAlchemyCollection):
         table: Table,
         mapper: Optional[Mapper] = None,
     ):
-        super().__init__(name, datasource)
+        super(SqlAlchemyCollection, self).__init__(name, datasource)
         self._table = table
         self._mapper = mapper
         self._name = name

@@ -29,6 +29,8 @@ def projections_to_records(projection: Projection, items: List[Tuple[Any]]) -> L
             else:
                 if any(res.values()):
                     record[field_name] = res
+                else:
+                    record[field_name] = None
         records.append(record)
     return records
 
