@@ -1,0 +1,16 @@
+[project]
+name = "forestadmin-datasource-toolkit"
+version = "0.0.1a1"
+authors = [
+    { name="Valentin Monté", email="valentinm@forestadmin.com" },
+]
+description = "Forestadmin datasource toolkit"
+readme = "README.md"
+requires-python = ">=3.6"
+classifiers = [
+    "Programming Language :: Python :: 3",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/ForestAdmin/agent-python"
+"Bug Tracker" = "https://github.com/ForestAdmin/agent-python/issues"
