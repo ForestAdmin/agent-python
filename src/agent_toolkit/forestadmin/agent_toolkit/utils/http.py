@@ -70,6 +70,7 @@ class ForestHttpApi:
                 async with session.post(endpoint, json=body, headers=headers) as response:
                     if response.status == 200:
                         return await response.json()
+                    print(response.status)
                     return None
             except aiohttp.ClientError:
                 raise ForestHttpApiException(f"Failed to fetch {endpoint}")

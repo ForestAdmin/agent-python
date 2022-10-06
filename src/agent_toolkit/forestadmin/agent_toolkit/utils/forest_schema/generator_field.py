@@ -28,7 +28,7 @@ from forestadmin.datasource_toolkit.utils.collections import CollectionUtils
 class SchemaFieldGenerator:
     RELATION_MAPPING: Dict[FieldType, RelationServer] = {
         FieldType.ONE_TO_ONE: "HasOne",
-        FieldType.ONE_TO_MANY: "HasMany",
+        FieldType.ONE_TO_MANY: "BelongsToMany",
         FieldType.MANY_TO_ONE: "BelongsTo",
         FieldType.MANY_TO_MANY: "BelongsToMany",
     }

@@ -66,6 +66,7 @@ class Agent:
             self.options, self.composite_datasource, self.meta
         )
         api_map = SchemaEmitter.serialize(collections_schema, self.meta)
+        print(api_map)
         await ForestHttpApi.post(
             ForestHttpApi.build_enpoint(self.options["forest_server_url"], "/forest/apimaps"),
             api_map,

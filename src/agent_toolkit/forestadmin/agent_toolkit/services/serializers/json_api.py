@@ -79,7 +79,6 @@ def _create_relationship(collection: CollectionAlias, field_name: str, relation:
         type_=type_,
         many=many,
         schema=f"{type_}_schema",
-        # include_resource_linkage=not many,
         related_url=f"/forest/{collection.name}/{{{collection.name.lower()}_id}}/relationships/{field_name}",
         related_url_kwargs={f"{collection.name.lower()}_id": "<__forest_id__>"},
         collection=collection,
@@ -195,14 +194,22 @@ class ForestSchema(Schema):
         return res  # type: ignore
 
     def load(self, data, *, many=None, partial=None, unknown=None):  # type: ignore
+
         try:
             return super().load(data, many=many, partial=partial, unknown=unknown)  # type: ignore
         except MarshmallowError as e:
+            print(0, data)
+            raise e
             raise JsonApiException(str(e))
 
     def unwrap_item(self, item):  # type: ignore
         # needed to avoid an issue introduced by the front (type are pluralize for add and update)
         item["type"] = self.opts.type_  # type: ignore
+        for name, relationship in item.get("relationships", {}).items():  # type: ignore
+            relation_field = self.Meta.fcollection.get_field(name)  # type: ignore
+            relationship["data"]["type"] = relation_field["foreign_collection"]  # type: ignore
+            item["relationships"][name] = relationship
+        print(item)
         return super(ForestSchema, self).unwrap_item(item)  # type: ignore
 
 
@@ -227,7 +234,6 @@ def create_json_api_schema(collection: CollectionAlias):
             self_url_kwargs = {f"{collection.name.lower()}_id": "<__forest_id__>"}
             strict = True
             fcollection: CollectionAlias = collection
-            prout: Dict[str, Any] = attributes
 
     res = JsonApiSchemaType(schema_name(collection), (JsonApiSchema,), attributes)
     return res

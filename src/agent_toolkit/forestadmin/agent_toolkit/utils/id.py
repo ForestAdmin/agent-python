@@ -16,6 +16,7 @@ def pack_id(schema: CollectionSchema, record: RecordsDataAlias):
     if len(schema_pks) == 0:
         raise IdException("")
     pks = [str(record.get(pk, "")) for pk in schema_pks]
+    print(record, schema_pks)
     if not all(pks):
         raise IdException("")
 

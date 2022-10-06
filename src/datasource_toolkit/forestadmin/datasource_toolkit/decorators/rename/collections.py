@@ -1,6 +1,5 @@
 from typing import Any, Callable, Dict, List, Optional, cast
 
-from forestadmin.agent_toolkit.resources.collections import BoundCollection
 from forestadmin.datasource_toolkit.exceptions import DatasourceToolkitException
 from forestadmin.datasource_toolkit.interfaces.fields import (
     is_column,
@@ -9,7 +8,7 @@ from forestadmin.datasource_toolkit.interfaces.fields import (
     is_one_to_many,
     is_one_to_one,
 )
-from forestadmin.datasource_toolkit.interfaces.models.collections import CollectionSchema, Datasource
+from forestadmin.datasource_toolkit.interfaces.models.collections import BoundCollection, CollectionSchema, Datasource
 from forestadmin.datasource_toolkit.interfaces.query.aggregation import AggregateResult, Aggregation
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.base import ConditionTree
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.leaf import ConditionTreeLeaf

@@ -43,9 +43,10 @@ class ConditionTreeValidator:
     def validate_operator(condition_tree: ConditionTreeLeaf, column_schema: Column):
         operators = column_schema["filter_operators"]
         error_msg = f"The given operator {condition_tree.operator} is not supported by the column:"
+        print(condition_tree.operator, column_schema["filter_operators"])
         if not operators:
             raise ConditionTreeValidatorException(f'{error_msg} "The column is not filterable"')
-        elif condition_tree.operator in operators:
+        elif condition_tree.operator not in operators:
             raise ConditionTreeValidatorException(
                 f'{error_msg} "The allowed types are {[operator for operator in operators]}"'
             )
@@ -73,7 +74,6 @@ class ConditionTreeValidator:
             'for the given operator "{condition_tree.operator}."'
         )
         allowed_types = MAP_ALLOWED_TYPES_FOR_OPERATOR.get(condition_tree.operator, [])
-
         if not allowed_types:
             raise ConditionTreeValidatorException(f"{error_msg} The value attribute must be empty.")
 

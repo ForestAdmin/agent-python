@@ -1,6 +1,5 @@
 from typing import Dict, List, Optional, Tuple, Union, cast
 
-from forestadmin.agent_toolkit.resources.collections import BoundCollection
 from forestadmin.datasource_toolkit.interfaces.fields import (
     Column,
     ColumnAlias,
@@ -11,7 +10,7 @@ from forestadmin.datasource_toolkit.interfaces.fields import (
     is_many_to_one,
     is_one_to_one,
 )
-from forestadmin.datasource_toolkit.interfaces.models.collections import CollectionSchema, Datasource
+from forestadmin.datasource_toolkit.interfaces.models.collections import BoundCollection, CollectionSchema, Datasource
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.factory import ConditionTreeFactory
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.base import ConditionTree
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.leaf import ConditionTreeLeaf

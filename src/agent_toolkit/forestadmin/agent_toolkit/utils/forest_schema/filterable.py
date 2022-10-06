@@ -48,7 +48,8 @@ class FrontendFilterableUtils:
     @classmethod
     def is_filterable(cls, column_type: ColumnAlias, operators: Optional[Set[Operator]]) -> bool:
         required_operators = cls.get_required_operators(column_type) or []
-        return bool(operators and all([op in required_operators for op in operators]))
+        print(column_type, [op in operators for op in required_operators])
+        return bool(operators and all([op in operators for op in required_operators]))
 
     @classmethod
     def get_required_operators(cls, column_type: ColumnAlias) -> Optional[List[Operator]]:

@@ -9,7 +9,7 @@ from forestadmin.agent_toolkit.resources.collections.filter import (
     build_filter,
     build_paginated_filter,
     parse_condition_tree,
-    parse_projection,
+    parse_projection_with_pks,
     parse_selection_ids,
     parse_timezone,
 )
@@ -55,7 +55,7 @@ def is_request_collection(request: Request) -> TypeGuard[RequestCollection]:
     return hasattr(request, "collection")
 
 
-LiteralMethod = Literal["get", "list", "count", "add", "update", "delete", "delete_list"]
+LiteralMethod = Literal["get", "list", "count", "add", "update", "delete", "delete_list", "update_list"]
 
 
 class CrudResource(BaseCollectionResource):
@@ -144,7 +144,7 @@ class CrudResource(BaseCollectionResource):
         except FilterException as e:
             return build_client_error_response([str(e)])
         try:
-            projections = parse_projection(request)
+            projections = parse_projection_with_pks(request)
         except DatasourceException as e:
             return build_client_error_response([str(e)])
 
@@ -310,7 +310,7 @@ class CrudResource(BaseCollectionResource):
                 else:
                     field = cast(ManyToOne, field)
                     record[field["foreign_key"]] = await CollectionUtils.get_value(
-                        cast(Collection, foreign_collection), value, field["foreign_key_target"]
+                        cast(Collection, foreign_collection), [value], field["foreign_key_target"]
                     )
 
         return record, one_to_one_relations

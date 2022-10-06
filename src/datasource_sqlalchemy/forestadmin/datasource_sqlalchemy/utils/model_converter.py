@@ -143,8 +143,10 @@ class CollectionFactory:
                         else:
                             relation = cls._build_one_to_one(relationship)
                     elif relationship.secondary is not None:  # type: ignore
+                        print("\n\n", relationship.secondary, "\n\n")
                         relation = cls._build_many_to_many(model, relationship)
                     else:
+                        print(relationship)
                         relation = cls._build_one_to_many(relationship)
 
                     if relation:

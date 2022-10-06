@@ -28,6 +28,7 @@ from forestadmin.agent_toolkit.utils.context import (
     build_success_response,
 )
 from forestadmin.agent_toolkit.utils.id import unpack_id
+from forestadmin.datasource_toolkit.collections import Collection
 from forestadmin.datasource_toolkit.datasources import DatasourceException
 from forestadmin.datasource_toolkit.interfaces.fields import (
     Operator,
@@ -73,11 +74,16 @@ class CrudRelatedResource(BaseCollectionResource):
         paginated_filter = build_paginated_filter(request, scope_tree)
         projection = parse_projection_with_pks(request)
         records = await CollectionUtils.list_relation(
-            request.collection, ids, request.foreign_collection, request.relation, paginated_filter, projection
+            cast(Collection, request.collection),
+            ids,
+            cast(Collection, request.foreign_collection),
+            request.relation,
+            paginated_filter,
+            projection,
         )
         schema = JsonApiSerializer.get(request.foreign_collection)
         try:
-            dumped: DumpedResult = schema(projections=projection).dump(records, many=True)
+            dumped: DumpedResult = schema(projections=projection).dump(records, many=True)  # type: ignore
         except JsonApiException as e:
             return build_client_error_response([str(e)])
 
@@ -85,47 +91,6 @@ class CrudRelatedResource(BaseCollectionResource):
             dumped = add_search_metadata(dumped, paginated_filter.search)
 
         return build_success_response(cast(Dict[str, Any], dumped))
-
-    async def _associate_one_to_many(
-        self, request: RequestRelationCollection, parent_ids: CompositeIdAlias, id_value: Union[str, int]
-    ) -> Response:
-        if not is_one_to_many(request.relation):
-            raise
-        scope_tree = await self.permission.get_scope(request, request.foreign_collection)
-        filter = build_filter(request, scope_tree)
-        trees: List[ConditionTree] = [
-            ConditionTreeLeaf("id", Operator.EQUAL, id_value),
-        ]
-        if filter.condition_tree:
-            trees.append(filter.condition_tree)
-        filter.condition_tree = ConditionTreeFactory.intersect(trees)
-        value = await CollectionUtils.get_value(request.collection, parent_ids, request.relation["origin_key_target"])
-        try:
-            await request.foreign_collection.update(filter, {f"{request.relation['origin_key']}": value})
-        except DatasourceException as e:
-            return build_client_error_response([str(e)])
-        else:
-            return build_no_content_response()
-
-    async def _associate_many_to_many(
-        self, request: RequestRelationCollection, parent_ids: CompositeIdAlias, foreign_id_value: Union[str, int]
-    ):
-        if not is_many_to_many(request.relation):
-            raise
-        id = SchemaUtils.get_primary_keys(request.collection.schema)
-        origin_id_value = await CollectionUtils.get_value(request.collection, parent_ids, id[0])
-
-        record = {
-            f"{request.relation['origin_key']}": origin_id_value,
-            f"{request.relation['foreign_key']}": foreign_id_value,
-        }
-        through_collection = request.collection.datasource.get_collection(request.relation["through_collection"])
-        try:
-            await through_collection.create([record])
-        except DatasourceException as e:
-            return build_client_error_response([str(e)])
-        else:
-            return build_no_content_response()
 
     @authenticate
     @authorize("edit")
@@ -152,11 +117,137 @@ class CrudRelatedResource(BaseCollectionResource):
             return build_client_error_response(["Unhandled relation type"])
 
         pks = SchemaUtils.get_primary_keys(request.foreign_collection.schema)[0]
-        value = await CollectionUtils.get_value(request.foreign_collection, targeted_relation_ids, pks)
+        value = await CollectionUtils.get_value(
+            cast(Collection, request.foreign_collection), targeted_relation_ids, pks
+        )
         if is_one_to_many(request.relation):
             return await self._associate_one_to_many(request, parent_ids, value)
         else:
             return await self._associate_many_to_many(request, parent_ids, value)
+
+    @authenticate
+    @authorize("edit")
+    @check_method(RequestMethod.PUT)
+    async def update_list(self, request: RequestRelationCollection) -> Response:
+        try:
+            timezone = parse_timezone(request)
+        except FilterException as e:
+            return build_client_error_response([str(e)])
+        try:
+            parent_id = unpack_id(request.collection.schema, request.pks)
+        except (FieldValidatorException, CollectionResourceException) as e:
+            return build_client_error_response([str(e)])
+        if not request.body or not request.body.get("data") or "id" not in request.body["data"]:
+            return build_client_error_response(["Relation id is missing"])
+        try:
+            linked_id = unpack_id(request.foreign_collection.schema, request.body["data"]["id"])
+        except (FieldValidatorException, CollectionResourceException) as e:
+            return build_client_error_response([str(e)])
+
+        if is_many_to_one(request.relation) or is_one_to_one(request.relation):
+
+            if is_many_to_one(request.relation):
+                meth = self._update_many_to_one
+            else:
+                meth = self._update_one_to_one
+
+            try:
+                await meth(request, parent_id, linked_id, timezone)
+            except (CollectionResourceException, DatasourceException) as e:
+                return build_client_error_response([str(e)])
+            return build_no_content_response()
+        return build_client_error_response(["Unhandled relation type"])
+
+    @authenticate
+    @authorize("browse")
+    @check_method(RequestMethod.GET)
+    async def count(self, request: RequestRelationCollection) -> Response:
+        try:
+            parent_id = unpack_id(request.collection.schema, request.pks)
+        except (FieldValidatorException, CollectionResourceException) as e:
+            return build_client_error_response([str(e)])
+        scope_tree = await self.permission.get_scope(request, request.foreign_collection)
+        filter = build_filter(request, scope_tree)
+        aggregation = Aggregation({"operation": Aggregator.COUNT})
+
+        result = await CollectionUtils.aggregate_relation(
+            cast(Collection, request.collection), parent_id, request.relation_name, filter, aggregation
+        )
+        try:
+            count = result[0]["value"]
+        except IndexError:
+            count = 0
+        return build_success_response({"count": count})
+
+    @authenticate
+    @authorize("delete")
+    @check_method(RequestMethod.DELETE)
+    async def delete_list(self, request: RequestRelationCollection) -> Response:
+        try:
+            parent_ids = unpack_id(request.collection.schema, request.pks)
+        except (FieldValidatorException, CollectionResourceException) as e:
+            return build_client_error_response([str(e)])
+
+        delete_mode = False
+        if request.query:
+            delete_mode = bool(request.query.get("delete", False))
+
+        filter = await self.get_base_fk_filter(request)
+
+        if is_one_to_many(request.relation) or is_many_to_many(request.relation):
+            if is_one_to_many(request.relation):
+                meth = self._delete_one_to_many
+            else:
+                meth = self._delete_many_to_many
+            try:
+                await meth(request, parent_ids, delete_mode, filter)
+            except (DatasourceException, CollectionResourceException) as e:
+                return build_client_error_response([str(e)])
+            return build_no_content_response()
+        return build_client_error_response(["Unhandled relation type"])
+
+    async def _associate_one_to_many(
+        self, request: RequestRelationCollection, parent_ids: CompositeIdAlias, id_value: Union[str, int]
+    ) -> Response:
+        if not is_one_to_many(request.relation):
+            raise
+        scope_tree = await self.permission.get_scope(request, request.foreign_collection)
+        filter = build_filter(request, scope_tree)
+        trees: List[ConditionTree] = [
+            ConditionTreeLeaf("id", Operator.EQUAL, id_value),
+        ]
+        if filter.condition_tree:
+            trees.append(filter.condition_tree)
+        filter.condition_tree = ConditionTreeFactory.intersect(trees)
+        value = await CollectionUtils.get_value(
+            cast(Collection, request.collection), parent_ids, request.relation["origin_key_target"]
+        )
+        try:
+            await request.foreign_collection.update(filter, {f"{request.relation['origin_key']}": value})
+        except DatasourceException as e:
+            return build_client_error_response([str(e)])
+        else:
+            return build_no_content_response()
+
+    async def _associate_many_to_many(
+        self, request: RequestRelationCollection, parent_ids: CompositeIdAlias, foreign_id_value: Union[str, int]
+    ):
+        if not is_many_to_many(request.relation):
+            raise
+        id = SchemaUtils.get_primary_keys(request.collection.schema)
+        origin_id_value = await CollectionUtils.get_value(cast(Collection, request.collection), parent_ids, id[0])
+
+        record = {
+            f"{request.relation['origin_key']}": origin_id_value,
+            f"{request.relation['foreign_key']}": foreign_id_value,
+        }
+        through_collection = request.collection.datasource.get_collection(request.relation["through_collection"])
+        try:
+            await through_collection.create([record])
+        except DatasourceException as e:
+            return build_client_error_response([str(e)])
+        else:
+            return build_no_content_response()
 
     async def get_base_fk_filter(self, request: RequestRelationCollection):
         ids, exclude_ids = parse_selection_ids(request)
@@ -189,7 +280,7 @@ class CrudRelatedResource(BaseCollectionResource):
         if not is_one_to_many(request.relation):
             raise CollectionResourceException("Unhandled relation type")
         foreign_paginated_filter = await FilterFactory.make_foreign_filter(
-            request.collection, parent_id, request.relation, base_target_filter
+            cast(Collection, request.collection), parent_id, request.relation, base_target_filter
         )
         foreign_filter = foreign_paginated_filter.to_base_filter()
         if is_delete:
@@ -207,7 +298,7 @@ class CrudRelatedResource(BaseCollectionResource):
         if not is_many_to_many(request.relation):
             raise CollectionResourceException("Unhandled relation type")
         through_filter = await FilterFactory.make_through_filter(
-            request.collection,
+            cast(Collection, request.collection),
             parent_id,
             request.relation,
             base_target_filter,
@@ -215,7 +306,7 @@ class CrudRelatedResource(BaseCollectionResource):
         through_collection = request.collection.datasource.get_collection(request.relation["through_collection"])
         if is_delete:
             foreign_filter = await FilterFactory.make_foreign_filter(
-                request.collection, parent_id, request.relation, base_target_filter
+                cast(Collection, request.collection), parent_id, request.relation, base_target_filter
             )
             await through_collection.delete(through_filter.to_base_filter())
             try:
@@ -227,33 +318,6 @@ class CrudRelatedResource(BaseCollectionResource):
                 pass
         else:
             await through_collection.delete(through_filter.to_base_filter())
-
-    @authenticate
-    @authorize("delete")
-    @check_method(RequestMethod.DELETE)
-    async def delete_list(self, request: RequestRelationCollection) -> Response:
-        try:
-            parent_ids = unpack_id(request.collection.schema, request.pks)
-        except (FieldValidatorException, CollectionResourceException) as e:
-            return build_client_error_response([str(e)])
-
-        delete_mode = False
-        if request.query:
-            delete_mode = bool(request.query.get("delete", False))
-
-        filter = await self.get_base_fk_filter(request)
-
-        if is_one_to_many(request.relation) or is_many_to_many(request.relation):
-            if is_one_to_many(request.relation):
-                meth = self._delete_one_to_many
-            else:
-                meth = self._delete_many_to_many
-            try:
-                await meth(request, parent_ids, delete_mode, filter)
-            except (DatasourceException, CollectionResourceException) as e:
-                return build_client_error_response([str(e)])
-            return build_no_content_response()
-        return build_client_error_response(["Unhandled relation type"])
 
     async def _update_one_to_one(
         self,
@@ -267,7 +331,7 @@ class CrudRelatedResource(BaseCollectionResource):
 
         scope = await self.permission.get_scope(request)
         origin_value = await CollectionUtils.get_value(
-            request.collection, parent_id, request.relation["origin_key_target"]
+            cast(Collection, request.collection), parent_id, request.relation["origin_key_target"]
         )
 
         trees: List[ConditionTree] = [ConditionTreeLeaf(request.relation["origin_key"], Operator.EQUAL, origin_value)]
@@ -304,7 +368,7 @@ class CrudRelatedResource(BaseCollectionResource):
 
         scope = await self.permission.get_scope(request)
         foreign_value = await CollectionUtils.get_value(
-            request.foreign_collection, linked_id, request.relation["foreign_key_target"]
+            cast(Collection, request.collection), linked_id, request.relation["foreign_key_target"]
         )
 
         trees = [ConditionTreeFactory.match_ids(request.collection.schema, [parent_id])]
@@ -315,57 +379,3 @@ class CrudRelatedResource(BaseCollectionResource):
             Filter({"condition_tree": ConditionTreeFactory.intersect(trees), "timezone": timezone}),
             {f"{request.relation['foreign_key']}": foreign_value},
         )
-
-    @authenticate
-    @authorize("edit")
-    @check_method(RequestMethod.PUT)
-    async def update(self, request: RequestRelationCollection) -> Response:
-        try:
-            timezone = parse_timezone(request)
-        except FilterException as e:
-            return build_client_error_response([str(e)])
-        try:
-            parent_id = unpack_id(request.collection.schema, request.pks)
-        except (FieldValidatorException, CollectionResourceException) as e:
-            return build_client_error_response([str(e)])
-        if not request.body or "data" not in request.body or "id" not in request.body["data"]:
-            return build_client_error_response(["Relation id is missing"])
-        try:
-            linked_id = unpack_id(request.foreign_collection.schema, request.body["data"]["id"])
-        except (FieldValidatorException, CollectionResourceException) as e:
-            return build_client_error_response([str(e)])
-
-        if is_many_to_one(request.relation) or is_one_to_one(request.relation):
-
-            if is_many_to_one(request.relation):
-                meth = self._update_many_to_one
-            else:
-                meth = self._update_one_to_one
-
-            try:
-                await meth(request, parent_id, linked_id, timezone)
-            except (CollectionResourceException, DatasourceException) as e:
-                return build_client_error_response([str(e)])
-            return build_no_content_response()
-        return build_client_error_response(["Unhandled relation type"])
-
-    @authenticate
-    @authorize("browse")
-    @check_method(RequestMethod.GET)
-    async def count(self, request: RequestRelationCollection) -> Response:
-        try:
-            parent_id = unpack_id(request.collection.schema, request.pks)
-        except (FieldValidatorException, CollectionResourceException) as e:
-            return build_client_error_response([str(e)])
-        scope_tree = await self.permission.get_scope(request, request.foreign_collection)
-        filter = build_filter(request, scope_tree)
-        aggregation = Aggregation({"operation": Aggregator.COUNT})
-
-        result = await CollectionUtils.aggregate_relation(
-            request.collection, parent_id, request.relation_name, filter, aggregation
-        )
-        try:
-            count = result[0]["value"]
-        except IndexError:
-            count = 0
-        return build_success_response({"count": count})

@@ -83,6 +83,7 @@ class SqlAlchemyCollection(BaseSqlAlchemyCollection):
         self._mapper = mapper
         self._name = name
         self._factory = SqlAlchemyCollectionFactory(self)
+        print(self._name)
         schema = CollectionFactory.build(self.table, self.mapper)
         self.add_fields(schema["fields"])
 
