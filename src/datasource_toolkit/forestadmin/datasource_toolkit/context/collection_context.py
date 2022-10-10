@@ -1,11 +1,7 @@
 from typing import Optional
 
-from forestadmin.datasource_toolkit.context.agent_context import (
-    AgentCustomizationContext,
-)
-from forestadmin.datasource_toolkit.context.relaxed_wrappers.collection import (
-    RelaxedCollection,
-)
+from forestadmin.datasource_toolkit.context.agent_context import AgentCustomizationContext
+from forestadmin.datasource_toolkit.context.relaxed_wrappers.collection import RelaxedCollection
 from forestadmin.datasource_toolkit.interfaces.collections import Collection
 
 

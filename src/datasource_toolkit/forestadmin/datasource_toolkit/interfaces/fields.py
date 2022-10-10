@@ -1,5 +1,12 @@
 import enum
-from typing import Any, Dict, List, Literal, Optional, Set, TypedDict, Union
+import sys
+
+if sys.version_info >= (3, 8):
+    from typing import Literal, TypedDict
+else:
+    from typing_extensions import Literal, TypedDict
+
+from typing import Any, Dict, List, Optional, Set, Union
 
 from typing_extensions import NotRequired, TypeGuard
 

@@ -1,26 +1,19 @@
 from typing import Callable, Dict, List, Optional, Set, Union, cast
 
-from typing_extensions import TypeGuard
-
 from forestadmin.datasource_toolkit.exceptions import DatasourceToolkitException
 from forestadmin.datasource_toolkit.interfaces.fields import ColumnAlias, Operator
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.base import (
     ConditionTree,
     ConditionTreeComponent,
 )
-from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.leaf import (
-    ConditionTreeLeaf,
-)
+from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.leaf import ConditionTreeLeaf
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.transforms.comparison import (
     Alternative,
     equality_transforms,
 )
-from forestadmin.datasource_toolkit.interfaces.query.condition_tree.transforms.pattern import (
-    pattern_transforms,
-)
-from forestadmin.datasource_toolkit.interfaces.query.condition_tree.transforms.time import (
-    time_transforms,
-)
+from forestadmin.datasource_toolkit.interfaces.query.condition_tree.transforms.pattern import pattern_transforms
+from forestadmin.datasource_toolkit.interfaces.query.condition_tree.transforms.time import time_transforms
+from typing_extensions import TypeGuard
 
 Replacer = Callable[[ConditionTreeLeaf, str], ConditionTree]
 

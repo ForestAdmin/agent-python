@@ -83,7 +83,6 @@ class SqlAlchemyCollection(BaseSqlAlchemyCollection):
         self._mapper = mapper
         self._name = name
         self._factory = SqlAlchemyCollectionFactory(self)
-        print(self._name)
         schema = CollectionFactory.build(self.table, self.mapper)
         self.add_fields(schema["fields"])
 
@@ -151,7 +150,10 @@ class SqlAlchemyCollection(BaseSqlAlchemyCollection):
         return await super().execute(name, data, filter)
 
     async def aggregate(
-        self, filter: Optional[Filter], aggregation: Aggregation, limit: Optional[int] = None
+        self,
+        filter: Optional[Filter],
+        aggregation: Aggregation,
+        limit: Optional[int] = None,
     ) -> List[AggregateResult]:
         with self.datasource.Session.begin() as session:  #  type: ignore
             dialect: Dialect = session.bind.dialect  #  type: ignore
@@ -211,7 +213,10 @@ class SqlAlchemyDatasource(Datasource[SqlAlchemyCollection]):
         return collection
 
     def _create_secondary_relation(
-        self, collection: SqlAlchemyCollection, related_collection_name: str, many_to_many: ManyToMany
+        self,
+        collection: SqlAlchemyCollection,
+        related_collection_name: str,
+        many_to_many: ManyToMany,
     ):
         collection.add_field(
             related_collection_name.lower(),

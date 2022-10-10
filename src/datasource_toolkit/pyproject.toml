@@ -1,16 +1,15 @@
-[project]
+[tool.poetry]
 name = "forestadmin-datasource-toolkit"
 version = "0.0.1a1"
-authors = [
-    { name="Valentin Monté", email="valentinm@forestadmin.com" },
-]
-description = "Forestadmin datasource toolkit"
+description = ""
+authors = ["Valentin Monté <valentinm@forestadmin.com>"]
 readme = "README.md"
-requires-python = ">=3.6"
-classifiers = [
-    "Programming Language :: Python :: 3",
-]
+packages = [{include = "forestadmin"}]
 
-[project.urls]
-"Homepage" = "https://github.com/ForestAdmin/agent-python"
-"Bug Tracker" = "https://github.com/ForestAdmin/agent-python/issues"
+[tool.poetry.dependencies]
+python = ">=3.6"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

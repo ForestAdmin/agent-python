@@ -1,10 +1,16 @@
+import sys
 from typing import Any, Callable, Dict, List, cast
+
+if sys.version_info >= (3, 8):
+    from typing import TypedDict
+else:
+    from typing_extensions import TypedDict
 
 from forestadmin.datasource_toolkit.interfaces.fields import Operator, PrimitiveType
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.factory import ConditionTreeFactory
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.base import ConditionTree
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.leaf import ConditionTreeLeaf
-from typing_extensions import NotRequired, TypedDict
+from typing_extensions import NotRequired
 
 ReplacerAlias = Callable[[ConditionTreeLeaf, str], ConditionTree]
 

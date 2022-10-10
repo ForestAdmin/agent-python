@@ -14,7 +14,7 @@ def test_filter_constructor():
         search="test",
         search_extended=True,
         segment="test_segment",
-        timezone="utc",
+        timezone="UTC",
         page=Page(),
         sort=Sort(),
     )
@@ -34,7 +34,7 @@ def test_filter_eq():
         search="test",
         search_extended=True,
         segment="test_segment",
-        timezone="utc",
+        timezone="UTC",
         page=Page(limit=1),
         sort=Sort([{"field": "test", "ascending": True}]),
     )
@@ -103,7 +103,7 @@ def test_to_base_filter():
         search="test",
         search_extended=True,
         segment="test_segment",
-        timezone="utc",
+        timezone="UTC",
         page=Page(),
         sort=Sort(),
     )
@@ -114,7 +114,7 @@ def test_to_base_filter():
             search="test",
             search_extended=True,
             segment="test_segment",
-            timezone="utc",
+            timezone="UTC",
         )
     )
 
@@ -125,7 +125,7 @@ def test_to_filter_component():
         search="test",
         search_extended=True,
         segment="test_segment",
-        timezone="utc",
+        timezone="UTC",
         page=Page(),
         sort=Sort([{"field": "test", "ascending": False}]),
     )

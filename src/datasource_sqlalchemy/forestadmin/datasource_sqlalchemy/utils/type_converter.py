@@ -1,11 +1,7 @@
 from typing import Any, Callable, Dict, Optional, Set, Type
 
 from forestadmin.datasource_toolkit.exceptions import DatasourceToolkitException
-from forestadmin.datasource_toolkit.interfaces.fields import (
-    ColumnAlias,
-    Operator,
-    PrimitiveType,
-)
+from forestadmin.datasource_toolkit.interfaces.fields import ColumnAlias, Operator, PrimitiveType
 from sqlalchemy import ARRAY  # type: ignore
 from sqlalchemy import column as SqlAlchemyColumn  # type: ignore
 from sqlalchemy import func, not_, or_  # type: ignore
@@ -151,9 +147,7 @@ class FilterOperator:
         return column.__eq__
 
     @classmethod
-    def get_operator(
-        cls, columns: SqlAlchemyColumn, operator: Operator
-    ) -> Callable[[Optional[str]], Any]:
+    def get_operator(cls, columns: SqlAlchemyColumn, operator: Operator) -> Callable[[Optional[str]], Any]:
         try:
             meth = cls.OPERATORS[operator]
         except KeyError:

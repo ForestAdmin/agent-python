@@ -1,3 +1,10 @@
+import sys
+
+if sys.version_info < (3, 8):
+    from mock import AsyncMock
+else:
+    from unittest.mock import AsyncMock
+
 from unittest import mock
 
 import pytest
@@ -191,18 +198,19 @@ def test_condition_tree_leaf_replace(mock_handle_replace_tree: mock.Mock):
 
 
 @pytest.mark.asyncio
-@mock.patch(
-    "forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.leaf.ConditionTreeLeaf._handle_replace_tree"
-)
-async def test_condition_tree_leaf_aync_replace(mock_handle_replace_tree: mock.Mock):
-    mock_handle_replace_tree.return_value = "fake"
-    tree = ConditionTreeLeaf(field="test", operator=Operator.BLANK)
-    replacer: ReplacerAlias = mock.AsyncMock()
-    replacer.return_value = "replacer_value"
+async def test_condition_tree_leaf_aync_replace():
+    # @mock.patch doesn't work with mark.asyncio so we use context
+    with mock.patch(
+        "forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.leaf.ConditionTreeLeaf._handle_replace_tr"
+        "ee"
+    ) as mock_handle_replace_tree:
+        mock_handle_replace_tree.return_value = "fake"
+        tree = ConditionTreeLeaf(field="test", operator=Operator.BLANK)
+        replacer: ReplacerAlias = AsyncMock(return_value="replacer_value")
 
-    assert await tree.replace_async(replacer) == "fake"
-    replacer.assert_called_once_with(tree)
-    mock_handle_replace_tree.assert_called_once_with("replacer_value")
+        assert await tree.replace_async(replacer) == "fake"
+        replacer.assert_called_once_with(tree)
+        mock_handle_replace_tree.assert_called_once_with("replacer_value")
 
 
 def test__condition_tree_leaf_apply():
@@ -345,7 +353,7 @@ def test_condition_tree_leaf_shorter_than():
 def test_condition_tree_leaf_not_equal_not_contains():
     record: RecordsDataAlias = {}
     collection: Collection = mock.MagicMock()
-    timezone = "utc"
+    timezone = "UTC"
     tree = ConditionTreeLeaf(field="test", operator=Operator.NOT_CONTAINS, value="a")
     inversed_tree = mock.MagicMock(name="toto")
     inversed_tree.match = mock.MagicMock(name="tutu", return_value=False)
@@ -361,7 +369,7 @@ def test_condition_tree_leaf_not_equal_not_contains():
 def test_simple_condition_tree_leaf_match(mock_get_field_value: mock.Mock):
     record: RecordsDataAlias = {}
     collection: Collection = mock.MagicMock()
-    timezone = "utc"
+    timezone = "UTC"
     mock_get_field_value.return_value = "fake_field_value"
     m = mock.MagicMock(return_value="fake_res")
 

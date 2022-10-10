@@ -1,5 +1,12 @@
 import enum
-from typing import Any, List, Literal, Optional, TypedDict, Union
+import sys
+
+if sys.version_info >= (3, 8):
+    from typing import Literal, TypedDict
+else:
+    from typing_extensions import Literal, TypedDict
+
+from typing import Any, List, Optional, Union
 
 from forestadmin.datasource_toolkit.interfaces.fields import ColumnAlias
 from typing_extensions import NotRequired

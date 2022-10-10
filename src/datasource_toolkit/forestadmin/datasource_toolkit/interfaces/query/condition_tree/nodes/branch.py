@@ -1,6 +1,15 @@
 import enum
+import sys
 from functools import reduce
-from typing import Any, List, Literal, Union
+
+from forestadmin.datasource_toolkit.utils import removeprefix
+
+if sys.version_info >= (3, 8):
+    from typing import Literal
+else:
+    from typing_extensions import Literal
+
+from typing import Any, List, Union
 
 from forestadmin.datasource_toolkit.interfaces.models.collections import Collection
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.base import (
@@ -105,7 +114,7 @@ class ConditionTreeBranch(ConditionTree):
     def _remove_prefix(self, prefix: str) -> ConditionTree:
         def __rename(tree: ConditionTree) -> ConditionTree:
             if isinstance(tree, ConditionTreeLeaf):
-                return tree.replace_field(tree.field.removeprefix(f"{prefix}:"))
+                return tree.replace_field(removeprefix(tree.field, f"{prefix}:"))
             return tree
 
         return self.replace(__rename)

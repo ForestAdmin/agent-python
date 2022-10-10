@@ -2,10 +2,7 @@ from collections import defaultdict
 from typing import Dict, List
 
 from forestadmin.datasource_toolkit.interfaces.fields import Operator, PrimitiveType
-from forestadmin.datasource_toolkit.validations.types import (
-    ValidationPrimaryType,
-    ValidationTypesArray,
-)
+from forestadmin.datasource_toolkit.validations.types import ValidationPrimaryType, ValidationTypesArray
 
 BASE_OPERATORS = [Operator.BLANK, Operator.EQUAL, Operator.MISSING, Operator.NOT_EQUAL, Operator.PRESENT]
 

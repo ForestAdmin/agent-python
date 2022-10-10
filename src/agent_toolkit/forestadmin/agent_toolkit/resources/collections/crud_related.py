@@ -1,5 +1,15 @@
-from typing import Any, Dict, List, Literal, Union, cast
-from zoneinfo import ZoneInfo
+import sys
+
+if sys.version_info >= (3, 8):
+    from typing import Literal
+else:
+    from typing_extensions import Literal
+if sys.version_info >= (3, 9):
+    import zoneinfo
+else:
+    from backports import zoneinfo
+
+from typing import Any, Dict, List, Union, cast
 
 from forestadmin.agent_toolkit.resources.collections import BaseCollectionResource
 from forestadmin.agent_toolkit.resources.collections.decorators import authenticate, authorize, check_method
@@ -324,7 +334,7 @@ class CrudRelatedResource(BaseCollectionResource):
         request: RequestRelationCollection,
         parent_id: CompositeIdAlias,
         linked_id: CompositeIdAlias,
-        timezone: ZoneInfo,
+        timezone: zoneinfo.ZoneInfo,
     ):
         if not is_one_to_one(request.relation):
             raise CollectionResourceException("Unhandled relation type")
@@ -361,7 +371,7 @@ class CrudRelatedResource(BaseCollectionResource):
         request: RequestRelationCollection,
         parent_id: CompositeIdAlias,
         linked_id: CompositeIdAlias,
-        timezone: ZoneInfo,
+        timezone: zoneinfo.ZoneInfo,
     ):
         if not is_many_to_one(request.relation):
             raise CollectionResourceException("Unhandled relation type")

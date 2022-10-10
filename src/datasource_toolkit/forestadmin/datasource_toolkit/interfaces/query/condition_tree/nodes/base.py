@@ -1,5 +1,12 @@
 import abc
-from typing import Awaitable, Callable, List, TypedDict, TypeVar, Union
+import sys
+
+if sys.version_info >= (3, 8):
+    from typing import TypedDict
+else:
+    from typing_extensions import TypedDict
+
+from typing import Awaitable, Callable, List, TypeVar, Union
 
 from forestadmin.datasource_toolkit.exceptions import DatasourceToolkitException
 from forestadmin.datasource_toolkit.interfaces.models.collections import Collection

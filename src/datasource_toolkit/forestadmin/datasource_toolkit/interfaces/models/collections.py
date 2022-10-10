@@ -1,10 +1,16 @@
 import abc
-from typing import Dict, Generic, List, TypeVar
+import sys
 
-from typing_extensions import Self, TypedDict
+if sys.version_info >= (3, 8):
+    from typing import TypedDict
+else:
+    from typing_extensions import TypedDict
+
+from typing import Dict, Generic, List, TypeVar
 
 from forestadmin.datasource_toolkit.interfaces.actions import Action
 from forestadmin.datasource_toolkit.interfaces.fields import FieldAlias
+from typing_extensions import Self
 
 
 class CollectionSchema(TypedDict):

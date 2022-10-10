@@ -543,4 +543,4 @@ def test_apply_date_operation(operation: DateOperation, expected: str):
             "operation": Aggregator.COUNT,
         }
     )
-    assert aggregation._apply_date_operation(dt_iso, operation, "utc") == expected
+    assert aggregation._apply_date_operation(dt_iso, operation, "UTC") == expected

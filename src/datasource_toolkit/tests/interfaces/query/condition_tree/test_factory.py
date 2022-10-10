@@ -3,32 +3,19 @@ from typing import List
 from unittest import mock
 
 import pytest
-
-from forestadmin.datasource_toolkit.interfaces.fields import (
-    Column,
-    FieldType,
-    Operator,
-    PrimitiveType,
-)
-from forestadmin.datasource_toolkit.interfaces.models.collections import (
-    CollectionSchema,
-)
+from forestadmin.datasource_toolkit.interfaces.fields import Column, FieldType, Operator, PrimitiveType
+from forestadmin.datasource_toolkit.interfaces.models.collections import CollectionSchema
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.factory import (
     ConditionTreeFactory,
     ConditionTreeFactoryException,
 )
-from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.base import (
-    ConditionTree,
-)
+from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.base import ConditionTree
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.branch import (
     Aggregator,
     BranchComponents,
     ConditionTreeBranch,
 )
-from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.leaf import (
-    ConditionTreeLeaf,
-    LeafComponents,
-)
+from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.leaf import ConditionTreeLeaf, LeafComponents
 
 PRIMARY_KEY_FIELD: Column = {
     "column_type": PrimitiveType.NUMBER,

@@ -1,6 +1,12 @@
+import sys
+
+if sys.version_info >= (3, 9):
+    import zoneinfo
+else:
+    from backports import zoneinfo
+
 import json
 from typing import Any, Dict, List, Optional, Tuple, Union
-from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from forestadmin.agent_toolkit.exceptions import AgentToolkitException
 from forestadmin.agent_toolkit.resources.collections.requests import RequestCollection, RequestRelationCollection
@@ -145,14 +151,14 @@ def parse_segment(request: Union[RequestCollection, RequestRelationCollection]) 
     return segment
 
 
-def parse_timezone(request: Request) -> ZoneInfo:
+def parse_timezone(request: Request) -> zoneinfo.ZoneInfo:
     if not request.query or "timezone" not in request.query:
         raise FilterException("Missing timezone")
 
     tz = request.query["timezone"]
     try:
-        return ZoneInfo(tz)
-    except ZoneInfoNotFoundError:
+        return zoneinfo.ZoneInfo(tz)
+    except zoneinfo.ZoneInfoNotFoundError:
         raise FilterException(f"Invalid timezone {tz}")
 
 

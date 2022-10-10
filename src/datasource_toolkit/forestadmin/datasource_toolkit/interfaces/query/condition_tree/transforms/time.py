@@ -64,7 +64,7 @@ def _compare_replacer(operator: Operator, date: DateCallback) -> ReplacerAlias:
 def _build_interval(end: datetime, frequency: str, periods: int, tz: str) -> Interval:
 
     dates: List[datetime] = []
-    end = end.astimezone(zoneinfo.ZoneInfo("utc"))  # mandatory to avoid the panda issue with zoneinfo
+    end = end.astimezone(zoneinfo.ZoneInfo("UTC"))  # mandatory to avoid the panda issue with zoneinfo
     for dt in pd.date_range(end=end, periods=periods, freq=frequency).to_pydatetime():  # type: ignore
         dt = cast(datetime, dt)
         if frequency != Frequency.HOUR.value:

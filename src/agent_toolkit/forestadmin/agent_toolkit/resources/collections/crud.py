@@ -1,5 +1,12 @@
 import asyncio
-from typing import Any, Awaitable, Dict, List, Literal, Tuple, cast
+import sys
+
+if sys.version_info >= (3, 8):
+    from typing import Literal
+else:
+    from typing_extensions import Literal
+
+from typing import Any, Awaitable, Dict, List, Tuple, cast
 
 from forestadmin.agent_toolkit.resources.collections import BaseCollectionResource
 from forestadmin.agent_toolkit.resources.collections.decorators import authenticate, authorize, check_method

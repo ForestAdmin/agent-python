@@ -1,0 +1,84 @@
+name: Reusable package workflow
+
+on:
+  workflow_call:
+    inputs:
+      current-package:
+        required: true
+        type: string
+    secrets:
+      CC_TEST_REPORTER_ID:
+        required: true
+jobs:
+  lint:
+    name: Linting
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.10']
+    steps:
+      - uses: actions/checkout@v3
+      -  id: lint
+         uses: ./.github/actions/linting
+         with:
+          python-version: ${{ matrix.python-version }}
+          current_package: ${{ inputs.current-package }}
+  isort:
+    name: Isorting
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ${{ inputs.current-package }}
+    strategy:
+      matrix:
+        python-version: ['3.10']
+    steps:
+      - uses: actions/checkout@v3
+      -  id: isort
+         uses: ./.github/actions/isort
+         with:
+          current_package: ${{ inputs.current-package }}
+  black:
+    name: Black
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ${{ inputs.current-package }}
+    strategy:
+      matrix:
+        python-version: ['3.10']
+    steps:
+      - uses: actions/checkout@v3
+      -  id: isort
+         uses: ./.github/actions/black
+         with:
+          current_package: ${{ inputs.current-package }}
+  test:
+    name: Test
+    needs: [isort, lint, black]
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.7, 3.8, 3.9, '3.10']
+    steps:
+      - uses: actions/checkout@v3
+      -  id: tests
+         uses: ./.github/actions/tests
+         with:
+          python-version: ${{ matrix.python-version }}
+          current_package: ${{ inputs.current-package }}
+  coverage:
+    name: Coverage
+    needs: [test]
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.10']
+    steps:
+      - uses: actions/checkout@v3
+      -  id: coverage
+         uses: ./.github/actions/coverage
+         with:
+          python-version: ${{ matrix.python-version }}
+          current_package: ${{ inputs.current-package }}
+          CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}

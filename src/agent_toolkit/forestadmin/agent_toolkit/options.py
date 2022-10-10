@@ -1,4 +1,9 @@
-from typing import Literal, TypedDict
+import sys
+
+if sys.version_info >= (3, 8):
+    from typing import Literal, TypedDict
+else:
+    from typing_extensions import Literal, TypedDict
 
 
 class AgentStackMeta(TypedDict, total=False):

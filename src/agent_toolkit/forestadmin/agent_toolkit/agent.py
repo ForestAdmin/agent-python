@@ -1,4 +1,9 @@
-from typing import TypedDict
+import sys
+
+if sys.version_info >= (3, 8):
+    from typing import TypedDict
+else:
+    from typing_extensions import TypedDict
 
 from forestadmin.agent_toolkit.exceptions import AgentToolkitException
 from forestadmin.agent_toolkit.options import AgentMeta, Options
@@ -66,7 +71,6 @@ class Agent:
             self.options, self.composite_datasource, self.meta
         )
         api_map = SchemaEmitter.serialize(collections_schema, self.meta)
-        print(api_map)
         await ForestHttpApi.post(
             ForestHttpApi.build_enpoint(self.options["forest_server_url"], "/forest/apimaps"),
             api_map,

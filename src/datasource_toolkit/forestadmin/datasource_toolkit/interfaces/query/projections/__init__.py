@@ -13,16 +13,16 @@ class ProjectionException(DatasourceToolkitException):
     pass
 
 
-class Projection(list[str]):
+class Projection(list):  # type: ignore
     def __init__(self, *items: Any):
-        super(Projection, self).__init__(items)
+        super(Projection, self).__init__(items)  # type: ignore
 
     @property
     def columns(self) -> List[str]:
         return list(filter(lambda x: ":" not in x, self))
 
     @property
-    def relations(self) -> Dict[str, "Projection"]:
+    def relations(self: List[str]) -> Dict[str, "Projection"]:
         relations: Dict[str, Projection] = DefaultDict(Projection)
         for path in self:
             splited = path.split(":")

@@ -198,8 +198,6 @@ class ForestSchema(Schema):
         try:
             return super().load(data, many=many, partial=partial, unknown=unknown)  # type: ignore
         except MarshmallowError as e:
-            print(0, data)
-            raise e
             raise JsonApiException(str(e))
 
     def unwrap_item(self, item):  # type: ignore
@@ -209,7 +207,6 @@ class ForestSchema(Schema):
             relation_field = self.Meta.fcollection.get_field(name)  # type: ignore
             relationship["data"]["type"] = relation_field["foreign_collection"]  # type: ignore
             item["relationships"][name] = relationship
-        print(item)
         return super(ForestSchema, self).unwrap_item(item)  # type: ignore
 
 

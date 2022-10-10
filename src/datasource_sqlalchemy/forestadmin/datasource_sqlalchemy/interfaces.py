@@ -29,9 +29,7 @@ class BaseSqlAlchemyCollection(Collection, abc.ABC):
         pass
 
     @abc.abstractmethod
-    def get_columns(
-        self, projection: Projection, level: int = 0
-    ) -> Tuple[List[SqlAlchemyColumn], Relationships]:
+    def get_columns(self, projection: Projection, level: int = 0) -> Tuple[List[SqlAlchemyColumn], Relationships]:
         pass
 
     @abc.abstractproperty

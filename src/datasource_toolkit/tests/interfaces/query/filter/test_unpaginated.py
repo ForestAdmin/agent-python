@@ -13,7 +13,7 @@ def test_filter_constructor():
         search="test",
         search_extended=True,
         segment="test_segment",
-        timezone="utc",
+        timezone="UTC",
     )
     f = Filter(component)
     assert f.condition_tree == component.get("condition_tree")
@@ -29,7 +29,7 @@ def test_filter_eq():
         search="test",
         search_extended=True,
         segment="test_segment",
-        timezone="utc",
+        timezone="UTC",
     )
     f = Filter(component)
     f2 = Filter(component)
@@ -59,7 +59,7 @@ def test_filter_eq():
 
 
 def test_is_nestable():
-    component = FilterComponent(timezone="utc")
+    component = FilterComponent(timezone="UTC")
     f = Filter(component)
     assert f.is_nestable
 
@@ -82,7 +82,7 @@ def test_to_filter_component():
         search="test",
         search_extended=True,
         segment="test_segment",
-        timezone="utc",
+        timezone="UTC",
     )
     f = Filter(component)
 
@@ -132,10 +132,10 @@ def test_override_component(mock_to_component: mock.MagicMock):
     fake_component = mock.MagicMock(name="mock_compoent")
     mock_to_component.return_value = fake_component
     fake_component.update = mock.MagicMock()
-    res = f.override_component({"timezone": "utc"})
+    res = f.override_component({"timezone": "UTC"})
     assert res == fake_component
     mock_to_component.assert_called_once()
-    fake_component.update.assert_called_once_with({"timezone": "utc"})  # type: ignore
+    fake_component.update.assert_called_once_with({"timezone": "UTC"})  # type: ignore
 
 
 def test_override():
@@ -147,8 +147,8 @@ def test_override():
     f = Filter(component)
     with mock.patch.object(f, "override_component") as mock_override_component:
         mock_override_component.return_value = {}
-        res = f.override({"timezone": "utc"})
-        mock_override_component.assert_called_once_with({"timezone": "utc"})
+        res = f.override({"timezone": "UTC"})
+        mock_override_component.assert_called_once_with({"timezone": "UTC"})
         assert res == Filter({})
 
 

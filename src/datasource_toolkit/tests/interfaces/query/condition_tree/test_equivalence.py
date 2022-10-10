@@ -2,15 +2,12 @@
 from unittest import mock
 
 import pytest
-
 from forestadmin.datasource_toolkit.interfaces.fields import Operator, PrimitiveType
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.equivalence import (
     ConditionTreeEquivalent,
     ConditionTreeEquivalentException,
 )
-from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.leaf import (
-    ConditionTreeLeaf,
-)
+from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.leaf import ConditionTreeLeaf
 
 
 @mock.patch(

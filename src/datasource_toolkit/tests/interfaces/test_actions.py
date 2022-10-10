@@ -1,9 +1,5 @@
 import pytest
-
-from forestadmin.datasource_toolkit.interfaces.actions import (
-    ActionFieldType,
-    ActionsScope,
-)
+from forestadmin.datasource_toolkit.interfaces.actions import ActionFieldType, ActionsScope
 
 
 @pytest.mark.parametrize("key,value", (("SINGLE", "single"), ("BULK", "bulk"), ("GLOBAL", "global")))

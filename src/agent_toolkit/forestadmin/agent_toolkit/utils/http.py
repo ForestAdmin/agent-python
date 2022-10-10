@@ -1,4 +1,11 @@
-from typing import Any, Dict, TypedDict
+import sys
+
+if sys.version_info >= (3, 8):
+    from typing import TypedDict
+else:
+    from typing_extensions import TypedDict
+
+from typing import Any, Dict, Optional
 
 import aiohttp
 from forestadmin.agent_toolkit.exceptions import AgentToolkitException
@@ -64,13 +71,12 @@ class ForestHttpApi:
                 raise ForestHttpApiException(f"Failed to fetch {endpoint}")
 
     @staticmethod
-    async def post(endpoint: str, body: Dict[str, Any], headers: Dict[str, str]) -> Dict[str, Any]:
+    async def post(endpoint: str, body: Dict[str, Any], headers: Dict[str, str]) -> Optional[Dict[str, Any]]:
         async with aiohttp.ClientSession() as session:
             try:
                 async with session.post(endpoint, json=body, headers=headers) as response:
                     if response.status == 200:
                         return await response.json()
-                    print(response.status)
                     return None
             except aiohttp.ClientError:
                 raise ForestHttpApiException(f"Failed to fetch {endpoint}")

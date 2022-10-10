@@ -5,11 +5,7 @@ from typing import Any, List, Optional, Union, cast
 
 from forestadmin.datasource_toolkit.exceptions import DatasourceToolkitException
 from forestadmin.datasource_toolkit.interfaces.fields import PrimitiveType
-from forestadmin.datasource_toolkit.validations.types import (
-    ValidationPrimaryType,
-    ValidationType,
-    ValidationTypesArray,
-)
+from forestadmin.datasource_toolkit.validations.types import ValidationPrimaryType, ValidationType, ValidationTypesArray
 
 
 class TypeGetterException(DatasourceToolkitException):

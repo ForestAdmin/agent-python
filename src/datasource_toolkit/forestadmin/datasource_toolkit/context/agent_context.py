@@ -1,8 +1,6 @@
 from typing import Optional
 
-from forestadmin.datasource_toolkit.context.relaxed_wrappers.collection import (
-    RelaxedDatasource,
-)
+from forestadmin.datasource_toolkit.context.relaxed_wrappers.collection import RelaxedDatasource
 from forestadmin.datasource_toolkit.interfaces.collections import Collection
 from forestadmin.datasource_toolkit.interfaces.models.collections import Datasource
 

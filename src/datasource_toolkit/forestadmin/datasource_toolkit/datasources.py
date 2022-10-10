@@ -2,9 +2,7 @@ from typing import Dict, List
 
 from forestadmin.datasource_toolkit.exceptions import DatasourceToolkitException
 from forestadmin.datasource_toolkit.interfaces.models.collections import BoundCollection
-from forestadmin.datasource_toolkit.interfaces.models.collections import (
-    Datasource as DatasourceInterface,
-)
+from forestadmin.datasource_toolkit.interfaces.models.collections import Datasource as DatasourceInterface
 
 
 class DatasourceException(DatasourceToolkitException):
@@ -29,7 +27,5 @@ class Datasource(DatasourceInterface[BoundCollection]):
 
     def add_collection(self, collection: BoundCollection) -> None:
         if collection.name in self._collections:
-            raise DatasourceException(
-                f"Collection '{collection.name}' already defined in datasource"
-            )
+            raise DatasourceException(f"Collection '{collection.name}' already defined in datasource")
         self._collections[collection.name] = collection

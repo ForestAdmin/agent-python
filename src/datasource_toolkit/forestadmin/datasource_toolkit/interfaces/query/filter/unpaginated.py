@@ -1,5 +1,14 @@
-from typing import Any, Generic, Optional, TypedDict, TypeVar, cast
-from zoneinfo import ZoneInfo
+import sys
+from typing import Any, Generic, Optional, TypeVar, cast
+
+if sys.version_info >= (3, 8):
+    from typing import TypedDict
+else:
+    from typing_extensions import TypedDict
+if sys.version_info >= (3, 9):
+    import zoneinfo
+else:
+    from backports import zoneinfo
 
 from forestadmin.datasource_toolkit.exceptions import DatasourceToolkitException
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.base import (
@@ -14,7 +23,7 @@ class FilterComponent(TypedDict, total=False):
     search: Optional[str]
     search_extended: bool
     segment: str
-    timezone: ZoneInfo
+    timezone: zoneinfo.ZoneInfo
 
 
 class PlainFilter(TypedDict, total=False):

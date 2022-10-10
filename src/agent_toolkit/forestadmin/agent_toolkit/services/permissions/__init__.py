@@ -1,6 +1,13 @@
 import itertools
 import json
-from typing import Any, Dict, List, Optional, Set, Tuple, TypedDict, Union, cast
+import sys
+
+if sys.version_info >= (3, 8):
+    from typing import TypedDict
+else:
+    from typing_extensions import TypedDict
+
+from typing import Any, Dict, List, Optional, Set, Tuple, Union, cast
 
 from cachetools import TTLCache
 from forestadmin.agent_toolkit.resources.collections.requests import RequestCollection, RequestRelationCollection

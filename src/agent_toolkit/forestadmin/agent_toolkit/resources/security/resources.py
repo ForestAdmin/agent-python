@@ -1,5 +1,11 @@
 import json
-from typing import Literal
+import sys
+
+if sys.version_info >= (3, 8):
+    from typing import Literal
+else:
+    from typing_extensions import Literal
+
 from urllib.parse import urljoin
 
 from forestadmin.agent_toolkit.options import Options

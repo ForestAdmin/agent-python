@@ -1,0 +1,13 @@
+name: Run black
+inputs:
+  current_package:
+    required: true
+    description: "The package to isort"
+runs:
+  using: "composite"
+  steps:
+    - uses: actions/checkout@v3
+    - uses: psf/black@stable
+      with:
+        options: "--line-length=120 --check --verbose"
+        src: ${{ inputs.current_package }}

@@ -1,13 +1,8 @@
 from typing import Any
 
 from forestadmin.datasource_toolkit.exceptions import DatasourceToolkitException
-from forestadmin.datasource_toolkit.interfaces.models.collections import (
-    CollectionSchema,
-)
-from forestadmin.datasource_toolkit.interfaces.records import (
-    CompositeIdAlias,
-    RecordsDataAlias,
-)
+from forestadmin.datasource_toolkit.interfaces.models.collections import CollectionSchema
+from forestadmin.datasource_toolkit.interfaces.records import CompositeIdAlias, RecordsDataAlias
 from forestadmin.datasource_toolkit.utils.schema import SchemaUtils
 
 

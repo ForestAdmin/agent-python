@@ -43,7 +43,6 @@ class ConditionTreeValidator:
     def validate_operator(condition_tree: ConditionTreeLeaf, column_schema: Column):
         operators = column_schema["filter_operators"]
         error_msg = f"The given operator {condition_tree.operator} is not supported by the column:"
-        print(condition_tree.operator, column_schema["filter_operators"])
         if not operators:
             raise ConditionTreeValidatorException(f'{error_msg} "The column is not filterable"')
         elif condition_tree.operator not in operators:

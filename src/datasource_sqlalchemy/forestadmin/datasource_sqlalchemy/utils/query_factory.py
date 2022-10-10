@@ -1,5 +1,12 @@
+import sys
 from collections import defaultdict
-from typing import Any, Dict, List, Optional, Tuple, TypedDict
+
+if sys.version_info >= (3, 8):
+    from typing import TypedDict
+else:
+    from typing_extensions import TypedDict
+
+from typing import Any, Dict, List, Optional, Tuple
 
 from forestadmin.datasource_sqlalchemy.interfaces import BaseSqlAlchemyCollection
 from forestadmin.datasource_sqlalchemy.utils.aggregation import AggregationFactory

@@ -1,3 +1,10 @@
+import sys
+
+if sys.version_info < (3, 8):
+    from mock import AsyncMock
+else:
+    from unittest.mock import AsyncMock
+
 from unittest import mock
 from unittest.mock import MagicMock
 
@@ -85,7 +92,7 @@ def test_match(mock_any: mock.MagicMock, mock_all: mock.MagicMock):
 
     record: RecordsDataAlias = mock.MagicMock()
     collection: Collection = mock.MagicMock()
-    timezone: str = "utc"
+    timezone: str = "UTC"
 
     condition = MagicMock()
     condition.match = MagicMock(return_value="match_condition")
@@ -156,14 +163,13 @@ async def test_replace_async():
     handler = mock.MagicMock()
     condition = MagicMock()
     new_condition = MagicMock()
-    condition.replace_async = mock.AsyncMock(return_value=new_condition)
+    condition.replace_async = AsyncMock(return_value=new_condition)
 
     condition1 = MagicMock()
     new_condition1 = MagicMock()
-    condition1.replace_async = mock.AsyncMock(return_value=new_condition1)
+    condition1.replace_async = AsyncMock(return_value=new_condition1)
 
     tree = ConditionTreeBranch(aggregator=Aggregator.OR, conditions=[condition, condition1])
-
     assert await tree.replace_async(handler) == ConditionTreeBranch(
         aggregator=Aggregator.OR, conditions=[new_condition, new_condition1]
     )
