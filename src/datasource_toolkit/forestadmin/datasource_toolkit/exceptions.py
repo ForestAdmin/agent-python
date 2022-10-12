@@ -1,0 +1,2 @@
+class DatasourceToolkitException(Exception):
+    pass

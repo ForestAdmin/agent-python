@@ -1,0 +1,17 @@
+name: flask-agent workflow
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'src/flask_agent/**'
+  pull_request:
+    paths:
+      - 'src/flask_agent/**'
+jobs:
+  GenericPackage:
+    uses: ./.github/workflows/generic.yml
+    with:
+      current-package: './src/flask_agent/'
+    secrets:
+      CC_TEST_REPORTER_ID: 'fake'

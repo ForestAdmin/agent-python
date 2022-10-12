@@ -1,0 +1,15 @@
+[tool.poetry]
+name = "forestadmin-datasource-toolkit"
+version = "0.0.1a1"
+description = ""
+authors = ["Valentin Monté <valentinm@forestadmin.com>"]
+readme = "README.md"
+packages = [{include = "forestadmin"}]
+
+[tool.poetry.dependencies]
+python = ">=3.6"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

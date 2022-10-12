@@ -1,0 +1,17 @@
+name: agent-toolkit workflow
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'src/agent_toolkit/**'
+  pull_request:
+    paths:
+      - 'src/agent_toolkit/**'
+jobs:
+  GenericPackage:
+    uses: ./.github/workflows/generic.yml
+    with:
+      current-package: './src/agent_toolkit/'
+    secrets:
+      CC_TEST_REPORTER_ID: 'fake'

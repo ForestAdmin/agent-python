@@ -1,0 +1,17 @@
+name: datasource-tookit workflow
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'src/datasource_toolkit/**'
+  pull_request:
+    paths:
+      - 'src/datasource_toolkit/**'
+jobs:
+  GenericPackage:
+    uses: ./.github/workflows/generic.yml
+    with:
+      current-package: './src/datasource_toolkit/'
+    secrets:
+      CC_TEST_REPORTER_ID: 'fake'
