@@ -40,6 +40,10 @@ class AggregationFactory:
     def get_group_field_name(cls, field_name: str):
         return f"{field_name}{cls.GROUP_LABEL}"
 
+    @classmethod
+    def get_field_from_group_field_name(cls, group_field_name: str):
+        return group_field_name[: -len(cls.GROUP_LABEL)]
+
     @staticmethod
     def get_field(collection: BaseSqlAlchemyCollection, aggregation: Aggregation) -> Tuple[str, Relationships]:
         field = "*"

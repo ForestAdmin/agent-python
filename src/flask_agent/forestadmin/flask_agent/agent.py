@@ -49,12 +49,13 @@ def _after_request(response: FlaskResponse):
     return response
 
 
-def build_blueprint(agent: Agent):
+def build_blueprint(agent: Agent):  # noqa: C901
     blueprint = Blueprint("flask_forest", __name__)
     blueprint.after_request(_after_request)
     crud_resource = agent.resources["crud"]
     crud_related_resource = agent.resources["crud_related"]
     auth_resource = agent.resources["authentication"]
+    stats_resource = agent.resources["stats"]
 
     def _get_dispatch(
         request: FlaskRequest, method: Optional[AuthLiteralMethod] = None, detail: bool = False
@@ -87,6 +88,10 @@ def build_blueprint(agent: Agent):
     @blueprint.route("/authentication", methods=["POST"])
     async def authentication() -> FlaskResponse:  # type: ignore
         return await _get_collection_response(request, auth_resource, "authenticate")
+
+    @blueprint.route("/stats/<collection_name>", methods=["POST"])
+    async def stats(**_) -> FlaskResponse:  # type: ignore
+        return await _get_collection_response(request, stats_resource)
 
     @blueprint.route("/<collection_name>/count", methods=["GET"])
     async def count(**_) -> FlaskResponse:  # type: ignore

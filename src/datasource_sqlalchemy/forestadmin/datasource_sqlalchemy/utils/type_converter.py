@@ -105,19 +105,19 @@ class FilterOperator:
         return wrapped
 
     @staticmethod
-    def _starts_with(column: SqlAlchemyColumn):
+    def _starts_with_operator(column: SqlAlchemyColumn):
         return column.startswith
 
     @staticmethod
-    def _ends_with(column: SqlAlchemyColumn):
+    def _ends_with_operator(column: SqlAlchemyColumn):
         return column.endswith
 
     @staticmethod
-    def _greater_than(column: SqlAlchemyColumn):
+    def _greater_than_operator(column: SqlAlchemyColumn):
         return column.__gt__
 
     @staticmethod
-    def _less_than(column: SqlAlchemyColumn):
+    def _less_than_operator(column: SqlAlchemyColumn):
         return column.__lt__
 
     @staticmethod

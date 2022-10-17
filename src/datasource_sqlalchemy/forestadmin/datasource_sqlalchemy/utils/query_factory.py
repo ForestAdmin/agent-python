@@ -142,7 +142,7 @@ class QueryFactory:
     ):
         if not relationships:
             relationships = defaultdict(list)
-
+        print("collection", collection.name)
         query: Any = select(columns).select_from(collection.mapper)
         if filter:
             options = PaginatedFilterFactory.build(collection, filter)
@@ -157,7 +157,9 @@ class QueryFactory:
                 query = query.limit(filter.page.limit).offset(filter.page.skip)
 
         for level in sorted(relationships.keys()):
+            print(*relationships[level])
             query = query.join(*relationships[level], isouter=True)
+
         return query
 
     @classmethod
@@ -183,10 +185,12 @@ class QueryFactory:
     ):
         if collection.mapper:
             column, relationships = AggregationFactory.build_column(collection, aggregation)
+            print("zip", column, relationships)
             _filter = None
             if filter is not None:
                 _filter = PaginatedFilter.from_base_filter(filter)
             groups, group_relationships = AggregationFactory.build_group(dialect, collection, aggregation)
+            print("zap", groups, group_relationships)
             query = cls._build_list(
                 collection,
                 _filter,

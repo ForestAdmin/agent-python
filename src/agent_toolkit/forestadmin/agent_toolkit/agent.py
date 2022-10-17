@@ -1,5 +1,7 @@
 import sys
 
+from forestadmin.agent_toolkit.resources.collections.stats import StatsResource
+
 if sys.version_info >= (3, 8):
     from typing import TypedDict
 else:
@@ -24,6 +26,7 @@ class Resources(TypedDict):
     authentication: Authentication
     crud: CrudResource
     crud_related: CrudRelatedResource
+    stats: StatsResource
 
 
 class Agent:
@@ -46,6 +49,7 @@ class Agent:
             "authentication": Authentication(self.options),
             "crud": CrudResource(self.composite_datasource, self.permission_service, self.options),
             "crud_related": CrudRelatedResource(self.composite_datasource, self.permission_service, self.options),
+            "stats": StatsResource(self.composite_datasource, self.permission_service, self.options),
         }
 
     def add_datasource(self, datasource: Datasource[BoundCollection]):
