@@ -47,7 +47,7 @@ from forestadmin.datasource_toolkit.interfaces.fields import (
     is_one_to_many,
     is_one_to_one,
 )
-from forestadmin.datasource_toolkit.interfaces.query.aggregation import Aggregation, Aggregator
+from forestadmin.datasource_toolkit.interfaces.query.aggregation import Aggregation
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.factory import ConditionTreeFactory
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.base import ConditionTree
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.leaf import ConditionTreeLeaf
@@ -178,7 +178,7 @@ class CrudRelatedResource(BaseCollectionResource):
             return build_client_error_response([str(e)])
         scope_tree = await self.permission.get_scope(request, request.foreign_collection)
         filter = build_filter(request, scope_tree)
-        aggregation = Aggregation({"operation": Aggregator.COUNT})
+        aggregation = Aggregation({"operation": "Count"})
 
         result = await CollectionUtils.aggregate_relation(
             cast(Collection, request.collection), parent_id, request.relation_name, filter, aggregation

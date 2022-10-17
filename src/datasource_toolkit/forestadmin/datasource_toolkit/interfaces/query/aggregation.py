@@ -3,16 +3,16 @@ import json
 import sys
 
 if sys.version_info >= (3, 8):
-    from typing import TypedDict
+    from typing import Literal, TypedDict
 else:
-    from typing_extensions import TypedDict
+    from typing_extensions import Literal, TypedDict
 if sys.version_info >= (3, 9):
     import zoneinfo
 else:
     from backports import zoneinfo
 
 from datetime import datetime, timedelta
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Callable, Dict, List, Optional, Union
 
 from forestadmin.datasource_toolkit.interfaces.query.projections import Projection
 from forestadmin.datasource_toolkit.interfaces.records import RecordsDataAlias
@@ -26,6 +26,9 @@ class Aggregator(enum.Enum):
     AVG = "Avg"
     MAX = "Max"
     MIN = "Min"
+
+
+PlainAggregator = Union[Literal["Count"], Literal["Sum"], Literal["Avg"], Literal["Max"], Literal["Min"]]
 
 
 class DateOperation(enum.Enum):
@@ -49,6 +52,11 @@ class Summary(TypedDict):
     Min: Optional[int]
 
 
+class PlainAggregationGroup(TypedDict):
+    field: str
+    operation: NotRequired[str]
+
+
 class AggregationGroup(TypedDict):
     field: str
     operation: NotRequired[DateOperation]
@@ -56,15 +64,22 @@ class AggregationGroup(TypedDict):
 
 class PlainAggregation(TypedDict):
     field: NotRequired[Optional[str]]
-    operation: Aggregator
-    groups: NotRequired[List[AggregationGroup]]
+    operation: PlainAggregator
+    groups: NotRequired[List[PlainAggregationGroup]]
 
 
 class Aggregation:
     def __init__(self, component: PlainAggregation):
         self.field = component.get("field")
-        self.operation = component["operation"]
-        self.groups: List[AggregationGroup] = component.get("groups", [])
+        self.operation = Aggregator(component["operation"])
+        self.groups: List[AggregationGroup] = []
+        for plain_aggregation_group in component.get("groups", []):
+            aggregation_group = AggregationGroup(
+                field=plain_aggregation_group["field"],
+            )
+            if plain_aggregation_group.get("operation"):
+                aggregation_group["operation"] = DateOperation(plain_aggregation_group.get("operation"))
+            self.groups.append(aggregation_group)
 
     def __eq__(self: Self, obj: Self) -> bool:
         return (
@@ -109,7 +124,13 @@ class Aggregation:
 
     @property
     def _to_plain(self) -> PlainAggregation:
-        return {"field": self.field, "operation": self.operation, "groups": self.groups}
+        plain_groups: List[PlainAggregationGroup] = []
+        for group in self.groups:
+            plain_group: PlainAggregationGroup = {"field": group["field"]}
+            if "operation" in group:
+                plain_group["operation"] = group["operation"].value
+            plain_groups.append(plain_group)
+        return {"field": self.field, "operation": self.operation.value, "groups": plain_groups}
 
     def _format_summaries(self, summaries: List[Summary]) -> List[AggregateResult]:
         if self.operation == Aggregator.AVG:

@@ -11,7 +11,10 @@ from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.base i
     ConditionTreeComponent,
     ReplacerAlias,
 )
-from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.operators import UNIQUE_OPERATORS
+from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.operators import (
+    INTERVAL_OPERATORS,
+    UNIQUE_OPERATORS,
+)
 from forestadmin.datasource_toolkit.interfaces.query.projections import Projection
 from forestadmin.datasource_toolkit.interfaces.records import RecordsDataAlias
 from forestadmin.datasource_toolkit.utils.records import RecordUtils
@@ -57,6 +60,16 @@ class ConditionTreeLeaf(ConditionTree):
 
     def __repr__(self):
         return f"{self.field} {self.operator.value} {self.value}"
+
+    @property
+    def use_interval_operator(self):
+        return self.operator in INTERVAL_OPERATORS
+
+    """
+        get useIntervalOperator() {
+    return intervalOperators.includes(this.operator as typeof intervalOperators[number]);
+  }
+    """
 
     @classmethod
     def load(cls, json: LeafComponents) -> "ConditionTreeLeaf":

@@ -76,7 +76,7 @@ class RenameMixin:
 
     def _build_group_aggregate(self, row: AggregateResult) -> Dict[str, Any]:
         group: Dict[str, Any] = {}
-        for path, value in row["group"]:
+        for path, value in row["group"].items():
             group[self._path_from_child_collection(path)] = value
         return group
 

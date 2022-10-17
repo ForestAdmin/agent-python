@@ -38,5 +38,9 @@ def projections_to_records(projection: Projection, items: List[Tuple[Any]]) -> L
 def aggregations_to_records(items: List[Dict[str, Any]]):
     records: List[AggregateResult] = []
     for item in items:
-        records.append(AggregateResult(value=item[AggregationFactory.LABEL], group={}))
+        result = AggregateResult(value=item[AggregationFactory.LABEL], group={})
+        for key in item.keys():
+            if AggregationFactory.GROUP_LABEL in key:
+                result["group"][AggregationFactory.get_field_from_group_field_name(key)] = item[key]
+        records.append(result)
     return records

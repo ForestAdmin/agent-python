@@ -38,7 +38,7 @@ def test_date_operation(key: str, value: str):
 def test_aggregation_init():
     aggregation = Aggregation(
         {
-            "operation": Aggregator.COUNT,
+            "operation": "Count",
         }
     )
     assert aggregation.field is None
@@ -48,14 +48,14 @@ def test_aggregation_init():
     aggregation = Aggregation(
         {
             "field": "stock",
-            "operation": Aggregator.SUM,
+            "operation": "Sum",
         }
     )
     assert aggregation.field == "stock"
     assert aggregation.operation == Aggregator.SUM
     assert aggregation.groups == []
 
-    aggregation = Aggregation({"field": "stock", "operation": Aggregator.SUM, "groups": []})
+    aggregation = Aggregation({"field": "stock", "operation": "Sum", "groups": []})
     assert aggregation.field == "stock"
     assert aggregation.operation == Aggregator.SUM
     assert aggregation.groups == []
@@ -63,8 +63,8 @@ def test_aggregation_init():
     aggregation = Aggregation(
         {
             "field": "stock",
-            "operation": Aggregator.SUM,
-            "groups": [{"field": "updated_at", "operation": DateOperation.MONTH}],
+            "operation": "Sum",
+            "groups": [{"field": "updated_at", "operation": DateOperation.MONTH.value}],
         }
     )
     assert aggregation.field == "stock"
@@ -76,7 +76,7 @@ def test_projection():
 
     aggregation = Aggregation(
         {
-            "operation": Aggregator.COUNT,
+            "operation": "Count",
         }
     )
     assert aggregation.projection == Projection()
@@ -84,7 +84,7 @@ def test_projection():
     aggregation = Aggregation(
         {
             "field": "stock",
-            "operation": Aggregator.SUM,
+            "operation": "Sum",
         }
     )
     assert aggregation.projection == Projection("stock")
@@ -92,8 +92,8 @@ def test_projection():
     aggregation = Aggregation(
         {
             "field": None,
-            "operation": Aggregator.COUNT,
-            "groups": [{"field": "updated_at", "operation": DateOperation.MONTH}],
+            "operation": "Count",
+            "groups": [{"field": "updated_at", "operation": DateOperation.MONTH.value}],
         }
     )
     assert aggregation.projection == Projection("updated_at")
@@ -101,8 +101,8 @@ def test_projection():
     aggregation = Aggregation(
         {
             "field": "stock",
-            "operation": Aggregator.SUM,
-            "groups": [{"field": "updated_at", "operation": DateOperation.MONTH}],
+            "operation": "Sum",
+            "groups": [{"field": "updated_at", "operation": DateOperation.MONTH.value}],
         }
     )
     assert aggregation.projection == Projection("stock", "updated_at")
@@ -116,7 +116,7 @@ def test_apply(create_mock: mock.Mock, format_mock: mock.Mock):
 
     aggregation = Aggregation(
         {
-            "operation": Aggregator.COUNT,
+            "operation": "Count",
         }
     )
     records = [{"id": 1}]
@@ -134,7 +134,7 @@ def test_nest(replace_fields_mock: mock.Mock, prefix_handler_mock: mock.Mock):
     aggregation = Aggregation(
         {
             "field": "id",
-            "operation": Aggregator.COUNT,
+            "operation": "Count",
         }
     )
 
@@ -144,7 +144,7 @@ def test_nest(replace_fields_mock: mock.Mock, prefix_handler_mock: mock.Mock):
 
     aggregation = Aggregation(
         {
-            "operation": Aggregator.COUNT,
+            "operation": "Count",
         }
     )
     assert aggregation.nest("prefix") == aggregation
@@ -154,7 +154,7 @@ def test_nest(replace_fields_mock: mock.Mock, prefix_handler_mock: mock.Mock):
     aggregation = Aggregation(
         {
             "field": "id",
-            "operation": Aggregator.COUNT,
+            "operation": "Count",
         }
     )
     prefix_handler_mock.return_value = "fake_handler"
@@ -171,44 +171,44 @@ def test_replace_fields():
     aggregation = Aggregation(
         {
             "field": "id",
-            "operation": Aggregator.COUNT,
+            "operation": "Count",
         }
     )
-    assert aggregation.replace_fields(_handler) == Aggregation({"field": "id_suffix", "operation": Aggregator.COUNT})
+    assert aggregation.replace_fields(_handler) == Aggregation({"field": "id_suffix", "operation": "Count"})
 
     aggregation = Aggregation(
         {
-            "operation": Aggregator.COUNT,
-            "groups": [{"field": "created_at", "operation": DateOperation.YEAR}],
+            "operation": "Count",
+            "groups": [{"field": "created_at", "operation": DateOperation.YEAR.value}],
         }
     )
     assert aggregation.replace_fields(_handler) == Aggregation(
         {
-            "operation": Aggregator.COUNT,
-            "groups": [{"field": "created_at_suffix", "operation": DateOperation.YEAR}],
+            "operation": "Count",
+            "groups": [{"field": "created_at_suffix", "operation": DateOperation.YEAR.value}],
         }
     )
 
     aggregation = Aggregation(
         {
             "field": "stock",
-            "operation": Aggregator.SUM,
-            "groups": [{"field": "created_at", "operation": DateOperation.YEAR}],
+            "operation": "Sum",
+            "groups": [{"field": "created_at", "operation": DateOperation.YEAR.value}],
         }
     )
     assert aggregation.replace_fields(_handler) == Aggregation(
         {
             "field": "stock_suffix",
-            "operation": Aggregator.SUM,
-            "groups": [{"field": "created_at_suffix", "operation": DateOperation.YEAR}],
+            "operation": "Sum",
+            "groups": [{"field": "created_at_suffix", "operation": DateOperation.YEAR.value}],
         }
     )
 
 
 def test_to_plain():
-    aggregation = Aggregation({"operation": Aggregator.COUNT})
+    aggregation = Aggregation({"operation": "Count"})
     assert aggregation._to_plain == {
-        "operation": Aggregator.COUNT,
+        "operation": "Count",
         "field": None,
         "groups": [],
     }
@@ -216,11 +216,11 @@ def test_to_plain():
     aggregation = Aggregation(
         {
             "field": "id",
-            "operation": Aggregator.COUNT,
+            "operation": "Count",
         }
     )
     assert aggregation._to_plain == {
-        "operation": Aggregator.COUNT,
+        "operation": "Count",
         "field": "id",
         "groups": [],
     }
@@ -228,20 +228,20 @@ def test_to_plain():
     aggregation = Aggregation(
         {
             "field": "stock",
-            "operation": Aggregator.SUM,
-            "groups": [{"field": "created_at", "operation": DateOperation.YEAR}],
+            "operation": "Sum",
+            "groups": [{"field": "created_at", "operation": DateOperation.YEAR.value}],
         }
     )
     assert aggregation._to_plain == {
         "field": "stock",
-        "operation": Aggregator.SUM,
-        "groups": [{"field": "created_at", "operation": DateOperation.YEAR}],
+        "operation": "Sum",
+        "groups": [{"field": "created_at", "operation": DateOperation.YEAR.value}],
     }
 
 
 def test_format_summaries():
 
-    aggregation = Aggregation({"field": "price", "operation": Aggregator.AVG})
+    aggregation = Aggregation({"field": "price", "operation": "Avg"})
 
     summaries = [
         Summary(
@@ -269,19 +269,19 @@ def test_format_summaries():
     assert aggregation._format_summaries(summaries) == [{"group": {}, "value": 5}]
 
     summaries = [Summary(group={}, start_count=12, Count=3, Sum=2, Max=1, Min=5)]
-    aggregation = Aggregation({"operation": Aggregator.COUNT})
+    aggregation = Aggregation({"operation": "Count"})
     assert aggregation._format_summaries(summaries) == [{"group": {}, "value": 12}]
 
-    aggregation = Aggregation({"field": "id", "operation": Aggregator.COUNT})
+    aggregation = Aggregation({"field": "id", "operation": "Count"})
     assert aggregation._format_summaries(summaries) == [{"group": {}, "value": 3}]
 
-    aggregation = Aggregation({"field": "id", "operation": Aggregator.SUM})
+    aggregation = Aggregation({"field": "id", "operation": "Sum"})
     assert aggregation._format_summaries(summaries) == [{"group": {}, "value": 2}]
 
-    aggregation = Aggregation({"field": "id", "operation": Aggregator.MAX})
+    aggregation = Aggregation({"field": "id", "operation": "Max"})
     assert aggregation._format_summaries(summaries) == [{"group": {}, "value": 1}]
 
-    aggregation = Aggregation({"field": "id", "operation": Aggregator.MIN})
+    aggregation = Aggregation({"field": "id", "operation": "Min"})
     assert aggregation._format_summaries(summaries) == [{"group": {}, "value": 5}]
 
 
@@ -303,8 +303,8 @@ def test_create_summaries(
 
     aggregation = Aggregation(
         {
-            "operation": Aggregator.COUNT,
-            "groups": [{"field": "created_at", "operation": DateOperation.YEAR}],
+            "operation": "Count",
+            "groups": [{"field": "created_at", "operation": DateOperation.YEAR.value}],
         }
     )
 
@@ -410,8 +410,8 @@ def test_create_summaries(
 def test_create_summary(group: RecordsDataAlias):
     aggregation = Aggregation(
         {
-            "operation": Aggregator.COUNT,
-            "groups": [{"field": "created_at", "operation": DateOperation.YEAR}],
+            "operation": "Count",
+            "groups": [{"field": "created_at", "operation": DateOperation.YEAR.value}],
         }
     )
     assert aggregation._create_summary(group) == {
@@ -447,7 +447,7 @@ def test_update_summary_in_place(get_field_value_mock: mock.Mock):
         "Max": None,
     }
 
-    aggregation = Aggregation({"operation": Aggregator.COUNT})
+    aggregation = Aggregation({"operation": "Count"})
 
     res = aggregation._update_summary_in_place(summary, records[0])
     assert res == {
@@ -480,7 +480,7 @@ def test_update_summary_in_place(get_field_value_mock: mock.Mock):
         "Max": None,
     }
     get_field_value_mock.side_effect = [12, 1]
-    aggregation = Aggregation({"operation": Aggregator.SUM, "field": "stock"})
+    aggregation = Aggregation({"operation": "Sum", "field": "stock"})
 
     res = aggregation._update_summary_in_place(summary, records[0])
     assert res == {
@@ -513,7 +513,7 @@ def test_create_group(apply_date_operation_mock: mock.Mock, get_field_value_mock
 
     aggregation = Aggregation(
         {
-            "operation": Aggregator.COUNT,
+            "operation": "Count",
             "groups": [{"field": "cat"}, {"field": "subcat"}],
         }
     )
@@ -540,7 +540,7 @@ def test_apply_date_operation(operation: DateOperation, expected: str):
     dt_iso = "2022-05-03T22:04:23.200Z"
     aggregation = Aggregation(
         {
-            "operation": Aggregator.COUNT,
+            "operation": "Count",
         }
     )
     assert aggregation._apply_date_operation(dt_iso, operation, "UTC") == expected

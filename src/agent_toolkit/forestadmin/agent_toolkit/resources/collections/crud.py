@@ -43,7 +43,7 @@ from forestadmin.datasource_toolkit.interfaces.fields import (
     is_many_to_one,
     is_one_to_one,
 )
-from forestadmin.datasource_toolkit.interfaces.query.aggregation import Aggregation, Aggregator
+from forestadmin.datasource_toolkit.interfaces.query.aggregation import Aggregation
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.factory import ConditionTreeFactory
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.base import ConditionTree
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.leaf import ConditionTreeLeaf
@@ -169,7 +169,7 @@ class CrudResource(BaseCollectionResource):
     async def count(self, request: RequestCollection) -> Response:
         scope_tree = await self.permission.get_scope(request)
         filter = build_filter(request, scope_tree)
-        aggregation = Aggregation({"operation": Aggregator.COUNT})
+        aggregation = Aggregation({"operation": "Count"})
         result = await request.collection.aggregate(filter, aggregation)
         try:
             count = result[0]["value"]
