@@ -103,7 +103,6 @@ class StatsResource(BaseCollectionResource):
         for row in rows:
             key = row["group"][request.body["group_by_field"]]
             field = request.collection.get_field(request.body["group_by_field"])
-            print("fuckkkk", cast(Column, field))
             if cast(Column, field)["column_type"] == PrimitiveType.ENUM:
                 key = key.value
             results.append({"key": key, "value": row["value"]})

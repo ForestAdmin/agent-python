@@ -1,6 +1,7 @@
 import enum
 import json
 from dataclasses import dataclass, field
+from io import BytesIO
 from typing import Any, Dict, List, Optional
 
 
@@ -50,6 +51,13 @@ class Response:
     status: int
     body: Optional[str] = None
     headers: Dict[str, str] = field(default_factory=lambda: {})
+
+
+@dataclass
+class FileResponse:
+    file: Optional[BytesIO]
+    name: str
+    mimetype: str
 
 
 def build_json_response(status: int, body: Dict[str, Any]):

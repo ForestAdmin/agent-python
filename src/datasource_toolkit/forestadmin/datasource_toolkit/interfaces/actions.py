@@ -17,10 +17,18 @@ class ActionsScope(enum.Enum):
 
 
 @dataclass
+class File:
+    mime_type: str
+    buffer: str
+    name: str
+    charset: Optional[str]
+
+
+@dataclass
 class Action:
     scope: ActionsScope
-    generateFile: Optional[bool]
-    staticForm: Optional[bool]
+    generate_file: Optional[bool]
+    static_form: Optional[bool]
 
 
 class ActionFieldType(enum.Enum):
@@ -48,7 +56,7 @@ class ActionField(TypedDict):
     value: Optional[Any]
     watch_changes: bool
     enum_values: Optional[List[str]]
-    colleciton_name: Optional[str]
+    collection_name: Optional[str]
 
 
 class SuccessResult(TypedDict):

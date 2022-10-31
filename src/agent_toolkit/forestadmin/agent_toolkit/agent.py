@@ -9,6 +9,7 @@ else:
 
 from forestadmin.agent_toolkit.exceptions import AgentToolkitException
 from forestadmin.agent_toolkit.options import AgentMeta, Options
+from forestadmin.agent_toolkit.resources.actions.resources import ActionResource
 from forestadmin.agent_toolkit.resources.collections import BoundCollection
 from forestadmin.agent_toolkit.resources.collections.crud import CrudResource
 from forestadmin.agent_toolkit.resources.collections.crud_related import CrudRelatedResource
@@ -27,6 +28,7 @@ class Resources(TypedDict):
     crud: CrudResource
     crud_related: CrudRelatedResource
     stats: StatsResource
+    actions: ActionResource
 
 
 class Agent:
@@ -50,6 +52,7 @@ class Agent:
             "crud": CrudResource(self.composite_datasource, self.permission_service, self.options),
             "crud_related": CrudRelatedResource(self.composite_datasource, self.permission_service, self.options),
             "stats": StatsResource(self.composite_datasource, self.permission_service, self.options),
+            "actions": ActionResource(self.composite_datasource, self.permission_service, self.options),
         }
 
     def add_datasource(self, datasource: Datasource[BoundCollection]):
@@ -75,6 +78,9 @@ class Agent:
             self.options, self.composite_datasource, self.meta
         )
         api_map = SchemaEmitter.serialize(collections_schema, self.meta)
+        import json
+
+        print(json.dumps(api_map))
         await ForestHttpApi.post(
             ForestHttpApi.build_enpoint(self.options["forest_server_url"], "/forest/apimaps"),
             api_map,

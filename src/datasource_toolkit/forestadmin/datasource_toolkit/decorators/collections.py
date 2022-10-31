@@ -1,5 +1,6 @@
 from typing import Any
 
+from forestadmin.datasource_toolkit.decorators.action.collections import ActionMixin
 from forestadmin.datasource_toolkit.decorators.proxy.collection import ProxyMixin
 from forestadmin.datasource_toolkit.decorators.publication.collections import PublicationMixin
 from forestadmin.datasource_toolkit.decorators.rename.collections import RenameMixin
@@ -7,7 +8,7 @@ from forestadmin.datasource_toolkit.decorators.search.collections import SearchM
 from forestadmin.datasource_toolkit.interfaces.models.collections import CollectionSchema
 
 
-class CustomizedCollection(RenameMixin, PublicationMixin, SearchMixin, ProxyMixin):
+class CustomizedCollection(ActionMixin, RenameMixin, PublicationMixin, SearchMixin, ProxyMixin):
     def __init__(self, *args: Any, **kwargs: Any):
         super(CustomizedCollection, self).__init__(*args, **kwargs)
         self._last_schema = None

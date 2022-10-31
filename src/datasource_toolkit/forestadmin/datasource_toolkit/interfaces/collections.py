@@ -26,7 +26,7 @@ class Collection(CollectionModel, abc.ABC):
         name: str,
         data: Optional[RecordsDataAlias],
         filter: Optional[Filter],
-    ) -> ActionField:
+    ) -> List[ActionField]:
         pass
 
     @abc.abstractmethod
