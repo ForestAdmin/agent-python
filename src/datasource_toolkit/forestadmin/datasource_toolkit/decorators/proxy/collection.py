@@ -54,7 +54,7 @@ class ProxyMixin:
         name: str,
         data: Optional[RecordsDataAlias],
         filter: Optional[Filter],
-    ) -> ActionField:
+    ) -> List[ActionField]:
         refined_filter = cast(Optional[Filter], await self._refine_filter(filter))
         return await self.child_collection.get_form(name, data, refined_filter)
 

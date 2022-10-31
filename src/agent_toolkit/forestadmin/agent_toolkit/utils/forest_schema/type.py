@@ -56,21 +56,6 @@ class ForestServerField(TypedDict, total=False):
     validations: List[ServerValidationType]
 
 
-"""
-export type ForestServerCollection = {
-  name: string;
-  icon: null;
-  integration: null;
-  isReadOnly: boolean;
-  isSearchable: boolean;
-  isVirtual: false;
-  onlyForRelationships: boolean;
-  paginationType: 'page';
-  actions: Array<ForestServerAction>;
-  fields: Array<ForestServerField>;
-  segments: Array<ForestServerSegment>;
-};
-"""
 LiteralPage = Literal["page"]
 
 
@@ -86,3 +71,35 @@ class ForestServerCollection(TypedDict):
     actions: NotRequired[List[Any]]
     fields: List[ForestServerField]
     segments: NotRequired[List[Any]]
+
+
+class ForestServerActionHooks(TypedDict):
+    load: bool
+    change: List[Any]
+
+
+class ForestServerActionField(TypedDict):
+    value: Any
+    defaultValue: Any
+    description: Optional[str]
+    enums: Optional[List[str]]
+    field: str
+    hook: Optional[str]
+    isReadOnly: bool
+    isRequired: bool
+    reference: Optional[str]
+    type: Union[ColumnAlias, Literal["File"]]
+    widget: Optional[Literal["belongsto select", "file picker"]]
+
+
+class ForestServerAction(TypedDict):
+    id: str
+    name: str
+    type: Literal["single", "bulk", "global"]
+    baseUrl: Optional[str]
+    endpoint: str
+    httpMethod: Literal["POST"]
+    redirect: Any
+    download: bool
+    fields: List[ForestServerActionField]
+    hooks: ForestServerActionHooks

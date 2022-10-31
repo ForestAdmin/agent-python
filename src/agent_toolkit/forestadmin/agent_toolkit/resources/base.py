@@ -1,8 +1,8 @@
 from abc import abstractmethod
-from typing import Any
+from typing import Any, Union
 
 from forestadmin.agent_toolkit.options import Options
-from forestadmin.agent_toolkit.utils.context import Request, Response
+from forestadmin.agent_toolkit.utils.context import FileResponse, Request, Response
 
 
 class BaseResource:
@@ -10,5 +10,5 @@ class BaseResource:
         self.option = options
 
     @abstractmethod
-    async def dispatch(self, request: Request, method_name: Any) -> Response:
+    async def dispatch(self, request: Request, method_name: Any) -> Union[Response, FileResponse]:
         pass

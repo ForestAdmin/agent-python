@@ -1,5 +1,5 @@
 import asyncio
-from typing import Optional, Tuple, Union
+from typing import Literal, Optional, Tuple, Union
 
 from flask import Blueprint, request
 from flask.wrappers import Request as FlaskRequest
@@ -17,8 +17,8 @@ from forestadmin.flask_agent.utils.requests import convert_request, convert_resp
 class Agent(BaseAgent):
 
     META: AgentMeta = {
-        "liana": "django-forestadmin",
-        "liana_version": "1.3.1",
+        "liana": "forest-nodejs-agent",
+        "liana_version": "1.0.0",
         "stack": {"database_type": "postgresql", "orm_version": "3.2.14"},
     }
 
@@ -56,10 +56,11 @@ def build_blueprint(agent: Agent):  # noqa: C901
     crud_related_resource = agent.resources["crud_related"]
     auth_resource = agent.resources["authentication"]
     stats_resource = agent.resources["stats"]
+    actions_resource = agent.resources["actions"]
 
     def _get_dispatch(
         request: FlaskRequest, method: Optional[AuthLiteralMethod] = None, detail: bool = False
-    ) -> Tuple[Request, Union[CrudLiteralMethod, AuthLiteralMethod]]:
+    ) -> Tuple[Request, Union[CrudLiteralMethod, AuthLiteralMethod, Literal["execute" "hook"]]]:
         if not method:
             meth = get_dispatcher_method(request.method, detail)
         else:
@@ -69,7 +70,7 @@ def build_blueprint(agent: Agent):  # noqa: C901
     async def _get_collection_response(
         request: FlaskRequest,
         resource: BaseResource,
-        method: Optional[Union[AuthLiteralMethod, CrudLiteralMethod]] = None,
+        method: Optional[Union[AuthLiteralMethod, CrudLiteralMethod, Literal["execute", "hook"]]] = None,
         detail: bool = False,
     ) -> FlaskResponse:
         response = await resource.dispatch(*_get_dispatch(request, method=method, detail=detail))
@@ -84,6 +85,18 @@ def build_blueprint(agent: Agent):  # noqa: C901
     @blueprint.route("/authentication/callback", methods=["GET"])
     async def callback() -> FlaskResponse:  # type: ignore
         return await _get_collection_response(request, auth_resource, "callback")
+
+    @blueprint.route("/_actions/<collection_name>/<int:action_name>/<slug>/hooks/load", methods=["POST"])
+    async def load_hook(**_) -> FlaskResponse:  # type: ignore
+        return await _get_collection_response(request, actions_resource, "hook")
+
+    @blueprint.route("/_actions/<collection_name>/<int:action_name>/<slug>/hooks/change", methods=["POST"])
+    async def change_hook(**_) -> FlaskResponse:  # type: ignore
+        return await _get_collection_response(request, actions_resource, "hook")
+
+    @blueprint.route("/_actions/<collection_name>/<int:action_name>/<slug>", methods=["POST"])
+    async def actions(**_) -> FlaskResponse:  # type: ignore
+        return await _get_collection_response(request, actions_resource, "execute")
 
     @blueprint.route("/authentication", methods=["POST"])
     async def authentication() -> FlaskResponse:  # type: ignore

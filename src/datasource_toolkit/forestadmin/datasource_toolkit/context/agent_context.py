@@ -1,4 +1,10 @@
+import sys
 from typing import Optional
+
+if sys.version_info >= (3, 9):
+    import zoneinfo
+else:
+    from backports import zoneinfo
 
 from forestadmin.datasource_toolkit.context.relaxed_wrappers.collection import RelaxedDatasource
 from forestadmin.datasource_toolkit.interfaces.collections import Collection
@@ -6,7 +12,7 @@ from forestadmin.datasource_toolkit.interfaces.models.collections import Datasou
 
 
 class AgentCustomizationContext:
-    def __init__(self, datasource: Datasource[Collection], timezone: Optional[str] = None):
+    def __init__(self, datasource: Datasource[Collection], timezone: Optional[zoneinfo.ZoneInfo] = None):
         self._datasource = datasource
         self.timezone = timezone
 

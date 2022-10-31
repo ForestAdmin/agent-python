@@ -1,9 +1,10 @@
-from typing import Any, Awaitable, Callable, TypeVar
+from typing import Any, Awaitable, Callable, TypeVar, Union
 
 from forestadmin.agent_toolkit.resources.collections import BaseCollectionResource
 from forestadmin.agent_toolkit.resources.collections.requests import RequestCollection
 from forestadmin.agent_toolkit.services.permissions import PermissionServiceException
 from forestadmin.agent_toolkit.utils.context import (
+    FileResponse,
     Request,
     RequestMethod,
     Response,
@@ -17,8 +18,8 @@ BoundResource = TypeVar("BoundResource", bound=BaseCollectionResource)
 BoundRequestCollection = TypeVar("BoundRequestCollection", bound=RequestCollection)
 
 
-def authenticate(fn: Callable[["BoundResource", BoundRequestCollection], Awaitable[Response]]):
-    async def wrapped2(self: "BoundResource", request: BoundRequestCollection) -> Response:
+def authenticate(fn: Callable[["BoundResource", BoundRequestCollection], Awaitable[Union[FileResponse, Response]]]):
+    async def wrapped2(self: "BoundResource", request: BoundRequestCollection) -> Union[FileResponse, Response]:
         if not request.headers:
             return Response(status=401)
 
@@ -53,7 +54,7 @@ def authenticate(fn: Callable[["BoundResource", BoundRequestCollection], Awaitab
 
 def authorize(action: str):
     def wrapper(fn: Callable[["BoundResource", BoundRequestCollection], Awaitable[Any]]):
-        async def wrapped1(self: "BoundResource", request: BoundRequestCollection) -> Response:
+        async def wrapped1(self: "BoundResource", request: BoundRequestCollection) -> Union[FileResponse, Response]:
             try:
                 await self.permission.can(request, f"{action}:{request.collection.name}")
             except PermissionServiceException as e:
@@ -67,8 +68,8 @@ def authorize(action: str):
 
 
 def check_method(method: RequestMethod):
-    def wrapper(fn: Callable[["BoundResource", BoundRequestCollection], Awaitable[Response]]):
-        async def wrapped(self: "BoundResource", request: BoundRequestCollection) -> Response:
+    def wrapper(fn: Callable[["BoundResource", BoundRequestCollection], Awaitable[Union[FileResponse, Response]]]):
+        async def wrapped(self: "BoundResource", request: BoundRequestCollection) -> Union[FileResponse, Response]:
             if request.method != method:
                 return build_method_not_allowed_response()
             return await fn(self, request)
