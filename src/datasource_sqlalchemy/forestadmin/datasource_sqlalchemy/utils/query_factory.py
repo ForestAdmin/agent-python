@@ -203,7 +203,6 @@ class QueryFactory:
 
             if limit:
                 query = query.limit(limit)
-
             return query
 
     @staticmethod

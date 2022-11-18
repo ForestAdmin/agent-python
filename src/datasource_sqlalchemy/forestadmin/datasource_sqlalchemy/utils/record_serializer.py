@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Tuple, cast
 
 from forestadmin.datasource_sqlalchemy.interfaces import BaseSqlAlchemyCollection
 from forestadmin.datasource_sqlalchemy.utils.aggregation import AggregationFactory
@@ -20,12 +20,20 @@ def instances_to_records(collection: BaseSqlAlchemyCollection, instances: List[A
 def projections_to_records(projection: Projection, items: List[Tuple[Any]]) -> List[RecordsDataAlias]:
     records: List[RecordsDataAlias] = []
     for item in items:
-        result = dict(zip(projection, item))
+        result = dict(zip(cast(List[str], projection), item))
         record: RecordsDataAlias = dict([(field_name, result[field_name]) for field_name in projection.columns])
         for field_name, sub_fields in projection.relations.items():
             res: Dict[str, Any] = {}
-            for sub_field in sub_fields:
-                res[sub_field] = result[f"{field_name}:{sub_field}"]
+            for sub_field in cast(List[str], sub_fields):
+                value = result[f"{field_name}:{sub_field}"]
+                if ":" in sub_field:
+                    key, *sub_field = sub_field.split(":")
+                    if value is not None:
+                        for v in cast(List[str], reversed(sub_field)):
+                            value = {f"{v}": value}
+                    res[key] = value
+                else:
+                    res[sub_field] = value
             else:
                 if any(res.values()):
                     record[field_name] = res

@@ -27,5 +27,6 @@ class RecordUtils:
     def get_field_value(record: RecordsDataAlias, field: str) -> Any:
         current_record = record
         for path in field.split(":"):
-            current_record = record[path]
+            if current_record:
+                current_record = current_record[path]
         return current_record

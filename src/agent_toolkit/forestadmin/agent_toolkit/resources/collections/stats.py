@@ -126,6 +126,7 @@ class StatsResource(BaseCollectionResource):
         values = {
             datetime.fromisoformat(row["group"][request.body["group_by_date_field"]]).date(): row["value"]
             for row in rows
+            if row["group"][request.body["group_by_date_field"]] is not None
         }
         dates = list(values.keys())
         dates.sort()

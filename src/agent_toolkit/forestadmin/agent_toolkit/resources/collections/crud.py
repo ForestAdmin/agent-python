@@ -95,7 +95,7 @@ class CrudResource(BaseCollectionResource):
         records = await collection.list(filter, projections)
         for name, schema in collection.schema["fields"].items():
             if is_many_to_many(schema):
-                projections.append(f"{name}:id")
+                projections.append(f"{name}:id")  # type: ignore
                 records[0][name] = None
         if not len(records):
             return build_unknown_response()

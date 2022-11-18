@@ -8,12 +8,6 @@ from forestadmin.datasource_toolkit.decorators.collections import CustomizedColl
 from forestadmin.datasource_toolkit.interfaces.fields import FieldType
 from forestadmin.datasource_toolkit.utils.schema import SchemaUtils
 
-"""
-Object.keys(collection.schema.actions).map(name =>
-          SchemaGeneratorActions.buildSchema(prefix, collection, name),
-        ),
-"""
-
 
 class SchemaCollectionGenerator:
     @staticmethod

@@ -22,7 +22,8 @@ class FieldValidator:
     def validate(cls, collection: Collection, field: str, values: Optional[List[Any]] = None) -> None:
         nested_field = None
         if ":" in field:
-            field, nested_field = field.split(":")
+            field, *nested_field = field.split(":")
+            nested_field = ":".join(nested_field)
         try:
             schema = collection.schema["fields"][field]
         except KeyError:

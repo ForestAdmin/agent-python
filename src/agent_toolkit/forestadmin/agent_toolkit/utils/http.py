@@ -75,6 +75,7 @@ class ForestHttpApi:
         async with aiohttp.ClientSession() as session:
             try:
                 async with session.post(endpoint, json=body, headers=headers) as response:
+                    print("api map upload status", response.status)
                     if response.status == 200:
                         return await response.json()
                     return None

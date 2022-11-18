@@ -70,7 +70,7 @@ class SchemaFieldGenerator:
         if column["validations"]:
             validations = column["validations"]
 
-        return {
+        res = {
             "type": cls.build_column_type(column["column_type"]),
             "validations": FrontendValidationUtils.convert_validation_list(column["validations"]),
             "defaultValue": column["default_value"],
@@ -86,6 +86,7 @@ class SchemaFieldGenerator:
             "isVirtual": False,
             "reference": None,
         }
+        return res
 
     @staticmethod
     def is_foreign_collection_filterable(foreign_collection: Collection) -> bool:
