@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Optional, Set, Tuple, Union, cast
+from typing import Any, Dict, List, Optional, Set, Tuple, Type, Union, cast
 
 from forestadmin.agent_toolkit.exceptions import AgentToolkitException
 from forestadmin.agent_toolkit.utils.id import pack_id
@@ -87,6 +87,7 @@ def _create_relationship(collection: CollectionAlias, field_name: str, relation:
 
 def _create_schema_attributes(collection: CollectionAlias) -> Dict[str, Any]:
     attributes: Dict[str, Any] = {}
+
     for name, field_schema in collection.schema["fields"].items():
         if is_column(field_schema):
             attributes[name] = _map_attribute_to_marshmallow(field_schema["column_type"])
@@ -99,7 +100,7 @@ def _create_schema_attributes(collection: CollectionAlias) -> Dict[str, Any]:
 
 class JsonApiSerializer(type):
 
-    schema: Dict[str, Any] = {}
+    schema: Dict[str, Type["ForestSchema"]] = {}
     attributes: Dict[str, Any] = {}
 
     def __new__(cls: Any, collection_name: str, bases: Tuple[Any], attrs: Dict[str, Any]):
@@ -109,7 +110,7 @@ class JsonApiSerializer(type):
         return klass
 
     @classmethod
-    def get(cls, collection: CollectionAlias):
+    def get(cls, collection: CollectionAlias) -> Type["ForestSchema"]:
         json_schema_name = schema_name(collection)
         try:
             json_schema = cls.schema[json_schema_name]
@@ -117,10 +118,10 @@ class JsonApiSerializer(type):
             raise JsonApiException(f"The serializer for the collection {collection.name} is not built")
 
         current_attr = _create_schema_attributes(collection)
-        if cls.attributes[json_schema_name] != current_attr:
-            json_schema = refresh_json_api_schema(collection)
 
-        return json_schema
+        if cls.attributes[json_schema_name].keys() != current_attr.keys():
+            json_schema = refresh_json_api_schema(collection)
+        return json_schema  # type: ignore
 
 
 class JsonApiSchemaType(JsonApiSerializer, SchemaMeta):
@@ -129,11 +130,16 @@ class JsonApiSchemaType(JsonApiSerializer, SchemaMeta):
 
 class ForestRelationShip(fields.Relationship):
     def __init__(self, *args, **kwargs):  # type: ignore
-        try:
-            self.collection: Collection = kwargs.pop("collection")  # type: ignore
-        except KeyError:
-            raise Exception()
+        self.collection: Collection = kwargs.pop("collection")  # type: ignore
+        self.related_collection: Collection = self.collection.datasource.get_collection(kwargs["type_"])  # type: ignore
         super(ForestRelationShip, self).__init__(*args, **kwargs)  # type: ignore
+
+    @property
+    def schema(self) -> "ForestSchema":
+        SchemaClass: Type[Schema] = JsonApiSerializer.get(self.related_collection)
+        return SchemaClass(
+            only=getattr(self, "only", None), exclude=getattr(self, "exclude", ()), context=getattr(self, "context", {})
+        )
 
     def get_related_url(self, obj: Any):
         if "data" in obj:
@@ -154,14 +160,10 @@ class ForestSchema(Schema):
                 kwargs["include_data"] = include_data
         super(ForestSchema, self).__init__(*args, **kwargs)  # type: ignore
 
-    def _init_fields(self):
-        res = super(ForestSchema, self)._init_fields()
-        return res
-
     def _build_only_included_data(self, projections: Projection):
         only: Set[str] = set()
         include_data: Set[str] = set()
-        for projection in projections:
+        for projection in cast(List[str], projections):
             if ":" in projection:
                 only.add(projection.replace(":", "."))
                 include_data.add(projection.split(":")[0])
@@ -210,11 +212,16 @@ class ForestSchema(Schema):
         return super(ForestSchema, self).unwrap_item(item)  # type: ignore
 
 
-def refresh_json_api_schema(collection: CollectionAlias):
+def refresh_json_api_schema(collection: CollectionAlias, ignores: Optional[List[CollectionAlias]] = None):
+
+    if ignores is None:
+        ignores = []
+    if collection in ignores:
+        return
+    ignores.append(collection)
     if schema_name(collection) not in JsonApiSerializer.schema:
         raise JsonApiException("The schema doesn't exist")
     del JsonApiSerializer.schema[schema_name(collection)]
-
     return create_json_api_schema(collection)
 
 
@@ -232,5 +239,4 @@ def create_json_api_schema(collection: CollectionAlias):
             strict = True
             fcollection: CollectionAlias = collection
 
-    res = JsonApiSchemaType(schema_name(collection), (JsonApiSchema,), attributes)
-    return res
+    return JsonApiSchemaType(schema_name(collection), (JsonApiSchema,), attributes)

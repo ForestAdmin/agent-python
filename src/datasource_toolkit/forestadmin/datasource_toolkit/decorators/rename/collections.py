@@ -48,7 +48,6 @@ class RenameMixin:
         if initial_name != new_name:
             self._from_child_collection[initial_name] = new_name
             self._to_child_collection[new_name] = initial_name
-
         self.mark_schema_as_dirty()
 
     async def list(self, filter: PaginatedFilter, projection: Projection) -> List[RecordsDataAlias]:
@@ -108,7 +107,6 @@ class RenameMixin:
                 )
 
             new_fields_schema[self._from_child_collection.get(old_field_name, old_field_name)] = field_schema
-
         schema["fields"] = new_fields_schema
         return schema
 
@@ -116,7 +114,7 @@ class RenameMixin:
         datasource = cast(Datasource[BoundCollection], self.datasource)
         field, related_field = child_path, None
         if ":" in child_path:
-            field, related_field = child_path.split(":")
+            field, *related_field = child_path.split(":")
         self_field = self._from_child_collection.get(field, field)
         if related_field:
             schema = self.schema["fields"][self_field]
@@ -147,6 +145,7 @@ class RenameMixin:
         datasource = cast(Datasource[BoundCollection], self.datasource)
         for field_name, value in record.items():
             new_field_name = self._from_child_collection.get(field_name, field_name)
+            new_field_name, *_ = new_field_name.split(":")
             schema = self.schema["fields"][new_field_name]
             if is_column(schema) or value is None:
                 new_record[new_field_name] = value
@@ -160,7 +159,8 @@ class RenameMixin:
         datasource = cast(Datasource[BoundCollection], self.datasource)
         field_name, related_field = path, None
         if ":" in path:
-            field_name, related_field = path.split(":")
+            field_name, *related_field = path.split(":")
+            related_field = ":".join(related_field)
         if related_field:
             schema = self.schema["fields"][field_name]
             if is_many_to_many(schema) or is_one_to_many(schema) or is_one_to_one(schema) or is_many_to_one(schema):

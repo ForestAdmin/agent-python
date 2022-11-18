@@ -159,7 +159,6 @@ class FilterOperator:
     def get_for_type(cls, _type: ColumnAlias) -> set[Operator]:
 
         operators: Set[Operator] = set()
-
         if isinstance(_type, list):
             operators = {
                 *cls.COMMON_OPERATORS,
