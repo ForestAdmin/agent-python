@@ -4,6 +4,10 @@ from functools import reduce
 
 from forestadmin.datasource_toolkit.utils import removeprefix
 
+if sys.version_info >= (3, 9):
+    import zoneinfo
+else:
+    from backports import zoneinfo
 if sys.version_info >= (3, 8):
     from typing import Literal
 else:
@@ -73,7 +77,7 @@ class ConditionTreeBranch(ConditionTree):
             aggregator = Aggregator.AND
         return ConditionTreeBranch(aggregator, [condition.inverse() for condition in self.conditions])
 
-    def match(self, record: RecordsDataAlias, collection: Collection, timezone: str) -> bool:
+    def match(self, record: RecordsDataAlias, collection: Collection, timezone: zoneinfo.ZoneInfo) -> bool:
         meth = all
         if self.aggregator == Aggregator.OR:
             meth = any

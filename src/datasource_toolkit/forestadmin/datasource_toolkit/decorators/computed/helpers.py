@@ -109,9 +109,9 @@ def computed_aggregation_projection(
     new_to_old_group: Dict[str, str] = {}
     groups: List[PlainAggregationGroup] = []
     for group in plain_aggregation.get("groups", []):
-        old = group["field"]
-        new_to_old_group[old] = rewrite_fields(collection, old)[0]  # type: ignore
-        group["field"] = new_to_old_group["old"]
+        new: str = rewrite_fields(collection, group["field"])[0]
+        new_to_old_group[new] = group["field"]  # type: ignore
+        group["field"] = new
         groups.append(group)
     plain_aggregation["groups"] = groups
     return Aggregation(plain_aggregation), new_to_old_group

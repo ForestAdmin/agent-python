@@ -1,4 +1,10 @@
 import sys
+
+if sys.version_info >= (3, 9):
+    import zoneinfo
+else:
+    from backports import zoneinfo
+
 from typing import Any, Callable, Dict, List, cast
 
 if sys.version_info >= (3, 8):
@@ -12,7 +18,7 @@ from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.base i
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.leaf import ConditionTreeLeaf
 from typing_extensions import NotRequired
 
-ReplacerAlias = Callable[[ConditionTreeLeaf, str], ConditionTree]
+ReplacerAlias = Callable[[ConditionTreeLeaf, zoneinfo.ZoneInfo], ConditionTree]
 
 
 class Alternative(TypedDict):
@@ -21,7 +27,7 @@ class Alternative(TypedDict):
     for_types: NotRequired[List[PrimitiveType]]
 
 
-def _blank_to_in(leaf: ConditionTreeLeaf, _: str) -> ConditionTree:
+def _blank_to_in(leaf: ConditionTreeLeaf, _: zoneinfo.ZoneInfo) -> ConditionTree:
     return leaf.override(
         {
             "operator": Operator.IN,
@@ -30,19 +36,19 @@ def _blank_to_in(leaf: ConditionTreeLeaf, _: str) -> ConditionTree:
     )
 
 
-def _blank_to_missing(leaf: ConditionTreeLeaf, _: str) -> ConditionTreeLeaf:
+def _blank_to_missing(leaf: ConditionTreeLeaf, _: zoneinfo.ZoneInfo) -> ConditionTreeLeaf:
     return leaf.override({"operator": Operator.MISSING})
 
 
-def _missing_to_equal(leaf: ConditionTreeLeaf, _: str) -> ConditionTree:
+def _missing_to_equal(leaf: ConditionTreeLeaf, _: zoneinfo.ZoneInfo) -> ConditionTree:
     return leaf.override({"operator": Operator.EQUAL, "value": None})
 
 
-def _present_to_not_in(leaf: ConditionTreeLeaf, _: str) -> ConditionTree:
+def _present_to_not_in(leaf: ConditionTreeLeaf, _: zoneinfo.ZoneInfo) -> ConditionTree:
     return leaf.override({"operator": Operator.NOT_IN, "value": [None, ""]})
 
 
-def _present_to_not_equal(leaf: ConditionTreeLeaf, _: str) -> ConditionTree:
+def _present_to_not_equal(leaf: ConditionTreeLeaf, _: zoneinfo.ZoneInfo) -> ConditionTree:
     return leaf.override(
         {
             "operator": Operator.NOT_EQUAL,
@@ -51,20 +57,20 @@ def _present_to_not_equal(leaf: ConditionTreeLeaf, _: str) -> ConditionTree:
     )
 
 
-def _equal_to_in(leaf: ConditionTreeLeaf, _: str) -> ConditionTree:
+def _equal_to_in(leaf: ConditionTreeLeaf, _: zoneinfo.ZoneInfo) -> ConditionTree:
     return leaf.override({"operator": Operator.IN, "value": [leaf.value]})
 
 
-def _in_to_equal(leaf: ConditionTreeLeaf, _: str) -> ConditionTree:
+def _in_to_equal(leaf: ConditionTreeLeaf, _: zoneinfo.ZoneInfo) -> ConditionTree:
     values = cast(List[Any], leaf.value)
     return ConditionTreeFactory.union([leaf.override({"operator": Operator.EQUAL, "value": item}) for item in values])
 
 
-def _not_equal_to_not_in(leaf: ConditionTreeLeaf, _: str) -> ConditionTree:
+def _not_equal_to_not_in(leaf: ConditionTreeLeaf, _: zoneinfo.ZoneInfo) -> ConditionTree:
     return leaf.override({"operator": Operator.NOT_IN, "value": [leaf.value]})
 
 
-def _not_in_to_not_equal(leaf: ConditionTreeLeaf, _: str) -> ConditionTree:
+def _not_in_to_not_equal(leaf: ConditionTreeLeaf, _: zoneinfo.ZoneInfo) -> ConditionTree:
     values = cast(List[Any], leaf.value)
     return ConditionTreeFactory.union(
         [leaf.override({"operator": Operator.NOT_EQUAL, "value": item}) for item in values]
