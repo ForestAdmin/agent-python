@@ -1,6 +1,11 @@
 import abc
 import sys
 
+if sys.version_info >= (3, 9):
+    import zoneinfo
+else:
+    from backports import zoneinfo
+
 if sys.version_info >= (3, 8):
     from typing import TypedDict
 else:
@@ -29,7 +34,7 @@ class ConditionTree(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def match(self, record: RecordsDataAlias, collection: Collection, timezone: str) -> bool:
+    def match(self, record: RecordsDataAlias, collection: Collection, timezone: zoneinfo.ZoneInfo) -> bool:
         pass
 
     @abc.abstractmethod
@@ -44,7 +49,9 @@ class ConditionTree(abc.ABC):
     def apply(self, handler: "CallbackAlias") -> None:
         pass
 
-    def filter(self, records: List[RecordsDataAlias], collection: Collection, timezone: str) -> List[RecordsDataAlias]:
+    def filter(
+        self, records: List[RecordsDataAlias], collection: Collection, timezone: zoneinfo.ZoneInfo
+    ) -> List[RecordsDataAlias]:
         return list(filter(lambda record: self.match(record, collection, timezone), records))
 
     @abc.abstractmethod
