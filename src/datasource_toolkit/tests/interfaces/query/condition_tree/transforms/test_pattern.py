@@ -1,3 +1,10 @@
+import sys
+
+if sys.version_info >= (3, 9):
+    import zoneinfo
+else:
+    from backports import zoneinfo
+
 from unittest import mock
 
 import pytest
@@ -30,13 +37,13 @@ def test_like_replacer():
     leaf = ConditionTreeLeaf(field="test", operator=Operator.EQUAL, value=1)
     with mock.patch.object(leaf, "override") as mock_override:
         mock_override.return_value = "new_leaf"
-        assert replacer(leaf, "") == "new_leaf"
+        assert replacer(leaf, zoneinfo.ZoneInfo("UTC")) == "new_leaf"
         mock_override.assert_called_once_with({"operator": Operator.LIKE, "value": "new_value"})
         get_pattern.assert_called_once_with(str(1))
 
     leaf = ConditionTreeLeaf(field="test", operator=Operator.BLANK)
     with pytest.raises(PatternException):
-        replacer(leaf, "")
+        replacer(leaf, zoneinfo.ZoneInfo("UTC"))
 
 
 @mock.patch("forestadmin.datasource_toolkit.interfaces.query.condition_tree.transforms.pattern._like_replacer")

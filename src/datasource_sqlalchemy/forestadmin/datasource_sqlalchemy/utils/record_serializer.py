@@ -1,3 +1,11 @@
+import sys
+
+if sys.version_info >= (3, 9):
+    import zoneinfo
+else:
+    from backports import zoneinfo
+
+from datetime import datetime
 from typing import Any, Dict, List, Tuple, cast
 
 from forestadmin.datasource_sqlalchemy.interfaces import BaseSqlAlchemyCollection
@@ -17,7 +25,15 @@ def instances_to_records(collection: BaseSqlAlchemyCollection, instances: List[A
     return records
 
 
-def projections_to_records(projection: Projection, items: List[Tuple[Any]]) -> List[RecordsDataAlias]:
+def _cast_value(value: Any, timezone: zoneinfo.ZoneInfo) -> Any:
+    if isinstance(value, datetime):
+        value = value.replace(tzinfo=zoneinfo.ZoneInfo("UTC"))
+    return value
+
+
+def projections_to_records(
+    projection: Projection, items: List[Tuple[Any]], timezone: zoneinfo.ZoneInfo
+) -> List[RecordsDataAlias]:
     records: List[RecordsDataAlias] = []
     for item in items:
         result = dict(zip(cast(List[str], projection), item))
@@ -30,7 +46,7 @@ def projections_to_records(projection: Projection, items: List[Tuple[Any]]) -> L
                     key, *sub_field = sub_field.split(":")
                     if value is not None:
                         for v in cast(List[str], reversed(sub_field)):
-                            value = {f"{v}": value}
+                            value = {f"{v}": _cast_value(value, timezone)}
                     res[key] = value
                 else:
                     res[sub_field] = value
@@ -39,6 +55,8 @@ def projections_to_records(projection: Projection, items: List[Tuple[Any]]) -> L
                     record[field_name] = res
                 else:
                     record[field_name] = None
+        for key in record:
+            record[key] = _cast_value(record[key], timezone)
         records.append(record)
     return records
 

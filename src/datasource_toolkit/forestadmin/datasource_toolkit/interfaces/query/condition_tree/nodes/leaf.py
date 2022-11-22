@@ -66,7 +66,7 @@ class ConditionTreeLeaf(ConditionTree):
         )
 
     def __repr__(self):
-        return f"{self.field} {self.operator.value} {self.value} {self.value.__class__}"
+        return f"{self.field} {self.operator.value} {self.value}"
 
     @property
     def use_interval_operator(self):
@@ -80,7 +80,8 @@ class ConditionTreeLeaf(ConditionTree):
 
     @classmethod
     def load(cls, json: LeafComponents) -> "ConditionTreeLeaf":
-        return cls(json["field"], Operator(json["operator"]), json.get("value"))
+        value = json.get("value")
+        return cls(json["field"], Operator(json["operator"]), value)
 
     @property
     def projection(self) -> Projection:
