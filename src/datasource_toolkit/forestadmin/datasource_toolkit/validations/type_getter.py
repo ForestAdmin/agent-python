@@ -34,7 +34,8 @@ class TypeGetter:
 
     @staticmethod
     def _get_date_type(value: str) -> PrimitiveType:
-        value = value[:-1]  # Python doesn't handle Z in the isoformat
+        if value[-1] == "Z":
+            value = value[:-1]  # Python doesn't handle Z in the isoformat
         try:
             date.fromisoformat(value)
         except ValueError:

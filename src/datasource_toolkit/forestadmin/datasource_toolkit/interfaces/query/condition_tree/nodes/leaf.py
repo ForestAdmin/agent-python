@@ -66,7 +66,7 @@ class ConditionTreeLeaf(ConditionTree):
         )
 
     def __repr__(self):
-        return f"{self.field} {self.operator.value} {self.value}"
+        return f"{self.field} {self.operator.value} {self.value} {self.value.__class__}"
 
     @property
     def use_interval_operator(self):

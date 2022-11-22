@@ -22,7 +22,7 @@ class OperatorReplaceMixin:
         fields: Dict[str, FieldAlias] = {}
 
         for name, field_schema in schema["fields"].items():
-            if is_column(field_schema):
+            if is_column(field_schema) and name not in self._allowed_operator:
                 self._allowed_operator[name] = field_schema.get("filter_operators") or set()
                 new_operators: Set[Operator] = set(
                     filter(
@@ -57,6 +57,7 @@ class OperatorReplaceMixin:
                         return res
             return tree
 
+        filter = await super()._refine_filter(filter)  # type: ignore
         if filter and filter.condition_tree:
             filter = filter.override({"condition_tree": filter.condition_tree.replace(refine_equivalent_tree)})
-        return await super()._refine_filter(filter)  # type: ignore
+        return filter

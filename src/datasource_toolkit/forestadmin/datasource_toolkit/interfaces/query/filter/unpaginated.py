@@ -22,7 +22,7 @@ class FilterComponent(TypedDict, total=False):
     condition_tree: ConditionTree
     search: Optional[str]
     search_extended: bool
-    segment: str
+    segment: Optional[str]
     timezone: zoneinfo.ZoneInfo
 
 
@@ -30,7 +30,7 @@ class PlainFilter(TypedDict, total=False):
     condition_tree: ConditionTreeComponent
     search: Optional[str]
     search_extended: bool
-    segment: str
+    segment: Optional[str]
     timezone: str
 
 

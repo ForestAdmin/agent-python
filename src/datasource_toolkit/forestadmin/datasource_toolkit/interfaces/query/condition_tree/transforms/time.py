@@ -105,8 +105,9 @@ def _interval_replacer(
 
 
 def _from_utc_iso_format(value: str) -> datetime:
-    iso_value = value[:-1]  # Python doesn't handle Z in the isoformat
-    return datetime.fromisoformat(iso_value).replace(tzinfo=zoneinfo.ZoneInfo("UTC"))
+    if value[-1] == "Z":
+        value = value[:-1]  # Python doesn't handle Z in the isoformat
+    return datetime.fromisoformat(value).replace(tzinfo=zoneinfo.ZoneInfo("UTC"))
 
 
 def _before_to_less_than(now: datetime, value: Any) -> datetime:
