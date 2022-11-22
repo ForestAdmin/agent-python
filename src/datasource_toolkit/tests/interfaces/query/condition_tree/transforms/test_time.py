@@ -78,12 +78,12 @@ def test_compare_replacer(mock_format: mock.MagicMock, mock_get_now: mock.MagicM
     compare_replacer = _compare_replacer(Operator.GREATER_THAN, date_callback)
 
     leaf = ConditionTreeLeaf(field="test", operator=Operator.FUTURE)
-    tz = "Europe/Paris"
+    tz = zoneinfo.ZoneInfo("Europe/Paris")
     with mock.patch.object(leaf, "override") as mock_override:
         mock_override.return_value = "fake_override"
         assert compare_replacer(leaf, tz) == "fake_override"
         mock_override.assert_called_once_with({"operator": Operator.GREATER_THAN, "value": "fake_format"})
-        mock_format.assert_called_once_with(datetime(2000, 12, 12, tzinfo=zoneinfo.ZoneInfo(tz)))
+        mock_format.assert_called_once_with(datetime(2000, 12, 12, tzinfo=tz))
         date_callback.assert_called_once_with("fake_now", leaf.value)
 
 
@@ -93,7 +93,7 @@ def test_build_interval():
         datetime(2002, 12, 12, 22, 12, 14, tzinfo=zoneinfo.ZoneInfo("Europe/Paris")),
         Frequency.HOUR.value,
         periods=1,
-        tz="Europe/Paris",
+        tz=zoneinfo.ZoneInfo("Europe/Paris"),
     )
     assert res.start == datetime(2002, 12, 12, 22, 0, 0, tzinfo=zoneinfo.ZoneInfo("Europe/Paris"))
     assert res.end == datetime(2002, 12, 12, 22, 12, 14, tzinfo=zoneinfo.ZoneInfo("Europe/Paris"))
@@ -102,7 +102,7 @@ def test_build_interval():
         datetime(2002, 12, 12, 22, 12, 14, tzinfo=zoneinfo.ZoneInfo("Europe/Paris")),
         Frequency.HOUR.value,
         periods=2,
-        tz="Europe/Paris",
+        tz=zoneinfo.ZoneInfo("Europe/Paris"),
     )
     assert res.start == datetime(2002, 12, 12, 21, 0, 0, tzinfo=zoneinfo.ZoneInfo("Europe/Paris"))
     assert res.end == datetime(2002, 12, 12, 22, 0, 0, tzinfo=zoneinfo.ZoneInfo("Europe/Paris"))
@@ -111,7 +111,7 @@ def test_build_interval():
         datetime(2002, 12, 12, 22, 12, 14, tzinfo=zoneinfo.ZoneInfo("UTC")),
         Frequency.HOUR.value,
         periods=2,
-        tz="Europe/Paris",
+        tz=zoneinfo.ZoneInfo("Europe/Paris"),
     )
     assert res.start == datetime(2002, 12, 12, 22, 0, 0, tzinfo=zoneinfo.ZoneInfo("Europe/Paris"))
     assert res.end == datetime(2002, 12, 12, 23, 0, 0, tzinfo=zoneinfo.ZoneInfo("Europe/Paris"))
@@ -120,7 +120,7 @@ def test_build_interval():
         datetime(2002, 12, 12, 22, 12, 14, tzinfo=zoneinfo.ZoneInfo("Europe/Paris")),
         Frequency.HOUR.value,
         periods=4,
-        tz="Europe/Paris",
+        tz=zoneinfo.ZoneInfo("Europe/Paris"),
     )
     assert res.start == datetime(2002, 12, 12, 19, 0, 0, tzinfo=zoneinfo.ZoneInfo("Europe/Paris"))
     assert res.end == datetime(2002, 12, 12, 20, 0, 0, tzinfo=zoneinfo.ZoneInfo("Europe/Paris"))
@@ -129,7 +129,7 @@ def test_build_interval():
         datetime(2002, 12, 12, 22, 12, 14, tzinfo=zoneinfo.ZoneInfo("Europe/Paris")),
         Frequency.DAY.value,
         periods=1,
-        tz="Europe/Paris",
+        tz=zoneinfo.ZoneInfo("Europe/Paris"),
     )
     assert res.start == datetime(2002, 12, 12, 0, 0, 0, tzinfo=zoneinfo.ZoneInfo("Europe/Paris"))
     assert res.end == datetime(2002, 12, 12, 22, 12, 14, tzinfo=zoneinfo.ZoneInfo("Europe/Paris"))
@@ -138,7 +138,7 @@ def test_build_interval():
         datetime(2002, 12, 12, 22, 12, 14, tzinfo=zoneinfo.ZoneInfo("Europe/Paris")),
         Frequency.DAY.value,
         periods=2,
-        tz="Europe/Paris",
+        tz=zoneinfo.ZoneInfo("Europe/Paris"),
     )
     assert res.start == datetime(2002, 12, 11, 0, 0, 0, tzinfo=zoneinfo.ZoneInfo("Europe/Paris"))
     assert res.end == datetime(2002, 12, 12, 0, 0, 0, tzinfo=zoneinfo.ZoneInfo("Europe/Paris"))
@@ -147,7 +147,7 @@ def test_build_interval():
         datetime(2002, 12, 12, 22, 12, 14, tzinfo=zoneinfo.ZoneInfo("Europe/Paris")),
         Frequency.DAY.value,
         periods=4,
-        tz="Europe/Paris",
+        tz=zoneinfo.ZoneInfo("Europe/Paris"),
     )
     assert res.start == datetime(2002, 12, 9, 0, 0, 0, tzinfo=zoneinfo.ZoneInfo("Europe/Paris"))
     assert res.end == datetime(2002, 12, 10, 0, 0, 0, tzinfo=zoneinfo.ZoneInfo("Europe/Paris"))
@@ -156,16 +156,20 @@ def test_build_interval():
         datetime(2002, 12, 12, 22, 12, 14, tzinfo=zoneinfo.ZoneInfo("Europe/Paris")),
         Frequency.WEEK.value,
         periods=1,
-        tz="Europe/Paris",
+        tz=zoneinfo.ZoneInfo("Europe/Paris"),
     )
     assert res.start == datetime(2002, 12, 9, 0, 0, 0, tzinfo=zoneinfo.ZoneInfo("Europe/Paris"))
     assert res.end == datetime(2002, 12, 12, 22, 12, 14, tzinfo=zoneinfo.ZoneInfo("Europe/Paris"))
 
-    res = _build_interval(datetime(2002, 12, 12, 22, 12, 14), Frequency.WEEK.value, periods=2, tz="Europe/Paris")
+    res = _build_interval(
+        datetime(2002, 12, 12, 22, 12, 14), Frequency.WEEK.value, periods=2, tz=zoneinfo.ZoneInfo("Europe/Paris")
+    )
     assert res.start == datetime(2002, 12, 2, 0, 0, 0, tzinfo=zoneinfo.ZoneInfo("Europe/Paris"))
     assert res.end == datetime(2002, 12, 9, 0, 0, 0, tzinfo=zoneinfo.ZoneInfo("Europe/Paris"))
 
-    res = _build_interval(datetime(2002, 12, 12, 22, 12, 14), Frequency.WEEK.value, periods=4, tz="Europe/Paris")
+    res = _build_interval(
+        datetime(2002, 12, 12, 22, 12, 14), Frequency.WEEK.value, periods=4, tz=zoneinfo.ZoneInfo("Europe/Paris")
+    )
     assert res.start == datetime(2002, 11, 18, 0, 0, 0, tzinfo=zoneinfo.ZoneInfo("Europe/Paris"))
     assert res.end == datetime(2002, 11, 25, 0, 0, 0, tzinfo=zoneinfo.ZoneInfo("Europe/Paris"))
 
@@ -173,12 +177,14 @@ def test_build_interval():
         datetime(2002, 12, 12, 22, 12, 14, tzinfo=zoneinfo.ZoneInfo("Europe/Paris")),
         Frequency.MONTH.value,
         periods=1,
-        tz="Europe/Paris",
+        tz=zoneinfo.ZoneInfo("Europe/Paris"),
     )
     assert res.start == datetime(2002, 12, 1, 0, 0, 0, tzinfo=zoneinfo.ZoneInfo("Europe/Paris"))
     assert res.end == datetime(2002, 12, 12, 22, 12, 14, tzinfo=zoneinfo.ZoneInfo("Europe/Paris"))
 
-    res = _build_interval(datetime(2002, 12, 12, 22, 12, 14), Frequency.MONTH.value, periods=2, tz="Europe/Paris")
+    res = _build_interval(
+        datetime(2002, 12, 12, 22, 12, 14), Frequency.MONTH.value, periods=2, tz=zoneinfo.ZoneInfo("Europe/Paris")
+    )
     assert res.start == datetime(2002, 11, 1, 0, 0, 0, tzinfo=zoneinfo.ZoneInfo("Europe/Paris"))
     assert res.end == datetime(2002, 12, 1, 0, 0, 0, tzinfo=zoneinfo.ZoneInfo("Europe/Paris"))
 
@@ -186,7 +192,7 @@ def test_build_interval():
         datetime(2002, 12, 12, 22, 12, 14, tzinfo=zoneinfo.ZoneInfo("Europe/Paris")),
         Frequency.MONTH.value,
         periods=4,
-        tz="Europe/Paris",
+        tz=zoneinfo.ZoneInfo("Europe/Paris"),
     )
     assert res.start == datetime(2002, 9, 1, 0, 0, 0, tzinfo=zoneinfo.ZoneInfo("Europe/Paris"))
     assert res.end == datetime(2002, 10, 1, 0, 0, 0, tzinfo=zoneinfo.ZoneInfo("Europe/Paris"))
@@ -195,7 +201,7 @@ def test_build_interval():
         datetime(2002, 12, 12, 22, 12, 14, tzinfo=zoneinfo.ZoneInfo("Europe/Paris")),
         Frequency.QUARTER.value,
         periods=1,
-        tz="Europe/Paris",
+        tz=zoneinfo.ZoneInfo("Europe/Paris"),
     )
     assert res.start == datetime(2002, 10, 1, 0, 0, 0, tzinfo=zoneinfo.ZoneInfo("Europe/Paris"))
     assert res.end == datetime(2002, 12, 12, 22, 12, 14, tzinfo=zoneinfo.ZoneInfo("Europe/Paris"))
@@ -204,7 +210,7 @@ def test_build_interval():
         datetime(2002, 12, 12, 22, 12, 14, tzinfo=zoneinfo.ZoneInfo("Europe/Paris")),
         Frequency.QUARTER.value,
         periods=2,
-        tz="Europe/Paris",
+        tz=zoneinfo.ZoneInfo("Europe/Paris"),
     )
     assert res.start == datetime(2002, 7, 1, 0, 0, 0, tzinfo=zoneinfo.ZoneInfo("Europe/Paris"))
     assert res.end == datetime(2002, 10, 1, 0, 0, 0, tzinfo=zoneinfo.ZoneInfo("Europe/Paris"))
@@ -213,7 +219,7 @@ def test_build_interval():
         datetime(2002, 12, 12, 22, 12, 14, tzinfo=zoneinfo.ZoneInfo("Europe/Paris")),
         Frequency.QUARTER.value,
         periods=4,
-        tz="Europe/Paris",
+        tz=zoneinfo.ZoneInfo("Europe/Paris"),
     )
     assert res.start == datetime(2002, 1, 1, 0, 0, 0, tzinfo=zoneinfo.ZoneInfo("Europe/Paris"))
     assert res.end == datetime(2002, 4, 1, 0, 0, 0, tzinfo=zoneinfo.ZoneInfo("Europe/Paris"))
@@ -222,7 +228,7 @@ def test_build_interval():
         datetime(2002, 12, 12, 22, 12, 14, tzinfo=zoneinfo.ZoneInfo("Europe/Paris")),
         Frequency.YEAR.value,
         periods=1,
-        tz="Europe/Paris",
+        tz=zoneinfo.ZoneInfo("Europe/Paris"),
     )
     assert res.start == datetime(2002, 1, 1, 0, 0, 0, tzinfo=zoneinfo.ZoneInfo("Europe/Paris"))
     assert res.end == datetime(2002, 12, 12, 22, 12, 14, tzinfo=zoneinfo.ZoneInfo("Europe/Paris"))
@@ -231,7 +237,7 @@ def test_build_interval():
         datetime(2002, 12, 12, 22, 12, 14, tzinfo=zoneinfo.ZoneInfo("Europe/Paris")),
         Frequency.YEAR.value,
         periods=2,
-        tz="Europe/Paris",
+        tz=zoneinfo.ZoneInfo("Europe/Paris"),
     )
     assert res.start == datetime(2001, 1, 1, 0, 0, 0, tzinfo=zoneinfo.ZoneInfo("Europe/Paris"))
     assert res.end == datetime(2002, 1, 1, 0, 0, 0, tzinfo=zoneinfo.ZoneInfo("Europe/Paris"))
@@ -240,7 +246,7 @@ def test_build_interval():
         datetime(2002, 12, 12, 22, 12, 14, tzinfo=zoneinfo.ZoneInfo("Europe/Paris")),
         Frequency.YEAR.value,
         periods=4,
-        tz="Europe/Paris",
+        tz=zoneinfo.ZoneInfo("Europe/Paris"),
     )
     assert res.start == datetime(1999, 1, 1, 0, 0, 0, tzinfo=zoneinfo.ZoneInfo("Europe/Paris"))
     assert res.end == datetime(2000, 1, 1, 0, 0, 0, tzinfo=zoneinfo.ZoneInfo("Europe/Paris"))
@@ -249,12 +255,15 @@ def test_build_interval():
 @freezegun.freeze_time(datetime(2002, 10, 6, 12, 1, 34))
 @mock.patch("forestadmin.datasource_toolkit.interfaces.query.condition_tree.transforms.time._build_interval")
 def test_interval_replacer(mock_build_interval: mock.MagicMock):
-    mock_build_interval.return_value = Interval(start=datetime(2000, 1, 1), end=datetime(2001, 1, 1))
+    mock_build_interval.return_value = Interval(
+        start=datetime(2000, 1, 1, tzinfo=zoneinfo.ZoneInfo("UTC")),
+        end=datetime(2001, 1, 1, tzinfo=zoneinfo.ZoneInfo("UTC")),
+    )
 
     replacer = _interval_replacer(Frequency.YEAR, 2)
     tree = ConditionTreeLeaf(field="test", operator=Operator.PREVIOUS_YEAR)
 
-    res = replacer(tree, "UTC")
+    res = replacer(tree, zoneinfo.ZoneInfo("UTC"))
     assert res == ConditionTreeBranch(
         Aggregator.AND,
         [
@@ -274,14 +283,14 @@ def test_interval_replacer(mock_build_interval: mock.MagicMock):
         end=datetime(2002, 10, 6, 12, 1, 34, tzinfo=zoneinfo.ZoneInfo("UTC")),
         frequency=Frequency.YEAR.value,
         periods=2,
-        tz="UTC",
+        tz=zoneinfo.ZoneInfo("UTC"),
     )
 
     mock_build_interval.reset_mock()
 
     tree.value = 15
     replacer = _interval_replacer(Frequency.YEAR, 2, True, datetime(2020, 1, 1))
-    res = replacer(tree, "Europe/Paris")
+    res = replacer(tree, zoneinfo.ZoneInfo("Europe/Paris"))
     assert res == ConditionTreeBranch(
         Aggregator.AND,
         [
@@ -301,7 +310,7 @@ def test_interval_replacer(mock_build_interval: mock.MagicMock):
         end=datetime(2020, 1, 1, tzinfo=zoneinfo.ZoneInfo("Europe/Paris")),
         frequency=f"15{Frequency.YEAR.value}",
         periods=2,
-        tz="Europe/Paris",
+        tz=zoneinfo.ZoneInfo("Europe/Paris"),
     )
 
 

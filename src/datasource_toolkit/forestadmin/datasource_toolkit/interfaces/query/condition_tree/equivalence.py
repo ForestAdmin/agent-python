@@ -1,4 +1,10 @@
-import zoneinfo
+import sys
+
+if sys.version_info >= (3, 9):
+    import zoneinfo
+else:
+    from backports import zoneinfo
+
 from typing import Callable, Dict, List, Optional, Set, Union, cast
 
 from forestadmin.datasource_toolkit.exceptions import DatasourceToolkitException
