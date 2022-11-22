@@ -58,9 +58,10 @@ class RenameMixin:
                 tree.field = self._path_to_child_collection(tree.field)
             return tree
 
+        filter = await super()._refine_filter(filter)  # type: ignore
         if filter and filter.condition_tree:
             filter = filter.override({"condition_tree": filter.condition_tree.replace(computed_fields)})
-        return await super()._refine_filter(filter)  # type: ignore
+        return filter
 
     async def list(self, filter: PaginatedFilter, projection: Projection) -> List[RecordsDataAlias]:
         child_projection = projection.replace(lambda field_name: self._path_to_child_collection(field_name))

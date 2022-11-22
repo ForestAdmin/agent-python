@@ -196,7 +196,8 @@ class Aggregation:
 
     def _apply_date_operation(self, value: str, operation: Optional[DateOperation], timezone: str) -> str:
         if operation:
-            value = value[:-1]  # Python doesn't handle Z in the isoformat
+            if value[-1] == "Z":
+                value = value[:-1]  # Python doesn't handle Z in the isoformat
             dt = datetime.fromisoformat(value).replace(tzinfo=zoneinfo.ZoneInfo(timezone)).date()
             if operation == DateOperation.YEAR:
                 return dt.replace(month=1, day=1).isoformat()

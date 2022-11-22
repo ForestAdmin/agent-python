@@ -7,11 +7,19 @@ from forestadmin.datasource_toolkit.decorators.proxy.collection import ProxyMixi
 from forestadmin.datasource_toolkit.decorators.publication.collections import PublicationMixin
 from forestadmin.datasource_toolkit.decorators.rename.collections import RenameMixin
 from forestadmin.datasource_toolkit.decorators.search.collections import SearchMixin
+from forestadmin.datasource_toolkit.decorators.segments.collections import SegmentMixin
 from forestadmin.datasource_toolkit.interfaces.models.collections import CollectionSchema
 
 
 class CustomizedCollection(
-    OperatorReplaceMixin, ComputedMixin, ActionMixin, RenameMixin, PublicationMixin, SearchMixin, ProxyMixin
+    ComputedMixin,
+    RenameMixin,
+    OperatorReplaceMixin,
+    ActionMixin,
+    SegmentMixin,
+    PublicationMixin,
+    SearchMixin,
+    ProxyMixin,
 ):
     def __init__(self, *args: Any, **kwargs: Any):
         super(CustomizedCollection, self).__init__(*args, **kwargs)

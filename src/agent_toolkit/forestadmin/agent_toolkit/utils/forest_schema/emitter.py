@@ -9,133 +9,21 @@ from forestadmin.datasource_toolkit.decorators.datasource import CustomizedDatas
 
 
 class SchemaEmitter:
-    """
-    private static readonly meta = {
-           liana: 'forest-nodejs-agent',
-           liana_version: version,
-           stack: {
-           engine: 'nodejs',
-           engine_version: process.versions && process.versions.node,
-           },
-       };
-
-       static async getSerializedSchema(
-           options: Options,
-           dataSource: DataSource,
-       ): Promise<SerializedSchema> {
-           const schema: RawSchema = options.isProduction
-           ? await SchemaEmitter.loadFromDisk(options.schemaPath)
-           : await SchemaEmitter.generate(options.prefix, dataSource);
-
-           if (!options.isProduction) {
-           const pretty = stringify(schema, { maxLength: 80 });
-           await writeFile(options.schemaPath, pretty, { encoding: 'utf-8' });
-           }
-
-           const hash = crypto.createHash('sha1').update(JSON.stringify(schema)).digest('hex');
-
-           return SchemaEmitter.serialize(schema, hash);
-       }
-
-       private static async loadFromDisk(schemaPath: string): Promise<RawSchema> {
-           try {
-           const fileContent = await readFile(schemaPath, { encoding: 'utf-8' });
-
-           return JSON.parse(fileContent);
-           } catch (e) {
-           throw new Error(
-               `Cannot load ${schemaPath}. Providing a schema is mandatory in production mode.`,
-           );
-           }
-       }
-
-       private static async generate(prefix: string, dataSource: DataSource): Promise<RawSchema> {
-           const allCollectionSchemas = [];
-
-           const dataSourceCollectionSchemas = dataSource.collections.map(collection =>
-           SchemaGeneratorCollection.buildSchema(prefix, collection),
-           );
-           allCollectionSchemas.push(...dataSourceCollectionSchemas);
-
-           return Promise.all(allCollectionSchemas);
-       }
-
-       private static serialize(schema: RawSchema, hash: string): SerializedSchema {
-           // Build serializer
-           const serializer = new JSONAPISerializer();
-
-           serializer.register('collections', {
-           // Pass the metadata provided to the serialization fn
-           topLevelMeta: (extraData: unknown) => extraData,
-           relationships: {
-               segments: { type: 'segments' },
-               actions: { type: 'actions' },
-           },
-           });
-           serializer.register('segments', {});
-           serializer.register('actions', {});
-
-           // Serialize
-           return serializer.serialize(
-           'collections',
-           schema.map(c => ({ id: c.name, ...c })),
-           { ...SchemaEmitter.meta, schemaFileHash: hash },
-           ) as SerializedSchema;
-       }
-       static async getSerializedSchema(
-           options: Options,
-           dataSource: DataSource,
-       ): Promise<SerializedSchema> {
-           const schema: RawSchema = options.isProduction
-           ? await SchemaEmitter.loadFromDisk(options.schemaPath)
-           : await SchemaEmitter.generate(options.prefix, dataSource);
-
-           if (!options.isProduction) {
-           const pretty = stringify(schema, { maxLength: 80 });
-           await writeFile(options.schemaPath, pretty, { encoding: 'utf-8' });
-           }
-
-           const hash = crypto.createHash('sha1').update(JSON.stringify(schema)).digest('hex');
-
-           return SchemaEmitter.serialize(schema, hash);
-       }
-       for collection in copy.deepcopy(cls.schema_data['collections']):
-           actions_data, actions_included = cls.get_serialized_collection_relation(collection, 'actions')
-           segments_data, segments_included = cls.get_serialized_collection_relation(collection, 'segments')
-           c = {
-               'id': collection['name'],
-               'type': 'collections',
-               'attributes': cls.get_serialized_collection(collection),
-               'relationships': {
-                   'actions': {
-                       'data': actions_data
-                   },
-                   'segments': {
-                       'data': segments_data
-                   }
-               }
-           }
-           data.append(c)
-           included.extend(actions_included)
-           included.extend(segments_included)
-
-       return {
-           'data': data,
-           'included': included,
-           'meta': cls.schema_data['meta']
-       }
-    """
-
     @staticmethod
     def get_serialized_collection_relation(
         collection: ForestServerCollection, rel_type: Literal["actions", "segments"]
     ):
         data: List[Dict[str, str]] = []
         included: List[Dict[str, str]] = []
-        for rel in collection.get(rel_type, []):
-            id = f"{collection['name']}.{rel['name']}"
+        for rel in collection.get(rel_type, []):  # type: ignore
+            try:
+                name: str = rel["name"]
+            except TypeError:
+                name: str = rel
+            id = f"{collection['name']}.{name}"
             data.append({"id": id, "type": rel_type})
             included.append({"id": id, "type": rel_type, "attributes": rel})
+
         return data, included
 
     @classmethod
@@ -144,14 +32,15 @@ class SchemaEmitter:
         included: List[Dict[str, str]] = []
         for collection in collections:
             action_data, action_included = cls.get_serialized_collection_relation(collection, "actions")
+            segment_data, segment_included = cls.get_serialized_collection_relation(collection, "segments")
             included.extend(action_included)
-            segments = collection.pop("segments")
+            included.extend(segment_included)
             serialized_collections.append(
                 {
                     "id": collection["name"],
                     "type": "collections",
                     "attributes": collection,
-                    "relationships": {"actions": {"data": action_data}, "segments": {"data": segments}},
+                    "relationships": {"actions": {"data": action_data}, "segments": {"data": segment_data}},
                 }
             )
         return {"data": serialized_collections, "included": included, "meta": meta}

@@ -111,7 +111,8 @@ class ConditionTreeEquivalent:
                 replacer = replacers[alternative["depends_on"].index(subtree.operator)]
                 return replacer(subtree, timezone)
 
-            return alternative_tree.replace(__replace)
+            res = alternative_tree.replace(__replace)
+            return res
 
         return __apply_replacer
 
