@@ -2,6 +2,7 @@ from typing import List, Union
 
 from forestadmin.agent_toolkit.utils.forest_schema.generator_action import SchemaActionGenerator
 from forestadmin.agent_toolkit.utils.forest_schema.generator_field import SchemaFieldGenerator
+from forestadmin.agent_toolkit.utils.forest_schema.generator_segment import SchemaSegmentGenerator
 from forestadmin.agent_toolkit.utils.forest_schema.type import ForestServerCollection, ForestServerField
 from forestadmin.datasource_toolkit.collections import Collection
 from forestadmin.datasource_toolkit.decorators.collections import CustomizedCollection
@@ -33,5 +34,7 @@ class SchemaCollectionGenerator:
             "name": collection.name,
             "onlyForRelationships": False,
             "paginationType": "page",
-            "segments": [],
+            "segments": [
+                await SchemaSegmentGenerator.build(collection, name) for name in collection.schema["segments"]
+            ],
         }

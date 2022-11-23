@@ -1,4 +1,4 @@
-from typing import Any, Callable, Dict, List, Optional, cast
+from typing import Any, Callable, Dict, List, Optional, Union, cast
 
 from forestadmin.datasource_toolkit.exceptions import DatasourceToolkitException
 from forestadmin.datasource_toolkit.interfaces.fields import (
@@ -49,6 +49,19 @@ class RenameMixin:
             self._from_child_collection[initial_name] = new_name
             self._to_child_collection[new_name] = initial_name
         self.mark_schema_as_dirty()
+
+    async def _refine_filter(
+        self, filter: Union[Filter, PaginatedFilter, None]
+    ) -> Union[Filter, PaginatedFilter, None]:
+        def computed_fields(tree: ConditionTree) -> ConditionTree:
+            if isinstance(tree, ConditionTreeLeaf):
+                tree.field = self._path_to_child_collection(tree.field)
+            return tree
+
+        filter = await super()._refine_filter(filter)  # type: ignore
+        if filter and filter.condition_tree:
+            filter = filter.override({"condition_tree": filter.condition_tree.replace(computed_fields)})
+        return filter
 
     async def list(self, filter: PaginatedFilter, projection: Projection) -> List[RecordsDataAlias]:
         child_projection = projection.replace(lambda field_name: self._path_to_child_collection(field_name))

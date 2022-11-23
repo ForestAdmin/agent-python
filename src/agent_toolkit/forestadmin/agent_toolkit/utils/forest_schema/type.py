@@ -103,3 +103,16 @@ class ForestServerAction(TypedDict):
     download: bool
     fields: List[ForestServerActionField]
     hooks: ForestServerActionHooks
+
+
+"""
+export type ForestServerSegment = {
+  id: string;
+  name: string;
+};
+"""
+
+
+class ForestServerSegment(TypedDict):
+    id: str
+    name: str

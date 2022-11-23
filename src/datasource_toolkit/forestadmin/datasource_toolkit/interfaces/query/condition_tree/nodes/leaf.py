@@ -1,4 +1,11 @@
 import re
+import sys
+
+if sys.version_info >= (3, 9):
+    import zoneinfo
+else:
+    from backports import zoneinfo
+
 from typing import Any, Callable, List, Optional, Union, cast
 
 from forestadmin.datasource_toolkit.exceptions import DatasourceToolkitException
@@ -73,7 +80,8 @@ class ConditionTreeLeaf(ConditionTree):
 
     @classmethod
     def load(cls, json: LeafComponents) -> "ConditionTreeLeaf":
-        return cls(json["field"], Operator(json["operator"]), json.get("value"))
+        value = json.get("value")
+        return cls(json["field"], Operator(json["operator"]), value)
 
     @property
     def projection(self) -> Projection:
@@ -166,14 +174,14 @@ class ConditionTreeLeaf(ConditionTree):
             )
 
     def _not_equal_not_contains(
-        self, record: RecordsDataAlias, collection: Collection, timezone: str
+        self, record: RecordsDataAlias, collection: Collection, timezone: zoneinfo.ZoneInfo
     ) -> Callable[[Any], bool]:
         def wrapper(value: Any) -> bool:
             return not self.inverse().match(record, collection, timezone)
 
         return wrapper
 
-    def match(self, record: RecordsDataAlias, collection: Collection, timezone: str) -> bool:
+    def match(self, record: RecordsDataAlias, collection: Collection, timezone: zoneinfo.ZoneInfo) -> bool:
         from forestadmin.datasource_toolkit.utils.collections import CollectionUtils
 
         field_value = RecordUtils.get_field_value(record, self.field)

@@ -1,3 +1,10 @@
+import sys
+
+if sys.version_info >= (3, 9):
+    import zoneinfo
+else:
+    from backports import zoneinfo
+
 from typing import Callable, Dict, List, Optional, Set, Union, cast
 
 from forestadmin.datasource_toolkit.exceptions import DatasourceToolkitException
@@ -15,7 +22,7 @@ from forestadmin.datasource_toolkit.interfaces.query.condition_tree.transforms.p
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.transforms.time import time_transforms
 from typing_extensions import TypeGuard
 
-Replacer = Callable[[ConditionTreeLeaf, str], ConditionTree]
+Replacer = Callable[[ConditionTreeLeaf, zoneinfo.ZoneInfo], ConditionTree]
 
 
 class ConditionTreeEquivalentException(DatasourceToolkitException):
@@ -31,7 +38,7 @@ class ConditionTreeEquivalent:
         leaf: ConditionTreeLeaf,
         operators: Set[Operator],
         column_type: ColumnAlias,
-        timezone: str,
+        timezone: zoneinfo.ZoneInfo,
     ) -> Optional[ConditionTree]:
         replacer = cls._get_replacer(
             leaf.operator,
@@ -45,7 +52,10 @@ class ConditionTreeEquivalent:
 
     @classmethod
     def has_equivalent_tree(cls, operator: Operator, operators: Set[Operator], column_type: ColumnAlias) -> bool:
-        return cls._get_replacer(operator, operators, column_type) is not None
+        try:
+            return cls._get_replacer(operator, operators, column_type) is not None
+        except ConditionTreeEquivalentException:
+            return False
 
     @classmethod
     def _get_replacer(
@@ -97,7 +107,7 @@ class ConditionTreeEquivalent:
 
     @staticmethod
     def __apply_replacers(alternative: Alternative, replacers: List[Replacer]):
-        def __apply_replacer(tree: ConditionTreeLeaf, timezone: str) -> ConditionTree:
+        def __apply_replacer(tree: ConditionTreeLeaf, timezone: zoneinfo.ZoneInfo) -> ConditionTree:
             alternative_tree = alternative["replacer"](tree, timezone)
 
             def __replace(
@@ -107,7 +117,8 @@ class ConditionTreeEquivalent:
                 replacer = replacers[alternative["depends_on"].index(subtree.operator)]
                 return replacer(subtree, timezone)
 
-            return alternative_tree.replace(__replace)
+            res = alternative_tree.replace(__replace)
+            return res
 
         return __apply_replacer
 

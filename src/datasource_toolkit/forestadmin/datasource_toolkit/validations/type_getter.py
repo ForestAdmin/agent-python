@@ -34,6 +34,8 @@ class TypeGetter:
 
     @staticmethod
     def _get_date_type(value: str) -> PrimitiveType:
+        if value[-1] == "Z":
+            value = value[:-1]  # Python doesn't handle Z in the isoformat
         try:
             date.fromisoformat(value)
         except ValueError:
@@ -61,7 +63,7 @@ class TypeGetter:
     def _is_json_type(value: str) -> bool:
         try:
             res = json.loads(value)
-        except TypeError:
+        except (TypeError, json.decoder.JSONDecodeError):
             return False
         else:
             return isinstance(res, dict)

@@ -49,30 +49,30 @@ def _start_of(dt: datetime, hour: bool = True) -> datetime:
 
 
 def _compare_replacer(operator: Operator, date: DateCallback) -> ReplacerAlias:
-    def replacer(leaf: ConditionTreeLeaf, tz: str) -> ConditionTreeLeaf:
+    def replacer(leaf: ConditionTreeLeaf, tz: zoneinfo.ZoneInfo) -> ConditionTreeLeaf:
         now = _get_now()
         return leaf.override(
             {
                 "operator": operator,
-                "value": format(date(now, leaf.value).astimezone(zoneinfo.ZoneInfo(tz))),  # type: ignore
+                "value": format(date(now, leaf.value).astimezone(tz)),  # type: ignore
             }
         )
 
     return replacer
 
 
-def _build_interval(end: datetime, frequency: str, periods: int, tz: str) -> Interval:
+def _build_interval(end: datetime, frequency: str, periods: int, tz: zoneinfo.ZoneInfo) -> Interval:
 
     dates: List[datetime] = []
     end = end.astimezone(zoneinfo.ZoneInfo("UTC"))  # mandatory to avoid the panda issue with zoneinfo
     for dt in pd.date_range(end=end, periods=periods, freq=frequency).to_pydatetime():  # type: ignore
         dt = cast(datetime, dt)
         if frequency != Frequency.HOUR.value:
-            dt = _start_of(dt, True).replace(tzinfo=zoneinfo.ZoneInfo(tz))
+            dt = _start_of(dt, True).replace(tzinfo=tz)
         else:
-            dt = _start_of(dt, False).astimezone(zoneinfo.ZoneInfo(tz))
+            dt = _start_of(dt, False).astimezone(tz)
         dates.append(dt)
-    return Interval(start=dates[0], end=end.astimezone(zoneinfo.ZoneInfo(tz)) if periods == 1 else dates[1])
+    return Interval(start=dates[0], end=end.astimezone(tz) if periods == 1 else dates[1])
 
 
 def _interval_replacer(
@@ -81,12 +81,12 @@ def _interval_replacer(
     frequency_prefix: bool = False,
     end: Optional[datetime] = None,
 ) -> ReplacerAlias:
-    def replacer(leaf: ConditionTreeLeaf, tz: str) -> ConditionTree:
+    def replacer(leaf: ConditionTreeLeaf, tz: zoneinfo.ZoneInfo) -> ConditionTree:
         nonlocal end
         if not end:
             end = _get_now()
         else:
-            end = end.replace(tzinfo=zoneinfo.ZoneInfo(tz))
+            end = end.replace(tzinfo=tz)
 
         frequency_value = frequency.value
 
@@ -105,8 +105,9 @@ def _interval_replacer(
 
 
 def _from_utc_iso_format(value: str) -> datetime:
-    iso_value = value[:-1]  # Python doesn't handle Z in the isoformat
-    return datetime.fromisoformat(iso_value).replace(tzinfo=zoneinfo.ZoneInfo("UTC"))
+    if value[-1] == "Z":
+        value = value[:-1]  # Python doesn't handle Z in the isoformat
+    return datetime.fromisoformat(value).replace(tzinfo=zoneinfo.ZoneInfo("UTC"))
 
 
 def _before_to_less_than(now: datetime, value: Any) -> datetime:

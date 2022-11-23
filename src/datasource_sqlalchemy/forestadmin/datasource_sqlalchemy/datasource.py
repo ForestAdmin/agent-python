@@ -1,5 +1,7 @@
+import zoneinfo
 from collections import defaultdict
-from typing import Any, Awaitable, Callable, Dict, List, Optional, Tuple, cast
+from datetime import datetime
+from typing import Any, Awaitable, Callable, Dict, List, Optional, Tuple, Union, cast
 
 from forestadmin.datasource_sqlalchemy.interfaces import BaseSqlAlchemyCollection, BaseSqlAlchemyCollectionFactory
 from forestadmin.datasource_sqlalchemy.utils.model_converter import CollectionFactory
@@ -12,12 +14,21 @@ from forestadmin.datasource_sqlalchemy.utils.record_serializer import (
 from forestadmin.datasource_sqlalchemy.utils.relationships import Relationships, merge_relationships
 from forestadmin.datasource_toolkit.datasources import Datasource, DatasourceException
 from forestadmin.datasource_toolkit.interfaces.actions import ActionField, ActionResult
-from forestadmin.datasource_toolkit.interfaces.fields import FieldType, ManyToMany, ManyToOne, RelationAlias
+from forestadmin.datasource_toolkit.interfaces.fields import (
+    FieldType,
+    ManyToMany,
+    ManyToOne,
+    PrimitiveType,
+    RelationAlias,
+)
 from forestadmin.datasource_toolkit.interfaces.query.aggregation import AggregateResult, Aggregation
+from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.base import ConditionTree
+from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.leaf import ConditionTreeLeaf
 from forestadmin.datasource_toolkit.interfaces.query.filter.paginated import PaginatedFilter
 from forestadmin.datasource_toolkit.interfaces.query.filter.unpaginated import Filter
 from forestadmin.datasource_toolkit.interfaces.query.projections import Projection
 from forestadmin.datasource_toolkit.interfaces.records import RecordsDataAlias
+from forestadmin.datasource_toolkit.validations.type_getter import TypeGetter
 from sqlalchemy import Table
 from sqlalchemy import column as SqlAlchemyColumn
 from sqlalchemy.engine import Dialect
@@ -157,6 +168,7 @@ class SqlAlchemyCollection(BaseSqlAlchemyCollection):
     ) -> List[AggregateResult]:
         with self.datasource.Session.begin() as session:  #  type: ignore
             dialect: Dialect = session.bind.dialect  #  type: ignore
+            filter = cast(Filter, self._cast_filter(filter)) or None
             query = QueryFactory.build_aggregate(dialect, self, filter, aggregation, limit)
             res: List[Dict[str, Any]] = session.execute(query)  #  type: ignore
             return aggregations_to_records(res)
@@ -173,19 +185,43 @@ class SqlAlchemyCollection(BaseSqlAlchemyCollection):
             query = QueryFactory.update(self, filter, patch)
             session.execute(query)  # type: ignore
 
+    def _cast_condition_tree(self, tree: ConditionTree) -> ConditionTree:
+        if isinstance(tree, ConditionTreeLeaf):
+            if TypeGetter.get(tree.value, None) == PrimitiveType.DATE:
+                iso_format = tree.value
+                if isinstance(iso_format, str):
+                    if iso_format[-1] == "Z":
+                        iso_format = iso_format[:-1]
+                    iso_format = datetime.fromisoformat(iso_format).replace(
+                        tzinfo=zoneinfo.ZoneInfo("UTC")
+                    )  # type: ignore
+                tree = tree.override({"value": iso_format})
+        return tree
+
+    def _cast_filter(self, filter: Union[Filter, PaginatedFilter, None]) -> Union[Filter, PaginatedFilter, None]:
+        if filter and filter.condition_tree:
+            filter = filter.override(
+                {"condition_tree": filter.condition_tree.replace(self._cast_condition_tree)}
+            )  # type: ignore
+        return filter
+
     async def list(self, filter: PaginatedFilter, projection: Projection) -> List[RecordsDataAlias]:
         with self.datasource.Session.begin() as session:  #  type: ignore
             projection = self._normalize_projection(projection)
+            filter = cast(PaginatedFilter, self._cast_filter(filter))
             query = QueryFactory.build_list(self, filter, projection)
             res = session.execute(query).all()  #  type: ignore
-            return projections_to_records(projection, res)  # type: ignore
+            records = projections_to_records(projection, res, filter.timezone)  # type: ignore
+            return records
 
     async def delete(self, filter: Optional[Filter]) -> None:
         with self.datasource.Session.begin() as session:  #  type: ignore
             query = QueryFactory.delete(self, filter)
             session.execute(query)  # type: ignore
 
-    async def get_form(self, name: str, data: Optional[RecordsDataAlias], filter: Optional[Filter]) -> ActionField:
+    async def get_form(
+        self, name: str, data: Optional[RecordsDataAlias], filter: Optional[Filter]
+    ) -> List[ActionField]:
         return await super().get_form(name, data, filter)
 
 
