@@ -14,29 +14,6 @@ class ForestValueConverterException(DatasourceToolkitException):
 
 
 class ForestValueConverter:
-
-    """
-    static makeFormDataFromFields(dataSource: DataSource, fields: any[]): FormData {
-     const data: FormData = {};
-
-     for (const field of fields) {
-     // Skip fields from the default form
-     if (!SchemaGeneratorActions.defaultFields.map(f => f.field).includes(field.field)) {
-         if (field.reference && field.value) {
-         const [collectionName] = field.reference.split('.');
-         const collection = dataSource.getCollection(collectionName);
-         data[field.field] = IdUtils.unpackId(collection.schema, field.value as string);
-         } else if (field.type === 'File') {
-         data[field.field] = this.parseDataUri(field.value as string);
-         } else if (Array.isArray(field.type) && field.type[0] === 'File') {
-         data[field.field] = (field.value as string[])?.map(v => this.parseDataUri(v));
-         } else {
-         data[field.field] = field.value;
-         }
-     }
-     }
-    """
-
     @staticmethod
     def make_form_data_from_fields(
         datasource: Datasource[Collection], fields: List[ForestServerActionField]

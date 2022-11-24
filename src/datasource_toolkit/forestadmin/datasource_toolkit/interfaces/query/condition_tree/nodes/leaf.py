@@ -110,7 +110,7 @@ class ConditionTreeLeaf(ConditionTree):
     @classmethod
     def _handle_replace_tree(cls, tree: Union[ConditionTree, ConditionTreeComponent]) -> "ConditionTree":
         if is_leaf_component(tree):
-            return ConditionTreeLeaf.load(tree)
+            return ConditionTreeLeaf.load(tree)  # type: ignore
         else:
             return cast(ConditionTreeLeaf, tree)
 

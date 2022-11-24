@@ -59,8 +59,10 @@ def build_blueprint(agent: Agent):  # noqa: C901
     actions_resource = agent.resources["actions"]
 
     def _get_dispatch(
-        request: FlaskRequest, method: Optional[AuthLiteralMethod] = None, detail: bool = False
-    ) -> Tuple[Request, Union[CrudLiteralMethod, AuthLiteralMethod, Literal["execute" "hook"]]]:
+        request: FlaskRequest,
+        method: Union[CrudLiteralMethod, AuthLiteralMethod, Literal["execute", "hook"], None] = None,
+        detail: bool = False,
+    ) -> Tuple[Request, Union[CrudLiteralMethod, AuthLiteralMethod, Literal["execute", "hook"]]]:
         if not method:
             meth = get_dispatcher_method(request.method, detail)
         else:

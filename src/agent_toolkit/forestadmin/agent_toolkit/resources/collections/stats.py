@@ -8,6 +8,7 @@ from forestadmin.agent_toolkit.resources.collections.decorators import authentic
 from forestadmin.agent_toolkit.resources.collections.filter import build_filter
 from forestadmin.agent_toolkit.resources.collections.requests import RequestCollection, RequestCollectionException
 from forestadmin.agent_toolkit.utils.context import (
+    FileResponse,
     Request,
     RequestMethod,
     Response,
@@ -40,7 +41,7 @@ class StatsResource(BaseCollectionResource):
             "Leaderboard": self.leader_board,
         }[type]
 
-    async def dispatch(self, request: Request, method_name: Literal["add"]) -> Response:
+    async def dispatch(self, request: Request, method_name: Literal["add"]) -> Union[Response, FileResponse]:
         try:
             request_collection = RequestCollection.from_request(request, self.datasource)
         except RequestCollectionException as e:

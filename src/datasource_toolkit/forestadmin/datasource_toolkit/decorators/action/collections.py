@@ -1,5 +1,6 @@
 from typing import Any, Callable, Dict, List, Optional, Set, Union, cast
 
+from forestadmin.datasource_toolkit.collections import Collection
 from forestadmin.datasource_toolkit.decorators.action.context.base import ActionContext
 from forestadmin.datasource_toolkit.decorators.action.context.bulk import ActionContextBulk
 from forestadmin.datasource_toolkit.decorators.action.context.single import ActionContextSingle
@@ -91,14 +92,14 @@ class ActionMixin:
             ActionBulk.SCOPE: ActionContextBulk,
             ActionGlobal.SCOPE: ActionContext,
         }[action.SCOPE](
-            self, form_values, filter, used
-        )  # type: ignore
+            cast(Collection, self), form_values, filter, used  # type: ignore
+        )
 
     async def _build_form_values(
         self, context: ActionContext, fields: List[DynamicField[ActionContext]], data: Optional[Dict[str, Any]]
     ):
         if data is None:
-            form_values = {}
+            form_values: Dict[str, Any] = {}
         else:
             form_values = {**data}
 

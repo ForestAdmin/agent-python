@@ -12,6 +12,7 @@ from forestadmin.agent_toolkit.exceptions import AgentToolkitException
 from forestadmin.agent_toolkit.resources.collections.requests import RequestCollection, RequestRelationCollection
 from forestadmin.agent_toolkit.utils.context import Request
 from forestadmin.datasource_toolkit.collections import Collection
+from forestadmin.datasource_toolkit.decorators.collections import CustomizedCollection
 from forestadmin.datasource_toolkit.interfaces.fields import is_column, is_many_to_one, is_one_to_one
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.factory import (
     ConditionTreeFactory,
@@ -79,7 +80,9 @@ def parse_selection_ids(request: Request) -> Tuple[List[CompositeIdAlias], bool]
     raise Exception()
 
 
-def _get_collection(request: Union[RequestCollection, RequestRelationCollection]) -> Collection:
+def _get_collection(
+    request: Union[RequestCollection, RequestRelationCollection]
+) -> Union[CustomizedCollection, Collection]:
     collection = request.collection
     if isinstance(request, RequestRelationCollection):
         collection = request.foreign_collection
@@ -184,7 +187,10 @@ def parse_condition_tree(request: Union[RequestCollection, RequestRelationCollec
 
 
 def _parse_projection_fields(
-    query: Dict[str, Any], collection: Collection, front_collection_name: str, is_related: bool = False
+    query: Dict[str, Any],
+    collection: Union[CustomizedCollection, Collection],
+    front_collection_name: str,
+    is_related: bool = False,
 ) -> List[str]:
     projection_fields: List[str] = []
     try:

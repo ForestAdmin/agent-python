@@ -18,7 +18,7 @@ class BaseAction(Generic[Context]):
     GENERATE_FILE: bool = False
 
     def __init__(self):
-        self.form = self._build_form(self.FORM)
+        self.form = self._build_form(self.FORM)  # type: ignore
 
     @abc.abstractmethod
     async def execute(self, context: Context, result_builder: ResultBuilder) -> Union[None, ActionResult]:

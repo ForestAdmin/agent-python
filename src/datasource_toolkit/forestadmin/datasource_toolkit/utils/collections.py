@@ -139,7 +139,7 @@ class CollectionUtils:
             is_many_to_one_inverse = (
                 is_many_to_one(field_schema)
                 and (is_one_to_many(relation) or is_one_to_one(relation))
-                and field_schema["foreign_key"] == relation["origin_key"]
+                and field_schema["foreign_key"] == relation["origin_key"]  # type: ignore
             )
             is_other_inverse = (
                 (is_one_to_many(field_schema) or is_one_to_one(field_schema))
