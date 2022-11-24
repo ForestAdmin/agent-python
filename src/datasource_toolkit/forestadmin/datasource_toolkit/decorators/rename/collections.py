@@ -60,7 +60,7 @@ class RenameMixin:
 
         filter = await super()._refine_filter(filter)  # type: ignore
         if filter and filter.condition_tree:
-            filter = filter.override({"condition_tree": filter.condition_tree.replace(computed_fields)})
+            filter = filter.override({"condition_tree": filter.condition_tree.replace(computed_fields)})  # type: ignore
         return filter
 
     async def list(self, filter: PaginatedFilter, projection: Projection) -> List[RecordsDataAlias]:

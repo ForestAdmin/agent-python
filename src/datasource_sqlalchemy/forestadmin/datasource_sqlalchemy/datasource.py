@@ -153,7 +153,7 @@ class SqlAlchemyCollection(BaseSqlAlchemyCollection):
         # needed to be compliant with the orm result orm
         normalized_projection = projection.columns
         for parent_field, child_fields in projection.relations.items():
-            for field in child_fields:
+            for field in cast(List[str], child_fields):
                 normalized_projection.append(f"{parent_field}:{field}")
         return Projection(*normalized_projection)
 
@@ -201,8 +201,8 @@ class SqlAlchemyCollection(BaseSqlAlchemyCollection):
     def _cast_filter(self, filter: Union[Filter, PaginatedFilter, None]) -> Union[Filter, PaginatedFilter, None]:
         if filter and filter.condition_tree:
             filter = filter.override(
-                {"condition_tree": filter.condition_tree.replace(self._cast_condition_tree)}
-            )  # type: ignore
+                {"condition_tree": filter.condition_tree.replace(self._cast_condition_tree)}  # type: ignore
+            )
         return filter
 
     async def list(self, filter: PaginatedFilter, projection: Projection) -> List[RecordsDataAlias]:

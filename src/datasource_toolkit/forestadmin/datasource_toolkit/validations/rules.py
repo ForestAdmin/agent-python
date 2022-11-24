@@ -1,5 +1,5 @@
 from collections import defaultdict
-from typing import Dict, List
+from typing import Any, Dict, List
 
 from forestadmin.datasource_toolkit.interfaces.fields import Operator, PrimitiveType
 from forestadmin.datasource_toolkit.validations.types import ValidationPrimaryType, ValidationTypesArray
@@ -79,7 +79,7 @@ def _compute_allowed_types_for_operators() -> Dict[Operator, List[PrimitiveType]
 
 NO_TYPES_ALLOWED = [ValidationPrimaryType.NULL]
 
-MAP_ALLOWED_TYPES_FOR_OPERATOR = {
+MAP_ALLOWED_TYPES_FOR_OPERATOR: Dict[Operator, Any] = {
     **_compute_allowed_types_for_operators(),
     Operator.IN: [v for v in ValidationTypesArray],
     Operator.NOT_IN: [v for v in ValidationTypesArray],

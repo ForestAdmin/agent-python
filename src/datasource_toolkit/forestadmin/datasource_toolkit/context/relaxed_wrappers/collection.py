@@ -73,7 +73,9 @@ class RelaxedCollection(Collection):
         filter_instance = self._build_filter(filter)
         return await self.collection.execute(name, data, filter_instance)
 
-    async def get_form(self, name: str, data: Optional[RecordsDataAlias], filter: Optional[Filter]) -> ActionField:
+    async def get_form(
+        self, name: str, data: Optional[RecordsDataAlias], filter: Optional[Filter]
+    ) -> List[ActionField]:
         filter_instance = self._build_filter(filter)
         return await super().get_form(name, data, filter_instance)
 
@@ -104,12 +106,15 @@ class RelaxedCollection(Collection):
             return filter
 
         filter = cast(PlainPaginatedFilter, filter)
-        filter_component = {
-            **filter,
+        filter_component: PaginatedFilterComponent = {
+            "search": filter.get("search"),
+            "search_extended": filter.get("search_extended", False),
+            "segment": filter.get("segment"),
+            "timezone": filter.get("timezone"),  # type: ignore
         }
 
         if filter.get("condition_tree"):
-            filter_component["tree"] = ConditionTreeFactory.from_plain_object(filter.get("condition_tree"))
+            filter_component["condition_tree"] = ConditionTreeFactory.from_plain_object(filter.get("condition_tree"))
 
         if filter.get("sort"):
             sort_clauses = cast(List[PlainSortClause], filter.get("sort"))

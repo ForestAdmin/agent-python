@@ -46,7 +46,7 @@ class Projection(list):  # type: ignore
         return reduce(reducer, handled, Projection())
 
     def union(self, *projections: Union["Projection", List[str]]) -> "Projection":
-        fields: List[str] = reduce(lambda x, y: [*x, *y], [self, *projections], [])
+        fields: List[str] = reduce(lambda x, y: [*x, *y], [self, *projections], [])  # type: ignore
         return Projection(*sorted(set(fields)))
 
     def apply(self, records: List[RecordsDataAlias]) -> List[RecordsDataAlias]:
@@ -61,29 +61,29 @@ class Projection(list):  # type: ignore
         result = Projection(*self)
         for pk in SchemaUtils.get_primary_keys(collection.schema):
             if pk not in result:
-                result.append(pk)
+                result.append(pk)  # type: ignore
 
         for relation, projection in self.relations.items():
             schema = cast(RelationAlias, collection.schema["fields"][relation])
             association = collection.datasource.get_collection(schema["foreign_collection"])
             projection_with_pk: Projection = projection.with_pks(association).nest(relation)
-            for field in projection_with_pk:
+            for field in projection_with_pk:  # type: ignore
                 if field not in result:
-                    result.append(field)
+                    result.append(field)  # type: ignore
         return result
 
     def nest(self, prefix: str) -> "Projection":
         if prefix:
-            return Projection(*map(lambda path: f"{prefix}:{path}", self))
+            return Projection(*map(lambda path: f"{prefix}:{path}", self))  # type: ignore
         return self
 
     def unnest(self) -> "Projection":
-        splited = self[0].split(":")
-        prefix = splited[0]
-        if not all([path.startswith(prefix) for path in self]):
+        splited = self[0].split(":")  # type: ignore
+        prefix = splited[0]  # type: ignore
+        if not all([path.startswith(prefix) for path in self]):  # type: ignore
             raise ProjectionException("Cannot unnest projection.")
 
-        return Projection(*map(lambda path: path[len(prefix) + 1 :], self))
+        return Projection(*map(lambda path: path[len(prefix) + 1 :], self))  # type: ignore
 
     def _reproject(self, record: Optional[RecordsDataAlias] = None) -> Optional[RecordsDataAlias]:
         result: Optional[RecordsDataAlias] = None

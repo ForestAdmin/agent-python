@@ -1,5 +1,6 @@
-from typing import cast
+from typing import Union, cast
 
+from forestadmin.datasource_toolkit.decorators.collections import CustomizedCollection
 from forestadmin.datasource_toolkit.exceptions import DatasourceToolkitException
 from forestadmin.datasource_toolkit.interfaces.fields import Column, PrimitiveType, is_column
 from forestadmin.datasource_toolkit.interfaces.models.collections import Collection
@@ -21,7 +22,7 @@ class ConditionTreeValidatorException(DatasourceToolkitException):
 
 class ConditionTreeValidator:
     @classmethod
-    def _validate_leaf_condition(cls, collection: Collection):
+    def _validate_leaf_condition(cls, collection: Union[Collection, CustomizedCollection]):
         def validate_condition_tree(condition: ConditionTree):
             condition = cast(ConditionTreeLeaf, condition)
             schema = CollectionUtils.get_field_schema(collection, condition.field)
@@ -36,7 +37,7 @@ class ConditionTreeValidator:
         return validate_condition_tree
 
     @classmethod
-    def validate(cls, condition_tree: ConditionTree, collection: Collection):
+    def validate(cls, condition_tree: ConditionTree, collection: Union[Collection, CustomizedCollection]):
         condition_tree.apply(cls._validate_leaf_condition(collection))
 
     @staticmethod
