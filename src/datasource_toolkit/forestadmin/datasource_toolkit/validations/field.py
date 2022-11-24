@@ -1,5 +1,6 @@
 from typing import Any, List, Optional, Union, cast
 
+from forestadmin.datasource_toolkit.decorators.collections import CustomizedCollection
 from forestadmin.datasource_toolkit.exceptions import DatasourceToolkitException
 from forestadmin.datasource_toolkit.interfaces.fields import (
     Column,
@@ -19,7 +20,9 @@ class FieldValidatorException(DatasourceToolkitException):
 
 class FieldValidator:
     @classmethod
-    def validate(cls, collection: Collection, field: str, values: Optional[List[Any]] = None) -> None:
+    def validate(
+        cls, collection: Union[CustomizedCollection, Collection], field: str, values: Optional[List[Any]] = None
+    ) -> None:
         nested_field = None
         if ":" in field:
             field, *nested_field = field.split(":")

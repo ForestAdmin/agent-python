@@ -122,7 +122,7 @@ class ActionResource(BaseCollectionResource):
         else:
             condition_tree = None
         filter = build_filter(request, condition_tree)
-        attributes = request.body.get("data", {}).get("attributes", {})
+        attributes: Dict[str, Any] = request.body.get("data", {}).get("attributes", {})
         if "parent_association_name" in attributes:
             pass
         return filter

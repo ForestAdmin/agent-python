@@ -86,7 +86,7 @@ class SchemaFieldGenerator:
             "isVirtual": False,
             "reference": None,
         }
-        return res
+        return ForestServerField(**res)
 
     @staticmethod
     def is_foreign_collection_filterable(foreign_collection: Collection) -> bool:

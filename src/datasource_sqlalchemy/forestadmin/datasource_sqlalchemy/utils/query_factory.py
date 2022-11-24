@@ -6,7 +6,7 @@ if sys.version_info >= (3, 8):
 else:
     from typing_extensions import TypedDict
 
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple, cast
 
 from forestadmin.datasource_sqlalchemy.interfaces import BaseSqlAlchemyCollection
 from forestadmin.datasource_sqlalchemy.utils.aggregation import AggregationFactory
@@ -20,6 +20,7 @@ from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.leaf i
 from forestadmin.datasource_toolkit.interfaces.query.filter.paginated import PaginatedFilter
 from forestadmin.datasource_toolkit.interfaces.query.filter.unpaginated import Filter
 from forestadmin.datasource_toolkit.interfaces.query.projections import Projection
+from forestadmin.datasource_toolkit.interfaces.query.sort import PlainSortClause
 from forestadmin.datasource_toolkit.interfaces.records import RecordsDataAlias
 from sqlalchemy import and_
 from sqlalchemy import column as SqlAlchemyColumn
@@ -103,7 +104,7 @@ class PaginatedFilterFactory:
     def get_order_by(collection: BaseSqlAlchemyCollection, filter: PaginatedFilter) -> Tuple[List[Any], Relationships]:
         relationships: Relationships = defaultdict(list)
         order_clauses: List[Any] = []
-        for sort in filter.sort or []:
+        for sort in cast(List[PlainSortClause], filter.sort or []):
             columns, nested_relationships = collection.get_columns(Projection(sort["field"]))
             relationships = merge_relationships(relationships, nested_relationships)
             if sort["ascending"]:

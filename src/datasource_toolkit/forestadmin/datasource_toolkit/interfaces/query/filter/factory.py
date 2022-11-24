@@ -1,3 +1,10 @@
+import sys
+
+if sys.version_info >= (3, 9):
+    import zoneinfo
+else:
+    from backports import zoneinfo
+
 from typing import List, Union, cast
 
 from forestadmin.datasource_toolkit.collections import Collection
@@ -24,7 +31,7 @@ class FilterFactoryException(DatasourceToolkitException):
 
 class FilterFactory:
     @staticmethod
-    def _shift_period_filter(tz: str):
+    def _shift_period_filter(tz: zoneinfo.ZoneInfo):
         def __replace(leaf: ConditionTree) -> ConditionTree:
             leaf = cast(ConditionTreeLeaf, leaf)
             time_transform = time_transforms(1)
@@ -43,7 +50,11 @@ class FilterFactory:
             raise FilterFactoryException("Unable to shift a filter without condition_tree")
 
         filter = filter.override(
-            {"condition_tree": filter.condition_tree.replace(cls._shift_period_filter(filter.timezone or "UTC"))}
+            {
+                "condition_tree": filter.condition_tree.replace(
+                    cls._shift_period_filter(filter.timezone or zoneinfo.ZoneInfo("UTC"))
+                )
+            }
         )
 
         return filter
@@ -75,7 +86,7 @@ class FilterFactory:
         id: CompositeIdAlias,
         relation: ManyToMany,
         _base_foreign_key_filter: Union[PaginatedFilter, Filter],
-    ):
+    ) -> PaginatedFilter:
         if is_filter(_base_foreign_key_filter):
             base_foreign_key_filter: PaginatedFilter = PaginatedFilter.from_base_filter(_base_foreign_key_filter)
         else:
