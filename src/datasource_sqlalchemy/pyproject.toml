@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "forestadmin-datasource-toolkit"
+name = "forestadmin-datasource-sqlalchemy"
 version = "0.0.1a1"
 description = ""
 authors = ["Valentin Monté <valentinm@forestadmin.com>"]
@@ -8,11 +8,6 @@ packages = [{include = "forestadmin"}]
 
 [tool.poetry.dependencies]
 python = ">=3.7"
-pandas = [
-    {version = "==1.1.5", python = "<3.7.1"},
-    {version = "==1.3.5", python = ">=3.7.1,<3.8"},
-    {version = "~=1.4.2", python = ">=3.8"}
-]
 typing-extensions = "~=4.2"
 tzdata = "~=2022.6"
 "backports.zoneinfo" = {version = "~=0.2.1", python = "<3.9", extras=["tzdata"]}
