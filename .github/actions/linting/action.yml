@@ -13,29 +13,24 @@ runs:
     - name: Cancel previous running workflows
       uses: fkirc/skip-duplicate-actions@master
     - uses: actions/checkout@v3
-      with:
-        fetch-depth: 0
+    - name: Install poetry
+      shell: bash
+      working-directory: ${{ inputs.current_package }}
+      run: pipx install poetry
     - name: Set up Python ${{ inputs.python-version }}
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4
       with:
         python-version: ${{ inputs.python-version }}
-    - name: Install global dependencies
-      shell: bash
-      run: |
-        python -m pip install --upgrade pip
-        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-        pip install flake8
+        cache: 'poetry'
     - name: Install package dependencies
       shell: bash
       working-directory: ${{ inputs.current_package }}
-      run: |
-        python -m pip install --upgrade pip
-        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+      run: poetry install --only linter
     - name: Lint with flake8
       shell: bash
       working-directory: ${{ inputs.current_package }}
       run: |
         # stop the build if there are Python syntax errors or undefined names
-        flake8 . --config=../../.flake8 --count --show-source --statistics
+        poetry run flake8 . --config=../../.flake8 --count --show-source --statistics
         # exit-zero treats all errors as warnings.
-        flake8 . --config=../../.flake8 --count --exit-zero --statistics
+        poetry run flake8 . --config=../../.flake8 --count --exit-zero --statistics
