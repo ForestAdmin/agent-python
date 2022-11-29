@@ -89,7 +89,11 @@ jobs:
     name: Release
     needs: [coverage]
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/master'
+    if: |
+      github.event_name == 'push' 
+      && (
+        github.ref == 'refs/heads/master'
+      )
     strategy:
       matrix:
         python-version: [3.7]
