@@ -1,10 +1,17 @@
 [tool.poetry]
 name = "forestadmin-datasource-toolkit"
-version = "0.0.1a1"
+version = "0.0.1"
 description = ""
 authors = ["Valentin Monté <valentinm@forestadmin.com>"]
 readme = "README.md"
 packages = [{include = "forestadmin"}]
+
+[tool.semantic_release]
+version_toml = "pyproject.toml:tool.poetry.version"
+prerelease_tag = "alpha"
+upload_to_pypi = false
+upload_to_release = false
+build_command = "pip install poetry && poetry build"
 
 [tool.poetry.dependencies]
 python = ">=3.7"
@@ -51,5 +58,5 @@ optional = true
 isort = "~=3.6"
 
 [build-system]
-requires = ["poetry-core"]
+requires = ["poetry-core"] 
 build-backend = "poetry.core.masonry.api"

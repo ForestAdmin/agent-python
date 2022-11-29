@@ -2,7 +2,7 @@ name: datasource-sqlalchemy workflow
 on:
   push:
     branches:
-      - main
+      - master
     paths:
       - 'src/datasource_sqlalchemy/**'
   pull_request:
