@@ -2,7 +2,7 @@ name: agent-toolkit workflow
 on:
   push:
     branches:
-      - main
+      - master
     paths:
       - 'src/agent_toolkit/**'
   pull_request:
