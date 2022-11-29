@@ -85,3 +85,19 @@ jobs:
           python-version: ${{ matrix.python-version }}
           current_package: ${{ inputs.current-package }}
           CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
+  release:
+    name: Release
+    needs: [coverage]
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/master'
+    strategy:
+      matrix:
+        python-version: [3.7]
+    steps:
+      - uses: actions/checkout@v3
+      - id: release
+        uses: ./.github/actions/release
+        with:
+          python-version: ${{ matrix.python-version }}
+          current_package: ${{ inputs.current-package }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
