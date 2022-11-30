@@ -17,6 +17,7 @@ runs:
       with:
         fetch-depth: 0
     - name: Semantic Release
+      shell: bash
       run: |
         pip install python-semantic-release
         git config user.name github-actions
