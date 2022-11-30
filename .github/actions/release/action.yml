@@ -16,7 +16,15 @@ runs:
     - uses: actions/checkout@v3
       with:
         fetch-depth: 0
-
+    - name: Install poetry
+      shell: bash
+      working-directory: ${{ inputs.current_package }}
+      run: pipx install poetry
+    - name: Set up Python ${{ inputs.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ inputs.python-version }}
+        cache: 'poetry'
     - name: Python Semantic Release
       uses: relekang/python-semantic-release@master
       with:

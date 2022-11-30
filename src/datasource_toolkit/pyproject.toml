@@ -8,7 +8,8 @@ packages = [{include = "forestadmin"}]
 
 [tool.semantic_release]
 version_toml = "pyproject.toml:tool.poetry.version"
-prerelease_tag= "alpha"
+prerelease_tag = "alpha"
+build_command = "poetry build"
 
 [tool.poetry.dependencies]
 python = ">=3.7"
