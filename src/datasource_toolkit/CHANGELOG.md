@@ -2,6 +2,9 @@
 
 <!--next-version-placeholder-->
 
+## v0.1.0-alpha.6 (2022-11-30)
+
+
 ## v0.1.0-alpha.5 (2022-11-30)
 
 
