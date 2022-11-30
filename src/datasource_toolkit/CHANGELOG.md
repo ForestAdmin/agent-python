@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v0.1.0-alpha.2 (2022-11-30)
+### Feature
+* Add the release action ([`ba3a4c5`](https://github.com/ForestAdmin/agent-python/commit/ba3a4c5c37131e45e192b5481af9409532604ebb))
+
 ## v0.1.0-alpha.1 (2022-11-30)
 ### Feature
 * Add the release action ([`fa023aa`](https://github.com/ForestAdmin/agent-python/commit/fa023aab3466cb56d2cf8f93d68ce8475fb2cf66))
