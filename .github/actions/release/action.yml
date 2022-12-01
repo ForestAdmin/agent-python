@@ -39,6 +39,13 @@ runs:
         file: "${{ inputs.current_package }}pyproject.toml"
         key: "tool.poetry.group.test.dependencies.forestadmin-agent-toolkit"
         value: ${{ steps.new_version.outputs.VERSION }}
+    - name: Commit requirements
+        uses: EndBug/add-and-commit@v9
+        with:
+          author_name: github-actions
+          author_email: github-actions@github.com
+          message: 'Update the dependencies'
+          add: 'src/*'
     - name: Semantic Release
       shell: bash
       working-directory: ./src/datasource_toolkit/
