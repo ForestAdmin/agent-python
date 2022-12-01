@@ -1,0 +1,37 @@
+name: "Dependencies"
+description: ""
+inputs:
+  current_package:
+    required: true
+    description: "The package to release"
+runs:
+  using: "composite"
+  steps:
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+    - name: Read the new version
+      id: new_version
+      shell: bash
+      working-directory: ./src/datasource_toolkit/
+      run: |
+        pip install python-semantic-release
+        v=$(semantic-release print-version --prerelease -D version_toml="pyproject.toml:tool.poetry.version"); echo "VERSION=$v" >> $GITHUB_OUTPUT
+    - name: Update datasource_toolkit in the requirements
+      if: inputs.current_package != './src/datasource_toolkit/'
+      uses: colathro/toml-editor@1.1.1
+      with:
+        file: "${{ inputs.current_package }}pyproject.toml"
+        key: "tool.poetry.dependencies.forestadmin-datasource-toolkit"
+        value: "^${{ steps.new_version.outputs.VERSION }}"
+    - name: Update agent_toolkit in the requirements
+      if: inputs.current_package == './src/flask_agent/'
+      uses: colathro/toml-editor@1.1.1
+      with:
+        file: "${{ inputs.current_package }}pyproject.toml"
+        key: "tool.poetry.dependencies.forestadmin-agent-toolkit"
+        value: "^${{ steps.new_version.outputs.VERSION }}"
+    - name: cat
+      shell: bash
+      run: |
+        cat ${{ inputs.current_package }}pyproject.toml

@@ -96,6 +96,25 @@ jobs:
           python-version: ${{ matrix.python-version }}
           current_package: ./src/datasource_toolkit
           CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
+  update_dependencies:
+    name: Update local dependencies
+    runs-on: ubuntu-latest
+    #if: github.event_name == 'push' && github.ref == 'refs/heads/beta'
+    strategy:
+      matrix:
+        current_package: ${{ fromJson(inputs.packages) }}
+    steps:
+      - uses: actions/checkout@v3
+      - id: dependcies
+        uses: ./.github/actions/dependencies
+        with:
+          current_package: ${{ matrix.current_package }}
+      #- uses: EndBug/add-and-commit@v9
+      #  with:
+      #    author_name: github-actions
+      #    author_email: github-actions@github.com
+      #    message: 'Update the dependencies'
+      #    add: 'src/*'
   semantic_release:
     name: Semantic release
     needs: [coverage]
