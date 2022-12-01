@@ -25,5 +25,5 @@ runs:
         pip install python-semantic-release
         git config user.name github-actions
         git config user.email github-actions@github.com
-        git pull
+        git rebase origin/beta
         semantic-release publish --prerelease -D changelog_file="../../CHANGELOG.md" -D version_toml=${{ steps.build_versions.outputs.VERSIONS }}
