@@ -1,4 +1,4 @@
-name: datasource-tookit workflow
+name: ci workflow
 on:
   push:
     branches:

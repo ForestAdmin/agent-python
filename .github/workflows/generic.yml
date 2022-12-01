@@ -100,6 +100,7 @@ jobs:
     name: Semantic release
     needs: [coverage]
     runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/beta'
     strategy:
       matrix:
         python-version: ['3.10']
@@ -111,15 +112,18 @@ jobs:
           packages: ${{ inputs.packages }}
   pypi:
     name: Push to pypi
+    if: github.event_name == 'push' && github.ref == 'refs/heads/beta'
     needs: [semantic_release]
     runs-on: ubuntu-latest
     strategy:
+      max-parallel: 1
       matrix:
         python-version: ['3.10']
         current_package: ${{ fromJson(inputs.packages) }}
     steps:
       - uses: actions/checkout@v3
-      - id: test
-        shell: bash
-        run: |
-          echo push to ${{ matrix.current_package}}
+      - id: pypi
+        uses: ./.github/actions/pypi  
+        with:
+          current_package: ${{ matrix.current_package }}
+          python-version: ${{ matrix.python-version }}
