@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "forestadmin-agent-flask"
-version = "0.0.1a1"
+version = "0.0.0"
 description = ""
 authors = ["Valentin Monté <valentinm@forestadmin.com>"]
 readme = "README.md"

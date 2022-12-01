@@ -1,10 +1,18 @@
 [tool.poetry]
 name = "forestadmin-datasource-sqlalchemy"
-version = "0.0.1a1"
+version = "0.0.0"
 description = ""
 authors = ["Valentin Monté <valentinm@forestadmin.com>"]
 readme = "README.md"
 packages = [{include = "forestadmin"}]
+
+[tool.semantic_release]
+version_toml = "pyproject.toml:tool.poetry.version"
+prerelease_tag = "beta"
+branch = "beta"
+upload_to_pypi = false
+upload_to_release = false
+build_command = "pip install poetry && poetry build"
 
 [tool.poetry.dependencies]
 python = ">=3.7"

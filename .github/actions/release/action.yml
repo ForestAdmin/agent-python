@@ -1,10 +1,7 @@
 name: "Releasing"
 description: ""
 inputs:
-  python-version:
-    required: true
-    description: "The python-version used to define the python uses"
-  current_package:
+  packages:
     required: true
     description: "The package to release"
   GITHUB_TOKEN:
@@ -16,11 +13,37 @@ runs:
     - uses: actions/checkout@v3
       with:
         fetch-depth: 0
+    - name: build versions
+      id: build_versions
+      shell: bash
+      run: |
+        echo $(newArray=( $(echo ${{ inputs.packages }} | sed -e 's/\[//g' -e 's/\]//g' -e 's/\,/ /g' -e 's/"//g') ); res=""; for value in "${newArray[@]}"; do res+="../.${value}pyproject.toml:tool.poetry.version,"; done; res=${res: : -1}; echo "VERSIONS=$res") >> $GITHUB_OUTPUT
+    - name: Read the new version
+      id: new_version
+      shell: bash
+      working-directory: ./src/datasource_toolkit/
+      run: |
+        pip install python-semantic-release
+        v=$(semantic-release print-version --prerelease -D version_toml="pyproject.toml:tool.poetry.version"); echo "VERSION=$v" >> $GITHUB_OUTPUT
+    - name: Update datasource_toolkit in the requirements
+      if: inputs.current_package != './src/datasource_toolkit/'
+      uses: ciiiii/toml-editor@1.0.0
+      with:
+        file: "${{ inputs.current_package }}pyproject.toml"
+        key: "tool.poetry.group.test.dependencies.forestadmin-datasource-toolkit"
+        value: ${{ steps.new_version.outputs.VERSION }}
+    - name: Update agent_toolkit in the requirements
+      if: inputs.current_package == './src/flask_agent/'
+      uses: ciiiii/toml-editor@1.0.0
+      with:
+        file: "${{ inputs.current_package }}pyproject.toml"
+        key: "tool.poetry.group.test.dependencies.forestadmin-agent-toolkit"
+        value: ${{ steps.new_version.outputs.VERSION }}
     - name: Semantic Release
       shell: bash
-      working-directory: ${{ inputs.current_package }}
+      working-directory: ./src/datasource_toolkit/
       run: |
         pip install python-semantic-release
         git config user.name github-actions
         git config user.email github-actions@github.com
-        semantic-release publish --prerelease
+        semantic-release publish --prerelease -D changelog_file="../../CHANGELOG.md" -D version_toml=${{ steps.build_versions.outputs.VERSIONS }}

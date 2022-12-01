@@ -1,13 +1,13 @@
-name: datasource-tookit workflow
+name: ci workflow
 on:
   push:
     branches:
-      - master
+      - beta
   pull_request:
 jobs:
   GenericPackage:
     uses: ./.github/workflows/generic.yml
     with:
-      current-package: './src/datasource_toolkit/'
+      packages: '["./src/datasource_toolkit/", "./src/datasource_sqlalchemy/", "./src/agent_toolkit/", "./src/flask_agent/"]'
     secrets:
       CC_TEST_REPORTER_ID: 'fake'

@@ -3,59 +3,68 @@ name: Reusable package workflow
 on:
   workflow_call:
     inputs:
-      current-package:
+      packages:
         required: true
         type: string
     secrets:
       CC_TEST_REPORTER_ID:
         required: true
 jobs:
+  changes:
+    name: changes
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - id: changes
+        uses: ./.github/actions/changes
   lint:
     name: Linting
+    needs: [ changes ]
     runs-on: ubuntu-latest
     strategy:
       matrix:
         python-version: ['3.10']
+        current_package: ${{ fromJson(inputs.packages) }}
     steps:
       - uses: actions/checkout@v3
-      
-      -  id: lint
-         uses: ./.github/actions/linting
-         with:
+      - id: lint
+        if: needs.changes.steps.changes.outputs.${{ matrix.current_package }} == 'true'
+        uses: ./.github/actions/linting
+        with:
           python-version: ${{ matrix.python-version }}
-          current_package: ${{ inputs.current-package }}
+          current_package: ${{ matrix.current_package }}
   isort:
     name: Isorting
+    needs: [ changes ]
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ${{ inputs.current-package }}
     strategy:
       matrix:
         python-version: ['3.10']
+        current_package: ${{ fromJson(inputs.packages) }}
     steps:
       - uses: actions/checkout@v3
-      -  id: isort
-         uses: ./.github/actions/isort
-         with:
+      - id: isort
+        if: needs.changes.outputs.${{ matrix.current_package }} == 'true'
+        uses: ./.github/actions/isort
+        with:
           python-version: ${{ matrix.python-version }}
-          current_package: ${{ inputs.current-package }}
+          current_package: ${{ matrix.current_package }}
   black:
     name: Black
+    needs: [ changes ]
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ${{ inputs.current-package }}
     strategy:
       matrix:
         python-version: ['3.10']
+        current_package: ${{ fromJson(inputs.packages) }}
     steps:
       - uses: actions/checkout@v3
-      -  id: isort
-         uses: ./.github/actions/black
-         with:
+      - id: isort
+        if: needs.changes.outputs.${{ matrix.current_package }} == 'true'
+        uses: ./.github/actions/black
+        with:
           python-version: ${{ matrix.python-version }}
-          current_package: ${{ inputs.current-package }}
+          current_package: ${{ matrix.current_package }}
   test:
     name: Test
     needs: [isort, lint, black]
@@ -63,13 +72,15 @@ jobs:
     strategy:
       matrix:
         python-version: [3.7, 3.8, 3.9, '3.10']
+        current_package: ${{ fromJson(inputs.packages) }}
     steps:
       - uses: actions/checkout@v3
-      -  id: tests
-         uses: ./.github/actions/tests
-         with:
+      - id: tests
+        if: steps.changes.outputs.${{ matrix.current_package }} == 'true'
+        uses: ./.github/actions/tests
+        with:
           python-version: ${{ matrix.python-version }}
-          current_package: ${{ inputs.current-package }}
+          current_package: ${{ matrix.current_package }}
   coverage:
     name: Coverage
     needs: [test]
@@ -83,21 +94,36 @@ jobs:
          uses: ./.github/actions/coverage
          with:
           python-version: ${{ matrix.python-version }}
-          current_package: ${{ inputs.current-package }}
+          current_package: ./src/datasource_toolkit
           CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
-  release:
-    name: Release
+  semantic_release:
+    name: Semantic release
     needs: [coverage]
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' && github.ref == 'refs/heads/master' && !contains(github.event.head_commit.message, 'chore(release):')
+    if: github.event_name == 'push' && github.ref == 'refs/heads/beta'
     strategy:
       matrix:
-        python-version: [3.7]
+        python-version: ['3.10']
     steps:
       - uses: actions/checkout@v3
       - id: release
-        uses: ./.github/actions/release
+        uses: ./.github/actions/release  
         with:
+          packages: ${{ inputs.packages }}
+  pypi:
+    name: Push to pypi
+    if: github.event_name == 'push' && github.ref == 'refs/heads/beta'
+    needs: [semantic_release]
+    runs-on: ubuntu-latest
+    strategy:
+      max-parallel: 1
+      matrix:
+        python-version: ['3.10']
+        current_package: ${{ fromJson(inputs.packages) }}
+    steps:
+      - uses: actions/checkout@v3
+      - id: pypi
+        uses: ./.github/actions/pypi  
+        with:
+          current_package: ${{ matrix.current_package }}
           python-version: ${{ matrix.python-version }}
-          current_package: ${{ inputs.current-package }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
