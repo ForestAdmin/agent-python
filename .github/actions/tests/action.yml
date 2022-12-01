@@ -28,8 +28,14 @@ runs:
       shell: bash
       working-directory: ${{ inputs.current_package }}
       run: poetry run coverage run -m pytest
+    - name: Extract source name
+      uses: jungwinter/split@v2
+      id: split
+      with:
+        msg: ${{ inputs.current_package }}
+        separator: '/'
     - name: Archive code coverage results
       uses: actions/upload-artifact@v2
       with:
-        name: code-coverage-report.${{ inputs.python-version }}
-        path: ${{ inputs.current_package }}.coverage
+        name: code-coverage-report.${{ steps.split.outputs._2 }}.${{ inputs.python-version }}
+        path: ${{ inputs.current_package }}
