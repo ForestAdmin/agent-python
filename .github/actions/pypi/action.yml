@@ -7,6 +7,9 @@ inputs:
   current_package:
     required: true
     description: "The package to push"
+  pypi_token:
+    required: true
+
 runs:
   using: "composite"
   steps:
@@ -26,7 +29,9 @@ runs:
       shell: bash
       working-directory: ${{ inputs.current_package }}
       run: poetry build
-    - name: ls
+    - name: publish
       working-directory: ${{ inputs.current_package }}
       shell: bash
-      run: ls
+      run: |
+        poetry config ${{ inputs.pypi_token }}
+        poetry publish
