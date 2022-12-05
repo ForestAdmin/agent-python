@@ -1,51 +1,59 @@
+[build-system]
+requires = [ "poetry-core",]
+build-backend = "poetry.core.masonry.api"
+
 [tool.poetry]
 name = "forestadmin-agent-flask"
 version = "0.0.0"
 description = ""
-authors = ["Valentin Monté <valentinm@forestadmin.com>"]
+authors = [ "Valentin Monté <valentinm@forestadmin.com>",]
 readme = "README.md"
-packages = [{include = "forestadmin"}]
+[[tool.poetry.packages]]
+include = "forestadmin"
 
 [tool.poetry.dependencies]
 python = ">=3.7"
 typing-extensions = "~=4.2"
 tzdata = "~=2022.6"
-"backports.zoneinfo" = {version = "~=0.2.1", python = "<3.9", extras=["tzdata"]}
 flask = "~=2.2.0"
+
+[tool.poetry.dependencies."backports.zoneinfo"]
+version = "~=0.2.1"
+python = "<3.9"
+extras = [ "tzdata",]
 
 [tool.poetry.group.test]
 optional = true
 
-[tool.poetry.group.test.dependencies]
-mock = [
-    {version = "4.0", python = "3.7"}
-]
-pytest = "~=7.1"
-pytest-asyncio = "~=0.18"
-coverage = "~=6.5"
-freezegun = "~=1.2.0"
-
 [tool.poetry.group.linter]
 optional = true
-
-[tool.poetry.group.linter.dependencies]
-flake8 = [
-    {version = "~=5.0", python = "<3.8.1"},
-    {version = "~=6.0", python = ">=3.8.1"}
-]
 
 [tool.poetry.group.formatter]
 optional = true
 
-[tool.poetry.group.formatter.dependencies]
-black = "~=22.10"
-
 [tool.poetry.group.sorter]
 optional = true
 
+[tool.poetry.group.test.dependencies]
+pytest = "~=7.1"
+pytest-asyncio = "~=0.18"
+coverage = "~=6.5"
+freezegun = "~=1.2.0"
+[[tool.poetry.group.test.dependencies.mock]]
+version = "4.0"
+python = "3.7"
+
+[tool.poetry.group.linter.dependencies]
+[[tool.poetry.group.linter.dependencies.flake8]]
+version = "~=5.0"
+python = "<3.8.1"
+
+[[tool.poetry.group.linter.dependencies.flake8]]
+version = "~=6.0"
+python = ">=3.8.1"
+
+[tool.poetry.group.formatter.dependencies]
+black = "~=22.10"
+
 [tool.poetry.group.sorter.dependencies]
 isort = "~=3.6"
-
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
