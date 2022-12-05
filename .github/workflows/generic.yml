@@ -96,6 +96,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
           current_package: ./src/datasource_toolkit
           CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
+
   semantic_release:
     name: Semantic release
     needs: [coverage]
@@ -106,10 +107,16 @@ jobs:
         python-version: ['3.10']
     steps:
       - uses: actions/checkout@v3
+      - id: dependencies
+        shell: bash
+        run: |
+          pip install toml
+          pip install python-semantic-release
+          python .github/update_nested_dependencies.py
       - id: release
         uses: ./.github/actions/release  
         with:
-          packages: ${{ inputs.packages }}
+          packages: ${{ inputs.packages }}  
   pypi:
     name: Push to pypi
     if: github.event_name == 'push' && github.ref == 'refs/heads/beta'
