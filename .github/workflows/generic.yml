@@ -96,6 +96,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
           current_package: ./src/datasource_toolkit
           CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
+
   semantic_release:
     name: Semantic release
     needs: [coverage]
@@ -110,6 +111,30 @@ jobs:
         uses: ./.github/actions/release  
         with:
           packages: ${{ inputs.packages }}
+
+  update_dependencies:
+    name: Update local dependencies
+    needs: [semantic_release]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/beta'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - id: dependencies
+        shell: bash
+        run: |
+          pip install toml
+          pip install python-semantic-release
+          git pull
+          python .github/update_nested_dependencies.py
+      - id: commit
+        uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          skip_fetch: false
+          skip_pull: false
+          commit_message: Update linked dependencies
+          commit_user_name: github-actions
+          commit_user_email: github-actions@github.com
+  
   pypi:
     name: Push to pypi
     if: github.event_name == 'push' && github.ref == 'refs/heads/beta'
