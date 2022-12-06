@@ -23,7 +23,7 @@ build_command = "pip install poetry && poetry build"
 python = ">=3.7"
 typing-extensions = "~=4.2"
 tzdata = "~=2022.6"
-forestadmin-datasource-toolkit = "^0.1.0-beta.1"
+
 
 [tool.poetry.dependencies."backports.zoneinfo"]
 version = "~=0.2.1"
