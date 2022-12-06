@@ -24,6 +24,11 @@ version = "~=0.2.1"
 python = "<3.9"
 extras = [ "tzdata",]
 
+[tool.poetry.dependencies."backports.zoneinfo"]
+version = "~=0.2.1"
+python = "<3.9"
+extras = [ "tzdata",]
+
 [tool.poetry.group.test]
 optional = true
 
