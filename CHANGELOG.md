@@ -2,6 +2,9 @@
 
 <!--next-version-placeholder-->
 
+## v0.1.0-beta.3 (2022-12-06)
+
+
 ## v0.1.0-beta.2 (2022-12-06)
 ### Fix
 * Remove circular import caused by a bad typing ([#48](https://github.com/ForestAdmin/agent-python/issues/48)) ([`a91f9c7`](https://github.com/ForestAdmin/agent-python/commit/a91f9c76afe815fc66f999043bc523a6f9bfb4d0))
