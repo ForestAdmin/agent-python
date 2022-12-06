@@ -16,13 +16,13 @@ python = ">=3.7"
 typing-extensions = "~=4.2"
 tzdata = "~=2022.6"
 flask = "~=2.2.0"
-
+forestadmin-datasource-toolkit = "^0.1.0-beta.2"
+forestadmin-agent-toolkit = "^0.1.0-beta.2"
 
 [tool.poetry.dependencies."backports.zoneinfo"]
 version = "~=0.2.1"
 python = "<3.9"
 extras = [ "tzdata",]
-
 
 [tool.poetry.group.test]
 optional = true
