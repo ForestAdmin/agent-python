@@ -125,6 +125,7 @@ jobs:
         shell: bash
         run: |
           pip install toml
+          pip install poetry
           pip install python-semantic-release
           git pull
           python .github/update_nested_dependencies.py

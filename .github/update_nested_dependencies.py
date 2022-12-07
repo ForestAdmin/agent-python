@@ -1,4 +1,5 @@
 import enum
+import os
 from typing import Dict, List
 
 import toml
@@ -40,3 +41,5 @@ if __name__ == "__main__":
         with open(pyproject, "w") as f:
             f.truncate(0)
             toml.dump(data, f)
+        directory = os.path.split(pyproject)[0]
+        os.system(f"cd {directory} && poetry lock --no-update && cd -")
