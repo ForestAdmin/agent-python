@@ -1,3 +1,4 @@
+import argparse
 import enum
 import os
 from typing import Dict, List
@@ -27,19 +28,25 @@ PYPROJECTS: Dict[str, List[Dependencies]] = {
     ],
 }
 
+parser = argparse.ArgumentParser()
+parser.add_argument("--only_update_lock", help="update only the poetry.lock", action="store_true")
+
 
 if __name__ == "__main__":
+    args = parser.parse_args()
     for pyproject, dependencies in PYPROJECTS.items():
         data = {}
-        with open(pyproject, "r") as f:
-            data = toml.load(f)
-            version = data["tool"]["poetry"]["version"]  # version is updated by a github action
-            if Dependencies.DATASOURCE_TOOLKIT in dependencies:
-                data["tool"]["poetry"]["dependencies"]["forestadmin-datasource-toolkit"] = f"^{version}"
-            if Dependencies.AGENT_TOOLKIT in dependencies:
-                data["tool"]["poetry"]["dependencies"]["forestadmin-agent-toolkit"] = f"^{version}"
-        with open(pyproject, "w") as f:
-            f.truncate(0)
-            toml.dump(data, f)
-        directory = os.path.split(pyproject)[0]
-        os.system(f"cd {directory} && poetry lock --no-update && cd -")
+        if args.only_update_lock:
+            directory = os.path.split(pyproject)[0]
+            os.system(f"cd {directory} && poetry lock --no-update && cd -")
+        else:
+            with open(pyproject, "r") as f:
+                data = toml.load(f)
+                version = data["tool"]["poetry"]["version"]  # version is updated by a github action
+                if Dependencies.DATASOURCE_TOOLKIT in dependencies:
+                    data["tool"]["poetry"]["dependencies"]["forestadmin-datasource-toolkit"] = f"^{version}"
+                if Dependencies.AGENT_TOOLKIT in dependencies:
+                    data["tool"]["poetry"]["dependencies"]["forestadmin-agent-toolkit"] = f"^{version}"
+            with open(pyproject, "w") as f:
+                f.truncate(0)
+                toml.dump(data, f)
