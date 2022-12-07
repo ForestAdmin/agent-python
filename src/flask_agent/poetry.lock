@@ -32,6 +32,20 @@ python-versions = ">=3.7"
 frozenlist = ">=1.1.0"
 
 [[package]]
+name = "asgiref"
+version = "3.5.2"
+description = "ASGI specs, helper code, and adapters"
+category = "main"
+optional = false
+python-versions = ">=3.7"
+
+[package.dependencies]
+typing-extensions = {version = "*", markers = "python_version < \"3.8\""}
+
+[package.extras]
+tests = ["mypy (>=0.800)", "pytest", "pytest-asyncio"]
+
+[[package]]
 name = "async-timeout"
 version = "4.0.2"
 description = "Timeout context manager for asyncio programs"
@@ -274,6 +288,7 @@ optional = false
 python-versions = ">=3.7"
 
 [package.dependencies]
+asgiref = {version = ">=3.2", optional = true, markers = "extra == \"async\""}
 click = ">=8.0"
 importlib-metadata = {version = ">=3.6.0", markers = "python_version < \"3.10\""}
 itsdangerous = ">=2.0"
@@ -286,7 +301,7 @@ dotenv = ["python-dotenv"]
 
 [[package]]
 name = "forestadmin-agent-toolkit"
-version = "0.1.0b11"
+version = "0.1.0b12"
 description = ""
 category = "main"
 optional = false
@@ -296,7 +311,7 @@ python-versions = ">=3.7,<4.0"
 aiohttp = ">=3.8,<4.0"
 "backports.zoneinfo" = {version = ">=0.2.1,<0.3.0", extras = ["tzdata"], markers = "python_version < \"3.9\""}
 cachetools = ">=5.2,<6.0"
-forestadmin-datasource-toolkit = ">=0.1.0-beta.11,<0.2.0"
+forestadmin-datasource-toolkit = ">=0.1.0-beta.12,<0.2.0"
 marshmallow-jsonapi = ">=0.24.0,<1.0"
 oic = ">=1.4,<2.0"
 pandas = [
@@ -310,7 +325,7 @@ tzdata = ">=2022.6,<2022.7"
 
 [[package]]
 name = "forestadmin-datasource-toolkit"
-version = "0.1.0b11"
+version = "0.1.0b12"
 description = ""
 category = "main"
 optional = false
@@ -974,7 +989,7 @@ testing = ["flake8 (<5)", "func-timeout", "jaraco.functools", "jaraco.itertools"
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.7,<4.0"
-content-hash = "6e2e1b1ad27e16b6bc4ff88882a1d291dd0df289d5b2d75dcd3a384480810b01"
+content-hash = "8e86f865906091f7d16e64d8a1da7bd43cbf1cb818f3028142089ad3a3e2da86"
 
 [metadata.files]
 aiohttp = [
@@ -1069,6 +1084,10 @@ aiohttp = [
 aiosignal = [
     {file = "aiosignal-1.3.1-py3-none-any.whl", hash = "sha256:f8376fb07dd1e86a584e4fcdec80b36b7f81aac666ebc724e2c090300dd83b17"},
     {file = "aiosignal-1.3.1.tar.gz", hash = "sha256:54cd96e15e1649b75d6c87526a6ff0b6c1b0dd3459f43d9ca11d48c339b68cfc"},
+]
+asgiref = [
+    {file = "asgiref-3.5.2-py3-none-any.whl", hash = "sha256:1d2880b792ae8757289136f1db2b7b99100ce959b2aa57fd69dab783d05afac4"},
+    {file = "asgiref-3.5.2.tar.gz", hash = "sha256:4a29362a6acebe09bf1d6640db38c1dc3d9217c68e6f9f6204d72667fc19a424"},
 ]
 async-timeout = [
     {file = "async-timeout-4.0.2.tar.gz", hash = "sha256:2163e1640ddb52b7a8c80d0a67a08587e5d245cc9c553a74a847056bc2976b15"},
@@ -1315,12 +1334,12 @@ flask = [
     {file = "Flask-2.2.2.tar.gz", hash = "sha256:642c450d19c4ad482f96729bd2a8f6d32554aa1e231f4f6b4e7e5264b16cca2b"},
 ]
 forestadmin-agent-toolkit = [
-    {file = "forestadmin_agent_toolkit-0.1.0b11-py3-none-any.whl", hash = "sha256:cf4859504e9ed74724c676ff5e49b38dfc61247f2e3bb2c8692fec6c66bf3827"},
-    {file = "forestadmin_agent_toolkit-0.1.0b11.tar.gz", hash = "sha256:05477f5bd6d6c6ace07982e92275f4ef4bfe27dfa97fc38570247fa1d4e6014b"},
+    {file = "forestadmin_agent_toolkit-0.1.0b12-py3-none-any.whl", hash = "sha256:32364e23edfdbfcf390be97a12c2c2b7d72964ce6045bea95431566fe2b6428d"},
+    {file = "forestadmin_agent_toolkit-0.1.0b12.tar.gz", hash = "sha256:9cdeec5a7ffd368809360d643585b17f62d4917bc8b029254c74a640a041bfc2"},
 ]
 forestadmin-datasource-toolkit = [
-    {file = "forestadmin_datasource_toolkit-0.1.0b11-py3-none-any.whl", hash = "sha256:25c51e2aaec0ddcd58ea8744214c879846dceb92f3be532db5d2ef9b68be0c97"},
-    {file = "forestadmin_datasource_toolkit-0.1.0b11.tar.gz", hash = "sha256:417155297d90cba304abfa0783304bf66a18b9b1aec2a17747d01a926d59442e"},
+    {file = "forestadmin_datasource_toolkit-0.1.0b12-py3-none-any.whl", hash = "sha256:2bf1dc7817912725e94f1afbf2d280944bbbc58316bf6517d6482f379df0e506"},
+    {file = "forestadmin_datasource_toolkit-0.1.0b12.tar.gz", hash = "sha256:f14a7cd0159f443300282cd9fffb2f403d4bdcacb2fc50732071c2dfd5d92dcb"},
 ]
 freezegun = [
     {file = "freezegun-1.2.2-py3-none-any.whl", hash = "sha256:ea1b963b993cb9ea195adbd893a48d573fda951b0da64f60883d7e988b606c9f"},
