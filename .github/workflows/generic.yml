@@ -125,8 +125,6 @@ jobs:
         shell: bash
         run: |
           pip install toml
-          pip install poetry
-          pip install python-semantic-release
           git pull
           python .github/update_nested_dependencies.py
       - id: commit
@@ -156,3 +154,25 @@ jobs:
           current_package: ${{ matrix.current_package }}
           python-version: ${{ matrix.python-version }}
           pypi_token: ${{ secrets.PYPI_TOKEN }}
+  update_locks:
+    name: Update poetry locks
+    needs: [pypi]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/beta'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - id: dependencies
+        shell: bash
+        run: |
+          pip install toml
+          pip install poetry
+          git pull
+          python .github/update_nested_dependencies.py --only_update_lock
+      - id: commit
+        uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          skip_fetch: false
+          skip_pull: false
+          commit_message: Update linked dependencies
+          commit_user_name: github-actions
+          commit_user_email: github-actions@github.com
