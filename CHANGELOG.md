@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v0.1.0-beta.12 (2022-12-07)
+### Fix
+* Extra async was missing for the flask dependency ([#55](https://github.com/ForestAdmin/agent-python/issues/55)) ([`f4a9a01`](https://github.com/ForestAdmin/agent-python/commit/f4a9a017d527ae661c6743e9c5e86bcec936a4c4))
+
 ## v0.1.0-beta.11 (2022-12-07)
 ### Fix
 * Clean ci workflow ([`24e79eb`](https://github.com/ForestAdmin/agent-python/commit/24e79ebef226780973eeb8bb6be7625400e87bd1))
