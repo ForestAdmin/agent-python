@@ -120,7 +120,7 @@ pyflakes = ">=3.0.0,<3.1.0"
 
 [[package]]
 name = "forestadmin-datasource-toolkit"
-version = "0.1.0b8"
+version = "0.1.0b9"
 description = ""
 category = "main"
 optional = false
@@ -521,7 +521,7 @@ testing = ["flake8 (<5)", "func-timeout", "jaraco.functools", "jaraco.itertools"
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.7,<4.0"
-content-hash = "2b546251e7a30f5573cc5288d6e23f33754b242bef48b35576a4dcb386a7d935"
+content-hash = "07e7cebc9d743eb6c39081eda4dc9a5ae746a410a84b380c83fca24f16e9f7b1"
 
 [metadata.files]
 attrs = [
@@ -640,8 +640,8 @@ flake8 = [
     {file = "flake8-6.0.0.tar.gz", hash = "sha256:c61007e76655af75e6785a931f452915b371dc48f56efd765247c8fe68f2b181"},
 ]
 forestadmin-datasource-toolkit = [
-    {file = "forestadmin_datasource_toolkit-0.1.0b8-py3-none-any.whl", hash = "sha256:29b6a4bc6a3079bc5dc08c46102c80c4bcf2ba0d973a2d0014949e795a34dd32"},
-    {file = "forestadmin_datasource_toolkit-0.1.0b8.tar.gz", hash = "sha256:0aca3b4c24c321166ae35425d326cb6744325be057cb8a4c2a7cdc323dd4333a"},
+    {file = "forestadmin_datasource_toolkit-0.1.0b9-py3-none-any.whl", hash = "sha256:78068708ef55d867cb47a95d216a42cb7236b865defb258281c57b55e399b05a"},
+    {file = "forestadmin_datasource_toolkit-0.1.0b9.tar.gz", hash = "sha256:0dd0362a1dcb0c0abef05cc9d703b7b48f28fc891e177eed6bc1b4df47f1139f"},
 ]
 freezegun = [
     {file = "freezegun-1.2.2-py3-none-any.whl", hash = "sha256:ea1b963b993cb9ea195adbd893a48d573fda951b0da64f60883d7e988b606c9f"},

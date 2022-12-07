@@ -170,6 +170,7 @@ jobs:
           pip install poetry
           git pull
           cd ./src/agent_toolkit/
+          poetry search forestadmin-datasource-toolkit
           poetry lock --no-update
           cd -
           python .github/update_nested_dependencies.py --only_update_lock
