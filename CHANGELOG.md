@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v0.1.0-beta.5 (2022-12-07)
+### Fix
+* Update the poetry.locks after the push to pypi in ci ([#58](https://github.com/ForestAdmin/agent-python/issues/58)) ([`f460edf`](https://github.com/ForestAdmin/agent-python/commit/f460edf279da88abb9d9628fecf500ced2db52cb))
+
 ## v0.1.0-beta.4 (2022-12-07)
 
 
