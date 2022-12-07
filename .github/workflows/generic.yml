@@ -167,7 +167,9 @@ jobs:
           pip install toml
           pip install poetry
           git pull
-          cat ./src/agent_toolkit/pyproject.toml
+          cd ./src/agent_toolkit/
+          poetry locks --no-update
+          cd -
           python .github/update_nested_dependencies.py --only_update_lock
       - id: commit
         uses: stefanzweifel/git-auto-commit-action@v4
