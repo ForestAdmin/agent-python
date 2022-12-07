@@ -131,7 +131,6 @@ jobs:
         uses: stefanzweifel/git-auto-commit-action@v4
         with:
           skip_fetch: false
-          skip_pull: false
           commit_message: Update linked dependencies
           commit_user_name: github-actions
           commit_user_email: github-actions@github.com
@@ -178,7 +177,6 @@ jobs:
         uses: stefanzweifel/git-auto-commit-action@v4
         with:
           skip_fetch: false
-          skip_pull: false
-          commit_message: Update linked dependencies
+          commit_message: Update locks poetry
           commit_user_name: github-actions
           commit_user_email: github-actions@github.com
