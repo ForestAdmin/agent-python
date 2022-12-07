@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v0.1.0-beta.10 (2022-12-07)
+### Fix
+* Lock ci ([`2bff2ea`](https://github.com/ForestAdmin/agent-python/commit/2bff2ea1527ced45848db0b8de3e08556e7eec1f))
+
 ## v0.1.0-beta.9 (2022-12-07)
 ### Fix
 * Lock ci ([`62ed253`](https://github.com/ForestAdmin/agent-python/commit/62ed253a310cf60dfe47db65050c5765f928ae8c))
