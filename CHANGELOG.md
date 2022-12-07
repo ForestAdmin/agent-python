@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v0.1.0-beta.6 (2022-12-07)
+### Fix
+* Add some action test ([#60](https://github.com/ForestAdmin/agent-python/issues/60)) ([`64f1ef6`](https://github.com/ForestAdmin/agent-python/commit/64f1ef6c2245e2dd6657ab7e401057edfdfa237b))
+
 ## v0.1.0-beta.5 (2022-12-07)
 ### Fix
 * Update the poetry.locks after the push to pypi in ci ([#58](https://github.com/ForestAdmin/agent-python/issues/58)) ([`f460edf`](https://github.com/ForestAdmin/agent-python/commit/f460edf279da88abb9d9628fecf500ced2db52cb))
