@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v0.1.0-beta.7 (2022-12-07)
+### Fix
+* Poetry lock action ([#61](https://github.com/ForestAdmin/agent-python/issues/61)) ([`c507805`](https://github.com/ForestAdmin/agent-python/commit/c507805404ad8565ee275a49aedd9411a9af8fa3))
+
 ## v0.1.0-beta.6 (2022-12-07)
 ### Fix
 * Add some action test ([#60](https://github.com/ForestAdmin/agent-python/issues/60)) ([`64f1ef6`](https://github.com/ForestAdmin/agent-python/commit/64f1ef6c2245e2dd6657ab7e401057edfdfa237b))
