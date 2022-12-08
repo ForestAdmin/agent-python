@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v0.1.0-beta.13 (2022-12-08)
+### Fix
+* The factory to build the complete projection for a collection was broken ([#63](https://github.com/ForestAdmin/agent-python/issues/63)) ([`7444234`](https://github.com/ForestAdmin/agent-python/commit/7444234f13f9fe32a6ab784135e643181ccb6a79))
+
 ## v0.1.0-beta.12 (2022-12-07)
 ### Fix
 * Extra async was missing for the flask dependency ([#55](https://github.com/ForestAdmin/agent-python/issues/55)) ([`f4a9a01`](https://github.com/ForestAdmin/agent-python/commit/f4a9a017d527ae661c6743e9c5e86bcec936a4c4))
