@@ -301,7 +301,7 @@ dotenv = ["python-dotenv"]
 
 [[package]]
 name = "forestadmin-agent-toolkit"
-version = "0.1.0b13"
+version = "0.1.0b14"
 description = ""
 category = "main"
 optional = false
@@ -311,7 +311,7 @@ python-versions = ">=3.7,<4.0"
 aiohttp = ">=3.8,<4.0"
 "backports.zoneinfo" = {version = ">=0.2.1,<0.3.0", extras = ["tzdata"], markers = "python_version < \"3.9\""}
 cachetools = ">=5.2,<6.0"
-forestadmin-datasource-toolkit = ">=0.1.0-beta.13,<0.2.0"
+forestadmin-datasource-toolkit = ">=0.1.0-beta.14,<0.2.0"
 marshmallow-jsonapi = ">=0.24.0,<1.0"
 oic = ">=1.4,<2.0"
 pandas = [
@@ -325,7 +325,7 @@ tzdata = ">=2022.6,<2022.7"
 
 [[package]]
 name = "forestadmin-datasource-toolkit"
-version = "0.1.0b13"
+version = "0.1.0b14"
 description = ""
 category = "main"
 optional = false
@@ -989,7 +989,7 @@ testing = ["flake8 (<5)", "func-timeout", "jaraco.functools", "jaraco.itertools"
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.7,<4.0"
-content-hash = "f02434a0862f9210f30067db88876104a690e86870f378ae40c3717db72b1871"
+content-hash = "1faaaac5a0ad604bd5510a87e301d2b0526461edb519da1f996219039310371f"
 
 [metadata.files]
 aiohttp = [
@@ -1334,12 +1334,12 @@ flask = [
     {file = "Flask-2.2.2.tar.gz", hash = "sha256:642c450d19c4ad482f96729bd2a8f6d32554aa1e231f4f6b4e7e5264b16cca2b"},
 ]
 forestadmin-agent-toolkit = [
-    {file = "forestadmin_agent_toolkit-0.1.0b13-py3-none-any.whl", hash = "sha256:9de7b5c7aa40b26caeb340f1a72fa8fb728e03fb145f2c4a34384d4100689e54"},
-    {file = "forestadmin_agent_toolkit-0.1.0b13.tar.gz", hash = "sha256:188d23963618cfd170ff8a659b443fe2a6139bc2b190ea8b10a91e9edaec3fc0"},
+    {file = "forestadmin_agent_toolkit-0.1.0b14-py3-none-any.whl", hash = "sha256:337c385d878d028f8f3fdfbedbecd87879c55f2cd2fdc3c9aaf8a865b44bd8ac"},
+    {file = "forestadmin_agent_toolkit-0.1.0b14.tar.gz", hash = "sha256:4615dfbdae6000531b673de07f6d19c8fb3ce04a99c3905a63f783c014200b3b"},
 ]
 forestadmin-datasource-toolkit = [
-    {file = "forestadmin_datasource_toolkit-0.1.0b13-py3-none-any.whl", hash = "sha256:c7cbd5affa6554722d6ceda6c02fb784afb73f11fc575e3446d10efc51e990e7"},
-    {file = "forestadmin_datasource_toolkit-0.1.0b13.tar.gz", hash = "sha256:9401c6fe2a0af3bc1399e20e9aa8cfe868b0ff467ca2b449416d691e708cee9d"},
+    {file = "forestadmin_datasource_toolkit-0.1.0b14-py3-none-any.whl", hash = "sha256:8d265b9f1ea2ce337030ef85c3c9e81ffc041b41b56b2f29b3a044ba30ea37ad"},
+    {file = "forestadmin_datasource_toolkit-0.1.0b14.tar.gz", hash = "sha256:a7a8f449acd4002e87a859cdf59ca976f64eda149819c80668ba5843d7289254"},
 ]
 freezegun = [
     {file = "freezegun-1.2.2-py3-none-any.whl", hash = "sha256:ea1b963b993cb9ea195adbd893a48d573fda951b0da64f60883d7e988b606c9f"},
