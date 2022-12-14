@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v0.1.0-beta.14 (2022-12-14)
+### Fix
+* Current smart features was sometimes broken ([#64](https://github.com/ForestAdmin/agent-python/issues/64)) ([`08ab362`](https://github.com/ForestAdmin/agent-python/commit/08ab36261b32b7b3a1e0159af89d6a177c1f7fd2))
+
 ## v0.1.0-beta.13 (2022-12-08)
 ### Fix
 * The factory to build the complete projection for a collection was broken ([#63](https://github.com/ForestAdmin/agent-python/issues/63)) ([`7444234`](https://github.com/ForestAdmin/agent-python/commit/7444234f13f9fe32a6ab784135e643181ccb6a79))
