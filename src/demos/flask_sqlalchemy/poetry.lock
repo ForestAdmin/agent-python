@@ -93,21 +93,6 @@ tzdata = {version = "*", optional = true, markers = "extra == \"tzdata\""}
 tzdata = ["tzdata"]
 
 [[package]]
-name = "beaker"
-version = "1.12.0"
-description = "A Session and Caching library with WSGI Middleware"
-category = "main"
-optional = false
-python-versions = "*"
-
-[package.extras]
-crypto = ["pycryptopp (>=0.5.12)"]
-cryptography = ["cryptography"]
-pycrypto = ["pycrypto"]
-pycryptodome = ["pycryptodome"]
-testsuite = ["Mock", "coverage", "cryptography", "pycryptodome", "pylibmc", "pymongo", "pytest", "python-memcached", "redis", "sqlalchemy", "webtest"]
-
-[[package]]
 name = "cachetools"
 version = "5.2.0"
 description = "Extensible memoizing collections and decorators"
@@ -253,7 +238,7 @@ Six = "*"
 
 [[package]]
 name = "forestadmin-agent-flask"
-version = "0.1.0b14"
+version = "0.1.0b15"
 description = ""
 category = "main"
 optional = false
@@ -262,14 +247,14 @@ python-versions = ">=3.7,<4.0"
 [package.dependencies]
 "backports.zoneinfo" = {version = ">=0.2.1,<0.3.0", extras = ["tzdata"], markers = "python_version < \"3.9\""}
 flask = {version = ">=2.2.2,<3.0.0", extras = ["async"]}
-forestadmin-agent-toolkit = ">=0.1.0-beta.14,<0.2.0"
-forestadmin-datasource-toolkit = ">=0.1.0-beta.14,<0.2.0"
+forestadmin-agent-toolkit = ">=0.1.0-beta.15,<0.2.0"
+forestadmin-datasource-toolkit = ">=0.1.0-beta.15,<0.2.0"
 typing-extensions = ">=4.2,<5.0"
 tzdata = ">=2022.6,<2023.0"
 
 [[package]]
 name = "forestadmin-agent-toolkit"
-version = "0.1.0b14"
+version = "0.1.0b15"
 description = ""
 category = "main"
 optional = false
@@ -279,7 +264,7 @@ python-versions = ">=3.7,<4.0"
 aiohttp = ">=3.8,<4.0"
 "backports.zoneinfo" = {version = ">=0.2.1,<0.3.0", extras = ["tzdata"], markers = "python_version < \"3.9\""}
 cachetools = ">=5.2,<6.0"
-forestadmin-datasource-toolkit = ">=0.1.0-beta.14,<0.2.0"
+forestadmin-datasource-toolkit = ">=0.1.0-beta.15,<0.2.0"
 marshmallow-jsonapi = ">=0.24.0,<1.0"
 oic = ">=1.4,<2.0"
 pandas = [
@@ -293,7 +278,7 @@ tzdata = ">=2022.6,<2022.7"
 
 [[package]]
 name = "forestadmin-datasource-sqlalchemy"
-version = "0.1.0b14"
+version = "0.1.0b16"
 description = ""
 category = "main"
 optional = false
@@ -301,13 +286,13 @@ python-versions = ">=3.7,<4.0"
 
 [package.dependencies]
 "backports.zoneinfo" = {version = ">=0.2.1,<0.3.0", extras = ["tzdata"], markers = "python_version < \"3.9\""}
-forestadmin-datasource-toolkit = ">=0.1.0-beta.14,<0.2.0"
+forestadmin-datasource-toolkit = ">=0.1.0-beta.16,<0.2.0"
 typing-extensions = ">=4.2,<5.0"
 tzdata = ">=2022.6,<2023.0"
 
 [[package]]
 name = "forestadmin-datasource-toolkit"
-version = "0.1.0b14"
+version = "0.1.0b16"
 description = ""
 category = "main"
 optional = false
@@ -482,14 +467,13 @@ python-versions = ">=3.8"
 
 [[package]]
 name = "oic"
-version = "1.4.0"
+version = "1.5.0"
 description = "Python implementation of OAuth2 and OpenID Connect"
 category = "main"
 optional = false
-python-versions = "~=3.5"
+python-versions = "~=3.7"
 
 [package.dependencies]
-beaker = "*"
 cryptography = "*"
 defusedxml = "*"
 mako = "*"
@@ -501,6 +485,7 @@ typing-extensions = "*"
 [package.extras]
 develop = ["cherrypy (==3.2.4)", "pyOpenSSL"]
 docs = ["Sphinx", "alabaster", "sphinx-autobuild"]
+examples = ["beaker"]
 ldap-authn = ["python-ldap"]
 quality = ["bandit", "black", "eradicate", "isort", "mypy", "pylama", "readme-renderer[md]"]
 testing = ["freezegun", "pytest", "responses", "testfixtures"]
@@ -818,7 +803,7 @@ testing = ["flake8 (<5)", "func-timeout", "jaraco.functools", "jaraco.itertools"
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.7,<4.0"
-content-hash = "49a7edd6eb526811db822ff3be866d7b8efc33774d3cb9040f5cce0fa9ae62fe"
+content-hash = "4bc41b0c812b503d2438966a2a6459413542341222de1f88e4fc010ffc70aa91"
 
 [metadata.files]
 aiohttp = [
@@ -947,9 +932,6 @@ backports-zoneinfo = [
     {file = "backports.zoneinfo-0.2.1-cp38-cp38-win32.whl", hash = "sha256:1b13e654a55cd45672cb54ed12148cd33628f672548f373963b0bff67b217328"},
     {file = "backports.zoneinfo-0.2.1-cp38-cp38-win_amd64.whl", hash = "sha256:4a0f800587060bf8880f954dbef70de6c11bbe59c673c3d818921f042f9954a6"},
     {file = "backports.zoneinfo-0.2.1.tar.gz", hash = "sha256:fadbfe37f74051d024037f223b8e001611eac868b5c5b06144ef4d8b799862f2"},
-]
-beaker = [
-    {file = "Beaker-1.12.0.tar.gz", hash = "sha256:2d5f427e3b13259c98c934cab0e428fc1c18a4c4b94acbdae930df7e7f51d1ec"},
 ]
 cachetools = [
     {file = "cachetools-5.2.0-py3-none-any.whl", hash = "sha256:f9f17d2aec496a9aa6b76f53e3b614c965223c061982d434d160f930c698a9db"},
@@ -1086,20 +1068,20 @@ flask-cors = [
     {file = "Flask_Cors-3.0.10-py2.py3-none-any.whl", hash = "sha256:74efc975af1194fc7891ff5cd85b0f7478be4f7f59fe158102e91abb72bb4438"},
 ]
 forestadmin-agent-flask = [
-    {file = "forestadmin_agent_flask-0.1.0b14-py3-none-any.whl", hash = "sha256:5d68bfbaa88cbdf4da67c344938c5592032d4b71f40d63250d2bd45d8e5e1dcc"},
-    {file = "forestadmin_agent_flask-0.1.0b14.tar.gz", hash = "sha256:62bbd2042c3ec40a9481133d4499281b7f7501a73f68b2293c3615f37b13d074"},
+    {file = "forestadmin_agent_flask-0.1.0b15-py3-none-any.whl", hash = "sha256:9aaa8e555cc559359c2f3f5d7800e7f49d2b247e71f14750aab47841c70264a9"},
+    {file = "forestadmin_agent_flask-0.1.0b15.tar.gz", hash = "sha256:9e710464dff39aa00ffff14a7a7cca9e7afbe7c2fcd745d6be500baf3e24c7a8"},
 ]
 forestadmin-agent-toolkit = [
-    {file = "forestadmin_agent_toolkit-0.1.0b14-py3-none-any.whl", hash = "sha256:337c385d878d028f8f3fdfbedbecd87879c55f2cd2fdc3c9aaf8a865b44bd8ac"},
-    {file = "forestadmin_agent_toolkit-0.1.0b14.tar.gz", hash = "sha256:4615dfbdae6000531b673de07f6d19c8fb3ce04a99c3905a63f783c014200b3b"},
+    {file = "forestadmin_agent_toolkit-0.1.0b15-py3-none-any.whl", hash = "sha256:166e07896f4ed64649c26f7cfdf8fe0033486047d9f541eccd694abf4bb98ce1"},
+    {file = "forestadmin_agent_toolkit-0.1.0b15.tar.gz", hash = "sha256:5dacc6e57ad269757d01bfbd3f7e60d337e90dbb6a9bff3584737336399a2239"},
 ]
 forestadmin-datasource-sqlalchemy = [
-    {file = "forestadmin_datasource_sqlalchemy-0.1.0b14-py3-none-any.whl", hash = "sha256:8218beb84f774e56ad1e352e8e663f98d8ca8a9f0fecf7482c4c4adde9634088"},
-    {file = "forestadmin_datasource_sqlalchemy-0.1.0b14.tar.gz", hash = "sha256:28b70c9e1ef8e6080222c29c1f9b574fb8a49b889e06dbe2c69c73ab9f6e5772"},
+    {file = "forestadmin_datasource_sqlalchemy-0.1.0b16-py3-none-any.whl", hash = "sha256:b9970491c4115395838b39524df267c467bc639053cf83b377e79f6e3d80abbc"},
+    {file = "forestadmin_datasource_sqlalchemy-0.1.0b16.tar.gz", hash = "sha256:420fbefbec942b3838342d45c29b89a899b464dbcb8c53b420984f9c0fb35341"},
 ]
 forestadmin-datasource-toolkit = [
-    {file = "forestadmin_datasource_toolkit-0.1.0b14-py3-none-any.whl", hash = "sha256:8d265b9f1ea2ce337030ef85c3c9e81ffc041b41b56b2f29b3a044ba30ea37ad"},
-    {file = "forestadmin_datasource_toolkit-0.1.0b14.tar.gz", hash = "sha256:a7a8f449acd4002e87a859cdf59ca976f64eda149819c80668ba5843d7289254"},
+    {file = "forestadmin_datasource_toolkit-0.1.0b16-py3-none-any.whl", hash = "sha256:ba73740b2a4330ee22a692e28d512d2069f97cee2eef30565cf8e83d8b17963e"},
+    {file = "forestadmin_datasource_toolkit-0.1.0b16.tar.gz", hash = "sha256:1ebf4a04cf91805a466c59be36e9fae3bae455443f693696d52a470312868876"},
 ]
 frozenlist = [
     {file = "frozenlist-1.3.3-cp310-cp310-macosx_10_9_universal2.whl", hash = "sha256:ff8bf625fe85e119553b5383ba0fb6aa3d0ec2ae980295aaefa552374926b3f4"},
@@ -1450,8 +1432,8 @@ numpy = [
     {file = "numpy-1.23.5.tar.gz", hash = "sha256:1b1766d6f397c18153d40015ddfc79ddb715cabadc04d2d228d4e5a8bc4ded1a"},
 ]
 oic = [
-    {file = "oic-1.4.0-py3-none-any.whl", hash = "sha256:c1a46dd5f803349f1eea7393d70a3f2bdbc97e73b96f3ebb54843e1dc190f5e4"},
-    {file = "oic-1.4.0.tar.gz", hash = "sha256:b82316c4b9633781b8fcb091a7d082ffc863f850a87d8725ead454746aeae677"},
+    {file = "oic-1.5.0-py3-none-any.whl", hash = "sha256:6cd66c5203baa8cd90dd2b73d0cc83785e96c91fab67fa7b587549fcadb3c092"},
+    {file = "oic-1.5.0.tar.gz", hash = "sha256:1bb80d7717faed750f1d8d482c06616a45f1fa5b2295d0620049040b4b48b97e"},
 ]
 packaging = [
     {file = "packaging-22.0-py3-none-any.whl", hash = "sha256:957e2148ba0e1a3b282772e791ef1d8083648bc131c8ab0c1feba110ce1146c3"},
