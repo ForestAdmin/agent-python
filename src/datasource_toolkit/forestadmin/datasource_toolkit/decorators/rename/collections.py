@@ -92,10 +92,8 @@ class RenameMixin:
             group[self._path_from_child_collection(path)] = value
         return group
 
-    @property
-    def schema(self) -> CollectionSchema:
-        schema: CollectionSchema = super(RenameMixin, self).schema  # type: ignore
-
+    def _refine_schema(self) -> CollectionSchema:
+        schema: CollectionSchema = super(RenameMixin, self)._refine_schema()  # type: ignore
         new_fields_schema = {}
         datasource = cast(Datasource[BoundCollection], self.datasource)
         for old_field_name, field_schema in schema["fields"].items():
@@ -121,6 +119,7 @@ class RenameMixin:
 
             new_fields_schema[self._from_child_collection.get(old_field_name, old_field_name)] = field_schema
         schema["fields"] = new_fields_schema
+        self._last_schema = schema
         return schema
 
     def _path_from_child_collection(self, child_path: str) -> str:

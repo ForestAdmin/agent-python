@@ -103,9 +103,10 @@ class StatsResource(BaseCollectionResource):
         results: List[Dict[str, Union[str, int]]] = []
         for row in rows:
             key = row["group"][request.body["group_by_field"]]
-            field = request.collection.get_field(request.body["group_by_field"])
-            if cast(Column, field)["column_type"] == PrimitiveType.ENUM:
-                key = key.value
+            if ":" not in request.body["group_by_field"]:
+                field = request.collection.get_field(request.body["group_by_field"])
+                if cast(Column, field)["column_type"] == PrimitiveType.ENUM:
+                    key = key.value
             results.append({"key": key, "value": row["value"]})
         return self._build_success_response(results)
 

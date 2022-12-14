@@ -53,8 +53,9 @@ async def queue_field(
         computed = collection.get_computed(new_path)
         dependencies = Projection(*computed["dependencies"])
         if ":" in new_path:
-            dependencies = cast(List[str], dependencies.nest(new_path.split(":")[0])).sort()
-
+            nested_field = new_path.split(":")[0]
+            dependencies = cast(List[str], dependencies.nest(nested_field))
+            dependencies.sort()
         for path in cast(List[str], dependencies):
             await queue_field(ctx, collection, path, paths, flatten_records.copy())
         dependency_values = [flatten_records[paths.index(path)] for path in cast(List[str], dependencies)]

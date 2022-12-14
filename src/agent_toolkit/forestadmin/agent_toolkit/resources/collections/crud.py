@@ -41,6 +41,7 @@ from forestadmin.datasource_toolkit.interfaces.fields import (
     is_column,
     is_many_to_many,
     is_many_to_one,
+    is_one_to_many,
     is_one_to_one,
 )
 from forestadmin.datasource_toolkit.interfaces.query.aggregation import Aggregation
@@ -94,7 +95,7 @@ class CrudResource(BaseCollectionResource):
         projections = ProjectionFactory.all(cast(Collection, collection))
         records = await collection.list(filter, projections)
         for name, schema in collection.schema["fields"].items():
-            if is_many_to_many(schema):
+            if is_many_to_many(schema) or is_one_to_many(schema):
                 projections.append(f"{name}:id")  # type: ignore
                 records[0][name] = None
         if not len(records):

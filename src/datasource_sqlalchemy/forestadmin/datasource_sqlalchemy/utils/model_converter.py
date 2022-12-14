@@ -55,7 +55,7 @@ class ColumnFactory:
             "is_primary_key": column.primary_key,  # type: ignore
             "is_read_only": cls._build_is_read_only(column),
             "default_value": column.default,  # type: ignore
-            "is_sortable": None,
+            "is_sortable": True,
             "validations": cls._build_validations(column),
             "filter_operators": FilterOperator.get_for_type(column_type),
             "enum_values": cls._build_enum_values(column),
@@ -149,5 +149,4 @@ class CollectionFactory:
 
                     if relation:
                         fields[relationship.key] = relation  # type: ignore
-
         return {"actions": {}, "fields": fields, "searchable": False, "segments": []}

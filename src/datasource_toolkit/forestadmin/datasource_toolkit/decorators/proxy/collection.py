@@ -1,6 +1,6 @@
 from typing import List, Optional, Union, cast
 
-from forestadmin.datasource_toolkit.collections import Collection
+from forestadmin.datasource_toolkit.collections import Collection, CollectionException
 from forestadmin.datasource_toolkit.datasources import Datasource
 from forestadmin.datasource_toolkit.interfaces.actions import ActionField, ActionResult
 from forestadmin.datasource_toolkit.interfaces.models.collections import BoundCollection, CollectionSchema
@@ -16,12 +16,31 @@ class ProxyMixin:
         self.child_collection = collection
         self.child_collection._datasource = datasource  # type: ignore
         self.child_collection._schema = self.schema  # type: ignore
+        self._schema_locked = False
+        self._last_schema = None
 
     def __getattr__(self, name: str):
         return getattr(self.child_collection, name)
 
+    def mark_schema_as_dirty(self):
+        self._schema_locked = False
+
     @property
     def schema(self) -> CollectionSchema:
+        if self._schema_locked:
+            return self._last_schema or self.child_collection._schema
+        elif not self._last_schema:
+            self._schema_locked = True
+            self._last_schema = self._refine_schema()
+        return self._last_schema
+
+    def get_field(self, name: str):
+        try:
+            return self.schema["fields"][name]
+        except KeyError:
+            raise CollectionException(f"No such field {name} in the collection {self.name}")
+
+    def _refine_schema(self) -> CollectionSchema:
         return self.child_collection.schema
 
     async def _refine_filter(

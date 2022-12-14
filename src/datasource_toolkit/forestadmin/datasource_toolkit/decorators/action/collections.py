@@ -67,9 +67,8 @@ class ActionMixin:
             field["watch_changes"] = field["label"] in context.form_values.used_keys
         return action_fields
 
-    @property
-    def schema(self) -> CollectionSchema:
-        schema: CollectionSchema = super(ActionMixin, self).schema  # type: ignore
+    def _refine_schema(self) -> CollectionSchema:
+        schema: CollectionSchema = super(ActionMixin, self)._refine_schema()  # type: ignore
         for name, action in self._actions.items():
             dynamics: List[bool] = []
             for field in action.form or []:
@@ -77,7 +76,7 @@ class ActionMixin:
             schema["actions"][name] = Action(
                 scope=action.SCOPE, generate_file=action.GENERATE_FILE, static_form=not any(dynamics)
             )
-
+        self._last_schema = schema
         return schema
 
     def _get_context(

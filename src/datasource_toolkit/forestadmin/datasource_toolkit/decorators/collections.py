@@ -12,10 +12,10 @@ from forestadmin.datasource_toolkit.interfaces.models.collections import Collect
 
 
 class CustomizedCollection(
+    ActionMixin,
     ComputedMixin,
     RenameMixin,
     OperatorReplaceMixin,
-    ActionMixin,
     SegmentMixin,
     PublicationMixin,
     SearchMixin,
@@ -27,6 +27,7 @@ class CustomizedCollection(
         self._schema_refreshing = False
 
     def mark_schema_as_dirty(self):  # type: ignore
+        super().mark_schema_as_dirty()
         self._last_schema = None
         self.child_collection._schema = self.schema  # type: ignore
 

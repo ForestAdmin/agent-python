@@ -43,7 +43,7 @@ class RelaxedDatasource(Datasource["RelaxedCollection"]):
         return [RelaxedCollection(collection) for collection in self.datasource.collections]
 
     def get_collection(self, name: str) -> "RelaxedCollection":
-        collection = super().get_collection(name)
+        collection = self.datasource.get_collection(name)
         return RelaxedCollection(collection)
 
     def add_collection(self, collection: "RelaxedCollection") -> None:
