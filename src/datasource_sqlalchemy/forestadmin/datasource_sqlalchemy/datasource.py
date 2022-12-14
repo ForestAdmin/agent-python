@@ -34,6 +34,7 @@ from sqlalchemy import column as SqlAlchemyColumn
 from sqlalchemy.engine import Dialect
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Mapper, RelationshipProperty, sessionmaker
+from sqlalchemy.sql import Alias, alias
 
 
 class SqlAlchemyCollectionException(DatasourceException):
@@ -94,6 +95,7 @@ class SqlAlchemyCollection(BaseSqlAlchemyCollection):
         self._mapper = mapper
         self._name = name
         self._factory = SqlAlchemyCollectionFactory(self)
+        self._aliases: Dict[str, Alias] = {}
         schema = CollectionFactory.build(self.table, self.mapper)
         self.add_fields(schema["fields"])
 
@@ -115,9 +117,12 @@ class SqlAlchemyCollection(BaseSqlAlchemyCollection):
     def factory(self) -> SqlAlchemyCollectionFactory:
         return self._factory
 
-    def get_column(self, name: str) -> SqlAlchemyColumn:
+    def get_column(self, name: str, alias_: Optional[Alias] = None) -> SqlAlchemyColumn:
+        mapper = self.mapper
+        if alias_ is not None:
+            mapper = alias_
         try:
-            return self.mapper.columns[name]  # type: ignore
+            return mapper.columns[name]  # type: ignore
         except KeyError:
             raise SqlAlchemyCollectionException(f"Unkown field '{name}' for the collection '{self.name}'")
 
@@ -127,13 +132,21 @@ class SqlAlchemyCollection(BaseSqlAlchemyCollection):
         except KeyError:
             raise SqlAlchemyCollectionException(f"Unkown relationship '{name}' for the collection '{self.name}'")
 
-    def get_columns(self, projection: Projection, level: int = 0) -> Tuple[List[SqlAlchemyColumn], Relationships]:
+    def get_columns(
+        self, projection: Projection, level: int = 0, alias_: Optional[Alias] = None
+    ) -> Tuple[List[SqlAlchemyColumn], Relationships]:
         relationships: Relationships = defaultdict(list)
-        columns: List[SqlAlchemyColumn] = [self.get_column(column) for column in projection.columns]
+        columns: List[SqlAlchemyColumn] = [self.get_column(column, alias_) for column in projection.columns]
         nested_columns, nested_relationships = self._get_related_column(projection, level)
         columns.extend(nested_columns)
         relationships = merge_relationships(relationships, nested_relationships)
         return columns, relationships
+
+    def _get_alias(self, mapper: Mapper, name: str):
+        alias_name = f"alias_{name}"
+        if alias_name not in self._aliases:
+            self._aliases[alias_name] = alias(mapper, alias_name)
+        return self._aliases[alias_name]
 
     def _get_related_column(
         self, projection: Projection, level: int = 0
@@ -141,11 +154,15 @@ class SqlAlchemyCollection(BaseSqlAlchemyCollection):
         relationships: Dict[int, List[SqlAlchemyColumn]] = defaultdict(list)
         columns: List[SqlAlchemyColumn] = []
         for related_field_name, related_projection in projection.relations.items():
-            relationships[level].append(self._get_relationship(related_field_name).class_attribute)  # type: ignore
             related_field: RelationAlias = cast(RelationAlias, self.get_field(related_field_name))
             related_collection = self.datasource.get_collection(related_field["foreign_collection"])
-            nested_columns, nested_relationships = related_collection.get_columns(related_projection, level + 1)
+            alias_: Alias = self._get_alias(related_collection.mapper, related_field_name)  # type: ignore
+            nested_columns, nested_relationships = related_collection.get_columns(related_projection, level + 1, alias_)
             columns.extend(nested_columns)
+
+            relationship = self._get_relationship(related_field_name)
+            relationships[level].append((alias_, relationship.class_attribute))  # type: ignore
+
             merge_relationships(relationships, nested_relationships)
         return columns, relationships
 

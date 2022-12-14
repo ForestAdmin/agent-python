@@ -112,11 +112,10 @@ def parse_page(request: Request) -> Page:
             page_to_skip = subset_query["page[number]"]
 
     if not items_per_page and not page_to_skip and request.query:
-        page: Dict[str, Any] = request.query.get("page", {})
-        if "size" in page:
-            items_per_page = page["size"]
-        if "number" in page:
-            page_to_skip = page["number"]
+        if "page[size]" in request.query:
+            items_per_page = int(request.query["page[size]"])
+        if "page[number]" in request.query:
+            page_to_skip = int(request.query["page[number]"])
 
     if not items_per_page:
         items_per_page = DEFAULT_ITEMS_PER_PAGE

@@ -23,9 +23,9 @@ class PublicationMixin:
     get_field: Callable[[str], Any]
 
     def __init__(self, *args: Any, **kwargs: Any):
-        super(PublicationMixin, self).__init__(*args, **kwargs)
         self._unpublished: Dict[str, FieldAlias] = {}
         self._republished_fields: Dict[str, FieldAlias] = {}
+        super(PublicationMixin, self).__init__(*args, **kwargs)
 
     def change_field_visibility(self, name: str, visible: bool):
         if name in self._unpublished and visible:
@@ -38,9 +38,8 @@ class PublicationMixin:
                 self._unpublished[name] = field
         self.mark_schema_as_dirty()
 
-    @property
-    def schema(self) -> CollectionSchema:
-        schema: CollectionSchema = super(PublicationMixin, self).schema  # type: ignore
+    def _refine_schema(self) -> CollectionSchema:
+        schema: CollectionSchema = super(PublicationMixin, self)._refine_schema()  # type: ignore
         new_field_schema = {}
         for name, field in schema["fields"].items():
             if self._is_published(name):
@@ -49,6 +48,7 @@ class PublicationMixin:
             new_field_schema[name] = field
         self._republished_fields = {}
         schema["fields"] = new_field_schema
+        self._last_schema = schema
         return schema
 
     def _is_published(self, name: str) -> bool:

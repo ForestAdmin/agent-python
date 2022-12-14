@@ -11,7 +11,7 @@ from forestadmin.datasource_toolkit.decorators.computed.helpers import (  # type
 from forestadmin.datasource_toolkit.decorators.computed.types import ComputedDefinition
 from forestadmin.datasource_toolkit.exceptions import DatasourceToolkitException
 from forestadmin.datasource_toolkit.interfaces.collections import Collection
-from forestadmin.datasource_toolkit.interfaces.fields import FieldAlias, FieldType
+from forestadmin.datasource_toolkit.interfaces.fields import FieldAlias, FieldType, RelationAlias
 from forestadmin.datasource_toolkit.interfaces.models.collections import CollectionSchema
 from forestadmin.datasource_toolkit.interfaces.query.aggregation import AggregateResult, Aggregation
 from forestadmin.datasource_toolkit.interfaces.query.filter.paginated import PaginatedFilter
@@ -40,8 +40,9 @@ class ComputedMixin:
             except KeyError:
                 raise ComputedMixinException(f"{path} is not a computed field")
 
-        collection_name, path = path.split(":")
-        foreign_collection: Self = self.datasource.get_collection(collection_name)
+        related_field, path = path.split(":")
+        field = cast(RelationAlias, self.get_field(related_field))
+        foreign_collection: Self = self.datasource.get_collection(field["foreign_collection"])
         return foreign_collection.get_computed(path)
 
     def register_computed(self, name: str, computed: ComputedDefinition):
@@ -72,9 +73,8 @@ class ComputedMixin:
             records = compute_aggregate_from_records(records, new_to_old_group)  # type: ignore
         return records
 
-    @property
-    def schema(self) -> CollectionSchema:
-        schema: CollectionSchema = super(ComputedMixin, self).schema  # type: ignore
+    def _refine_schema(self) -> CollectionSchema:
+        schema: CollectionSchema = super(ComputedMixin, self)._refine_schema()  # type: ignore
         for name, computed in self._computeds.items():
             schema["fields"][name] = {
                 "column_type": computed["column_type"],
@@ -87,4 +87,5 @@ class ComputedMixin:
                 "is_sortable": False,
                 "validations": None,
             }
+        self._last_schema = schema
         return schema
