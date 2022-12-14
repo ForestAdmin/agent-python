@@ -2,6 +2,9 @@
 
 <!--next-version-placeholder-->
 
+## v0.1.0-beta.16 (2022-12-14)
+
+
 ## v0.1.0-beta.15 (2022-12-14)
 ### Fix
 * Ci didn't update the flask agent poetry.lock ([`1563426`](https://github.com/ForestAdmin/agent-python/commit/1563426e2f08bac71c1a058ede75bb675c79effa))
