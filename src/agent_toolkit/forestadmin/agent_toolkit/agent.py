@@ -1,5 +1,5 @@
-import sys
 import copy
+import sys
 
 from forestadmin.agent_toolkit.resources.collections.stats import StatsResource
 
@@ -9,7 +9,7 @@ else:
     from typing_extensions import TypedDict
 
 from forestadmin.agent_toolkit.exceptions import AgentToolkitException
-from forestadmin.agent_toolkit.options import AgentMeta, Options, DEFAULT_OPTIONS
+from forestadmin.agent_toolkit.options import DEFAULT_OPTIONS, AgentMeta, Options
 from forestadmin.agent_toolkit.resources.actions.resources import ActionResource
 from forestadmin.agent_toolkit.resources.collections import BoundCollection
 from forestadmin.agent_toolkit.resources.collections.crud import CrudResource
