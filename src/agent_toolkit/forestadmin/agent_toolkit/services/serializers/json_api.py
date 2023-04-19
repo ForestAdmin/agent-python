@@ -99,7 +99,6 @@ def _create_schema_attributes(collection: CollectionAlias) -> Dict[str, Any]:
 
 
 class JsonApiSerializer(type):
-
     schema: Dict[str, Type["ForestSchema"]] = {}
     attributes: Dict[str, Any] = {}
 
@@ -196,7 +195,6 @@ class ForestSchema(Schema):
         return res  # type: ignore
 
     def load(self, data, *, many=None, partial=None, unknown=None):  # type: ignore
-
         try:
             return super().load(data, many=many, partial=partial, unknown=unknown)  # type: ignore
         except MarshmallowError as e:
@@ -213,7 +211,6 @@ class ForestSchema(Schema):
 
 
 def refresh_json_api_schema(collection: CollectionAlias, ignores: Optional[List[CollectionAlias]] = None):
-
     if ignores is None:
         ignores = []
     if collection in ignores:

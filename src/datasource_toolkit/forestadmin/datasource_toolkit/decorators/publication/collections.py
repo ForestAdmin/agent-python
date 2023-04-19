@@ -17,7 +17,6 @@ class PublicationCollectionException(DatasourceToolkitException):
 
 
 class PublicationMixin:
-
     datasource: property
     mark_schema_as_dirty: Callable[..., None]
     get_field: Callable[[str], Any]

@@ -34,7 +34,6 @@ class Projection(list):  # type: ignore
 
     def replace(self, handler: Callable[[str], Union["Projection", str, List[str]]]) -> "Projection":
         def reducer(memo: Projection, paths: Union["Projection", str, List[str]]) -> Projection:
-
             if isinstance(paths, str):
                 new_paths = [paths]
             else:

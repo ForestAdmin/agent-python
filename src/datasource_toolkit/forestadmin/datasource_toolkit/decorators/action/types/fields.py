@@ -302,7 +302,6 @@ class FieldFactoryException(DatasourceToolkitException):
 
 
 class FieldFactory(Generic[Context]):
-
     FIELD_FOR_TYPE: Any = {
         ActionFieldType.COLLECTION: CollectionDynamicField,
         ActionFieldType.NUMBER: NumberDynamicField,

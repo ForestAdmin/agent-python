@@ -55,7 +55,6 @@ class CustomClientOic(OicClient):
 
 
 class ClientFactory:
-
     oic_client: Optional[CustomClientOic] = None
 
     @classmethod

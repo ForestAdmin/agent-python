@@ -21,7 +21,6 @@ from typing_extensions import TypeGuard
 
 
 class SearchMixin:  # type: ignore
-
     datasource: property
 
     TYPE_TO_OPERATOR: Dict[ColumnAlias, Operator] = {

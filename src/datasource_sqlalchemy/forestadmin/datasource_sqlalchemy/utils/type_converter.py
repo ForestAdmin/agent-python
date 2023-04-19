@@ -14,7 +14,6 @@ class ConverterException(DatasourceToolkitException):
 
 
 class Converter:
-
     TYPES: Dict[Type[sqltypes.TypeEngine], PrimitiveType] = {
         sqltypes.BigInteger: PrimitiveType.NUMBER,
         sqltypes.Boolean: PrimitiveType.BOOLEAN,
@@ -49,7 +48,6 @@ class Converter:
 
 
 class FilterOperator:
-
     COMMON_OPERATORS: Set[Operator] = {
         Operator.BLANK,
         Operator.EQUAL,
@@ -157,7 +155,6 @@ class FilterOperator:
 
     @classmethod
     def get_for_type(cls, _type: ColumnAlias) -> set[Operator]:
-
         operators: Set[Operator] = set()
         if isinstance(_type, list):
             operators = {

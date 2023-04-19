@@ -27,7 +27,6 @@ from forestadmin.datasource_toolkit.interfaces.records import RecordsDataAlias
 
 
 def test_is_leaf_component():
-
     tree = ConditionTreeLeaf(field="test", operator=Operator.BLANK)
     assert is_leaf_component(tree) is False
 
@@ -73,7 +72,6 @@ def test_condition_tree_leaf_equality():
 
 
 def test_condition_tree_leaf_load():
-
     tree = LeafComponents(field="test", operator="blank")
     assert ConditionTreeLeaf.load(tree) == ConditionTreeLeaf(field="test", operator=Operator.BLANK)
 
@@ -169,7 +167,6 @@ def test_condition_tree_leaf_inverse_exception(operator: Operator):
 
 @mock.patch("forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.leaf.ConditionTreeLeaf.load")
 def test_condition_tree_leaf_handle_replace_tree(mock_load: mock.Mock):
-
     mock_load.return_value = "fake"
     tree = LeafComponents(field="test", operator="blank")
     replaced_tree = ConditionTreeLeaf._handle_replace_tree(tree)  # type: ignore
@@ -467,7 +464,6 @@ def test_simple_condition_tree_leaf_match(mock_get_field_value: mock.Mock):
 
 @mock.patch("forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.leaf.ConditionTreeLeaf.override")
 def test_condition_tree_leaf_unnest(mock_override: mock.MagicMock):
-
     mock_override.return_value = ConditionTreeLeaf(field="subtest", operator=Operator.BLANK)
     tree = ConditionTreeLeaf(field="test:subtest", operator=Operator.BLANK)
     assert tree.unnest() == ConditionTreeLeaf(field="subtest", operator=Operator.BLANK)

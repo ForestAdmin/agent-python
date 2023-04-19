@@ -25,7 +25,6 @@ from forestadmin.datasource_toolkit.interfaces.query.projections import Projecti
 
 @mock.patch("forestadmin.datasource_toolkit.interfaces.query.filter.factory.time_transforms")
 def test_shift_period_filter(mock_time_transform: mock.MagicMock):
-
     shift_period_filter_replacer = FilterFactory._shift_period_filter("UTC")  # type: ignore
     leaf = ConditionTreeLeaf(field="test", operator=Operator.PREVIOUS_YEAR)
     mock_replacer = mock.MagicMock(return_value="fake_replacer")

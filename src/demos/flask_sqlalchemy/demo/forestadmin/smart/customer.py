@@ -32,7 +32,6 @@ def french_address_segment(context: CollectionCustomizationContext):
 
 
 class ExportJson(ActionBulk):
-
     GENERATE_FILE: bool = True
 
     async def execute(self, context: ActionContextBulk, result_builder: ResultBuilder) -> Union[None, ActionResult]:
@@ -43,7 +42,6 @@ class ExportJson(ActionBulk):
 
 
 class AgeOperation(ActionSingle):
-
     FORM: List[PlainDynamicField] = [
         {
             "type": ActionFieldType.ENUM,
@@ -58,7 +56,6 @@ class AgeOperation(ActionSingle):
     ]
 
     async def execute(self, context: ActionContextSingle, result_builder: ResultBuilder) -> Union[None, ActionResult]:
-
         operation = add
         if context.form_values["Kind of operation"] == "-":
             operation = sub

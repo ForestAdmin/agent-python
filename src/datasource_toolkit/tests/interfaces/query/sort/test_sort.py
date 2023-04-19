@@ -41,7 +41,6 @@ def test_sort_unnest():
 
 
 def test_apply():
-
     records: List[RecordsDataAlias] = [
         {
             "c1": "a",

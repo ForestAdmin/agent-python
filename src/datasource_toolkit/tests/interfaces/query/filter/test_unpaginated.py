@@ -76,7 +76,6 @@ def test_is_nestable():
 
 
 def test_to_filter_component():
-
     component = FilterComponent(
         condition_tree=ConditionTreeLeaf(field="test", operator=Operator.BLANK),
         search="test",
@@ -139,7 +138,6 @@ def test_override_component(mock_to_component: mock.MagicMock):
 
 
 def test_override():
-
     component = FilterComponent(
         condition_tree=ConditionTreeLeaf(field="test", operator=Operator.BLANK),
         search="test",

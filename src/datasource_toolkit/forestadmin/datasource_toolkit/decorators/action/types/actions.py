@@ -12,7 +12,6 @@ Context = TypeVar("Context", bound=ActionContext)
 
 
 class BaseAction(Generic[Context]):
-
     SCOPE: ActionsScope
     FORM: Sequence[PlainDynamicField] = []
     GENERATE_FILE: bool = False

@@ -113,7 +113,6 @@ class CrudResource(BaseCollectionResource):
     @authenticate
     @authorize("add")
     async def add(self, request: RequestCollection) -> Response:
-
         collection = request.collection
         schema = JsonApiSerializer.get(collection)
         try:

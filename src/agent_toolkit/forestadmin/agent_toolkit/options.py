@@ -37,8 +37,8 @@ class Options(TypedDict):
     # forestAdminClient
 
 
-DEFAULT_OPTIONS : Options = {
+DEFAULT_OPTIONS: Options = {
     "is_production": True,
     "prefix": "forest",
-    "forest_server_url": "https://api.forestadmin.com"
+    "forest_server_url": "https://api.forestadmin.com",
 }

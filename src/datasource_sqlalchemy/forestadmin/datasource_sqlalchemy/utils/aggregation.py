@@ -17,7 +17,6 @@ class AggregationFactoryException(DatasourceToolkitException):
 
 
 class AggregationFactory:
-
     LABEL = "__aggregate__"
     GROUP_LABEL = "__grouped__"
 

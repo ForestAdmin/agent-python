@@ -73,7 +73,6 @@ def test_aggregation_init():
 
 
 def test_projection():
-
     aggregation = Aggregation(
         {
             "operation": "Count",
@@ -130,7 +129,6 @@ def test_apply(create_mock: mock.Mock, format_mock: mock.Mock):
 @mock.patch("forestadmin.datasource_toolkit.interfaces.query.aggregation.Aggregation._prefix_handler")
 @mock.patch("forestadmin.datasource_toolkit.interfaces.query.aggregation.Aggregation.replace_fields")
 def test_nest(replace_fields_mock: mock.Mock, prefix_handler_mock: mock.Mock):
-
     aggregation = Aggregation(
         {
             "field": "id",
@@ -240,7 +238,6 @@ def test_to_plain():
 
 
 def test_format_summaries():
-
     aggregation = Aggregation({"field": "price", "operation": "Avg"})
 
     summaries = [
@@ -293,7 +290,6 @@ def test_create_summaries(
     create_summary_mock: mock.Mock,
     create_group_mock: mock.Mock,
 ):
-
     tz = "UTC"
     records = [
         {"id": 1, "created_at": date.fromisoformat("2022-01-02")},
@@ -426,7 +422,6 @@ def test_create_summary(group: RecordsDataAlias):
 
 @mock.patch("forestadmin.datasource_toolkit.interfaces.query.aggregation.RecordUtils.get_field_value")
 def test_update_summary_in_place(get_field_value_mock: mock.Mock):
-
     records = [
         {
             "id": 1,

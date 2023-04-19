@@ -5,7 +5,6 @@ from forestadmin.datasource_toolkit.interfaces.fields import Operator, Validatio
 
 
 class FrontendValidationUtils:
-
     OPERATOR_VALIDATION_TYPE = {
         Operator.PRESENT: ValidationType.PRESENT,
         Operator.GREATER_THAN: ValidationType.GREATER_THAN,

@@ -17,7 +17,6 @@ def test_projection_relations():
 
 
 def test_replace():
-
     projection = Projection("c1", "c2", "r1:c1")
 
     def replace_handler(c: str) -> str:

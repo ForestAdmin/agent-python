@@ -356,7 +356,6 @@ def test_after_x_hours_to_greater_than():
 
 @mock.patch("forestadmin.datasource_toolkit.interfaces.query.condition_tree.transforms.time._compare_replacer")
 def test_compare(mock_compare_replacer: mock.MagicMock):
-
     mock_compare_replacer.return_value = "fake_replacer"
     date_callback = mock.MagicMock()
     assert compare(Operator.LESS_THAN, date_callback) == {
@@ -369,7 +368,6 @@ def test_compare(mock_compare_replacer: mock.MagicMock):
 
 @mock.patch("forestadmin.datasource_toolkit.interfaces.query.condition_tree.transforms.time._interval_replacer")
 def test_interval(mock_intervale_replacer: mock.MagicMock):
-
     mock_intervale_replacer.return_value = "fake_replacer"
 
     assert interval(Frequency.DAY, 2, True, datetime(2000, 1, 1)) == {

@@ -53,7 +53,6 @@ def suspicious_order_segment(context: CollectionCustomizationContext):
 
 
 class ExportJson(ActionGlobal):
-
     GENERATE_FILE: bool = True
 
     async def execute(self, context: ActionContext, result_builder: ResultBuilder) -> Union[None, ActionResult]:
