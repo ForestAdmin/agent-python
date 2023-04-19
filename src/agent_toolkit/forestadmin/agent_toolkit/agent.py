@@ -1,4 +1,5 @@
 import sys
+import copy
 
 from forestadmin.agent_toolkit.resources.collections.stats import StatsResource
 
@@ -8,7 +9,7 @@ else:
     from typing_extensions import TypedDict
 
 from forestadmin.agent_toolkit.exceptions import AgentToolkitException
-from forestadmin.agent_toolkit.options import AgentMeta, Options
+from forestadmin.agent_toolkit.options import AgentMeta, Options, DEFAULT_OPTIONS
 from forestadmin.agent_toolkit.resources.actions.resources import ActionResource
 from forestadmin.agent_toolkit.resources.collections import BoundCollection
 from forestadmin.agent_toolkit.resources.collections.crud import CrudResource
@@ -33,7 +34,8 @@ class Resources(TypedDict):
 
 class Agent:
     def __init__(self, options: Options):
-        self.options = options
+        self.options = copy.copy(DEFAULT_OPTIONS)
+        self.options.update(options)
         self.composite_datasource: CustomizedDatasource[CustomizedCollection] = Datasource()  # type: ignore
 
         self.permission_service = PermissionService(

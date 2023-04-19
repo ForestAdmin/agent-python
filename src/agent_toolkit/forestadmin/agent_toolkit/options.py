@@ -27,3 +27,18 @@ class Options(TypedDict):
     env_secret: str
     forest_server_url: str
     is_production: bool
+    # logger
+    # loggerLevel
+    # schemaPath
+    # typingsPath
+    # typingsMaxDepth
+    # permissionsCacheDurationInSeconds
+    # skipSchemaUpdate
+    # forestAdminClient
+
+
+DEFAULT_OPTIONS : Options = {
+    "is_production": True,
+    "prefix": "forest",
+    "forest_server_url": "https://api.forestadmin.com"
+}
