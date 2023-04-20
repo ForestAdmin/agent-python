@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v0.1.0-beta.17 (2023-04-20)
+### Feature
+* **settings:** Add default settings to agent ([#66](https://github.com/ForestAdmin/agent-python/issues/66)) ([`be60191`](https://github.com/ForestAdmin/agent-python/commit/be601917c8ecc2d886e8bcfd826a3f282f8b2815))
+
 ## v0.1.0-beta.16 (2022-12-14)
 
 
