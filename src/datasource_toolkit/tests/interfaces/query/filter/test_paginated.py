@@ -97,7 +97,6 @@ def test_from_base_filter():
 
 
 def test_to_base_filter():
-
     filter_component = PaginatedFilterComponent(
         condition_tree=ConditionTreeLeaf(field="test", operator=Operator.BLANK),
         search="test",
@@ -153,7 +152,6 @@ def test_nest_arguments(mock_nest_arguments: mock.MagicMock):
     )
     f = PaginatedFilter(filter_component)
     with mock.patch.object(f.sort, "nest") as mock_sort_nest:
-
         mock_nest_arguments.return_value = {"fake": "args"}
         mock_sort_nest.return_value = "fake"
         res = f._nest_arguments("prefix")  # type: ignore

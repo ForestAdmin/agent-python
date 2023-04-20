@@ -30,7 +30,6 @@ from forestadmin.datasource_toolkit.interfaces.query.condition_tree.transforms.p
 
 
 def test_like_replacer():
-
     get_pattern = mock.MagicMock(return_value="new_value")
     replacer = _like_replacer(get_pattern)
 

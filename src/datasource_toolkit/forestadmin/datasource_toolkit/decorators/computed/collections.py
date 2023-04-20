@@ -23,7 +23,6 @@ from typing_extensions import Self
 
 
 class ComputedMixin:
-
     name: str
     get_field: Callable[[str], FieldAlias]
     datasource: property

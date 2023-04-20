@@ -24,7 +24,6 @@ from forestadmin.datasource_toolkit.interfaces.records import RecordsDataAlias
 
 
 def test_is_branc_component():
-
     tree = ConditionTreeLeaf(field="test", operator=Operator.BLANK)
     assert is_branch_component(tree) is False
 
@@ -39,14 +38,12 @@ def test_is_branc_component():
 
 
 def test_condition_tree_branch_constructor():
-
     tree = ConditionTreeBranch(Aggregator.AND, [ConditionTreeBranch(Aggregator.OR, [])])
     assert tree.aggregator == Aggregator.AND
     assert tree.conditions == [ConditionTreeBranch(Aggregator.OR, [])]
 
 
 def test_condition_tree_branch_equality():
-
     tree = ConditionTreeBranch(Aggregator.AND, [ConditionTreeBranch(Aggregator.OR, [])])
     tree1 = ConditionTreeBranch(Aggregator.AND, [ConditionTreeBranch(Aggregator.OR, [])])
 
@@ -64,7 +61,6 @@ def test_condition_tree_branch_equality():
 
 
 def test_projection():
-
     tree = ConditionTreeBranch(
         Aggregator.AND,
         [
@@ -89,7 +85,6 @@ def test_inverse():
 @mock.patch("forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.branch.all")
 @mock.patch("forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.branch.any")
 def test_match(mock_any: mock.MagicMock, mock_all: mock.MagicMock):
-
     record: RecordsDataAlias = mock.MagicMock()
     collection: Collection = mock.MagicMock()
     timezone: str = "UTC"
@@ -125,7 +120,6 @@ def test_match(mock_any: mock.MagicMock, mock_all: mock.MagicMock):
 
 
 def test_apply():
-
     handler = mock.MagicMock()
     condition = MagicMock()
     condition.apply = MagicMock()
@@ -196,7 +190,6 @@ def test_nest():
 
 # unable to mock this method
 def test_get_prefix():
-
     leaf1 = ConditionTreeLeaf(field="prefix:field", operator=Operator.BLANK)
     leaf2 = ConditionTreeLeaf(field="prefix:field2", operator=Operator.BLANK)
 

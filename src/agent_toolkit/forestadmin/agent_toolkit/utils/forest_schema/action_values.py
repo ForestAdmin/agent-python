@@ -18,7 +18,6 @@ class ForestValueConverter:
     def make_form_data_from_fields(
         datasource: Datasource[Collection], fields: List[ForestServerActionField]
     ) -> Dict[str, Any]:
-
         form_data: Dict[str, Any] = {}
         for field in fields:
             if field["reference"] and field["value"]:

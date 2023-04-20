@@ -14,7 +14,6 @@ from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.leaf i
     "forestadmin.datasource_toolkit.interfaces.query.condition_tree.equivalence.ConditionTreeEquivalent._get_replacer"
 )
 def test_get_equivalent_tree(get_replacer_mock: mock.Mock):
-
     leaf = ConditionTreeLeaf("id", Operator.EQUAL, 1)
     operators = {Operator.IN}
     column_type = PrimitiveType.NUMBER
@@ -36,7 +35,6 @@ def test_get_equivalent_tree(get_replacer_mock: mock.Mock):
     "forestadmin.datasource_toolkit.interfaces.query.condition_tree.equivalence.ConditionTreeEquivalent._get_replacer"
 )
 def test_has_equivalent_tree(get_replacer_mock: mock.Mock):
-
     get_replacer_mock.return_value = None
     assert ConditionTreeEquivalent.has_equivalent_tree(Operator.EQUAL, {Operator.IN}, PrimitiveType.NUMBER) is False
 

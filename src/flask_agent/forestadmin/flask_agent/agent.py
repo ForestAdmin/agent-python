@@ -15,7 +15,6 @@ from forestadmin.flask_agent.utils.requests import convert_request, convert_resp
 
 
 class Agent(BaseAgent):
-
     META: AgentMeta = {
         "liana": "forest-nodejs-agent",
         "liana_version": "1.0.0",

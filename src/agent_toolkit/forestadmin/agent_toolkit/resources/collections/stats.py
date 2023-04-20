@@ -27,7 +27,6 @@ from forestadmin.datasource_toolkit.utils.schema import SchemaUtils
 
 
 class StatsResource(BaseCollectionResource):
-
     FREQUENCIES = {"Day": Frequency.DAY, "Week": Frequency.WEEK, "Month": Frequency.MONTH, "Year": Frequency.YEAR}
 
     FORMAT = {"Day": "%d/%m/%Y", "Week": "W%W-%Y", "Month": "%m %Y", "Year": "%Y"}

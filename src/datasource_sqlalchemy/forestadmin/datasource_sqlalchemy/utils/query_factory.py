@@ -34,7 +34,6 @@ class ConditionTreeFactoryException(DatasourceToolkitException):
 
 
 class ConditionTreeFactory:
-
     AGGREGATORS = {Aggregator.AND: and_, Aggregator.OR: or_}
 
     @classmethod

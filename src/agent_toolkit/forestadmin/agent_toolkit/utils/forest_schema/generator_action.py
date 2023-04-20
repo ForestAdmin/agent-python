@@ -12,7 +12,6 @@ from forestadmin.datasource_toolkit.utils.schema import SchemaUtils
 
 
 class SchemaActionGenerator:
-
     DUMMY_FIELDS = [
         ForestServerActionField(
             field="Loading...",

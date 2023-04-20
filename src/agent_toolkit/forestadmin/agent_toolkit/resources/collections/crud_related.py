@@ -155,7 +155,6 @@ class CrudRelatedResource(BaseCollectionResource):
             return build_client_error_response([str(e)])
 
         if is_many_to_one(request.relation) or is_one_to_one(request.relation):
-
             if is_many_to_one(request.relation):
                 meth = self._update_many_to_one
             else:

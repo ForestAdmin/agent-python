@@ -15,7 +15,6 @@ class TypeGetterException(DatasourceToolkitException):
 class TypeGetter:
     @classmethod
     def get(cls, value: Any, type_context: Optional[PrimitiveType]) -> Union[PrimitiveType, ValidationType]:
-
         if isinstance(value, list):
             value = cast(List[Any], value)
             return cls._get_array_type(value, type_context)

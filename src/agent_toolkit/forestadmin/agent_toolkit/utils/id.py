@@ -23,7 +23,6 @@ def pack_id(schema: CollectionSchema, record: RecordsDataAlias):
 
 
 def unpack_id(schema: CollectionSchema, pks: str) -> CompositeIdAlias:
-
     schema_pks = SchemaUtils.get_primary_keys(schema)
     pk_values = pks.split("|")
     if len(pk_values) != len(schema_pks):
@@ -31,7 +30,6 @@ def unpack_id(schema: CollectionSchema, pks: str) -> CompositeIdAlias:
 
     values: List[Any] = []
     for i, field_name in enumerate(schema_pks):
-
         schema_field = cast(Column, schema["fields"][field_name])
         value = pk_values[i]
 

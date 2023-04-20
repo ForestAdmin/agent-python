@@ -24,7 +24,6 @@ class RenameCollectionException(DatasourceToolkitException):
 
 
 class RenameMixin:
-
     datasource: property
     mark_schema_as_dirty: Callable[..., None]
 

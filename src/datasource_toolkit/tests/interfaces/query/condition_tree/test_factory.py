@@ -53,7 +53,6 @@ def test_match_records(get_primary_key_mock: mock.Mock, match_ids_mock: mock.Moc
 @mock.patch("forestadmin.datasource_toolkit.interfaces.query.condition_tree.factory.SchemaUtils.get_primary_keys")
 @mock.patch("forestadmin.datasource_toolkit.interfaces.query.condition_tree.factory.ConditionTreeFactory._match_fields")
 def test_match_ids(match_field_mock: mock.Mock, get_pk_mock: mock.Mock):
-
     PRIMARY_KEY_FIELD["is_primary_key"] = False
     schema: CollectionSchema = {
         "actions": {},
@@ -182,7 +181,6 @@ def test_from_plain_object(
 
 # Use mock is hard with recursive method
 def test_match_fields():
-
     fields = ["id"]
     values = []
 
@@ -286,7 +284,6 @@ def test_from_branch_plain_object(from_plain_component_mock: mock.Mock):
 
 
 def test_group():
-
     assert ConditionTreeFactory._group(
         Aggregator.OR, [ConditionTreeLeaf("id", Operator.EQUAL, 1)]
     ) == ConditionTreeLeaf("id", Operator.EQUAL, 1)
