@@ -1,6 +1,6 @@
+import asyncio
 import os
 import sys
-import asyncio
 from typing import Literal, Optional, Tuple, Union
 
 from flask import Blueprint, request
