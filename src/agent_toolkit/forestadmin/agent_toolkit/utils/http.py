@@ -90,7 +90,7 @@ class ForestHttpApi:
             {"forest-secret-key": options["env_secret"], "content-type": "application/json"},
         )
 
-        if ret['sendSchema'] is True:
+        if ret["sendSchema"] is True:
             await cls.post(
                 cls.build_enpoint(options["forest_server_url"], "/forest/apimaps"),
                 schema,
