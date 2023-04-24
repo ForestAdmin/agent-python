@@ -37,8 +37,8 @@ class SchemaActionGenerator:
         slug = name.lower().replace(r"[^a-z0-9-]+", "-")
         return ForestServerAction(
             id=f"{collection.name}-{idx}-{slug}",
-            type=schema.scope.value.lower(),
             name=name,
+            type=schema.scope.value.lower(),
             baseUrl=None,
             endpoint=f"/{prefix}/_actions/{collection.name}/{idx}/{slug}",
             httpMethod="POST",
@@ -53,11 +53,11 @@ class SchemaActionGenerator:
         cls, datasource: Datasource[Collection], field: ActionField
     ) -> ForestServerActionField:
         output: ForestServerActionField = {
+            "field": field["label"],
             "value": ForestValueConverter.value_to_forest(field, field["value"]),
             "defaultValue": None,
             "description": field["description"],
             "enums": None,
-            "field": field["label"],
             "hook": None,
             "isReadOnly": field["is_read_only"] or False,
             "isRequired": field["is_required"] or True,

@@ -19,22 +19,23 @@ class SchemaCollectionGenerator:
                 fields.append(SchemaFieldGenerator.build(collection, field_name))
 
         return {
+            "name": collection.name,
+            "isVirtual": False,  # TODO: compute it
+            "icon": None,
+            "isReadOnly": all(
+                [f["type"] == FieldType.COLUMN and f["is_read_only"] for f in collection.schema["fields"].values()]
+            ),
+            "integration": None,  # TODO: ???
+            "isSearchable": collection.schema["searchable"],
+            "onlyForRelationships": False,
+            "paginationType": "page",
+            "searchField": None,
             "actions": [
                 await SchemaActionGenerator.build(prefix, collection, name)
                 for name in collection.schema["actions"].keys()
             ],
-            "fields": fields,
-            "icon": None,
-            "integration": None,
-            "isReadOnly": all(
-                [f["type"] == FieldType.COLUMN and f["is_read_only"] for f in collection.schema["fields"].values()]
-            ),
-            "isSearchable": collection.schema["searchable"],
-            "isVirtual": False,
-            "name": collection.name,
-            "onlyForRelationships": False,
-            "paginationType": "page",
             "segments": [
                 await SchemaSegmentGenerator.build(collection, name) for name in collection.schema["segments"]
             ],
+            "fields": fields,
         }

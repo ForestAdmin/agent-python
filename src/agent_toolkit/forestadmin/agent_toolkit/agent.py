@@ -1,22 +1,22 @@
 import copy
 import sys
 
-from forestadmin.agent_toolkit.resources.collections.stats import StatsResource
-
 if sys.version_info >= (3, 8):
     from typing import TypedDict
 else:
     from typing_extensions import TypedDict
 
 from forestadmin.agent_toolkit.exceptions import AgentToolkitException
-from forestadmin.agent_toolkit.options import DEFAULT_OPTIONS, AgentMeta, Options
+from forestadmin.agent_toolkit.options import DEFAULT_OPTIONS, Options
 from forestadmin.agent_toolkit.resources.actions.resources import ActionResource
 from forestadmin.agent_toolkit.resources.collections import BoundCollection
 from forestadmin.agent_toolkit.resources.collections.crud import CrudResource
 from forestadmin.agent_toolkit.resources.collections.crud_related import CrudRelatedResource
+from forestadmin.agent_toolkit.resources.collections.stats import StatsResource
 from forestadmin.agent_toolkit.resources.security.resources import Authentication
 from forestadmin.agent_toolkit.services.permissions import PermissionService
 from forestadmin.agent_toolkit.services.serializers.json_api import create_json_api_schema
+from forestadmin.agent_toolkit.utils.forest_schema.type import AgentMeta
 from forestadmin.agent_toolkit.utils.forest_schema.emitter import SchemaEmitter
 from forestadmin.agent_toolkit.utils.http import ForestHttpApi
 from forestadmin.datasource_toolkit.datasources import Datasource
@@ -33,6 +33,8 @@ class Resources(TypedDict):
 
 
 class Agent:
+    META: AgentMeta = None
+
     def __init__(self, options: Options):
         self.options = copy.copy(DEFAULT_OPTIONS)
         self.options.update(options)
@@ -40,9 +42,9 @@ class Agent:
 
         self.permission_service = PermissionService(
             {
-                "env_secret": options["env_secret"],
-                "forest_server_url": options["forest_server_url"],
-                "is_production": options["is_production"],
+                "env_secret": self.options["env_secret"],
+                "forest_server_url": self.options["forest_server_url"],
+                "is_production": self.options["is_production"],
                 "permission_cache_duration": 60,
             }
         )
@@ -76,15 +78,6 @@ class Agent:
             raise AgentToolkitException("The agent subclass should set the META attribute")
 
     async def start(self):
-        collections_schema = await SchemaEmitter.get_serialized_schema(
-            self.options, self.composite_datasource, self.meta
-        )
-        api_map = SchemaEmitter.serialize(collections_schema, self.meta)
-        import json
+        api_map = await SchemaEmitter.get_serialized_schema(self.options, self.composite_datasource, self.meta)
 
-        print(json.dumps(api_map))
-        await ForestHttpApi.post(
-            ForestHttpApi.build_enpoint(self.options["forest_server_url"], "/forest/apimaps"),
-            api_map,
-            {"forest-secret-key": self.options["env_secret"], "content-type": "application/json"},
-        )
+        await ForestHttpApi.send_schema(self.options, api_map)
