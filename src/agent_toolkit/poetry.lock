@@ -646,14 +646,14 @@ pyflakes = ">=3.0.0,<3.1.0"
 
 [[package]]
 name = "forestadmin-datasource-toolkit"
-version = "0.1.0b17"
+version = "0.1.0b18"
 description = ""
 category = "main"
 optional = false
 python-versions = ">=3.7,<4.0"
 files = [
-    {file = "forestadmin_datasource_toolkit-0.1.0b17-py3-none-any.whl", hash = "sha256:7a21624027034848a4a141d9d5e0a17bb0fc86e3610026aa4d0bf0d1ebffd43a"},
-    {file = "forestadmin_datasource_toolkit-0.1.0b17.tar.gz", hash = "sha256:3a6bb5dd18011aedc04099af03d47adbf20668ecc118d1c21725c1a7fcb049c3"},
+    {file = "forestadmin_datasource_toolkit-0.1.0b18-py3-none-any.whl", hash = "sha256:6527ce651ec2be731d05ef2c6b1a4e0327155bcc392e2de6017bbdc374b55a6e"},
+    {file = "forestadmin_datasource_toolkit-0.1.0b18.tar.gz", hash = "sha256:cb28014f986e3781273412add52d30217055346be783a3821bc52e92e27f14e2"},
 ]
 
 [package.dependencies]
@@ -1904,4 +1904,4 @@ testing = ["big-O", "flake8 (<5)", "jaraco.functools", "jaraco.itertools", "more
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.7,<4.0"
-content-hash = "fb8597e50aa4ad27258a9fcc9039f79126b32d29218293736b1c4b8cb531d771"
+content-hash = "20ef98fd89bf1f1ea02544d4cc07a10e0efddd009a4566ecf49b76e771a6d5fa"
