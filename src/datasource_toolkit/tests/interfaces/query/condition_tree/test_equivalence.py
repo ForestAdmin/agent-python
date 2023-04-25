@@ -72,7 +72,7 @@ def test_get_alternatives(
     with pytest.raises(ConditionTreeEquivalentException) as e:
         ConditionTreeEquivalent._get_alternatives(Operator.EQUAL)
 
-    assert str(e.value) == "Unknown operator equal"
+    assert str(e.value) == "🌳🌳🌳Unknown operator equal"
     assert ConditionTreeEquivalent._alternatives == {
         **fake_equality_transforms,
         **fake_pattern_transform,
@@ -93,7 +93,7 @@ def test_get_alternatives(
     with pytest.raises(ConditionTreeEquivalentException) as e:
         ConditionTreeEquivalent._get_alternatives(Operator.EQUAL)
 
-    assert str(e.value) == "Unknown operator equal"
+    assert str(e.value) == "🌳🌳🌳Unknown operator equal"
     equality_transforms_mock.assert_not_called()
     pattern_transforms_mock.assert_not_called()
     time_transforms_mock.assert_not_called()
