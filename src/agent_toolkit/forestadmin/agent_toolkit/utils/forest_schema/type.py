@@ -38,6 +38,20 @@ LiteralBelongsToMany = Literal["BelongsToMany"]
 RelationServer = Union[LiteralHasOne, LiteralHasMany, LiteralBelongsTo, LiteralBelongsToMany]
 
 
+class AgentStackMeta(TypedDict, total=False):
+    engine: Literal["python"]
+    engine_version: str
+    database_type: str
+    orm_version: str
+
+
+class AgentMeta(TypedDict):
+    liana: str
+    liana_version: str
+    stack: AgentStackMeta
+    schemaFileHash: str
+
+
 class ForestServerField(TypedDict, total=False):
     field: str
     type: ColumnAlias
@@ -57,20 +71,6 @@ class ForestServerField(TypedDict, total=False):
 
 
 LiteralPage = Literal["page"]
-
-
-class ForestServerCollection(TypedDict):
-    name: str
-    icon: None
-    integration: None
-    isReadOnly: bool
-    isSearchable: bool
-    isVirtual: bool
-    onlyForRelationships: bool
-    paginationType: LiteralPage
-    actions: NotRequired[List[Any]]
-    fields: List[ForestServerField]
-    segments: NotRequired[List[Any]]
 
 
 class ForestServerActionHooks(TypedDict):
@@ -116,3 +116,22 @@ export type ForestServerSegment = {
 class ForestServerSegment(TypedDict):
     id: str
     name: str
+
+
+class ForestServerCollection(TypedDict):
+    name: str
+    icon: None
+    integration: None
+    isReadOnly: bool
+    isSearchable: bool
+    isVirtual: bool
+    onlyForRelationships: bool
+    paginationType: LiteralPage
+    actions: NotRequired[List[ForestServerAction]]
+    fields: List[ForestServerField]
+    segments: NotRequired[List[ForestServerSegment]]
+
+
+class ForestSchema(TypedDict):
+    data: List[ForestServerCollection]
+    meta: AgentMeta

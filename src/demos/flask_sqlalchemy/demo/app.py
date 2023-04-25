@@ -2,7 +2,7 @@ from demo.forestadmin.agent import agent
 from flask import Flask
 from flask_cors import CORS
 
-agent.loop.run_until_complete(agent.start())
+
 app = Flask(__name__)
 CORS(
     app,
@@ -24,4 +24,6 @@ CORS(
     expose_headers=["Content-Disposition"],
     supports_credentials=True,
 )
-app.register_blueprint(agent.blueprint, url_prefix="/forest")
+
+agent.register_blueprint(app)
+agent.loop.run_until_complete(agent.start())

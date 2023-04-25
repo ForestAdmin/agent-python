@@ -1,24 +1,31 @@
 import asyncio
+import os
+import sys
 from typing import Literal, Optional, Tuple, Union
 
 from flask import Blueprint, request
+from flask.app import Flask
 from flask.wrappers import Request as FlaskRequest
 from flask.wrappers import Response as FlaskResponse
 from forestadmin.agent_toolkit.agent import Agent as BaseAgent
-from forestadmin.agent_toolkit.options import AgentMeta, Options
+from forestadmin.agent_toolkit.options import Options
 from forestadmin.agent_toolkit.resources.base import BaseResource
 from forestadmin.agent_toolkit.resources.collections.crud import LiteralMethod as CrudLiteralMethod
 from forestadmin.agent_toolkit.resources.security.resources import LiteralMethod as AuthLiteralMethod
 from forestadmin.agent_toolkit.utils.context import Request
+from forestadmin.agent_toolkit.utils.forest_schema.type import AgentMeta
 from forestadmin.flask_agent.utils.dispatcher import get_dispatcher_method
 from forestadmin.flask_agent.utils.requests import convert_request, convert_response
 
 
 class Agent(BaseAgent):
     META: AgentMeta = {
+        # "liana": "forest-python-agent",
         "liana": "forest-nodejs-agent",
+        # "liana_version": importlib.metadata.version('forestadmin-agent-flask'),
         "liana_version": "1.0.0",
-        "stack": {"database_type": "postgresql", "orm_version": "3.2.14"},
+        # "stack": {"database_type": "postgresql", "orm_version": "3.2.14"},
+        "stack": {"engine": "python", "engine_version": ".".join(map(str, [*sys.version_info[:3]]))},
     }
 
     def __init__(self, options: Options):
@@ -35,6 +42,10 @@ class Agent(BaseAgent):
     @blueprint.setter
     def blueprint(self, blueprint: Blueprint):
         self._blueprint = blueprint
+
+    def register_blueprint(self, app: Flask):
+        self.options["schema_path"] = os.path.join(app.root_path, ".forestadmin-schema.json")
+        app.register_blueprint(self.blueprint, url_prefix="/forest")
 
 
 def build_agent(options: Options) -> Agent:

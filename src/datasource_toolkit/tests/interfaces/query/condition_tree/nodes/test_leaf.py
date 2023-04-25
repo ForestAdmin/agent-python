@@ -162,7 +162,7 @@ def test_condition_tree_leaf_inverse_exception(operator: Operator):
     tree = ConditionTreeLeaf(field="test", operator=operator)
     with pytest.raises(ConditionTreeLeafException) as e:
         tree.inverse()
-    assert str(e.value) == f"Operator '{operator}' cannot be inverted."
+    assert str(e.value) == f"🌳🌳🌳Operator '{operator}' cannot be inverted."
 
 
 @mock.patch("forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.leaf.ConditionTreeLeaf.load")

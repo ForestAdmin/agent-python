@@ -10,6 +10,7 @@ from typing import Any, Dict, Optional
 import aiohttp
 from forestadmin.agent_toolkit.exceptions import AgentToolkitException
 from forestadmin.agent_toolkit.options import Options
+from forestadmin.agent_toolkit.utils.forest_schema.type import ForestSchema
 
 
 class ForestHttpApiException(AgentToolkitException):
@@ -75,9 +76,23 @@ class ForestHttpApi:
         async with aiohttp.ClientSession() as session:
             try:
                 async with session.post(endpoint, json=body, headers=headers) as response:
-                    print("api map upload status", response.status)
                     if response.status == 200:
                         return await response.json()
                     return None
-            except aiohttp.ClientError:
-                raise ForestHttpApiException(f"Failed to fetch {endpoint}")
+            except aiohttp.ClientError as exc:
+                raise ForestHttpApiException(f"Failed to fetch {endpoint} : {exc}")
+
+    @classmethod
+    async def send_schema(cls, options: Options, schema: ForestSchema):
+        ret = await cls.post(
+            cls.build_enpoint(options["forest_server_url"], "/forest/apimaps/hashcheck"),
+            {"schemaFileHash": schema["meta"]["schemaFileHash"]},
+            {"forest-secret-key": options["env_secret"], "content-type": "application/json"},
+        )
+
+        if ret["sendSchema"] is True:
+            await cls.post(
+                cls.build_enpoint(options["forest_server_url"], "/forest/apimaps"),
+                schema,
+                {"forest-secret-key": options["env_secret"], "content-type": "application/json"},
+            )
