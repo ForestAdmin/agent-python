@@ -17,25 +17,30 @@ class SchemaCollectionGenerator:
         for field_name in collection.schema["fields"].keys():
             if not SchemaUtils.is_foreign_key(collection.schema, field_name):
                 fields.append(SchemaFieldGenerator.build(collection, field_name))
+        fields = sorted(fields, key=lambda field: field["field"])
 
         return {
             "name": collection.name,
-            "isVirtual": False,  # TODO: compute it
+            "isVirtual": False,
             "icon": None,
             "isReadOnly": all(
                 [f["type"] == FieldType.COLUMN and f["is_read_only"] for f in collection.schema["fields"].values()]
             ),
-            "integration": None,  # TODO: ???
+            "integration": None,  # TODO: understand what is this
             "isSearchable": collection.schema["searchable"],
             "onlyForRelationships": False,
             "paginationType": "page",
             "searchField": None,
-            "actions": [
-                await SchemaActionGenerator.build(prefix, collection, name)
-                for name in collection.schema["actions"].keys()
-            ],
-            "segments": [
-                await SchemaSegmentGenerator.build(collection, name) for name in collection.schema["segments"]
-            ],
+            "actions": sorted(
+                [
+                    await SchemaActionGenerator.build(prefix, collection, name)
+                    for name in collection.schema["actions"].keys()
+                ],
+                key=lambda action: action["id"],
+            ),
+            "segments": sorted(
+                [await SchemaSegmentGenerator.build(collection, name) for name in collection.schema["segments"]],
+                key=lambda segment: segment["id"],
+            ),
             "fields": fields,
         }

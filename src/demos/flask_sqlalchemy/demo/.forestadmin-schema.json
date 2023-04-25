@@ -16,40 +16,20 @@
                 {
                     "defaultValue": null,
                     "enums": null,
-                    "field": "id",
-                    "integration": null,
-                    "inverseOf": null,
-                    "isFilterable": true,
-                    "isPrimaryKey": true,
-                    "isReadOnly": true,
-                    "isRequired": false,
-                    "isSortable": true,
-                    "isVirtual": false,
-                    "reference": null,
-                    "type": "Number",
-                    "validations": []
-                },
-                {
-                    "defaultValue": null,
-                    "enums": null,
-                    "field": "street",
-                    "integration": null,
-                    "inverseOf": null,
-                    "isFilterable": true,
+                    "field": "billing_orders",
+                    "inverseOf": "billing_address",
+                    "isFilterable": false,
                     "isPrimaryKey": false,
                     "isReadOnly": false,
-                    "isRequired": true,
-                    "isSortable": true,
+                    "isRequired": false,
+                    "isSortable": false,
                     "isVirtual": false,
-                    "reference": null,
-                    "type": "String",
-                    "validations": [
-                        {
-                            "type": "is present",
-                            "value": null,
-                            "message": null
-                        }
-                    ]
+                    "reference": "order.id",
+                    "relationship": "BelongsToMany",
+                    "type": [
+                        "Number"
+                    ],
+                    "validations": []
                 },
                 {
                     "defaultValue": null,
@@ -72,6 +52,22 @@
                             "message": null
                         }
                     ]
+                },
+                {
+                    "defaultValue": null,
+                    "enums": null,
+                    "field": "complete_address",
+                    "integration": null,
+                    "inverseOf": null,
+                    "isFilterable": false,
+                    "isPrimaryKey": false,
+                    "isReadOnly": true,
+                    "isRequired": false,
+                    "isSortable": false,
+                    "isVirtual": false,
+                    "reference": null,
+                    "type": "String",
+                    "validations": []
                 },
                 {
                     "defaultValue": null,
@@ -116,24 +112,6 @@
                 {
                     "defaultValue": null,
                     "enums": null,
-                    "field": "billing_orders",
-                    "inverseOf": "billing_address",
-                    "isFilterable": false,
-                    "isPrimaryKey": false,
-                    "isReadOnly": false,
-                    "isRequired": false,
-                    "isSortable": false,
-                    "isVirtual": false,
-                    "reference": "order.id",
-                    "relationship": "BelongsToMany",
-                    "type": [
-                        "Number"
-                    ],
-                    "validations": []
-                },
-                {
-                    "defaultValue": null,
-                    "enums": null,
                     "field": "delivering_orders",
                     "inverseOf": "delivering_address",
                     "isFilterable": false,
@@ -152,18 +130,40 @@
                 {
                     "defaultValue": null,
                     "enums": null,
-                    "field": "complete_address",
+                    "field": "id",
                     "integration": null,
                     "inverseOf": null,
-                    "isFilterable": false,
-                    "isPrimaryKey": false,
+                    "isFilterable": true,
+                    "isPrimaryKey": true,
                     "isReadOnly": true,
                     "isRequired": false,
-                    "isSortable": false,
+                    "isSortable": true,
+                    "isVirtual": false,
+                    "reference": null,
+                    "type": "Number",
+                    "validations": []
+                },
+                {
+                    "defaultValue": null,
+                    "enums": null,
+                    "field": "street",
+                    "integration": null,
+                    "inverseOf": null,
+                    "isFilterable": true,
+                    "isPrimaryKey": false,
+                    "isReadOnly": false,
+                    "isRequired": true,
+                    "isSortable": true,
                     "isVirtual": false,
                     "reference": null,
                     "type": "String",
-                    "validations": []
+                    "validations": [
+                        {
+                            "type": "is present",
+                            "value": null,
+                            "message": null
+                        }
+                    ]
                 }
             ]
         },
@@ -245,12 +245,30 @@
                 {
                     "defaultValue": null,
                     "enums": null,
-                    "field": "id",
+                    "field": "addresses",
+                    "inverseOf": "customers",
+                    "isFilterable": false,
+                    "isPrimaryKey": false,
+                    "isReadOnly": false,
+                    "isRequired": false,
+                    "isSortable": false,
+                    "isVirtual": false,
+                    "reference": "address.id",
+                    "relationship": "BelongsToMany",
+                    "type": [
+                        "Number"
+                    ],
+                    "validations": []
+                },
+                {
+                    "defaultValue": null,
+                    "enums": null,
+                    "field": "age",
                     "integration": null,
                     "inverseOf": null,
                     "isFilterable": true,
-                    "isPrimaryKey": true,
-                    "isReadOnly": true,
+                    "isPrimaryKey": false,
+                    "isReadOnly": false,
                     "isRequired": false,
                     "isSortable": true,
                     "isVirtual": false,
@@ -283,6 +301,38 @@
                 {
                     "defaultValue": null,
                     "enums": null,
+                    "field": "full name",
+                    "integration": null,
+                    "inverseOf": null,
+                    "isFilterable": false,
+                    "isPrimaryKey": false,
+                    "isReadOnly": true,
+                    "isRequired": false,
+                    "isSortable": false,
+                    "isVirtual": false,
+                    "reference": null,
+                    "type": "String",
+                    "validations": []
+                },
+                {
+                    "defaultValue": null,
+                    "enums": null,
+                    "field": "id",
+                    "integration": null,
+                    "inverseOf": null,
+                    "isFilterable": true,
+                    "isPrimaryKey": true,
+                    "isReadOnly": true,
+                    "isRequired": false,
+                    "isSortable": true,
+                    "isVirtual": false,
+                    "reference": null,
+                    "type": "Number",
+                    "validations": []
+                },
+                {
+                    "defaultValue": null,
+                    "enums": null,
                     "field": "last_name",
                     "integration": null,
                     "inverseOf": null,
@@ -305,40 +355,6 @@
                 {
                     "defaultValue": null,
                     "enums": null,
-                    "field": "age",
-                    "integration": null,
-                    "inverseOf": null,
-                    "isFilterable": true,
-                    "isPrimaryKey": false,
-                    "isReadOnly": false,
-                    "isRequired": false,
-                    "isSortable": true,
-                    "isVirtual": false,
-                    "reference": null,
-                    "type": "Number",
-                    "validations": []
-                },
-                {
-                    "defaultValue": null,
-                    "enums": null,
-                    "field": "addresses",
-                    "inverseOf": "customers",
-                    "isFilterable": false,
-                    "isPrimaryKey": false,
-                    "isReadOnly": false,
-                    "isRequired": false,
-                    "isSortable": false,
-                    "isVirtual": false,
-                    "reference": "address.id",
-                    "relationship": "BelongsToMany",
-                    "type": [
-                        "Number"
-                    ],
-                    "validations": []
-                },
-                {
-                    "defaultValue": null,
-                    "enums": null,
                     "field": "orders",
                     "inverseOf": "customer",
                     "isFilterable": false,
@@ -352,22 +368,6 @@
                     "type": [
                         "Number"
                     ],
-                    "validations": []
-                },
-                {
-                    "defaultValue": null,
-                    "enums": null,
-                    "field": "full name",
-                    "integration": null,
-                    "inverseOf": null,
-                    "isFilterable": false,
-                    "isPrimaryKey": false,
-                    "isReadOnly": true,
-                    "isRequired": false,
-                    "isSortable": false,
-                    "isVirtual": false,
-                    "reference": null,
-                    "type": "String",
                     "validations": []
                 }
             ]
@@ -388,7 +388,7 @@
                 {
                     "defaultValue": null,
                     "enums": null,
-                    "field": "customer_id",
+                    "field": "address_id",
                     "integration": null,
                     "inverseOf": null,
                     "isFilterable": true,
@@ -404,7 +404,7 @@
                 {
                     "defaultValue": null,
                     "enums": null,
-                    "field": "address_id",
+                    "field": "customer_id",
                     "integration": null,
                     "inverseOf": null,
                     "isFilterable": true,
@@ -464,40 +464,40 @@
             ],
             "segments": [
                 {
-                    "id": "order.Pending order",
-                    "name": "Pending order"
-                },
-                {
-                    "id": "order.Pending order",
-                    "name": "Pending order"
+                    "id": "order.Delivered order",
+                    "name": "Delivered order"
                 },
                 {
                     "id": "order.Delivered order",
                     "name": "Delivered order"
                 },
                 {
-                    "id": "order.Pending order",
-                    "name": "Pending order"
+                    "id": "order.Delivered order",
+                    "name": "Delivered order"
                 },
                 {
                     "id": "order.Delivered order",
                     "name": "Delivered order"
                 },
                 {
-                    "id": "order.Rejected order",
-                    "name": "Rejected order"
-                },
-                {
-                    "id": "order.Pending order",
-                    "name": "Pending order"
+                    "id": "order.Delivered order",
+                    "name": "Delivered order"
                 },
                 {
                     "id": "order.Delivered order",
                     "name": "Delivered order"
                 },
                 {
-                    "id": "order.Rejected order",
-                    "name": "Rejected order"
+                    "id": "order.Dispatched order",
+                    "name": "Dispatched order"
+                },
+                {
+                    "id": "order.Dispatched order",
+                    "name": "Dispatched order"
+                },
+                {
+                    "id": "order.Dispatched order",
+                    "name": "Dispatched order"
                 },
                 {
                     "id": "order.Dispatched order",
@@ -508,56 +508,56 @@
                     "name": "Pending order"
                 },
                 {
-                    "id": "order.Delivered order",
-                    "name": "Delivered order"
+                    "id": "order.Pending order",
+                    "name": "Pending order"
+                },
+                {
+                    "id": "order.Pending order",
+                    "name": "Pending order"
+                },
+                {
+                    "id": "order.Pending order",
+                    "name": "Pending order"
+                },
+                {
+                    "id": "order.Pending order",
+                    "name": "Pending order"
+                },
+                {
+                    "id": "order.Pending order",
+                    "name": "Pending order"
+                },
+                {
+                    "id": "order.Pending order",
+                    "name": "Pending order"
                 },
                 {
                     "id": "order.Rejected order",
                     "name": "Rejected order"
                 },
                 {
-                    "id": "order.Dispatched order",
-                    "name": "Dispatched order"
+                    "id": "order.Rejected order",
+                    "name": "Rejected order"
+                },
+                {
+                    "id": "order.Rejected order",
+                    "name": "Rejected order"
+                },
+                {
+                    "id": "order.Rejected order",
+                    "name": "Rejected order"
+                },
+                {
+                    "id": "order.Rejected order",
+                    "name": "Rejected order"
                 },
                 {
                     "id": "order.Suspicious order",
                     "name": "Suspicious order"
                 },
                 {
-                    "id": "order.Pending order",
-                    "name": "Pending order"
-                },
-                {
-                    "id": "order.Delivered order",
-                    "name": "Delivered order"
-                },
-                {
-                    "id": "order.Rejected order",
-                    "name": "Rejected order"
-                },
-                {
-                    "id": "order.Dispatched order",
-                    "name": "Dispatched order"
-                },
-                {
                     "id": "order.Suspicious order",
                     "name": "Suspicious order"
-                },
-                {
-                    "id": "order.Pending order",
-                    "name": "Pending order"
-                },
-                {
-                    "id": "order.Delivered order",
-                    "name": "Delivered order"
-                },
-                {
-                    "id": "order.Rejected order",
-                    "name": "Rejected order"
-                },
-                {
-                    "id": "order.Dispatched order",
-                    "name": "Dispatched order"
                 },
                 {
                     "id": "order.Suspicious order",
@@ -568,23 +568,23 @@
                 {
                     "defaultValue": null,
                     "enums": null,
-                    "field": "id",
-                    "integration": null,
-                    "inverseOf": null,
+                    "field": "billing_address",
+                    "inverseOf": "billing_orders",
                     "isFilterable": true,
-                    "isPrimaryKey": true,
-                    "isReadOnly": true,
+                    "isPrimaryKey": false,
+                    "isReadOnly": false,
                     "isRequired": false,
                     "isSortable": true,
                     "isVirtual": false,
-                    "reference": null,
+                    "reference": "address.id",
+                    "relationship": "BelongsTo",
                     "type": "Number",
                     "validations": []
                 },
                 {
                     "defaultValue": null,
                     "enums": null,
-                    "field": "created_at",
+                    "field": "billing_address_id",
                     "integration": null,
                     "inverseOf": null,
                     "isFilterable": true,
@@ -594,7 +594,7 @@
                     "isSortable": true,
                     "isVirtual": false,
                     "reference": null,
-                    "type": "Date",
+                    "type": "Number",
                     "validations": []
                 },
                 {
@@ -622,6 +622,38 @@
                 {
                     "defaultValue": null,
                     "enums": null,
+                    "field": "created_at",
+                    "integration": null,
+                    "inverseOf": null,
+                    "isFilterable": true,
+                    "isPrimaryKey": false,
+                    "isReadOnly": false,
+                    "isRequired": false,
+                    "isSortable": true,
+                    "isVirtual": false,
+                    "reference": null,
+                    "type": "Date",
+                    "validations": []
+                },
+                {
+                    "defaultValue": null,
+                    "enums": null,
+                    "field": "customer",
+                    "inverseOf": "orders",
+                    "isFilterable": true,
+                    "isPrimaryKey": false,
+                    "isReadOnly": false,
+                    "isRequired": false,
+                    "isSortable": true,
+                    "isVirtual": false,
+                    "reference": "customer.id",
+                    "relationship": "BelongsTo",
+                    "type": "Number",
+                    "validations": []
+                },
+                {
+                    "defaultValue": null,
+                    "enums": null,
                     "field": "customer_id",
                     "integration": null,
                     "inverseOf": null,
@@ -638,7 +670,23 @@
                 {
                     "defaultValue": null,
                     "enums": null,
-                    "field": "billing_address_id",
+                    "field": "delivering_address",
+                    "inverseOf": "delivering_orders",
+                    "isFilterable": true,
+                    "isPrimaryKey": false,
+                    "isReadOnly": false,
+                    "isRequired": false,
+                    "isSortable": true,
+                    "isVirtual": false,
+                    "reference": "address.id",
+                    "relationship": "BelongsTo",
+                    "type": "Number",
+                    "validations": []
+                },
+                {
+                    "defaultValue": null,
+                    "enums": null,
+                    "field": "delivering_address_id",
                     "integration": null,
                     "inverseOf": null,
                     "isFilterable": true,
@@ -654,12 +702,12 @@
                 {
                     "defaultValue": null,
                     "enums": null,
-                    "field": "delivering_address_id",
+                    "field": "id",
                     "integration": null,
                     "inverseOf": null,
                     "isFilterable": true,
-                    "isPrimaryKey": false,
-                    "isReadOnly": false,
+                    "isPrimaryKey": true,
+                    "isReadOnly": true,
                     "isRequired": false,
                     "isSortable": true,
                     "isVirtual": false,
@@ -687,54 +735,6 @@
                     "reference": null,
                     "type": "Enum",
                     "validations": []
-                },
-                {
-                    "defaultValue": null,
-                    "enums": null,
-                    "field": "customer",
-                    "inverseOf": "orders",
-                    "isFilterable": true,
-                    "isPrimaryKey": false,
-                    "isReadOnly": false,
-                    "isRequired": false,
-                    "isSortable": true,
-                    "isVirtual": false,
-                    "reference": "customer.id",
-                    "relationship": "BelongsTo",
-                    "type": "Number",
-                    "validations": []
-                },
-                {
-                    "defaultValue": null,
-                    "enums": null,
-                    "field": "billing_address",
-                    "inverseOf": "billing_orders",
-                    "isFilterable": true,
-                    "isPrimaryKey": false,
-                    "isReadOnly": false,
-                    "isRequired": false,
-                    "isSortable": true,
-                    "isVirtual": false,
-                    "reference": "address.id",
-                    "relationship": "BelongsTo",
-                    "type": "Number",
-                    "validations": []
-                },
-                {
-                    "defaultValue": null,
-                    "enums": null,
-                    "field": "delivering_address",
-                    "inverseOf": "delivering_orders",
-                    "isFilterable": true,
-                    "isPrimaryKey": false,
-                    "isReadOnly": false,
-                    "isRequired": false,
-                    "isSortable": true,
-                    "isVirtual": false,
-                    "reference": "address.id",
-                    "relationship": "BelongsTo",
-                    "type": "Number",
-                    "validations": []
                 }
             ]
         }
@@ -746,6 +746,6 @@
             "engine": "python",
             "engine_version": "3.10.5"
         },
-        "schemaFileHash": "1b73a789b41e2b7f1be8366200682fa8564b7af3"
+        "schemaFileHash": "f26f4e937fe64bac9d6871b5965de8be4167137d"
     }
 }
