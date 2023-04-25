@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v0.1.0-beta.18 (2023-04-25)
+### Fix
+* **json file:** Handle json schema file on disk ([#67](https://github.com/ForestAdmin/agent-python/issues/67)) ([`313993d`](https://github.com/ForestAdmin/agent-python/commit/313993da39fc4657e974de9f29a4e12bb547a985))
+
 ## v0.1.0-beta.17 (2023-04-20)
 ### Feature
 * **settings:** Add default settings to agent ([#66](https://github.com/ForestAdmin/agent-python/issues/66)) ([`be60191`](https://github.com/ForestAdmin/agent-python/commit/be601917c8ecc2d886e8bcfd826a3f282f8b2815))
