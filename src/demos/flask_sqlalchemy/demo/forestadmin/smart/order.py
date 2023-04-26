@@ -1,13 +1,14 @@
 import io
 import json
-from typing import Union
+from typing import Union, List
 
 from demo.models.models import ORDER_STATUS
 from forestadmin.datasource_toolkit.context.collection_context import CollectionCustomizationContext
 from forestadmin.datasource_toolkit.decorators.action.context.base import ActionContext
 from forestadmin.datasource_toolkit.decorators.action.result_builder import ResultBuilder
 from forestadmin.datasource_toolkit.decorators.action.types.actions import ActionGlobal
-from forestadmin.datasource_toolkit.interfaces.actions import ActionResult
+from forestadmin.datasource_toolkit.interfaces.actions import ActionResult, ActionFieldType
+from forestadmin.datasource_toolkit.decorators.action.types.fields import PlainDynamicField
 from forestadmin.datasource_toolkit.interfaces.fields import Operator
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.branch import Aggregator, ConditionTreeBranch
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.leaf import ConditionTreeLeaf
@@ -54,14 +55,24 @@ def suspicious_order_segment(context: CollectionCustomizationContext):
 
 class ExportJson(ActionGlobal):
     GENERATE_FILE: bool = True
+    FORM: List[PlainDynamicField] = [
+        {
+            "type": ActionFieldType.STRING,
+            "label": "dummy field",
+            "is_required": False,
+            "description": "",
+            "default_value": "",
+            "value": "",
+        },
+    ]
 
     async def execute(self, context: ActionContext, result_builder: ResultBuilder) -> Union[None, ActionResult]:
         records = await context.get_records(
             Projection(
                 "id",
                 "customer:full name",
-                "billing_address:full address",
-                "delivering_address:full address",
+                "billing_address:complete_address",
+                "delivering_address:complete_address",
                 "status",
                 "cost",
             )

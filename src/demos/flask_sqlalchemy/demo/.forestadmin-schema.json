@@ -231,14 +231,6 @@
                 {
                     "id": "customer.with french address",
                     "name": "with french address"
-                },
-                {
-                    "id": "customer.with french address",
-                    "name": "with french address"
-                },
-                {
-                    "id": "customer.with french address",
-                    "name": "with french address"
                 }
             ],
             "fields": [
@@ -468,38 +460,6 @@
                     "name": "Delivered order"
                 },
                 {
-                    "id": "order.Delivered order",
-                    "name": "Delivered order"
-                },
-                {
-                    "id": "order.Delivered order",
-                    "name": "Delivered order"
-                },
-                {
-                    "id": "order.Delivered order",
-                    "name": "Delivered order"
-                },
-                {
-                    "id": "order.Delivered order",
-                    "name": "Delivered order"
-                },
-                {
-                    "id": "order.Delivered order",
-                    "name": "Delivered order"
-                },
-                {
-                    "id": "order.Dispatched order",
-                    "name": "Dispatched order"
-                },
-                {
-                    "id": "order.Dispatched order",
-                    "name": "Dispatched order"
-                },
-                {
-                    "id": "order.Dispatched order",
-                    "name": "Dispatched order"
-                },
-                {
                     "id": "order.Dispatched order",
                     "name": "Dispatched order"
                 },
@@ -508,56 +468,8 @@
                     "name": "Pending order"
                 },
                 {
-                    "id": "order.Pending order",
-                    "name": "Pending order"
-                },
-                {
-                    "id": "order.Pending order",
-                    "name": "Pending order"
-                },
-                {
-                    "id": "order.Pending order",
-                    "name": "Pending order"
-                },
-                {
-                    "id": "order.Pending order",
-                    "name": "Pending order"
-                },
-                {
-                    "id": "order.Pending order",
-                    "name": "Pending order"
-                },
-                {
-                    "id": "order.Pending order",
-                    "name": "Pending order"
-                },
-                {
                     "id": "order.Rejected order",
                     "name": "Rejected order"
-                },
-                {
-                    "id": "order.Rejected order",
-                    "name": "Rejected order"
-                },
-                {
-                    "id": "order.Rejected order",
-                    "name": "Rejected order"
-                },
-                {
-                    "id": "order.Rejected order",
-                    "name": "Rejected order"
-                },
-                {
-                    "id": "order.Rejected order",
-                    "name": "Rejected order"
-                },
-                {
-                    "id": "order.Suspicious order",
-                    "name": "Suspicious order"
-                },
-                {
-                    "id": "order.Suspicious order",
-                    "name": "Suspicious order"
                 },
                 {
                     "id": "order.Suspicious order",
@@ -746,6 +658,6 @@
             "engine": "python",
             "engine_version": "3.10.5"
         },
-        "schemaFileHash": "f26f4e937fe64bac9d6871b5965de8be4167137d"
+        "schemaFileHash": "fcd198f57dad588ec7c09969da1f88e0afa148b0"
     }
 }
