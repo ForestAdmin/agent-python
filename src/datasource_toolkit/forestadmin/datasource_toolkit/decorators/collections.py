@@ -13,8 +13,8 @@ from forestadmin.datasource_toolkit.interfaces.models.collections import Collect
 
 class CustomizedCollection(
     ActionMixin,
-    ComputedMixin,
     RenameMixin,
+    ComputedMixin,
     OperatorReplaceMixin,
     SegmentMixin,
     PublicationMixin,
