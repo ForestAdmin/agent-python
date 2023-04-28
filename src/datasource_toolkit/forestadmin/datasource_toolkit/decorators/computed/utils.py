@@ -57,7 +57,7 @@ def unflatten(flats: FlatRecordList, projection: Projection) -> List[Optional[Re
     for column in projection.columns:
         path_index: int = projection.index(column)  # type: ignore
         for idx, value in enumerate(flats[path_index]):
-            records[idx][column] = value or None
+            records[idx][column] = value
 
     for relation, paths in projection.relations.items():
         sub_flats = [flats[projection.index(f"{relation}:{path}")] for path in paths]  # type: ignore
