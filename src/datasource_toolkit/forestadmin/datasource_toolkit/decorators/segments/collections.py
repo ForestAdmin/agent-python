@@ -24,7 +24,7 @@ class SegmentMixin:
 
     def _refine_schema(self) -> CollectionSchema:
         schema: CollectionSchema = super(SegmentMixin, self)._refine_schema()  # type: ignore
-        schema["segments"] = [*schema["segments"], *self._segments.keys()]
+        schema["segments"] = [*self._segments.keys()]
         self._last_schema = schema
         return schema
 

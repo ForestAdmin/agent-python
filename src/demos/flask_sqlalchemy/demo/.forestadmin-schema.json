@@ -11,7 +11,12 @@
             "paginationType": "page",
             "searchField": null,
             "actions": [],
-            "segments": [],
+            "segments": [
+                {
+                    "id": "address.highOrderDelivery",
+                    "name": "highOrderDelivery"
+                }
+            ],
             "fields": [
                 {
                     "defaultValue": null,
@@ -231,17 +236,25 @@
                 {
                     "id": "customer.with french address",
                     "name": "with french address"
-                },
-                {
-                    "id": "customer.with french address",
-                    "name": "with french address"
-                },
-                {
-                    "id": "customer.with french address",
-                    "name": "with french address"
                 }
             ],
             "fields": [
+                {
+                    "defaultValue": null,
+                    "enums": null,
+                    "field": "TotalSpending",
+                    "integration": null,
+                    "inverseOf": null,
+                    "isFilterable": false,
+                    "isPrimaryKey": false,
+                    "isReadOnly": true,
+                    "isRequired": false,
+                    "isSortable": false,
+                    "isVirtual": false,
+                    "reference": null,
+                    "type": "Number",
+                    "validations": []
+                },
                 {
                     "defaultValue": null,
                     "enums": null,
@@ -301,7 +314,7 @@
                 {
                     "defaultValue": null,
                     "enums": null,
-                    "field": "full name",
+                    "field": "full_name",
                     "integration": null,
                     "inverseOf": null,
                     "isFilterable": false,
@@ -468,38 +481,6 @@
                     "name": "Delivered order"
                 },
                 {
-                    "id": "order.Delivered order",
-                    "name": "Delivered order"
-                },
-                {
-                    "id": "order.Delivered order",
-                    "name": "Delivered order"
-                },
-                {
-                    "id": "order.Delivered order",
-                    "name": "Delivered order"
-                },
-                {
-                    "id": "order.Delivered order",
-                    "name": "Delivered order"
-                },
-                {
-                    "id": "order.Delivered order",
-                    "name": "Delivered order"
-                },
-                {
-                    "id": "order.Dispatched order",
-                    "name": "Dispatched order"
-                },
-                {
-                    "id": "order.Dispatched order",
-                    "name": "Dispatched order"
-                },
-                {
-                    "id": "order.Dispatched order",
-                    "name": "Dispatched order"
-                },
-                {
                     "id": "order.Dispatched order",
                     "name": "Dispatched order"
                 },
@@ -508,56 +489,8 @@
                     "name": "Pending order"
                 },
                 {
-                    "id": "order.Pending order",
-                    "name": "Pending order"
-                },
-                {
-                    "id": "order.Pending order",
-                    "name": "Pending order"
-                },
-                {
-                    "id": "order.Pending order",
-                    "name": "Pending order"
-                },
-                {
-                    "id": "order.Pending order",
-                    "name": "Pending order"
-                },
-                {
-                    "id": "order.Pending order",
-                    "name": "Pending order"
-                },
-                {
-                    "id": "order.Pending order",
-                    "name": "Pending order"
-                },
-                {
                     "id": "order.Rejected order",
                     "name": "Rejected order"
-                },
-                {
-                    "id": "order.Rejected order",
-                    "name": "Rejected order"
-                },
-                {
-                    "id": "order.Rejected order",
-                    "name": "Rejected order"
-                },
-                {
-                    "id": "order.Rejected order",
-                    "name": "Rejected order"
-                },
-                {
-                    "id": "order.Rejected order",
-                    "name": "Rejected order"
-                },
-                {
-                    "id": "order.Suspicious order",
-                    "name": "Suspicious order"
-                },
-                {
-                    "id": "order.Suspicious order",
-                    "name": "Suspicious order"
                 },
                 {
                     "id": "order.Suspicious order",
@@ -649,6 +582,22 @@
                     "reference": "customer.id",
                     "relationship": "BelongsTo",
                     "type": "Number",
+                    "validations": []
+                },
+                {
+                    "defaultValue": null,
+                    "enums": null,
+                    "field": "customer\\ full_name",
+                    "integration": null,
+                    "inverseOf": null,
+                    "isFilterable": false,
+                    "isPrimaryKey": false,
+                    "isReadOnly": true,
+                    "isRequired": false,
+                    "isSortable": false,
+                    "isVirtual": false,
+                    "reference": null,
+                    "type": "String",
                     "validations": []
                 },
                 {
@@ -746,6 +695,6 @@
             "engine": "python",
             "engine_version": "3.10.5"
         },
-        "schemaFileHash": "f26f4e937fe64bac9d6871b5965de8be4167137d"
+        "schemaFileHash": "ad8f45b1e446b83bd0f58dd11d83986bbb268f50"
     }
 }

@@ -244,6 +244,16 @@ class NumberDynamicField(Generic[Context], BaseDynamicField[Context, Union[int, 
     TYPE = ActionFieldType.NUMBER
 
 
+class PlainStringDynamicField(PlainField):
+    if_: NotRequired[ValueOrHandler[ActionContext, Any]]
+    value: NotRequired[ValueOrHandler[ActionContext, str]]
+    default_value: NotRequired[ValueOrHandler[ActionContext, str]]
+
+
+class StringDynamicField(Generic[Context], BaseDynamicField[Context, str]):
+    TYPE = ActionFieldType.STRING
+
+
 class PlainListNumberDynamicField(PlainField):
     if_: NotRequired[ValueOrHandler[ActionContext, Any]]
     value: NotRequired[ValueOrHandler[ActionContext, Union[int, float]]]
@@ -280,6 +290,7 @@ DynamicField = Union[
     EnumDynamicField[Context],
     EnumListDynamicField[Context],
     NumberDynamicField[Context],
+    StringDynamicField[Context],
     NumberListDynamicField[Context],
     JsonDynamicField[Context],
     FileDynamicField[Context],
@@ -291,6 +302,7 @@ PlainDynamicField = Union[
     PlainEnumDynamicField,
     PlainListEnumDynamicField,
     PlainNumberDynamicField,
+    PlainStringDynamicField,
     PlainListNumberDynamicField,
     PlainJsonDynamicField,
     PlainFileDynamicField,
@@ -305,6 +317,8 @@ class FieldFactory(Generic[Context]):
     FIELD_FOR_TYPE: Any = {
         ActionFieldType.COLLECTION: CollectionDynamicField,
         ActionFieldType.NUMBER: NumberDynamicField,
+        ActionFieldType.NUMBER_LIST: NumberListDynamicField,
+        ActionFieldType.STRING: StringDynamicField,
         ActionFieldType.BOOLEAN: BooleanDynamicField,
         ActionFieldType.ENUM: EnumDynamicField,
         ActionFieldType.JSON: JsonDynamicField,

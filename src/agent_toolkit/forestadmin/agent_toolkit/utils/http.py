@@ -1,11 +1,9 @@
 import sys
 
 if sys.version_info >= (3, 8):
-    from typing import TypedDict
+    from typing import Any, Dict, Optional, TypedDict
 else:
-    from typing_extensions import TypedDict
-
-from typing import Any, Dict, Optional
+    from typing_extensions import TypedDict, Any, Dict, Optional
 
 import aiohttp
 from forestadmin.agent_toolkit.exceptions import AgentToolkitException

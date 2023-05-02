@@ -14,7 +14,7 @@ class FormValueObserver(dict[str, Any]):
         super().__init__(*args, **kwargs)
         self._used: Set[str] = set()
 
-    def get(self, __key: str, default: Any) -> Any:
+    def get(self, __key: str, default: Any = None) -> Any:
         self._used.add(__key)
         return super().get(__key, default)
 
