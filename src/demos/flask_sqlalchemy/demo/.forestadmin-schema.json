@@ -11,7 +11,12 @@
             "paginationType": "page",
             "searchField": null,
             "actions": [],
-            "segments": [],
+            "segments": [
+                {
+                    "id": "address.highOrderDelivery",
+                    "name": "highOrderDelivery"
+                }
+            ],
             "fields": [
                 {
                     "defaultValue": null,
@@ -237,6 +242,22 @@
                 {
                     "defaultValue": null,
                     "enums": null,
+                    "field": "TotalSpending",
+                    "integration": null,
+                    "inverseOf": null,
+                    "isFilterable": false,
+                    "isPrimaryKey": false,
+                    "isReadOnly": true,
+                    "isRequired": false,
+                    "isSortable": false,
+                    "isVirtual": false,
+                    "reference": null,
+                    "type": "Number",
+                    "validations": []
+                },
+                {
+                    "defaultValue": null,
+                    "enums": null,
                     "field": "addresses",
                     "inverseOf": "customers",
                     "isFilterable": false,
@@ -293,7 +314,7 @@
                 {
                     "defaultValue": null,
                     "enums": null,
-                    "field": "full name",
+                    "field": "full_name",
                     "integration": null,
                     "inverseOf": null,
                     "isFilterable": false,
@@ -566,6 +587,22 @@
                 {
                     "defaultValue": null,
                     "enums": null,
+                    "field": "customer\\ full_name",
+                    "integration": null,
+                    "inverseOf": null,
+                    "isFilterable": false,
+                    "isPrimaryKey": false,
+                    "isReadOnly": true,
+                    "isRequired": false,
+                    "isSortable": false,
+                    "isVirtual": false,
+                    "reference": null,
+                    "type": "String",
+                    "validations": []
+                },
+                {
+                    "defaultValue": null,
+                    "enums": null,
                     "field": "customer_id",
                     "integration": null,
                     "inverseOf": null,
@@ -658,6 +695,6 @@
             "engine": "python",
             "engine_version": "3.10.5"
         },
-        "schemaFileHash": "fcd198f57dad588ec7c09969da1f88e0afa148b0"
+        "schemaFileHash": "ad8f45b1e446b83bd0f58dd11d83986bbb268f50"
     }
 }
