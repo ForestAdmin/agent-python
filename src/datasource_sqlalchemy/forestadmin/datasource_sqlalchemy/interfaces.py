@@ -3,6 +3,7 @@ from typing import Any, Callable, List, Optional, Tuple
 
 from forestadmin.datasource_sqlalchemy.utils.relationships import Relationships
 from forestadmin.datasource_toolkit.collections import Collection
+from forestadmin.datasource_toolkit.datasources import Datasource
 from forestadmin.datasource_toolkit.interfaces.query.projections import Projection
 from forestadmin.datasource_toolkit.interfaces.records import RecordsDataAlias
 from sqlalchemy import Table
@@ -47,3 +48,7 @@ class BaseSqlAlchemyCollection(Collection, abc.ABC):
     @abc.abstractproperty
     def factory(self) -> BaseSqlAlchemyCollectionFactory:  # type: ignore
         pass
+
+
+class BaseSqlAlchemyDatasource(Datasource[Collection], abc.ABC):
+    pass
