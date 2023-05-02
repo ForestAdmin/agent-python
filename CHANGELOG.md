@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v0.1.0-beta.19 (2023-05-02)
+### Feature
+* **datasource:** Add datasource customizer ([#68](https://github.com/ForestAdmin/agent-python/issues/68)) ([`3001fb2`](https://github.com/ForestAdmin/agent-python/commit/3001fb2b30a28324feadd481081cc7042d87f1a9))
+
 ## v0.1.0-beta.18 (2023-04-25)
 ### Fix
 * **json file:** Handle json schema file on disk ([#67](https://github.com/ForestAdmin/agent-python/issues/67)) ([`313993d`](https://github.com/ForestAdmin/agent-python/commit/313993da39fc4657e974de9f29a4e12bb547a985))
