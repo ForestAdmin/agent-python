@@ -3,7 +3,7 @@ from unittest.mock import MagicMock, Mock, patch
 
 from forestadmin.datasource_sqlalchemy.datasource import SqlAlchemyDatasource
 
-from .fixture import models
+from tests.fixture import models
 
 
 class TestSqlAlchemyDatasource(TestCase):

@@ -1,5 +1,0 @@
-[run]
-source=
-    forestadmin
-omit =
-    tests
