@@ -4,7 +4,7 @@ import os
 from datetime import date, datetime
 
 from sqlalchemy import Column, DateTime, Enum, ForeignKey, Integer, String, create_engine, func, types
-from sqlalchemy.orm import declarative_base, relationship, sessionmaker
+from sqlalchemy.orm import declarative_base, relationship, sessionmaker, validates
 
 test_db_path = os.path.abspath(os.path.join(__file__, "..", "..", "..", "..", "..", "test_db.sql"))
 engine = create_engine(f"sqlite:///{test_db_path}", echo=False)
@@ -61,6 +61,18 @@ class Address(Base):
     country = Column(String(254), nullable=False)
     zip_code = Column(String(5), nullable=False)
     customers = relationship("Customer", secondary="customers_addresses", back_populates="addresses")
+
+    @validates("zip_code")
+    def validate_zip_code(self, key, zip_code):
+        try:
+            int(zip_code)
+        except ValueError:
+            raise TypeError("zip_code must be 5 numbers string")
+
+        if len(str(zip_code)) != 5:
+            raise TypeError("zip_code must be 5 numbers string")
+
+        return str(zip_code)
 
 
 class Customer(Base):
