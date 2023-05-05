@@ -55,6 +55,7 @@ pytest = "~=7.1"
 pytest-asyncio = "~=0.18"
 coverage = "~=6.5"
 freezegun = "~=1.2.0"
+pytest-cov = "^4.0.0"
 [[tool.poetry.group.test.dependencies.mock]]
 version = "4.0"
 python = "3.7"
