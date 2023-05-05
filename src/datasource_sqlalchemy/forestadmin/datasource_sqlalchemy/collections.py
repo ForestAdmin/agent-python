@@ -1,7 +1,12 @@
-import zoneinfo
+import sys
 from collections import defaultdict
 from datetime import datetime
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union, cast
+
+if sys.version_info >= (3, 9):
+    import zoneinfo
+else:
+    from backports import zoneinfo
 
 from forestadmin.datasource_sqlalchemy.exceptions import SqlAlchemyCollectionException, handle_sqlalchemy_error
 from forestadmin.datasource_sqlalchemy.interfaces import (
@@ -59,7 +64,7 @@ class SqlAlchemyCollectionFactory(BaseSqlAlchemyCollectionFactory):
                 unknown_fields = self._unknown_fields(data)
                 if unknown_fields:
                     raise SqlAlchemyCollectionException(
-                        f'Unknow fields "{unknown_fields}" for the model "{self.collection.model.__class__.__name__}"'
+                        f'Unknown fields "{unknown_fields}" for the model "{self.collection.model.__class__.__name__}"'
                     )
                 raise e
         raise
