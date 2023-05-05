@@ -1,0 +1,72 @@
+[
+    {
+        "id": 1,
+        "street": "3160 Shah Fords",
+        "city": "Amymouth",
+        "country": "Maldives",
+        "zip_code": "92403"
+    },
+    {
+        "id": 2,
+        "street": "358 Heidi Corners Apt. 576",
+        "city": "Darrentown",
+        "country": "Cape Verde",
+        "zip_code": "20309"
+    },
+    {
+        "id": 3,
+        "street": "00220 Shelley Dam",
+        "city": "Byrdberg",
+        "country": "Estonia",
+        "zip_code": "76281"
+    },
+    {
+        "id": 4,
+        "street": "4579 Weber Crescent Suite 115",
+        "city": "New Kathychester",
+        "country": "Korea",
+        "zip_code": "77629"
+    },
+    {
+        "id": 5,
+        "street": "9295 Melissa Forks",
+        "city": "West Brendaburgh",
+        "country": "Montenegro",
+        "zip_code": "24743"
+    },
+    {
+        "id": 6,
+        "street": "409 Laura Orchard Suite 099",
+        "city": "South Kendratown",
+        "country": "Congo",
+        "zip_code": "43666"
+    },
+    {
+        "id": 7,
+        "street": "7739 Little Well Suite 258",
+        "city": "Jonathonburgh",
+        "country": "Tunisia",
+        "zip_code": "92405"
+    },
+    {
+        "id": 8,
+        "street": "2526 Michael Stream",
+        "city": "New Brent",
+        "country": "Aruba",
+        "zip_code": "98553"
+    },
+    {
+        "id": 9,
+        "street": "03088 Moore Dam Suite 532",
+        "city": "Reneefort",
+        "country": "Liberia",
+        "zip_code": "80850"
+    },
+    {
+        "id": 10,
+        "street": "96626 Ashley Harbors Suite 531",
+        "city": "East Stephen",
+        "country": "Malaysia",
+        "zip_code": "60585"
+    }
+]

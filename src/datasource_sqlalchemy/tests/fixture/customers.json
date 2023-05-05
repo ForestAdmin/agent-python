@@ -1,0 +1,62 @@
+[
+    {
+        "id": 1,
+        "first_name": "David",
+        "last_name": "Myers",
+        "age": 112
+    },
+    {
+        "id": 2,
+        "first_name": "Thomas",
+        "last_name": "Odom",
+        "age": 92
+    },
+    {
+        "id": 3,
+        "first_name": "Kendra",
+        "last_name": "Le",
+        "age": 31
+    },
+    {
+        "id": 4,
+        "first_name": "Keith",
+        "last_name": "Gonzalez",
+        "age": 101
+    },
+    {
+        "id": 5,
+        "first_name": "Latasha",
+        "last_name": "Scott",
+        "age": null
+    },
+    {
+        "id": 6,
+        "first_name": "Chad",
+        "last_name": "Conley",
+        "age": null
+    },
+    {
+        "id": 7,
+        "first_name": "Jesse",
+        "last_name": "Waller",
+        "age": 29
+    },
+    {
+        "id": 8,
+        "first_name": "Christine",
+        "last_name": "Fitzgerald",
+        "age": 116
+    },
+    {
+        "id": 9,
+        "first_name": "Richard",
+        "last_name": "Hamilton",
+        "age": null
+    },
+    {
+        "id": 10,
+        "first_name": "Nicole",
+        "last_name": "Davis",
+        "age": null
+    }
+]

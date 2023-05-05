@@ -4,7 +4,8 @@ from sqlalchemy import Column, DateTime, Enum, ForeignKey, Integer, String, crea
 from sqlalchemy.orm import declarative_base, relationship
 
 engine = create_engine("sqlite:///db.sql", echo=False)
-Base = declarative_base(bind=engine)
+Base = declarative_base()
+Base.metadata.bind = engine
 
 
 class ORDER_STATUS(enum.Enum):
