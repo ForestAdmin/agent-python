@@ -145,7 +145,7 @@ class QueryFactory:
     ):
         if not relationships:
             relationships = defaultdict(list)
-        query: Any = select(columns).select_from(collection.mapper)
+        query: Any = select(*columns).select_from(collection.mapper)
         if filter:
             options = PaginatedFilterFactory.build(collection, filter)
             relationships = merge_relationships(relationships, options.get("relationships", {}))
