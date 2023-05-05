@@ -1,13 +1,6 @@
 import asyncio
 import os
-import sys
-from datetime import datetime
-
-if sys.version_info >= (3, 9):
-    import zoneinfo
-else:
-    from backports import zoneinfo
-
+from datetime import datetime, timezone
 from unittest import TestCase
 from unittest.mock import Mock, patch
 
@@ -192,7 +185,7 @@ class TestSqlAlchemyCollectionWithModels(TestCase):
     def test_create(self):
         order = {
             "id": 11,
-            "created_at": datetime(2021, 5, 30, 1, 9, 31, tzinfo=zoneinfo.ZoneInfo(key="UTC")),
+            "created_at": datetime(2021, 5, 30, 1, 9, 31, tzinfo=timezone.utc),
             "amount": 42,
             "customer_id": 6,
             "billing_address_id": 4,
@@ -216,7 +209,7 @@ class TestSqlAlchemyCollectionWithModels(TestCase):
     def test_create_error(self):
         order = {
             "id": 11,
-            "created_at": datetime(2021, 5, 30, 1, 9, 31, tzinfo=zoneinfo.ZoneInfo(key="UTC")),
+            "created_at": datetime(2021, 5, 30, 1, 9, 31, tzinfo=timezone.utc),
             # "amount": 42, # this field is mandatory
             "customer_id": 6,
             "billing_address_id": 4,
@@ -229,7 +222,7 @@ class TestSqlAlchemyCollectionWithModels(TestCase):
     def test_delete(self):
         order = {
             "id": 12,
-            "created_at": datetime(2021, 5, 30, 1, 9, 31, tzinfo=zoneinfo.ZoneInfo(key="UTC")),
+            "created_at": datetime(2021, 5, 30, 1, 9, 31, tzinfo=timezone.utc),
             "amount": 99,
             "customer_id": 9,
             "billing_address_id": 9,
