@@ -10,5 +10,5 @@ jobs:
     with:
       packages: '["./src/datasource_toolkit/", "./src/datasource_sqlalchemy/", "./src/agent_toolkit/", "./src/flask_agent/"]'
     secrets:
-      CC_TEST_REPORTER_ID: 'fake'
+      CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
       PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
