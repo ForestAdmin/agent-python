@@ -156,7 +156,7 @@ class FilterOperator:
             return getattr(cls, meth)(columns[0])
 
     @classmethod
-    def get_for_type(cls, _type: ColumnAlias) -> set[Operator]:
+    def get_for_type(cls, _type: ColumnAlias) -> Set[Operator]:
         operators: Set[Operator] = set()
         if isinstance(_type, list):
             operators = {
