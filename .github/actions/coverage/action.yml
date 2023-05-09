@@ -41,4 +41,4 @@ runs:
         CC_TEST_REPORTER_ID: ${{ inputs.CC_TEST_REPORTER_ID }}
       with:
         workingDirectory: ${{ inputs.current_package }}
-        coverageCommand: coverage xml
+        coverageCommand: poetry run coverage xml
