@@ -1,11 +1,16 @@
 import datetime
 import random
-import zoneinfo
+import sys
 from typing import Any, List, Set
 
 from demo.models.models import ORDER_STATUS, Address, Base, Customer, Order
 from faker import Faker
 from sqlalchemy.orm import sessionmaker
+
+if sys.version_info >= (3, 9):
+    import zoneinfo
+else:
+    from backports import zoneinfo
 
 fake = Faker(["it_IT", "en_US", "ja_JP", "fr_FR"])
 Session = sessionmaker(Base.metadata.bind)

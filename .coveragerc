@@ -1,0 +1,13 @@
+[run]
+source=
+    src
+    src/datasource_sqlalchemy/forestadmin/datasource_sqlalchemy
+    src/datasource_toolkit/forestadmin/datasource_toolkit
+    src/agent_toolkit/forestadmin/agent_toolkit
+    src/flask_agent/forestadmin/flask_agent
+omit =
+    **/tests/**
+    src/datasource_sqlalchemy/tests/**
+    src/datasource_toolkit/tests/**
+    src/agent_toolkit/tests/**
+    src/flask_agent/tests/**

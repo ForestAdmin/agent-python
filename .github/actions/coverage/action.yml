@@ -34,16 +34,11 @@ runs:
     - name: Combine reports
       shell: bash
       working-directory: ${{ inputs.current_package }}
-      run: |
-        pwd
-        ls 
-        ls ..
-        poetry run coverage combine ../../coverage/code-coverage-report.*/.coverage
-#    - name: Send coverage
-#      shell: bash
-#      working-directory: ${{ inputs.current_package }}
-#      uses: paambaati/codeclimate-action@v2.7.4
-#      with:
-#        coverageCommand: coverage xml
-#      env:
-#        CC_TEST_REPORTER_ID: ${{ inputs.CC_TEST_REPORTER_ID }}
+      run: poetry run coverage combine ../../coverage/code-coverage-report.*/.coverage
+    - name: Send coverage
+      uses: paambaati/codeclimate-action@v2.7.4
+      env:
+        CC_TEST_REPORTER_ID: ${{ inputs.CC_TEST_REPORTER_ID }}
+      with:
+        workingDirectory: ${{ inputs.current_package }}
+        coverageCommand: poetry run coverage xml
