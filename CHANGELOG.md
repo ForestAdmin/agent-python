@@ -2,6 +2,9 @@
 
 <!--next-version-placeholder-->
 
+## v0.1.0-beta.20 (2023-05-10)
+
+
 ## v0.1.0-beta.19 (2023-05-02)
 ### Feature
 * **datasource:** Add datasource customizer ([#68](https://github.com/ForestAdmin/agent-python/issues/68)) ([`3001fb2`](https://github.com/ForestAdmin/agent-python/commit/3001fb2b30a28324feadd481081cc7042d87f1a9))
