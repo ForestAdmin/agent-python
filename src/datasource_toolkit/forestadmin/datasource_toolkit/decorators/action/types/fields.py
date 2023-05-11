@@ -21,7 +21,7 @@ ValueOrHandler = Union[Callable[[Context], Awaitable[Result]], Callable[[Context
 
 class PlainBaseDynamicField(TypedDict):
     label: str
-    description: str
+    description: NotRequired[str]
     is_required: NotRequired[bool]
     is_read_only: NotRequired[bool]
 
@@ -37,7 +37,7 @@ class BaseDynamicField(Generic[Context, Result]):
     def __init__(
         self,
         label: str,
-        description: str,
+        description: Optional[str] = "",
         is_required: Optional[ValueOrHandler[Context, bool]] = False,
         is_read_only: Optional[ValueOrHandler[Context, bool]] = False,
         if_: Optional[ValueOrHandler[Context, Any]] = None,
@@ -116,7 +116,7 @@ class CollectionDynamicField(Generic[Context], BaseDynamicField[Context, Composi
         self,
         collection_name: ValueOrHandler[Context, str],
         label: str,
-        description: str,
+        description: Optional[str] = "",
         is_required: Optional[ValueOrHandler[Context, bool]] = False,
         is_read_only: Optional[ValueOrHandler[Context, bool]] = False,
         if_: Optional[Awaitable[Any]] = None,
@@ -161,7 +161,7 @@ class EnumDynamicField(BaseDynamicField[Context, str], Generic[Context]):
         self,
         enum_values: ValueOrHandler[Context, List[str]],
         label: str,
-        description: str,
+        description: Optional[str] = "",
         is_required: Optional[ValueOrHandler[Context, bool]] = False,
         is_read_only: Optional[ValueOrHandler[Context, bool]] = False,
         if_: Optional[Awaitable[Any]] = None,
@@ -202,7 +202,7 @@ class EnumListDynamicField(Generic[Context], BaseDynamicField[Context, List[str]
         self,
         enum_values: ValueOrHandler[Context, List[str]],
         label: str,
-        description: str,
+        description: Optional[str] = "",
         is_required: Optional[ValueOrHandler[Context, bool]] = False,
         is_read_only: Optional[ValueOrHandler[Context, bool]] = False,
         if_: Optional[Awaitable[Any]] = None,
