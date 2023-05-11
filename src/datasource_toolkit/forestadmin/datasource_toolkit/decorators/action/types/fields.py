@@ -1,4 +1,11 @@
-from typing import Any, Awaitable, Callable, Generic, List, Optional, TypedDict, TypeVar, Union
+import sys
+
+if sys.version_info >= (3, 8):
+    from typing import TypedDict
+else:
+    from typing_extensions import TypedDict
+
+from typing import Any, Awaitable, Callable, Generic, List, Optional, TypeVar, Union
 
 from forestadmin.datasource_toolkit.decorators.action.context.base import ActionContext
 from forestadmin.datasource_toolkit.exceptions import DatasourceToolkitException
@@ -177,7 +184,7 @@ class EnumDynamicField(BaseDynamicField[Context, str], Generic[Context]):
         return res
 
     @classmethod
-    def from_plain_field(cls, plain_field: PlainEnumDynamicField[Context, List[str]]) -> Self:  # type: ignore
+    def from_plain_field(cls, plain_field: PlainEnumDynamicField) -> Self:  # type: ignore
         return cls(**plain_field)  # type: ignore
 
 
@@ -220,7 +227,7 @@ class EnumListDynamicField(Generic[Context], BaseDynamicField[Context, List[str]
         return res
 
     @classmethod
-    def from_plain_field(cls, plain_field: PlainListEnumDynamicField[Context, List[str]]) -> Self:  # type: ignore
+    def from_plain_field(cls, plain_field: PlainListEnumDynamicField) -> Self:  # type: ignore
         return cls(**plain_field)  # type: ignore
 
 

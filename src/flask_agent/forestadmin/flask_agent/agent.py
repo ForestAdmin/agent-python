@@ -1,7 +1,14 @@
 import asyncio
 import os
 import sys
-from typing import Literal, Optional, Tuple, Union
+from typing import Optional, Tuple, Union
+
+from forestadmin.flask_agent.exception import FlaskAgentException
+
+if sys.version_info >= (3, 8):
+    from typing import Literal
+else:
+    from typing_extensions import Literal
 
 from flask import Blueprint, request
 from flask.app import Flask
@@ -31,12 +38,12 @@ class Agent(BaseAgent):
     def __init__(self, options: Options):
         super(Agent, self).__init__(options)
         self._blueprint: Optional[Blueprint] = None
-        self.loop = asyncio.get_event_loop()
+        self.loop = asyncio.new_event_loop()
 
     @property
     def blueprint(self) -> Blueprint:
         if not self._blueprint:
-            raise
+            raise FlaskAgentException("Flask agent must have the forest blueprint.")
         return self._blueprint
 
     @blueprint.setter
