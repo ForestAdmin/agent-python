@@ -6,8 +6,6 @@ if sys.version_info >= (3, 8):
 else:
     from typing_extensions import Literal
 
-from urllib.parse import urljoin
-
 from forestadmin.agent_toolkit.options import Options
 from forestadmin.agent_toolkit.resources.base import BaseResource
 from forestadmin.agent_toolkit.resources.security.exceptions import AuthenticationException
