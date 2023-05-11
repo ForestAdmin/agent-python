@@ -20,7 +20,7 @@ runs:
         echo $(newArray=( $(echo ${{ inputs.packages }} | sed -e 's/\[//g' -e 's/\]//g' -e 's/\,/ /g' -e 's/"//g') ); res=""; for value in "${newArray[@]}"; do res+="../.${value}pyproject.toml:tool.poetry.version,"; done; res=${res: : -1}; echo "VERSIONS=$res") >> $GITHUB_OUTPUT
     - name: Semantic Release
       shell: bash
-      working-directory: ./src/datasource_toolkit/
+      working-directory:  ${{ inputs.packages }}
       run: |
         pip install python-semantic-release
         git config user.name github-actions
