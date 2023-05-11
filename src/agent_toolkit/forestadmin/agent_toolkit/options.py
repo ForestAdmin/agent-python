@@ -8,7 +8,6 @@ else:
 
 class Options(TypedDict):
     # application_url: str  # useless for now
-    agent_url: str  # find a way to make it  obsolete
     auth_secret: str
     prefix: str
     env_secret: str

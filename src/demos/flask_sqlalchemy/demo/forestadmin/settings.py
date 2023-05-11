@@ -1,7 +1,11 @@
+import os
+from distutils.util import strtobool
+
 from forestadmin.agent_toolkit.options import Options
 
 SETTINGS: Options = {
-    "env_secret": "",
-    "auth_secret": "",
-    "agent_url": "http://127.0.0.1:5000/",
+    "env_secret": os.environ.get("FOREST_ENV_SECRET"),
+    "auth_secret": os.environ.get("FOREST_AUTH_SECRET"),
+    "forest_server_url": os.environ.get("FOREST_SERVER_URL"),
+    "is_production": strtobool(os.environ.get("FOREST_IS_PRODUCTION")),
 }
