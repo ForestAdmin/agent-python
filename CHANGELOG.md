@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v0.1.0-beta.22 (2023-05-11)
+### Fix
+* **python37:** Fully compatible with python 3.7 ([#72](https://github.com/ForestAdmin/agent-python/issues/72)) ([`71ee574`](https://github.com/ForestAdmin/agent-python/commit/71ee5749eaddba5d1a42b3d5cab08118428b0279))
+
 ## v0.1.0-beta.21 (2023-05-11)
 ### Feature
 * **authentication:** Agent_url parameter no longer needed ([#71](https://github.com/ForestAdmin/agent-python/issues/71)) ([`be3632d`](https://github.com/ForestAdmin/agent-python/commit/be3632d1f03b2fa53cbcdf7ab6500bf62589fd2c))
