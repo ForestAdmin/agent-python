@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v0.1.0-beta.21 (2023-05-11)
+### Feature
+* **authentication:** Agent_url parameter no longer needed ([#71](https://github.com/ForestAdmin/agent-python/issues/71)) ([`be3632d`](https://github.com/ForestAdmin/agent-python/commit/be3632d1f03b2fa53cbcdf7ab6500bf62589fd2c))
+
 ## v0.1.0-beta.20 (2023-05-10)
 
 
