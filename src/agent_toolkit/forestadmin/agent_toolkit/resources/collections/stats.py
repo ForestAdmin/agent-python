@@ -1,5 +1,12 @@
+import sys
 from datetime import date, datetime
-from typing import Any, Dict, List, Literal, Union, cast
+
+if sys.version_info >= (3, 8):
+    from typing import Literal
+else:
+    from typing_extensions import Literal
+
+from typing import Any, Dict, List, Union, cast
 from uuid import uuid1
 
 import pandas as pd

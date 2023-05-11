@@ -1,4 +1,4 @@
-from typing import Any, List, Optional, Set
+from typing import Any, Dict, List, Optional, Set
 
 from forestadmin.datasource_toolkit.collections import Collection
 from forestadmin.datasource_toolkit.context.collection_context import CollectionCustomizationContext
@@ -9,7 +9,7 @@ from forestadmin.datasource_toolkit.interfaces.records import RecordsDataAlias
 from forestadmin.datasource_toolkit.validations.projection import ProjectionValidator
 
 
-class FormValueObserver(dict[str, Any]):
+class FormValueObserver(Dict[str, Any]):
     def __init__(self, *args: Any, **kwargs: Any):
         super().__init__(*args, **kwargs)
         self._used: Set[str] = set()

@@ -14,5 +14,3 @@ runs:
             - 'src/agent_toolkit/**'
           ./src/flask_agent:
             - 'src/flask_agent/**'
-          toto:
-            - 'src/toto'
