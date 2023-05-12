@@ -53,6 +53,7 @@ class Agent(BaseAgent):
     def register_blueprint(self, app: Flask):
         self.options["schema_path"] = os.path.join(app.root_path, ".forestadmin-schema.json")
         app.register_blueprint(self.blueprint, url_prefix="/forest")
+        self.loop.run_until_complete(self.start())
 
 
 def build_agent(options: Options) -> Agent:
