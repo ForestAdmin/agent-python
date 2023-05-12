@@ -19,7 +19,7 @@ class ForestHttpApiException(AgentToolkitException):
 
 class HttpOptions(TypedDict):
     env_secret: str
-    forest_server_url: str
+    server_url: str
     is_production: bool
 
 
@@ -30,13 +30,13 @@ class ForestHttpApi:
 
     @classmethod
     async def get_open_id_issuer_metadata(cls, option: Options) -> Dict[str, Any]:
-        endpoint = cls.build_enpoint(option["forest_server_url"], "/oidc/.well-known/openid-configuration")
+        endpoint = cls.build_enpoint(option["server_url"], "/oidc/.well-known/openid-configuration")
         response = await cls.get(endpoint, {"forest-secret-key": option["env_secret"]})
         return response
 
     @classmethod
     async def get_rendering_authorization(cls, rendering_id: int, access_token: str, option: Options):
-        endpoint = cls.build_enpoint(option["forest_server_url"], f"/liana/v2/renderings/{rendering_id}/authorization")
+        endpoint = cls.build_enpoint(option["server_url"], f"/liana/v2/renderings/{rendering_id}/authorization")
         response = await cls.get(
             endpoint,
             {
@@ -48,7 +48,7 @@ class ForestHttpApi:
 
     @classmethod
     async def get_permissions(cls, option: HttpOptions, rendering_id: int) -> Dict[str, Any]:  # type: ignore
-        endpoint = cls.build_enpoint(option["forest_server_url"], f"/liana/v3/permissions?renderingId={rendering_id}")
+        endpoint = cls.build_enpoint(option["server_url"], f"/liana/v3/permissions?renderingId={rendering_id}")
         headers = {"forest-secret-key": option["env_secret"]}
         async with aiohttp.ClientSession() as session:
             try:
@@ -85,14 +85,14 @@ class ForestHttpApi:
     @classmethod
     async def send_schema(cls, options: Options, schema: ForestSchema):
         ret = await cls.post(
-            cls.build_enpoint(options["forest_server_url"], "/forest/apimaps/hashcheck"),
+            cls.build_enpoint(options["server_url"], "/forest/apimaps/hashcheck"),
             {"schemaFileHash": schema["meta"]["schemaFileHash"]},
             {"forest-secret-key": options["env_secret"], "content-type": "application/json"},
         )
 
         if ret["sendSchema"] is True:
             await cls.post(
-                cls.build_enpoint(options["forest_server_url"], "/forest/apimaps"),
+                cls.build_enpoint(options["server_url"], "/forest/apimaps"),
                 schema,
                 {"forest-secret-key": options["env_secret"], "content-type": "application/json"},
             )

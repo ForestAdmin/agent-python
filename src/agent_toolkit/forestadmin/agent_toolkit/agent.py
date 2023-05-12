@@ -42,7 +42,7 @@ class Agent:
         self.permission_service = PermissionService(
             {
                 "env_secret": self.options["env_secret"],
-                "forest_server_url": self.options["forest_server_url"],
+                "server_url": self.options["server_url"],
                 "is_production": self.options["is_production"],
                 "permission_cache_duration": 60,
             }
