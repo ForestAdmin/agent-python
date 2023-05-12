@@ -73,7 +73,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [3.7, 3.8, 3.9, '3.10']
+        python-version: [3.7, 3.8, 3.9, '3.10', '3.11']
         current_package: ${{ fromJson(inputs.packages) }}
     steps:
       - uses: actions/checkout@v3
@@ -93,8 +93,8 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       -  id: coverage
-         uses: ./.github/actions/coverage
-         with:
+        uses: ./.github/actions/coverage
+        with:
           python-version: ${{ matrix.python-version }}
           current_package: ./src/datasource_toolkit
           CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
@@ -110,7 +110,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - id: release
-        uses: ./.github/actions/release  
+        uses: ./.github/actions/release
         with:
           packages: ${{ inputs.packages }}
 
@@ -134,7 +134,7 @@ jobs:
           commit_message: Update linked dependencies
           commit_user_name: github-actions
           commit_user_email: github-actions@github.com
-  
+
   pypi:
     name: Push to pypi
     if: github.event_name == 'push' && github.ref == 'refs/heads/beta'
@@ -148,11 +148,12 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - id: pypi
-        uses: ./.github/actions/pypi  
+        uses: ./.github/actions/pypi
         with:
           current_package: ${{ matrix.current_package }}
           python-version: ${{ matrix.python-version }}
           pypi_token: ${{ secrets.PYPI_TOKEN }}
+
   update_locks:
     name: Update poetry locks
     needs: [pypi]
