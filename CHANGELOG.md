@@ -2,6 +2,9 @@
 
 <!--next-version-placeholder-->
 
+## v0.1.0-beta.23 (2023-05-15)
+
+
 ## v0.1.0-beta.22 (2023-05-11)
 ### Fix
 * **python37:** Fully compatible with python 3.7 ([#72](https://github.com/ForestAdmin/agent-python/issues/72)) ([`71ee574`](https://github.com/ForestAdmin/agent-python/commit/71ee5749eaddba5d1a42b3d5cab08118428b0279))
