@@ -691,21 +691,21 @@ dotenv = ["python-dotenv"]
 
 [[package]]
 name = "forestadmin-agent-toolkit"
-version = "0.1.0b22"
+version = "0.1.0b23"
 description = ""
 category = "main"
 optional = false
 python-versions = ">=3.7,<4.0"
 files = [
-    {file = "forestadmin_agent_toolkit-0.1.0b22-py3-none-any.whl", hash = "sha256:d0c213d1f3fb8d58172629b614338aa5a170743c172c8357666ddc54e8104948"},
-    {file = "forestadmin_agent_toolkit-0.1.0b22.tar.gz", hash = "sha256:19e48391bbc83e7b5e8d9b79a7cd12389a353e75f7317ee11488d629570a4f4e"},
+    {file = "forestadmin_agent_toolkit-0.1.0b23-py3-none-any.whl", hash = "sha256:e6f4d164e465c94e8b35e9fa5906ecde8d4c2cc1d0b98370407bdb4a152a020c"},
+    {file = "forestadmin_agent_toolkit-0.1.0b23.tar.gz", hash = "sha256:4a1214c7e1ec20d08b834f5f0aa86ca77a0726193fb3204115a96dce12d2d866"},
 ]
 
 [package.dependencies]
 aiohttp = ">=3.8,<4.0"
 "backports.zoneinfo" = {version = ">=0.2.1,<0.3.0", extras = ["tzdata"], markers = "python_version < \"3.9\""}
 cachetools = ">=5.2,<6.0"
-forestadmin-datasource-toolkit = ">=0.1.0-beta.22,<0.2.0"
+forestadmin-datasource-toolkit = ">=0.1.0-beta.23,<0.2.0"
 marshmallow-jsonapi = ">=0.24.0,<1.0"
 oic = ">=1.4,<2.0"
 pandas = [
@@ -719,14 +719,14 @@ tzdata = ">=2022.6,<2022.7"
 
 [[package]]
 name = "forestadmin-datasource-toolkit"
-version = "0.1.0b22"
+version = "0.1.0b23"
 description = ""
 category = "main"
 optional = false
 python-versions = ">=3.7,<4.0"
 files = [
-    {file = "forestadmin_datasource_toolkit-0.1.0b22-py3-none-any.whl", hash = "sha256:8068d97ef0149c09ef7395168458d1d959083b881dc660adbe647df9a97fbc9b"},
-    {file = "forestadmin_datasource_toolkit-0.1.0b22.tar.gz", hash = "sha256:10e86f2081aaeea972722bd94b0676842a7f99d96364ec481e668b47dad8f9a1"},
+    {file = "forestadmin_datasource_toolkit-0.1.0b23-py3-none-any.whl", hash = "sha256:83a518f888722808f2dcdd276f47e38ac4d47c092e27db7d14ec4e3f064dc79e"},
+    {file = "forestadmin_datasource_toolkit-0.1.0b23.tar.gz", hash = "sha256:e22fc9490acd170e71cced66e3479e3b2d7ffc75ab67d8d00767edc9e8e10bd3"},
 ]
 
 [package.dependencies]
@@ -2045,4 +2045,4 @@ testing = ["big-O", "flake8 (<5)", "jaraco.functools", "jaraco.itertools", "more
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.7,<4.0"
-content-hash = "de97a1c2985315d04156ca9579b2709f72f0bc35aca7a6f88ce42601b9b8ef48"
+content-hash = "5370de71acdb1aa9728052327f371186c2010a8f301914d0c7df078291fefb0f"
