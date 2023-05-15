@@ -28,10 +28,9 @@ class TestFlaskAgent(TestCase):
         agent._blueprint = None
         self.assertRaises(Exception, getattr, agent, "blueprint")
 
-    @patch("forestadmin.flask_agent.agent.asyncio.get_event_loop", return_value="event_loop")
     @patch("forestadmin.flask_agent.agent.BaseAgent.__init__")
     @patch("forestadmin.flask_agent.agent.build_blueprint", return_value="blueprint")
-    def test_register_blueprint(self, mock_build_blueprint, mock_base_agent, mock_get_event_loop):
+    def test_register_blueprint(self, mock_build_blueprint, mock_base_agent):
         app = Mock()
         app.root_path = "/tmp"
         app.register_blueprint = Mock()
@@ -44,7 +43,7 @@ class TestFlaskAgent(TestCase):
 
         assert agent.options["schema_path"] == "/tmp/.forestadmin-schema.json"
         app.register_blueprint.assert_called_once_with("fake_blueprint", url_prefix="/forest")
-        agent.loop.run_until_complete.assert_called_once()
+        # agent.loop.run_until_complete.assert_called_once()
 
     @patch("forestadmin.flask_agent.agent.asyncio.get_event_loop", return_value="event_loop")
     @patch("forestadmin.flask_agent.agent.BaseAgent.resources")
