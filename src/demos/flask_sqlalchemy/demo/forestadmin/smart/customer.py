@@ -25,9 +25,8 @@ from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.leaf i
 from forestadmin.datasource_toolkit.interfaces.query.projections import Projection
 from forestadmin.datasource_toolkit.interfaces.records import RecordsDataAlias
 
+
 # segments
-
-
 def french_address_segment(context: CollectionCustomizationContext):
     return ConditionTreeLeaf(field="addresses:country", operator=Operator.EQUAL, value="France")
 
@@ -107,7 +106,6 @@ class AgeOperation(ActionSingle):
             "type": ActionFieldType.ENUM,
             "label": "Kind of operation",
             "is_required": True,
-            "description": "",
             "default_value": "+",
             "value": "+",
             "" "enum_values": ["+", "-"],
@@ -115,13 +113,11 @@ class AgeOperation(ActionSingle):
         {
             "type": ActionFieldType.NUMBER,
             "label": "Value",
-            "description": "",
             "default_value": 0,
         },
         {
             "type": ActionFieldType.STRING,
             "label": "summary",
-            "description": "",
             "is_required": False,
             "is_read_only": True,
             "value": get_value_summary,
@@ -129,7 +125,6 @@ class AgeOperation(ActionSingle):
         PlainStringDynamicField(
             label="test list",
             type=ActionFieldType.STRING,
-            description="",
             # is_required=False,
             is_required=lambda context: context.form_values.get("Value", 11) > 10,
             is_read_only=lambda context: context.form_values.get("Value", 11) <= 10,
@@ -137,13 +132,12 @@ class AgeOperation(ActionSingle):
             # is_read_only=False,
             # default_value=[1, 2],
         ),
-        PlainEnumDynamicField(label="Rating", description="", type=ActionFieldType.ENUM, enum_values=[1, 2, 3, 4, 5]),
+        PlainEnumDynamicField(label="Rating", type=ActionFieldType.ENUM, enum_values=["1", "2", "3", "4", "5"]),
         PlainStringDynamicField(
             label="Put a comment",
-            description="",
             type=ActionFieldType.STRING,
             # Only display this field if the rating is 4 or 5
-            if_=lambda context: context.form_values.get("Rating", 0) < 4,
+            if_=lambda context: int(context.form_values.get("Rating", "0")) < 4,
         ),
     ]
 

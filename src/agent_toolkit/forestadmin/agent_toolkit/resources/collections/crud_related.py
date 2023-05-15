@@ -58,7 +58,7 @@ from forestadmin.datasource_toolkit.utils.collections import CollectionUtils
 from forestadmin.datasource_toolkit.utils.schema import SchemaUtils
 from forestadmin.datasource_toolkit.validations.field import FieldValidatorException
 
-LiteralMethod = Literal["list", "add", "delete", "update"]
+LiteralMethod = Literal["list", "add", "count", "delete_list", "update_list"]
 
 
 class CrudRelatedResource(BaseCollectionResource):
