@@ -33,18 +33,22 @@ runs:
         path: coverage
     - name: Combine reports
       shell: bash
-      working-directory: ${{ inputs.current_package }}
-      run: poetry run coverage combine ../../coverage/code-coverage-report.*/.coverage
+      # working-directory: ${{ inputs.current_package }}
+      # run: poetry run coverage combine ../../coverage/code-coverage-report.*/.coverage
+      working-directory: ./
+      run: poetry run coverage combine coverage/code-coverage-report.*/.coverage
     - name: Send coverage
       uses: paambaati/codeclimate-action@v2.7.4
       env:
         CC_TEST_REPORTER_ID: ${{ inputs.CC_TEST_REPORTER_ID }}
       with:
-        workingDirectory: ${{ inputs.current_package }}
+        # workingDirectory: ${{ inputs.current_package }}
+        workingDirectory: ./
         coverageCommand: poetry run coverage xml
     # debug
     - name: Archive code coverage final results
       uses: actions/upload-artifact@v2
       with:
         name: coverage.xml
-        path: ${{ inputs.current_package }}
+        # path: ${{ inputs.current_package }}
+        path: ./
