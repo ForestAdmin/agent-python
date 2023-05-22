@@ -42,3 +42,9 @@ runs:
       with:
         workingDirectory: ${{ inputs.current_package }}
         coverageCommand: poetry run coverage xml
+    # debug
+    - name: Archive code coverage final results
+      uses: actions/upload-artifact@v2
+      with:
+        name: coverage.xml
+        path: ${{ inputs.current_package }}
