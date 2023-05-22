@@ -36,7 +36,7 @@ runs:
       # working-directory: ${{ inputs.current_package }}
       # run: poetry run coverage combine ../../coverage/code-coverage-report.*/.coverage
       working-directory: ./
-      run: coverage combine coverage/code-coverage-report.*/.coverage
+      run: python -m coverage combine coverage/code-coverage-report.*/.coverage
     - name: Send coverage
       uses: paambaati/codeclimate-action@v2.7.4
       env:
@@ -49,6 +49,6 @@ runs:
     - name: Archive code coverage final results
       uses: actions/upload-artifact@v2
       with:
-        name: coverage.xml
+        name: python -m coverage.xml
         # path: ${{ inputs.current_package }}
         path: ./
