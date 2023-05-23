@@ -1,5 +1,5 @@
 [run]
 source=
-    forestadmin/agent_toolkit
+    forestadmin
 omit =
     tests
