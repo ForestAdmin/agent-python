@@ -25,7 +25,7 @@ runs:
         cache: 'poetry'
     - name: Install package dependencies
       shell: bash
-      working-directory: ./src/
+      working-directory: ${{ inputs.current_package }}
       run: poetry install --with test
     - name: Download all coverage reports
       uses: actions/download-artifact@v2
