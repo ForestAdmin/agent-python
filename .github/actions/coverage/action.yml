@@ -42,9 +42,9 @@ runs:
       env:
         CC_TEST_REPORTER_ID: ${{ inputs.CC_TEST_REPORTER_ID }}
       with:
-        workingDirectory: ./src/demos/flask_sqlalchemy
+        workingDirectory: ./src/
         # workingDirectory: ${{ inputs.current_package }}
-        coverageCommand: poetry run coverage xml
+        coverageCommand: poetry -C datasource_toolkit run coverage xml
     # debug
     - name: Archive code coverage final results
       uses: actions/upload-artifact@v2
