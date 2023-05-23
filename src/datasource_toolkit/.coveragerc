@@ -1,5 +1,5 @@
 [run]
 source=
-    forestadmin
+    forestadmin/datasource_toolkit
 omit =
     tests

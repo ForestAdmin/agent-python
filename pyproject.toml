@@ -1,0 +1,5 @@
+[tool.poetry]
+name = "forestadmin-agent-python"
+version = "0.1.0-beta.23"
+description = ""
+authors = [ "Valentin Monté <valentinm@forestadmin.com>",]

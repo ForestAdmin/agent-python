@@ -16,7 +16,7 @@ runs:
     - uses: actions/checkout@v3
     - name: Install poetry
       shell: bash
-      working-directory: ./src/demos/flask_sqlalchemy
+      working-directory: ./src/
       run: pipx install poetry
     - name: Set up Python ${{ inputs.python-version }}
       uses: actions/setup-python@v4
@@ -25,7 +25,7 @@ runs:
         cache: 'poetry'
     - name: Install package dependencies
       shell: bash
-      working-directory: ./src/demos/flask_sqlalchemy
+      working-directory: ./src/
       run: poetry install --with test
     - name: Download all coverage reports
       uses: actions/download-artifact@v2
@@ -33,8 +33,8 @@ runs:
         path: coverage
     - name: Combine reports
       shell: bash
-      working-directory: ./src/demos/flask_sqlalchemy
-      run: poetry run coverage combine ../../../coverage/code-coverage-report.*/.coverage
+      working-directory: ./src/
+      run: poetry run coverage combine ../coverage/code-coverage-report.*/.coverage
       # working-directory: ${{ inputs.current_package }}/
       # run: poetry run coverage combine ../../coverage/code-coverage-report.*/.coverage
     - name: Send coverage
@@ -50,5 +50,5 @@ runs:
       uses: actions/upload-artifact@v2
       with:
         name: coverage.xml
-        path: ./src/demos/flask_sqlalchemy/coverage.xml
+        path: ./src/coverage.xml
         # path: ${{ inputs.current_package }}/.coverage
