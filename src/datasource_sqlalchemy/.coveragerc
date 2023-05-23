@@ -1,5 +1,5 @@
 [run]
 source=
-    forestadmin/datasource_sqlalchemy
+    forestadmin
 omit =
     tests
