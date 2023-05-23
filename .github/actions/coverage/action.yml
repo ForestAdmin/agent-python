@@ -44,8 +44,8 @@ runs:
         coverageCommand: poetry -C datasource_toolkit run coverage xml
 
     # debug
-    - name: Archive code coverage final results
-      uses: actions/upload-artifact@v2
-      with:
-        name: coverage.xml
-        path: ./src/coverage.xml
+    # - name: Archive code coverage final results
+    #   uses: actions/upload-artifact@v2
+    #   with:
+    #     name: coverage.xml
+    #     path: ./src/coverage.xml
