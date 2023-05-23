@@ -16,7 +16,7 @@ runs:
     - uses: actions/checkout@v3
     - name: Install poetry
       shell: bash
-      working-directory: ${{ inputs.current_package }}
+      working-directory: ./src/
       run: pipx install poetry
     - name: Set up Python ${{ inputs.python-version }}
       uses: actions/setup-python@v4
@@ -25,7 +25,7 @@ runs:
         cache: 'poetry'
     - name: Install package dependencies
       shell: bash
-      working-directory: ${{ inputs.current_package }}
+      working-directory: ./src/datasource_toolkit
       run: poetry install --with test
     - name: Download all coverage reports
       uses: actions/download-artifact@v2
@@ -33,12 +33,19 @@ runs:
         path: coverage
     - name: Combine reports
       shell: bash
-      working-directory: ${{ inputs.current_package }}
-      run: poetry run coverage combine ../../coverage/code-coverage-report.*/.coverage
+      working-directory: ./src/
+      run: poetry -C datasource_toolkit run coverage combine ../coverage/code-coverage-report.*/.coverage
     - name: Send coverage
       uses: paambaati/codeclimate-action@v2.7.4
       env:
         CC_TEST_REPORTER_ID: ${{ inputs.CC_TEST_REPORTER_ID }}
       with:
-        workingDirectory: ${{ inputs.current_package }}
-        coverageCommand: poetry run coverage xml
+        workingDirectory: ./src/
+        coverageCommand: poetry -C datasource_toolkit run coverage xml
+
+    # debug
+    # - name: Archive code coverage final results
+    #   uses: actions/upload-artifact@v2
+    #   with:
+    #     name: coverage.xml
+    #     path: ./src/coverage.xml
