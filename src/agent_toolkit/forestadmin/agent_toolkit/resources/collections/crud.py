@@ -63,7 +63,7 @@ def is_request_collection(request: Request) -> TypeGuard[RequestCollection]:
     return hasattr(request, "collection")
 
 
-LiteralMethod = Literal["get", "list", "count", "add", "update", "delete", "delete_list", "update_list"]
+LiteralMethod = Literal["get", "list", "count", "add", "update", "delete", "delete_list"]
 
 
 class CrudResource(BaseCollectionResource):
@@ -94,18 +94,20 @@ class CrudResource(BaseCollectionResource):
 
         projections = ProjectionFactory.all(cast(Collection, collection))
         records = await collection.list(filter, projections)
+
+        if not len(records):
+            return build_unknown_response()
+
         for name, schema in collection.schema["fields"].items():
             if is_many_to_many(schema) or is_one_to_many(schema):
                 projections.append(f"{name}:id")  # type: ignore
                 records[0][name] = None
-        if not len(records):
-            return build_unknown_response()
-        else:
-            schema = JsonApiSerializer.get(collection)
-            try:
-                dumped: Dict[str, Any] = schema(projections=projections).dump(records[0])  # type: ignore
-            except JsonApiException as e:
-                return build_client_error_response([str(e)])
+
+        schema = JsonApiSerializer.get(collection)
+        try:
+            dumped: Dict[str, Any] = schema(projections=projections).dump(records[0])  # type: ignore
+        except JsonApiException as e:
+            return build_client_error_response([str(e)])
 
         return build_success_response(dumped)
 
@@ -262,15 +264,17 @@ class CrudResource(BaseCollectionResource):
         await self.permission.can(request, f"edit:{request.collection.name}")
         origin_value = record[relation["origin_key_target"]]
 
+        # not needed
         # Break the old relation
         old_fk_owner = ConditionTreeLeaf(relation["origin_key"], Operator.EQUAL, origin_value)
         trees: List[ConditionTree] = [old_fk_owner]
         if scope:
             trees.append(scope)
+
         try:
             tz = parse_timezone(request)
         except FilterException as e:
-            raise CollectionResourceException(str(e))
+            raise CollectionResourceException(str(e)[3:])
 
         await foreign_collection.update(
             Filter({"condition_tree": ConditionTreeFactory.intersect(trees), "timezone": tz}),
@@ -313,7 +317,8 @@ class CrudResource(BaseCollectionResource):
                 foreign_collection = self.datasource.get_collection(field["foreign_collection"])
                 pk_names = SchemaUtils.get_primary_keys(foreign_collection.schema)
                 if is_one_to_one(field):
-                    one_to_one_relations.append((field, dict([(pk, value[i]) for i, pk in enumerate(pk_names)])))
+                    one_to_one_relations.append((field, dict([(pk, value) for pk in pk_names])))
+                    # one_to_one_relations.append((field, dict([(pk, value[i]) for i, pk in enumerate(pk_names)])))
                 else:
                     field = cast(ManyToOne, field)
                     record[field["foreign_key"]] = await CollectionUtils.get_value(
