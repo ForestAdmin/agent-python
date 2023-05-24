@@ -1,8 +1,14 @@
 import asyncio
 import importlib
 import json
+import sys
 from unittest import TestCase
-from unittest.mock import AsyncMock, Mock, patch
+from unittest.mock import Mock, patch
+
+if sys.version_info < (3, 8):
+    from mock import AsyncMock
+else:
+    from unittest.mock import AsyncMock
 
 import forestadmin.agent_toolkit.resources.collections.crud
 from forestadmin.agent_toolkit.options import Options
@@ -50,6 +56,7 @@ class TestCrudResource(TestCase):
         cls.collection_order = Mock(Collection)
         cls.collection_order._datasource = cls.datasource
         cls.collection_order.datasource = cls.datasource
+        cls.collection_order.update = AsyncMock(return_value=None)
         cls.collection_order._name = "order"
         cls.collection_order.name = "order"
         cls.collection_order.get_field = lambda x: cls.collection_order._schema["fields"][x]
@@ -90,6 +97,7 @@ class TestCrudResource(TestCase):
         cls.collection_status = Mock(Collection)
         cls.collection_status._datasource = cls.datasource
         cls.collection_status.datasource = cls.datasource
+        cls.collection_status.update = AsyncMock(return_value=None)
         cls.collection_status._name = "status"
         cls.collection_status.name = "status"
         cls.collection_status.get_field = lambda x: cls.collection_status._schema["fields"][x]
@@ -109,6 +117,7 @@ class TestCrudResource(TestCase):
         cls.collection_cart = Mock(Collection)
         cls.collection_cart._datasource = cls.datasource
         cls.collection_cart.datasource = cls.datasource
+        cls.collection_cart.update = AsyncMock(return_value=None)
         cls.collection_cart._name = "cart"
         cls.collection_cart.name = "cart"
         cls.collection_cart.get_field = lambda x: cls.collection_cart._schema["fields"][x]
@@ -128,6 +137,7 @@ class TestCrudResource(TestCase):
         cls.loop = asyncio.new_event_loop()
         cls.permission_service = Mock(PermissionService)
         cls.permission_service.get_scope = AsyncMock(return_value=ConditionTreeLeaf("id", Operator.GREATER_THAN, 0))
+        cls.permission_service.can = AsyncMock()
         cls.options = Options(
             auth_secret="fake_secret",
             env_secret="fake_secret",
@@ -505,7 +515,11 @@ class TestCrudResource(TestCase):
             {},
             None,
         )
-        response = self.loop.run_until_complete(crud_resource.add(request))
+        with patch.object(
+            self.collection_order, "create", new_callable=AsyncMock, return_value=[mock_order]
+        ) as mock_collection_create:
+            response = self.loop.run_until_complete(crud_resource.add(request))
+            mock_collection_create.assert_awaited()
 
         assert response.status == 400
         response_content = json.loads(response.body)
