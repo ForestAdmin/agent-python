@@ -4,7 +4,6 @@ import json
 from unittest import TestCase
 from unittest.mock import AsyncMock, Mock, patch
 
-# from forestadmin.agent_toolkit.resources.collections.crud import CrudResource
 import forestadmin.agent_toolkit.resources.collections.crud
 from forestadmin.agent_toolkit.options import Options
 from forestadmin.agent_toolkit.resources.collections.exceptions import CollectionResourceException
@@ -17,7 +16,6 @@ from forestadmin.datasource_toolkit.datasources import Datasource, DatasourceExc
 from forestadmin.datasource_toolkit.interfaces.fields import FieldType, Operator, PrimitiveType
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.leaf import ConditionTreeLeaf
 from forestadmin.datasource_toolkit.validations.records import RecordValidatorException
-from mock import ANY
 
 
 def mock_decorator_with_param(*args, **kwargs):
