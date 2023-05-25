@@ -1,10 +1,9 @@
 import asyncio
-import importlib
 import os
 import sys
 from typing import Optional, Tuple, Union
 
-from forestadmin.flask_agent.exception import FlaskAgentException
+import pkg_resources
 
 if sys.version_info >= (3, 8):
     from typing import Literal
@@ -22,6 +21,7 @@ from forestadmin.agent_toolkit.resources.collections.crud import LiteralMethod a
 from forestadmin.agent_toolkit.resources.security.resources import LiteralMethod as AuthLiteralMethod
 from forestadmin.agent_toolkit.utils.context import Request
 from forestadmin.agent_toolkit.utils.forest_schema.type import AgentMeta
+from forestadmin.flask_agent.exception import FlaskAgentException
 from forestadmin.flask_agent.utils.dispatcher import get_dispatcher_method
 from forestadmin.flask_agent.utils.requests import convert_request, convert_response
 
@@ -29,7 +29,7 @@ from forestadmin.flask_agent.utils.requests import convert_request, convert_resp
 class Agent(BaseAgent):
     META: AgentMeta = {
         "liana": "agent-python",
-        "liana_version": importlib.metadata.version("forestadmin-agent-flask"),
+        "liana_version": pkg_resources.get_distribution("forestadmin-agent-flask").version,
         "stack": {"engine": "python", "engine_version": ".".join(map(str, [*sys.version_info[:3]]))},
     }
 
