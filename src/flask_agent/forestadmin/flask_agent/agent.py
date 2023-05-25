@@ -1,4 +1,5 @@
 import asyncio
+import importlib
 import os
 import sys
 from typing import Optional, Tuple, Union
@@ -27,11 +28,8 @@ from forestadmin.flask_agent.utils.requests import convert_request, convert_resp
 
 class Agent(BaseAgent):
     META: AgentMeta = {
-        # "liana": "forest-python-agent",
-        "liana": "forest-nodejs-agent",
-        # "liana_version": importlib.metadata.version('forestadmin-agent-flask'),
-        "liana_version": "1.0.0",
-        # "stack": {"database_type": "postgresql", "orm_version": "3.2.14"},
+        "liana": "agent-python",
+        "liana_version": importlib.metadata.version("forestadmin-agent-flask"),
         "stack": {"engine": "python", "engine_version": ".".join(map(str, [*sys.version_info[:3]]))},
     }
 
