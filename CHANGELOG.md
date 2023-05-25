@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v0.1.0-beta.26 (2023-05-25)
+### Feature
+* Add liana real metadata ([#77](https://github.com/ForestAdmin/agent-python/issues/77)) ([`cd14cd4`](https://github.com/ForestAdmin/agent-python/commit/cd14cd49708af6607e5324afb2a6561856a482ce))
+
 ## v0.1.0-beta.25 (2023-05-25)
 
 
