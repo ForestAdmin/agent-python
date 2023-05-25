@@ -11,7 +11,7 @@ class Options(TypedDict):
     auth_secret: str
     prefix: str
     env_secret: str
-    server_url: str
+    forest_server_url: str
     is_production: bool
     schema_path: str
     # logger
@@ -26,5 +26,5 @@ class Options(TypedDict):
 DEFAULT_OPTIONS: Options = {
     "is_production": False,
     "prefix": "forest",
-    "server_url": "https://api.forestadmin.com",
+    "forest_server_url": "https://api.forestadmin.com",
 }

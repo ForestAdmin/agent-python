@@ -137,7 +137,7 @@ class PermissionService:
             permission_body = await ForestHttpApi.get_permissions(
                 {
                     "env_secret": self.options["env_secret"],
-                    "server_url": self.options["server_url"],
+                    "forest_server_url": self.options["forest_server_url"],
                     "is_production": self.options["is_production"],
                 },
                 rendering_id,
