@@ -24,7 +24,7 @@ class Options(TypedDict):
 
 
 DEFAULT_OPTIONS: Options = {
-    "is_production": True,
+    "is_production": False,
     "prefix": "forest",
     "forest_server_url": "https://api.forestadmin.com",
 }
