@@ -15,8 +15,8 @@ include = "forestadmin"
 python = ">=3.7,<4.0"
 typing-extensions = "~=4.2"
 tzdata = "~=2022.6"
-forestadmin-agent-toolkit = "^0.1.0-beta.24"
-forestadmin-datasource-toolkit = "^0.1.0-beta.24"
+forestadmin-agent-toolkit = "^0.1.0-beta.25"
+forestadmin-datasource-toolkit = "^0.1.0-beta.25"
 
 [tool.poetry.dependencies.flask]
 extras = [ "async",]
