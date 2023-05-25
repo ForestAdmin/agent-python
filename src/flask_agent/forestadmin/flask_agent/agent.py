@@ -29,7 +29,10 @@ from forestadmin.flask_agent.utils.requests import convert_request, convert_resp
 class Agent(BaseAgent):
     META: AgentMeta = {
         "liana": "agent-python",
-        "liana_version": pkg_resources.get_distribution("forestadmin-agent-flask").version,
+        "liana_version": pkg_resources.get_distribution("forestadmin-agent-flask").version.replace("b", "-beta."),
+        # .replace because poetry force 0.0.1b25 instead of 0.0.1-beta.25
+        # for more details:
+        # https://python-poetry.org/docs/master/faq/ : "Why does Poetry not adhere to semantic versioning?"
         "stack": {"engine": "python", "engine_version": ".".join(map(str, [*sys.version_info[:3]]))},
     }
 
