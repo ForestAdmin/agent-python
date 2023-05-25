@@ -3,7 +3,7 @@ import os
 import sys
 from typing import Optional, Tuple, Union
 
-from forestadmin.flask_agent.exception import FlaskAgentException
+import pkg_resources
 
 if sys.version_info >= (3, 8):
     from typing import Literal
@@ -21,17 +21,18 @@ from forestadmin.agent_toolkit.resources.collections.crud import LiteralMethod a
 from forestadmin.agent_toolkit.resources.security.resources import LiteralMethod as AuthLiteralMethod
 from forestadmin.agent_toolkit.utils.context import Request
 from forestadmin.agent_toolkit.utils.forest_schema.type import AgentMeta
+from forestadmin.flask_agent.exception import FlaskAgentException
 from forestadmin.flask_agent.utils.dispatcher import get_dispatcher_method
 from forestadmin.flask_agent.utils.requests import convert_request, convert_response
 
 
 class Agent(BaseAgent):
     META: AgentMeta = {
-        # "liana": "forest-python-agent",
-        "liana": "forest-nodejs-agent",
-        # "liana_version": importlib.metadata.version('forestadmin-agent-flask'),
-        "liana_version": "1.0.0",
-        # "stack": {"database_type": "postgresql", "orm_version": "3.2.14"},
+        "liana": "agent-python",
+        "liana_version": pkg_resources.get_distribution("forestadmin-agent-flask").version.replace("b", "-beta."),
+        # .replace because poetry force 0.0.1b25 instead of 0.0.1-beta.25
+        # for more details:
+        # https://python-poetry.org/docs/master/faq/ : "Why does Poetry not adhere to semantic versioning?"
         "stack": {"engine": "python", "engine_version": ".".join(map(str, [*sys.version_info[:3]]))},
     }
 
