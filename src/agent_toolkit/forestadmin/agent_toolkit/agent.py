@@ -39,7 +39,7 @@ class Agent:
         self.options.update(options)
         self.customizer: DatasourceCustomizer = DatasourceCustomizer()
 
-        self.permission_service = PermissionService(
+        permission_service = PermissionService(
             {
                 "env_secret": self.options["env_secret"],
                 "forest_server_url": self.options["forest_server_url"],
@@ -48,17 +48,17 @@ class Agent:
             }
         )
 
+        self._resources: Resources = {
+            "authentication": Authentication(self.options),
+            "crud": CrudResource(self.customizer.composite_datasource, permission_service, self.options),
+            "crud_related": CrudRelatedResource(self.customizer.composite_datasource, permission_service, self.options),
+            "stats": StatsResource(self.customizer.composite_datasource, permission_service, self.options),
+            "actions": ActionResource(self.customizer.composite_datasource, permission_service, self.options),
+        }
+
     @property
     def resources(self) -> Resources:
-        return {
-            "authentication": Authentication(self.options),
-            "crud": CrudResource(self.customizer.composite_datasource, self.permission_service, self.options),
-            "crud_related": CrudRelatedResource(
-                self.customizer.composite_datasource, self.permission_service, self.options
-            ),
-            "stats": StatsResource(self.customizer.composite_datasource, self.permission_service, self.options),
-            "actions": ActionResource(self.customizer.composite_datasource, self.permission_service, self.options),
-        }
+        return self._resources
 
     def add_datasource(self, datasource: Datasource[BoundCollection]):
         self.customizer.add_datasource(datasource)
@@ -68,10 +68,10 @@ class Agent:
 
     @property
     def meta(self) -> AgentMeta:
-        try:
-            return getattr(self, "META")
-        except AttributeError:
+        meta = getattr(self, "META", None)
+        if meta is None:
             raise AgentToolkitException("The agent subclass should set the META attribute")
+        return meta
 
     async def start(self):
         api_map = await SchemaEmitter.get_serialized_schema(

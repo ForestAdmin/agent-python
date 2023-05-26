@@ -11,4 +11,4 @@ class BaseResource:
 
     @abstractmethod
     async def dispatch(self, request: Request, method_name: Any) -> Union[Response, FileResponse]:
-        pass
+        """must be overridden by each subclass"""

@@ -69,12 +69,15 @@ def parse_selection_ids(request: Request) -> Tuple[List[CompositeIdAlias], bool]
         except AttributeError:
             attributes = {}
         exclude_ids = bool(attributes.get("all_records", False))  # type: ignore
-        if "ids" in attributes:
-            ids = [[id] for id in attributes["ids"]]
-        elif isinstance(request.body.get("data"), list):
-            ids = [[r["id"]] for r in request.body["data"]]
+        if exclude_ids is True:
+            ids = [[id] for id in attributes.get("all_records_ids_excluded", [])]
         else:
-            ids = []
+            if "ids" in attributes:
+                ids = [[id] for id in attributes["ids"]]
+            elif isinstance(request.body.get("data"), list):
+                ids = [[r["id"]] for r in request.body["data"]]
+            else:
+                ids = []
         return ids, exclude_ids
 
     raise Exception()
