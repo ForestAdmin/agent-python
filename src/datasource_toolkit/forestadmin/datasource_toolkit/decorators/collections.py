@@ -2,6 +2,7 @@ from typing import Any
 
 from forestadmin.datasource_toolkit.decorators.action.collections import ActionMixin
 from forestadmin.datasource_toolkit.decorators.computed.collections import ComputedMixin
+from forestadmin.datasource_toolkit.decorators.empty.collection import EmptyMixin
 from forestadmin.datasource_toolkit.decorators.operators_replace.collections import OperatorReplaceMixin
 from forestadmin.datasource_toolkit.decorators.proxy.collection import ProxyMixin
 from forestadmin.datasource_toolkit.decorators.publication.collections import PublicationMixin
@@ -12,6 +13,7 @@ from forestadmin.datasource_toolkit.interfaces.models.collections import Collect
 
 
 class CustomizedCollection(
+    EmptyMixin,
     ActionMixin,
     RenameMixin,
     ComputedMixin,
