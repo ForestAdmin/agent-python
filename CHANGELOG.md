@@ -2,6 +2,11 @@
 
 <!--next-version-placeholder-->
 
+## v0.1.0-beta.28 (2023-05-29)
+### Feature
+
+* **decorator:** Add empty decorator ([#78](https://github.com/ForestAdmin/agent-python/issues/78)) ([`6db3486`](https://github.com/ForestAdmin/agent-python/commit/6db3486c2dbb7c4f2af2d17f1d9d1c2028ed7cba))
+
 ## v0.1.0-beta.27 (2023-05-26)
 
 
