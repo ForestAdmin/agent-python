@@ -147,4 +147,12 @@ def build_blueprint(agent: Agent):  # noqa: C901
     async def count_related(**_) -> FlaskResponse:  # type: ignore
         return await _get_collection_response(request, crud_related_resource, "count")
 
+    @blueprint.route("/<collection_name>.csv", methods=["GET"])
+    async def csv(**_) -> FlaskResponse:  # type: ignore
+        return await _get_collection_response(request, crud_resource, "csv")
+
+    @blueprint.route("/<collection_name>/<pks>/relationships/<relation_name>.csv", methods=["GET"])
+    async def csv_related(**_) -> FlaskResponse:  # type: ignore
+        return await _get_collection_response(request, crud_related_resource, "csv")
+
     return blueprint

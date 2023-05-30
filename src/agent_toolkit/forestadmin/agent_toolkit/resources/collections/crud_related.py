@@ -1,5 +1,7 @@
 import sys
 
+from forestadmin.agent_toolkit.utils.csv import Csv, CsvException
+
 if sys.version_info >= (3, 8):
     from typing import Literal
 else:
@@ -34,6 +36,7 @@ from forestadmin.agent_toolkit.utils.context import (
     RequestMethod,
     Response,
     build_client_error_response,
+    build_csv_response,
     build_no_content_response,
     build_success_response,
 )
@@ -58,7 +61,7 @@ from forestadmin.datasource_toolkit.utils.collections import CollectionUtils
 from forestadmin.datasource_toolkit.utils.schema import SchemaUtils
 from forestadmin.datasource_toolkit.validations.field import FieldValidatorException
 
-LiteralMethod = Literal["list", "add", "count", "delete_list", "update_list"]
+LiteralMethod = Literal["list", "add", "count", "delete_list", "update_list", "csv"]
 
 
 class CrudRelatedResource(BaseCollectionResource):
@@ -103,6 +106,38 @@ class CrudRelatedResource(BaseCollectionResource):
         return build_success_response(cast(Dict[str, Any], dumped))
 
     @authenticate
+    @authorize("browse")
+    @authorize("export")
+    @check_method(RequestMethod.GET)
+    async def csv(self, request: RequestRelationCollection) -> Response:
+        if not (is_one_to_many(request.relation) or is_many_to_many(request.relation)):
+            return build_client_error_response(["🌳🌳🌳Unhandled relation type"])
+        try:
+            ids = unpack_id(request.collection.schema, request.pks)
+        except (FieldValidatorException, CollectionResourceException) as e:
+            return build_client_error_response([str(e)])
+        scope_tree = await self.permission.get_scope(request, request.foreign_collection)
+        paginated_filter = build_paginated_filter(request, scope_tree)
+        try:
+            projection = parse_projection_with_pks(request)
+        except DatasourceException as e:
+            return build_client_error_response([str(e)])
+        records = await CollectionUtils.list_relation(
+            cast(Collection, request.collection),
+            ids,
+            cast(Collection, request.foreign_collection),
+            request.relation,
+            paginated_filter,
+            projection,
+        )
+
+        try:
+            csv_str = Csv.make_csv(records, projection)
+        except CsvException as e:
+            return build_client_error_response([str(e)])
+        return build_csv_response(csv_str, f"{request.query.get('filename', request.collection.name)}.csv")
+
+    @authenticate
     @authorize("edit")
     @check_method(RequestMethod.POST)
     async def add(self, request: RequestRelationCollection) -> Response:
@@ -116,15 +151,18 @@ class CrudRelatedResource(BaseCollectionResource):
             or "data" not in request.body
             or len(request.body["data"]) == 0
             or not request.body["data"][0].get("id")
+            # TODO: again another hardcoded "id" # SchemaUtils.get_primary_keys(schema)
         ):
-            return build_client_error_response(["missing target's id "])
+            return build_client_error_response(["🌳🌳🌳missing target's id"])
+
         try:
+            # TODO: again another hardcoded "id" # SchemaUtils.get_primary_keys(schema)
             targeted_relation_ids = unpack_id(request.foreign_collection.schema, request.body["data"][0]["id"])
         except (FieldValidatorException, CollectionResourceException) as e:
             return build_client_error_response([str(e)])
 
         if not (is_one_to_many(request.relation) or is_many_to_many(request.relation)):
-            return build_client_error_response(["Unhandled relation type"])
+            return build_client_error_response(["🌳🌳🌳Unhandled relation type"])
 
         pks = SchemaUtils.get_primary_keys(request.foreign_collection.schema)[0]
         value = await CollectionUtils.get_value(

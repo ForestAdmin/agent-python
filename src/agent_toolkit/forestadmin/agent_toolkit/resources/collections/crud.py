@@ -1,6 +1,8 @@
 import asyncio
 import sys
 
+from forestadmin.agent_toolkit.utils.csv import Csv, CsvException
+
 if sys.version_info >= (3, 8):
     from typing import Literal
 else:
@@ -27,6 +29,7 @@ from forestadmin.agent_toolkit.utils.context import (
     RequestMethod,
     Response,
     build_client_error_response,
+    build_csv_response,
     build_no_content_response,
     build_success_response,
     build_unknown_response,
@@ -63,7 +66,7 @@ def is_request_collection(request: Request) -> TypeGuard[RequestCollection]:
     return hasattr(request, "collection")
 
 
-LiteralMethod = Literal["get", "list", "count", "add", "update", "delete", "delete_list"]
+LiteralMethod = Literal["list", "count", "add", "delete_list", "csv"]
 
 
 class CrudResource(BaseCollectionResource):
@@ -164,6 +167,29 @@ class CrudResource(BaseCollectionResource):
         except JsonApiException as e:
             return build_client_error_response([str(e)])
         return build_success_response(dumped)
+
+    @check_method(RequestMethod.GET)
+    @authenticate
+    @authorize("browse")
+    @authorize("export")
+    async def csv(self, request: RequestCollection) -> Response:
+        scope_tree = await self.permission.get_scope(request)
+        try:
+            paginated_filter = build_paginated_filter(request, scope_tree)
+        except FilterException as e:
+            return build_client_error_response([str(e)])
+        try:
+            projections = parse_projection_with_pks(request)
+        except DatasourceException as e:
+            return build_client_error_response([str(e)])
+
+        records = await request.collection.list(paginated_filter, projections)
+
+        try:
+            csv_str = Csv.make_csv(records, projections)
+        except CsvException as e:
+            return build_client_error_response([str(e)])
+        return build_csv_response(csv_str, f"{request.query.get('filename', request.collection.name)}.csv")
 
     @check_method(RequestMethod.GET)
     @authenticate

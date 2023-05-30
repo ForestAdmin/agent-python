@@ -71,17 +71,23 @@ def build_client_error_response(reasons: List[str]) -> Response:
     )
 
 
-def build_success_response(body: Dict[str, Any]):
+def build_csv_response(body: str, filename: str) -> Response:
+    return Response(
+        200, body, headers={"content-type": "text/csv", "Content-Disposition": f'attachment; filename="{filename}"'}
+    )
+
+
+def build_success_response(body: Dict[str, Any]) -> Response:
     return build_json_response(200, body)
 
 
-def build_unknown_response():
+def build_unknown_response() -> Response:
     return Response(404)
 
 
-def build_no_content_response():
+def build_no_content_response() -> Response:
     return Response(204)
 
 
-def build_method_not_allowed_response():
+def build_method_not_allowed_response() -> Response:
     return Response(405)
