@@ -148,3 +148,13 @@ class TestFlaskAgentBlueprint(TestCase):
         assert response.status_code == 200
         assert response.json == {"mock": "ok"}
         self.agent.resources["crud_related"].dispatch.assert_called_with(ANY, "count")
+
+    def test_csv(self):
+        response = self.client.get("/forest/customer.csv?timezone=Europe%2FParis")
+        assert response.status_code == 200
+        self.agent.resources["crud"].dispatch.assert_called_with(ANY, "csv")
+
+    def test_csv_related(self):
+        response = self.client.get("/forest/customer/1/relationships/orders.csv?timezone=Europe%2FParis")
+        assert response.status_code == 200
+        self.agent.resources["crud_related"].dispatch.assert_called_with(ANY, "csv")

@@ -75,6 +75,8 @@ class TestFlaskAgent(TestCase):
             call("/<collection_name>", methods=["GET", "POST", "DELETE"]),
             call("/<collection_name>/<pks>/relationships/<relation_name>", methods=["GET", "POST", "DELETE", "PUT"]),
             call("/<collection_name>/<pks>/relationships/<relation_name>/count", methods=["GET"]),
+            call("/<collection_name>.csv", methods=["GET"]),
+            call("/<collection_name>/<pks>/relationships/<relation_name>.csv", methods=["GET"]),
         ]
         blueprint.route.assert_has_calls(calls, any_order=True)
         assert blueprint.route.call_count == len(calls)
