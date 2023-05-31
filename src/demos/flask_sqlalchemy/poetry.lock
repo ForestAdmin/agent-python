@@ -680,23 +680,22 @@ pyflakes = ">=3.0.0,<3.1.0"
 
 [[package]]
 name = "flask"
-version = "2.2.3"
+version = "2.0.0"
 description = "A simple framework for building complex web applications."
 category = "main"
 optional = false
-python-versions = ">=3.7"
+python-versions = ">=3.6"
 files = [
-    {file = "Flask-2.2.3-py3-none-any.whl", hash = "sha256:c0bec9477df1cb867e5a67c9e1ab758de9cb4a3e52dd70681f59fa40a62b3f2d"},
-    {file = "Flask-2.2.3.tar.gz", hash = "sha256:7eb373984bf1c770023fce9db164ed0c3353cd0b53f130f4693da0ca756a2e6d"},
+    {file = "Flask-2.0.0-py3-none-any.whl", hash = "sha256:1833a4b36ace08dfa1510d86f1bb6fc595d990ec1b838e03ac8dd80ac0705954"},
+    {file = "Flask-2.0.0.tar.gz", hash = "sha256:168e8507792cb8a3aa06afbe5d4d431d3e07c6318bc3893ceecb81aff09f848d"},
 ]
 
 [package.dependencies]
 asgiref = {version = ">=3.2", optional = true, markers = "extra == \"async\""}
-click = ">=8.0"
-importlib-metadata = {version = ">=3.6.0", markers = "python_version < \"3.10\""}
+click = ">=7.1.2"
 itsdangerous = ">=2.0"
 Jinja2 = ">=3.0"
-Werkzeug = ">=2.2.2"
+Werkzeug = ">=2.0"
 
 [package.extras]
 async = ["asgiref (>=3.2)"]
@@ -720,7 +719,7 @@ Six = "*"
 
 [[package]]
 name = "forestadmin-agent-flask"
-version = "0.1.0-beta.16"
+version = "0.1.0-beta.28"
 description = ""
 category = "main"
 optional = false
@@ -730,8 +729,9 @@ develop = true
 
 [package.dependencies]
 "backports.zoneinfo" = {version = "~=0.2.1", extras = ["tzdata"], markers = "python_version < \"3.9\""}
-flask = {version = "^2.2.2", extras = ["async"]}
-forestadmin-agent-toolkit = "^0.1.0-beta.16"
+flask = {version = "^2.0.0", extras = ["async"]}
+forestadmin-agent-toolkit = "^0.1.0-beta.28"
+forestadmin-datasource-toolkit = "^0.1.0-beta.28"
 typing-extensions = "~=4.2"
 tzdata = "~=2022.6"
 
@@ -741,7 +741,7 @@ url = "../../flask_agent"
 
 [[package]]
 name = "forestadmin-agent-toolkit"
-version = "0.1.0-beta.16"
+version = "0.1.0-beta.28"
 description = ""
 category = "main"
 optional = false
@@ -753,7 +753,7 @@ develop = true
 aiohttp = "~=3.8"
 "backports.zoneinfo" = {version = "~0.2.1", extras = ["tzdata"], markers = "python_version < \"3.9\""}
 cachetools = "~=5.2"
-forestadmin-datasource-toolkit = "^0.1.0-beta.16"
+forestadmin-datasource-toolkit = "^0.1.0-beta.28"
 marshmallow-jsonapi = ">=0.24.0, <1.0"
 oic = "~=1.4"
 pandas = [
@@ -771,7 +771,7 @@ url = "../../agent_toolkit"
 
 [[package]]
 name = "forestadmin-datasource-sqlalchemy"
-version = "0.1.0-beta.16"
+version = "0.1.0-beta.28"
 description = ""
 category = "main"
 optional = false
@@ -781,7 +781,8 @@ develop = true
 
 [package.dependencies]
 "backports.zoneinfo" = {version = "~=0.2.1", extras = ["tzdata"], markers = "python_version < \"3.9\""}
-forestadmin-datasource-toolkit = "^0.1.0-beta.16"
+forestadmin-datasource-toolkit = "^0.1.0-beta.28"
+sqlalchemy = "^1.4.44"
 typing-extensions = "~=4.2"
 tzdata = "~=2022.6"
 
@@ -791,7 +792,7 @@ url = "../../datasource_sqlalchemy"
 
 [[package]]
 name = "forestadmin-datasource-toolkit"
-version = "0.1.0-beta.16"
+version = "0.1.0-beta.28"
 description = ""
 category = "main"
 optional = false
@@ -2280,4 +2281,4 @@ testing = ["big-O", "flake8 (<5)", "jaraco.functools", "jaraco.itertools", "more
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.7,<4.0"
-content-hash = "436ce9c75c5002cef887b47f17b59d2f9f3aacbc9d451f83b98f099566403329"
+content-hash = "fbe1f8eda39793176af007bb3586917b2bd77ee71a41c76cb74cef5785f49d20"

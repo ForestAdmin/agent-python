@@ -8,7 +8,7 @@ packages = [{include = "demo"}]
 
 [tool.poetry.dependencies]
 python = ">=3.7,<4.0"
-Flask = "^2.2.2"
+Flask = "==2.0.0"
 sqlalchemy = "^1.4.44"
 flask-cors = "^3.0.10"
 # forestadmin-datasource-toolkit = "^0.1.0-beta.15"
@@ -60,7 +60,7 @@ isort = "~=3.6"
 [tool.poe.tasks]
 init-db  = { script = "demo.models.utils.init_db:create_all" }
 populate-db  = { script = "demo.models.utils.populate_dev_db:populate" }
-runserver = { shell = "flask --app demo.app run --reload" }
+runserver = { shell = "FLASK_APP=demo.app flask run --reload" }
 
 [tool.poetry.group.dev.dependencies]
 poethepoet = "^0.16.5"

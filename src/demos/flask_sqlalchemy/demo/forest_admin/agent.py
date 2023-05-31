@@ -1,20 +1,17 @@
-from demo.forestadmin.settings import SETTINGS
-from demo.forestadmin.smart.address import (
-    address_full_name_computed,
-    high_delivery_address_segment,
-)
-from demo.forestadmin.smart.customer import (
+from demo.forest_admin.settings import SETTINGS
+from demo.forest_admin.smart.address import address_full_name_computed, high_delivery_address_segment
+from demo.forest_admin.smart.customer import (  # computed_full_address_caps,
     AgeOperation,
     ExportJson,
-    # computed_full_address_caps,
     customer_full_name,
     customer_spending_computed,
     french_address_segment,
 )
-from demo.forestadmin.smart.order import ExportJson as ExportOrderJson, get_customer_full_name_field
-from demo.forestadmin.smart.order import (
+from demo.forest_admin.smart.order import ExportJson as ExportOrderJson
+from demo.forest_admin.smart.order import (
     delivered_order_segment,
     dispatched_order_segment,
+    get_customer_full_name_field,
     pending_order_segment,
     rejected_order_segment,
     suspicious_order_segment,
@@ -47,22 +44,22 @@ agent.customize_collection("customer").add_action("Export json", ExportJson())
 agent.customize_collection("customer").add_action("Age operation", AgeOperation())
 
 agent.customize_collection("customer").register_computed("full_name", customer_full_name())
-agent.customize_collection("customer").register_computed("TotalSpending", customer_spending_computed())
+# agent.customize_collection("customer").register_computed("TotalSpending", customer_spending_computed())
 
 
 # ## ORDERS
 # segment
-agent.customize_collection("order").add_segment("Pending order", pending_order_segment)
-agent.customize_collection("order").add_segment("Delivered order", delivered_order_segment)
-agent.customize_collection("order").add_segment("Rejected order", rejected_order_segment)
-agent.customize_collection("order").add_segment("Dispatched order", dispatched_order_segment)
-agent.customize_collection("order").add_segment("Suspicious order", suspicious_order_segment)
+# agent.customize_collection("order").rename_field("amount", "cost")
+# agent.customize_collection("order").add_segment("Pending order", pending_order_segment)
+# agent.customize_collection("order").add_segment("Delivered order", delivered_order_segment)
+# agent.customize_collection("order").add_segment("Rejected order", rejected_order_segment)
+# agent.customize_collection("order").add_segment("Dispatched order", dispatched_order_segment)
+# agent.customize_collection("order").add_segment("Suspicious order", suspicious_order_segment)
 
 # rename
-agent.customize_collection("order").register_computed("customer\\ full_name", get_customer_full_name_field())
-agent.customize_collection("order").rename_field("amount", "cost")
+# agent.customize_collection("order").register_computed("customer\\ full_name", get_customer_full_name_field())
 # action file global
-agent.customize_collection("order").add_action("Export json", ExportOrderJson())
+# agent.customize_collection("order").add_action("Export json", ExportOrderJson())
 
 # deactivate count
 
