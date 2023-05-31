@@ -44,22 +44,22 @@ agent.customize_collection("customer").add_action("Export json", ExportJson())
 agent.customize_collection("customer").add_action("Age operation", AgeOperation())
 
 agent.customize_collection("customer").register_computed("full_name", customer_full_name())
-# agent.customize_collection("customer").register_computed("TotalSpending", customer_spending_computed())
+agent.customize_collection("customer").register_computed("TotalSpending", customer_spending_computed())
 
 
 # ## ORDERS
 # segment
-# agent.customize_collection("order").rename_field("amount", "cost")
-# agent.customize_collection("order").add_segment("Pending order", pending_order_segment)
-# agent.customize_collection("order").add_segment("Delivered order", delivered_order_segment)
-# agent.customize_collection("order").add_segment("Rejected order", rejected_order_segment)
-# agent.customize_collection("order").add_segment("Dispatched order", dispatched_order_segment)
-# agent.customize_collection("order").add_segment("Suspicious order", suspicious_order_segment)
+agent.customize_collection("order").rename_field("amount", "cost")
+agent.customize_collection("order").add_segment("Pending order", pending_order_segment)
+agent.customize_collection("order").add_segment("Delivered order", delivered_order_segment)
+agent.customize_collection("order").add_segment("Rejected order", rejected_order_segment)
+agent.customize_collection("order").add_segment("Dispatched order", dispatched_order_segment)
+agent.customize_collection("order").add_segment("Suspicious order", suspicious_order_segment)
 
 # rename
-# agent.customize_collection("order").register_computed("customer\\ full_name", get_customer_full_name_field())
+agent.customize_collection("order").register_computed("customer\\ full_name", get_customer_full_name_field())
 # action file global
-# agent.customize_collection("order").add_action("Export json", ExportOrderJson())
+agent.customize_collection("order").add_action("Export json", ExportOrderJson())
 
 # deactivate count
 

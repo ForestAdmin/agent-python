@@ -1,4 +1,4 @@
-from demo.forestadmin.agent import agent
+from demo.forest_admin.agent import agent
 from flask import Flask
 from flask_cors import CORS
 

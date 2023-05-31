@@ -91,8 +91,7 @@ class ExportJson(ActionGlobal):
                 "billing_address:complete_address",
                 "delivering_address:complete_address",
                 "status",
-                "amount",
-                # "cost",
+                "cost",
             )
         )
         return result_builder.file(
