@@ -1,17 +1,31 @@
 from typing import Any, Dict
 
 from forestadmin.datasource_sqlalchemy.collections import SqlAlchemyCollection
+from forestadmin.datasource_sqlalchemy.exceptions import SqlAlchemyDatasourceException
 from forestadmin.datasource_sqlalchemy.interfaces import BaseSqlAlchemyDatasource
 from forestadmin.datasource_toolkit.datasources import DatasourceException
 from forestadmin.datasource_toolkit.interfaces.fields import FieldType, ManyToMany, ManyToOne
-from sqlalchemy.orm import Mapper, sessionmaker
+from sqlalchemy.orm import DeclarativeMeta, Mapper, sessionmaker
+from sqlalchemy.sql.schema import MetaData
 
 
 class SqlAlchemyDatasource(BaseSqlAlchemyDatasource):
     def __init__(self, Base: Any) -> None:
         super().__init__()
-        self._base = Base
-        self.Session = sessionmaker(self._base.metadata.bind)  # type: ignore
+        bind = Base.metadata.bind
+        if isinstance(Base, DeclarativeMeta):  # from sqlalchemy package
+            self._base = Base
+        elif (
+            hasattr(Base, "Model") and hasattr(Base.Model, "metadata") and isinstance(Base.Model.metadata, MetaData)
+        ):  # from flask_sqlalchemy package
+            self._base = Base.Model
+        else:
+            raise SqlAlchemyDatasourceException("Impossible to access to your sqlalchemy models.")
+
+        if bind is None:
+            raise SqlAlchemyDatasourceException("Your SQLAlchemy Base class must be bind to an engine.")
+
+        self.Session = sessionmaker(bind)  # type: ignore
         self._create_collections()
 
     def build_mappers(self) -> Dict[str, Mapper]:
