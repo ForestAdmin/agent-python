@@ -689,8 +689,8 @@
         }
     ],
     "meta": {
-        "liana": "forest-nodejs-agent",
-        "liana_version": "1.0.0",
+        "liana": "agent-python",
+        "liana_version": "0.1.0-beta.28",
         "stack": {
             "engine": "python",
             "engine_version": "3.10.5"

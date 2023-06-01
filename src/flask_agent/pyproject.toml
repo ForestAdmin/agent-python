@@ -20,7 +20,7 @@ forestadmin-datasource-toolkit = "^0.1.0-beta.28"
 
 [tool.poetry.dependencies.flask]
 extras = [ "async",]
-version = "^2.2.2"
+version = "^2.0.0"
 
 [tool.poetry.dependencies."backports.zoneinfo"]
 version = "~=0.2.1"
