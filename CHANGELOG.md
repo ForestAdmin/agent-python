@@ -2,6 +2,9 @@
 
 <!--next-version-placeholder-->
 
+## v0.1.0-beta.29 (2023-06-01)
+
+
 ## v0.1.0-beta.28 (2023-05-29)
 ### Feature
 
