@@ -719,7 +719,7 @@ Six = "*"
 
 [[package]]
 name = "forestadmin-agent-flask"
-version = "0.1.0-beta.28"
+version = "0.1.0-beta.30"
 description = ""
 category = "main"
 optional = false
@@ -730,8 +730,9 @@ develop = true
 [package.dependencies]
 "backports.zoneinfo" = {version = "~=0.2.1", extras = ["tzdata"], markers = "python_version < \"3.9\""}
 flask = {version = "^2.0.0", extras = ["async"]}
-forestadmin-agent-toolkit = "^0.1.0-beta.28"
-forestadmin-datasource-toolkit = "^0.1.0-beta.28"
+Flask-Cors = "^3.0.8"
+forestadmin-agent-toolkit = "^0.1.0-beta.30"
+forestadmin-datasource-toolkit = "^0.1.0-beta.30"
 typing-extensions = "~=4.2"
 tzdata = "~=2022.6"
 
@@ -741,7 +742,7 @@ url = "../../flask_agent"
 
 [[package]]
 name = "forestadmin-agent-toolkit"
-version = "0.1.0-beta.28"
+version = "0.1.0-beta.30"
 description = ""
 category = "main"
 optional = false
@@ -753,7 +754,7 @@ develop = true
 aiohttp = "~=3.8"
 "backports.zoneinfo" = {version = "~0.2.1", extras = ["tzdata"], markers = "python_version < \"3.9\""}
 cachetools = "~=5.2"
-forestadmin-datasource-toolkit = "^0.1.0-beta.28"
+forestadmin-datasource-toolkit = "^0.1.0-beta.30"
 marshmallow-jsonapi = ">=0.24.0, <1.0"
 oic = "~=1.4"
 pandas = [
@@ -771,7 +772,7 @@ url = "../../agent_toolkit"
 
 [[package]]
 name = "forestadmin-datasource-sqlalchemy"
-version = "0.1.0-beta.28"
+version = "0.1.0-beta.30"
 description = ""
 category = "main"
 optional = false
@@ -781,7 +782,7 @@ develop = true
 
 [package.dependencies]
 "backports.zoneinfo" = {version = "~=0.2.1", extras = ["tzdata"], markers = "python_version < \"3.9\""}
-forestadmin-datasource-toolkit = "^0.1.0-beta.28"
+forestadmin-datasource-toolkit = "^0.1.0-beta.30"
 sqlalchemy = "^1.4.44"
 typing-extensions = "~=4.2"
 tzdata = "~=2022.6"
@@ -792,7 +793,7 @@ url = "../../datasource_sqlalchemy"
 
 [[package]]
 name = "forestadmin-datasource-toolkit"
-version = "0.1.0-beta.28"
+version = "0.1.0-beta.30"
 description = ""
 category = "main"
 optional = false
@@ -2281,4 +2282,4 @@ testing = ["big-O", "flake8 (<5)", "jaraco.functools", "jaraco.itertools", "more
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.7,<4.0"
-content-hash = "fbe1f8eda39793176af007bb3586917b2bd77ee71a41c76cb74cef5785f49d20"
+content-hash = "6fdde413a61f76a7b02f7144113b2d4339056c135ed1c3872146397667c62af6"
