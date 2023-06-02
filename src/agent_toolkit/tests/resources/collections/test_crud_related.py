@@ -7,11 +7,16 @@ from unittest import TestCase
 from unittest.mock import Mock, patch
 
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.branch import Aggregator
+from mock import ANY
 
 if sys.version_info < (3, 8):
     from mock import AsyncMock
 else:
     from unittest.mock import AsyncMock
+if sys.version_info >= (3, 9):
+    import zoneinfo
+else:
+    from backports import zoneinfo
 
 import forestadmin.agent_toolkit.resources.collections.crud_related
 from forestadmin.agent_toolkit.options import Options
@@ -32,6 +37,7 @@ from forestadmin.datasource_toolkit.interfaces.fields import (
     ManyToMany,
     ManyToOne,
     OneToMany,
+    OneToOne,
     Operator,
     PrimitiveType,
 )
@@ -64,19 +70,70 @@ from forestadmin.agent_toolkit.resources.collections.crud_related import CrudRel
 
 
 class TestCrudRelatedResource(TestCase):
+    def mk_request_customer_order_one_to_many(self):
+        return [
+            self.collection_customer,
+            self.collection_order,
+            OneToMany(
+                {
+                    "type": FieldType.ONE_TO_MANY,
+                    "foreign_collection": "order",
+                    "origin_key": "customer_id",
+                    "origin_key_target": "id",
+                }
+            ),
+            "orders",
+        ]
+
+    def mk_request_order_product_many_to_many(self):
+        return [
+            self.collection_order,
+            self.collection_product,
+            ManyToMany(
+                {
+                    "type": FieldType.MANY_TO_MANY,
+                    "through_collection": "product_order",
+                    "foreign_collection": "product",
+                    "foreign_relation": "product",
+                    "foreign_key": "product_id",
+                    "foreign_key_target": "id",
+                    "origin_key": "order_id",
+                    "origin_key_target": "id",
+                }
+            ),
+            "products",
+        ]
+
+    @classmethod
+    def _create_collection(
+        cls,
+        name,
+        fields,
+    ):
+        collection = Mock(Collection)
+        collection._datasource = cls.datasource
+        collection.datasource = cls.datasource
+        collection.list = AsyncMock(return_value=None)
+        collection.update = AsyncMock(return_value=None)
+        collection.delete = AsyncMock(return_value=None)
+        collection._name = name
+        collection.name = name
+        collection.get_field = lambda x: collection._schema["fields"][x]
+        collection._schema = {
+            "actions": {},
+            "fields": fields,
+            "searchable": True,
+            "segments": [],
+        }
+        collection.schema = collection._schema
+        return collection
+
     @classmethod
     def _create_collections(cls):
         # order
-        cls.collection_order = Mock(Collection)
-        cls.collection_order._datasource = cls.datasource
-        cls.collection_order.datasource = cls.datasource
-        cls.collection_order.update = AsyncMock(return_value=None)
-        cls.collection_order._name = "order"
-        cls.collection_order.name = "order"
-        cls.collection_order.get_field = lambda x: cls.collection_order._schema["fields"][x]
-        cls.collection_order._schema = {
-            "actions": {},
-            "fields": {
+        cls.collection_order = cls._create_collection(
+            "order",
+            {
                 "id": {"column_type": PrimitiveType.NUMBER, "is_primary_key": True, "type": FieldType.COLUMN},
                 "cost": {"column_type": PrimitiveType.NUMBER, "is_primary_key": False, "type": FieldType.COLUMN},
                 "products": {
@@ -101,101 +158,42 @@ class TestCrudRelatedResource(TestCase):
                     "origin_key": "order_id",
                 },
             },
-            "searchable": True,
-            "segments": [],
-        }
-        cls.collection_order.schema = cls.collection_order._schema
+        )
 
         # product order
-        cls.collection_product_order = Mock(Collection)
-        cls.collection_product_order._datasource = cls.datasource
-        cls.collection_product_order.datasource = cls.datasource
-        cls.collection_product_order.update = AsyncMock(return_value=None)
-        cls.collection_product_order._name = "product_order"
-        cls.collection_product_order.name = "product_order"
-        cls.collection_product_order.get_field = lambda x: cls.collection_product_order._schema["fields"][x]
-        cls.collection_product_order._schema = {
-            "actions": {},
-            "fields": {
+        cls.collection_product_order = cls._create_collection(
+            "product_order",
+            {
                 "product_id": {"column_type": PrimitiveType.NUMBER, "is_primary_key": True, "type": FieldType.COLUMN},
                 "order_id": {"column_type": PrimitiveType.NUMBER, "is_primary_key": True, "type": FieldType.COLUMN},
                 "searchable": True,
                 "segments": [],
             },
-        }
-        cls.collection_product_order.schema = cls.collection_product_order._schema
+        )
 
         # product
 
-        cls.collection_product = Mock(Collection)
-        cls.collection_product._datasource = cls.datasource
-        cls.collection_product.datasource = cls.datasource
-        cls.collection_product.update = AsyncMock(return_value=None)
-        cls.collection_product._name = "product"
-        cls.collection_product.name = "product"
-        cls.collection_product.get_field = lambda x: cls.collection_product._schema["fields"][x]
-        cls.collection_product._schema = {
-            "actions": {},
-            "fields": {
+        cls.collection_product = cls._create_collection(
+            "product",
+            {
                 "id": {"column_type": PrimitiveType.NUMBER, "is_primary_key": True, "type": FieldType.COLUMN},
                 "name": {"column_type": PrimitiveType.STRING, "is_primary_key": False, "type": FieldType.COLUMN},
             },
-            "searchable": False,
-            "segments": [],
-        }
-        cls.collection_product.schema = cls.collection_product._schema
-
-        # status
-
-        # cls.collection_status = Mock(Collection)
-        # cls.collection_status._datasource = cls.datasource
-        # cls.collection_status.datasource = cls.datasource
-        # cls.collection_status.update = AsyncMock(return_value=None)
-        # cls.collection_status._name = "status"
-        # cls.collection_status.name = "status"
-        # cls.collection_status.get_field = lambda x: cls.collection_status._schema["fields"][x]
-        # cls.collection_status._schema = {
-        #     "actions": {},
-        #     "fields": {
-        #         "id": {"column_type": PrimitiveType.NUMBER, "is_primary_key": True, "type": FieldType.COLUMN},
-        #         "name": {"column_type": PrimitiveType.STRING, "is_primary_key": False, "type": FieldType.COLUMN},
-        #     },
-        #     "searchable": False,
-        #     "segments": [],
-        # }
-        # cls.collection_status.schema = cls.collection_status._schema
+        )
 
         # cart
-        cls.collection_cart = Mock(Collection)
-        cls.collection_cart._datasource = cls.datasource
-        cls.collection_cart.datasource = cls.datasource
-        cls.collection_cart.update = AsyncMock(return_value=None)
-        cls.collection_cart._name = "cart"
-        cls.collection_cart.name = "cart"
-        cls.collection_cart.get_field = lambda x: cls.collection_cart._schema["fields"][x]
-        cls.collection_cart._schema = {
-            "actions": {},
-            "fields": {
+        cls.collection_cart = cls._create_collection(
+            "cart",
+            {
                 "id": {"column_type": PrimitiveType.NUMBER, "is_primary_key": True, "type": FieldType.COLUMN},
                 "name": {"column_type": PrimitiveType.STRING, "is_primary_key": False, "type": FieldType.COLUMN},
             },
-            "searchable": False,
-            "segments": [],
-        }
-        cls.collection_cart.schema = cls.collection_cart._schema
-
+        )
         # customers
 
-        cls.collection_customer = Mock(Collection)
-        cls.collection_customer._datasource = cls.datasource
-        cls.collection_customer.datasource = cls.datasource
-        cls.collection_customer.update = AsyncMock(return_value=None)
-        cls.collection_customer._name = "customer"
-        cls.collection_customer.name = "customer"
-        cls.collection_customer.get_field = lambda x: cls.collection_customer._schema["fields"][x]
-        cls.collection_customer._schema = {
-            "actions": {},
-            "fields": {
+        cls.collection_customer = cls._create_collection(
+            "customer",
+            {
                 "id": {"column_type": PrimitiveType.NUMBER, "is_primary_key": True, "type": FieldType.COLUMN},
                 "name": {"column_type": PrimitiveType.STRING, "is_primary_key": False, "type": FieldType.COLUMN},
                 "order": {
@@ -207,10 +205,7 @@ class TestCrudRelatedResource(TestCase):
                     # "origin_key": "_id",
                 },
             },
-            "searchable": False,
-            "segments": [],
-        }
-        cls.collection_customer.schema = cls.collection_customer._schema
+        )
 
     @classmethod
     def setUpClass(cls) -> None:
@@ -237,39 +232,39 @@ class TestCrudRelatedResource(TestCase):
             "product": cls.collection_product,
             "product_order": cls.collection_product_order,
         }
+        cls.crud_related_resource = CrudRelatedResource(cls.datasource, cls.permission_service, cls.options)
 
-    # dispatch
-
+    # -- dispatch
     def test_dispatch(self):
         request = Request(
             method="GET",
             query={"collection_name": "customer", "relation_name": "order"},
         )
-        crud_related_resource = CrudRelatedResource(self.datasource, self.permission_service, self.options)
-        crud_related_resource.list = AsyncMock()
-        crud_related_resource.csv = AsyncMock()
-        crud_related_resource.count = AsyncMock()
-        crud_related_resource.add = AsyncMock()
-        crud_related_resource.update_list = AsyncMock()
-        crud_related_resource.delete_list = AsyncMock()
 
-        self.loop.run_until_complete(crud_related_resource.dispatch(request, "list"))
-        crud_related_resource.list.assert_called_once()
+        self.crud_related_resource.list = AsyncMock()
+        self.crud_related_resource.csv = AsyncMock()
+        self.crud_related_resource.count = AsyncMock()
+        self.crud_related_resource.add = AsyncMock()
+        self.crud_related_resource.update_list = AsyncMock()
+        self.crud_related_resource.delete_list = AsyncMock()
 
-        self.loop.run_until_complete(crud_related_resource.dispatch(request, "count"))
-        crud_related_resource.count.assert_called_once()
+        self.loop.run_until_complete(self.crud_related_resource.dispatch(request, "list"))
+        self.crud_related_resource.list.assert_called_once()
 
-        self.loop.run_until_complete(crud_related_resource.dispatch(request, "add"))
-        crud_related_resource.add.assert_called_once()
+        self.loop.run_until_complete(self.crud_related_resource.dispatch(request, "count"))
+        self.crud_related_resource.count.assert_called_once()
 
-        self.loop.run_until_complete(crud_related_resource.dispatch(request, "update_list"))
-        crud_related_resource.update_list.assert_called_once()
+        self.loop.run_until_complete(self.crud_related_resource.dispatch(request, "add"))
+        self.crud_related_resource.add.assert_called_once()
 
-        self.loop.run_until_complete(crud_related_resource.dispatch(request, "delete_list"))
-        crud_related_resource.delete_list.assert_called_once()
+        self.loop.run_until_complete(self.crud_related_resource.dispatch(request, "update_list"))
+        self.crud_related_resource.update_list.assert_called_once()
 
-        self.loop.run_until_complete(crud_related_resource.dispatch(request, "csv"))
-        crud_related_resource.csv.assert_called_once()
+        self.loop.run_until_complete(self.crud_related_resource.dispatch(request, "delete_list"))
+        self.crud_related_resource.delete_list.assert_called_once()
+
+        self.loop.run_until_complete(self.crud_related_resource.dispatch(request, "csv"))
+        self.crud_related_resource.csv.assert_called_once()
 
     @patch("forestadmin.agent_toolkit.resources.collections.crud_related.RequestRelationCollection")
     def test_dispatch_error(self, mock_request_relation_collection: Mock):
@@ -278,15 +273,12 @@ class TestCrudRelatedResource(TestCase):
             query={"collection_name": "customer", "relation_name": "order"},
         )
         mock_request_relation_collection.from_request = Mock(side_effect=RequestCollectionException("test exception"))
-        crud_related_resource = CrudRelatedResource(self.datasource, self.permission_service, self.options)
-        crud_related_resource.get = AsyncMock()
 
-        response = self.loop.run_until_complete(crud_related_resource.dispatch(request, "get"))
-        assert json.loads(response.body)["errors"][0] == "🌳🌳🌳test exception"
-        assert response.status == 400
+        self.assertRaises(
+            AttributeError, self.loop.run_until_complete, self.crud_related_resource.dispatch(request, "get")
+        )
 
-    # list
-
+    # -- list
     @patch(
         "forestadmin.agent_toolkit.resources.collections.crud_related.JsonApiSerializer.get",
         return_value=Mock,
@@ -296,17 +288,7 @@ class TestCrudRelatedResource(TestCase):
 
         request = RequestRelationCollection(
             "GET",
-            self.collection_customer,
-            self.collection_order,
-            OneToMany(
-                {
-                    "type": FieldType.ONE_TO_MANY,
-                    "foreign_collection": "order",
-                    "origin_key": "customer_id",
-                    "origin_key_target": "id",
-                }
-            ),
-            "orders",
+            *self.mk_request_customer_order_one_to_many(),
             None,
             {
                 "collection_name": "customer",
@@ -329,9 +311,12 @@ class TestCrudRelatedResource(TestCase):
                 ]
             }
         )
-        self.collection_order.list = AsyncMock(return_value=mock_orders)
 
-        response = self.loop.run_until_complete(crud_related_resource.list(request))
+        with patch.object(
+            self.collection_order, "list", new_callable=AsyncMock, return_value=mock_orders
+        ) as mocked_collection_list:
+            response = self.loop.run_until_complete(crud_related_resource.list(request))
+            mocked_collection_list.assert_awaited()
 
         assert response.status == 200
         response_content = json.loads(response.body)
@@ -343,7 +328,6 @@ class TestCrudRelatedResource(TestCase):
         assert response_content["data"][1]["attributes"]["cost"] == mock_orders[1]["cost"]
         assert response_content["data"][1]["id"] == mock_orders[1]["id"]
         assert response_content["data"][1]["type"] == "order"
-        self.collection_order.list.assert_awaited()
 
     @patch(
         "forestadmin.agent_toolkit.resources.collections.crud_related.JsonApiSerializer.get",
@@ -358,7 +342,7 @@ class TestCrudRelatedResource(TestCase):
             "GET",
             self.collection_customer,
             self.collection_order,
-            OneToMany(
+            OneToOne(
                 {
                     "type": FieldType.ONE_TO_ONE,
                     "foreign_collection": "order",
@@ -376,27 +360,18 @@ class TestCrudRelatedResource(TestCase):
         assert response_content["errors"][0] == "🌳🌳🌳Unhandled relation type"
 
         # collectionResourceException
+        request_get_params = {
+            "collection_name": "customer",
+            "relation_name": "order",
+            "timezone": "Europe/Paris",
+            "fields[order]": "id,cost",
+            # "pks": "2",  # error on customer id
+        }
         request = RequestRelationCollection(
             "GET",
-            self.collection_customer,
-            self.collection_order,
-            OneToMany(
-                {
-                    "type": FieldType.ONE_TO_MANY,
-                    "foreign_collection": "order",
-                    "origin_key": "customer_id",
-                    "origin_key_target": "id",
-                }
-            ),
-            "orders",
+            *self.mk_request_customer_order_one_to_many(),
             None,
-            {
-                "collection_name": "customer",
-                "relation_name": "order",
-                "timezone": "Europe/Paris",
-                "fields[order]": "id,cost",
-                # "pks": "2",  # error on customer id
-            },
+            request_get_params,
             {},
             None,
         )
@@ -408,27 +383,12 @@ class TestCrudRelatedResource(TestCase):
         assert response_content["errors"][0] == "🌳🌳🌳primary keys are missing"
 
         # # JsonApiException
+        request_get_params["pks"] = "2"
         request = RequestRelationCollection(
             "GET",
-            self.collection_customer,
-            self.collection_order,
-            OneToMany(
-                {
-                    "type": FieldType.ONE_TO_MANY,
-                    "foreign_collection": "order",
-                    "origin_key": "customer_id",
-                    "origin_key_target": "id",
-                }
-            ),
-            "orders",
+            *self.mk_request_customer_order_one_to_many(),
             None,
-            {
-                "collection_name": "customer",
-                "relation_name": "order",
-                "timezone": "Europe/Paris",
-                "fields[order]": "id,cost",
-                "pks": "2",  # error on customer id
-            },
+            request_get_params,
             {},
             None,
         )
@@ -447,17 +407,7 @@ class TestCrudRelatedResource(TestCase):
 
         request = RequestRelationCollection(
             "GET",
-            self.collection_customer,
-            self.collection_order,
-            OneToMany(
-                {
-                    "type": FieldType.ONE_TO_MANY,
-                    "foreign_collection": "order",
-                    "origin_key": "customer_id",
-                    "origin_key_target": "id",
-                }
-            ),
-            "orders",
+            *self.mk_request_customer_order_one_to_many(),
             None,
             {
                 "collection_name": "customer",
@@ -471,13 +421,13 @@ class TestCrudRelatedResource(TestCase):
             {},
             None,
         )
-        crud_related_resource = CrudRelatedResource(self.datasource, self.permission_service, self.options)
-        self.collection_order.list = AsyncMock(return_value=mock_orders)
-
-        response = self.loop.run_until_complete(crud_related_resource.csv(request))
+        with patch.object(
+            self.collection_order, "list", new_callable=AsyncMock, return_value=mock_orders
+        ) as mocked_collection_list:
+            response = self.loop.run_until_complete(self.crud_related_resource.csv(request))
+            mocked_collection_list.assert_awaited()
 
         assert response.status == 200
-        self.collection_order.list.assert_awaited()
         csv_reader = csv.DictReader(response.body)
         response_content = [row for row in csv_reader]
         assert isinstance(response_content, list)
@@ -496,7 +446,7 @@ class TestCrudRelatedResource(TestCase):
             "GET",
             self.collection_customer,
             self.collection_order,
-            OneToMany(
+            OneToOne(
                 {
                     "type": FieldType.ONE_TO_ONE,
                     "foreign_collection": "order",
@@ -513,27 +463,18 @@ class TestCrudRelatedResource(TestCase):
         assert response_content["errors"][0] == "🌳🌳🌳Unhandled relation type"
 
         # FilterException
+        request_get_params = {
+            "collection_name": "customer",
+            "relation_name": "order",
+            "timezone": "Europe/Paris",
+            "fields[order]": "id,cost",
+            # "pks": "2",  # error on customer id
+        }
         request = RequestRelationCollection(
             "GET",
-            self.collection_customer,
-            self.collection_order,
-            OneToMany(
-                {
-                    "type": FieldType.ONE_TO_MANY,
-                    "foreign_collection": "order",
-                    "origin_key": "customer_id",
-                    "origin_key_target": "id",
-                }
-            ),
-            "orders",
+            *self.mk_request_customer_order_one_to_many(),
             None,
-            {
-                "collection_name": "customer",
-                "relation_name": "order",
-                "timezone": "Europe/Paris",
-                "fields[order]": "id,cost",
-                # "pks": "2",  # error on customer id
-            },
+            request_get_params,
             {},
             None,
         )
@@ -544,27 +485,12 @@ class TestCrudRelatedResource(TestCase):
         assert response_content["errors"][0] == "🌳🌳🌳primary keys are missing"
 
         # collectionResourceException
+        request_get_params["pks"] = "2"
         request = RequestRelationCollection(
             "GET",
-            self.collection_customer,
-            self.collection_order,
-            OneToMany(
-                {
-                    "type": FieldType.ONE_TO_MANY,
-                    "foreign_collection": "order",
-                    "origin_key": "customer_id",
-                    "origin_key_target": "id",
-                }
-            ),
-            "orders",
+            *self.mk_request_customer_order_one_to_many(),
             None,
-            {
-                "collection_name": "customer",
-                "relation_name": "order",
-                "timezone": "Europe/Paris",
-                "fields[order]": "id,cost",
-                "pks": "2",  # error on customer id
-            },
+            request_get_params,
             {},
             None,
         )
@@ -591,22 +517,11 @@ class TestCrudRelatedResource(TestCase):
         assert response_content["errors"][0] == "🌳🌳🌳cannot make csv"
 
     # add
-
     def test_add(self):
         # One to Many
         request = RequestRelationCollection(
             "POST",
-            self.collection_customer,
-            self.collection_order,
-            OneToMany(
-                {
-                    "type": FieldType.ONE_TO_MANY,
-                    "foreign_collection": "order",
-                    "origin_key": "customer_id",
-                    "origin_key_target": "id",
-                }
-            ),
-            "orders",
+            *self.mk_request_customer_order_one_to_many(),
             {"data": [{"id": "201", "type": "order"}]},  # body
             {
                 "collection_name": "customer",
@@ -628,20 +543,7 @@ class TestCrudRelatedResource(TestCase):
         # many to Many
         request = RequestRelationCollection(
             "POST",
-            self.collection_order,
-            self.collection_product,
-            ManyToMany(
-                {
-                    "through_collection": "product_order",
-                    "type": FieldType.MANY_TO_MANY,
-                    "foreign_collection": "product",
-                    "foreign_key": "product_id",
-                    "foreign_key_target": "id",
-                    "origin_key_target": "id",
-                    "origin_key": "order_id",
-                }
-            ),
-            "orders",
+            *self.mk_request_order_product_many_to_many(),
             {"data": [{"id": "201", "type": "product"}]},  # body
             {
                 "collection_name": "order",
@@ -669,63 +571,39 @@ class TestCrudRelatedResource(TestCase):
         self,
         mocked_json_serializer_get: Mock,
     ):
+        request_get_params = {
+            "collection_name": "customer",
+            "relation_name": "order",
+            "timezone": "Europe/Paris",
+            # "pks": "2",  # customer id
+        }
         request = RequestRelationCollection(
             "POST",
-            self.collection_customer,
-            self.collection_order,
-            OneToMany(
-                {
-                    "type": FieldType.ONE_TO_MANY,
-                    "foreign_collection": "order",
-                    "origin_key": "customer_id",
-                    "origin_key_target": "id",
-                }
-            ),
-            "orders",
+            *self.mk_request_customer_order_one_to_many(),
             {"data": [{"id": "201", "type": "order"}]},  # body
-            {
-                "collection_name": "customer",
-                "relation_name": "order",
-                "timezone": "Europe/Paris",
-                # "pks": "2",  # customer id
-            },  # query
+            request_get_params,  # query
             {},  # header
             None,  # user
         )
-        crud_related_resource = CrudRelatedResource(self.datasource, self.permission_service, self.options)
 
         # no_id exception
-        response = self.loop.run_until_complete(crud_related_resource.add(request))
+        response = self.loop.run_until_complete(self.crud_related_resource.add(request))
 
         assert response.status == 400
         response_content = json.loads(response.body)
         assert response_content["errors"][0] == "🌳🌳🌳primary keys are missing"
 
         # no date body id
+        request_get_params["pks"] = "2"
         request = RequestRelationCollection(
             "POST",
-            self.collection_customer,
-            self.collection_order,
-            OneToMany(
-                {
-                    "type": FieldType.ONE_TO_MANY,
-                    "foreign_collection": "order",
-                    "origin_key": "customer_id",
-                    "origin_key_target": "id",
-                }
-            ),
-            "orders",
+            *self.mk_request_customer_order_one_to_many(),
             {},  # body
-            {
-                "collection_name": "customer",
-                "relation_name": "order",
-                "timezone": "Europe/Paris",
-                "pks": "2",  # customer id
-            },  # query
+            request_get_params,  # query
             {},  # header
             None,  # user
         )
-        response = self.loop.run_until_complete(crud_related_resource.add(request))
+        response = self.loop.run_until_complete(self.crud_related_resource.add(request))
         assert response.status == 400
         response_content = json.loads(response.body)
         assert response_content["errors"][0] == "🌳🌳🌳missing target's id"
@@ -733,24 +611,9 @@ class TestCrudRelatedResource(TestCase):
         # unpack foreign id
         request = RequestRelationCollection(
             "POST",
-            self.collection_customer,
-            self.collection_order,
-            OneToMany(
-                {
-                    "type": FieldType.ONE_TO_MANY,
-                    "foreign_collection": "order",
-                    "origin_key": "customer_id",
-                    "origin_key_target": "id",
-                }
-            ),
-            "orders",
+            *self.mk_request_customer_order_one_to_many(),
             {"data": [{"id": "201", "type": "order"}]},  # body
-            {
-                "collection_name": "customer",
-                "relation_name": "order",
-                "timezone": "Europe/Paris",
-                "pks": "2",  # customer id
-            },  # query
+            request_get_params,  # query
             {},  # header
             None,  # user
         )
@@ -762,7 +625,7 @@ class TestCrudRelatedResource(TestCase):
                 raise CollectionResourceException()
 
         with patch("forestadmin.agent_toolkit.resources.collections.crud_related.unpack_id", mocked_unpack_id):
-            response = self.loop.run_until_complete(crud_related_resource.add(request))
+            response = self.loop.run_until_complete(self.crud_related_resource.add(request))
         assert response.status == 400
         response_content = json.loads(response.body)
         assert response_content["errors"][0] == "🌳🌳🌳"
@@ -772,7 +635,7 @@ class TestCrudRelatedResource(TestCase):
             "POST",
             self.collection_customer,
             self.collection_order,
-            OneToMany(
+            OneToOne(
                 {
                     "type": FieldType.ONE_TO_ONE,
                     "foreign_collection": "order",
@@ -782,16 +645,11 @@ class TestCrudRelatedResource(TestCase):
             ),
             "orders",
             {"data": [{"id": "201", "type": "order"}]},  # body
-            {
-                "collection_name": "customer",
-                "relation_name": "order",
-                "timezone": "Europe/Paris",
-                "pks": "2",  # customer id
-            },  # query
+            request_get_params,  # query
             {},  # header
             None,  # user
         )
-        response = self.loop.run_until_complete(crud_related_resource.add(request))
+        response = self.loop.run_until_complete(self.crud_related_resource.add(request))
         assert response.status == 400
         response_content = json.loads(response.body)
         assert response_content["errors"][0] == "🌳🌳🌳Unhandled relation type"
@@ -808,7 +666,7 @@ class TestCrudRelatedResource(TestCase):
             "PUT",
             self.collection_order,
             self.collection_cart,
-            OneToMany(
+            OneToOne(
                 {
                     "type": FieldType.ONE_TO_ONE,
                     "foreign_collection": "cart",
@@ -838,7 +696,7 @@ class TestCrudRelatedResource(TestCase):
             "PUT",
             self.collection_order,
             self.collection_customer,
-            OneToMany(
+            ManyToOne(
                 {
                     "type": FieldType.MANY_TO_ONE,
                     "foreign_collection": "customer",
@@ -865,13 +723,18 @@ class TestCrudRelatedResource(TestCase):
 
     def test_edit_error(self):
         crud_related_resource = CrudRelatedResource(self.datasource, self.permission_service, self.options)
-
+        query_get_params = {
+            "collection_name": "customer",
+            "relation_name": "order",
+            # "timezone": "Europe/Paris",
+            "pks": "2",  # customer id
+        }
         # no timezone
         request = RequestRelationCollection(
             "PUT",
             self.collection_order,
             self.collection_customer,
-            OneToMany(
+            ManyToOne(
                 {
                     "type": FieldType.MANY_TO_ONE,
                     "foreign_collection": "customer",
@@ -881,12 +744,7 @@ class TestCrudRelatedResource(TestCase):
             ),
             "orders",
             {"data": {"id": "201", "type": "customer"}},  # body
-            {
-                "collection_name": "customer",
-                "relation_name": "order",
-                # "timezone": "Europe/Paris",
-                "pks": "2",  # customer id
-            },  # query
+            query_get_params,  # query
             {},  # header
             None,  # user
         )
@@ -897,11 +755,13 @@ class TestCrudRelatedResource(TestCase):
         assert response_content["errors"][0] == "🌳🌳🌳Missing timezone"
 
         # no id
+        del query_get_params["pks"]
+        query_get_params["timezone"] = "Europe/Paris"
         request = RequestRelationCollection(
             "PUT",
             self.collection_order,
             self.collection_customer,
-            OneToMany(
+            ManyToOne(
                 {
                     "type": FieldType.MANY_TO_ONE,
                     "foreign_collection": "customer",
@@ -911,12 +771,7 @@ class TestCrudRelatedResource(TestCase):
             ),
             "orders",
             {"data": {"id": "201", "type": "customer"}},  # body
-            {
-                "collection_name": "customer",
-                "relation_name": "order",
-                "timezone": "Europe/Paris",
-                # "pks": "2",  # customer id
-            },  # query
+            query_get_params,  # query
             {},  # header
             None,  # user
         )
@@ -927,11 +782,12 @@ class TestCrudRelatedResource(TestCase):
         assert response_content["errors"][0] == "🌳🌳🌳primary keys are missing"
 
         # no id for relation
+        query_get_params["pks"] = "2"
         request = RequestRelationCollection(
             "PUT",
             self.collection_order,
             self.collection_customer,
-            OneToMany(
+            ManyToOne(
                 {
                     "type": FieldType.MANY_TO_ONE,
                     "foreign_collection": "customer",
@@ -941,12 +797,7 @@ class TestCrudRelatedResource(TestCase):
             ),
             "orders",
             {"data": {"__id": "201", "type": "customer"}},  # body
-            {
-                "collection_name": "customer",
-                "relation_name": "order",
-                "timezone": "Europe/Paris",
-                "pks": "2",  # customer id
-            },  # query
+            query_get_params,  # query
             {},  # header
             None,  # user
         )
@@ -960,7 +811,7 @@ class TestCrudRelatedResource(TestCase):
             "PUT",
             self.collection_order,
             self.collection_customer,
-            OneToMany(
+            ManyToOne(
                 {
                     "type": FieldType.MANY_TO_ONE,
                     "foreign_collection": "customer",
@@ -970,12 +821,7 @@ class TestCrudRelatedResource(TestCase):
             ),
             "orders",
             {"data": {"id": "201", "type": "customer"}},  # body
-            {
-                "collection_name": "customer",
-                "relation_name": "order",
-                "timezone": "Europe/Paris",
-                "pks": "2",  # customer id
-            },  # query
+            query_get_params,  # query
             {},  # header
             None,  # user
         )
@@ -997,7 +843,7 @@ class TestCrudRelatedResource(TestCase):
             "PUT",
             self.collection_order,
             self.collection_customer,
-            OneToMany(
+            ManyToOne(
                 {
                     "type": FieldType.MANY_TO_ONE,
                     "foreign_collection": "customer",
@@ -1007,12 +853,7 @@ class TestCrudRelatedResource(TestCase):
             ),
             "orders",
             {"data": {"id": "201", "type": "customer"}},  # body
-            {
-                "collection_name": "customer",
-                "relation_name": "order",
-                "timezone": "Europe/Paris",
-                "pks": "2",  # customer id
-            },  # query
+            query_get_params,  # query
             {},  # header
             None,  # user
         )
@@ -1026,24 +867,9 @@ class TestCrudRelatedResource(TestCase):
         # Unhandled relation
         request = RequestRelationCollection(
             "PUT",
-            self.collection_order,
-            self.collection_customer,
-            OneToMany(
-                {
-                    "type": FieldType.MANY_TO_MANY,
-                    "foreign_collection": "customer",
-                    "foreign_key": "customer_id",
-                    "foreign_key_target": "id",
-                }
-            ),
-            "orders",
+            *self.mk_request_order_product_many_to_many(),
             {"data": {"id": "201", "type": "customer"}},  # body
-            {
-                "collection_name": "customer",
-                "relation_name": "order",
-                "timezone": "Europe/Paris",
-                "pks": "2",  # customer id
-            },  # query
+            query_get_params,  # query
             {},  # header
             None,  # user
         )
@@ -1054,23 +880,10 @@ class TestCrudRelatedResource(TestCase):
         assert response_content["errors"][0] == "🌳🌳🌳Unhandled relation type"
 
     # Count
-
     def test_count(self):
-        crud_related_resource = CrudRelatedResource(self.datasource, self.permission_service, self.options)
-
         request = RequestRelationCollection(
             "GET",
-            self.collection_customer,
-            self.collection_order,
-            OneToMany(
-                {
-                    "type": FieldType.ONE_TO_MANY,
-                    "foreign_collection": "order",
-                    "origin_key": "customer_id",
-                    "origin_key_target": "id",
-                }
-            ),
-            "orders",
+            *self.mk_request_customer_order_one_to_many(),
             None,
             {
                 "collection_name": "customer",
@@ -1085,9 +898,10 @@ class TestCrudRelatedResource(TestCase):
 
         with patch(
             "forestadmin.agent_toolkit.resources.collections.crud_related.CollectionUtils.aggregate_relation",
+            new_callable=AsyncMock,
             return_value=[{"value": 1, "group": {}}],
         ) as mock_aggregate_relation:
-            response = self.loop.run_until_complete(crud_related_resource.count(request))
+            response = self.loop.run_until_complete(self.crud_related_resource.count(request))
             mock_aggregate_relation.assert_awaited()
 
         assert response.status == 200
@@ -1095,145 +909,91 @@ class TestCrudRelatedResource(TestCase):
         assert response_content["count"] == 1
 
     def test_count_error(self):
-        crud_related_resource = CrudRelatedResource(self.datasource, self.permission_service, self.options)
+        query_get_params = {
+            "collection_name": "customer",
+            "relation_name": "order",
+            "timezone": "Europe/Paris",
+            "fields[order]": "id,cost",
+            # "pks": "2",  # customer id
+        }
         request = RequestRelationCollection(
             "GET",
-            self.collection_customer,
-            self.collection_order,
-            OneToMany(
-                {
-                    "type": FieldType.ONE_TO_MANY,
-                    "foreign_collection": "order",
-                    "origin_key": "customer_id",
-                    "origin_key_target": "id",
-                }
-            ),
-            "orders",
+            *self.mk_request_customer_order_one_to_many(),
             None,
-            {
-                "collection_name": "customer",
-                "relation_name": "order",
-                "timezone": "Europe/Paris",
-                "fields[order]": "id,cost",
-                # "pks": "2",  # customer id
-            },
+            query_get_params,
             {},
             None,
         )
-        response = self.loop.run_until_complete(crud_related_resource.count(request))
+        response = self.loop.run_until_complete(self.crud_related_resource.count(request))
         assert response.status == 400
         response_content = json.loads(response.body)
         assert response_content["errors"][0] == "🌳🌳🌳primary keys are missing"
 
+        query_get_params["pks"] = "2"
         request = RequestRelationCollection(
             "GET",
-            self.collection_customer,
-            self.collection_order,
-            OneToMany(
-                {
-                    "type": FieldType.ONE_TO_MANY,
-                    "foreign_collection": "order",
-                    "origin_key": "customer_id",
-                    "origin_key_target": "id",
-                }
-            ),
-            "orders",
+            *self.mk_request_customer_order_one_to_many(),
             None,
-            {
-                "collection_name": "customer",
-                "relation_name": "order",
-                "timezone": "Europe/Paris",
-                "fields[order]": "id,cost",
-                "pks": "2",  # customer id
-            },
+            query_get_params,
             {},
             None,
         )
         with patch(
             "forestadmin.agent_toolkit.resources.collections.crud_related.CollectionUtils.aggregate_relation",
+            new_callable=AsyncMock,
             return_value=[],
         ) as mock_aggregate_relation:
-            response = self.loop.run_until_complete(crud_related_resource.count(request))
+            response = self.loop.run_until_complete(self.crud_related_resource.count(request))
             mock_aggregate_relation.assert_awaited()
         assert response.status == 200
         response_content = json.loads(response.body)
         assert response_content["count"] == 0
 
     # delete_list
-
     @patch(
         "forestadmin.agent_toolkit.resources.collections.crud_related.ConditionTreeFactory.match_ids",
         return_value=ConditionTreeLeaf("id", Operator.EQUAL, 201),
     )
     def test_delete_list(self, mock_mach_id: Mock):
-        crud_related_resource = CrudRelatedResource(self.datasource, self.permission_service, self.options)
-
         # disassociate one_to_many
+        query_get_params = {
+            "collection_name": "customer",
+            "relation_name": "order",
+            "timezone": "Europe/Paris",
+            "fields[order]": "id,cost",
+            "pks": "2",  # customer id
+        }
         request = RequestRelationCollection(
             "DELETE",
-            self.collection_customer,
-            self.collection_order,
-            OneToMany(
-                {
-                    "type": FieldType.ONE_TO_MANY,
-                    "foreign_collection": "order",
-                    "origin_key": "customer_id",
-                    "origin_key_target": "id",
-                }
-            ),
-            "orders",
+            *self.mk_request_customer_order_one_to_many(),
             {"data": [{"id": 201, "type": "order"}]},
-            {
-                "collection_name": "customer",
-                "relation_name": "order",
-                "timezone": "Europe/Paris",
-                "fields[order]": "id,cost",
-                "pks": "2",  # customer id
-            },
+            query_get_params,
             {},
             None,
         )
         with patch.object(
-            crud_related_resource, "_delete_one_to_many", new_callable=AsyncMock
+            self.crud_related_resource, "_delete_one_to_many", new_callable=AsyncMock
         ) as fake_delete_one_to_many:
-            response = self.loop.run_until_complete(crud_related_resource.delete_list(request))
+            response = self.loop.run_until_complete(self.crud_related_resource.delete_list(request))
             fake_delete_one_to_many.assert_awaited()
 
         assert response.status == 204
 
         # remove many_to_many
-        # many to one (order & customer)
+        # many to many (order & products)
+        del query_get_params["fields[order]"]
         request = RequestRelationCollection(
             "PUT",
-            self.collection_order,
-            self.collection_product,
-            ManyToMany(
-                {
-                    "type": FieldType.MANY_TO_MANY,
-                    "through_collection": "product_order",
-                    "foreign_collection": None,
-                    "foreign_key": "product_id",
-                    "foreign_key_target": "id",
-                    "origin_key": "order_id",
-                    "origin_key_target": "id",
-                }
-            ),
-            "products",
+            *self.mk_request_order_product_many_to_many(),
             {"data": [{"id": "201", "type": "product"}]},  # body
-            {
-                "collection_name": "customer",
-                "relation_name": "order",
-                "timezone": "Europe/Paris",
-                "pks": "2",  # customer id
-                "delete": "true",
-            },  # query
+            query_get_params,  # query
             {},  # header
             None,  # user
         )
         with patch.object(
-            crud_related_resource, "_delete_many_to_many", new_callable=AsyncMock
+            self.crud_related_resource, "_delete_many_to_many", new_callable=AsyncMock
         ) as fake_delete_many_to_many:
-            response = self.loop.run_until_complete(crud_related_resource.delete_list(request))
+            response = self.loop.run_until_complete(self.crud_related_resource.delete_list(request))
             fake_delete_many_to_many.assert_awaited()
 
         assert response.status == 204
@@ -1244,29 +1004,17 @@ class TestCrudRelatedResource(TestCase):
     )
     def test_delete_list_error(self, mock_mach_id: Mock):
         crud_related_resource = CrudRelatedResource(self.datasource, self.permission_service, self.options)
+        query_get_params = {
+            "collection_name": "customer",
+            "relation_name": "order",
+            "timezone": "Europe/Paris",
+            # "pks": "2",  # customer id
+        }
         request = RequestRelationCollection(
             "PUT",
-            self.collection_order,
-            self.collection_product,
-            ManyToMany(
-                {
-                    "type": FieldType.MANY_TO_MANY,
-                    "through_collection": "product_order",
-                    "foreign_collection": None,
-                    "foreign_key": "product_id",
-                    "foreign_key_target": "id",
-                    "origin_key": "order_id",
-                    "origin_key_target": "id",
-                }
-            ),
-            "products",
+            *self.mk_request_order_product_many_to_many(),
             {"data": [{"id": "201", "type": "product"}]},  # body
-            {
-                "collection_name": "customer",
-                "relation_name": "order",
-                "timezone": "Europe/Paris",
-                # "pks": "2",  # customer id
-            },  # query
+            query_get_params,  # query
             {},  # header
             None,  # user
         )
@@ -1275,29 +1023,12 @@ class TestCrudRelatedResource(TestCase):
         response_content = json.loads(response.body)
         assert response_content["errors"][0] == "🌳🌳🌳primary keys are missing"
 
+        query_get_params["pks"] = "2"
         request = RequestRelationCollection(
             "PUT",
-            self.collection_order,
-            self.collection_product,
-            ManyToMany(
-                {
-                    "type": FieldType.MANY_TO_MANY,
-                    "through_collection": "product_order",
-                    "foreign_collection": None,
-                    "foreign_key": "product_id",
-                    "foreign_key_target": "id",
-                    "origin_key": "order_id",
-                    "origin_key_target": "id",
-                }
-            ),
-            "products",
+            *self.mk_request_order_product_many_to_many(),
             {"data": [{"id": "201", "type": "product"}]},  # body
-            {
-                "collection_name": "customer",
-                "relation_name": "order",
-                "timezone": "Europe/Paris",
-                "pks": "2",  # customer id
-            },  # query
+            query_get_params,  # query
             {},  # header
             None,  # user
         )
@@ -1326,12 +1057,7 @@ class TestCrudRelatedResource(TestCase):
             ),
             "products",
             {"data": [{"id": "201", "type": "product"}]},  # body
-            {
-                "collection_name": "customer",
-                "relation_name": "order",
-                "timezone": "Europe/Paris",
-                "pks": "2",  # customer id
-            },  # query
+            query_get_params,  # query
             {},  # header
             None,  # user
         )
@@ -1343,27 +1069,18 @@ class TestCrudRelatedResource(TestCase):
     # _associate_one_to_many
     def test_associate_one_to_many(self):
         crud_related_resource = CrudRelatedResource(self.datasource, self.permission_service, self.options)
+        query_get_params = {
+            "collection_name": "customer",
+            "relation_name": "order",
+            "timezone": "Europe/Paris",
+            "fields[order]": "id,cost",
+            "pks": "2",
+        }
         request = RequestRelationCollection(
             "POST",
-            self.collection_customer,
-            self.collection_order,
-            OneToMany(
-                {
-                    "type": FieldType.ONE_TO_MANY,
-                    "foreign_collection": "order",
-                    "origin_key": "customer_id",
-                    "origin_key_target": "id",
-                }
-            ),
-            "orders",
+            *self.mk_request_customer_order_one_to_many(),
             None,
-            {
-                "collection_name": "customer",
-                "relation_name": "order",
-                "timezone": "Europe/Paris",
-                "fields[order]": "id,cost",
-                "pks": "2",
-            },
+            query_get_params,
             {},
             None,
         )
@@ -1376,7 +1093,7 @@ class TestCrudRelatedResource(TestCase):
             "POST",
             self.collection_customer,
             self.collection_order,
-            OneToMany(
+            OneToOne(
                 {
                     "type": FieldType.ONE_TO_ONE,
                     "foreign_collection": "order",
@@ -1386,13 +1103,7 @@ class TestCrudRelatedResource(TestCase):
             ),
             "orders",
             None,
-            {
-                "collection_name": "customer",
-                "relation_name": "order",
-                "timezone": "Europe/Paris",
-                "fields[order]": "id,cost",
-                "pks": "2",
-            },
+            query_get_params,
             {},
             None,
         )
@@ -1404,25 +1115,9 @@ class TestCrudRelatedResource(TestCase):
 
         request = RequestRelationCollection(
             "GET",
-            self.collection_customer,
-            self.collection_order,
-            OneToMany(
-                {
-                    "type": FieldType.ONE_TO_MANY,
-                    "foreign_collection": "order",
-                    "origin_key": "customer_id",
-                    "origin_key_target": "id",
-                }
-            ),
-            "orders",
+            *self.mk_request_customer_order_one_to_many(),
             None,
-            {
-                "collection_name": "customer",
-                "relation_name": "order",
-                "timezone": "Europe/Paris",
-                "fields[order]": "id,cost",
-                "pks": "2",
-            },
+            query_get_params,
             {},
             None,
         )
@@ -1436,58 +1131,32 @@ class TestCrudRelatedResource(TestCase):
     # _associate_many_to_many
     def test_associate_many_to_many(self):
         crud_related_resource = CrudRelatedResource(self.datasource, self.permission_service, self.options)
+        query_get_params = {
+            "collection_name": "order",
+            "relation_name": "product",
+            "timezone": "Europe/Paris",
+            "pks": "2",  # order id
+        }
         request = RequestRelationCollection(
             "POST",
-            self.collection_order,
-            self.collection_product,
-            ManyToMany(
-                {
-                    "through_collection": "product_order",
-                    "type": FieldType.MANY_TO_MANY,
-                    "foreign_collection": "product",
-                    "foreign_key": "product_id",
-                    "foreign_key_target": "id",
-                    "origin_key_target": "id",
-                    "origin_key": "order_id",
-                }
-            ),
-            "orders",
+            *self.mk_request_order_product_many_to_many(),
             {"data": [{"id": "201", "type": "product"}]},  # body
-            {
-                "collection_name": "order",
-                "relation_name": "order",
-                "timezone": "Europe/Paris",
-                "pks": "2",  # order id
-            },  # query
+            query_get_params,  # query
             {},  # header
             None,  # user
         )
-        response = self.loop.run_until_complete(crud_related_resource._associate_many_to_many(request, [201], 2))
+        with patch.object(
+            self.collection_product_order, "create", new_callable=AsyncMock
+        ) as mock_throught_collection_create:
+            response = self.loop.run_until_complete(crud_related_resource._associate_many_to_many(request, [201], 2))
+            mock_throught_collection_create.assert_awaited()
         assert response.status == 204
 
         request = RequestRelationCollection(
             "POST",
-            self.collection_order,
-            self.collection_product,
-            OneToMany(
-                {
-                    "through_collection": "product_order",
-                    "type": FieldType.ONE_TO_MANY,
-                    "foreign_collection": "product",
-                    "foreign_key": "product_id",
-                    "foreign_key_target": "id",
-                    "origin_key_target": "id",
-                    "origin_key": "order_id",
-                }
-            ),
-            "orders",
+            *self.mk_request_customer_order_one_to_many(),
             {"data": [{"id": "201", "type": "product"}]},  # body
-            {
-                "collection_name": "order",
-                "relation_name": "order",
-                "timezone": "Europe/Paris",
-                "pks": "2",  # order id
-            },  # query
+            query_get_params,  # query
             {},  # header
             None,  # user
         )
@@ -1498,27 +1167,9 @@ class TestCrudRelatedResource(TestCase):
 
         request = RequestRelationCollection(
             "POST",
-            self.collection_order,
-            self.collection_product,
-            ManyToMany(
-                {
-                    "through_collection": "product_order",
-                    "type": FieldType.MANY_TO_MANY,
-                    "foreign_collection": "product",
-                    "foreign_key": "product_id",
-                    "foreign_key_target": "id",
-                    "origin_key_target": "id",
-                    "origin_key": "order_id",
-                }
-            ),
-            "orders",
+            *self.mk_request_order_product_many_to_many(),
             {"data": [{"id": "201", "type": "product"}]},  # body
-            {
-                "collection_name": "order",
-                "relation_name": "order",
-                "timezone": "Europe/Paris",
-                "pks": "2",  # order id
-            },  # query
+            query_get_params,  # query
             {},  # header
             None,  # user
         )
@@ -1536,28 +1187,19 @@ class TestCrudRelatedResource(TestCase):
         return_value=ConditionTreeLeaf("id", Operator.EQUAL, 201),
     )
     def test_get_base_fk_filter(self, mocked_match_id: Mock):
+        query_get_params = {
+            "collection_name": "customer",
+            "relation_name": "order",
+            "timezone": "Europe/Paris",
+            "fields[order]": "id,cost",
+            "pks": "2",  # customer id
+        }
         crud_related_resource = CrudRelatedResource(self.datasource, self.permission_service, self.options)
         request = RequestRelationCollection(
             "DELETE",
-            self.collection_customer,
-            self.collection_order,
-            OneToMany(
-                {
-                    "type": FieldType.ONE_TO_MANY,
-                    "foreign_collection": "order",
-                    "origin_key": "customer_id",
-                    "origin_key_target": "id",
-                }
-            ),
-            "orders",
+            *self.mk_request_customer_order_one_to_many(),
             {"data": [{"id": 201, "type": "order"}]},
-            {
-                "collection_name": "customer",
-                "relation_name": "order",
-                "timezone": "Europe/Paris",
-                "fields[order]": "id,cost",
-                "pks": "2",  # customer id
-            },
+            query_get_params,
             {},
             None,
         )
@@ -1580,25 +1222,9 @@ class TestCrudRelatedResource(TestCase):
         # no id
         request = RequestRelationCollection(
             "DELETE",
-            self.collection_customer,
-            self.collection_order,
-            OneToMany(
-                {
-                    "type": FieldType.ONE_TO_MANY,
-                    "foreign_collection": "order",
-                    "origin_key": "customer_id",
-                    "origin_key_target": "id",
-                }
-            ),
-            "orders",
+            *self.mk_request_customer_order_one_to_many(),
             {"data": {}},
-            {
-                "collection_name": "customer",
-                "relation_name": "order",
-                "timezone": "Europe/Paris",
-                "fields[order]": "id,cost",
-                "pks": "2",  # customer id
-            },
+            query_get_params,
             {},
             None,
         )
@@ -1609,25 +1235,9 @@ class TestCrudRelatedResource(TestCase):
         # exclude ids
         request = RequestRelationCollection(
             "DELETE",
-            self.collection_customer,
-            self.collection_order,
-            OneToMany(
-                {
-                    "type": FieldType.ONE_TO_MANY,
-                    "foreign_collection": "order",
-                    "origin_key": "customer_id",
-                    "origin_key_target": "id",
-                }
-            ),
-            "orders",
+            *self.mk_request_customer_order_one_to_many(),
             {"data": {"attributes": {"all_records": True, "all_records_ids_excluded": ["201"]}}},
-            {
-                "collection_name": "customer",
-                "relation_name": "order",
-                "timezone": "Europe/Paris",
-                "fields[order]": "id,cost",
-                "pks": "2",  # customer id
-            },
+            query_get_params,
             {},
             None,
         )
@@ -1643,38 +1253,280 @@ class TestCrudRelatedResource(TestCase):
         assert response.condition_tree.conditions[1].value == 0
 
     # _delete_one_to_many
-    # @patch(
-    #     "forestadmin.agent_toolkit.resources.collections.crud_related.ConditionTreeFactory.match_ids",
-    #     return_value=ConditionTreeLeaf("id", Operator.EQUAL, 201),
-    # )
-    # def test_delete_one_to_many(self, mocked_match_id: Mock):
-    #     crud_related_resource = CrudRelatedResource(self.datasource, self.permission_service, self.options)
+    @patch(
+        "forestadmin.agent_toolkit.resources.collections.crud_related.ConditionTreeFactory.match_ids",
+        return_value=ConditionTreeLeaf("id", Operator.EQUAL, 201),
+    )
+    def test_delete_one_to_many(self, mocked_match_id: Mock):
+        crud_related_resource = CrudRelatedResource(self.datasource, self.permission_service, self.options)
 
-    #     request = RequestRelationCollection(
-    #         "DELETE",
-    #         self.collection_customer,
-    #         self.collection_order,
-    #         OneToMany(
-    #             {
-    #                 "type": FieldType.ONE_TO_MANY,
-    #                 "foreign_collection": "order",
-    #                 "origin_key": "customer_id",
-    #                 "origin_key_target": "id",
-    #             }
-    #         ),
-    #         "orders",
-    #         {"data": [{"id": 201, "type": "order"}]},
-    #         {
-    #             "collection_name": "customer",
-    #             "relation_name": "order",
-    #             "timezone": "Europe/Paris",
-    #             "fields[order]": "id,cost",
-    #             "pks": "2",  # customer id
-    #         },
-    #         {},
-    #         None,
-    #     )
-    #     _filter = self.loop.run_until_complete(crud_related_resource.get_base_fk_filter(request))
-    #     with patch.object(, 'list')
-    #     response = self.loop.run_until_complete(crud_related_resource._delete_one_to_many(request, 2, False, _filter))
-    #     assert response
+        # dissociate
+        query_get_params = {
+            "collection_name": "customer",
+            "relation_name": "order",
+            "timezone": "Europe/Paris",
+            "fields[order]": "id,cost",
+            "pks": "2",  # customer id
+        }
+        request = RequestRelationCollection(
+            "DELETE",
+            *self.mk_request_customer_order_one_to_many(),
+            {"data": [{"id": 201, "type": "order"}]},
+            query_get_params,
+            {},
+            None,
+        )
+        _filter = self.loop.run_until_complete(crud_related_resource.get_base_fk_filter(request))
+
+        self.loop.run_until_complete(crud_related_resource._delete_one_to_many(request, [2], False, _filter))
+        self.collection_order.update.assert_awaited()
+
+        # remove
+        query_get_params["delete"] = True
+        request = RequestRelationCollection(
+            "DELETE",
+            *self.mk_request_customer_order_one_to_many(),
+            {"data": [{"id": 201, "type": "order"}]},
+            query_get_params,
+            {},
+            None,
+        )
+        _filter = self.loop.run_until_complete(crud_related_resource.get_base_fk_filter(request))
+
+        self.loop.run_until_complete(crud_related_resource._delete_one_to_many(request, [2], True, _filter))
+        self.collection_order.delete.assert_awaited()
+
+        # error
+        request = RequestRelationCollection(
+            "PUT",
+            *self.mk_request_order_product_many_to_many(),
+            {"data": [{"id": "201", "type": "product"}]},  # body
+            query_get_params,  # query
+            {},  # header
+            None,  # user
+        )
+
+        _filter = self.loop.run_until_complete(crud_related_resource.get_base_fk_filter(request))
+
+        self.assertRaises(
+            CollectionResourceException,
+            self.loop.run_until_complete,
+            crud_related_resource._delete_one_to_many(request, [2], True, _filter),
+        )
+
+    # _delete_many_to_many
+    @patch(
+        "forestadmin.agent_toolkit.resources.collections.crud_related.ConditionTreeFactory.match_ids",
+        return_value=ConditionTreeLeaf("id", Operator.EQUAL, 201),
+    )
+    def test_delete_many_to_many(self, mocked_match_id: Mock):
+        crud_related_resource = CrudRelatedResource(self.datasource, self.permission_service, self.options)
+        # dissociate
+        query_get_params = {
+            "collection_name": "product",
+            "relation_name": "order",
+            "timezone": "Europe/Paris",
+            "pks": "2",
+            "delete": "false",
+        }
+        request = RequestRelationCollection(
+            "DELETE",
+            *self.mk_request_order_product_many_to_many(),
+            {"data": [{"id": "201", "type": "product"}]},  # body
+            query_get_params,  # query
+            {},  # header
+            None,  # user
+        )
+        _filter = self.loop.run_until_complete(crud_related_resource.get_base_fk_filter(request))
+
+        self.loop.run_until_complete(crud_related_resource._delete_many_to_many(request, [2], False, _filter))
+        self.datasource.get_collection("product_order").delete.assert_awaited()
+
+        # delete
+        query_get_params["delete"] = "true"
+        request = RequestRelationCollection(
+            "DELETE",
+            *self.mk_request_order_product_many_to_many(),
+            {"data": [{"id": "201", "type": "product"}]},  # body
+            query_get_params,  # query
+            {},  # header
+            None,  # user
+        )
+
+        _filter = self.loop.run_until_complete(crud_related_resource.get_base_fk_filter(request))
+
+        with patch.object(self.collection_product_order, "list", new_callable=AsyncMock) as mocked_product_order_list:
+            self.loop.run_until_complete(crud_related_resource._delete_many_to_many(request, [2], True, _filter))
+        self.collection_product.delete.assert_awaited()
+
+        # errors
+        request = RequestRelationCollection(
+            "DELETE",
+            *self.mk_request_customer_order_one_to_many(),
+            {"data": [{"id": 201, "type": "order"}]},
+            query_get_params,
+            {},
+            None,
+        )
+
+        self.assertRaises(
+            CollectionResourceException,
+            self.loop.run_until_complete,
+            crud_related_resource._delete_many_to_many(request, [2], True, _filter),
+        )
+
+        request = RequestRelationCollection(
+            "DELETE",
+            *self.mk_request_order_product_many_to_many(),
+            {"data": [{"id": "201", "type": "product"}]},  # body
+            query_get_params,  # query
+            {},  # header
+            None,  # user
+        )
+        with patch.object(self.collection_product, "delete", side_effect=DatasourceException, new_callable=AsyncMock):
+            with patch.object(self.collection_product_order, "list", new_callable=AsyncMock):
+                self.loop.run_until_complete(crud_related_resource._delete_many_to_many(request, [2], True, _filter))
+
+    # _update_one_to_one
+    @patch(
+        "forestadmin.agent_toolkit.resources.collections.crud_related.ConditionTreeFactory.match_ids",
+        return_value=ConditionTreeLeaf("id", Operator.EQUAL, 201),
+    )
+    def test_update_one_to_one(self, mock_match_ids: Mock):
+        crud_related_resource = CrudRelatedResource(self.datasource, self.permission_service, self.options)
+
+        query_get_params = {
+            "collection_name": "order",
+            "relation_name": "cart",
+            "timezone": "Europe/Paris",
+            "pks": "2",  # order id
+        }
+        request = RequestRelationCollection(
+            "PUT",
+            self.collection_order,
+            self.collection_cart,
+            OneToOne(
+                {
+                    "type": FieldType.ONE_TO_ONE,
+                    "foreign_collection": "cart",
+                    "origin_key": "order_id",
+                    "origin_key_target": "id",
+                }
+            ),
+            "orders",
+            {"data": {"id": "201", "type": "cart"}},  # body
+            query_get_params,  # query
+            {},  # header
+            None,  # user
+        )
+
+        self.loop.run_until_complete(
+            crud_related_resource._update_one_to_one(request, [2], [201], zoneinfo.ZoneInfo("Europe/Paris"))
+        )
+        # self.collection_order.update.assert_awaited()
+        self.collection_cart.update.assert_awaited()
+        update_call_list = self.collection_cart.update.await_args_list
+        first_call_filter = update_call_list[0][0][0].condition_tree
+        assert first_call_filter.conditions[0].field == "order_id"
+        assert first_call_filter.conditions[0].operator == Operator.EQUAL
+        assert first_call_filter.conditions[0].value == 2
+
+        assert first_call_filter.conditions[1].field == "id"
+        assert first_call_filter.conditions[1].operator == Operator.GREATER_THAN
+        assert first_call_filter.conditions[1].value == 0
+
+        first_call_patch = update_call_list[0][0][1]
+        assert "order_id" in first_call_patch
+        # assert first_call_patch["order_id"] is None
+
+        second_call_filter = update_call_list[1][0][0].condition_tree
+        assert second_call_filter.conditions[0].field == "id"
+        assert second_call_filter.conditions[0].operator == Operator.EQUAL
+        assert second_call_filter.conditions[0].value == 201
+
+        assert second_call_filter.conditions[1].field == "id"
+        assert second_call_filter.conditions[1].operator == Operator.GREATER_THAN
+        assert second_call_filter.conditions[1].value == 0
+
+        second_call_patch = update_call_list[1][0][1]
+        assert second_call_patch["order_id"] == 2
+
+        # error
+        request = RequestRelationCollection(
+            "PUT",
+            self.collection_order,
+            self.collection_cart,
+            ManyToMany(  # error
+                {
+                    "type": FieldType.MANY_TO_MANY,
+                    "foreign_collection": "cart",
+                    "origin_key": "order_id",
+                    "origin_key_target": "id",
+                }
+            ),
+            "orders",
+            {"data": {"id": "201", "type": "cart"}},  # body
+            query_get_params,  # query
+            {},  # header
+            None,  # user
+        )
+
+        self.assertRaises(
+            CollectionResourceException,
+            self.loop.run_until_complete,
+            crud_related_resource._update_one_to_one(request, [2], [201], zoneinfo.ZoneInfo("Europe/Paris")),
+        )
+
+    @patch(
+        "forestadmin.agent_toolkit.resources.collections.crud_related.ConditionTreeFactory.match_ids",
+        return_value=ConditionTreeLeaf("id", Operator.EQUAL, 201),
+    )
+    def test_update_many_to_one(self, mock_match_ids: Mock):
+        crud_related_resource = CrudRelatedResource(self.datasource, self.permission_service, self.options)
+
+        query_get_params = {
+            "collection_name": "order",
+            "relation_name": "customer",
+            "timezone": "Europe/Paris",
+            "pks": "2",  # order id
+        }
+        request = RequestRelationCollection(
+            "PUT",
+            self.collection_order,
+            self.collection_customer,
+            ManyToOne(
+                type=FieldType.MANY_TO_ONE,
+                foreign_collection="customer",
+                foreign_key="customer_id",
+                foreign_key_target="id",
+            ),
+            {"data": {"id": "201", "type": "customer"}},
+            query_get_params,  # query
+        )
+
+        self.collection_order.update.reset_mock()
+        self.loop.run_until_complete(
+            crud_related_resource._update_many_to_one(request, [2], [201], zoneinfo.ZoneInfo("Europe/Paris"))
+        )
+        self.collection_order.update.assert_awaited_once_with(ANY, {"customer_id": 201})
+
+        # error
+        request = RequestRelationCollection(
+            "PUT",
+            self.collection_order,
+            self.collection_customer,
+            ManyToMany(  # error
+                type=FieldType.MANY_TO_MANY,
+                foreign_collection="customer",
+                foreign_key="customer_id",
+                foreign_key_target="id",
+            ),
+            {"data": {"id": "201", "type": "customer"}},
+            query_get_params,  # query
+        )
+
+        self.assertRaises(
+            CollectionResourceException,
+            self.loop.run_until_complete,
+            crud_related_resource._update_many_to_one(request, [2], [201], zoneinfo.ZoneInfo("Europe/Paris")),
+        )
