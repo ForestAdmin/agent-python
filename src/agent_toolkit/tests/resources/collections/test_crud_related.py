@@ -1147,9 +1147,9 @@ class TestCrudRelatedResource(TestCase):
         )
         with patch.object(
             self.collection_product_order, "create", new_callable=AsyncMock
-        ) as mock_throught_collection_create:
+        ) as mock_through_collection_create:
             response = self.loop.run_until_complete(crud_related_resource._associate_many_to_many(request, [201], 2))
-            mock_throught_collection_create.assert_awaited()
+            mock_through_collection_create.assert_awaited()
         assert response.status == 204
 
         request = RequestRelationCollection(
@@ -1355,7 +1355,7 @@ class TestCrudRelatedResource(TestCase):
 
         _filter = self.loop.run_until_complete(crud_related_resource.get_base_fk_filter(request))
 
-        with patch.object(self.collection_product_order, "list", new_callable=AsyncMock) as mocked_product_order_list:
+        with patch.object(self.collection_product_order, "list", new_callable=AsyncMock):
             self.loop.run_until_complete(crud_related_resource._delete_many_to_many(request, [2], True, _filter))
         self.collection_product.delete.assert_awaited()
 
