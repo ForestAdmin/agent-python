@@ -4,10 +4,9 @@ import importlib
 import json
 import sys
 from unittest import TestCase
-from unittest.mock import Mock, patch
+from unittest.mock import ANY, Mock, patch
 
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.branch import Aggregator
-from mock import ANY
 
 if sys.version_info < (3, 8):
     from mock import AsyncMock
