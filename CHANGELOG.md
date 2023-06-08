@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.1.0-beta.30 (2023-06-08)
+
+### Feature
+
+* **csv:** Add csv export ([#79](https://github.com/ForestAdmin/agent-python/issues/79)) ([`469ba79`](https://github.com/ForestAdmin/agent-python/commit/469ba79463f478fc190c2fa4e885a37b519d3a7c))
+
 ## v0.1.0-beta.29 (2023-06-01)
 
 
