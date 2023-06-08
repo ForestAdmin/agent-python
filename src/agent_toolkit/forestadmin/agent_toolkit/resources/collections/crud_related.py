@@ -1,5 +1,7 @@
 import sys
 
+from forestadmin.agent_toolkit.utils.csv import Csv, CsvException
+
 if sys.version_info >= (3, 8):
     from typing import Literal
 else:
@@ -34,6 +36,7 @@ from forestadmin.agent_toolkit.utils.context import (
     RequestMethod,
     Response,
     build_client_error_response,
+    build_csv_response,
     build_no_content_response,
     build_success_response,
 )
@@ -58,7 +61,7 @@ from forestadmin.datasource_toolkit.utils.collections import CollectionUtils
 from forestadmin.datasource_toolkit.utils.schema import SchemaUtils
 from forestadmin.datasource_toolkit.validations.field import FieldValidatorException
 
-LiteralMethod = Literal["list", "add", "count", "delete_list", "update_list"]
+LiteralMethod = Literal["list", "add", "count", "delete_list", "update_list", "csv"]
 
 
 class CrudRelatedResource(BaseCollectionResource):
@@ -75,7 +78,7 @@ class CrudRelatedResource(BaseCollectionResource):
     @check_method(RequestMethod.GET)
     async def list(self, request: RequestRelationCollection) -> Response:
         if not (is_one_to_many(request.relation) or is_many_to_many(request.relation)):
-            return build_client_error_response(["Unhandled relation type"])
+            return build_client_error_response(["🌳🌳🌳Unhandled relation type"])
         try:
             ids = unpack_id(request.collection.schema, request.pks)
         except (FieldValidatorException, CollectionResourceException) as e:
@@ -103,6 +106,38 @@ class CrudRelatedResource(BaseCollectionResource):
         return build_success_response(cast(Dict[str, Any], dumped))
 
     @authenticate
+    @authorize("browse")
+    @authorize("export")
+    @check_method(RequestMethod.GET)
+    async def csv(self, request: RequestRelationCollection) -> Response:
+        if not (is_one_to_many(request.relation) or is_many_to_many(request.relation)):
+            return build_client_error_response(["🌳🌳🌳Unhandled relation type"])
+        try:
+            ids = unpack_id(request.collection.schema, request.pks)
+        except (FieldValidatorException, CollectionResourceException) as e:
+            return build_client_error_response([str(e)])
+        scope_tree = await self.permission.get_scope(request, request.foreign_collection)
+        paginated_filter = build_paginated_filter(request, scope_tree)
+        try:
+            projection = parse_projection_with_pks(request)
+        except DatasourceException as e:
+            return build_client_error_response([str(e)])
+        records = await CollectionUtils.list_relation(
+            cast(Collection, request.collection),
+            ids,
+            cast(Collection, request.foreign_collection),
+            request.relation,
+            paginated_filter,
+            projection,
+        )
+
+        try:
+            csv_str = Csv.make_csv(records, projection)
+        except CsvException as e:
+            return build_client_error_response([str(e)])
+        return build_csv_response(csv_str, f"{request.query.get('filename', request.collection.name)}.csv")
+
+    @authenticate
     @authorize("edit")
     @check_method(RequestMethod.POST)
     async def add(self, request: RequestRelationCollection) -> Response:
@@ -116,15 +151,18 @@ class CrudRelatedResource(BaseCollectionResource):
             or "data" not in request.body
             or len(request.body["data"]) == 0
             or not request.body["data"][0].get("id")
+            # TODO: again another hardcoded "id" # SchemaUtils.get_primary_keys(schema)
         ):
-            return build_client_error_response(["missing target's id "])
+            return build_client_error_response(["🌳🌳🌳missing target's id"])
+
         try:
+            # TODO: again another hardcoded "id" # SchemaUtils.get_primary_keys(schema)
             targeted_relation_ids = unpack_id(request.foreign_collection.schema, request.body["data"][0]["id"])
         except (FieldValidatorException, CollectionResourceException) as e:
             return build_client_error_response([str(e)])
 
         if not (is_one_to_many(request.relation) or is_many_to_many(request.relation)):
-            return build_client_error_response(["Unhandled relation type"])
+            return build_client_error_response(["🌳🌳🌳Unhandled relation type"])
 
         pks = SchemaUtils.get_primary_keys(request.foreign_collection.schema)[0]
         value = await CollectionUtils.get_value(
@@ -148,7 +186,7 @@ class CrudRelatedResource(BaseCollectionResource):
         except (FieldValidatorException, CollectionResourceException) as e:
             return build_client_error_response([str(e)])
         if not request.body or not request.body.get("data") or "id" not in request.body["data"]:
-            return build_client_error_response(["Relation id is missing"])
+            return build_client_error_response(["🌳🌳🌳Relation id is missing"])
         try:
             linked_id = unpack_id(request.foreign_collection.schema, request.body["data"]["id"])
         except (FieldValidatorException, CollectionResourceException) as e:
@@ -165,7 +203,7 @@ class CrudRelatedResource(BaseCollectionResource):
             except (CollectionResourceException, DatasourceException) as e:
                 return build_client_error_response([str(e)])
             return build_no_content_response()
-        return build_client_error_response(["Unhandled relation type"])
+        return build_client_error_response(["🌳🌳🌳Unhandled relation type"])
 
     @authenticate
     @authorize("browse")
@@ -213,17 +251,17 @@ class CrudRelatedResource(BaseCollectionResource):
             except (DatasourceException, CollectionResourceException) as e:
                 return build_client_error_response([str(e)])
             return build_no_content_response()
-        return build_client_error_response(["Unhandled relation type"])
+        return build_client_error_response(["🌳🌳🌳Unhandled relation type"])
 
     async def _associate_one_to_many(
         self, request: RequestRelationCollection, parent_ids: CompositeIdAlias, id_value: Union[str, int]
     ) -> Response:
         if not is_one_to_many(request.relation):
-            raise
+            return build_client_error_response(["🌳🌳🌳Unhandled relation type"])
         scope_tree = await self.permission.get_scope(request, request.foreign_collection)
         filter = build_filter(request, scope_tree)
         trees: List[ConditionTree] = [
-            ConditionTreeLeaf("id", Operator.EQUAL, id_value),
+            ConditionTreeLeaf(request.relation["origin_key_target"], Operator.EQUAL, id_value),
         ]
         if filter.condition_tree:
             trees.append(filter.condition_tree)
@@ -242,7 +280,7 @@ class CrudRelatedResource(BaseCollectionResource):
         self, request: RequestRelationCollection, parent_ids: CompositeIdAlias, foreign_id_value: Union[str, int]
     ):
         if not is_many_to_many(request.relation):
-            raise
+            return build_client_error_response(["🌳🌳🌳Unhandled relation type"])
         id = SchemaUtils.get_primary_keys(request.collection.schema)
         origin_id_value = await CollectionUtils.get_value(cast(Collection, request.collection), parent_ids, id[0])
 
@@ -262,7 +300,7 @@ class CrudRelatedResource(BaseCollectionResource):
         ids, exclude_ids = parse_selection_ids(request)
 
         if len(ids) == 0 and not exclude_ids:
-            raise
+            raise CollectionResourceException("Unable to unpack the id")
 
         selected_ids = ConditionTreeFactory.match_ids(request.foreign_collection.schema, ids)
         if exclude_ids:

@@ -1,4 +1,5 @@
 import asyncio
+import csv
 import importlib
 import json
 import sys
@@ -17,6 +18,7 @@ from forestadmin.agent_toolkit.resources.collections.requests import RequestColl
 from forestadmin.agent_toolkit.services.permissions import PermissionService
 from forestadmin.agent_toolkit.services.serializers.json_api import JsonApiException
 from forestadmin.agent_toolkit.utils.context import Request
+from forestadmin.agent_toolkit.utils.csv import CsvException
 from forestadmin.datasource_toolkit.collections import Collection
 from forestadmin.datasource_toolkit.datasources import Datasource, DatasourceException
 from forestadmin.datasource_toolkit.interfaces.fields import FieldType, Operator, PrimitiveType
@@ -87,7 +89,7 @@ class TestCrudResource(TestCase):
                     "origin_key": "order_id",
                 },
             },
-            "searchable": False,
+            "searchable": True,
             "segments": [],
         }
         cls.collection_order.schema = cls.collection_order._schema
@@ -167,6 +169,7 @@ class TestCrudResource(TestCase):
         crud_resource = CrudResource(self.datasource, self.permission_service, self.options)
         crud_resource.get = AsyncMock()
         crud_resource.list = AsyncMock()
+        crud_resource.csv = AsyncMock()
         crud_resource.count = AsyncMock()
         crud_resource.add = AsyncMock()
         crud_resource.update = AsyncMock()
@@ -193,6 +196,9 @@ class TestCrudResource(TestCase):
 
         self.loop.run_until_complete(crud_resource.dispatch(request, "delete_list"))
         crud_resource.delete_list.assert_called_once()
+
+        self.loop.run_until_complete(crud_resource.dispatch(request, "csv"))
+        crud_resource.csv.assert_called_once()
 
     @patch("forestadmin.agent_toolkit.resources.collections.crud.RequestCollection")
     def test_dispatch_error(self, mock_request_collection: Mock):
@@ -542,6 +548,8 @@ class TestCrudResource(TestCase):
                 "collection_name": "order",
                 "timezone": "Europe/Paris",
                 "fields[order]": "id,cost",
+                # "search_extended": 0,
+                # "search": "20",
             },
             {},
             None,
@@ -844,3 +852,92 @@ class TestCrudResource(TestCase):
 
         assert response.status == 204
         self.collection_order.delete.assert_awaited()
+
+    # CSV
+    def test_csv(self):
+        mock_orders = [{"id": 10, "cost": 200}, {"id": 11, "cost": 201}]
+
+        request = RequestCollection(
+            "GET",
+            self.collection_order,
+            None,
+            {
+                "collection_name": "order",
+                "timezone": "Europe/Paris",
+                "fields[order]": "id,cost",
+            },
+            {},
+            None,
+        )
+        crud_resource = CrudResource(self.datasource, self.permission_service, self.options)
+        self.collection_order.list = AsyncMock(return_value=mock_orders)
+
+        response = self.loop.run_until_complete(crud_resource.csv(request))
+
+        assert response.status == 200
+        self.collection_order.list.assert_awaited()
+        csv_reader = csv.DictReader(response.body)
+        response_content = [row for row in csv_reader]
+        assert isinstance(response_content, list)
+        assert len(response_content) == 2
+        assert response_content[0]["cost"] == str(mock_orders[0]["cost"])
+        assert response_content[0]["id"] == str(mock_orders[0]["id"])
+        assert response_content[1]["cost"] == str(mock_orders[1]["cost"])
+        assert response_content[1]["id"] == str(mock_orders[1]["id"])
+
+    def test_csv_errors(self):
+        mock_orders = [{"id": 10, "cost": 200}, {"id": 11, "cost": 201}]
+        request = RequestCollection(
+            "GET",
+            self.collection_order,
+            None,
+            {
+                "collection_name": "order",
+                "fields[order]": "id,cost",
+            },
+            {},
+            None,
+        )
+        crud_resource = CrudResource(self.datasource, self.permission_service, self.options)
+
+        # FilterException
+        response = self.loop.run_until_complete(crud_resource.csv(request))
+
+        assert response.status == 400
+        response_content = json.loads(response.body)
+        assert response_content["errors"][0] == "🌳🌳🌳Missing timezone"
+
+        # DatasourceException
+        request = RequestCollection(
+            "GET",
+            self.collection_order,
+            None,
+            {
+                "collection_name": "order",
+                "timezone": "Europe/Paris",
+                "fields[order]": "id,cost",
+            },
+            {},
+            None,
+        )
+        with patch(
+            "forestadmin.agent_toolkit.resources.collections.crud.parse_projection_with_pks",
+            side_effect=DatasourceException,
+        ):
+            response = self.loop.run_until_complete(crud_resource.csv(request))
+
+        assert response.status == 400
+        response_content = json.loads(response.body)
+        assert response_content["errors"][0] == "🌳🌳🌳"
+
+        # JsonApiException
+        self.collection_order.list = AsyncMock(return_value=mock_orders)
+        with patch(
+            "forestadmin.agent_toolkit.resources.collections.crud.Csv.make_csv",
+            side_effect=CsvException("cannot make csv"),
+        ):
+            response = self.loop.run_until_complete(crud_resource.csv(request))
+
+        assert response.status == 400
+        response_content = json.loads(response.body)
+        assert response_content["errors"][0] == "🌳🌳🌳cannot make csv"
