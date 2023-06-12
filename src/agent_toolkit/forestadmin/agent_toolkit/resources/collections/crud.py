@@ -28,6 +28,7 @@ from forestadmin.agent_toolkit.utils.context import (
     Request,
     RequestMethod,
     Response,
+    User,
     build_client_error_response,
     build_csv_response,
     build_no_content_response,
@@ -96,7 +97,7 @@ class CrudResource(BaseCollectionResource):
         filter = PaginatedFilter({"condition_tree": ConditionTreeFactory.intersect(trees)})
 
         projections = ProjectionFactory.all(cast(Collection, collection))
-        records = await collection.list(filter, projections)
+        records = await collection.list(request.user, filter, projections)
 
         if not len(records):
             return build_unknown_response()
@@ -125,7 +126,7 @@ class CrudResource(BaseCollectionResource):
         except JsonApiException as e:
             return build_client_error_response([str(e)])
 
-        record, one_to_one_relations = await self.extract_data(cast(Collection, collection), data)
+        record, one_to_one_relations = await self.extract_data(request.user, cast(Collection, collection), data)
 
         try:
             RecordValidator.validate(cast(Collection, collection), record)
@@ -133,7 +134,7 @@ class CrudResource(BaseCollectionResource):
             return build_client_error_response([str(e)])
 
         try:
-            records = await collection.create([record])
+            records = await collection.create(request.user, [record])
         except DatasourceException as e:
             return build_client_error_response([str(e)])
 
@@ -160,7 +161,7 @@ class CrudResource(BaseCollectionResource):
         except DatasourceException as e:
             return build_client_error_response([str(e)])
 
-        records = await request.collection.list(paginated_filter, projections)
+        records = await request.collection.list(request.user, paginated_filter, projections)
         schema = JsonApiSerializer.get(request.collection)
         try:
             dumped: Dict[str, Any] = schema(projections=projections).dump(records, many=True)  # type: ignore
@@ -183,7 +184,7 @@ class CrudResource(BaseCollectionResource):
         except DatasourceException as e:
             return build_client_error_response([str(e)])
 
-        records = await request.collection.list(paginated_filter, projections)
+        records = await request.collection.list(request.user, paginated_filter, projections)
 
         try:
             csv_str = Csv.make_csv(records, projections)
@@ -198,7 +199,7 @@ class CrudResource(BaseCollectionResource):
         scope_tree = await self.permission.get_scope(request)
         filter = build_filter(request, scope_tree)
         aggregation = Aggregation({"operation": "Count"})
-        result = await request.collection.aggregate(filter, aggregation)
+        result = await request.collection.aggregate(request.user, filter, aggregation)
         try:
             count = result[0]["value"]
         except IndexError:
@@ -235,9 +236,9 @@ class CrudResource(BaseCollectionResource):
 
         filter = Filter({"condition_tree": ConditionTreeFactory.intersect(trees)})
 
-        await collection.update(filter, data)
+        await collection.update(request.user, filter, data)
         projection = ProjectionFactory.all(cast(Collection, collection))
-        records = await collection.list(PaginatedFilter.from_base_filter(filter), projection)
+        records = await collection.list(request.user, PaginatedFilter.from_base_filter(filter), projection)
 
         schema = JsonApiSerializer.get(collection)
         try:
@@ -303,6 +304,7 @@ class CrudResource(BaseCollectionResource):
             raise CollectionResourceException(str(e)[3:])
 
         await foreign_collection.update(
+            request.user,
             Filter({"condition_tree": ConditionTreeFactory.intersect(trees), "timezone": tz}),
             {
                 f'{relation["origin_key"]}': None,
@@ -316,6 +318,7 @@ class CrudResource(BaseCollectionResource):
             trees.append(scope)
 
         await foreign_collection.update(
+            request.user,
             Filter({"condition_tree": ConditionTreeFactory.intersect(trees), "timezone": tz}),
             {
                 f'{relation["origin_key"]}': origin_value,
@@ -331,7 +334,7 @@ class CrudResource(BaseCollectionResource):
         await asyncio.gather(*awaitables)
 
     async def extract_data(
-        self, collection: Collection, data: Dict[str, Any]
+        self, caller: User, collection: Collection, data: Dict[str, Any]
     ) -> Tuple[Dict[str, Any], List[Tuple[OneToOne, RecordsDataAlias]]]:
         record: Dict[str, Any] = {}
         one_to_one_relations: List[Tuple[OneToOne, RecordsDataAlias]] = []
@@ -348,7 +351,7 @@ class CrudResource(BaseCollectionResource):
                 else:
                     field = cast(ManyToOne, field)
                     record[field["foreign_key"]] = await CollectionUtils.get_value(
-                        cast(Collection, foreign_collection), [value], field["foreign_key_target"]
+                        caller, cast(Collection, foreign_collection), [value], field["foreign_key_target"]
                     )
 
         return record, one_to_one_relations

@@ -1,5 +1,6 @@
 from typing import List, Optional, Union, cast
 
+from forestadmin.agent_toolkit.utils.context import User
 from forestadmin.datasource_toolkit.collections import Collection
 from forestadmin.datasource_toolkit.exceptions import DatasourceToolkitException
 from forestadmin.datasource_toolkit.interfaces.fields import (
@@ -53,11 +54,12 @@ class CollectionUtils:
         return cls.get_field_schema(collection.datasource.get_collection(schema["foreign_collection"]), sub_path)
 
     @staticmethod
-    async def get_value(collection: Collection, id: CompositeIdAlias, field: str) -> Union[int, str]:
+    async def get_value(caller: User, collection: Collection, id: CompositeIdAlias, field: str) -> Union[int, str]:
         try:
             index = SchemaUtils.get_primary_keys(collection.schema).index(field)
         except ValueError:
             records = await collection.list(
+                caller,
                 PaginatedFilter({"condition_tree": ConditionTreeFactory.match_ids(collection.schema, [id])}),
                 Projection(field),
             )
@@ -69,6 +71,7 @@ class CollectionUtils:
 
     @staticmethod
     async def list_relation(
+        caller: User,
         collection: Collection,
         id: CompositeIdAlias,
         foreign_collection: Collection,
@@ -81,16 +84,20 @@ class CollectionUtils:
         if is_many_to_many(relation) and relation["foreign_relation"] and foreign_filter.is_nestable:
             through = collection.datasource.get_collection(relation["through_collection"])
             records = await through.list(
+                caller,
                 await FilterFactory.make_through_filter(collection, id, relation, foreign_filter),
                 projection.nest(relation["foreign_relation"]),
             )
             return [record[relation["foreign_relation"]] for record in records]
         return await foreign_collection.list(
-            await FilterFactory.make_foreign_filter(collection, id, relation, foreign_filter), projection
+            caller,
+            await FilterFactory.make_foreign_filter(caller, collection, id, relation, foreign_filter),
+            projection,
         )
 
     @staticmethod
     async def aggregate_relation(
+        caller: User,
         collection: Collection,
         id: CompositeIdAlias,
         relation_name: str,
@@ -108,7 +115,7 @@ class CollectionUtils:
             filter = await FilterFactory.make_through_filter(collection, id, relation, foreign_filter)
 
             nested_records = await through.aggregate(
-                filter.to_base_filter(), aggregation.nest(relation["foreign_relation"]), limit
+                caller, filter.to_base_filter(), aggregation.nest(relation["foreign_relation"]), limit
             )
 
             records: List[AggregateResult] = []
@@ -121,7 +128,7 @@ class CollectionUtils:
 
         relation = cast(OneToMany, relation)
         filter = await FilterFactory.make_foreign_filter(collection, id, relation, foreign_filter)
-        return await foreign_collection.aggregate(filter.to_base_filter(), aggregation, limit)
+        return await foreign_collection.aggregate(caller, filter.to_base_filter(), aggregation, limit)
 
     @staticmethod
     def get_inverse_relation(collection: Collection, relation_name: str) -> Optional[str]:

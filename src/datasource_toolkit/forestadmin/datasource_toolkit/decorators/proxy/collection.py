@@ -1,5 +1,6 @@
 from typing import List, Optional, Union, cast
 
+from forestadmin.agent_toolkit.utils.context import User
 from forestadmin.datasource_toolkit.collections import Collection, CollectionException
 from forestadmin.datasource_toolkit.datasources import Datasource
 from forestadmin.datasource_toolkit.interfaces.actions import ActionField, ActionResult
@@ -48,45 +49,47 @@ class ProxyMixin:
     ) -> Union[Filter, PaginatedFilter, None]:
         return filter
 
-    async def list(self, filter: PaginatedFilter, projection: Projection) -> List[RecordsDataAlias]:
+    async def list(self, caller: User, filter: PaginatedFilter, projection: Projection) -> List[RecordsDataAlias]:
         try:
             refined_filter = cast(PaginatedFilter, await self._refine_filter(filter))
         except Exception:
             return []
         else:
-            return await self.child_collection.list(refined_filter, projection)  # type: ignore
+            return await self.child_collection.list(caller, refined_filter, projection)  # type: ignore
 
-    async def create(self, data: List[RecordsDataAlias]) -> List[RecordsDataAlias]:
-        return await self.child_collection.create(data)
+    async def create(self, caller: User, data: List[RecordsDataAlias]) -> List[RecordsDataAlias]:
+        return await self.child_collection.create(caller, data)
 
     async def execute(
         self,
+        caller: User,
         name: str,
         data: RecordsDataAlias,
         filter: Optional[Filter],
     ) -> ActionResult:
         refined_filter = cast(Filter, await self._refine_filter(filter))
-        return await self.child_collection.execute(name, data, refined_filter)
+        return await self.child_collection.execute(caller, name, data, refined_filter)
 
     async def get_form(
         self,
+        caller: User,
         name: str,
         data: Optional[RecordsDataAlias],
         filter: Optional[Filter],
     ) -> List[ActionField]:
         refined_filter = cast(Optional[Filter], await self._refine_filter(filter))
-        return await self.child_collection.get_form(name, data, refined_filter)
+        return await self.child_collection.get_form(caller, name, data, refined_filter)
 
-    async def update(self, filter: Optional[Filter], patch: RecordsDataAlias) -> None:
+    async def update(self, caller: User, filter: Optional[Filter], patch: RecordsDataAlias) -> None:
         refined_filter = cast(Optional[Filter], await self._refine_filter(filter))
-        return await self.child_collection.update(refined_filter, patch)
+        return await self.child_collection.update(caller, refined_filter, patch)
 
-    async def delete(self, filter: Optional[Filter]) -> None:
+    async def delete(self, caller: User, filter: Optional[Filter]) -> None:
         refined_filter = cast(Optional[Filter], await self._refine_filter(filter))
-        return await self.child_collection.delete(refined_filter)
+        return await self.child_collection.delete(caller, refined_filter)
 
     async def aggregate(
-        self, filter: Optional[Filter], aggregation: Aggregation, limit: Optional[int] = None
+        self, caller: User, filter: Optional[Filter], aggregation: Aggregation, limit: Optional[int] = None
     ) -> List[AggregateResult]:
         refined_filter = cast(Optional[Filter], await self._refine_filter(filter))
-        return await self.child_collection.aggregate(refined_filter, aggregation, limit)
+        return await self.child_collection.aggregate(caller, refined_filter, aggregation, limit)

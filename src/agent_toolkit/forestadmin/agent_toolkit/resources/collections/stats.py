@@ -66,7 +66,7 @@ class StatsResource(BaseCollectionResource):
     @check_method(RequestMethod.POST)
     @authenticate
     async def value(self, request: RequestCollection) -> Response:
-        current_filter = await self._get_gilter(request)
+        current_filter = await self._get_filter(request)
         result = {
             "countCurrent": await self._compute_value(request, current_filter),
         }
@@ -87,7 +87,7 @@ class StatsResource(BaseCollectionResource):
     @check_method(RequestMethod.POST)
     @authenticate
     async def objective(self, request: RequestCollection) -> Response:
-        current_filter = await self._get_gilter(request)
+        current_filter = await self._get_filter(request)
         result = {"value": await self._compute_value(request, current_filter)}
         return self._build_success_response(result)
 
@@ -97,7 +97,7 @@ class StatsResource(BaseCollectionResource):
         if not request.body:
             raise Exception
 
-        current_filter = await self._get_gilter(request)
+        current_filter = await self._get_filter(request)
         aggregation = Aggregation(
             {
                 "operation": request.body["aggregate"],
@@ -105,7 +105,7 @@ class StatsResource(BaseCollectionResource):
                 "groups": [{"field": request.body["group_by_field"]}],
             }
         )
-        rows = await request.collection.aggregate(current_filter, aggregation)
+        rows = await request.collection.aggregate(request.user, current_filter, aggregation)
         results: List[Dict[str, Union[str, int]]] = []
         for row in rows:
             key = row["group"][request.body["group_by_field"]]
@@ -122,7 +122,7 @@ class StatsResource(BaseCollectionResource):
         if not request.body:
             raise Exception
 
-        current_filter = await self._get_gilter(request)
+        current_filter = await self._get_filter(request)
         aggregation = Aggregation(
             {
                 "operation": request.body["aggregate"],
@@ -130,7 +130,7 @@ class StatsResource(BaseCollectionResource):
                 "groups": [{"field": request.body["group_by_date_field"], "operation": request.body["time_range"]}],
             }
         )
-        rows = await request.collection.aggregate(current_filter, aggregation)
+        rows = await request.collection.aggregate(request.user, current_filter, aggregation)
         values = {
             datetime.fromisoformat(row["group"][request.body["group_by_date_field"]]).date(): row["value"]
             for row in rows
@@ -168,7 +168,7 @@ class StatsResource(BaseCollectionResource):
             collection = request.collection.datasource.get_collection(foreign_collection)
             pks = SchemaUtils.get_primary_keys(collection.schema)
             aggregate_field = pks[0]
-        current_filter = await self._get_gilter(request)
+        current_filter = await self._get_filter(request)
         aggregation = Aggregation(
             {
                 "operation": aggregate,
@@ -177,7 +177,7 @@ class StatsResource(BaseCollectionResource):
             }
         )
 
-        rows = await request.collection.aggregate(current_filter, aggregation, int(limit))
+        rows = await request.collection.aggregate(request.user, current_filter, aggregation, int(limit))
         results: List[Dict[str, Union[str, int]]] = []
         for row in rows:
             results.append({"key": row["group"][label_field], "value": row["value"]})
@@ -196,7 +196,7 @@ class StatsResource(BaseCollectionResource):
         tree.apply(_use_interval_res)
         return any(use_interval_res)
 
-    async def _get_gilter(self, request: RequestCollection) -> Filter:
+    async def _get_filter(self, request: RequestCollection) -> Filter:
         scope_tree = await self.permission.get_scope(request, request.collection)
         return build_filter(request, scope_tree)
 
@@ -206,7 +206,7 @@ class StatsResource(BaseCollectionResource):
         aggregation = Aggregation(
             {"operation": request.body["aggregate"], "field": request.body.get("aggregate_field")}
         )
-        rows = await request.collection.aggregate(filter, aggregation)
+        rows = await request.collection.aggregate(request.user, filter, aggregation)
         res = 0
         if len(rows):
             res = int(rows[0]["value"])

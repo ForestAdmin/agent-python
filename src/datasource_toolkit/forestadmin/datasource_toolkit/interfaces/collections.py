@@ -1,6 +1,7 @@
 import abc
 from typing import List, Optional
 
+from forestadmin.agent_toolkit.utils.context import User
 from forestadmin.datasource_toolkit.interfaces.actions import ActionField, ActionResult
 from forestadmin.datasource_toolkit.interfaces.models.collections import Collection as CollectionModel
 from forestadmin.datasource_toolkit.interfaces.query.aggregation import AggregateResult, Aggregation
@@ -14,6 +15,7 @@ class Collection(CollectionModel, abc.ABC):
     @abc.abstractmethod
     async def execute(
         self,
+        caller: User,
         name: str,
         data: RecordsDataAlias,
         filter: Optional[Filter],
@@ -23,6 +25,7 @@ class Collection(CollectionModel, abc.ABC):
     @abc.abstractmethod
     async def get_form(
         self,
+        caller: User,
         name: str,
         data: Optional[RecordsDataAlias],
         filter: Optional[Filter],
@@ -30,23 +33,23 @@ class Collection(CollectionModel, abc.ABC):
         pass
 
     @abc.abstractmethod
-    async def create(self, data: List[RecordsDataAlias]) -> List[RecordsDataAlias]:
+    async def create(self, caller: User, data: List[RecordsDataAlias]) -> List[RecordsDataAlias]:
         pass
 
     @abc.abstractmethod
-    async def list(self, filter: PaginatedFilter, projection: Projection) -> List[RecordsDataAlias]:
+    async def list(self, caller: User, filter: PaginatedFilter, projection: Projection) -> List[RecordsDataAlias]:
         pass
 
     @abc.abstractmethod
-    async def update(self, filter: Optional[Filter], patch: RecordsDataAlias) -> None:
+    async def update(self, caller: User, filter: Optional[Filter], patch: RecordsDataAlias) -> None:
         pass
 
     @abc.abstractmethod
-    async def delete(self, filter: Optional[Filter]) -> None:
+    async def delete(self, caller: User, filter: Optional[Filter]) -> None:
         pass
 
     @abc.abstractmethod
     async def aggregate(
-        self, filter: Optional[Filter], aggregation: Aggregation, limit: Optional[int] = None
+        self, caller: User, filter: Optional[Filter], aggregation: Aggregation, limit: Optional[int] = None
     ) -> List[AggregateResult]:
         pass

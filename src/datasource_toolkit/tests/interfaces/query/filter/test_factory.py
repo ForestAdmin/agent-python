@@ -1,5 +1,7 @@
 import sys
 
+from forestadmin.agent_toolkit.utils.context import User
+
 if sys.version_info < (3, 8):
     from mock import AsyncMock
 else:
@@ -21,6 +23,17 @@ from forestadmin.datasource_toolkit.interfaces.query.filter.factory import Filte
 from forestadmin.datasource_toolkit.interfaces.query.filter.paginated import PaginatedFilter
 from forestadmin.datasource_toolkit.interfaces.query.filter.unpaginated import Filter
 from forestadmin.datasource_toolkit.interfaces.query.projections import Projection
+
+mocked_caller = User(
+    rendering_id=1,
+    user_id=1,
+    tags={},
+    email="dummy@user.fr",
+    first_name="dummy",
+    last_name="user",
+    team="operational",
+    timezone=zoneinfo.ZoneInfo("Europe/Paris"),
+)
 
 
 @mock.patch("forestadmin.datasource_toolkit.interfaces.query.filter.factory.time_transforms")
@@ -133,6 +146,7 @@ async def test_make_through_filter():
                 ) as mock_build_for_through_relation:
                     mock_build_for_through_relation.return_value = "fake_through"
                     res = await FilterFactory.make_through_filter(
+                        mocked_caller,
                         collection,
                         [1],
                         cast(ManyToMany, collection.schema["fields"]["parent"]),
@@ -143,7 +157,7 @@ async def test_make_through_filter():
                         ),
                     )
                     assert res == "fake_through"
-                    mock_get_value.assert_called_once_with(collection, [1], "id")
+                    mock_get_value.assert_called_once_with(mocked_caller, collection, [1], "id")
                     mock_build_for_through_relation.assert_called_once_with(
                         PaginatedFilter(
                             {
@@ -177,6 +191,7 @@ async def test_make_through_filter():
                     mock_get_value.return_value = "fake_value"
 
                     res = await FilterFactory.make_through_filter(
+                        mocked_caller,
                         collection,
                         [1],
                         cast(ManyToMany, collection.schema["fields"]["parent"]),
@@ -187,10 +202,11 @@ async def test_make_through_filter():
                             }
                         ),
                     )
-                    mock_get_value.assert_called_once_with(collection, [1], "id")
+                    mock_get_value.assert_called_once_with(mocked_caller, collection, [1], "id")
                     fake_datasource.get_collection.assert_called_once_with("parent")  # type: ignore
                     mock_build_for_through_relation.assert_not_called()
                     mock_make_foreign_filter.assert_called_once_with(
+                        mocked_caller,
                         collection,
                         [1],
                         cast(ManyToMany, collection.schema["fields"]["parent"]),
@@ -201,7 +217,9 @@ async def test_make_through_filter():
                             }
                         ),
                     )
-                    fake_collection.list.assert_called_once_with("fake_filter", Projection("id"))  # type: ignore
+                    fake_collection.list.assert_called_once_with(
+                        mocked_caller, "fake_filter", Projection("id")
+                    )  # type: ignore
                     assert res == PaginatedFilter(
                         {
                             "condition_tree": ConditionTreeBranch(

@@ -45,9 +45,10 @@ class ActionResource(BaseCollectionResource):
         filter = await self._get_records_selection(request)
         raw_data: Dict[str, Any] = request.body.get("data", {}).get("attributes", {}).get("values", {})  # type: ignore
         unsafe_data = ForestValueConverter.make_form_unsafe_data(raw_data)
-        fields = await request.collection.get_form(request.action_name, raw_data, filter)
+        fields = await request.collection.get_form(request.user, request.action_name, raw_data, filter)
         data = ForestValueConverter.make_form_data(request.collection.datasource, unsafe_data, fields)
-        result = await request.collection.execute(request.action_name, data, filter)
+        result = await request.collection.execute(request.user, request.action_name, data, filter)
+
         if result["type"] == ResultBuilder.ERROR:
             return build_json_response(400, {"error": result["message"]})
         elif result["type"] == ResultBuilder.SUCCESS:
@@ -87,8 +88,8 @@ class ActionResource(BaseCollectionResource):
         if forest_fields:
             data = ForestValueConverter.make_form_data_from_fields(request.collection.datasource, forest_fields)
 
-        filter = await self._get_records_selection(request)
-        fields = await request.collection.get_form(request.action_name, data, filter)
+        _filter = await self._get_records_selection(request)
+        fields = await request.collection.get_form(request.user, request.action_name, data, _filter)
 
         return build_success_response(
             {

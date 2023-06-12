@@ -1,5 +1,6 @@
 from typing import Any, Callable, Dict, List, Optional, Union, cast
 
+from forestadmin.agent_toolkit.utils.context import User
 from forestadmin.datasource_toolkit.exceptions import DatasourceToolkitException
 from forestadmin.datasource_toolkit.interfaces.fields import (
     is_column,
@@ -62,26 +63,28 @@ class RenameMixin:
             filter = filter.override({"condition_tree": filter.condition_tree.replace(computed_fields)})  # type: ignore
         return filter
 
-    async def list(self, filter: PaginatedFilter, projection: Projection) -> List[RecordsDataAlias]:
+    async def list(self, caller: User, filter: PaginatedFilter, projection: Projection) -> List[RecordsDataAlias]:
         child_projection = projection.replace(lambda field_name: self._path_to_child_collection(field_name))
-        records: List[RecordsDataAlias] = await super(RenameMixin, self).list(filter, child_projection)  # type: ignore
+        records: List[RecordsDataAlias] = await super(RenameMixin, self).list(
+            caller, filter, child_projection
+        )  # type: ignore
         return [self._record_from_child_collection(record) for record in records]
 
-    async def create(self, data: List[RecordsDataAlias]) -> List[RecordsDataAlias]:
+    async def create(self, caller: User, data: List[RecordsDataAlias]) -> List[RecordsDataAlias]:
         records: List[RecordsDataAlias] = await super().create(  # type: ignore
-            [self._record_to_child_collection(d) for d in data]
+            caller, [self._record_to_child_collection(d) for d in data]
         )
         return [self._record_from_child_collection(record) for record in records]
 
-    async def update(self, filter: Optional[Filter], patch: RecordsDataAlias) -> None:
+    async def update(self, caller: User, filter: Optional[Filter], patch: RecordsDataAlias) -> None:
         refined_patch = self._record_to_child_collection(patch)
-        return await super(RenameMixin, self).update(filter, refined_patch)  # type: ignore
+        return await super(RenameMixin, self).update(caller, filter, refined_patch)  # type: ignore
 
     async def aggregate(
-        self, filter: Optional[Filter], aggregation: Aggregation, limit: Optional[int] = None
+        self, caller: User, filter: Optional[Filter], aggregation: Aggregation, limit: Optional[int] = None
     ) -> List[AggregateResult]:
         rows: List[AggregateResult] = await super().aggregate(  # type: ignore
-            filter, aggregation.replace_fields(lambda name: self._path_to_child_collection(name)), limit
+            caller, filter, aggregation.replace_fields(lambda name: self._path_to_child_collection(name)), limit
         )
         return [AggregateResult(value=row["value"], group=self._build_group_aggregate(row)) for row in rows]
 

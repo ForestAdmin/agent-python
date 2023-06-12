@@ -3,23 +3,28 @@ import sys
 from unittest import TestCase
 from unittest.mock import Mock, patch
 
-from forestadmin.datasource_toolkit.interfaces.fields import Operator
-from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.base import ConditionTree
-from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.branch import Aggregator, ConditionTreeBranch
-from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.leaf import ConditionTreeLeaf
-from forestadmin.datasource_toolkit.interfaces.query.filter.paginated import PaginatedFilter, PaginatedFilterComponent
-from forestadmin.datasource_toolkit.interfaces.query.projections import Projection
-
 if sys.version_info >= (3, 8):
     from unittest.mock import AsyncMock
 else:
     from mock import AsyncMock
 
+if sys.version_info >= (3, 9):
+    import zoneinfo
+else:
+    from backports import zoneinfo
+
+from forestadmin.agent_toolkit.utils.context import User
 from forestadmin.datasource_toolkit.collections import Collection
 from forestadmin.datasource_toolkit.datasources import Datasource
 from forestadmin.datasource_toolkit.decorators.empty.collection import EmptyMixin
 from forestadmin.datasource_toolkit.decorators.proxy.collection import ProxyMixin
+from forestadmin.datasource_toolkit.interfaces.fields import Operator
 from forestadmin.datasource_toolkit.interfaces.query.aggregation import Aggregation
+from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.base import ConditionTree
+from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.branch import Aggregator, ConditionTreeBranch
+from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.leaf import ConditionTreeLeaf
+from forestadmin.datasource_toolkit.interfaces.query.filter.paginated import PaginatedFilter, PaginatedFilterComponent
+from forestadmin.datasource_toolkit.interfaces.query.projections import Projection
 
 
 class DecoratedCollectionMock(EmptyMixin, ProxyMixin):
@@ -32,6 +37,16 @@ class TestEmptyCollectionDecorator(TestCase):
         cls.loop = asyncio.new_event_loop()
         cls.datasource: Datasource = Datasource()
         cls.datasource.get_collection = lambda x: cls.datasource._collections[x]
+        cls.mocked_caller = User(
+            rendering_id=1,
+            user_id=1,
+            tags={},
+            email="dummy@user.fr",
+            first_name="dummy",
+            last_name="user",
+            team="operational",
+            timezone=zoneinfo.ZoneInfo("Europe/Paris"),
+        )
 
         cls.collection_order: Collection = Mock(Collection)
         cls.collection_order.list = AsyncMock(return_value=[{"id": 3, "cost": 22}])
@@ -74,7 +89,9 @@ class TestEmptyCollectionDecorator(TestCase):
         # empty filter
         with patch.object(self.decorated_collection, "_returns_empty_set", return_value=True):
             result = self.loop.run_until_complete(
-                self.decorated_collection.list(self.empty_paginated_filter, Projection("id", "cost"))
+                self.decorated_collection.list(
+                    self.mocked_caller, self.empty_paginated_filter, Projection("id", "cost")
+                )
             )
             assert len(result) == 0
             self.decorated_collection._returns_empty_set.assert_called_once()
@@ -84,7 +101,9 @@ class TestEmptyCollectionDecorator(TestCase):
         # not empty filter
         with patch.object(self.decorated_collection, "_returns_empty_set", return_value=False):
             result = self.loop.run_until_complete(
-                self.decorated_collection.list(self.not_empty_paginated_filter, Projection("id", "cost"))
+                self.decorated_collection.list(
+                    self.mocked_caller, self.not_empty_paginated_filter, Projection("id", "cost")
+                )
             )
             assert len(result) == 1
             assert result[0] == {"id": 3, "cost": 22}
@@ -95,14 +114,16 @@ class TestEmptyCollectionDecorator(TestCase):
 
         # empty filter
         result = self.loop.run_until_complete(
-            self.decorated_collection.list(self.empty_paginated_filter, Projection("id", "cost"))
+            self.decorated_collection.list(self.mocked_caller, self.empty_paginated_filter, Projection("id", "cost"))
         )
         assert len(result) == 0
         self.collection_order.list.assert_not_awaited()
 
         # not empty filter
         result = self.loop.run_until_complete(
-            self.decorated_collection.list(self.not_empty_paginated_filter, Projection("id", "cost"))
+            self.decorated_collection.list(
+                self.mocked_caller, self.not_empty_paginated_filter, Projection("id", "cost")
+            )
         )
         assert len(result) == 1
         assert result[0] == {"id": 3, "cost": 22}
@@ -113,7 +134,7 @@ class TestEmptyCollectionDecorator(TestCase):
         # empty filter
         with patch.object(self.decorated_collection, "_returns_empty_set", return_value=True):
             result = self.loop.run_until_complete(
-                self.decorated_collection.update(self.empty_paginated_filter, {"id": 3, "cost": 12})
+                self.decorated_collection.update(self.mocked_caller, self.empty_paginated_filter, {"id": 3, "cost": 12})
             )
             assert result is None
             self.decorated_collection._returns_empty_set.assert_called_once()
@@ -123,7 +144,9 @@ class TestEmptyCollectionDecorator(TestCase):
         # not empty filter
         with patch.object(self.decorated_collection, "_returns_empty_set", return_value=False):
             result = self.loop.run_until_complete(
-                self.decorated_collection.update(self.not_empty_paginated_filter, {"id": 3, "cost": 12})
+                self.decorated_collection.update(
+                    self.mocked_caller, self.not_empty_paginated_filter, {"id": 3, "cost": 12}
+                )
             )
             assert result is None
             self.decorated_collection._returns_empty_set.assert_called_once()
@@ -133,14 +156,14 @@ class TestEmptyCollectionDecorator(TestCase):
 
         # empty filter
         result = self.loop.run_until_complete(
-            self.decorated_collection.update(self.empty_paginated_filter, {"id": 3, "cost": 12})
+            self.decorated_collection.update(self.mocked_caller, self.empty_paginated_filter, {"id": 3, "cost": 12})
         )
         assert result is None
         self.collection_order.update.assert_not_awaited()
 
         # not empty filter
         result = self.loop.run_until_complete(
-            self.decorated_collection.update(self.not_empty_paginated_filter, {"id": 3, "cost": 12})
+            self.decorated_collection.update(self.mocked_caller, self.not_empty_paginated_filter, {"id": 3, "cost": 12})
         )
         assert result is None
         self.collection_order.update.assert_awaited()
@@ -149,7 +172,9 @@ class TestEmptyCollectionDecorator(TestCase):
     def test_delete(self):
         # empty filter
         with patch.object(self.decorated_collection, "_returns_empty_set", return_value=True):
-            result = self.loop.run_until_complete(self.decorated_collection.delete(self.empty_paginated_filter))
+            result = self.loop.run_until_complete(
+                self.decorated_collection.delete(self.mocked_caller, self.empty_paginated_filter)
+            )
             assert result is None
             self.decorated_collection._returns_empty_set.assert_called_once()
             self.decorated_collection._returns_empty_set.reset_mock()
@@ -157,7 +182,9 @@ class TestEmptyCollectionDecorator(TestCase):
 
         # not empty filter
         with patch.object(self.decorated_collection, "_returns_empty_set", return_value=False):
-            result = self.loop.run_until_complete(self.decorated_collection.delete(self.not_empty_paginated_filter))
+            result = self.loop.run_until_complete(
+                self.decorated_collection.delete(self.mocked_caller, self.not_empty_paginated_filter)
+            )
             assert result is None
             self.decorated_collection._returns_empty_set.assert_called_once()
             self.decorated_collection._returns_empty_set.reset_mock()
@@ -165,12 +192,16 @@ class TestEmptyCollectionDecorator(TestCase):
             self.collection_order.delete.reset_mock()
 
         # empty filter
-        result = self.loop.run_until_complete(self.decorated_collection.delete(self.empty_paginated_filter))
+        result = self.loop.run_until_complete(
+            self.decorated_collection.delete(self.mocked_caller, self.empty_paginated_filter)
+        )
         assert result is None
         self.collection_order.delete.assert_not_awaited()
 
         # not empty filter
-        result = self.loop.run_until_complete(self.decorated_collection.delete(self.not_empty_paginated_filter))
+        result = self.loop.run_until_complete(
+            self.decorated_collection.delete(self.mocked_caller, self.not_empty_paginated_filter)
+        )
         assert result is None
         self.collection_order.delete.assert_awaited()
         self.collection_order.delete.reset_mock()
@@ -180,7 +211,9 @@ class TestEmptyCollectionDecorator(TestCase):
         with patch.object(self.decorated_collection, "_returns_empty_set", return_value=True):
             result = self.loop.run_until_complete(
                 self.decorated_collection.aggregate(
-                    self.empty_paginated_filter, Aggregation({"field": None, "operation": "Count", "groups": []})
+                    self.mocked_caller,
+                    self.empty_paginated_filter,
+                    Aggregation({"field": None, "operation": "Count", "groups": []}),
                 )
             )
             assert len(result) == 0
@@ -191,7 +224,9 @@ class TestEmptyCollectionDecorator(TestCase):
         with patch.object(self.decorated_collection, "_returns_empty_set", return_value=False):
             result = self.loop.run_until_complete(
                 self.decorated_collection.aggregate(
-                    self.not_empty_paginated_filter, Aggregation({"field": None, "operation": "Count", "groups": []})
+                    self.mocked_caller,
+                    self.not_empty_paginated_filter,
+                    Aggregation({"field": None, "operation": "Count", "groups": []}),
                 )
             )
             assert len(result) == 1
@@ -204,7 +239,9 @@ class TestEmptyCollectionDecorator(TestCase):
         # empty filter
         result = self.loop.run_until_complete(
             self.decorated_collection.aggregate(
-                self.empty_paginated_filter, Aggregation({"field": None, "operation": "Count", "groups": []})
+                self.mocked_caller,
+                self.empty_paginated_filter,
+                Aggregation({"field": None, "operation": "Count", "groups": []}),
             )
         )
         assert len(result) == 0
@@ -213,7 +250,9 @@ class TestEmptyCollectionDecorator(TestCase):
         # not empty filter
         result = self.loop.run_until_complete(
             self.decorated_collection.aggregate(
-                self.not_empty_paginated_filter, Aggregation({"field": None, "operation": "Count", "groups": []})
+                self.mocked_caller,
+                self.not_empty_paginated_filter,
+                Aggregation({"field": None, "operation": "Count", "groups": []}),
             )
         )
         assert len(result) == 1
