@@ -57,7 +57,6 @@ pytest-asyncio = "~=0.18"
 coverage = "~=6.5"
 freezegun = "~=1.2.0"
 pytest-cov = "^4.0.0"
-forestadmin-agent-toolkit = {path = "../agent_toolkit", develop = true}
 [[tool.poetry.group.test.dependencies.mock]]
 version = "4.0"
 python = "3.7"
@@ -76,3 +75,7 @@ black = "~=22.10"
 
 [tool.poetry.group.sorter.dependencies]
 isort = "~=3.6"
+
+[tool.poetry.group.test.dependencies.forestadmin-agent-toolkit]
+path = "../agent_toolkit"
+develop = true

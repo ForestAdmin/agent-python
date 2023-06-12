@@ -15,8 +15,8 @@ include = "forestadmin"
 python = ">=3.7,<4.0"
 typing-extensions = "~=4.2"
 tzdata = "~=2022.6"
-forestadmin-agent-toolkit = "^0.1.0-beta.31"
-forestadmin-datasource-toolkit = "^0.1.0-beta.31"
+forestadmin-agent-toolkit = "^0.1.0-beta.32"
+forestadmin-datasource-toolkit = "^0.1.0-beta.32"
 Flask-Cors = "^3.0.8"
 
 [tool.poetry.dependencies.flask]
@@ -47,9 +47,6 @@ coverage = "~=6.5"
 freezegun = "~=1.2.0"
 pytest-cov = "^4.0.0"
 sqlalchemy = "^1.4.44"
-forestadmin-datasource-toolkit = {path = "../datasource_toolkit", develop = true}
-forestadmin-datasource-sqlalchemy = {path = "../datasource_sqlalchemy", develop = true}
-forestadmin-agent-toolkit = {path = "../agent_toolkit", develop = true}
 [[tool.poetry.group.test.dependencies.mock]]
 version = "4.0"
 python = "3.7"
@@ -68,3 +65,15 @@ black = "~=22.10"
 
 [tool.poetry.group.sorter.dependencies]
 isort = "~=3.6"
+
+[tool.poetry.group.test.dependencies.forestadmin-datasource-toolkit]
+path = "../datasource_toolkit"
+develop = true
+
+[tool.poetry.group.test.dependencies.forestadmin-datasource-sqlalchemy]
+path = "../datasource_sqlalchemy"
+develop = true
+
+[tool.poetry.group.test.dependencies.forestadmin-agent-toolkit]
+path = "../agent_toolkit"
+develop = true
