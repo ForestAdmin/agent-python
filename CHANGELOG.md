@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.1.0-beta.31 (2023-06-12)
+
+### Feature
+
+* **sqlalchemy_datasource:** Be compatible with flask_sqlalchemy integration ([#81](https://github.com/ForestAdmin/agent-python/issues/81)) ([`7080129`](https://github.com/ForestAdmin/agent-python/commit/708012940b0eab0af703e48acdd60780ca49cc94))
+
 ## v0.1.0-beta.30 (2023-06-08)
 
 ### Feature
