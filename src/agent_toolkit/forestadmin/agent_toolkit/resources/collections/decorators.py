@@ -1,6 +1,7 @@
 from typing import Any, Awaitable, Callable, TypeVar, Union
 
 from forestadmin.agent_toolkit.resources.collections import BaseCollectionResource
+from forestadmin.agent_toolkit.resources.collections.filter import parse_timezone
 from forestadmin.agent_toolkit.resources.collections.requests import RequestCollection
 from forestadmin.agent_toolkit.services.permissions import PermissionServiceException
 from forestadmin.agent_toolkit.utils.context import (
@@ -46,6 +47,7 @@ def authenticate(fn: Callable[["BoundResource", BoundRequestCollection], Awaitab
             first_name=user["first_name"],
             last_name=user["last_name"],
             team=user["team"],
+            timezone=parse_timezone(request),
         )
         return await fn(self, request)
 

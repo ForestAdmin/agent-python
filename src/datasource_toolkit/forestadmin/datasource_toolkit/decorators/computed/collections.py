@@ -1,5 +1,6 @@
 from typing import Any, Callable, Dict, List, Optional, cast
 
+from forestadmin.agent_toolkit.utils.context import User
 from forestadmin.datasource_toolkit.context.collection_context import CollectionCustomizationContext
 from forestadmin.datasource_toolkit.decorators.computed.exceptions import ComputedMixinException
 from forestadmin.datasource_toolkit.decorators.computed.helpers import (  # type: ignore
@@ -55,19 +56,19 @@ class ComputedMixin:
         self._computeds[name] = computed
         self.mark_schema_as_dirty()
 
-    async def list(self, filter: PaginatedFilter, projection: Projection) -> List[RecordsDataAlias]:
+    async def list(self, caller: User, filter: PaginatedFilter, projection: Projection) -> List[RecordsDataAlias]:
         new_projection = projection.replace(lambda path: rewrite_fields(self, path))
-        records: List[Optional[RecordsDataAlias]] = await super().list(filter, new_projection)  # type: ignore
+        records: List[Optional[RecordsDataAlias]] = await super().list(caller, filter, new_projection)  # type: ignore
         context = CollectionCustomizationContext(cast(Collection, self), filter.timezone)
         return await compute_from_records(context, self, new_projection, projection, records)
 
     async def aggregate(
-        self, filter: Optional[Filter], aggregation: Aggregation, limit: Optional[int] = None
+        self, caller: User, filter: Optional[Filter], aggregation: Aggregation, limit: Optional[int] = None
     ) -> List[AggregateResult]:
         is_computed = any([field in self._computeds for field in cast(List[str], aggregation.projection)])
         if is_computed:
             aggregation, new_to_old_group = computed_aggregation_projection(self, aggregation)  # type: ignore
-        records: List[AggregateResult] = await super().aggregate(filter, aggregation, limit)  # type: ignore
+        records: List[AggregateResult] = await super().aggregate(caller, filter, aggregation, limit)  # type: ignore
         if is_computed:
             records = compute_aggregate_from_records(records, new_to_old_group)  # type: ignore
         return records

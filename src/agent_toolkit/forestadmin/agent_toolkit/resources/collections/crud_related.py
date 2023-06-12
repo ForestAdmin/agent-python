@@ -17,13 +17,11 @@ from forestadmin.agent_toolkit.resources.collections import BaseCollectionResour
 from forestadmin.agent_toolkit.resources.collections.decorators import authenticate, authorize, check_method
 from forestadmin.agent_toolkit.resources.collections.exceptions import CollectionResourceException
 from forestadmin.agent_toolkit.resources.collections.filter import (
-    FilterException,
     build_filter,
     build_paginated_filter,
     parse_condition_tree,
     parse_projection_with_pks,
     parse_selection_ids,
-    parse_timezone,
 )
 from forestadmin.agent_toolkit.resources.collections.requests import (
     RequestCollectionException,
@@ -87,6 +85,7 @@ class CrudRelatedResource(BaseCollectionResource):
         paginated_filter = build_paginated_filter(request, scope_tree)
         projection = parse_projection_with_pks(request)
         records = await CollectionUtils.list_relation(
+            request.user,
             cast(Collection, request.collection),
             ids,
             cast(Collection, request.foreign_collection),
@@ -123,6 +122,7 @@ class CrudRelatedResource(BaseCollectionResource):
         except DatasourceException as e:
             return build_client_error_response([str(e)])
         records = await CollectionUtils.list_relation(
+            request.user,
             cast(Collection, request.collection),
             ids,
             cast(Collection, request.foreign_collection),
@@ -166,7 +166,7 @@ class CrudRelatedResource(BaseCollectionResource):
 
         pks = SchemaUtils.get_primary_keys(request.foreign_collection.schema)[0]
         value = await CollectionUtils.get_value(
-            cast(Collection, request.foreign_collection), targeted_relation_ids, pks
+            request.user, cast(Collection, request.foreign_collection), targeted_relation_ids, pks
         )
         if is_one_to_many(request.relation):
             return await self._associate_one_to_many(request, parent_ids, value)
@@ -177,10 +177,6 @@ class CrudRelatedResource(BaseCollectionResource):
     @authorize("edit")
     @check_method(RequestMethod.PUT)
     async def update_list(self, request: RequestRelationCollection) -> Response:
-        try:
-            timezone = parse_timezone(request)
-        except FilterException as e:
-            return build_client_error_response([str(e)])
         try:
             parent_id = unpack_id(request.collection.schema, request.pks)
         except (FieldValidatorException, CollectionResourceException) as e:
@@ -199,7 +195,7 @@ class CrudRelatedResource(BaseCollectionResource):
                 meth = self._update_one_to_one
 
             try:
-                await meth(request, parent_id, linked_id, timezone)
+                await meth(request, parent_id, linked_id, request.user.timezone)
             except (CollectionResourceException, DatasourceException) as e:
                 return build_client_error_response([str(e)])
             return build_no_content_response()
@@ -218,7 +214,7 @@ class CrudRelatedResource(BaseCollectionResource):
         aggregation = Aggregation({"operation": "Count"})
 
         result = await CollectionUtils.aggregate_relation(
-            cast(Collection, request.collection), parent_id, request.relation_name, filter, aggregation
+            request.user, cast(Collection, request.collection), parent_id, request.relation_name, filter, aggregation
         )
         try:
             count = result[0]["value"]
@@ -267,10 +263,10 @@ class CrudRelatedResource(BaseCollectionResource):
             trees.append(filter.condition_tree)
         filter.condition_tree = ConditionTreeFactory.intersect(trees)
         value = await CollectionUtils.get_value(
-            cast(Collection, request.collection), parent_ids, request.relation["origin_key_target"]
+            request.user, cast(Collection, request.collection), parent_ids, request.relation["origin_key_target"]
         )
         try:
-            await request.foreign_collection.update(filter, {f"{request.relation['origin_key']}": value})
+            await request.foreign_collection.update(request.user, filter, {f"{request.relation['origin_key']}": value})
         except DatasourceException as e:
             return build_client_error_response([str(e)])
         else:
@@ -282,7 +278,9 @@ class CrudRelatedResource(BaseCollectionResource):
         if not is_many_to_many(request.relation):
             return build_client_error_response(["🌳🌳🌳Unhandled relation type"])
         id = SchemaUtils.get_primary_keys(request.collection.schema)
-        origin_id_value = await CollectionUtils.get_value(cast(Collection, request.collection), parent_ids, id[0])
+        origin_id_value = await CollectionUtils.get_value(
+            request.user, cast(Collection, request.collection), parent_ids, id[0]
+        )
 
         record = {
             f"{request.relation['origin_key']}": origin_id_value,
@@ -290,7 +288,7 @@ class CrudRelatedResource(BaseCollectionResource):
         }
         through_collection = request.collection.datasource.get_collection(request.relation["through_collection"])
         try:
-            await through_collection.create([record])
+            await through_collection.create(request.user, [record])
         except DatasourceException as e:
             return build_client_error_response([str(e)])
         else:
@@ -327,13 +325,15 @@ class CrudRelatedResource(BaseCollectionResource):
         if not is_one_to_many(request.relation):
             raise CollectionResourceException("Unhandled relation type")
         foreign_paginated_filter = await FilterFactory.make_foreign_filter(
-            cast(Collection, request.collection), parent_id, request.relation, base_target_filter
+            request.user, cast(Collection, request.collection), parent_id, request.relation, base_target_filter
         )
         foreign_filter = foreign_paginated_filter.to_base_filter()
         if is_delete:
-            await request.foreign_collection.delete(foreign_filter)
+            await request.foreign_collection.delete(request.user, foreign_filter)
         else:
-            await request.foreign_collection.update(foreign_filter, {f"{request.relation['origin_key']}": None})
+            await request.foreign_collection.update(
+                request.user, foreign_filter, {f"{request.relation['origin_key']}": None}
+            )
 
     async def _delete_many_to_many(
         self,
@@ -345,6 +345,7 @@ class CrudRelatedResource(BaseCollectionResource):
         if not is_many_to_many(request.relation):
             raise CollectionResourceException("Unhandled relation type")
         through_filter = await FilterFactory.make_through_filter(
+            request.user,
             cast(Collection, request.collection),
             parent_id,
             request.relation,
@@ -353,18 +354,18 @@ class CrudRelatedResource(BaseCollectionResource):
         through_collection = request.collection.datasource.get_collection(request.relation["through_collection"])
         if is_delete:
             foreign_filter = await FilterFactory.make_foreign_filter(
-                cast(Collection, request.collection), parent_id, request.relation, base_target_filter
+                request.user, cast(Collection, request.collection), parent_id, request.relation, base_target_filter
             )
-            await through_collection.delete(through_filter.to_base_filter())
+            await through_collection.delete(request.user, through_filter.to_base_filter())
             try:
-                await request.foreign_collection.delete(foreign_filter.to_base_filter())
+                await request.foreign_collection.delete(request.user, foreign_filter.to_base_filter())
             except DatasourceException:
                 # Let the datasource crash when:
                 # - the records in the foreignCollection are linked to other records in the origin collection
                 # - the underlying database/api is not cascading deletes
                 pass
         else:
-            await through_collection.delete(through_filter.to_base_filter())
+            await through_collection.delete(request.user, through_filter.to_base_filter())
 
     async def _update_one_to_one(
         self,
@@ -378,7 +379,7 @@ class CrudRelatedResource(BaseCollectionResource):
 
         scope = await self.permission.get_scope(request)
         origin_value = await CollectionUtils.get_value(
-            cast(Collection, request.collection), parent_id, request.relation["origin_key_target"]
+            request.user, cast(Collection, request.collection), parent_id, request.relation["origin_key_target"]
         )
 
         trees: List[ConditionTree] = [ConditionTreeLeaf(request.relation["origin_key"], Operator.EQUAL, origin_value)]
@@ -386,6 +387,7 @@ class CrudRelatedResource(BaseCollectionResource):
             trees.append(scope)
 
         await request.foreign_collection.update(
+            request.user,
             Filter({"condition_tree": ConditionTreeFactory.intersect(trees), "timezone": timezone}),
             {f"{request.relation['origin_key']}": origin_value},
         )
@@ -394,6 +396,7 @@ class CrudRelatedResource(BaseCollectionResource):
         if scope:
             trees.append(scope)
         await request.foreign_collection.update(
+            request.user,
             Filter(
                 {
                     "condition_tree": ConditionTreeFactory.intersect(trees),
@@ -415,7 +418,7 @@ class CrudRelatedResource(BaseCollectionResource):
 
         scope = await self.permission.get_scope(request)
         foreign_value = await CollectionUtils.get_value(
-            cast(Collection, request.collection), linked_id, request.relation["foreign_key_target"]
+            request.user, cast(Collection, request.collection), linked_id, request.relation["foreign_key_target"]
         )
 
         trees = [ConditionTreeFactory.match_ids(request.collection.schema, [parent_id])]
@@ -423,6 +426,7 @@ class CrudRelatedResource(BaseCollectionResource):
             trees.append(scope)
 
         await request.collection.update(
+            request.user,
             Filter({"condition_tree": ConditionTreeFactory.intersect(trees), "timezone": timezone}),
             {f"{request.relation['foreign_key']}": foreign_value},
         )

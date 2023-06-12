@@ -26,7 +26,7 @@ from forestadmin.agent_toolkit.resources.collections.requests import (
 )
 from forestadmin.agent_toolkit.services.permissions import PermissionService
 from forestadmin.agent_toolkit.services.serializers.json_api import JsonApiException
-from forestadmin.agent_toolkit.utils.context import Request
+from forestadmin.agent_toolkit.utils.context import Request, User
 from forestadmin.agent_toolkit.utils.csv import CsvException
 from forestadmin.agent_toolkit.utils.id import unpack_id
 from forestadmin.datasource_toolkit.collections import Collection
@@ -60,8 +60,25 @@ def mock_decorator_no_param(fn):
     return decorated_function
 
 
+def mock_authenticate(fn):
+    async def wrapped2(self, request):
+        request.user = User(
+            rendering_id=1,
+            user_id=1,
+            tags={},
+            email="dummy@user.fr",
+            first_name="dummy",
+            last_name="user",
+            team="operational",
+            timezone=zoneinfo.ZoneInfo("Europe/Paris"),
+        )
+        return await fn(self, request)
+
+    return wrapped2
+
+
 patch("forestadmin.agent_toolkit.resources.collections.decorators.check_method", mock_decorator_with_param).start()
-patch("forestadmin.agent_toolkit.resources.collections.decorators.authenticate", mock_decorator_no_param).start()
+patch("forestadmin.agent_toolkit.resources.collections.decorators.authenticate", mock_authenticate).start()
 patch("forestadmin.agent_toolkit.resources.collections.decorators.authorize", mock_decorator_with_param).start()
 
 importlib.reload(forestadmin.agent_toolkit.resources.collections.crud_related)
@@ -728,30 +745,6 @@ class TestCrudRelatedResource(TestCase):
             # "timezone": "Europe/Paris",
             "pks": "2",  # customer id
         }
-        # no timezone
-        request = RequestRelationCollection(
-            "PUT",
-            self.collection_order,
-            self.collection_customer,
-            ManyToOne(
-                {
-                    "type": FieldType.MANY_TO_ONE,
-                    "foreign_collection": "customer",
-                    "foreign_key": "customer_id",
-                    "foreign_key_target": "id",
-                }
-            ),
-            "orders",
-            {"data": {"id": "201", "type": "customer"}},  # body
-            query_get_params,  # query
-            {},  # header
-            None,  # user
-        )
-
-        response = self.loop.run_until_complete(crud_related_resource.update_list(request))
-        assert response.status == 400
-        response_content = json.loads(response.body)
-        assert response_content["errors"][0] == "🌳🌳🌳Missing timezone"
 
         # no id
         del query_get_params["pks"]
@@ -1425,7 +1418,7 @@ class TestCrudRelatedResource(TestCase):
         # self.collection_order.update.assert_awaited()
         self.collection_cart.update.assert_awaited()
         update_call_list = self.collection_cart.update.await_args_list
-        first_call_filter = update_call_list[0][0][0].condition_tree
+        first_call_filter = update_call_list[0][0][1].condition_tree
         assert first_call_filter.conditions[0].field == "order_id"
         assert first_call_filter.conditions[0].operator == Operator.EQUAL
         assert first_call_filter.conditions[0].value == 2
@@ -1434,11 +1427,11 @@ class TestCrudRelatedResource(TestCase):
         assert first_call_filter.conditions[1].operator == Operator.GREATER_THAN
         assert first_call_filter.conditions[1].value == 0
 
-        first_call_patch = update_call_list[0][0][1]
+        first_call_patch = update_call_list[0][0][2]
         assert "order_id" in first_call_patch
         # assert first_call_patch["order_id"] is None
 
-        second_call_filter = update_call_list[1][0][0].condition_tree
+        second_call_filter = update_call_list[1][0][1].condition_tree
         assert second_call_filter.conditions[0].field == "id"
         assert second_call_filter.conditions[0].operator == Operator.EQUAL
         assert second_call_filter.conditions[0].value == 201
@@ -1447,7 +1440,7 @@ class TestCrudRelatedResource(TestCase):
         assert second_call_filter.conditions[1].operator == Operator.GREATER_THAN
         assert second_call_filter.conditions[1].value == 0
 
-        second_call_patch = update_call_list[1][0][1]
+        second_call_patch = update_call_list[1][0][2]
         assert second_call_patch["order_id"] == 2
 
         # error
@@ -1507,7 +1500,7 @@ class TestCrudRelatedResource(TestCase):
         self.loop.run_until_complete(
             crud_related_resource._update_many_to_one(request, [2], [201], zoneinfo.ZoneInfo("Europe/Paris"))
         )
-        self.collection_order.update.assert_awaited_once_with(ANY, {"customer_id": 201})
+        self.collection_order.update.assert_awaited_once_with(ANY, ANY, {"customer_id": 201})
 
         # error
         request = RequestRelationCollection(

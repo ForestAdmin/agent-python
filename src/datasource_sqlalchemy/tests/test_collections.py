@@ -5,6 +5,8 @@ from datetime import datetime
 from unittest import TestCase
 from unittest.mock import Mock, patch
 
+from forestadmin.agent_toolkit.utils.context import User
+
 if sys.version_info >= (3, 9):
     import zoneinfo
 else:
@@ -141,6 +143,16 @@ class TestSqlAlchemyCollectionWithModels(TestCase):
         models.create_test_database()
         models.load_fixtures()
         cls.datasource = SqlAlchemyDatasource(models.Base)
+        cls.mocked_caller = User(
+            rendering_id=1,
+            user_id=1,
+            tags={},
+            email="dummy@user.fr",
+            first_name="dummy",
+            last_name="user",
+            team="operational",
+            timezone=zoneinfo.ZoneInfo("Europe/Paris"),
+        )
 
     @classmethod
     def tearDownClass(cls):
@@ -163,7 +175,9 @@ class TestSqlAlchemyCollectionWithModels(TestCase):
     def test_list(self):
         collection = self.datasource.get_collection("order")
         filter_ = PaginatedFilter({"condition_tree": ConditionTreeLeaf("id", Operator.LESS_THAN, 11)})
-        results = self.loop.run_until_complete(collection.list(filter_, Projection("id", "created_at")))
+        results = self.loop.run_until_complete(
+            collection.list(self.mocked_caller, filter_, Projection("id", "created_at"))
+        )
 
         assert len(results) == 10
         assert "id" in results[0]
@@ -173,7 +187,9 @@ class TestSqlAlchemyCollectionWithModels(TestCase):
         collection = self.datasource.get_collection("order")
         filter_ = PaginatedFilter({"condition_tree": ConditionTreeLeaf("id", Operator.LESS_THAN, 6)})
 
-        results = self.loop.run_until_complete(collection.list(filter_, Projection("id", "created_at")))
+        results = self.loop.run_until_complete(
+            collection.list(self.mocked_caller, filter_, Projection("id", "created_at"))
+        )
         assert len(results) == 5
 
         filter_ = PaginatedFilter(
@@ -185,7 +201,9 @@ class TestSqlAlchemyCollectionWithModels(TestCase):
                 )
             }
         )
-        results = self.loop.run_until_complete(collection.list(filter_, Projection("id", "created_at")))
+        results = self.loop.run_until_complete(
+            collection.list(self.mocked_caller, filter_, Projection("id", "created_at"))
+        )
         assert len(results) == 2
 
     def test_create(self):
@@ -199,14 +217,14 @@ class TestSqlAlchemyCollectionWithModels(TestCase):
             "status": "Rejected",
         }
         collection = self.datasource.get_collection("order")
-        results = self.loop.run_until_complete(collection.create([order]))
+        results = self.loop.run_until_complete(collection.create(self.mocked_caller, [order]))
         result = results[0]
 
         for field in order.keys():
             assert result[field] == order[field]
 
         filter_ = PaginatedFilter({"condition_tree": ConditionTreeLeaf("id", Operator.EQUAL, 11)})
-        results = self.loop.run_until_complete(collection.list(filter_, Projection(*order.keys())))
+        results = self.loop.run_until_complete(collection.list(self.mocked_caller, filter_, Projection(*order.keys())))
         result = results[0]
 
         for field in order.keys():
@@ -223,7 +241,9 @@ class TestSqlAlchemyCollectionWithModels(TestCase):
             "status": "Rejected",
         }
         collection = self.datasource.get_collection("order")
-        self.assertRaises(SqlAlchemyCollectionException, self.loop.run_until_complete, collection.create([order]))
+        self.assertRaises(
+            SqlAlchemyCollectionException, self.loop.run_until_complete, collection.create(self.mocked_caller, [order])
+        )
 
     def test_delete(self):
         order = {
@@ -236,14 +256,14 @@ class TestSqlAlchemyCollectionWithModels(TestCase):
             "status": "Rejected",
         }
         collection = self.datasource.get_collection("order")
-        results = self.loop.run_until_complete(collection.create([order]))
+        results = self.loop.run_until_complete(collection.create(self.mocked_caller, [order]))
 
         filter_ = PaginatedFilter({"condition_tree": ConditionTreeLeaf("id", Operator.EQUAL, 12)})
-        results = self.loop.run_until_complete(collection.list(filter_, Projection("id")))
+        results = self.loop.run_until_complete(collection.list(self.mocked_caller, filter_, Projection("id")))
         assert len(results) == 1
 
-        self.loop.run_until_complete(collection.delete(filter_))
-        results = self.loop.run_until_complete(collection.list(filter_, Projection("id")))
+        self.loop.run_until_complete(collection.delete(self.mocked_caller, filter_))
+        results = self.loop.run_until_complete(collection.list(self.mocked_caller, filter_, Projection("id")))
 
         assert len(results) == 0
 
@@ -251,9 +271,9 @@ class TestSqlAlchemyCollectionWithModels(TestCase):
         filter_ = PaginatedFilter({"condition_tree": ConditionTreeLeaf("id", Operator.EQUAL, 10)})
         patch = {"amount": 42}
         collection = self.datasource.get_collection("order")
-        self.loop.run_until_complete(collection.update(filter_, patch))
+        self.loop.run_until_complete(collection.update(self.mocked_caller, filter_, patch))
 
-        results = self.loop.run_until_complete(collection.list(filter_, Projection("id", "amount")))
+        results = self.loop.run_until_complete(collection.list(self.mocked_caller, filter_, Projection("id", "amount")))
         assert results[0]["amount"] == 42
 
     def test_aggregate(self):
@@ -262,7 +282,9 @@ class TestSqlAlchemyCollectionWithModels(TestCase):
 
         results = self.loop.run_until_complete(
             collection.aggregate(
-                filter_, Aggregation({"operation": "Avg", "field": "amount", "groups": [{"field": "customer_id"}]})
+                self.mocked_caller,
+                filter_,
+                Aggregation({"operation": "Avg", "field": "amount", "groups": [{"field": "customer_id"}]}),
             )
         )
 

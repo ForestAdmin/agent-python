@@ -1,5 +1,6 @@
 from typing import List, Optional
 
+from forestadmin.agent_toolkit.utils.context import User
 from forestadmin.datasource_toolkit.interfaces.fields import Operator
 from forestadmin.datasource_toolkit.interfaces.query.aggregation import AggregateResult, Aggregation
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.base import ConditionTree
@@ -12,29 +13,29 @@ from forestadmin.datasource_toolkit.interfaces.records import RecordsDataAlias
 
 
 class EmptyMixin:
-    async def list(self, filter: PaginatedFilter, projection: Projection) -> List[RecordsDataAlias]:
+    async def list(self, caller: User, filter: PaginatedFilter, projection: Projection) -> List[RecordsDataAlias]:
         if not self._returns_empty_set(filter.condition_tree):
-            return await super().list(filter, projection)
+            return await super().list(caller, filter, projection)
 
         return []
 
-    async def update(self, filter: PaginatedFilter, patch: RecordsDataAlias) -> List[RecordsDataAlias]:
+    async def update(self, caller: User, filter: PaginatedFilter, patch: RecordsDataAlias) -> List[RecordsDataAlias]:
         if not self._returns_empty_set(filter.condition_tree):
-            return await super().update(filter, patch)
+            return await super().update(caller, filter, patch)
 
         return None
 
-    async def delete(self, filter: Optional[Filter]) -> None:
+    async def delete(self, caller: User, filter: Optional[Filter]) -> None:
         if not self._returns_empty_set(filter.condition_tree):
-            return await super().delete(filter)
+            return await super().delete(caller, filter)
 
         return None
 
     async def aggregate(
-        self, filter: Optional[Filter], aggregation: Aggregation, limit: Optional[int] = None
+        self, caller: User, filter: Optional[Filter], aggregation: Aggregation, limit: Optional[int] = None
     ) -> List[AggregateResult]:
         if not self._returns_empty_set(filter.condition_tree):
-            return await super().aggregate(filter, aggregation, limit)
+            return await super().aggregate(caller, filter, aggregation, limit)
 
         return []
 

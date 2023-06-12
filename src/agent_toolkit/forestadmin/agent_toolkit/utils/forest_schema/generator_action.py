@@ -96,7 +96,7 @@ class SchemaActionGenerator:
     ) -> List[ForestServerActionField]:
         if not action.static_form:
             return cls.DUMMY_FIELDS
-        fields = await collection.get_form(name, None, None)
+        fields = await collection.get_form(None, name, None, None)
         new_fields: List[ForestServerActionField] = []
         for field in fields:
             new_fields.append(await cls.build_field_schema(collection.datasource, field))

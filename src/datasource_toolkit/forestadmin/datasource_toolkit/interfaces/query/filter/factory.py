@@ -1,5 +1,7 @@
 import sys
 
+from forestadmin.agent_toolkit.utils.context import User
+
 if sys.version_info >= (3, 9):
     import zoneinfo
 else:
@@ -82,6 +84,7 @@ class FilterFactory:
     @classmethod
     async def make_through_filter(
         cls,
+        caller: User,
         collection: Collection,
         id: CompositeIdAlias,
         relation: ManyToMany,
@@ -91,7 +94,7 @@ class FilterFactory:
             base_foreign_key_filter: PaginatedFilter = PaginatedFilter.from_base_filter(_base_foreign_key_filter)
         else:
             base_foreign_key_filter = cast(PaginatedFilter, _base_foreign_key_filter)
-        origin_value = await CollectionUtils.get_value(collection, id, relation["origin_key_target"])
+        origin_value = await CollectionUtils.get_value(caller, collection, id, relation["origin_key_target"])
         if relation["foreign_relation"] and base_foreign_key_filter.is_nestable:
             return cls._build_for_through_relation(
                 base_foreign_key_filter,
@@ -101,7 +104,8 @@ class FilterFactory:
             )
         target = collection.datasource.get_collection(relation["foreign_collection"])
         records = await target.list(
-            await cls.make_foreign_filter(collection, id, relation, base_foreign_key_filter),
+            caller,
+            await cls.make_foreign_filter(caller, collection, id, relation, base_foreign_key_filter),
             Projection(relation["foreign_key_target"]),
         )
 
@@ -122,6 +126,7 @@ class FilterFactory:
 
     @staticmethod
     async def make_foreign_filter(
+        caller: User,
         collection: Collection,
         id: CompositeIdAlias,
         relation: Union[ManyToMany, OneToMany],
@@ -131,7 +136,7 @@ class FilterFactory:
             base_foreign_key_filter: PaginatedFilter = PaginatedFilter.from_base_filter(_base_foreign_key_filter)
         else:
             base_foreign_key_filter = cast(PaginatedFilter, _base_foreign_key_filter)
-        origin_value = await CollectionUtils.get_value(collection, id, relation["origin_key_target"])
+        origin_value = await CollectionUtils.get_value(caller, collection, id, relation["origin_key_target"])
 
         origin_tree: ConditionTree
 
@@ -141,6 +146,7 @@ class FilterFactory:
             through = collection.datasource.get_collection(relation["through_collection"])
             through_tree = ConditionTreeLeaf(relation["origin_key"], Operator.EQUAL, origin_value)
             records = await through.list(
+                caller,
                 PaginatedFilter({"condition_tree": through_tree}),
                 Projection(relation["foreign_key"]),
             )

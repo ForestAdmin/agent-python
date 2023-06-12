@@ -548,8 +548,6 @@ class TestCrudResource(TestCase):
                 "collection_name": "order",
                 "timezone": "Europe/Paris",
                 "fields[order]": "id,cost",
-                # "search_extended": 0,
-                # "search": "20",
             },
             {},
             None,

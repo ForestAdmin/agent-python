@@ -1,5 +1,6 @@
 from typing import List, Optional, Union, cast
 
+from forestadmin.agent_toolkit.utils.context import User
 from forestadmin.datasource_toolkit.datasources import DatasourceException
 from forestadmin.datasource_toolkit.interfaces.actions import ActionField, ActionResult
 from forestadmin.datasource_toolkit.interfaces.collections import Collection
@@ -68,19 +69,19 @@ class RelaxedCollection(Collection):
         return self.collection.schema
 
     async def execute(
-        self, name: str, data: RecordsDataAlias, filter: Optional[Union[Filter, PlainFilter]]
+        self, caller: User, name: str, data: RecordsDataAlias, filter: Optional[Union[Filter, PlainFilter]]
     ) -> ActionResult:
         filter_instance = self._build_filter(filter)
-        return await self.collection.execute(name, data, filter_instance)
+        return await self.collection.execute(caller, name, data, filter_instance)
 
     async def get_form(
-        self, name: str, data: Optional[RecordsDataAlias], filter: Optional[Filter]
+        self, caller: User, name: str, data: Optional[RecordsDataAlias], filter: Optional[Filter]
     ) -> List[ActionField]:
         filter_instance = self._build_filter(filter)
-        return await super().get_form(name, data, filter_instance)
+        return await super().get_form(caller, name, data, filter_instance)
 
-    async def create(self, data: List[RecordsDataAlias]) -> List[RecordsDataAlias]:
-        return await self.collection.create(data)
+    async def create(self, caller: User, data: List[RecordsDataAlias]) -> List[RecordsDataAlias]:
+        return await self.collection.create(caller, data)
 
     def _build_filter(self, filter: Optional[Union[Filter, PlainFilter]]) -> Optional[Filter]:
         if not filter:
@@ -138,25 +139,25 @@ class RelaxedCollection(Collection):
         return Aggregation(aggregation)
 
     async def list(
-        self, filter: Union[PaginatedFilter, PlainPaginatedFilter], projection: Projection
+        self, caller: User, filter: Union[PaginatedFilter, PlainPaginatedFilter], projection: Projection
     ) -> List[RecordsDataAlias]:
         filter_instance = self._build_paginated_filter(filter)
         projection_instance = self._build_projection(projection)
 
-        return await self.collection.list(filter_instance, projection_instance)
+        return await self.collection.list(caller, filter_instance, projection_instance)
 
-    async def update(self, filter: Optional[Union[Filter, PlainFilter]], patch: RecordsDataAlias) -> None:
+    async def update(self, caller: User, filter: Optional[Union[Filter, PlainFilter]], patch: RecordsDataAlias) -> None:
         filter_instance = self._build_filter(filter)
-        return await self.collection.update(filter_instance, patch)
+        return await self.collection.update(caller, filter_instance, patch)
 
-    async def delete(self, filter: Optional[Union[Filter, PlainFilter]]) -> None:
+    async def delete(self, caller: User, filter: Optional[Union[Filter, PlainFilter]]) -> None:
         filter_instance = self._build_filter(filter)
-        return await self.collection.delete(filter_instance)
+        return await self.collection.delete(caller, filter_instance)
 
     async def aggregate(
-        self, filter: Optional[Filter], aggregation: Aggregation, limit: Optional[int] = None
+        self, caller: User, filter: Optional[Filter], aggregation: Aggregation, limit: Optional[int] = None
     ) -> List[AggregateResult]:
         filter_instance = self._build_filter(filter)
         aggregation_instance = self._build_aggregation(aggregation)
 
-        return await self.collection.aggregate(filter_instance, aggregation_instance, limit)
+        return await self.collection.aggregate(caller, filter_instance, aggregation_instance, limit)

@@ -1,8 +1,14 @@
 import enum
 import json
+import sys
 from dataclasses import dataclass, field
 from io import BytesIO
 from typing import Any, Dict, List, Optional
+
+if sys.version_info >= (3, 9):
+    from zoneinfo import ZoneInfo
+else:
+    from backports.zoneinfo import ZoneInfo
 
 
 class RequestMethod(enum.Enum):
@@ -22,6 +28,9 @@ class User:
     first_name: str
     last_name: str
     team: str
+    timezone: ZoneInfo
+    # permission_level
+    # role
 
 
 class Request:

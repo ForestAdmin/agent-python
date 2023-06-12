@@ -1,5 +1,6 @@
 from typing import Any, Callable, Dict, List, Optional, Set, Union, cast
 
+from forestadmin.agent_toolkit.utils.context import User
 from forestadmin.datasource_toolkit.collections import Collection
 from forestadmin.datasource_toolkit.decorators.action.context.base import ActionContext
 from forestadmin.datasource_toolkit.decorators.action.context.bulk import ActionContextBulk
@@ -32,25 +33,26 @@ class ActionMixin:
 
     async def execute(
         self,
+        caller: User,
         name: str,
         data: RecordsDataAlias,
         filter: Optional[Filter],
     ) -> ActionResult:
         action = self._actions[name]
         if not action:
-            return super(ActionMixin, self).execute(name, data, filter)  # type: ignore
+            return super(ActionMixin, self).execute(caller, name, data, filter)  # type: ignore
 
         context = self._get_context(action, data, filter)
         response_builder = ResultBuilder()
-        result = await action.execute(context, response_builder)  # type: ignore
+        result = await action.execute(caller, context, response_builder)  # type: ignore
         return result or {"type": "Success", "invalidated": set(), "format": "text", "message": "Success"}
 
     async def get_form(
-        self, name: str, data: Optional[RecordsDataAlias], filter: Optional[Filter]
+        self, caller: User, name: str, data: Optional[RecordsDataAlias], filter: Optional[Filter]
     ) -> List[ActionField]:
         action = self._actions.get(name)
         if not action:
-            return super(ActionMixin, self).get_form(name, data, filter)  # type: ignore
+            return super(ActionMixin, self).get_form(caller, name, data, filter)  # type: ignore
         elif not action.form:
             return []
 

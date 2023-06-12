@@ -3,6 +3,8 @@ from collections import defaultdict
 from datetime import datetime
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union, cast
 
+from forestadmin.agent_toolkit.utils.context import User
+
 if sys.version_info >= (3, 9):
     import zoneinfo
 else:
@@ -162,11 +164,12 @@ class SqlAlchemyCollection(BaseSqlAlchemyCollection):
                 normalized_projection.append(f"{parent_field}:{field}")
         return Projection(*normalized_projection)
 
-    async def execute(self, name: str, data: RecordsDataAlias, filter: Optional[Filter]) -> ActionResult:
-        return await super().execute(name, data, filter)
+    async def execute(self, caller: User, name: str, data: RecordsDataAlias, filter: Optional[Filter]) -> ActionResult:
+        return await super().execute(caller, name, data, filter)
 
     async def aggregate(
         self,
+        caller: User,
         filter: Optional[Filter],
         aggregation: Aggregation,
         limit: Optional[int] = None,
@@ -179,13 +182,13 @@ class SqlAlchemyCollection(BaseSqlAlchemyCollection):
             return aggregations_to_records(res)
 
     @handle_sqlalchemy_error
-    async def create(self, data: List[RecordsDataAlias]) -> List[RecordsDataAlias]:
+    async def create(self, caller: User, data: List[RecordsDataAlias]) -> List[RecordsDataAlias]:
         with self.datasource.Session.begin() as session:  #  type: ignore
             instances = QueryFactory.create(self, data)
             session.bulk_save_objects(instances, return_defaults=True)  # type: ignore
             return instances_to_records(self, instances)
 
-    async def update(self, filter: Optional[Filter], patch: RecordsDataAlias) -> None:
+    async def update(self, caller: User, filter: Optional[Filter], patch: RecordsDataAlias) -> None:
         with self.datasource.Session.begin() as session:  #  type: ignore
             query = QueryFactory.update(self, filter, patch)
             session.execute(query)  # type: ignore
@@ -210,7 +213,7 @@ class SqlAlchemyCollection(BaseSqlAlchemyCollection):
             )
         return filter
 
-    async def list(self, filter: PaginatedFilter, projection: Projection) -> List[RecordsDataAlias]:
+    async def list(self, caller: User, filter: PaginatedFilter, projection: Projection) -> List[RecordsDataAlias]:
         with self.datasource.Session.begin() as session:  #  type: ignore
             projection = self._normalize_projection(projection)
             filter = cast(PaginatedFilter, self._cast_filter(filter))
@@ -219,12 +222,12 @@ class SqlAlchemyCollection(BaseSqlAlchemyCollection):
             records = projections_to_records(projection, res, filter.timezone)  # type: ignore
             return records
 
-    async def delete(self, filter: Optional[Filter]) -> None:
+    async def delete(self, caller: User, filter: Optional[Filter]) -> None:
         with self.datasource.Session.begin() as session:  #  type: ignore
             query = QueryFactory.delete(self, filter)
             session.execute(query)  # type: ignore
 
     async def get_form(
-        self, name: str, data: Optional[RecordsDataAlias], filter: Optional[Filter]
+        self, caller: User, name: str, data: Optional[RecordsDataAlias], filter: Optional[Filter]
     ) -> List[ActionField]:
-        return await super().get_form(name, data, filter)
+        return await super().get_form(caller, name, data, filter)
