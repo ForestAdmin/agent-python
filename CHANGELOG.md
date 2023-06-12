@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.1.0-beta.32 (2023-06-12)
+
+### Feature
+
+* Add caller support to collection calls ([#82](https://github.com/ForestAdmin/agent-python/issues/82)) ([`e36e86e`](https://github.com/ForestAdmin/agent-python/commit/e36e86e588966a9c12e8756a6dd96400fb0314a6))
+
 ## v0.1.0-beta.31 (2023-06-12)
 
 ### Feature
