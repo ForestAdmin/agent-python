@@ -8,6 +8,10 @@ class SqlAlchemyCollectionException(DatasourceException):
     pass
 
 
+class SqlAlchemyDatasourceException(DatasourceException):
+    pass
+
+
 def handle_sqlalchemy_error(fn: Callable[..., Awaitable[Any]]):
     async def wrapped(self: Any, *args: Any, **kwargs: Any) -> Any:
         try:
