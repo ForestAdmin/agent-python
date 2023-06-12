@@ -65,7 +65,9 @@ class RenameMixin:
 
     async def list(self, caller: User, filter: PaginatedFilter, projection: Projection) -> List[RecordsDataAlias]:
         child_projection = projection.replace(lambda field_name: self._path_to_child_collection(field_name))
-        records: List[RecordsDataAlias] = await super(RenameMixin, self).list(caller, filter, child_projection)  # type: ignore
+        records: List[RecordsDataAlias] = await super(RenameMixin, self).list(
+            caller, filter, child_projection
+        )  # type: ignore
         return [self._record_from_child_collection(record) for record in records]
 
     async def create(self, caller: User, data: List[RecordsDataAlias]) -> List[RecordsDataAlias]:
