@@ -35,6 +35,16 @@ class TestSqlAlchemyDatasource(TestCase):
             datasource._create_collections.assert_called()
         assert datasource._base == base_mock.Model
 
+        base_mock.metadata = Mock(MetaData)
+        base_mock.metadata.bind = None
+        base_mock.engine = {"fake_engine": True}
+
+        with patch.object(SqlAlchemyDatasource, "_create_collections"):
+            datasource = SqlAlchemyDatasource(base_mock)
+
+            datasource._create_collections.assert_called()
+        assert datasource._base == base_mock.Model
+
     def test_create_datasource_error(self):
         base_mock = Mock()
         base_mock.Model = Mock()
@@ -44,6 +54,7 @@ class TestSqlAlchemyDatasource(TestCase):
         base_mock.Model.metadata = Mock(MetaData)
         base_mock.metadata = Mock()
         base_mock.metadata.bind = None
+        base_mock.engine = None
         self.assertRaises(SqlAlchemyDatasourceException, SqlAlchemyDatasource, base_mock)
 
     @patch("forestadmin.datasource_sqlalchemy.datasource.sessionmaker")
