@@ -9,6 +9,7 @@ from forestadmin.datasource_toolkit.decorators.publication.collections import Pu
 from forestadmin.datasource_toolkit.decorators.rename.collections import RenameMixin
 from forestadmin.datasource_toolkit.decorators.search.collections import SearchMixin
 from forestadmin.datasource_toolkit.decorators.segments.collections import SegmentMixin
+from forestadmin.datasource_toolkit.decorators.validation.collection import ValidationMixin
 from forestadmin.datasource_toolkit.interfaces.models.collections import CollectionSchema
 
 
@@ -17,6 +18,7 @@ class CustomizedCollection(
     ActionMixin,
     RenameMixin,
     ComputedMixin,
+    ValidationMixin,
     OperatorReplaceMixin,
     SegmentMixin,
     PublicationMixin,

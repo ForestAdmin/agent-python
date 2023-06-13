@@ -2,6 +2,7 @@ import asyncio
 import sys
 
 from forestadmin.agent_toolkit.utils.csv import Csv, CsvException
+from forestadmin.datasource_toolkit.exceptions import ForestValidationException
 
 if sys.version_info >= (3, 8):
     from typing import Literal
@@ -77,7 +78,13 @@ class CrudResource(BaseCollectionResource):
             request_collection = RequestCollection.from_request(request, self.datasource)
         except RequestCollectionException as e:
             return build_client_error_response([str(e)])
-        return await method(request_collection)
+
+        try:
+            return await method(request_collection)
+        except ForestValidationException as e:
+            return build_client_error_response(
+                [{"name": "ForestValidationException", "detail": str(e)[3:], "status": 400}]
+            )
 
     @check_method(RequestMethod.GET)
     @authenticate
