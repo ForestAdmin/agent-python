@@ -100,14 +100,14 @@ def test_not_equal_to_in():
         mock_override.assert_called_once_with({"operator": Operator.NOT_IN, "value": [leaf.value]})
 
 
-@mock.patch("forestadmin.datasource_toolkit.interfaces.query.condition_tree.factory.ConditionTreeFactory.union")
-def test_not_in_to_not_equal(mock_union: mock.MagicMock):
+@mock.patch("forestadmin.datasource_toolkit.interfaces.query.condition_tree.factory.ConditionTreeFactory.intersect")
+def test_not_in_to_not_equal(mock_intersect: mock.MagicMock):
     leaf = ConditionTreeLeaf(field="test", operator=Operator.NOT_IN, value=["1", "2"])
     with mock.patch.object(leaf, "override") as mock_override:
         mock_override.side_effect = ["fake_override", "fake_override1"]
-        mock_union.return_value = "fake_union"
-        assert _not_in_to_not_equal(leaf, "") == "fake_union"
-        mock_union.assert_called_once_with(["fake_override", "fake_override1"])
+        mock_intersect.return_value = "fake_intersect"
+        assert _not_in_to_not_equal(leaf, "") == "fake_intersect"
+        mock_intersect.assert_called_once_with(["fake_override", "fake_override1"])
         mock_override.assert_has_calls(
             [
                 mock.call({"operator": Operator.NOT_EQUAL, "value": "1"}),

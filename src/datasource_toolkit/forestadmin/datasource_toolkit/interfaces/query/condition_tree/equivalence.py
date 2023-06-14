@@ -63,7 +63,7 @@ class ConditionTreeEquivalent:
         operator: Operator,
         allowed_operators: Set[Operator],
         column_type: ColumnAlias,
-        visited: Optional[List[Alternative]] = [],
+        visited: Optional[List[Alternative]] = None,
     ) -> Optional[Replacer]:
         if not visited:
             visited = []

@@ -72,7 +72,7 @@ def _not_equal_to_not_in(leaf: ConditionTreeLeaf, _: zoneinfo.ZoneInfo) -> Condi
 
 def _not_in_to_not_equal(leaf: ConditionTreeLeaf, _: zoneinfo.ZoneInfo) -> ConditionTree:
     values = cast(List[Any], leaf.value)
-    return ConditionTreeFactory.union(
+    return ConditionTreeFactory.intersect(
         [leaf.override({"operator": Operator.NOT_EQUAL, "value": item}) for item in values]
     )
 
