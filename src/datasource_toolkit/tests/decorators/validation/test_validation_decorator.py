@@ -81,9 +81,6 @@ class TesValidationCollectionDecorator(TestCase):
         cls.datasource.add_collection(cls.collection_book)
         cls.datasource.add_collection(cls.collection_person)
 
-        # cls.decorated_collection_book = DecoratedCollectionMock(cls.collection_book, cls.datasource)
-        # cls.decorated_collection_person = DecoratedCollectionMock(cls.collection_person, cls.datasource)
-
         cls.mocked_caller = User(
             rendering_id=1,
             user_id=1,
