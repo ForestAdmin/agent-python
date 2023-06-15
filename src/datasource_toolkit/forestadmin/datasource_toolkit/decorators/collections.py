@@ -43,5 +43,5 @@ class CustomizedCollection(
             self._last_schema = super().schema
         return self._last_schema
 
-    def disableCount(self):
+    def disable_count(self):
         self.override_schema("countable", False)

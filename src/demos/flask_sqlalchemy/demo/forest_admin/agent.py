@@ -37,7 +37,7 @@ agent.customize_collection("address").rename_field("full address", "complete_add
 agent.customize_collection("address").change_field_visibility("zip_code", False)
 
 
-agent.customize_collection("address").disableCount()
+agent.customize_collection("address").disable_count()
 
 # ## CUSTOMERS
 # import field ?
