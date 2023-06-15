@@ -21,6 +21,7 @@ from forestadmin.agent_toolkit.utils.context import Request
 from forestadmin.agent_toolkit.utils.csv import CsvException
 from forestadmin.datasource_toolkit.collections import Collection
 from forestadmin.datasource_toolkit.datasources import Datasource, DatasourceException
+from forestadmin.datasource_toolkit.exceptions import ForestValidationException
 from forestadmin.datasource_toolkit.interfaces.fields import FieldType, Operator, PrimitiveType
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.leaf import ConditionTreeLeaf
 from forestadmin.datasource_toolkit.validations.records import RecordValidatorException
@@ -53,18 +54,36 @@ from forestadmin.agent_toolkit.resources.collections.crud import CrudResource  #
 
 class TestCrudResource(TestCase):
     @classmethod
+    def _create_collection(
+        cls,
+        name,
+        fields,
+    ):
+        collection = Mock(Collection)
+        collection._datasource = cls.datasource
+        collection.datasource = cls.datasource
+        collection.list = AsyncMock(return_value=None)
+        collection.update = AsyncMock(return_value=None)
+        collection.delete = AsyncMock(return_value=None)
+        collection._name = name
+        collection.name = name
+        collection.get_field = lambda x: collection._schema["fields"][x]
+        collection._schema = {
+            "actions": {},
+            "fields": fields,
+            "searchable": True,
+            "segments": [],
+            "countable": True,
+        }
+        collection.schema = collection._schema
+        return collection
+
+    @classmethod
     def _create_collections(cls):
         # order
-        cls.collection_order = Mock(Collection)
-        cls.collection_order._datasource = cls.datasource
-        cls.collection_order.datasource = cls.datasource
-        cls.collection_order.update = AsyncMock(return_value=None)
-        cls.collection_order._name = "order"
-        cls.collection_order.name = "order"
-        cls.collection_order.get_field = lambda x: cls.collection_order._schema["fields"][x]
-        cls.collection_order._schema = {
-            "actions": {},
-            "fields": {
+        cls.collection_order = cls._create_collection(
+            "order",
+            {
                 "id": {"column_type": PrimitiveType.NUMBER, "is_primary_key": True, "type": FieldType.COLUMN},
                 "cost": {"column_type": PrimitiveType.NUMBER, "is_primary_key": False, "type": FieldType.COLUMN},
                 "products": {
@@ -89,50 +108,25 @@ class TestCrudResource(TestCase):
                     "origin_key": "order_id",
                 },
             },
-            "searchable": True,
-            "segments": [],
-        }
-        cls.collection_order.schema = cls.collection_order._schema
+        )
 
         # status
-
-        cls.collection_status = Mock(Collection)
-        cls.collection_status._datasource = cls.datasource
-        cls.collection_status.datasource = cls.datasource
-        cls.collection_status.update = AsyncMock(return_value=None)
-        cls.collection_status._name = "status"
-        cls.collection_status.name = "status"
-        cls.collection_status.get_field = lambda x: cls.collection_status._schema["fields"][x]
-        cls.collection_status._schema = {
-            "actions": {},
-            "fields": {
+        cls.collection_status = cls._create_collection(
+            "status",
+            {
                 "id": {"column_type": PrimitiveType.NUMBER, "is_primary_key": True, "type": FieldType.COLUMN},
                 "name": {"column_type": PrimitiveType.STRING, "is_primary_key": False, "type": FieldType.COLUMN},
             },
-            "searchable": False,
-            "segments": [],
-        }
-        cls.collection_status.schema = cls.collection_status._schema
+        )
 
         # cart
-
-        cls.collection_cart = Mock(Collection)
-        cls.collection_cart._datasource = cls.datasource
-        cls.collection_cart.datasource = cls.datasource
-        cls.collection_cart.update = AsyncMock(return_value=None)
-        cls.collection_cart._name = "cart"
-        cls.collection_cart.name = "cart"
-        cls.collection_cart.get_field = lambda x: cls.collection_cart._schema["fields"][x]
-        cls.collection_cart._schema = {
-            "actions": {},
-            "fields": {
+        cls.collection_cart = cls._create_collection(
+            "cart",
+            {
                 "id": {"column_type": PrimitiveType.NUMBER, "is_primary_key": True, "type": FieldType.COLUMN},
                 "name": {"column_type": PrimitiveType.STRING, "is_primary_key": False, "type": FieldType.COLUMN},
             },
-            "searchable": False,
-            "segments": [],
-        }
-        cls.collection_cart.schema = cls.collection_cart._schema
+        )
 
     @classmethod
     def setUpClass(cls) -> None:
@@ -158,7 +152,6 @@ class TestCrudResource(TestCase):
         }
 
     # dispatch
-
     def test_dispatch(self):
         request = Request(
             method="GET",
@@ -208,16 +201,25 @@ class TestCrudResource(TestCase):
                 "collection": "order",
             },
         )
-        mock_request_collection.from_request = Mock(side_effect=RequestCollectionException("test exception"))
         crud_resource = CrudResource(self.datasource, self.permission_service, self.options)
         crud_resource.get = AsyncMock()
 
-        response = self.loop.run_until_complete(crud_resource.dispatch(request, "get"))
-        assert json.loads(response.body)["errors"][0] == "🌳🌳🌳test exception"
+        with patch.object(
+            mock_request_collection, "from_request", side_effect=RequestCollectionException("test exception")
+        ):
+            response = self.loop.run_until_complete(crud_resource.dispatch(request, "get"))
         assert response.status == 400
+        assert json.loads(response.body)["errors"][0] == "🌳🌳🌳test exception"
+
+        # Validation Exception
+        with patch.object(crud_resource, "add", side_effect=ForestValidationException("test exception")):
+            response = self.loop.run_until_complete(crud_resource.dispatch(request, "add"))
+        assert response.status == 400
+        assert json.loads(response.body)["errors"][0]["status"] == 400
+        assert json.loads(response.body)["errors"][0]["name"] == "ForestValidationException"
+        assert json.loads(response.body)["errors"][0]["detail"] == "test exception"
 
     # get
-
     @patch("forestadmin.agent_toolkit.resources.collections.crud.unpack_id", return_value=[10])
     @patch(
         "forestadmin.agent_toolkit.resources.collections.crud.ConditionTreeFactory.match_ids",
@@ -361,7 +363,6 @@ class TestCrudResource(TestCase):
         mocked_unpack_id.assert_called_once()
 
     # add
-
     @patch("forestadmin.agent_toolkit.resources.collections.crud.RecordValidator.validate")
     @patch(
         "forestadmin.agent_toolkit.resources.collections.crud.JsonApiSerializer.get",
@@ -532,7 +533,6 @@ class TestCrudResource(TestCase):
         assert response_content["errors"][0] == "🌳🌳🌳Missing timezone"
 
     # list
-
     @patch(
         "forestadmin.agent_toolkit.resources.collections.crud.JsonApiSerializer.get",
         return_value=Mock,
@@ -631,7 +631,6 @@ class TestCrudResource(TestCase):
         assert response_content["errors"][0] == "🌳🌳🌳"
 
     # count
-
     def test_count(self):
         request = RequestCollection(
             "GET", self.collection_order, None, {"collection_name": "order", "timezone": "Europe/Paris"}, {}, None
@@ -655,8 +654,21 @@ class TestCrudResource(TestCase):
         assert response_content["count"] == 0
         self.collection_order.aggregate.assert_called()
 
-    # edit
+    def test_deactivate_count(self):
+        request = RequestCollection(
+            "GET", self.collection_order, None, {"collection_name": "order", "timezone": "Europe/Paris"}, {}, None
+        )
+        crud_resource = CrudResource(self.datasource, self.permission_service, self.options)
 
+        self.collection_order._schema["countable"] = False
+        response = self.loop.run_until_complete(crud_resource.count(request))
+        self.collection_order._schema["countable"] = True
+
+        assert response.status == 200
+        response_content = json.loads(response.body)
+        assert response_content["meta"]["count"] == "deactivated"
+
+    # edit
     @patch(
         "forestadmin.agent_toolkit.resources.collections.crud.ConditionTreeFactory.match_ids",
         return_value=ConditionTreeLeaf("id", Operator.EQUAL, 10),
@@ -775,7 +787,6 @@ class TestCrudResource(TestCase):
         assert response_content["errors"][0] == "🌳🌳🌳"
 
     # delete
-
     @patch(
         "forestadmin.agent_toolkit.resources.collections.crud.JsonApiSerializer.get",
         return_value=Mock,

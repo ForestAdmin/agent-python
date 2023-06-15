@@ -18,6 +18,7 @@ from demo.forest_admin.smart.order import (
 )
 from demo.models.models import Base
 from forestadmin.datasource_sqlalchemy.datasource import SqlAlchemyDatasource
+from forestadmin.datasource_toolkit.interfaces.fields import Operator
 from forestadmin.flask_agent.agent import build_agent
 
 agent = build_agent(SETTINGS)
@@ -35,6 +36,9 @@ agent.customize_collection("address").rename_field("full address", "complete_add
 # changing visibility
 agent.customize_collection("address").change_field_visibility("zip_code", False)
 
+
+agent.customize_collection("address").disable_count()
+
 # ## CUSTOMERS
 # import field ?
 agent.customize_collection("customer").add_segment("with french address", french_address_segment)
@@ -45,11 +49,13 @@ agent.customize_collection("customer").add_action("Age operation", AgeOperation(
 
 agent.customize_collection("customer").register_computed("full_name", customer_full_name())
 agent.customize_collection("customer").register_computed("TotalSpending", customer_spending_computed())
+agent.customize_collection("customer").add_validation("age", {"operator": Operator.GREATER_THAN, "value": 0})
 
 
 # ## ORDERS
 # segment
 agent.customize_collection("order").rename_field("amount", "cost")
+# agent.customize_collection("order").add_validation("amount", {"operator": Operator.GREATER_THAN, "value": 0})
 agent.customize_collection("order").add_segment("Pending order", pending_order_segment)
 agent.customize_collection("order").add_segment("Delivered order", delivered_order_segment)
 agent.customize_collection("order").add_segment("Rejected order", rejected_order_segment)

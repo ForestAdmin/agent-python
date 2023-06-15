@@ -7,6 +7,7 @@ from forestadmin.datasource_toolkit.decorators.operators_replace.collections imp
 from forestadmin.datasource_toolkit.decorators.proxy.collection import ProxyMixin
 from forestadmin.datasource_toolkit.decorators.publication.collections import PublicationMixin
 from forestadmin.datasource_toolkit.decorators.rename.collections import RenameMixin
+from forestadmin.datasource_toolkit.decorators.schema.collection import SchemaMixin
 from forestadmin.datasource_toolkit.decorators.search.collections import SearchMixin
 from forestadmin.datasource_toolkit.decorators.segments.collections import SegmentMixin
 from forestadmin.datasource_toolkit.decorators.validation.collection import ValidationMixin
@@ -23,6 +24,7 @@ class CustomizedCollection(
     SegmentMixin,
     PublicationMixin,
     SearchMixin,
+    SchemaMixin,
     ProxyMixin,
 ):
     def __init__(self, *args: Any, **kwargs: Any):
@@ -40,3 +42,6 @@ class CustomizedCollection(
         if not self._last_schema:
             self._last_schema = super().schema
         return self._last_schema
+
+    def disable_count(self):
+        self.override_schema("countable", False)

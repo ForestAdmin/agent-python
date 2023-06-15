@@ -205,6 +205,9 @@ class CrudRelatedResource(BaseCollectionResource):
     @authorize("browse")
     @check_method(RequestMethod.GET)
     async def count(self, request: RequestRelationCollection) -> Response:
+        if request.foreign_collection.schema["countable"] is False:
+            return build_success_response({"meta": {"count": "deactivated"}})
+
         try:
             parent_id = unpack_id(request.collection.schema, request.pks)
         except (FieldValidatorException, CollectionResourceException) as e:
