@@ -5,3 +5,7 @@ class ForestException(Exception):
 
 class DatasourceToolkitException(ForestException):
     pass
+
+
+class ForestValidationException(ForestException):
+    pass
