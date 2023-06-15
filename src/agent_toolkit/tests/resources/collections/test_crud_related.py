@@ -901,6 +901,29 @@ class TestCrudRelatedResource(TestCase):
         response_content = json.loads(response.body)
         assert response_content["count"] == 1
 
+    def test_deactivate_count(self):
+        request = RequestRelationCollection(
+            "GET",
+            *self.mk_request_customer_order_one_to_many(),
+            None,
+            {
+                "collection_name": "customer",
+                "relation_name": "order",
+                "timezone": "Europe/Paris",
+                "fields[order]": "id,cost",
+                "pks": "2",  # customer id
+            },
+            {},
+            None,
+        )
+        self.collection_order._schema["countable"] = False
+        response = self.loop.run_until_complete(self.crud_related_resource.count(request))
+        self.collection_order._schema["countable"] = True
+
+        assert response.status == 200
+        response_content = json.loads(response.body)
+        assert response_content["meta"]["count"] == "deactivated"
+
     def test_count_error(self):
         query_get_params = {
             "collection_name": "customer",

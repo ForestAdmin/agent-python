@@ -21,6 +21,7 @@ from forestadmin.agent_toolkit.utils.context import Request
 from forestadmin.agent_toolkit.utils.csv import CsvException
 from forestadmin.datasource_toolkit.collections import Collection
 from forestadmin.datasource_toolkit.datasources import Datasource, DatasourceException
+from forestadmin.datasource_toolkit.exceptions import ForestValidationException
 from forestadmin.datasource_toolkit.interfaces.fields import FieldType, Operator, PrimitiveType
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.leaf import ConditionTreeLeaf
 from forestadmin.datasource_toolkit.validations.records import RecordValidatorException
@@ -151,7 +152,6 @@ class TestCrudResource(TestCase):
         }
 
     # dispatch
-
     def test_dispatch(self):
         request = Request(
             method="GET",
@@ -201,16 +201,25 @@ class TestCrudResource(TestCase):
                 "collection": "order",
             },
         )
-        mock_request_collection.from_request = Mock(side_effect=RequestCollectionException("test exception"))
         crud_resource = CrudResource(self.datasource, self.permission_service, self.options)
         crud_resource.get = AsyncMock()
 
-        response = self.loop.run_until_complete(crud_resource.dispatch(request, "get"))
-        assert json.loads(response.body)["errors"][0] == "🌳🌳🌳test exception"
+        with patch.object(
+            mock_request_collection, "from_request", side_effect=RequestCollectionException("test exception")
+        ):
+            response = self.loop.run_until_complete(crud_resource.dispatch(request, "get"))
         assert response.status == 400
+        assert json.loads(response.body)["errors"][0] == "🌳🌳🌳test exception"
+
+        # Validation Exception
+        with patch.object(crud_resource, "add", side_effect=ForestValidationException("test exception")):
+            response = self.loop.run_until_complete(crud_resource.dispatch(request, "add"))
+        assert response.status == 400
+        assert json.loads(response.body)["errors"][0]["status"] == 400
+        assert json.loads(response.body)["errors"][0]["name"] == "ForestValidationException"
+        assert json.loads(response.body)["errors"][0]["detail"] == "test exception"
 
     # get
-
     @patch("forestadmin.agent_toolkit.resources.collections.crud.unpack_id", return_value=[10])
     @patch(
         "forestadmin.agent_toolkit.resources.collections.crud.ConditionTreeFactory.match_ids",
@@ -354,7 +363,6 @@ class TestCrudResource(TestCase):
         mocked_unpack_id.assert_called_once()
 
     # add
-
     @patch("forestadmin.agent_toolkit.resources.collections.crud.RecordValidator.validate")
     @patch(
         "forestadmin.agent_toolkit.resources.collections.crud.JsonApiSerializer.get",
@@ -525,7 +533,6 @@ class TestCrudResource(TestCase):
         assert response_content["errors"][0] == "🌳🌳🌳Missing timezone"
 
     # list
-
     @patch(
         "forestadmin.agent_toolkit.resources.collections.crud.JsonApiSerializer.get",
         return_value=Mock,
@@ -624,7 +631,6 @@ class TestCrudResource(TestCase):
         assert response_content["errors"][0] == "🌳🌳🌳"
 
     # count
-
     def test_count(self):
         request = RequestCollection(
             "GET", self.collection_order, None, {"collection_name": "order", "timezone": "Europe/Paris"}, {}, None
@@ -648,8 +654,21 @@ class TestCrudResource(TestCase):
         assert response_content["count"] == 0
         self.collection_order.aggregate.assert_called()
 
-    # edit
+    def test_deactivate_count(self):
+        request = RequestCollection(
+            "GET", self.collection_order, None, {"collection_name": "order", "timezone": "Europe/Paris"}, {}, None
+        )
+        crud_resource = CrudResource(self.datasource, self.permission_service, self.options)
 
+        self.collection_order._schema["countable"] = False
+        response = self.loop.run_until_complete(crud_resource.count(request))
+        self.collection_order._schema["countable"] = True
+
+        assert response.status == 200
+        response_content = json.loads(response.body)
+        assert response_content["meta"]["count"] == "deactivated"
+
+    # edit
     @patch(
         "forestadmin.agent_toolkit.resources.collections.crud.ConditionTreeFactory.match_ids",
         return_value=ConditionTreeLeaf("id", Operator.EQUAL, 10),
@@ -768,7 +787,6 @@ class TestCrudResource(TestCase):
         assert response_content["errors"][0] == "🌳🌳🌳"
 
     # delete
-
     @patch(
         "forestadmin.agent_toolkit.resources.collections.crud.JsonApiSerializer.get",
         return_value=Mock,
