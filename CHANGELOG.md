@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.1.0-beta.34 (2023-06-15)
+
+### Feature
+
+* **decorator:** Add schema decorator ([#85](https://github.com/ForestAdmin/agent-python/issues/85)) ([`3cdb643`](https://github.com/ForestAdmin/agent-python/commit/3cdb643a5d89a931b14c9b9eecb6e1ad3e533fca))
+
 ## v0.1.0-beta.33 (2023-06-15)
 
 ### Feature
