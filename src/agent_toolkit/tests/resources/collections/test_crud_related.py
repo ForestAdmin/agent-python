@@ -140,6 +140,7 @@ class TestCrudRelatedResource(TestCase):
             "fields": fields,
             "searchable": True,
             "segments": [],
+            "countable": True,
         }
         collection.schema = collection._schema
         return collection

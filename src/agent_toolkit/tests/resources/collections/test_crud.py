@@ -53,18 +53,36 @@ from forestadmin.agent_toolkit.resources.collections.crud import CrudResource  #
 
 class TestCrudResource(TestCase):
     @classmethod
+    def _create_collection(
+        cls,
+        name,
+        fields,
+    ):
+        collection = Mock(Collection)
+        collection._datasource = cls.datasource
+        collection.datasource = cls.datasource
+        collection.list = AsyncMock(return_value=None)
+        collection.update = AsyncMock(return_value=None)
+        collection.delete = AsyncMock(return_value=None)
+        collection._name = name
+        collection.name = name
+        collection.get_field = lambda x: collection._schema["fields"][x]
+        collection._schema = {
+            "actions": {},
+            "fields": fields,
+            "searchable": True,
+            "segments": [],
+            "countable": True,
+        }
+        collection.schema = collection._schema
+        return collection
+
+    @classmethod
     def _create_collections(cls):
         # order
-        cls.collection_order = Mock(Collection)
-        cls.collection_order._datasource = cls.datasource
-        cls.collection_order.datasource = cls.datasource
-        cls.collection_order.update = AsyncMock(return_value=None)
-        cls.collection_order._name = "order"
-        cls.collection_order.name = "order"
-        cls.collection_order.get_field = lambda x: cls.collection_order._schema["fields"][x]
-        cls.collection_order._schema = {
-            "actions": {},
-            "fields": {
+        cls.collection_order = cls._create_collection(
+            "order",
+            {
                 "id": {"column_type": PrimitiveType.NUMBER, "is_primary_key": True, "type": FieldType.COLUMN},
                 "cost": {"column_type": PrimitiveType.NUMBER, "is_primary_key": False, "type": FieldType.COLUMN},
                 "products": {
@@ -89,50 +107,25 @@ class TestCrudResource(TestCase):
                     "origin_key": "order_id",
                 },
             },
-            "searchable": True,
-            "segments": [],
-        }
-        cls.collection_order.schema = cls.collection_order._schema
+        )
 
         # status
-
-        cls.collection_status = Mock(Collection)
-        cls.collection_status._datasource = cls.datasource
-        cls.collection_status.datasource = cls.datasource
-        cls.collection_status.update = AsyncMock(return_value=None)
-        cls.collection_status._name = "status"
-        cls.collection_status.name = "status"
-        cls.collection_status.get_field = lambda x: cls.collection_status._schema["fields"][x]
-        cls.collection_status._schema = {
-            "actions": {},
-            "fields": {
+        cls.collection_status = cls._create_collection(
+            "status",
+            {
                 "id": {"column_type": PrimitiveType.NUMBER, "is_primary_key": True, "type": FieldType.COLUMN},
                 "name": {"column_type": PrimitiveType.STRING, "is_primary_key": False, "type": FieldType.COLUMN},
             },
-            "searchable": False,
-            "segments": [],
-        }
-        cls.collection_status.schema = cls.collection_status._schema
+        )
 
         # cart
-
-        cls.collection_cart = Mock(Collection)
-        cls.collection_cart._datasource = cls.datasource
-        cls.collection_cart.datasource = cls.datasource
-        cls.collection_cart.update = AsyncMock(return_value=None)
-        cls.collection_cart._name = "cart"
-        cls.collection_cart.name = "cart"
-        cls.collection_cart.get_field = lambda x: cls.collection_cart._schema["fields"][x]
-        cls.collection_cart._schema = {
-            "actions": {},
-            "fields": {
+        cls.collection_cart = cls._create_collection(
+            "cart",
+            {
                 "id": {"column_type": PrimitiveType.NUMBER, "is_primary_key": True, "type": FieldType.COLUMN},
                 "name": {"column_type": PrimitiveType.STRING, "is_primary_key": False, "type": FieldType.COLUMN},
             },
-            "searchable": False,
-            "segments": [],
-        }
-        cls.collection_cart.schema = cls.collection_cart._schema
+        )
 
     @classmethod
     def setUpClass(cls) -> None:
