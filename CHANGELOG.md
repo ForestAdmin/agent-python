@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.1.0-beta.33 (2023-06-15)
+
+### Feature
+
+* **decorator:** Add validation decorator ([#84](https://github.com/ForestAdmin/agent-python/issues/84)) ([`0b2369f`](https://github.com/ForestAdmin/agent-python/commit/0b2369f57df627a12243d5190934a79ef01c6132))
+
 ## v0.1.0-beta.32 (2023-06-12)
 
 ### Feature
