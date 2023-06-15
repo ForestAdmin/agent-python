@@ -18,6 +18,7 @@ class CollectionSchema(TypedDict):
     fields: Dict[str, FieldAlias]
     searchable: bool
     segments: List[str]
+    countable: bool
 
 
 class Collection(abc.ABC):

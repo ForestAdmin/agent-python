@@ -203,6 +203,9 @@ class CrudResource(BaseCollectionResource):
     @authenticate
     @authorize("browse")
     async def count(self, request: RequestCollection) -> Response:
+        if request.collection.schema["countable"] is False:
+            return build_success_response({"meta": {"count": "deactivated"}})
+
         scope_tree = await self.permission.get_scope(request)
         filter = build_filter(request, scope_tree)
         aggregation = Aggregation({"operation": "Count"})
