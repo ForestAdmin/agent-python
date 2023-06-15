@@ -1,5 +1,6 @@
 from typing import Any, Dict, List, Optional, Set
 
+from forestadmin.agent_toolkit.utils.context import User
 from forestadmin.datasource_toolkit.collections import Collection
 from forestadmin.datasource_toolkit.context.collection_context import CollectionCustomizationContext
 from forestadmin.datasource_toolkit.interfaces.query.filter.paginated import PaginatedFilter
@@ -28,11 +29,15 @@ class FormValueObserver(Dict[str, Any]):
 
 
 class ActionContext(CollectionCustomizationContext):
-    def __init__(self, collection: Collection, form_value: RecordsDataAlias, filter: Filter, used: Optional[Set[str]]):
-        tz = None
-        if filter:
-            tz = filter.timezone
-        super(ActionContext, self).__init__(collection, tz)
+    def __init__(
+        self,
+        collection: Collection,
+        caller: User,
+        form_value: RecordsDataAlias,
+        filter: Filter,
+        used: Optional[Set[str]],
+    ):
+        super(ActionContext, self).__init__(collection, caller)
         self.form_values = FormValueObserver(**form_value)
         self.filter = filter
 
@@ -42,4 +47,4 @@ class ActionContext(CollectionCustomizationContext):
         return await self._run_query(projection)
 
     async def _run_query(self, projection: Projection) -> List[RecordsDataAlias]:
-        return await self.collection.list(PaginatedFilter.from_base_filter(self.filter), projection)
+        return await self.collection.list(self._caller, PaginatedFilter.from_base_filter(self.filter), projection)

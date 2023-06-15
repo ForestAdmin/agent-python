@@ -127,7 +127,7 @@ class CollectionUtils:
             return records
 
         relation = cast(OneToMany, relation)
-        filter = await FilterFactory.make_foreign_filter(collection, id, relation, foreign_filter)
+        filter = await FilterFactory.make_foreign_filter(caller, collection, id, relation, foreign_filter)
         return await foreign_collection.aggregate(caller, filter.to_base_filter(), aggregation, limit)
 
     @staticmethod
