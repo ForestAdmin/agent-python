@@ -35,8 +35,6 @@ agent.customize_collection("address").register_computed("full address", address_
 agent.customize_collection("address").rename_field("full address", "complete_address")
 # changing visibility
 agent.customize_collection("address").change_field_visibility("zip_code", False)
-
-
 agent.customize_collection("address").disable_count()
 
 # ## CUSTOMERS
@@ -63,7 +61,7 @@ agent.customize_collection("order").add_segment("Dispatched order", dispatched_o
 agent.customize_collection("order").add_segment("Suspicious order", suspicious_order_segment)
 
 # rename
-agent.customize_collection("order").register_computed("customer\\ full_name", get_customer_full_name_field())
+agent.customize_collection("order").register_computed("customer_full_name", get_customer_full_name_field())
 # action file global
 agent.customize_collection("order").add_action("Export json", ExportOrderJson())
 

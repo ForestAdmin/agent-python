@@ -3,6 +3,7 @@ import json
 from operator import add, sub
 from typing import List, Union
 
+from forestadmin.agent_toolkit.utils.context import User
 from forestadmin.datasource_toolkit.context.collection_context import CollectionCustomizationContext
 from forestadmin.datasource_toolkit.decorators.action.context.bulk import ActionContextBulk
 from forestadmin.datasource_toolkit.decorators.action.context.single import ActionContextSingle
@@ -42,12 +43,10 @@ def customer_spending_computed():
             component=PlainAggregation(
                 operation="Sum",
                 field=amount_cost_field_name,
-                groups=[PlainAggregationGroup(field="customer_id")]
-                # operation=PlainAggregator("Sum"), field=amount_cost_field_name, groups=[PlainAggregationGroup(field="customer_id")]
+                groups=[PlainAggregationGroup(field="customer_id")],
             ),
         )
-        rows = await context.datasource.get_collection("order").aggregate(condition, aggregation)
-        # return [row.get("value", 0) for row in rows]
+        rows = await context.datasource.get_collection("order").aggregate(None, condition, aggregation)
         ret = []
         for record in records:
             filtered = [*filter(lambda r: r["group"]["customer_id"] == record["id"], rows)]
@@ -82,7 +81,9 @@ def customer_full_name() -> ComputedDefinition:
 class ExportJson(ActionBulk):
     GENERATE_FILE: bool = True
 
-    async def execute(self, context: ActionContextBulk, result_builder: ResultBuilder) -> Union[None, ActionResult]:
+    async def execute(
+        self, caller: User, context: ActionContextBulk, result_builder: ResultBuilder
+    ) -> Union[None, ActionResult]:
         records = await context.get_records(Projection("id", "full name", "age"))
         return result_builder.file(
             io.BytesIO(json.dumps({"data": records}).encode("utf-8")),
@@ -142,7 +143,9 @@ class AgeOperation(ActionSingle):
         ),
     ]
 
-    async def execute(self, context: ActionContextSingle, result_builder: ResultBuilder) -> Union[None, ActionResult]:
+    async def execute(
+        self, caller: User, context: ActionContextSingle, result_builder: ResultBuilder
+    ) -> Union[None, ActionResult]:
         operation = add
         if context.form_values["Kind of operation"] == "-":
             operation = sub
@@ -150,5 +153,5 @@ class AgeOperation(ActionSingle):
 
         record = await context.get_record(Projection("age"))
         new_age = operation(record["age"], value)
-        await context.collection.update(context.filter, {"age": new_age})
+        await context.collection.update(caller, context.filter, {"age": new_age})
         return result_builder.success("<h1> Success </h1>", options={"type": "html"})

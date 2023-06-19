@@ -3,8 +3,9 @@ import enum
 from sqlalchemy import Column, DateTime, Enum, ForeignKey, Integer, String, create_engine, func  # type: ignore
 from sqlalchemy.orm import declarative_base, relationship
 
-engine = create_engine("sqlite:///db.sql", echo=False)
-Base = declarative_base()
+SQLITE_URI = "sqlite:///db.sql"
+engine = create_engine(SQLITE_URI, echo=False)
+Base = declarative_base(engine)
 Base.metadata.bind = engine
 
 
@@ -46,6 +47,17 @@ class Order(Base):
     delivering_address_id = Column(Integer, ForeignKey("address.id"))
     delivering_address = relationship("Address", foreign_keys=[delivering_address_id], backref="delivering_orders")
     status = Column(Enum(ORDER_STATUS))
+    cart = relationship("Cart", uselist=False, back_populates="order")
+
+
+class Cart(Base):
+    __tablename__ = "cart"
+    id = Column(Integer, primary_key=True)
+
+    name = Column(String(254), nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    order_id = Column(Integer, ForeignKey("order.id"))
+    order = relationship("Order", back_populates="cart", foreign_keys=[order_id])
 
 
 class CustomersAddresses(Base):

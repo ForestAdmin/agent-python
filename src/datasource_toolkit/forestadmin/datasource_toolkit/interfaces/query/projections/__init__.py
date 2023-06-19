@@ -77,8 +77,8 @@ class Projection(list):  # type: ignore
         return self
 
     def unnest(self) -> "Projection":
-        splited = self[0].split(":")  # type: ignore
-        prefix = splited[0]  # type: ignore
+        splitted = self[0].split(":")  # type: ignore
+        prefix = splitted[0]  # type: ignore
         if not all([path.startswith(prefix) for path in self]):  # type: ignore
             raise ProjectionException("Cannot unnest projection.")
 
