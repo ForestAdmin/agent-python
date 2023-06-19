@@ -42,7 +42,7 @@ class ActionMixin:
         if not action:
             return super(ActionMixin, self).execute(caller, name, data, filter)  # type: ignore
 
-        context = self._get_context(action, data, filter)
+        context = self._get_context(caller, action, data, filter)
         response_builder = ResultBuilder()
         result = await action.execute(caller, context, response_builder)  # type: ignore
         return result or {"type": "Success", "invalidated": set(), "format": "text", "message": "Success"}
@@ -58,7 +58,7 @@ class ActionMixin:
 
         form_values = data or {}
         used: Set[str] = set()
-        context = self._get_context(action, form_values, filter, used)
+        context = self._get_context(caller, action, form_values, filter, used)
         form_fields: List[DynamicField[ActionContext]] = cast(
             List[DynamicField[ActionContext]], [field for field in action.form]
         )
@@ -83,6 +83,7 @@ class ActionMixin:
 
     def _get_context(
         self,
+        caller: User,
         action: Union[ActionSingle, ActionBulk, ActionGlobal],
         form_values: RecordsDataAlias,
         filter: Optional[Filter],
@@ -93,7 +94,7 @@ class ActionMixin:
             ActionBulk.SCOPE: ActionContextBulk,
             ActionGlobal.SCOPE: ActionContext,
         }[action.SCOPE](
-            cast(Collection, self), form_values, filter, used  # type: ignore
+            cast(Collection, self), caller, form_values, filter, used  # type: ignore
         )
 
     async def _build_form_values(

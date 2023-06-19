@@ -3,7 +3,7 @@ import random
 import sys
 from typing import Any, List, Set
 
-from demo.models.models import ORDER_STATUS, Address, Base, Customer, Order
+from demo.models.models import ORDER_STATUS, Address, Base, Cart, Customer, Order
 from faker import Faker
 from sqlalchemy.orm import sessionmaker
 
@@ -71,11 +71,25 @@ def _populate_orders(addresses: List[Address]) -> List[Order]:
     return orders
 
 
+def _populate_carts(orders: List[Order]) -> List[Order]:
+    carts: List[Cart] = []
+    for order in orders:
+        c = Cart(name=fake.language_name(), id=order.id, order_id=order.id)
+        order.cart = c
+        carts.append(c)
+
+    return orders, carts
+
+
 def populate():
     customers = _populate_customers()
     addresses = _populate_addresses(customers)
     with Session.begin() as session:
         addresses = session.query(Address).select_from(Customer).join(Customer, Address.customers).all()
         orders = _populate_orders(addresses)
-        for order in orders:
-            session.add(order)
+        session.add_all(orders)
+        orders = session.query(Order)
+
+        orders, carts = _populate_carts(addresses)
+        session.add_all(carts)
+        session.commit()

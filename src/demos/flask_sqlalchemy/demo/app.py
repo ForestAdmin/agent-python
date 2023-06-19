@@ -8,19 +8,6 @@ CORS(
     resources={
         r"/forest/*": {"origins": r".*\.forestadmin\.com.*"},
     },
-    allow_headers=[
-        "accept",
-        "accept-encoding",
-        "authorization",
-        "content-type",
-        "dnt",
-        "origin",
-        "user-agent",
-        "x-csrftoken",
-        "x-requested-with",
-        "forest-context-url",
-    ],
-    expose_headers=["Content-Disposition"],
     supports_credentials=True,
 )
 

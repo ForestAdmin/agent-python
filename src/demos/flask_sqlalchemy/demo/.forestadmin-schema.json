@@ -173,6 +173,107 @@
             ]
         },
         {
+            "name": "cart",
+            "isVirtual": false,
+            "icon": null,
+            "isReadOnly": false,
+            "integration": null,
+            "isSearchable": true,
+            "onlyForRelationships": false,
+            "paginationType": "page",
+            "searchField": null,
+            "actions": [],
+            "segments": [],
+            "fields": [
+                {
+                    "defaultValue": null,
+                    "enums": null,
+                    "field": "created_at",
+                    "integration": null,
+                    "inverseOf": null,
+                    "isFilterable": true,
+                    "isPrimaryKey": false,
+                    "isReadOnly": false,
+                    "isRequired": false,
+                    "isSortable": true,
+                    "isVirtual": false,
+                    "reference": null,
+                    "type": "Date",
+                    "validations": []
+                },
+                {
+                    "defaultValue": null,
+                    "enums": null,
+                    "field": "id",
+                    "integration": null,
+                    "inverseOf": null,
+                    "isFilterable": true,
+                    "isPrimaryKey": true,
+                    "isReadOnly": true,
+                    "isRequired": false,
+                    "isSortable": true,
+                    "isVirtual": false,
+                    "reference": null,
+                    "type": "Number",
+                    "validations": []
+                },
+                {
+                    "defaultValue": null,
+                    "enums": null,
+                    "field": "name",
+                    "integration": null,
+                    "inverseOf": null,
+                    "isFilterable": true,
+                    "isPrimaryKey": false,
+                    "isReadOnly": false,
+                    "isRequired": true,
+                    "isSortable": true,
+                    "isVirtual": false,
+                    "reference": null,
+                    "type": "String",
+                    "validations": [
+                        {
+                            "type": "is present",
+                            "value": null,
+                            "message": null
+                        }
+                    ]
+                },
+                {
+                    "defaultValue": null,
+                    "enums": null,
+                    "field": "order",
+                    "inverseOf": "cart",
+                    "isFilterable": true,
+                    "isPrimaryKey": false,
+                    "isReadOnly": false,
+                    "isRequired": false,
+                    "isSortable": true,
+                    "isVirtual": false,
+                    "reference": "order.id",
+                    "relationship": "BelongsTo",
+                    "type": "Number",
+                    "validations": []
+                },
+                {
+                    "defaultValue": null,
+                    "enums": null,
+                    "field": "order_id",
+                    "integration": null,
+                    "inverseOf": null,
+                    "isFilterable": true,
+                    "isPrimaryKey": false,
+                    "isReadOnly": false,
+                    "isRequired": false,
+                    "isSortable": true,
+                    "isVirtual": false,
+                    "reference": null,
+                    "type": "Number",
+                    "validations": []
+                }
+            ]
+        },
+        {
             "name": "customer",
             "isVirtual": false,
             "icon": null,
@@ -287,7 +388,13 @@
                     "isVirtual": false,
                     "reference": null,
                     "type": "Number",
-                    "validations": []
+                    "validations": [
+                        {
+                            "type": "is greater than",
+                            "value": 0,
+                            "message": null
+                        }
+                    ]
                 },
                 {
                     "defaultValue": null,
@@ -533,6 +640,22 @@
                 {
                     "defaultValue": null,
                     "enums": null,
+                    "field": "cart",
+                    "inverseOf": "order",
+                    "isFilterable": true,
+                    "isPrimaryKey": false,
+                    "isReadOnly": false,
+                    "isRequired": false,
+                    "isSortable": true,
+                    "isVirtual": false,
+                    "reference": "cart.id",
+                    "relationship": "HasOne",
+                    "type": "Number",
+                    "validations": []
+                },
+                {
+                    "defaultValue": null,
+                    "enums": null,
                     "field": "cost",
                     "integration": null,
                     "inverseOf": null,
@@ -587,7 +710,7 @@
                 {
                     "defaultValue": null,
                     "enums": null,
-                    "field": "customer\\ full_name",
+                    "field": "customer_full_name",
                     "integration": null,
                     "inverseOf": null,
                     "isFilterable": false,
@@ -690,11 +813,11 @@
     ],
     "meta": {
         "liana": "agent-python",
-        "liana_version": "0.1.0-beta.28",
+        "liana_version": "0.1.0-beta.32",
         "stack": {
             "engine": "python",
             "engine_version": "3.10.5"
         },
-        "schemaFileHash": "ad8f45b1e446b83bd0f58dd11d83986bbb268f50"
+        "schemaFileHash": "6cc302d867b86683000aeab544ac4dd2777b9397"
     }
 }
