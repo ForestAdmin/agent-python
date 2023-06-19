@@ -629,7 +629,7 @@ pyflakes = ">=3.0.0,<3.1.0"
 
 [[package]]
 name = "forestadmin-agent-toolkit"
-version = "0.1.0-beta.34"
+version = "0.1.0-beta.35"
 description = ""
 optional = false
 python-versions = ">=3.7,<4.0"
@@ -640,7 +640,7 @@ develop = true
 aiohttp = "~=3.8"
 "backports.zoneinfo" = {version = "~0.2.1", extras = ["tzdata"], markers = "python_version < \"3.9\""}
 cachetools = "~=5.2"
-forestadmin-datasource-toolkit = "^0.1.0-beta.34"
+forestadmin-datasource-toolkit = "^0.1.0-beta.35"
 marshmallow-jsonapi = ">=0.24.0, <1.0"
 oic = "~=1.4"
 pandas = [
@@ -658,7 +658,7 @@ url = "../agent_toolkit"
 
 [[package]]
 name = "forestadmin-datasource-toolkit"
-version = "0.1.0-beta.34"
+version = "0.1.0-beta.35"
 description = ""
 optional = false
 python-versions = ">=3.7,<4.0"
@@ -2085,4 +2085,4 @@ testing = ["big-O", "flake8 (<5)", "jaraco.functools", "jaraco.itertools", "more
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.7,<4.0"
-content-hash = "d688d317767e4e4a9b0eb0e03b66dfe8e1451d218abe08198cdee271de6242b8"
+content-hash = "868a793448c6762dc42231be3a248441dab9186fae7cda3129dd25a77fc98a5c"
