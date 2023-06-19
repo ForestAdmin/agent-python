@@ -159,7 +159,7 @@ class QueryFactory:
 
         for level in sorted(relationships.keys()):
             for relationship in relationships[level]:
-                query = query.join(*relationship, isouter=True)
+                query = query.join(*relationship)
         return query
 
     @classmethod

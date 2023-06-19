@@ -156,12 +156,11 @@ class SqlAlchemyCollection(BaseSqlAlchemyCollection):
             merge_relationships(relationships, nested_relationships)
         return columns, relationships
 
-    def _normalize_projection(self, projection: Projection):
+    def _normalize_projection(self, projection: Projection, prefix: str = "") -> Projection:
         # needed to be compliant with the orm result orm
-        normalized_projection = projection.columns
+        normalized_projection = [f"{prefix}{col}" for col in projection.columns]
         for parent_field, child_fields in projection.relations.items():
-            for field in cast(List[str], child_fields):
-                normalized_projection.append(f"{parent_field}:{field}")
+            normalized_projection.extend(self._normalize_projection(child_fields, f"{prefix}{parent_field}:"))
         return Projection(*normalized_projection)
 
     async def execute(self, caller: User, name: str, data: RecordsDataAlias, filter: Optional[Filter]) -> ActionResult:
@@ -215,11 +214,11 @@ class SqlAlchemyCollection(BaseSqlAlchemyCollection):
 
     async def list(self, caller: User, filter: PaginatedFilter, projection: Projection) -> List[RecordsDataAlias]:
         with self.datasource.Session.begin() as session:  #  type: ignore
-            projection = self._normalize_projection(projection)
+            normalized_projection = self._normalize_projection(projection)
             filter = cast(PaginatedFilter, self._cast_filter(filter))
-            query = QueryFactory.build_list(self, filter, projection)
+            query = QueryFactory.build_list(self, filter, normalized_projection)
             res = session.execute(query).all()  #  type: ignore
-            records = projections_to_records(projection, res, filter.timezone)  # type: ignore
+            records = projections_to_records(normalized_projection, res, filter.timezone)  # type: ignore
             return records
 
     async def delete(self, caller: User, filter: Optional[Filter]) -> None:
