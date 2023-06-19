@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.1.0-beta.35 (2023-06-19)
+
+### Fix
+
+* **caller:** Add caller where it was missing ([#86](https://github.com/ForestAdmin/agent-python/issues/86)) ([`8067617`](https://github.com/ForestAdmin/agent-python/commit/8067617c7c25ebdb8ad994e37682f6b6cd4cc1d5))
+
 ## v0.1.0-beta.34 (2023-06-15)
 
 ### Feature
