@@ -1,5 +1,6 @@
 from typing import Any, Callable, Dict
 
+from forestadmin.datasource_toolkit.decorators.collection_decorator import CollectionDecorator
 from forestadmin.datasource_toolkit.exceptions import DatasourceToolkitException
 from forestadmin.datasource_toolkit.interfaces.fields import (
     FieldAlias,
@@ -16,15 +17,11 @@ class PublicationCollectionException(DatasourceToolkitException):
     pass
 
 
-class PublicationMixin:
-    datasource: property
-    mark_schema_as_dirty: Callable[..., None]
-    get_field: Callable[[str], Any]
-
+class PublicationCollectionDecorator(CollectionDecorator):
     def __init__(self, *args: Any, **kwargs: Any):
         self._unpublished: Dict[str, FieldAlias] = {}
         self._republished_fields: Dict[str, FieldAlias] = {}
-        super(PublicationMixin, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def change_field_visibility(self, name: str, visible: bool):
         if name in self._unpublished and visible:
@@ -37,21 +34,18 @@ class PublicationMixin:
                 self._unpublished[name] = field
         self.mark_schema_as_dirty()
 
-    def _refine_schema(self) -> CollectionSchema:
-        schema: CollectionSchema = super(PublicationMixin, self)._refine_schema()  # type: ignore
+    def _refine_schema(self, sub_schema: CollectionSchema) -> CollectionSchema:
         new_field_schema = {}
-        for name, field in schema["fields"].items():
+        for name, field in sub_schema["fields"].items():
             if self._is_published(name):
                 new_field_schema[name] = field
         for name, field in self._republished_fields.items():
             new_field_schema[name] = field
         self._republished_fields = {}
-        schema["fields"] = new_field_schema
-        self._last_schema = schema
-        return schema
+        return {**sub_schema, "fields": new_field_schema}
 
     def _is_published(self, name: str) -> bool:
-        field = self.get_field(name)
+        field = self.child_collection.get_field(name)
         return name not in self._unpublished and (
             is_column(field)
             or (
@@ -67,3 +61,5 @@ class PublicationMixin:
                 )
             )
         )
+
+    # TODO: Is Publish relation??

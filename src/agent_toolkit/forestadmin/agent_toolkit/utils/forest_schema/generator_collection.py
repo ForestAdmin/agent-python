@@ -5,14 +5,14 @@ from forestadmin.agent_toolkit.utils.forest_schema.generator_field import Schema
 from forestadmin.agent_toolkit.utils.forest_schema.generator_segment import SchemaSegmentGenerator
 from forestadmin.agent_toolkit.utils.forest_schema.type import ForestServerCollection, ForestServerField
 from forestadmin.datasource_toolkit.collections import Collection
-from forestadmin.datasource_toolkit.decorators.collections import CustomizedCollection
+from forestadmin.datasource_toolkit.datasource_customizer.collection_customizer import CollectionCustomizer
 from forestadmin.datasource_toolkit.interfaces.fields import FieldType
 from forestadmin.datasource_toolkit.utils.schema import SchemaUtils
 
 
 class SchemaCollectionGenerator:
     @staticmethod
-    async def build(prefix: str, collection: Union[Collection, CustomizedCollection]) -> ForestServerCollection:
+    async def build(prefix: str, collection: Union[Collection, CollectionCustomizer]) -> ForestServerCollection:
         fields: List[ForestServerField] = []
         for field_name in collection.schema["fields"].keys():
             if not SchemaUtils.is_foreign_key(collection.schema, field_name):

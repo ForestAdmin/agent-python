@@ -672,6 +672,11 @@
                             "type": "is present",
                             "value": null,
                             "message": null
+                        },
+                        {
+                            "type": "is greater than",
+                            "value": 0,
+                            "message": null
                         }
                     ]
                 },
@@ -818,6 +823,6 @@
             "engine": "python",
             "engine_version": "3.10.5"
         },
-        "schemaFileHash": "6cc302d867b86683000aeab544ac4dd2777b9397"
+        "schemaFileHash": "d7fe977f67ac30f2dfce4da5232879ce6643851e"
     }
 }

@@ -15,12 +15,13 @@ from forestadmin.agent_toolkit.resources.collections.crud_related import CrudRel
 from forestadmin.agent_toolkit.resources.collections.stats import StatsResource
 from forestadmin.agent_toolkit.resources.security.resources import Authentication
 from forestadmin.agent_toolkit.services.permissions import PermissionService
+from forestadmin.agent_toolkit.services.serializers.json_api import create_json_api_schema
 from forestadmin.agent_toolkit.utils.forest_schema.emitter import SchemaEmitter
 from forestadmin.agent_toolkit.utils.forest_schema.type import AgentMeta
 from forestadmin.agent_toolkit.utils.http import ForestHttpApi
+from forestadmin.datasource_toolkit.datasource_customizer.collection_customizer import CollectionCustomizer
 from forestadmin.datasource_toolkit.datasource_customizer.datasource_customizer import DatasourceCustomizer
 from forestadmin.datasource_toolkit.datasources import Datasource
-from forestadmin.datasource_toolkit.decorators.collections import CustomizedCollection
 
 
 class Resources(TypedDict):
@@ -38,8 +39,9 @@ class Agent:
         self.options = copy.copy(DEFAULT_OPTIONS)
         self.options.update(options)
         self.customizer: DatasourceCustomizer = DatasourceCustomizer()
+        self._resources = None
 
-        permission_service = PermissionService(
+        self._permission_service = PermissionService(
             {
                 "env_secret": self.options["env_secret"],
                 "forest_server_url": self.options["forest_server_url"],
@@ -48,22 +50,28 @@ class Agent:
             }
         )
 
+    def __mk_resources(self):
         self._resources: Resources = {
             "authentication": Authentication(self.options),
-            "crud": CrudResource(self.customizer.composite_datasource, permission_service, self.options),
-            "crud_related": CrudRelatedResource(self.customizer.composite_datasource, permission_service, self.options),
-            "stats": StatsResource(self.customizer.composite_datasource, permission_service, self.options),
-            "actions": ActionResource(self.customizer.composite_datasource, permission_service, self.options),
+            "crud": CrudResource(self.customizer.stack.datasource, self._permission_service, self.options),
+            "crud_related": CrudRelatedResource(
+                self.customizer.stack.datasource, self._permission_service, self.options
+            ),
+            "stats": StatsResource(self.customizer.stack.datasource, self._permission_service, self.options),
+            "actions": ActionResource(self.customizer.stack.datasource, self._permission_service, self.options),
         }
 
     @property
     def resources(self) -> Resources:
+        if self._resources is None:
+            self.__mk_resources()
         return self._resources
 
     def add_datasource(self, datasource: Datasource[BoundCollection]):
-        self.customizer.add_datasource(datasource)
+        self.customizer.add_datasource(datasource, {})
+        self._resources = None
 
-    def customize_collection(self, collection_name: str) -> CustomizedCollection:
+    def customize_collection(self, collection_name: str) -> CollectionCustomizer:
         return self.customizer.customize_collection(collection_name)
 
     @property
@@ -74,8 +82,9 @@ class Agent:
         return meta
 
     async def start(self):
-        api_map = await SchemaEmitter.get_serialized_schema(
-            self.options, self.customizer.composite_datasource, self.meta
-        )
+        for collection in self.customizer.stack.datasource.collections:
+            create_json_api_schema(collection)
+
+        api_map = await SchemaEmitter.get_serialized_schema(self.options, self.customizer.stack.datasource, self.meta)
 
         await ForestHttpApi.send_schema(self.options, api_map)

@@ -4,7 +4,7 @@ from forestadmin.agent_toolkit.utils.forest_schema.filterable import FrontendFil
 from forestadmin.agent_toolkit.utils.forest_schema.type import ForestServerField, RelationServer
 from forestadmin.agent_toolkit.utils.forest_schema.validation import FrontendValidationUtils
 from forestadmin.datasource_toolkit.collections import Collection
-from forestadmin.datasource_toolkit.decorators.collections import CustomizedCollection
+from forestadmin.datasource_toolkit.datasource_customizer.collection_customizer import CollectionCustomizer
 from forestadmin.datasource_toolkit.interfaces.fields import (
     Column,
     ColumnAlias,
@@ -34,7 +34,7 @@ class SchemaFieldGenerator:
     }
 
     @classmethod
-    def build(cls, collection: Union[Collection, CustomizedCollection], field_name: str) -> ForestServerField:
+    def build(cls, collection: Union[Collection, CollectionCustomizer], field_name: str) -> ForestServerField:
         schema: ForestServerField = {}
 
         field_schema = collection.get_field(field_name)
@@ -145,7 +145,7 @@ class SchemaFieldGenerator:
     def build_many_to_one_schema(
         cls,
         relation: ManyToOne,
-        collection: Union[CustomizedCollection, Collection],
+        collection: Union[CollectionCustomizer, Collection],
         foreign_collection: Collection,
         base_schema: ForestServerField,
     ) -> ForestServerField:
@@ -167,7 +167,7 @@ class SchemaFieldGenerator:
 
     @classmethod
     def build_relation_schema(
-        cls, collection: Union[Collection, CustomizedCollection], field_name: str, field_schema: RelationAlias
+        cls, collection: Union[Collection, CollectionCustomizer], field_name: str, field_schema: RelationAlias
     ) -> ForestServerField:
         foreign_collection = collection.datasource.get_collection(field_schema["foreign_collection"])
         relation_schema: ForestServerField = {

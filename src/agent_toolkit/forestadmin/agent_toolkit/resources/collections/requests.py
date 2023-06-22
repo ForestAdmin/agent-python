@@ -10,9 +10,9 @@ from forestadmin.agent_toolkit.exceptions import AgentToolkitException
 from forestadmin.agent_toolkit.resources.collections.exceptions import CollectionResourceException
 from forestadmin.agent_toolkit.utils.context import Request, RequestMethod, User
 from forestadmin.datasource_toolkit.collections import Collection, CollectionException
+from forestadmin.datasource_toolkit.datasource_customizer.collection_customizer import CollectionCustomizer
+from forestadmin.datasource_toolkit.datasource_customizer.datasource_customizer import DatasourceCustomizer
 from forestadmin.datasource_toolkit.datasources import Datasource, DatasourceException
-from forestadmin.datasource_toolkit.decorators.collections import CustomizedCollection
-from forestadmin.datasource_toolkit.decorators.datasource import CustomizedDatasource
 from forestadmin.datasource_toolkit.interfaces.fields import (
     ManyToMany,
     ManyToOne,
@@ -34,7 +34,7 @@ class RequestCollectionException(AgentToolkitException):
 
 class RequestArgs(TypedDict):
     method: RequestMethod
-    collection: Union[Collection, CustomizedCollection]
+    collection: Union[Collection, CollectionCustomizer]
     body: Optional[Dict[str, Any]]
     query: Optional[Dict[str, str]]
     headers: Optional[Dict[str, str]]
@@ -45,7 +45,7 @@ class RequestCollection(Request):
     def __init__(
         self,
         method: RequestMethod,
-        collection: Union[Collection, CustomizedCollection],
+        collection: Union[Collection, CollectionCustomizer],
         body: Optional[Dict[str, Any]] = None,
         query: Optional[Dict[str, str]] = None,
         headers: Optional[Dict[str, str]] = None,
@@ -56,7 +56,7 @@ class RequestCollection(Request):
 
     @staticmethod
     def from_request_args(
-        request: Request, datasource: Union[Datasource[BoundCollection], CustomizedDatasource]
+        request: Request, datasource: Union[Datasource[BoundCollection], DatasourceCustomizer]
     ) -> RequestArgs:
         if not request.query:
             raise RequestCollectionException("'collection_name' is missing in the request")
@@ -80,7 +80,7 @@ class RequestCollection(Request):
 
     @classmethod
     def from_request(
-        cls, request: Request, datasource: Union[Datasource[BoundCollection], CustomizedDatasource]
+        cls, request: Request, datasource: Union[Datasource[BoundCollection], DatasourceCustomizer]
     ) -> Self:
         return cls(**cls.from_request_args(request, datasource))
 
@@ -99,8 +99,8 @@ class RequestRelationCollection(RequestCollection):
     def __init__(
         self,
         method: RequestMethod,
-        collection: Union[Collection, CustomizedCollection],
-        foreign_collection: Union[Collection, CustomizedCollection],
+        collection: Union[Collection, CollectionCustomizer],
+        foreign_collection: Union[Collection, CollectionCustomizer],
         relation: Union[ManyToMany, OneToMany, OneToOne, ManyToOne],
         relation_name: str,
         body: Optional[Dict[str, Any]] = None,
@@ -115,7 +115,7 @@ class RequestRelationCollection(RequestCollection):
 
     @classmethod
     def from_request(
-        cls, request: Request, datasource: Union[Datasource[BoundCollection], CustomizedDatasource]
+        cls, request: Request, datasource: Union[Datasource[BoundCollection], DatasourceCustomizer]
     ) -> Self:
         kwargs = cls.from_request_args(request, datasource)
         if not request.query:

@@ -1,4 +1,4 @@
-from typing import Any, Callable, Dict, List, Optional, Set, Union, cast
+from typing import Any, Dict, List, Optional, Set, Union, cast
 
 from forestadmin.agent_toolkit.utils.context import User
 from forestadmin.datasource_toolkit.collections import Collection
@@ -13,18 +13,16 @@ from forestadmin.datasource_toolkit.decorators.action.types.actions import (
     ActionSingle,
 )
 from forestadmin.datasource_toolkit.decorators.action.types.fields import DynamicField
+from forestadmin.datasource_toolkit.decorators.collection_decorator import CollectionDecorator
 from forestadmin.datasource_toolkit.interfaces.actions import Action, ActionField, ActionResult
 from forestadmin.datasource_toolkit.interfaces.models.collections import CollectionSchema
 from forestadmin.datasource_toolkit.interfaces.query.filter.unpaginated import Filter
 from forestadmin.datasource_toolkit.interfaces.records import RecordsDataAlias
 
 
-class ActionMixin:
-    datasource: property
-    mark_schema_as_dirty: Callable[..., None]
-
+class ActionCollectionDecorator(CollectionDecorator):
     def __init__(self, *args: Any, **kwargs: Any):
-        super(ActionMixin, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self._actions: Dict[str, ActionAlias] = {}
 
     def add_action(self, name: str, action: ActionAlias):
@@ -40,7 +38,7 @@ class ActionMixin:
     ) -> ActionResult:
         action = self._actions[name]
         if not action:
-            return super(ActionMixin, self).execute(caller, name, data, filter)  # type: ignore
+            return super().execute(caller, name, data, filter)  # type: ignore
 
         context = self._get_context(caller, action, data, filter)
         response_builder = ResultBuilder()
@@ -52,7 +50,7 @@ class ActionMixin:
     ) -> List[ActionField]:
         action = self._actions.get(name)
         if not action:
-            return super(ActionMixin, self).get_form(caller, name, data, filter)  # type: ignore
+            return super().get_form(caller, name, data, filter)  # type: ignore
         elif not action.form:
             return []
 
@@ -69,17 +67,16 @@ class ActionMixin:
             field["watch_changes"] = field["label"] in context.form_values.used_keys
         return action_fields
 
-    def _refine_schema(self) -> CollectionSchema:
-        schema: CollectionSchema = super(ActionMixin, self)._refine_schema()  # type: ignore
+    def _refine_schema(self, sub_schema: CollectionSchema) -> CollectionSchema:
+        actions_schema = {}
         for name, action in self._actions.items():
             dynamics: List[bool] = []
             for field in action.form or []:
                 dynamics.append(field.is_dynamic)
-            schema["actions"][name] = Action(
+            actions_schema[name] = Action(
                 scope=action.SCOPE, generate_file=action.GENERATE_FILE, static_form=not any(dynamics)
             )
-        self._last_schema = schema
-        return schema
+        return {**sub_schema, "actions": actions_schema}
 
     def _get_context(
         self,

@@ -14,8 +14,8 @@ from forestadmin.agent_toolkit.options import Options
 from forestadmin.agent_toolkit.utils.forest_schema.generator_collection import SchemaCollectionGenerator
 from forestadmin.agent_toolkit.utils.forest_schema.type import AgentMeta, ForestServerCollection
 from forestadmin.datasource_toolkit.collections import Collection
+from forestadmin.datasource_toolkit.datasource_customizer.datasource_customizer import DatasourceCustomizer
 from forestadmin.datasource_toolkit.datasources import Datasource
-from forestadmin.datasource_toolkit.decorators.datasource import CustomizedDatasource
 
 
 class SchemaEmitter:
@@ -61,7 +61,7 @@ class SchemaEmitter:
 
     @classmethod
     async def get_serialized_schema(
-        cls, options: Options, datasource: Union[Datasource[Collection], CustomizedDatasource], meta: AgentMeta
+        cls, options: Options, datasource: Union[Datasource[Collection], DatasourceCustomizer], meta: AgentMeta
     ):
         schema: List[ForestServerCollection] = []
         if not options["is_production"]:
@@ -85,7 +85,7 @@ class SchemaEmitter:
 
     @staticmethod
     async def generate(
-        prefix: str, datasource: Union[Datasource[Collection], CustomizedDatasource]
+        prefix: str, datasource: Union[Datasource[Collection], DatasourceCustomizer]
     ) -> List[ForestServerCollection]:
         """generate schema from datasource"""
         collection_schema: List[ForestServerCollection] = []

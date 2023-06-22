@@ -1,24 +1,30 @@
-from forestadmin.agent_toolkit.services.serializers.json_api import create_json_api_schema
+from typing import Dict
+
+from forestadmin.datasource_toolkit.datasource_customizer.collection_customizer import CollectionCustomizer
 from forestadmin.datasource_toolkit.datasources import Datasource
-from forestadmin.datasource_toolkit.decorators.collections import CustomizedCollection
-from forestadmin.datasource_toolkit.decorators.datasource import CustomizedDatasource
+from forestadmin.datasource_toolkit.decorators.decorator_stack import DecoratorStack
 
 
 class DatasourceCustomizer:
     def __init__(self) -> None:
         self.composite_datasource: Datasource = Datasource()
+        self.stack = DecoratorStack(self.composite_datasource)
 
-    def add_datasource(self, datasource: Datasource):
-        customized_datasource = CustomizedDatasource(datasource)
+    def add_datasource(self, datasource: Datasource, options: Dict):
+        # if "include" in options or "exclude" in options:
+        #     $datasource = new PublicationCollectionDatasourceDecorator($datasource);
+        #     $datasource->build();
+        #     $datasource->keepCollectionsMatching($options['include'] ?? [], $options['exclude'] ?? []);
+
+        # if "rename" in options:
+        #     $datasource = new RenameCollectionDatasourceDecorator($datasource);
+        #     $datasource->build();
+        #     $datasource->renameCollections($options['rename'] ?? []);
+
         for collection in datasource.collections:
-            customized_collection = CustomizedCollection(collection, customized_datasource)
-            self.composite_datasource.add_collection(customized_collection)
-            customized_datasource.add_collection(customized_collection)
+            self.composite_datasource.add_collection(collection)
 
-        for collection in self.composite_datasource.collections:
-            # second loop is mandatory to have all collection set
-            create_json_api_schema(collection)
+        self.stack = DecoratorStack(self.composite_datasource)
 
-    def customize_collection(self, collection_name: str) -> CustomizedCollection:
-        collection = self.composite_datasource.get_collection(collection_name)
-        return collection
+    def customize_collection(self, collection_name: str) -> CollectionCustomizer:
+        return CollectionCustomizer(self, self.stack, collection_name)
