@@ -16,8 +16,8 @@ else:
 from forestadmin.agent_toolkit.utils.context import User
 from forestadmin.datasource_toolkit.collections import Collection
 from forestadmin.datasource_toolkit.datasources import Datasource
-from forestadmin.datasource_toolkit.decorators.empty.collection import EmptyMixin
-from forestadmin.datasource_toolkit.decorators.proxy.collection import ProxyMixin
+from forestadmin.datasource_toolkit.decorators.datasource_decorator import DatasourceDecorator
+from forestadmin.datasource_toolkit.decorators.empty.collection import EmptyCollectionDecorator
 from forestadmin.datasource_toolkit.interfaces.fields import Operator
 from forestadmin.datasource_toolkit.interfaces.query.aggregation import Aggregation
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.base import ConditionTree
@@ -25,10 +25,6 @@ from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.branch
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.leaf import ConditionTreeLeaf
 from forestadmin.datasource_toolkit.interfaces.query.filter.paginated import PaginatedFilter, PaginatedFilterComponent
 from forestadmin.datasource_toolkit.interfaces.query.projections import Projection
-
-
-class DecoratedCollectionMock(EmptyMixin, ProxyMixin):
-    pass
 
 
 class TestEmptyCollectionDecorator(TestCase):
@@ -49,15 +45,17 @@ class TestEmptyCollectionDecorator(TestCase):
         )
 
         cls.collection_order: Collection = Mock(Collection)
+        cls.collection_order.name = "order"
         cls.collection_order.list = AsyncMock(return_value=[{"id": 3, "cost": 22}])
         cls.collection_order.update = AsyncMock(return_value=None)
         cls.collection_order.delete = AsyncMock(return_value=None)
         cls.collection_order.aggregate = AsyncMock(return_value=[{"value": 1, "group": {}}])
 
-        cls.datasource._collections = {
-            "order": cls.collection_order,
-        }
-        cls.decorated_collection = DecoratedCollectionMock(cls.collection_order, cls.datasource)
+        cls.datasource.add_collection(cls.collection_order)
+
+        cls.datasource_decorator = DatasourceDecorator(cls.datasource, EmptyCollectionDecorator)
+        cls.decorated_collection = cls.datasource_decorator.get_collection("order")
+
         cls.empty_paginated_filter: PaginatedFilter = PaginatedFilter(
             PaginatedFilterComponent(
                 condition_tree=ConditionTreeBranch(
@@ -84,6 +82,9 @@ class TestEmptyCollectionDecorator(TestCase):
                 )
             )
         )
+
+    def test_schema_not_changed(self):
+        assert self.decorated_collection.schema == self.collection_order.schema
 
     def test_list(self):
         # empty filter

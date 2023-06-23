@@ -6,8 +6,6 @@ import sys
 from unittest import TestCase
 from unittest.mock import ANY, Mock, patch
 
-from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.branch import Aggregator
-
 if sys.version_info < (3, 8):
     from mock import AsyncMock
 else:
@@ -40,6 +38,7 @@ from forestadmin.datasource_toolkit.interfaces.fields import (
     Operator,
     PrimitiveType,
 )
+from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.branch import Aggregator
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.leaf import ConditionTreeLeaf
 
 

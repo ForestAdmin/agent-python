@@ -3,13 +3,6 @@ import sys
 from unittest import TestCase
 from unittest.mock import patch
 
-from forestadmin.datasource_toolkit.exceptions import (
-    DatasourceToolkitException,
-    ForestException,
-    ForestValidationException,
-)
-from forestadmin.datasource_toolkit.interfaces.query.filter.unpaginated import Filter, FilterComponent
-
 if sys.version_info >= (3, 8):
     from unittest.mock import AsyncMock
 else:
@@ -23,8 +16,13 @@ else:
 from forestadmin.agent_toolkit.utils.context import User
 from forestadmin.datasource_toolkit.collections import Collection
 from forestadmin.datasource_toolkit.datasources import Datasource
-from forestadmin.datasource_toolkit.decorators.proxy.collection import ProxyMixin
-from forestadmin.datasource_toolkit.decorators.validation.collection import ValidationMixin
+from forestadmin.datasource_toolkit.decorators.datasource_decorator import DatasourceDecorator
+from forestadmin.datasource_toolkit.decorators.validation.collection import ValidationCollectionDecorator
+from forestadmin.datasource_toolkit.exceptions import (
+    DatasourceToolkitException,
+    ForestException,
+    ForestValidationException,
+)
 from forestadmin.datasource_toolkit.interfaces.fields import (
     Column,
     FieldType,
@@ -33,10 +31,7 @@ from forestadmin.datasource_toolkit.interfaces.fields import (
     Operator,
     PrimitiveType,
 )
-
-
-class DecoratedCollectionMock(ValidationMixin, ProxyMixin):
-    pass
+from forestadmin.datasource_toolkit.interfaces.query.filter.unpaginated import Filter, FilterComponent
 
 
 class TesValidationCollectionDecorator(TestCase):
@@ -91,9 +86,10 @@ class TesValidationCollectionDecorator(TestCase):
             team="operational",
             timezone=zoneinfo.ZoneInfo("Europe/Paris"),
         )
+        cls.datasource_decorator = DatasourceDecorator(cls.datasource, ValidationCollectionDecorator)
 
     def test_add_validation_errors(self):
-        decorated_collection_book = DecoratedCollectionMock(self.collection_book, self.datasource)
+        decorated_collection_book = self.datasource_decorator.get_collection("Book")
         # on nonexisting field
         self.assertRaisesRegex(
             DatasourceToolkitException,
@@ -122,12 +118,12 @@ class TesValidationCollectionDecorator(TestCase):
         )
 
     def test_add_validation(self):
-        decorated_collection_book = DecoratedCollectionMock(self.collection_book, self.datasource)
+        decorated_collection_book = self.datasource_decorator.get_collection("Book")
         decorated_collection_book.add_validation("title", {"operator": Operator.LONGER_THAN, "value": 5})
         assert len(decorated_collection_book.validations["title"]) == 1
 
     def test_creation_validation(self):
-        decorated_collection_book = DecoratedCollectionMock(self.collection_book, self.datasource)
+        decorated_collection_book = self.datasource_decorator.get_collection("Book")
         decorated_collection_book.add_validation("title", {"operator": Operator.LONGER_THAN, "value": 5})
         decorated_collection_book.add_validation("sub_title", {"operator": Operator.LONGER_THAN, "value": 5})
 
@@ -173,7 +169,7 @@ class TesValidationCollectionDecorator(TestCase):
         )
 
     def test_update_validation(self):
-        decorated_collection_book = DecoratedCollectionMock(self.collection_book, self.datasource)
+        decorated_collection_book = self.datasource_decorator.get_collection("Book")
         decorated_collection_book.add_validation("title", {"operator": Operator.LONGER_THAN, "value": 5})
         decorated_collection_book.add_validation("sub_title", {"operator": Operator.LONGER_THAN, "value": 5})
 
@@ -213,7 +209,7 @@ class TesValidationCollectionDecorator(TestCase):
         )
 
     def test_allow_null_with_other_validation(self):
-        decorated_collection_book = DecoratedCollectionMock(self.collection_book, self.datasource)
+        decorated_collection_book = self.datasource_decorator.get_collection("Book")
         decorated_collection_book.add_validation("title", {"operator": Operator.LONGER_THAN, "value": 5})
 
         with patch.object(self.collection_book, "create", new_callable=AsyncMock) as mocked_create:

@@ -1,4 +1,4 @@
-from typing import Any, Union
+from typing import Union
 
 from forestadmin.datasource_toolkit.datasources import Datasource
 
@@ -13,6 +13,3 @@ class DatasourceDecorator(Datasource):
 
         for collection in self.child_datasource.collections:
             self.add_collection(self.class_collection_decorator(collection, self))
-
-    def add_collection(self, collection: Any) -> None:
-        super().add_collection(collection)
