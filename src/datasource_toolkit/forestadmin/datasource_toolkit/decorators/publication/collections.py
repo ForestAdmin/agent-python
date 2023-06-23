@@ -1,4 +1,4 @@
-from typing import Any, Callable, Dict
+from typing import Any, Dict
 
 from forestadmin.datasource_toolkit.decorators.collection_decorator import CollectionDecorator
 from forestadmin.datasource_toolkit.exceptions import DatasourceToolkitException

@@ -1,4 +1,4 @@
-from typing import Any, Callable, Dict, List, Optional, Union, cast
+from typing import Any, Dict, List, Optional, Union, cast
 
 from forestadmin.agent_toolkit.utils.context import User
 from forestadmin.datasource_toolkit.decorators.collection_decorator import CollectionDecorator
@@ -58,7 +58,7 @@ class RenameCollectionDecorator(CollectionDecorator):
 
         _filter = await super()._refine_filter(caller, _filter)  # type: ignore
         if _filter and _filter.condition_tree:
-            _filter = _filter.override({"condition_tree": _filter.condition_tree.replace(computed_fields)})  # type: ignore
+            _filter = _filter.override({"condition_tree": _filter.condition_tree.replace(computed_fields)})
         return _filter
 
     async def list(self, caller: User, _filter: PaginatedFilter, projection: Projection) -> List[RecordsDataAlias]:

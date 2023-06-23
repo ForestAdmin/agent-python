@@ -1,4 +1,4 @@
-from typing import Any, Callable, Dict, Optional, Set, Union
+from typing import Any, Dict, Optional, Set, Union
 
 from forestadmin.agent_toolkit.utils.context import User
 from forestadmin.datasource_toolkit.decorators.collection_decorator import CollectionDecorator

@@ -1,4 +1,4 @@
-from typing import Any, Callable, Dict, List, Optional, cast
+from typing import Any, Dict, List, Optional, cast
 
 from forestadmin.agent_toolkit.utils.context import User
 from forestadmin.datasource_toolkit.context.collection_context import CollectionCustomizationContext

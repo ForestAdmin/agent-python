@@ -1,8 +1,7 @@
 import asyncio
 import sys
 
-from forestadmin.agent_toolkit.utils.csv import Csv, CsvException
-from forestadmin.datasource_toolkit.exceptions import ForestValidationException
+from typing_extensions import TypeGuard
 
 if sys.version_info >= (3, 8):
     from typing import Literal
@@ -36,9 +35,11 @@ from forestadmin.agent_toolkit.utils.context import (
     build_success_response,
     build_unknown_response,
 )
+from forestadmin.agent_toolkit.utils.csv import Csv, CsvException
 from forestadmin.agent_toolkit.utils.id import unpack_id
 from forestadmin.datasource_toolkit.collections import Collection
 from forestadmin.datasource_toolkit.datasources import DatasourceException
+from forestadmin.datasource_toolkit.exceptions import ForestValidationException
 from forestadmin.datasource_toolkit.interfaces.fields import (
     ManyToOne,
     OneToOne,
@@ -62,11 +63,10 @@ from forestadmin.datasource_toolkit.utils.schema import SchemaUtils
 from forestadmin.datasource_toolkit.validations.field import FieldValidatorException
 from forestadmin.datasource_toolkit.validations.records import RecordValidator, RecordValidatorException
 
-# from typing_extensions import TypeGuard
 
 # unused ???
-# def is_request_collection(request: Request) -> TypeGuard[RequestCollection]:
-#     return hasattr(request, "collection")
+def is_request_collection(request: Request) -> TypeGuard[RequestCollection]:
+    return hasattr(request, "collection")
 
 
 LiteralMethod = Literal["list", "count", "add", "delete_list", "csv"]
@@ -110,10 +110,10 @@ class CrudResource(BaseCollectionResource):
         if not len(records):
             return build_unknown_response()
 
-        # for name, schema in collection.schema["fields"].items():
-        #     if is_many_to_many(schema) or is_one_to_many(schema):
-        #         projections.append(f"{name}:id")  # type: ignore
-        #         records[0][name] = None
+        for name, schema in collection.schema["fields"].items():
+            if is_many_to_many(schema) or is_one_to_many(schema):
+                projections.append(f"{name}:id")  # type: ignore
+                records[0][name] = None
 
         schema = JsonApiSerializer.get(collection)
         try:
