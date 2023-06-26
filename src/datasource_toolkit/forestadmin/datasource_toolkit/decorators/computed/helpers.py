@@ -1,17 +1,11 @@
 import copy
-from typing import Any, Dict, List, Optional, Tuple, cast
+from typing import Any, List, Optional, Tuple, cast
 
 from forestadmin.datasource_toolkit.context.collection_context import CollectionCustomizationContext
 from forestadmin.datasource_toolkit.decorators.computed.exceptions import ComputedDecoratorException
 from forestadmin.datasource_toolkit.decorators.computed.types import ComputedDefinition
 from forestadmin.datasource_toolkit.decorators.computed.utils import Output, flatten, transform_unique_values, unflatten
-from forestadmin.datasource_toolkit.interfaces.collections import Collection
 from forestadmin.datasource_toolkit.interfaces.fields import RelationAlias
-from forestadmin.datasource_toolkit.interfaces.query.aggregation import (
-    AggregateResult,
-    Aggregation,
-    PlainAggregationGroup,
-)
 from forestadmin.datasource_toolkit.interfaces.query.projections import Projection
 from forestadmin.datasource_toolkit.interfaces.records import RecordsDataAlias
 
@@ -97,31 +91,3 @@ async def compute_from_records(
         flatten_records.insert(i, value)
 
     return [u for u in unflatten(flatten_records, desired_projections) if u]
-
-
-def computed_aggregation_projection(
-    collection: Collection,
-    aggregation: Aggregation,
-):
-    plain_aggregation = aggregation._to_plain  # type: ignore
-    if plain_aggregation.get("field"):
-        plain_aggregation["field"] = rewrite_fields(collection, plain_aggregation["field"])  # type: ignore
-
-    new_to_old_group: Dict[str, str] = {}
-    groups: List[PlainAggregationGroup] = []
-    for group in plain_aggregation.get("groups", []):
-        new: str = rewrite_fields(collection, group["field"])[0]
-        new_to_old_group[new] = group["field"]  # type: ignore
-        group["field"] = new
-        groups.append(group)
-    plain_aggregation["groups"] = groups
-    return Aggregation(plain_aggregation), new_to_old_group
-
-
-def compute_aggregate_from_records(
-    records: List[AggregateResult], new_to_old_group: Dict[str, str]
-) -> List[AggregateResult]:
-    for record in records:
-        key, value = next(iter(record["group"].items()))
-        record["group"] = {f"{new_to_old_group[key]}": value}
-    return records

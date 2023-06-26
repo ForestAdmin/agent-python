@@ -4,12 +4,7 @@ from forestadmin.agent_toolkit.utils.context import User
 from forestadmin.datasource_toolkit.context.collection_context import CollectionCustomizationContext
 from forestadmin.datasource_toolkit.decorators.collection_decorator import CollectionDecorator
 from forestadmin.datasource_toolkit.decorators.computed.exceptions import ComputedDecoratorException
-from forestadmin.datasource_toolkit.decorators.computed.helpers import (  # type: ignore
-    compute_aggregate_from_records,
-    compute_from_records,
-    computed_aggregation_projection,
-    rewrite_fields,
-)
+from forestadmin.datasource_toolkit.decorators.computed.helpers import compute_from_records, rewrite_fields
 from forestadmin.datasource_toolkit.decorators.computed.types import ComputedDefinition
 from forestadmin.datasource_toolkit.exceptions import DatasourceToolkitException
 from forestadmin.datasource_toolkit.interfaces.collections import Collection
@@ -54,22 +49,23 @@ class ComputedCollectionDecorator(CollectionDecorator):
         self._computeds[name] = computed
         self.mark_schema_as_dirty()
 
-    async def list(self, caller: User, filter: PaginatedFilter, projection: Projection) -> List[RecordsDataAlias]:
+    async def list(self, caller: User, _filter: PaginatedFilter, projection: Projection) -> List[RecordsDataAlias]:
         new_projection = projection.replace(lambda path: rewrite_fields(self, path))
-        records: List[Optional[RecordsDataAlias]] = await super().list(caller, filter, new_projection)  # type: ignore
-        context = CollectionCustomizationContext(cast(Collection, self), filter.timezone)
+        records: List[Optional[RecordsDataAlias]] = await super().list(caller, _filter, new_projection)  # type: ignore
+        context = CollectionCustomizationContext(cast(Collection, self), caller)
         return await compute_from_records(context, self, new_projection, projection, records)
 
     async def aggregate(
-        self, caller: User, filter: Optional[Filter], aggregation: Aggregation, limit: Optional[int] = None
+        self, caller: User, _filter: Optional[Filter], aggregation: Aggregation, limit: Optional[int] = None
     ) -> List[AggregateResult]:
-        is_computed = any([field in self._computeds for field in cast(List[str], aggregation.projection)])
-        if is_computed:
-            aggregation, new_to_old_group = computed_aggregation_projection(self, aggregation)  # type: ignore
-        records: List[AggregateResult] = await super().aggregate(caller, filter, aggregation, limit)  # type: ignore
-        if is_computed:
-            records = compute_aggregate_from_records(records, new_to_old_group)  # type: ignore
-        return records
+        if not any([self.get_computed(field) for field in aggregation.projection]):
+            return await self.child_collection.aggregate(caller, _filter, aggregation, limit)
+
+        records = await self.list(caller, _filter, aggregation.projection)
+        return aggregation.apply(
+            records,
+            caller.timezone,
+        )
 
     def _refine_schema(self, sub_schema: CollectionSchema) -> CollectionSchema:
         computed_fields_schema = {**sub_schema["fields"]}

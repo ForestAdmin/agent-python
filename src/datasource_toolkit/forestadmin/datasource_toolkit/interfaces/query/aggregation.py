@@ -1,6 +1,7 @@
 import enum
 import json
 import sys
+from numbers import Number
 
 if sys.version_info >= (3, 8):
     from typing import Literal, TypedDict
@@ -176,14 +177,13 @@ class Aggregation:
         summary["start_count"] += 1  #  count(*)
         if self.field:
             value = RecordUtils.get_field_value(record, self.field)
-            is_number = isinstance(value, int)
             if value is not None:
                 summary["Count"] += 1  #  count(field)
-                if is_number and (summary["Min"] is None or value < summary["Min"]):
+                if summary["Min"] is None or value < summary["Min"]:
                     summary["Min"] = value
-                if is_number and (summary["Max"] is None or value > summary["Max"]):
+                if summary["Max"] is None or value > summary["Max"]:
                     summary["Max"] = value
-            if is_number:
+            if isinstance(value, Number):
                 summary["Sum"] += value
         return summary
 

@@ -21,15 +21,15 @@ async def transform_unique_values(inputs: Input, callback: Callable[[List[Input]
     mapping: List[int] = []
     unique_inputs: List[Input] = []
 
-    for input in inputs:
-        if input is not None:
-            if isinstance(input, dict):
-                hsh = hash(json.dumps(input, default=str))
+    for _input in inputs:
+        if _input is not None:
+            if isinstance(_input, dict):
+                hsh = hash(json.dumps(_input, default=str))
             else:
-                hsh = hash(input)
+                hsh = hash(_input)
             if hsh not in indexes:
                 indexes[hsh] = len(unique_inputs)
-                unique_inputs.append(input)
+                unique_inputs.append(_input)
             mapping.append(indexes[hsh])
         else:
             mapping.append(-1)
