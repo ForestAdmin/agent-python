@@ -1,3 +1,4 @@
+from collections import Counter
 from functools import reduce
 from typing import Any, Callable, DefaultDict, Dict, List, Optional, Union, cast
 
@@ -46,7 +47,7 @@ class Projection(list):  # type: ignore
 
     def union(self, *projections: Union["Projection", List[str]]) -> "Projection":
         fields: List[str] = reduce(lambda x, y: [*x, *y], [self, *projections], [])  # type: ignore
-        return Projection(*sorted(set(fields)))
+        return Projection(*Counter(fields))
 
     def apply(self, records: List[RecordsDataAlias]) -> List[RecordsDataAlias]:
         results: List[RecordsDataAlias] = []

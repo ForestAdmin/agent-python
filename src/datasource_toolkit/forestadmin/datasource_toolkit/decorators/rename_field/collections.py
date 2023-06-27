@@ -17,7 +17,6 @@ from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.leaf i
 from forestadmin.datasource_toolkit.interfaces.query.filter.paginated import PaginatedFilter
 from forestadmin.datasource_toolkit.interfaces.query.filter.unpaginated import Filter
 from forestadmin.datasource_toolkit.interfaces.query.projections import Projection
-from forestadmin.datasource_toolkit.interfaces.query.sort import PlainSortClause
 from forestadmin.datasource_toolkit.interfaces.records import RecordsDataAlias
 
 
@@ -25,7 +24,7 @@ class RenameCollectionException(DatasourceToolkitException):
     pass
 
 
-class RenameCollectionDecorator(CollectionDecorator):
+class RenameFieldCollectionDecorator(CollectionDecorator):
     def __init__(self, *args: Any, **kwargs: Any):
         super().__init__(*args, **kwargs)
         self._to_child_collection: Dict[str, str] = {}
@@ -34,15 +33,17 @@ class RenameCollectionDecorator(CollectionDecorator):
     def rename_field(self, current_name: str, new_name: str):
         schema = self.schema
         if current_name not in schema["fields"]:
-            raise RenameCollectionException(f"No such field {current_name}")
+            raise RenameCollectionException(f"No such field '{current_name}'")
 
         initial_name = current_name
+        # Revert previous renaming (avoids conflicts and need to recurse on this.toSubCollection).
         if current_name in self._to_child_collection:
             child_name = self._to_child_collection[current_name]
             del self._to_child_collection[current_name]
             del self._from_child_collection[child_name]
             initial_name = child_name
 
+        # Do not update arrays if renaming is a no-op (ie: customer is cancelling a previous rename).
         if initial_name != new_name:
             self._from_child_collection[initial_name] = new_name
             self._to_child_collection[new_name] = initial_name
@@ -59,6 +60,17 @@ class RenameCollectionDecorator(CollectionDecorator):
         _filter = await super()._refine_filter(caller, _filter)  # type: ignore
         if _filter and _filter.condition_tree:
             _filter = _filter.override({"condition_tree": _filter.condition_tree.replace(computed_fields)})
+        if _filter and _filter.sort:
+            new_sort = _filter.sort.replace_clauses(
+                lambda clause: [
+                    {
+                        "field": self._path_to_child_collection(clause["field"]),
+                        "ascending": clause["ascending"],
+                    }
+                ]
+            )
+            _filter = _filter.override({"sort": new_sort})
+
         return _filter
 
     async def list(self, caller: User, _filter: PaginatedFilter, projection: Projection) -> List[RecordsDataAlias]:
@@ -93,8 +105,9 @@ class RenameCollectionDecorator(CollectionDecorator):
     def _refine_schema(self, sub_schema: CollectionSchema) -> CollectionSchema:
         new_fields_schema = {}
         datasource = cast(Datasource[BoundCollection], self.datasource)
+
         for old_field_name, field_schema in sub_schema["fields"].items():
-            if is_many_to_many(field_schema):
+            if is_many_to_one(field_schema):
                 field_schema["foreign_key"] = self._from_child_collection.get(
                     field_schema["foreign_key"], field_schema["foreign_key"]
                 )
@@ -129,14 +142,6 @@ class RenameCollectionDecorator(CollectionDecorator):
             else:
                 raise RenameCollectionException(f"The field {self_field} is not a relation")
         return self_field
-
-    def _refine_leaf_tree(self, tree: ConditionTree) -> ConditionTree:
-        if isinstance(tree, ConditionTreeLeaf):
-            tree.field = self._path_to_child_collection(tree.field)
-        return tree
-
-    def _refine_sort_clause(self, clause: PlainSortClause):
-        return PlainSortClause(field=self._path_to_child_collection(clause["field"]), ascending=clause["ascending"])
 
     def _record_to_child_collection(self, record: RecordsDataAlias) -> RecordsDataAlias:
         child_record: RecordsDataAlias = {}
