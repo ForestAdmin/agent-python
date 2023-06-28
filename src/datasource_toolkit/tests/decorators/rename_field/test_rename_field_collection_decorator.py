@@ -3,17 +3,6 @@ import sys
 from unittest import TestCase
 from unittest.mock import patch
 
-from forestadmin.datasource_toolkit.decorators.datasource_decorator import DatasourceDecorator
-from forestadmin.datasource_toolkit.decorators.rename_field.collections import (
-    RenameCollectionException,
-    RenameFieldCollectionDecorator,
-)
-from forestadmin.datasource_toolkit.interfaces.query.aggregation import Aggregation, PlainAggregation
-from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.leaf import ConditionTreeLeaf
-from forestadmin.datasource_toolkit.interfaces.query.filter.paginated import PaginatedFilter
-from forestadmin.datasource_toolkit.interfaces.query.projections import Projection
-from forestadmin.datasource_toolkit.interfaces.query.sort import Sort
-
 if sys.version_info >= (3, 8):
     from unittest.mock import AsyncMock
 else:
@@ -27,6 +16,11 @@ else:
 from forestadmin.agent_toolkit.utils.context import User
 from forestadmin.datasource_toolkit.collections import Collection
 from forestadmin.datasource_toolkit.datasources import Datasource
+from forestadmin.datasource_toolkit.decorators.datasource_decorator import DatasourceDecorator
+from forestadmin.datasource_toolkit.decorators.rename_field.collections import (
+    RenameCollectionException,
+    RenameFieldCollectionDecorator,
+)
 from forestadmin.datasource_toolkit.interfaces.fields import (
     Column,
     FieldType,
@@ -36,6 +30,11 @@ from forestadmin.datasource_toolkit.interfaces.fields import (
     Operator,
     PrimitiveType,
 )
+from forestadmin.datasource_toolkit.interfaces.query.aggregation import Aggregation, PlainAggregation
+from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.leaf import ConditionTreeLeaf
+from forestadmin.datasource_toolkit.interfaces.query.filter.paginated import PaginatedFilter
+from forestadmin.datasource_toolkit.interfaces.query.projections import Projection
+from forestadmin.datasource_toolkit.interfaces.query.sort import Sort
 
 
 class TestRenameFieldCollectionDecorator(TestCase):

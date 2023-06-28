@@ -111,6 +111,8 @@ class ConditionTreeFactory:
     def _group(aggregator: Aggregator, trees: List[ConditionTree]) -> ConditionTree:
         conditions: List[ConditionTree] = []
         for tree in trees:
+            if tree is None:
+                continue
             if isinstance(tree, ConditionTreeBranch) and tree.aggregator == aggregator:
                 conditions.extend(tree.conditions)
             else:

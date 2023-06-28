@@ -3,6 +3,7 @@ from typing import List
 from forestadmin.datasource_toolkit.decorators.action.types.actions import ActionAlias
 from forestadmin.datasource_toolkit.decorators.computed.types import ComputedDefinition
 from forestadmin.datasource_toolkit.decorators.decorator_stack import DecoratorStack
+from forestadmin.datasource_toolkit.decorators.search.collections import SearchDefinition
 from forestadmin.datasource_toolkit.decorators.segments.collections import SegmentAlias
 
 
@@ -52,3 +53,6 @@ class CollectionCustomizer:
         stack_collection = self.stack.publication.get_collection(self.collection_name)
         for field in fields:
             stack_collection.change_field_visibility(field, False)
+
+    def replace_search(self, definition: SearchDefinition):
+        self.stack.search.get_collection(self.collection_name).replace_search(definition)
