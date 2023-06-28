@@ -629,7 +629,7 @@ pyflakes = ">=3.0.0,<3.1.0"
 
 [[package]]
 name = "forestadmin-datasource-toolkit"
-version = "0.1.0-beta.35"
+version = "0.1.0-beta.36"
 description = ""
 optional = false
 python-versions = ">=3.7,<4.0"
@@ -1856,4 +1856,4 @@ testing = ["big-O", "flake8 (<5)", "jaraco.functools", "jaraco.itertools", "more
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.7,<4.0"
-content-hash = "3bcf44c551d4f6b78b3669b26ad85d6a648ba7c702613418f277bd9c98b84cf9"
+content-hash = "97accd2147aafe81321c42dc9b5fec2c902af06666dde8e51230bee6023b0410"
