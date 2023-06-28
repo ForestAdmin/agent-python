@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.1.0-beta.36 (2023-06-28)
+
+### Feature
+
+* Add decorator stack ([#87](https://github.com/ForestAdmin/agent-python/issues/87)) ([`573ca7e`](https://github.com/ForestAdmin/agent-python/commit/573ca7ea0d21e901c721189e03a34d224affb8b2))
+
 ## v0.1.0-beta.35 (2023-06-19)
 
 ### Fix
