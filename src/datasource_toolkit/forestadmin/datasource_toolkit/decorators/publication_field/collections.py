@@ -1,5 +1,7 @@
-from typing import Any, Callable, Dict
+from typing import Any, Dict, List
 
+from forestadmin.agent_toolkit.utils.context import User
+from forestadmin.datasource_toolkit.decorators.collection_decorator import CollectionDecorator
 from forestadmin.datasource_toolkit.exceptions import DatasourceToolkitException
 from forestadmin.datasource_toolkit.interfaces.fields import (
     FieldAlias,
@@ -10,48 +12,38 @@ from forestadmin.datasource_toolkit.interfaces.fields import (
     is_one_to_one,
 )
 from forestadmin.datasource_toolkit.interfaces.models.collections import CollectionSchema
+from forestadmin.datasource_toolkit.interfaces.records import RecordsDataAlias
 
 
 class PublicationCollectionException(DatasourceToolkitException):
     pass
 
 
-class PublicationMixin:
-    datasource: property
-    mark_schema_as_dirty: Callable[..., None]
-    get_field: Callable[[str], Any]
-
+class PublicationFieldCollectionDecorator(CollectionDecorator):
     def __init__(self, *args: Any, **kwargs: Any):
         self._unpublished: Dict[str, FieldAlias] = {}
-        self._republished_fields: Dict[str, FieldAlias] = {}
-        super(PublicationMixin, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def change_field_visibility(self, name: str, visible: bool):
         if name in self._unpublished and visible:
-            self._republished_fields[name] = self._unpublished.pop(name)
+            self._unpublished.pop(name)
         else:
             field = self.get_field(name)
-            if is_column(field) and field["is_primary_key"]:
+            if is_column(field) and field.get("is_primary_key", False):
                 raise PublicationCollectionException("Cannot hide primary key")
             if not visible:
                 self._unpublished[name] = field
         self.mark_schema_as_dirty()
 
-    def _refine_schema(self) -> CollectionSchema:
-        schema: CollectionSchema = super(PublicationMixin, self)._refine_schema()  # type: ignore
+    def _refine_schema(self, sub_schema: CollectionSchema) -> CollectionSchema:
         new_field_schema = {}
-        for name, field in schema["fields"].items():
+        for name, field in sub_schema["fields"].items():
             if self._is_published(name):
                 new_field_schema[name] = field
-        for name, field in self._republished_fields.items():
-            new_field_schema[name] = field
-        self._republished_fields = {}
-        schema["fields"] = new_field_schema
-        self._last_schema = schema
-        return schema
+        return {**sub_schema, "fields": new_field_schema}
 
     def _is_published(self, name: str) -> bool:
-        field = self.get_field(name)
+        field = self.child_collection.get_field(name)
         return name not in self._unpublished and (
             is_column(field)
             or (
@@ -67,3 +59,14 @@ class PublicationMixin:
                 )
             )
         )
+
+    async def create(self, caller: User, data: List[RecordsDataAlias]) -> List[RecordsDataAlias]:
+        records = await super().create(caller, data)
+        new_records = []
+        for record in records:
+            tmp_record = {}
+            for field_name, field in record.items():
+                if field_name not in self._unpublished:
+                    tmp_record[field_name] = field
+            new_records.append(tmp_record)
+        return new_records

@@ -3,6 +3,7 @@ import json
 from typing import List, Union
 
 from demo.models.models import ORDER_STATUS
+from forestadmin.agent_toolkit.utils.context import User
 from forestadmin.datasource_toolkit.context.collection_context import CollectionCustomizationContext
 from forestadmin.datasource_toolkit.decorators.action.context.base import ActionContext
 from forestadmin.datasource_toolkit.decorators.action.result_builder import ResultBuilder
@@ -83,16 +84,18 @@ class ExportJson(ActionGlobal):
         },
     ]
 
-    async def execute(self, context: ActionContext, result_builder: ResultBuilder) -> Union[None, ActionResult]:
+    async def execute(
+        self, caller: User, context: ActionContext, result_builder: ResultBuilder
+    ) -> Union[None, ActionResult]:
         records = await context.get_records(
             Projection(
                 "id",
-                "customer:full name",
-                "billing_address:complete_address",
-                "delivering_address:complete_address",
+                "customer:full_name",
+                "billing_address:full_address",
+                "delivering_address:full_address",
                 "status",
-                # "amount",
-                "cost",
+                "amount",
+                # "cost",
             )
         )
         return result_builder.file(

@@ -6,9 +6,9 @@ from forestadmin.agent_toolkit.resources.collections.requests import RequestArgs
 from forestadmin.agent_toolkit.resources.collections.requests import RequestCollection
 from forestadmin.agent_toolkit.utils.context import Request, RequestMethod, User
 from forestadmin.datasource_toolkit.collections import Collection
+from forestadmin.datasource_toolkit.datasource_customizer.collection_customizer import CollectionCustomizer
+from forestadmin.datasource_toolkit.datasource_customizer.datasource_customizer import DatasourceCustomizer
 from forestadmin.datasource_toolkit.datasources import Datasource
-from forestadmin.datasource_toolkit.decorators.collections import CustomizedCollection
-from forestadmin.datasource_toolkit.decorators.datasource import CustomizedDatasource
 from typing_extensions import Self
 
 
@@ -25,7 +25,7 @@ class ActionRequest(RequestCollection):
         self,
         method: RequestMethod,
         action_name: str,
-        collection: Union[Collection, CustomizedCollection],
+        collection: Union[Collection, CollectionCustomizer],
         body: Optional[Dict[str, Any]] = None,
         query: Optional[Dict[str, str]] = None,
         headers: Optional[Dict[str, str]] = None,
@@ -36,7 +36,7 @@ class ActionRequest(RequestCollection):
 
     @staticmethod
     def from_request_args(
-        request: Request, datasource: Union[Datasource[BoundCollection], CustomizedDatasource]
+        request: Request, datasource: Union[Datasource[BoundCollection], DatasourceCustomizer]
     ) -> RequestArgs:
         request_args = RequestCollection.from_request_args(request, datasource)
         try:
@@ -48,6 +48,6 @@ class ActionRequest(RequestCollection):
 
     @classmethod
     def from_request(
-        cls, request: Request, datasource: Union[Datasource[BoundCollection], CustomizedDatasource]
+        cls, request: Request, datasource: Union[Datasource[BoundCollection], DatasourceCustomizer]
     ) -> Self:
         return cls(**cls.from_request_args(request, datasource))

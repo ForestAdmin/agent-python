@@ -1,18 +1,14 @@
-from typing import Any, Callable, Dict, List, Optional, cast
+from typing import Any, Dict, List, Optional, cast
 
 from forestadmin.agent_toolkit.utils.context import User
 from forestadmin.datasource_toolkit.context.collection_context import CollectionCustomizationContext
-from forestadmin.datasource_toolkit.decorators.computed.exceptions import ComputedMixinException
-from forestadmin.datasource_toolkit.decorators.computed.helpers import (  # type: ignore
-    compute_aggregate_from_records,
-    compute_from_records,
-    computed_aggregation_projection,
-    rewrite_fields,
-)
+from forestadmin.datasource_toolkit.decorators.collection_decorator import CollectionDecorator
+from forestadmin.datasource_toolkit.decorators.computed.exceptions import ComputedDecoratorException
+from forestadmin.datasource_toolkit.decorators.computed.helpers import compute_from_records, rewrite_fields
 from forestadmin.datasource_toolkit.decorators.computed.types import ComputedDefinition
 from forestadmin.datasource_toolkit.exceptions import DatasourceToolkitException
 from forestadmin.datasource_toolkit.interfaces.collections import Collection
-from forestadmin.datasource_toolkit.interfaces.fields import FieldAlias, FieldType, RelationAlias
+from forestadmin.datasource_toolkit.interfaces.fields import FieldType, RelationAlias
 from forestadmin.datasource_toolkit.interfaces.models.collections import CollectionSchema
 from forestadmin.datasource_toolkit.interfaces.query.aggregation import AggregateResult, Aggregation
 from forestadmin.datasource_toolkit.interfaces.query.filter.paginated import PaginatedFilter
@@ -23,12 +19,7 @@ from forestadmin.datasource_toolkit.validations.field import FieldValidator
 from typing_extensions import Self
 
 
-class ComputedMixin:
-    name: str
-    get_field: Callable[[str], FieldAlias]
-    datasource: property
-    mark_schema_as_dirty: Callable[..., None]
-
+class ComputedCollectionDecorator(CollectionDecorator):
     def __init__(self, *args: Any, **kwargs: Any):
         super().__init__(*args, **kwargs)
         self._computeds: Dict[str, ComputedDefinition] = {}
@@ -38,7 +29,7 @@ class ComputedMixin:
             try:
                 return self._computeds[path]
             except KeyError:
-                raise ComputedMixinException(f"{path} is not a computed field")
+                raise ComputedDecoratorException(f"{path} is not a computed field")
 
         related_field, path = path.split(":")
         field = cast(RelationAlias, self.get_field(related_field))
@@ -46,37 +37,40 @@ class ComputedMixin:
         return foreign_collection.get_computed(path)
 
     def register_computed(self, name: str, computed: ComputedDefinition):
+        if computed.get("dependencies") is None or len(computed["dependencies"]) == 0:
+            raise ComputedDecoratorException(f"Computed field '{self.name}.{name}' must have at least one dependency")
         for field in computed["dependencies"]:
             try:
-                FieldValidator.validate(self, field)  # type: ignore
+                FieldValidator.validate(self.child_collection, field)  # type: ignore
             except DatasourceToolkitException:
-                raise ComputedMixinException(
+                raise ComputedDecoratorException(
                     f"The dependency {field} of the computed field {name} is unknown in the collection {self.name}"
                 )
         self._computeds[name] = computed
         self.mark_schema_as_dirty()
 
-    async def list(self, caller: User, filter: PaginatedFilter, projection: Projection) -> List[RecordsDataAlias]:
+    async def list(self, caller: User, _filter: PaginatedFilter, projection: Projection) -> List[RecordsDataAlias]:
         new_projection = projection.replace(lambda path: rewrite_fields(self, path))
-        records: List[Optional[RecordsDataAlias]] = await super().list(caller, filter, new_projection)  # type: ignore
-        context = CollectionCustomizationContext(cast(Collection, self), filter.timezone)
+        records: List[Optional[RecordsDataAlias]] = await super().list(caller, _filter, new_projection)  # type: ignore
+        context = CollectionCustomizationContext(cast(Collection, self), caller)
         return await compute_from_records(context, self, new_projection, projection, records)
 
     async def aggregate(
-        self, caller: User, filter: Optional[Filter], aggregation: Aggregation, limit: Optional[int] = None
+        self, caller: User, _filter: Optional[Filter], aggregation: Aggregation, limit: Optional[int] = None
     ) -> List[AggregateResult]:
-        is_computed = any([field in self._computeds for field in cast(List[str], aggregation.projection)])
-        if is_computed:
-            aggregation, new_to_old_group = computed_aggregation_projection(self, aggregation)  # type: ignore
-        records: List[AggregateResult] = await super().aggregate(caller, filter, aggregation, limit)  # type: ignore
-        if is_computed:
-            records = compute_aggregate_from_records(records, new_to_old_group)  # type: ignore
-        return records
+        if not any([self.get_computed(field) for field in aggregation.projection]):
+            return await self.child_collection.aggregate(caller, _filter, aggregation, limit)
 
-    def _refine_schema(self) -> CollectionSchema:
-        schema: CollectionSchema = super(ComputedMixin, self)._refine_schema()  # type: ignore
+        records = await self.list(caller, _filter, aggregation.projection)
+        return aggregation.apply(
+            records,
+            caller.timezone,
+        )
+
+    def _refine_schema(self, sub_schema: CollectionSchema) -> CollectionSchema:
+        computed_fields_schema = {**sub_schema["fields"]}
         for name, computed in self._computeds.items():
-            schema["fields"][name] = {
+            computed_fields_schema[name] = {
                 "column_type": computed["column_type"],
                 "default_value": computed.get("default_value", None),
                 "type": FieldType.COLUMN,
@@ -87,5 +81,4 @@ class ComputedMixin:
                 "is_sortable": False,
                 "validations": None,
             }
-        self._last_schema = schema
-        return schema
+        return {**sub_schema, "fields": computed_fields_schema}

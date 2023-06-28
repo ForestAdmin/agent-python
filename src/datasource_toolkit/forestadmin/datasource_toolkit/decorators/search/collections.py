@@ -1,5 +1,7 @@
 from typing import Dict, List, Optional, Tuple, Union, cast
 
+from forestadmin.agent_toolkit.utils.context import User
+from forestadmin.datasource_toolkit.decorators.collection_decorator import CollectionDecorator
 from forestadmin.datasource_toolkit.interfaces.fields import (
     Column,
     ColumnAlias,
@@ -20,7 +22,7 @@ from forestadmin.datasource_toolkit.validations.type_getter import TypeGetter
 from typing_extensions import TypeGuard
 
 
-class SearchMixin:  # type: ignore
+class SearchCollectionDecorator(CollectionDecorator):  # type: ignore
     datasource: property
 
     TYPE_TO_OPERATOR: Dict[ColumnAlias, Operator] = {
@@ -30,28 +32,27 @@ class SearchMixin:  # type: ignore
         PrimitiveType.UUID: Operator.EQUAL,
     }
 
-    @property
-    def schema(self) -> CollectionSchema:
-        schema: CollectionSchema = super(SearchMixin, self).schema  # type: ignore
-        schema["searchable"] = True
-        return schema
+    def _refine_schema(self, sub_schema: CollectionSchema) -> CollectionSchema:
+        return {**sub_schema, "searchable": True}
+
+    # TODO: add replace_search
 
     async def _refine_filter(
-        self, filter: Union[Optional[PaginatedFilter], Optional[Filter]]
+        self, caller: User, _filter: Union[Optional[PaginatedFilter], Optional[Filter]]
     ) -> Optional[Union[PaginatedFilter, Filter]]:
-        filter = cast(PaginatedFilter, await super()._refine_filter(filter))  # type: ignore
-        if not filter or not filter.search:
-            return filter
+        _filter = cast(PaginatedFilter, await super()._refine_filter(caller, _filter))  # type: ignore
+        if not _filter or not _filter.search:
+            return _filter
 
-        if self._is_empty_string(filter.search):
-            return filter.override({"search": None})
+        if self._is_empty_string(_filter.search):
+            return _filter.override({"search": None})
 
-        searchable_fields = self._get_searchable_fields(self.schema, filter.search_extended or False)
+        searchable_fields = self._get_searchable_fields(self.schema, _filter.search_extended or False)
 
         conditions: List[ConditionTree] = []
         for field, schema in searchable_fields:
             try:
-                condition = self._build_condition(field, schema, filter.search)
+                condition = self._build_condition(field, schema, _filter.search)
             except ValueError:
                 condition = None
             if condition:
@@ -59,11 +60,11 @@ class SearchMixin:  # type: ignore
         trees: List[ConditionTree] = []
         if conditions:
             trees.append(ConditionTreeFactory.union(conditions))
-        if filter.condition_tree:
-            trees.append(filter.condition_tree)
+        if _filter.condition_tree:
+            trees.append(_filter.condition_tree)
 
         if trees:
-            return filter.override({"condition_tree": ConditionTreeFactory.intersect(trees), "search": None})
+            return _filter.override({"condition_tree": ConditionTreeFactory.intersect(trees), "search": None})
 
         raise Exception("filter search type not matching any fields's type")
 

@@ -1,8 +1,7 @@
 import asyncio
 import sys
 
-from forestadmin.agent_toolkit.utils.csv import Csv, CsvException
-from forestadmin.datasource_toolkit.exceptions import ForestValidationException
+from typing_extensions import TypeGuard
 
 if sys.version_info >= (3, 8):
     from typing import Literal
@@ -36,9 +35,11 @@ from forestadmin.agent_toolkit.utils.context import (
     build_success_response,
     build_unknown_response,
 )
+from forestadmin.agent_toolkit.utils.csv import Csv, CsvException
 from forestadmin.agent_toolkit.utils.id import unpack_id
 from forestadmin.datasource_toolkit.collections import Collection
 from forestadmin.datasource_toolkit.datasources import DatasourceException
+from forestadmin.datasource_toolkit.exceptions import ForestValidationException
 from forestadmin.datasource_toolkit.interfaces.fields import (
     ManyToOne,
     OneToOne,
@@ -61,9 +62,9 @@ from forestadmin.datasource_toolkit.utils.collections import CollectionUtils
 from forestadmin.datasource_toolkit.utils.schema import SchemaUtils
 from forestadmin.datasource_toolkit.validations.field import FieldValidatorException
 from forestadmin.datasource_toolkit.validations.records import RecordValidator, RecordValidatorException
-from typing_extensions import TypeGuard
 
 
+# unused ???
 def is_request_collection(request: Request) -> TypeGuard[RequestCollection]:
     return hasattr(request, "collection")
 
@@ -174,6 +175,11 @@ class CrudResource(BaseCollectionResource):
             dumped: Dict[str, Any] = schema(projections=projections).dump(records, many=True)  # type: ignore
         except JsonApiException as e:
             return build_client_error_response([str(e)])
+
+        # TODO: add something like this (but between crud and crud related ; function need adaptation)
+        # if paginated_filter.search:
+        #     dumped = add_search_metadata(dumped, paginated_filter.search)
+
         return build_success_response(dumped)
 
     @check_method(RequestMethod.GET)

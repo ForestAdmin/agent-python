@@ -4,8 +4,8 @@ from forestadmin.agent_toolkit.utils.forest_schema.action_values import ForestVa
 from forestadmin.agent_toolkit.utils.forest_schema.generator_field import SchemaFieldGenerator
 from forestadmin.agent_toolkit.utils.forest_schema.type import ForestServerAction, ForestServerActionField
 from forestadmin.datasource_toolkit.collections import Collection
+from forestadmin.datasource_toolkit.datasource_customizer.collection_customizer import CollectionCustomizer
 from forestadmin.datasource_toolkit.datasources import Datasource
-from forestadmin.datasource_toolkit.decorators.collections import CustomizedCollection
 from forestadmin.datasource_toolkit.interfaces.actions import Action, ActionField, ActionFieldType
 from forestadmin.datasource_toolkit.interfaces.fields import Column, PrimitiveType
 from forestadmin.datasource_toolkit.utils.schema import SchemaUtils
@@ -30,7 +30,7 @@ class SchemaActionGenerator:
 
     @classmethod
     async def build(
-        cls, prefix: str, collection: Union[Collection, CustomizedCollection], name: str
+        cls, prefix: str, collection: Union[Collection, CollectionCustomizer], name: str
     ) -> ForestServerAction:
         schema = collection.schema["actions"][name]
         idx = list(collection.schema["actions"].keys()).index(name)
@@ -92,7 +92,7 @@ class SchemaActionGenerator:
 
     @classmethod
     async def build_fields(
-        cls, collection: Union[Collection, CustomizedCollection], action: Action, name: str
+        cls, collection: Union[Collection, CollectionCustomizer], action: Action, name: str
     ) -> List[ForestServerActionField]:
         if not action.static_form:
             return cls.DUMMY_FIELDS

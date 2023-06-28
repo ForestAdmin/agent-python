@@ -57,13 +57,37 @@ class TestAgent(TestCase):
         assert agent.META is None
         mocked_datasource_customizer.assert_called_once()
         mocked_permission_service.assert_called_once()
+
+    def test_property_resources(
+        self,
+        mocked_schema_emitter__get_serialized_schema,
+        mocked_forest_http_api__send_schema,
+        mocked_action_resource,
+        mocked_stats_resource,
+        mocked_crud_related_resource,
+        mocked_crud_resource,
+        mocked_authentication_resource,
+        mocked_datasource_customizer,
+        mocked_permission_service,
+    ):
+        agent = Agent(self.fake_options)
+        assert agent._resources is None
+        agent.resources
+
         mocked_authentication_resource.assert_called_once()
         mocked_crud_resource.assert_called_once()
         mocked_crud_related_resource.assert_called_once()
         mocked_stats_resource.assert_called_once()
         mocked_action_resource.assert_called_once()
 
-    def test_properties(
+        assert len(agent.resources) == 5
+        assert "authentication" in agent.resources
+        assert "crud" in agent.resources
+        assert "crud_related" in agent.resources
+        assert "stats" in agent.resources
+        assert "actions" in agent.resources
+
+    def test_property_meta(
         self,
         mocked_schema_emitter__get_serialized_schema,
         mocked_forest_http_api__send_schema,
@@ -77,20 +101,13 @@ class TestAgent(TestCase):
     ):
         agent = Agent(self.fake_options)
 
-        assert len(agent.resources) == 5
-        assert "authentication" in agent.resources
-        assert "crud" in agent.resources
-        assert "crud_related" in agent.resources
-        assert "stats" in agent.resources
-        assert "actions" in agent.resources
-
         with self.assertRaises(AgentToolkitException):
             agent.meta
 
         agent.META = "fake_meta"
         assert agent.meta == "fake_meta"
 
-    def test_methods(
+    def test_add_datasource(
         self,
         mocked_schema_emitter__get_serialized_schema,
         mocked_forest_http_api__send_schema,
@@ -106,14 +123,53 @@ class TestAgent(TestCase):
         fake_datasource = Mock(Datasource)
 
         agent.add_datasource(fake_datasource)
-        agent.customizer.add_datasource.assert_called_once_with(fake_datasource)
+        agent.customizer.add_datasource.assert_called_once_with(fake_datasource, {})
+        assert agent._resources is None
 
+    def test_customize_datasource(
+        self,
+        mocked_schema_emitter__get_serialized_schema,
+        mocked_forest_http_api__send_schema,
+        mocked_action_resource,
+        mocked_stats_resource,
+        mocked_crud_related_resource,
+        mocked_crud_resource,
+        mocked_authentication_resource,
+        mocked_datasource_customizer,
+        mocked_permission_service,
+    ):
+        agent = Agent(self.fake_options)
+        fake_datasource = Mock(Datasource)
+
+        agent.add_datasource(fake_datasource)
         collection_name = "test"
         agent.customize_collection(collection_name)
+
         agent.customizer.customize_collection.assert_called_once_with(collection_name)
 
-        agent.META = "fake_meta"
+    @patch("forestadmin.agent_toolkit.agent.create_json_api_schema")
+    def test_start(
+        self,
+        mocked_create_json_api_schema,
+        mocked_schema_emitter__get_serialized_schema,
+        mocked_forest_http_api__send_schema,
+        mocked_action_resource,
+        mocked_stats_resource,
+        mocked_crud_related_resource,
+        mocked_crud_resource,
+        mocked_authentication_resource,
+        mocked_datasource_customizer,
+        mocked_permission_service,
+    ):
         loop = asyncio.new_event_loop()
+
+        agent = Agent(self.fake_options)
+        agent.META = "fake_meta"
+
+        agent.customizer.stack.datasource.collections = ["fake_collection"]
+
         loop.run_until_complete(agent.start())
+
+        mocked_create_json_api_schema.assert_called_once_with("fake_collection")
         mocked_schema_emitter__get_serialized_schema.assert_called_once()
         mocked_forest_http_api__send_schema.assert_called_once()

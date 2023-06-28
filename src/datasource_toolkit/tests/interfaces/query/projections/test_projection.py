@@ -28,18 +28,18 @@ def test_replace():
         return [c, f"n_{c}"]
 
     r = projection.replace(replace_handler2)
-    assert r == Projection("c1", "c2", "n_c1", "n_c2", "n_r1:c1", "r1:c1")
+    assert r == Projection("c1", "n_c1", "c2", "n_c2", "r1:c1", "n_r1:c1")
 
     def replace_handler3(c: str) -> Projection:
         return Projection(c, f"n_{c}")
 
     r = projection.replace(replace_handler3)
-    assert r == Projection("c1", "c2", "n_c1", "n_c2", "n_r1:c1", "r1:c1")
+    assert r == Projection("c1", "n_c1", "c2", "n_c2", "r1:c1", "n_r1:c1")
 
 
 def test_union():
     projection = Projection("a", "c", "b")
-    assert projection.union(Projection("a", "z", "x")) == Projection("a", "b", "c", "x", "z")
+    assert projection.union(Projection("a", "z", "x")) == Projection("a", "c", "b", "z", "x")
 
 
 def test_reproject():

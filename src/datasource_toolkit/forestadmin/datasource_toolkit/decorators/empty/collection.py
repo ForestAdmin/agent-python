@@ -1,6 +1,7 @@
 from typing import List, Optional
 
 from forestadmin.agent_toolkit.utils.context import User
+from forestadmin.datasource_toolkit.decorators.collection_decorator import CollectionDecorator
 from forestadmin.datasource_toolkit.interfaces.fields import Operator
 from forestadmin.datasource_toolkit.interfaces.query.aggregation import AggregateResult, Aggregation
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.base import ConditionTree
@@ -12,7 +13,7 @@ from forestadmin.datasource_toolkit.interfaces.query.projections import Projecti
 from forestadmin.datasource_toolkit.interfaces.records import RecordsDataAlias
 
 
-class EmptyMixin:
+class EmptyCollectionDecorator(CollectionDecorator):
     async def list(self, caller: User, filter: PaginatedFilter, projection: Projection) -> List[RecordsDataAlias]:
         if not self._returns_empty_set(filter.condition_tree):
             return await super().list(caller, filter, projection)

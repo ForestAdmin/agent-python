@@ -1,10 +1,10 @@
 from typing import List, Optional, Union, cast
 
 from forestadmin.agent_toolkit.utils.context import User
-from forestadmin.datasource_toolkit.collections import Collection, CollectionException
-from forestadmin.datasource_toolkit.datasources import Datasource
+from forestadmin.datasource_toolkit.collections import CollectionException
 from forestadmin.datasource_toolkit.interfaces.actions import ActionField, ActionResult
-from forestadmin.datasource_toolkit.interfaces.models.collections import BoundCollection, CollectionSchema
+from forestadmin.datasource_toolkit.interfaces.collections import Collection
+from forestadmin.datasource_toolkit.interfaces.models.collections import BoundCollection, CollectionSchema, Datasource
 from forestadmin.datasource_toolkit.interfaces.query.aggregation import AggregateResult, Aggregation
 from forestadmin.datasource_toolkit.interfaces.query.filter.paginated import PaginatedFilter
 from forestadmin.datasource_toolkit.interfaces.query.filter.unpaginated import Filter
@@ -12,27 +12,40 @@ from forestadmin.datasource_toolkit.interfaces.query.projections import Projecti
 from forestadmin.datasource_toolkit.interfaces.records import RecordsDataAlias
 
 
-class ProxyMixin:
+class CollectionDecorator(Collection):
     def __init__(self, collection: Collection, datasource: Datasource[BoundCollection]):
         self.child_collection = collection
-        self.child_collection._datasource = datasource  # type: ignore
-        self.child_collection._schema = self.schema  # type: ignore
-        self._schema_locked = False
+        self._datasource = datasource
         self._last_schema = None
+
+        if isinstance(self.child_collection, CollectionDecorator):
+            # ugly hack to mark parent schema as dirty
+            child_mark_schema_as_dirty = self.child_collection.mark_schema_as_dirty
+
+            def patched_mark_schema_as_dirty():
+                child_mark_schema_as_dirty()
+                self.mark_schema_as_dirty()
+
+            self.child_collection.mark_schema_as_dirty = patched_mark_schema_as_dirty
 
     def __getattr__(self, name: str):
         return getattr(self.child_collection, name)
 
     def mark_schema_as_dirty(self):
-        self._schema_locked = False
+        self._last_schema = None
+
+    @property
+    def datasource(self) -> Datasource:
+        return self._datasource
+
+    @property
+    def name(self) -> str:
+        return self.child_collection.name
 
     @property
     def schema(self) -> CollectionSchema:
-        if self._schema_locked:
-            return self._last_schema or self.child_collection._schema
-        elif not self._last_schema:
-            self._schema_locked = True
-            self._last_schema = self._refine_schema()
+        if self._last_schema is None:
+            self._last_schema = self._refine_schema(self.child_collection.schema)
         return self._last_schema
 
     def get_field(self, name: str):
@@ -41,17 +54,17 @@ class ProxyMixin:
         except KeyError:
             raise CollectionException(f"No such field {name} in the collection {self.name}")
 
-    def _refine_schema(self) -> CollectionSchema:
-        return self.child_collection.schema
+    def _refine_schema(self, sub_schema: CollectionSchema) -> CollectionSchema:
+        return sub_schema
 
     async def _refine_filter(
-        self, filter: Union[Filter, PaginatedFilter, None]
+        self, caller: User, _filter: Union[Filter, PaginatedFilter, None]
     ) -> Union[Filter, PaginatedFilter, None]:
-        return filter
+        return _filter
 
-    async def list(self, caller: User, filter: PaginatedFilter, projection: Projection) -> List[RecordsDataAlias]:
+    async def list(self, caller: User, _filter: PaginatedFilter, projection: Projection) -> List[RecordsDataAlias]:
         try:
-            refined_filter = cast(PaginatedFilter, await self._refine_filter(filter))
+            refined_filter = cast(PaginatedFilter, await self._refine_filter(caller, _filter))
         except Exception:
             return []
         else:
@@ -65,9 +78,9 @@ class ProxyMixin:
         caller: User,
         name: str,
         data: RecordsDataAlias,
-        filter: Optional[Filter],
+        _filter: Optional[Filter],
     ) -> ActionResult:
-        refined_filter = cast(Filter, await self._refine_filter(filter))
+        refined_filter = cast(Filter, await self._refine_filter(caller, _filter))
         return await self.child_collection.execute(caller, name, data, refined_filter)
 
     async def get_form(
@@ -75,21 +88,21 @@ class ProxyMixin:
         caller: User,
         name: str,
         data: Optional[RecordsDataAlias],
-        filter: Optional[Filter],
+        _filter: Optional[Filter],
     ) -> List[ActionField]:
-        refined_filter = cast(Optional[Filter], await self._refine_filter(filter))
+        refined_filter = cast(Optional[Filter], await self._refine_filter(caller, _filter))
         return await self.child_collection.get_form(caller, name, data, refined_filter)
 
-    async def update(self, caller: User, filter: Optional[Filter], patch: RecordsDataAlias) -> None:
-        refined_filter = cast(Optional[Filter], await self._refine_filter(filter))
+    async def update(self, caller: User, _filter: Optional[Filter], patch: RecordsDataAlias) -> None:
+        refined_filter = cast(Optional[Filter], await self._refine_filter(caller, _filter))
         return await self.child_collection.update(caller, refined_filter, patch)
 
-    async def delete(self, caller: User, filter: Optional[Filter]) -> None:
-        refined_filter = cast(Optional[Filter], await self._refine_filter(filter))
+    async def delete(self, caller: User, _filter: Optional[Filter]) -> None:
+        refined_filter = cast(Optional[Filter], await self._refine_filter(caller, _filter))
         return await self.child_collection.delete(caller, refined_filter)
 
     async def aggregate(
-        self, caller: User, filter: Optional[Filter], aggregation: Aggregation, limit: Optional[int] = None
+        self, caller: User, _filter: Optional[Filter], aggregation: Aggregation, limit: Optional[int] = None
     ) -> List[AggregateResult]:
-        refined_filter = cast(Optional[Filter], await self._refine_filter(filter))
+        refined_filter = cast(Optional[Filter], await self._refine_filter(caller, _filter))
         return await self.child_collection.aggregate(caller, refined_filter, aggregation, limit)

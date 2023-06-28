@@ -12,3 +12,7 @@ class AgentCustomizationContext:
     @property
     def datasource(self) -> RelaxedDatasource:
         return RelaxedDatasource(self._datasource)
+
+    @property
+    def caller(self) -> User:
+        return self._caller

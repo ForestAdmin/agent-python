@@ -3,7 +3,7 @@ from typing import Any, Dict, List, Optional, Set, Tuple, Type, Union, cast
 from forestadmin.agent_toolkit.exceptions import AgentToolkitException
 from forestadmin.agent_toolkit.utils.id import pack_id
 from forestadmin.datasource_toolkit.collections import Collection
-from forestadmin.datasource_toolkit.decorators.collections import CustomizedCollection
+from forestadmin.datasource_toolkit.datasource_customizer.collection_customizer import CollectionCustomizer
 from forestadmin.datasource_toolkit.interfaces.fields import (
     ColumnAlias,
     PrimitiveType,
@@ -17,7 +17,7 @@ from marshmallow.exceptions import MarshmallowError
 from marshmallow.schema import SchemaMeta
 from marshmallow_jsonapi import Schema, fields  # type: ignore
 
-CollectionAlias = Union[Collection, CustomizedCollection]
+CollectionAlias = Union[Collection, CollectionCustomizer]
 
 
 class IntOrFloat(fields.Field):

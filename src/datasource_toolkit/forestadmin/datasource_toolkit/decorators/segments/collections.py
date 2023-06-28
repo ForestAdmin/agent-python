@@ -1,6 +1,8 @@
 from typing import Any, Awaitable, Callable, Dict, Optional, Union, cast
 
+from forestadmin.agent_toolkit.utils.context import User
 from forestadmin.datasource_toolkit.context.collection_context import CollectionCustomizationContext
+from forestadmin.datasource_toolkit.decorators.collection_decorator import CollectionDecorator
 from forestadmin.datasource_toolkit.interfaces.collections import Collection
 from forestadmin.datasource_toolkit.interfaces.models.collections import CollectionSchema
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.factory import ConditionTreeFactory
@@ -11,9 +13,7 @@ from forestadmin.datasource_toolkit.interfaces.query.filter.unpaginated import F
 SegmentAlias = Callable[[CollectionCustomizationContext], Union[ConditionTree, Awaitable[ConditionTree]]]
 
 
-class SegmentMixin:
-    mark_schema_as_dirty: Callable[[], None]
-
+class SegmentCollectionDecorator(CollectionDecorator):
     def __init__(self, *args: Any, **kwargs: Any):
         super().__init__(*args, **kwargs)
         self._segments: Dict[str, SegmentAlias] = {}
@@ -22,29 +22,26 @@ class SegmentMixin:
         self._segments[name] = segment
         self.mark_schema_as_dirty()
 
-    def _refine_schema(self) -> CollectionSchema:
-        schema: CollectionSchema = super(SegmentMixin, self)._refine_schema()  # type: ignore
-        schema["segments"] = [*self._segments.keys()]
-        self._last_schema = schema
-        return schema
+    def _refine_schema(self, sub_schema: CollectionSchema) -> CollectionSchema:
+        return {**sub_schema, "segments": [*self._segments.keys()]}
 
     async def _refine_filter(
-        self, filter: Union[Optional[PaginatedFilter], Optional[Filter]]
+        self, caller: User, _filter: Union[Optional[PaginatedFilter], Optional[Filter]]
     ) -> Optional[Union[PaginatedFilter, Filter]]:
-        filter = cast(SegmentMixin, await super()._refine_filter(filter))  # type: ignore
-        if not filter:
+        _filter = await super()._refine_filter(caller, _filter)  # type: ignore
+        if not _filter:
             return None
 
-        if filter.segment and filter.segment in self._segments:
-            definition = self._segments[filter.segment]
-            context = CollectionCustomizationContext(cast(Collection, self), filter.timezone)
+        if _filter.segment and _filter.segment in self._segments:
+            definition = self._segments[_filter.segment]
+            context = CollectionCustomizationContext(cast(Collection, self), _filter.timezone)
             condition_tree_segment = definition(context)
             if isinstance(condition_tree_segment, Awaitable):
                 condition_tree_segment = await condition_tree_segment
 
             trees = [condition_tree_segment]
-            if filter.condition_tree:
-                trees.append(filter.condition_tree)
+            if _filter.condition_tree:
+                trees.append(_filter.condition_tree)
             condition_tree = ConditionTreeFactory.intersect(trees)
-            filter = filter.override({"condition_tree": condition_tree, "segment": None})
-        return filter
+            _filter = _filter.override({"condition_tree": condition_tree, "segment": None})
+        return _filter
