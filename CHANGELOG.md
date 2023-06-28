@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.1.0-beta.37 (2023-06-28)
+
+### Fix
+
+* **datasource:** Create sqlalchmydatasource when using flask_sqlalchemy package ([#83](https://github.com/ForestAdmin/agent-python/issues/83)) ([`caae7d0`](https://github.com/ForestAdmin/agent-python/commit/caae7d059911e6621909f1793a6bf4e0c2299e04))
+
 ## v0.1.0-beta.36 (2023-06-28)
 
 ### Feature
