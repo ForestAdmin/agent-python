@@ -19,6 +19,8 @@ class SqlAlchemyDatasource(BaseSqlAlchemyDatasource):
             hasattr(Base, "Model") and hasattr(Base.Model, "metadata") and isinstance(Base.Model.metadata, MetaData)
         ):  # from flask_sqlalchemy package
             self._base = Base.Model
+            if bind is None and Base.engine is not None:
+                bind = Base.engine
         else:
             raise SqlAlchemyDatasourceException("Impossible to access to your sqlalchemy models.")
 
