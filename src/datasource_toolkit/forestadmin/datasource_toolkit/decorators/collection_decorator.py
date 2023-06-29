@@ -78,7 +78,7 @@ class CollectionDecorator(Collection):
         caller: User,
         name: str,
         data: RecordsDataAlias,
-        _filter: Optional[Filter],
+        _filter: Optional[Filter] = None,
     ) -> ActionResult:
         refined_filter = cast(Filter, await self._refine_filter(caller, _filter))
         return await self.child_collection.execute(caller, name, data, refined_filter)
@@ -88,7 +88,7 @@ class CollectionDecorator(Collection):
         caller: User,
         name: str,
         data: Optional[RecordsDataAlias],
-        _filter: Optional[Filter],
+        _filter: Optional[Filter] = None,
     ) -> List[ActionField]:
         refined_filter = cast(Optional[Filter], await self._refine_filter(caller, _filter))
         return await self.child_collection.get_form(caller, name, data, refined_filter)
