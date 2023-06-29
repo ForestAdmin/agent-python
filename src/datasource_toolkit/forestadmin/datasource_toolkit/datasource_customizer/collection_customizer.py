@@ -24,7 +24,7 @@ class CollectionCustomizer:
     def rename_field(self, current_name: str, new_name: str):
         self.stack.rename_field.get_collection(self.collection_name).rename_field(current_name, new_name)
 
-    def register_computed(self, name: str, computed: ComputedDefinition):
+    def add_field(self, name: str, computed: ComputedDefinition):
         self.stack.early_computed.get_collection(self.collection_name).register_computed(name, computed)
         # TODO: implement the switch after relation decorator
         # const collectionBeforeRelations = this.stack.earlyComputed.getCollection(this.name);
