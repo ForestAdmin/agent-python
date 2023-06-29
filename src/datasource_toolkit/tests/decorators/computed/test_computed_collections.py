@@ -165,6 +165,53 @@ class TestComputedCollectionDecorator(TestCase):
         assert results[1]["title"] == self.book_records[1]["title"]
         assert results[1]["author"]["full_name_with_context"] == "Edward O. Thorp - 1"
 
+    def test_get_values_can_be_callable_or_awaitables(self):
+        def get_values(records, context):
+            return [f"{record['first_name']} {record['last_name']}" for record in records]
+
+        self.datasource_decorator.get_collection("Person").register_computed(
+            "full_name_sync",
+            ComputedDefinition(
+                column_type=PrimitiveType.STRING,
+                dependencies=["first_name", "last_name"],
+                get_values=get_values,
+            ),
+        )
+        book_decorated = self.datasource_decorator.get_collection("Book")
+        with patch.object(self.collection_book, "list", new_callable=AsyncMock, return_value=self.book_records):
+            results = self.loop.run_until_complete(
+                book_decorated.list(
+                    self.mocked_caller, PaginatedFilter({}), Projection("title", "author:full_name_sync")
+                )
+            )
+        assert results[0]["title"] == self.book_records[0]["title"]
+        assert results[0]["author"]["full_name_sync"] == "Isaac Asimov"
+        assert results[1]["title"] == self.book_records[1]["title"]
+        assert results[1]["author"]["full_name_sync"] == "Edward O. Thorp"
+
+    def test_get_values_can_also_be_lambda(self):
+        self.datasource_decorator.get_collection("Person").register_computed(
+            "full_name_sync",
+            ComputedDefinition(
+                column_type=PrimitiveType.STRING,
+                dependencies=["first_name", "last_name"],
+                get_values=lambda records, context: [
+                    f"{record['first_name']} {record['last_name']}" for record in records
+                ],
+            ),
+        )
+        book_decorated = self.datasource_decorator.get_collection("Book")
+        with patch.object(self.collection_book, "list", new_callable=AsyncMock, return_value=self.book_records):
+            results = self.loop.run_until_complete(
+                book_decorated.list(
+                    self.mocked_caller, PaginatedFilter({}), Projection("title", "author:full_name_sync")
+                )
+            )
+        assert results[0]["title"] == self.book_records[0]["title"]
+        assert results[0]["author"]["full_name_sync"] == "Isaac Asimov"
+        assert results[1]["title"] == self.book_records[1]["title"]
+        assert results[1]["author"]["full_name_sync"] == "Edward O. Thorp"
+
     def test_aggregate_no_computed(self):
         aggregation = Aggregation(PlainAggregation(operation="Count"))
         book_collection = self.datasource_decorator.get_collection("Book")
@@ -187,9 +234,6 @@ class TestComputedCollectionDecorator(TestCase):
     def test_aggregate_computed(self):
         aggregation = Aggregation(PlainAggregation(operation="Min", field="author:full_name"))
         book_collection = self.datasource_decorator.get_collection("Book")
-
-        def mocked_list(caller, _filter, projection):
-            return aggregation.apply(self.book_records, self.mocked_caller.timezone)
 
         with patch.object(self.collection_book, "list", new_callable=AsyncMock, return_value=self.book_records):
             result = self.loop.run_until_complete(

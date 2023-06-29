@@ -1,5 +1,5 @@
 import copy
-from typing import Any, List, Optional, Tuple, cast
+from typing import Any, Awaitable, List, Optional, Tuple, cast
 
 from forestadmin.datasource_toolkit.context.collection_context import CollectionCustomizationContext
 from forestadmin.datasource_toolkit.decorators.computed.exceptions import ComputedDecoratorException
@@ -31,7 +31,10 @@ async def compute_field(
     dependency_values: List[List[Any]],
 ) -> List[Output]:
     async def _compute_field_cb(unique_partials: List[RecordsDataAlias]) -> Output:
-        return await computed["get_values"](unique_partials, context)
+        ret = computed["get_values"](unique_partials, context)
+        if isinstance(ret, Awaitable):
+            ret = await ret
+        return ret
 
     return await transform_unique_values(unflatten(dependency_values, Projection(*paths)), _compute_field_cb)
 
