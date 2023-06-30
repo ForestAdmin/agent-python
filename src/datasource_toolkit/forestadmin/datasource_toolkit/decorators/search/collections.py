@@ -71,7 +71,7 @@ class SearchCollectionDecorator(CollectionDecorator):
         # Let sub collection deal with the search
         return _filter
 
-    def _build_condition(self, field: str, schema: Column, search: str) -> ConditionTree | None:
+    def _build_condition(self, field: str, schema: Column, search: str) -> Union[ConditionTree, None]:
         if (
             schema["column_type"] == PrimitiveType.NUMBER
             and search.isnumeric()
@@ -111,7 +111,7 @@ class SearchCollectionDecorator(CollectionDecorator):
         ):
             return ConditionTreeLeaf(field, Operator.EQUAL, search)
 
-    def lenient_find(self, haystack: List[str], needle: str) -> str | None:
+    def lenient_find(self, haystack: List[str], needle: str) -> Union[str, None]:
         for item in haystack:
             if needle.strip() == item or needle.strip().lower() == item.lower():
                 return item
