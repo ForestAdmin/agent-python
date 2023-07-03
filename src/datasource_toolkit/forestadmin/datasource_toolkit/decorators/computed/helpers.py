@@ -2,7 +2,6 @@ import copy
 from typing import Any, Awaitable, List, Optional, Tuple, cast
 
 from forestadmin.datasource_toolkit.context.collection_context import CollectionCustomizationContext
-from forestadmin.datasource_toolkit.decorators.computed.exceptions import ComputedDecoratorException
 from forestadmin.datasource_toolkit.decorators.computed.types import ComputedDefinition
 from forestadmin.datasource_toolkit.decorators.computed.utils import Output, flatten, transform_unique_values, unflatten
 from forestadmin.datasource_toolkit.interfaces.fields import RelationAlias
@@ -16,9 +15,9 @@ def rewrite_fields(collection: Any, path: str) -> Projection:
         schema = cast(RelationAlias, collection.get_field(prefix))
         association = collection.datasource.get_collection(schema["foreign_collection"])
         return Projection(path).unnest().replace(lambda sub_path: rewrite_fields(association, sub_path)).nest(prefix)
-    try:
-        computed = collection.get_computed(path)
-    except ComputedDecoratorException:
+
+    computed = collection.get_computed(path)
+    if computed is None:
         return Projection(path)
     else:
         return Projection(*computed["dependencies"]).replace(lambda dep_path: rewrite_fields(collection, dep_path))

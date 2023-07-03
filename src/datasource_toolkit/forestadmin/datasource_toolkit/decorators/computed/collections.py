@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Optional, cast
+from typing import Any, Dict, List, Optional, Union, cast
 
 from forestadmin.agent_toolkit.utils.context import User
 from forestadmin.datasource_toolkit.context.collection_context import CollectionCustomizationContext
@@ -24,12 +24,12 @@ class ComputedCollectionDecorator(CollectionDecorator):
         super().__init__(*args, **kwargs)
         self._computeds: Dict[str, ComputedDefinition] = {}
 
-    def get_computed(self, path: str) -> ComputedDefinition:
+    def get_computed(self, path: str) -> Union[ComputedDefinition, None]:
         if ":" not in path:
             try:
                 return self._computeds[path]
             except KeyError:
-                raise ComputedDecoratorException(f"{path} is not a computed field")
+                return None
 
         related_field, path = path.split(":")
         field = cast(RelationAlias, self.get_field(related_field))
