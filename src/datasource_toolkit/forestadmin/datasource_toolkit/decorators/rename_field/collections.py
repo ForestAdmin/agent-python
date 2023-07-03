@@ -60,7 +60,7 @@ class RenameFieldCollectionDecorator(CollectionDecorator):
         _filter = await super()._refine_filter(caller, _filter)  # type: ignore
         if _filter and _filter.condition_tree:
             _filter = _filter.override({"condition_tree": _filter.condition_tree.replace(computed_fields)})
-        if _filter and _filter.sort:
+        if _filter and isinstance(_filter, PaginatedFilter) and _filter.sort:
             new_sort = _filter.sort.replace_clauses(
                 lambda clause: [
                     {
