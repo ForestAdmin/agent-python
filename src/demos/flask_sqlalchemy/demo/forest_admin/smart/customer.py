@@ -35,18 +35,17 @@ def french_address_segment(context: CollectionCustomizationContext):
 # computed fields
 def customer_spending_computed():
     async def get_customer_spending_values(records: List[RecordsDataAlias], context: CollectionCustomizationContext):
-        amount_cost_field_name = "amount"
         record_ids = [record["id"] for record in records]
         condition = {"conditionTree": [ConditionTreeLeaf(field="customer_id", operator=Operator.IN, value=record_ids)]}
 
         aggregation = Aggregation(
             component=PlainAggregation(
                 operation="Sum",
-                field=amount_cost_field_name,
+                field="amount",
                 groups=[PlainAggregationGroup(field="customer_id")],
             ),
         )
-        rows = await context.datasource.get_collection("order").aggregate(None, condition, aggregation)
+        rows = await context.datasource.get_collection("order").aggregate(context.caller, condition, aggregation)
         ret = []
         for record in records:
             filtered = [*filter(lambda r: r["group"]["customer_id"] == record["id"], rows)]
