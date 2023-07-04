@@ -3,7 +3,6 @@ import json
 from operator import add, sub
 from typing import List, Union
 
-from forestadmin.agent_toolkit.utils.context import User
 from forestadmin.datasource_toolkit.context.collection_context import CollectionCustomizationContext
 from forestadmin.datasource_toolkit.decorators.action.context.bulk import ActionContextBulk
 from forestadmin.datasource_toolkit.decorators.action.context.single import ActionContextSingle
@@ -11,7 +10,7 @@ from forestadmin.datasource_toolkit.decorators.action.result_builder import Resu
 from forestadmin.datasource_toolkit.decorators.action.types.actions import ActionBulk, ActionSingle
 from forestadmin.datasource_toolkit.decorators.action.types.fields import (
     PlainDynamicField,
-    PlainEnumDynamicField,
+    PlainListEnumDynamicField,
     PlainStringDynamicField,
 )
 from forestadmin.datasource_toolkit.decorators.computed.types import ComputedDefinition
@@ -80,9 +79,7 @@ def customer_full_name() -> ComputedDefinition:
 class ExportJson(ActionBulk):
     GENERATE_FILE: bool = True
 
-    async def execute(
-        self, caller: User, context: ActionContextBulk, result_builder: ResultBuilder
-    ) -> Union[None, ActionResult]:
+    async def execute(self, context: ActionContextBulk, result_builder: ResultBuilder) -> Union[None, ActionResult]:
         records = await context.get_records(Projection("id", "full name", "age"))
         return result_builder.file(
             io.BytesIO(json.dumps({"data": records}).encode("utf-8")),
@@ -109,7 +106,7 @@ class AgeOperation(ActionSingle):
             "is_required": True,
             "default_value": "+",
             "value": "+",
-            "" "enum_values": ["+", "-"],
+            "enum_values": ["+", "-"],
         },
         {
             "type": ActionFieldType.NUMBER,
@@ -133,7 +130,9 @@ class AgeOperation(ActionSingle):
             # is_read_only=False,
             # default_value=[1, 2],
         ),
-        PlainEnumDynamicField(label="Rating", type=ActionFieldType.ENUM, enum_values=["1", "2", "3", "4", "5"]),
+        PlainListEnumDynamicField(
+            label="Rating", type=ActionFieldType.ENUM_LIST, enum_values=["1", "2", "3", "4", "5"]
+        ),
         PlainStringDynamicField(
             label="Put a comment",
             type=ActionFieldType.STRING,
@@ -142,9 +141,7 @@ class AgeOperation(ActionSingle):
         ),
     ]
 
-    async def execute(
-        self, caller: User, context: ActionContextSingle, result_builder: ResultBuilder
-    ) -> Union[None, ActionResult]:
+    async def execute(self, context: ActionContextSingle, result_builder: ResultBuilder) -> Union[None, ActionResult]:
         operation = add
         if context.form_values["Kind of operation"] == "-":
             operation = sub
@@ -152,5 +149,6 @@ class AgeOperation(ActionSingle):
 
         record = await context.get_record(Projection("age"))
         new_age = operation(record["age"], value)
-        await context.collection.update(caller, context.filter, {"age": new_age})
+        await context.collection.update(context.caller, context.filter, {"age": new_age})
         return result_builder.success("<h1> Success </h1>", options={"type": "html"})
+        # return result_builder.success("Success")  # , options={"type": "html"})

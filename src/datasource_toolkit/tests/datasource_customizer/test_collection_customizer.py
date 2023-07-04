@@ -222,7 +222,7 @@ class TestCollectionCustomizer(TestCase):
             async def execute(self, context: Context, result_builder: ResultBuilder) -> Union[None, ActionResult]:
                 return None
 
-        self.book_customizer.add_action("action_man", ActionMan)
+        self.book_customizer.add_action("action_man", ActionMan())
 
         schema = self.datasource_customizer.stack.publication.get_collection("Book").schema
-        assert "action_man" not in schema["actions"]
+        assert "action_man" in schema["actions"]

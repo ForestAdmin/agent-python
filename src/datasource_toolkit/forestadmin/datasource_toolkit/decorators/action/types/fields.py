@@ -11,7 +11,7 @@ from forestadmin.datasource_toolkit.decorators.action.context.base import Action
 from forestadmin.datasource_toolkit.exceptions import DatasourceToolkitException
 from forestadmin.datasource_toolkit.interfaces.actions import ActionField, ActionFieldType, File
 from forestadmin.datasource_toolkit.interfaces.records import CompositeIdAlias
-from typing_extensions import NotRequired, Self
+from typing_extensions import NotRequired
 
 Context = TypeVar("Context", bound=ActionContext)
 Result = TypeVar("Result")
@@ -61,17 +61,17 @@ class BaseDynamicField(Generic[Context, Result]):
         return any(map(lambda x: isinstance(x, Callable), self.dynamic_fields))
 
     async def to_action_field(self, context: Context, default_value: Result) -> ActionField:
-        return {
-            "type": self.TYPE,
-            "label": self.label,
-            "description": self.description,
-            "is_read_only": await self.is_read_only(context),
-            "is_required": await self.is_required(context),
-            "value": await self.value(context) or default_value,
-            "collection_name": None,
-            "enum_values": None,
-            "watch_changes": False,
-        }
+        return ActionField(
+            type=self.TYPE,
+            label=self.label,
+            description=self.description,
+            is_read_only=await self.is_read_only(context),
+            is_required=await self.is_required(context),
+            value=await self.value(context) or default_value,
+            collection_name=None,
+            enum_values=None,
+            watch_changes=False,
+        )
 
     async def default_value(self, context: Context) -> Result:
         return await self._evaluate(context, self._default_value)
@@ -97,9 +97,9 @@ class BaseDynamicField(Generic[Context, Result]):
         else:
             return attribute
 
-    @classmethod
-    def from_plain_field(cls, plain_field: PlainBaseDynamicField) -> Self:
-        return cls(**plain_field)
+    # @classmethod
+    # def from_plain_field(cls, plain_field: PlainBaseDynamicField) -> Self:
+    #     return cls(**plain_field)
 
 
 class PlainCollectionDynamicField(PlainField):
@@ -109,6 +109,7 @@ class PlainCollectionDynamicField(PlainField):
     default_value: NotRequired[ValueOrHandler[ActionContext, CompositeIdAlias]]
 
 
+# collection
 class CollectionDynamicField(Generic[Context], BaseDynamicField[Context, CompositeIdAlias]):
     TYPE = ActionFieldType.COLLECTION
 
@@ -123,30 +124,31 @@ class CollectionDynamicField(Generic[Context], BaseDynamicField[Context, Composi
         value: Optional[ValueOrHandler[Context, CompositeIdAlias]] = None,
         default_value: Optional[ValueOrHandler[Context, CompositeIdAlias]] = None,
     ):
-        super(CollectionDynamicField[Context], self).__init__(
+        super(CollectionDynamicField, self).__init__(
             label, description, is_required, is_read_only, if_, value, default_value
         )
         self._collection_name = collection_name
 
     @property
     def dynamic_fields(self):
-        return [*super(CollectionDynamicField[Context], self).dynamic_fields, self._collection_name]
+        return [*super(CollectionDynamicField, self).dynamic_fields, self._collection_name]
 
     async def collection_name(self, context: Context) -> str:
         return await self._evaluate(context, self._collection_name)
 
     async def to_action_field(self, context: Context, default_value: CompositeIdAlias) -> ActionField:
-        res = await super(CollectionDynamicField[Context], self).to_action_field(context, default_value)
+        res = await super(CollectionDynamicField, self).to_action_field(context, default_value)
         res["collection_name"] = await self.collection_name(context)
         return res
 
-    @classmethod
-    def from_plain_field(  # type: ignore
-        cls, plain_field: PlainCollectionDynamicField
-    ) -> Self:  # type: ignore
-        return cls(**plain_field)  # type: ignore
+    # @classmethod
+    # def from_plain_field(  # type: ignore
+    #     cls, plain_field: PlainCollectionDynamicField
+    # ) -> Self:  # type: ignore
+    #     return cls(**plain_field)  # type: ignore
 
 
+# enum
 class PlainEnumDynamicField(PlainField):
     enum_values: ValueOrHandler[ActionContext, List[str]]
     if_: NotRequired[ValueOrHandler[ActionContext, Any]]
@@ -183,11 +185,12 @@ class EnumDynamicField(BaseDynamicField[Context, str], Generic[Context]):
         res["enum_values"] = await self.enum_values(context)
         return res
 
-    @classmethod
-    def from_plain_field(cls, plain_field: PlainEnumDynamicField) -> Self:  # type: ignore
-        return cls(**plain_field)  # type: ignore
+    # @classmethod
+    # def from_plain_field(cls, plain_field: PlainEnumDynamicField) -> Self:  # type: ignore
+    #     return cls(**plain_field)  # type: ignore
 
 
+# enum list
 class PlainListEnumDynamicField(PlainField):
     enum_values: ValueOrHandler[ActionContext, List[str]]
     if_: NotRequired[ValueOrHandler[ActionContext, Any]]
@@ -209,28 +212,32 @@ class EnumListDynamicField(Generic[Context], BaseDynamicField[Context, List[str]
         value: Optional[ValueOrHandler[Context, List[str]]] = None,
         default_value: Optional[ValueOrHandler[Context, List[str]]] = None,
     ):
-        super(EnumListDynamicField[Context], self).__init__(
+        super(EnumListDynamicField, self).__init__(
             label, description, is_required, is_read_only, if_, value, default_value
         )
         self._enum_values = enum_values
 
     @property
     def dynamic_fields(self):
-        return [*super(EnumListDynamicField[Context], self).dynamic_fields, self._enum_values]
+        return [*super(EnumListDynamicField, self).dynamic_fields, self._enum_values]
 
     async def enum_values(self, context: Context) -> List[str]:
         return await self._evaluate(context, self._enum_values)
 
     async def to_action_field(self, context: Context, default_value: List[str]) -> ActionField:
-        res = await super(EnumListDynamicField[Context], self).to_action_field(context, default_value)
+        res = await super(EnumListDynamicField, self).to_action_field(context, default_value)
         res["enum_values"] = await self.enum_values(context)
+        if res["value"] is None:
+            res["value"] = []
         return res
 
-    @classmethod
-    def from_plain_field(cls, plain_field: PlainListEnumDynamicField) -> Self:  # type: ignore
-        return cls(**plain_field)  # type: ignore
+    # unused ???
+    # @classmethod
+    # def from_plain_field(cls, plain_field: PlainListEnumDynamicField) -> Self:  # type: ignore
+    #     return cls(**plain_field)  # type: ignore
 
 
+# boolean
 class PlainBooleanDynamicField(PlainField):
     if_: NotRequired[ValueOrHandler[ActionContext, Any]]
     value: NotRequired[ValueOrHandler[ActionContext, bool]]
@@ -241,6 +248,7 @@ class BooleanDynamicField(Generic[Context], BaseDynamicField[Context, bool]):
     TYPE = ActionFieldType.BOOLEAN
 
 
+# number
 class PlainNumberDynamicField(PlainField):
     if_: NotRequired[ValueOrHandler[ActionContext, Any]]
     value: NotRequired[ValueOrHandler[ActionContext, Union[int, float]]]
@@ -251,16 +259,7 @@ class NumberDynamicField(Generic[Context], BaseDynamicField[Context, Union[int, 
     TYPE = ActionFieldType.NUMBER
 
 
-class PlainStringDynamicField(PlainField):
-    if_: NotRequired[ValueOrHandler[ActionContext, Any]]
-    value: NotRequired[ValueOrHandler[ActionContext, str]]
-    default_value: NotRequired[ValueOrHandler[ActionContext, str]]
-
-
-class StringDynamicField(Generic[Context], BaseDynamicField[Context, str]):
-    TYPE = ActionFieldType.STRING
-
-
+# number list
 class PlainListNumberDynamicField(PlainField):
     if_: NotRequired[ValueOrHandler[ActionContext, Any]]
     value: NotRequired[ValueOrHandler[ActionContext, Union[int, float]]]
@@ -271,6 +270,29 @@ class NumberListDynamicField(Generic[Context], BaseDynamicField[Context, List[Un
     TYPE = ActionFieldType.NUMBER_LIST
 
 
+# string
+class PlainStringDynamicField(PlainField):
+    if_: NotRequired[ValueOrHandler[ActionContext, Any]]
+    value: NotRequired[ValueOrHandler[ActionContext, str]]
+    default_value: NotRequired[ValueOrHandler[ActionContext, str]]
+
+
+class StringDynamicField(Generic[Context], BaseDynamicField[Context, str]):
+    TYPE = ActionFieldType.STRING
+
+
+# string list
+class PlainStringListDynamicField(PlainField):
+    if_: NotRequired[ValueOrHandler[ActionContext, Any]]
+    value: NotRequired[ValueOrHandler[ActionContext, str]]
+    default_value: NotRequired[ValueOrHandler[ActionContext, str]]
+
+
+class StringListDynamicField(Generic[Context], BaseDynamicField[Context, str]):
+    TYPE = ActionFieldType.STRING_LIST
+
+
+# json
 class PlainJsonDynamicField(PlainField):
     if_: NotRequired[ValueOrHandler[ActionContext, Any]]
     value: NotRequired[ValueOrHandler[ActionContext, str]]
@@ -281,11 +303,23 @@ class JsonDynamicField(Generic[Context], BaseDynamicField[Context, str]):
     TYPE = ActionFieldType.JSON
 
 
+# file
 class FileDynamicField(Generic[Context], BaseDynamicField[Context, File]):
     TYPE = ActionFieldType.FILE
 
 
 class PlainFileDynamicField(PlainField):
+    if_: NotRequired[ValueOrHandler[ActionContext, Any]]
+    value: NotRequired[ValueOrHandler[ActionContext, File]]
+    default_value: NotRequired[ValueOrHandler[ActionContext, File]]
+
+
+# file list
+class FileListDynamicField(Generic[Context], BaseDynamicField[Context, File]):
+    TYPE = ActionFieldType.FILE_LIST
+
+
+class PlainFileListDynamicField(PlainField):
     if_: NotRequired[ValueOrHandler[ActionContext, Any]]
     value: NotRequired[ValueOrHandler[ActionContext, File]]
     default_value: NotRequired[ValueOrHandler[ActionContext, File]]
@@ -326,10 +360,13 @@ class FieldFactory(Generic[Context]):
         ActionFieldType.NUMBER: NumberDynamicField,
         ActionFieldType.NUMBER_LIST: NumberListDynamicField,
         ActionFieldType.STRING: StringDynamicField,
+        ActionFieldType.STRING_LIST: StringListDynamicField,
         ActionFieldType.BOOLEAN: BooleanDynamicField,
         ActionFieldType.ENUM: EnumDynamicField,
+        ActionFieldType.ENUM_LIST: EnumListDynamicField,
         ActionFieldType.JSON: JsonDynamicField,
         ActionFieldType.FILE: FileDynamicField,
+        ActionFieldType.FILE_LIST: FileListDynamicField,
     }
 
     @classmethod

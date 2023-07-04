@@ -35,7 +35,7 @@ class ActionContext(CollectionCustomizationContext):
         caller: User,
         form_value: RecordsDataAlias,
         filter: Filter,
-        used: Optional[Set[str]],
+        used: Optional[Set[str]] = set(),
     ):
         super(ActionContext, self).__init__(collection, caller)
         self.form_values = FormValueObserver(**form_value)

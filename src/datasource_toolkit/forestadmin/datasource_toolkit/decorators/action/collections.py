@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Optional, Set, Union, cast
+from typing import Any, Awaitable, Dict, List, Optional, Set, Union, cast
 
 from forestadmin.agent_toolkit.utils.context import User
 from forestadmin.datasource_toolkit.collections import Collection
@@ -34,29 +34,31 @@ class ActionCollectionDecorator(CollectionDecorator):
         caller: User,
         name: str,
         data: RecordsDataAlias,
-        filter: Optional[Filter],
+        filter_: Optional[Filter] = None,
     ) -> ActionResult:
-        action = self._actions[name]
+        action = self._actions.get(name)
         if not action:
-            return super().execute(caller, name, data, filter)  # type: ignore
+            return await super().execute(caller, name, data, filter_)  # type: ignore
 
-        context = self._get_context(caller, action, data, filter)
+        context = self._get_context(caller, action, data, filter_)
         response_builder = ResultBuilder()
-        result = await action.execute(caller, context, response_builder)  # type: ignore
+        result = action.execute(context, response_builder)  # type: ignore
+        if isinstance(result, Awaitable):
+            result = await result
         return result or {"type": "Success", "invalidated": set(), "format": "text", "message": "Success"}
 
     async def get_form(
-        self, caller: User, name: str, data: Optional[RecordsDataAlias], filter: Optional[Filter]
+        self, caller: User, name: str, data: Optional[RecordsDataAlias], filter_: Optional[Filter] = None
     ) -> List[ActionField]:
         action = self._actions.get(name)
         if not action:
-            return super().get_form(caller, name, data, filter)  # type: ignore
+            return await super().get_form(caller, name, data, filter_)  # type: ignore
         elif not action.form:
             return []
 
         form_values = data or {}
         used: Set[str] = set()
-        context = self._get_context(caller, action, form_values, filter, used)
+        context = self._get_context(caller, action, form_values, filter_, used)
         form_fields: List[DynamicField[ActionContext]] = cast(
             List[DynamicField[ActionContext]], [field for field in action.form]
         )
@@ -83,7 +85,7 @@ class ActionCollectionDecorator(CollectionDecorator):
         caller: User,
         action: Union[ActionSingle, ActionBulk, ActionGlobal],
         form_values: RecordsDataAlias,
-        filter: Optional[Filter],
+        filter_: Optional[Filter] = None,
         used: Optional[Set[str]] = None,
     ) -> ActionContext:
         return {
@@ -91,7 +93,7 @@ class ActionCollectionDecorator(CollectionDecorator):
             ActionBulk.SCOPE: ActionContextBulk,
             ActionGlobal.SCOPE: ActionContext,
         }[action.SCOPE](
-            cast(Collection, self), caller, form_values, filter, used  # type: ignore
+            cast(Collection, self), caller, form_values, filter_, used  # type: ignore
         )
 
     async def _build_form_values(

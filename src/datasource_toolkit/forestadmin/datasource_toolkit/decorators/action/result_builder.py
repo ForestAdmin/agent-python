@@ -1,5 +1,5 @@
 import sys
-from io import BytesIO
+from io import IOBase
 
 if sys.version_info >= (3, 8):
     from typing import Literal, TypedDict
@@ -41,8 +41,14 @@ class ResultBuilder:
         }
 
     @classmethod
-    def error(cls, message: Optional[str] = None) -> ActionResult:
-        return {"type": cls.ERROR, "message": message or cls.ERROR}
+    def error(cls, message: Optional[str] = None, options: Optional[OptionAlias] = None) -> ActionResult:
+        if not options:
+            options = {}
+        return {
+            "type": cls.ERROR,
+            "message": message or cls.ERROR,
+            "format": options.get("type", "text"),
+        }
 
     @classmethod
     def webhook(
@@ -55,7 +61,7 @@ class ResultBuilder:
         return {"type": cls.WEBHOOK, "url": url, "method": method, "headers": headers or {}, "body": body or {}}
 
     @classmethod
-    def file(cls, file: BytesIO, name: str = "file", mime_type: str = "text/plain") -> ActionResult:
+    def file(cls, file: IOBase, name: str = "file", mime_type: str = "text/plain") -> ActionResult:
         return {"type": cls.FILE, "name": name, "mimeType": mime_type, "stream": file}
 
     @classmethod
