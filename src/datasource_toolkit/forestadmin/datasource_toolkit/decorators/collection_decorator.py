@@ -28,8 +28,8 @@ class CollectionDecorator(Collection):
 
             self.child_collection.mark_schema_as_dirty = patched_mark_schema_as_dirty
 
-    def __getattr__(self, name: str):
-        return getattr(self.child_collection, name)
+    # def __getattr__(self, name: str):
+    #     return getattr(self.child_collection, name)
 
     def mark_schema_as_dirty(self):
         self._last_schema = None

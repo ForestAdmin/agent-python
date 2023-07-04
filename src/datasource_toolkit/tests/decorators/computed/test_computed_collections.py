@@ -3,11 +3,6 @@ import sys
 from unittest import TestCase
 from unittest.mock import patch
 
-from forestadmin.datasource_toolkit.interfaces.query.aggregation import Aggregation, PlainAggregation
-from forestadmin.datasource_toolkit.interfaces.query.filter.paginated import PaginatedFilter
-from forestadmin.datasource_toolkit.interfaces.query.filter.unpaginated import Filter
-from forestadmin.datasource_toolkit.interfaces.query.projections import Projection
-
 if sys.version_info >= (3, 8):
     from unittest.mock import AsyncMock
 else:
@@ -25,6 +20,10 @@ from forestadmin.datasource_toolkit.decorators.computed.exceptions import Comput
 from forestadmin.datasource_toolkit.decorators.computed.types import ComputedDefinition
 from forestadmin.datasource_toolkit.decorators.datasource_decorator import DatasourceDecorator
 from forestadmin.datasource_toolkit.interfaces.fields import Column, FieldType, ManyToOne, OneToOne, PrimitiveType
+from forestadmin.datasource_toolkit.interfaces.query.aggregation import Aggregation, PlainAggregation
+from forestadmin.datasource_toolkit.interfaces.query.filter.paginated import PaginatedFilter
+from forestadmin.datasource_toolkit.interfaces.query.filter.unpaginated import Filter
+from forestadmin.datasource_toolkit.interfaces.query.projections import Projection
 
 
 class TestComputedCollectionDecorator(TestCase):

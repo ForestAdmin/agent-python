@@ -49,7 +49,8 @@ class TestActionFieldFactory(TestCase):
         )
         self.assertRaisesRegex(
             FieldFactoryException,
-            r"🌳🌳🌳Unable to build a field. cls: 'StringDynamicField', e: '(BaseDynamicField\.)?__init__\(\) got an unexpected keyword argument 'error''",
+            r"🌳🌳🌳Unable to build a field. cls: 'StringDynamicField', e: '(BaseDynamicField\.)?__init__\(\) "
+            "got an unexpected keyword argument 'error''",
             FieldFactory.build,
             plain_field,
         )
