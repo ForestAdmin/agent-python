@@ -94,6 +94,13 @@ class BaseDynamicField(Generic[Context, Result]):
             if isinstance(res, Awaitable):
                 return await res
             return res
+        # ugly hack for static or classmethod in python<3.10
+        # https://stackoverflow.com/questions/41921255/staticmethod-object-is-not-callable
+        elif hasattr(attribute, "__func__") and isinstance(attribute.__func__, Callable):
+            res = attribute.__func__(context)
+            if isinstance(res, Awaitable):
+                return await res
+            return res
         else:
             return attribute
 

@@ -359,3 +359,63 @@ class TestActionCollectionCustomizer(TestCase):
                 watch_changes=True,
             ),
         ]
+
+    def test_get_form_can_handle_multiple_form_of_fn(self):
+        class TestAction(ActionSingle):
+            @staticmethod
+            def is_required(context):
+                return True
+
+            @staticmethod
+            async def is_readonly(context):
+                return True
+
+            SCOPE = ActionsScope.SINGLE
+            FORM = [
+                PlainEnumDynamicField(
+                    label="rating", type=ActionFieldType.ENUM, enum_values=[1, 2, 3, 4, 5], is_required=lambda ctx: True
+                ),
+                PlainStringDynamicField(
+                    label="Put a comment",
+                    type=ActionFieldType.STRING,
+                    is_read_only=is_readonly,
+                    is_required=is_required,
+                    if_=lambda context: context.form_values.get("rating") is not None
+                    and context.form_values["rating"] < 4,
+                ),
+            ]
+
+            async def execute(
+                self, context: ActionContextSingle, result_builder: ResultBuilder
+            ) -> Coroutine[Any, Any, Union[ActionResult, None]]:
+                result_builder.success("Bravo !!!")
+
+        self.product_collection.add_action("action_test", TestAction())
+
+        result = self.loop.run_until_complete(
+            self.product_collection.get_form(self.mocked_caller, "action_test", {"rating": 2})
+        )
+        assert result == [
+            ActionField(
+                label="rating",
+                type=ActionFieldType.ENUM,
+                description="",
+                is_read_only=False,
+                is_required=True,
+                value=2,
+                collection_name=None,
+                enum_values=[1, 2, 3, 4, 5],
+                watch_changes=True,
+            ),
+            ActionField(
+                label="Put a comment",
+                type=ActionFieldType.STRING,
+                description="",
+                is_read_only=True,
+                is_required=True,
+                value=None,
+                collection_name=None,
+                enum_values=None,
+                watch_changes=False,
+            ),
+        ]
