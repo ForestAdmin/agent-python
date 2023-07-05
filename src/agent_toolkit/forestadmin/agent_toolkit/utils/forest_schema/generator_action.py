@@ -59,8 +59,8 @@ class SchemaActionGenerator:
             "description": field["description"],
             "enums": None,
             "hook": None,
-            "isReadOnly": field["is_read_only"] or False,
-            "isRequired": field["is_required"] or True,
+            "isReadOnly": field.get("is_read_only", False),
+            "isRequired": field.get("is_required", True),
             "reference": None,
             "type": PrimitiveType.STRING,
             "widget": None,
@@ -71,17 +71,18 @@ class SchemaActionGenerator:
             pk_schema = cast(Column, collection.get_field(pk))
             output["type"] = SchemaFieldGenerator.build_column_type(pk_schema["column_type"])  # type: ignore
             output["reference"] = f"{collection.name}.{pk}"
-        elif field["type"] == ActionFieldType.ENUM_LIST:
-            output["type"] = PrimitiveType.ENUM
-        elif field["type"] == ActionFieldType.NUMBER_LIST:
-            output["type"] = PrimitiveType.NUMBER
-        elif field["type"] == ActionFieldType.FILE:
-            output["type"] = "File"
+
+        elif "File" in field["type"].value:
+            output["type"] = ["File"] if 'List' in field["type"].value else "File"
+
+        elif field["type"].value.endswith("List"):
+            output["type"] = [PrimitiveType(field["type"].value[:-4])]
         else:
-            output["type"] = PrimitiveType(field["type"].value)
+            output["type"] = field["type"].value
 
         if field["type"] in [ActionFieldType.ENUM, ActionFieldType.ENUM_LIST]:
             output["enums"] = field["enum_values"]
+
         if not isinstance(output["type"], str):
             output["type"] = SchemaFieldGenerator.build_column_type(output["type"])
 

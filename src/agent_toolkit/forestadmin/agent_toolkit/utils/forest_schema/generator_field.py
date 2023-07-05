@@ -1,4 +1,4 @@
-from typing import Dict, List, Union, cast
+from typing import Dict, Union, cast
 
 from forestadmin.agent_toolkit.utils.forest_schema.filterable import FrontendFilterableUtils
 from forestadmin.agent_toolkit.utils.forest_schema.type import ForestServerField, RelationServer
@@ -56,12 +56,18 @@ class SchemaFieldGenerator:
         column_type: ColumnAlias
         if isinstance(_column_type, PrimitiveType):
             column_type = _column_type.value
+        elif isinstance(_column_type, str):
+            column_type = _column_type
         elif isinstance(_column_type, list):
-            _type = cast(List[PrimitiveType], _column_type)
-            column_type = [t.value for t in _column_type]
+            column_type = [SchemaFieldGenerator.build_column_type(_column_type[0])]
         else:
-            _type = cast(Dict[str, PrimitiveType], _column_type)
-            column_type = {k: t.value for k, t in _type.items()}
+            column_type = {
+                "fields":
+                    {
+                        "field": k,
+                        "type": SchemaFieldGenerator.build_column_type(t)
+                    } for k, t in _column_type.items()
+            }
         return column_type
 
     @classmethod

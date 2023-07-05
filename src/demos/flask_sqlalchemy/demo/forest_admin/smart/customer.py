@@ -10,6 +10,7 @@ from forestadmin.datasource_toolkit.decorators.action.result_builder import Resu
 from forestadmin.datasource_toolkit.decorators.action.types.actions import ActionBulk, ActionSingle
 from forestadmin.datasource_toolkit.decorators.action.types.fields import (
     PlainDynamicField,
+    PlainFileListDynamicField,
     PlainListEnumDynamicField,
     PlainStringDynamicField,
 )
@@ -122,7 +123,7 @@ class AgeOperation(ActionSingle):
         },
         PlainStringDynamicField(
             label="test list",
-            type=ActionFieldType.STRING,
+            type=ActionFieldType.STRING_LIST,
             # is_required=False,
             is_required=lambda context: context.form_values.get("Value", 11) > 10,
             is_read_only=lambda context: context.form_values.get("Value", 11) <= 10,
@@ -130,15 +131,14 @@ class AgeOperation(ActionSingle):
             # is_read_only=False,
             # default_value=[1, 2],
         ),
-        PlainListEnumDynamicField(
-            label="Rating", type=ActionFieldType.ENUM_LIST, enum_values=["1", "2", "3", "4", "5"]
-        ),
+        PlainListEnumDynamicField(label="Rating", type=ActionFieldType.ENUM, enum_values=["1", "2", "3", "4", "5"]),
         PlainStringDynamicField(
             label="Put a comment",
             type=ActionFieldType.STRING,
             # Only display this field if the rating is 4 or 5
-            if_=lambda context: int(context.form_values.get("Rating", "0")) < 4,
+            if_=lambda context: int(context.form_values.get("Rating", "0") or "0") < 4,
         ),
+        PlainFileListDynamicField(label="test filelist", type=ActionFieldType.FILE_LIST, is_required=False),
     ]
 
     async def execute(self, context: ActionContextSingle, result_builder: ResultBuilder) -> Union[None, ActionResult]:
