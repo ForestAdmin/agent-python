@@ -684,7 +684,7 @@ Six = "*"
 
 [[package]]
 name = "forestadmin-agent-toolkit"
-version = "0.1.0-beta.37"
+version = "0.1.0-beta.38"
 description = ""
 optional = false
 python-versions = ">=3.7,<4.0"
@@ -695,7 +695,7 @@ develop = true
 aiohttp = "~=3.8"
 "backports.zoneinfo" = {version = "~0.2.1", extras = ["tzdata"], markers = "python_version < \"3.9\""}
 cachetools = "~=5.2"
-forestadmin-datasource-toolkit = "^0.1.0-beta.37"
+forestadmin-datasource-toolkit = "^0.1.0-beta.38"
 marshmallow-jsonapi = ">=0.24.0, <1.0"
 oic = "~=1.4"
 pandas = [
@@ -713,7 +713,7 @@ url = "../agent_toolkit"
 
 [[package]]
 name = "forestadmin-datasource-sqlalchemy"
-version = "0.1.0-beta.37"
+version = "0.1.0-beta.38"
 description = ""
 optional = false
 python-versions = ">=3.7,<4.0"
@@ -723,7 +723,7 @@ develop = true
 [package.dependencies]
 "backports.zoneinfo" = {version = "~=0.2.1", extras = ["tzdata"], markers = "python_version < \"3.9\""}
 forestadmin-agent-toolkit = "^0.1.0-beta.31"
-forestadmin-datasource-toolkit = "^0.1.0-beta.37"
+forestadmin-datasource-toolkit = "^0.1.0-beta.38"
 sqlalchemy = "^1.4.44"
 typing-extensions = "~=4.2"
 tzdata = "~=2022.6"
@@ -734,7 +734,7 @@ url = "../datasource_sqlalchemy"
 
 [[package]]
 name = "forestadmin-datasource-toolkit"
-version = "0.1.0-beta.37"
+version = "0.1.0-beta.38"
 description = ""
 optional = false
 python-versions = ">=3.7,<4.0"
@@ -2206,4 +2206,4 @@ testing = ["big-O", "flake8 (<5)", "jaraco.functools", "jaraco.itertools", "more
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.7,<4.0"
-content-hash = "398e0638a385592b661af812ef0991ef12838fb07c2a41f1eb98176dd8a00d6f"
+content-hash = "1554bdc946b991ea462c4d412058fb0c77d9f768e0e82cec9462387ad4ca8dab"
