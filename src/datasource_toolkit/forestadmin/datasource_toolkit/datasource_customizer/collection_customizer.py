@@ -3,6 +3,7 @@ from typing import List
 from forestadmin.datasource_toolkit.decorators.action.types.actions import ActionAlias
 from forestadmin.datasource_toolkit.decorators.computed.types import ComputedDefinition
 from forestadmin.datasource_toolkit.decorators.decorator_stack import DecoratorStack
+from forestadmin.datasource_toolkit.decorators.search.collections import SearchDefinition
 from forestadmin.datasource_toolkit.decorators.segments.collections import SegmentAlias
 
 
@@ -23,7 +24,7 @@ class CollectionCustomizer:
     def rename_field(self, current_name: str, new_name: str):
         self.stack.rename_field.get_collection(self.collection_name).rename_field(current_name, new_name)
 
-    def register_computed(self, name: str, computed: ComputedDefinition):
+    def add_field(self, name: str, computed: ComputedDefinition):
         self.stack.early_computed.get_collection(self.collection_name).register_computed(name, computed)
         # TODO: implement the switch after relation decorator
         # const collectionBeforeRelations = this.stack.earlyComputed.getCollection(this.name);
@@ -52,3 +53,6 @@ class CollectionCustomizer:
         stack_collection = self.stack.publication.get_collection(self.collection_name)
         for field in fields:
             stack_collection.change_field_visibility(field, False)
+
+    def replace_search(self, definition: SearchDefinition):
+        self.stack.search.get_collection(self.collection_name).replace_search(definition)

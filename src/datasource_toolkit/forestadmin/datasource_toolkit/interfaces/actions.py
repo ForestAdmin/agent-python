@@ -69,6 +69,7 @@ class SuccessResult(TypedDict):
 class ErrorResult(TypedDict):
     type: Literal["Error"]
     message: str
+    format: Union[Literal["html"], Literal["text"]]
 
 
 class WebHookResult(TypedDict):

@@ -21,7 +21,7 @@ class BaseAction(Generic[Context]):
 
     @abc.abstractmethod
     async def execute(self, context: Context, result_builder: ResultBuilder) -> Union[None, ActionResult]:
-        pass
+        """The main function of the action"""
 
     def _build_form(self, plain_fields: Sequence[PlainDynamicField]) -> List[DynamicField[Context]]:
         form: List[DynamicField[Context]] = []

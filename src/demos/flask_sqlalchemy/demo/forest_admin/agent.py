@@ -29,7 +29,7 @@ agent.add_datasource(SqlAlchemyDatasource(Base))
 agent.customize_collection("address").add_segment("highOrderDelivery", high_delivery_address_segment)
 
 # agent.customize_collection("address").rename_field("country", "pays")
-agent.customize_collection("address").register_computed("full_address", address_full_name_computed("country"))
+agent.customize_collection("address").add_field("full_address", address_full_name_computed("country"))
 agent.customize_collection("address").rename_field("full_address", "complete_address")
 
 # changing visibility
@@ -45,8 +45,8 @@ agent.customize_collection("customer").add_action("Export json", ExportJson())
 # # action single with form
 agent.customize_collection("customer").add_action("Age operation", AgeOperation())
 # # computed
-agent.customize_collection("customer").register_computed("full_name", customer_full_name())
-agent.customize_collection("customer").register_computed("TotalSpending", customer_spending_computed())
+agent.customize_collection("customer").add_field("full_name", customer_full_name())
+agent.customize_collection("customer").add_field("TotalSpending", customer_spending_computed())
 # # validation
 agent.customize_collection("customer").add_validation("age", {"operator": Operator.GREATER_THAN, "value": 0})
 
@@ -66,7 +66,7 @@ agent.customize_collection("order").add_action("Export json", ExportOrderJson())
 # # validation
 agent.customize_collection("order").add_validation("amount", {"operator": Operator.GREATER_THAN, "value": 0})
 # # computed
-agent.customize_collection("order").register_computed("customer_full_name", get_customer_full_name_field())
+agent.customize_collection("order").add_field("customer_full_name", get_customer_full_name_field())
 
 
 # add relations

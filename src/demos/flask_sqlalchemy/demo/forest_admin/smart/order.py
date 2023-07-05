@@ -3,7 +3,6 @@ import json
 from typing import List, Union
 
 from demo.models.models import ORDER_STATUS
-from forestadmin.agent_toolkit.utils.context import User
 from forestadmin.datasource_toolkit.context.collection_context import CollectionCustomizationContext
 from forestadmin.datasource_toolkit.decorators.action.context.base import ActionContext
 from forestadmin.datasource_toolkit.decorators.action.result_builder import ResultBuilder
@@ -82,11 +81,18 @@ class ExportJson(ActionGlobal):
             "default_value": "",
             "value": "",
         },
+        {
+            "type": ActionFieldType.COLLECTION,
+            "collection_name": "customer",
+            "label": "customer",
+            "is_required": True,
+            "description": "",
+            "default_value": "",
+            "value": "",
+        },
     ]
 
-    async def execute(
-        self, caller: User, context: ActionContext, result_builder: ResultBuilder
-    ) -> Union[None, ActionResult]:
+    async def execute(self, context: ActionContext, result_builder: ResultBuilder) -> Union[None, ActionResult]:
         records = await context.get_records(
             Projection(
                 "id",

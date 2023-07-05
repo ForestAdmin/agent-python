@@ -34,10 +34,13 @@ class SegmentCollectionDecorator(CollectionDecorator):
 
         if _filter.segment and _filter.segment in self._segments:
             definition = self._segments[_filter.segment]
-            context = CollectionCustomizationContext(cast(Collection, self), _filter.timezone)
+            context = CollectionCustomizationContext(cast(Collection, self), caller)
             condition_tree_segment = definition(context)
             if isinstance(condition_tree_segment, Awaitable):
                 condition_tree_segment = await condition_tree_segment
+
+            if isinstance(condition_tree_segment, dict):
+                condition_tree_segment = ConditionTreeFactory.from_plain_object(condition_tree_segment)
 
             trees = [condition_tree_segment]
             if _filter.condition_tree:

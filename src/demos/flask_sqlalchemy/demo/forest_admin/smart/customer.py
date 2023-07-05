@@ -3,7 +3,6 @@ import json
 from operator import add, sub
 from typing import List, Union
 
-from forestadmin.agent_toolkit.utils.context import User
 from forestadmin.datasource_toolkit.context.collection_context import CollectionCustomizationContext
 from forestadmin.datasource_toolkit.decorators.action.context.bulk import ActionContextBulk
 from forestadmin.datasource_toolkit.decorators.action.context.single import ActionContextSingle
@@ -11,7 +10,8 @@ from forestadmin.datasource_toolkit.decorators.action.result_builder import Resu
 from forestadmin.datasource_toolkit.decorators.action.types.actions import ActionBulk, ActionSingle
 from forestadmin.datasource_toolkit.decorators.action.types.fields import (
     PlainDynamicField,
-    PlainEnumDynamicField,
+    PlainFileListDynamicField,
+    PlainListEnumDynamicField,
     PlainStringDynamicField,
 )
 from forestadmin.datasource_toolkit.decorators.computed.types import ComputedDefinition
@@ -35,18 +35,17 @@ def french_address_segment(context: CollectionCustomizationContext):
 # computed fields
 def customer_spending_computed():
     async def get_customer_spending_values(records: List[RecordsDataAlias], context: CollectionCustomizationContext):
-        amount_cost_field_name = "amount"
         record_ids = [record["id"] for record in records]
         condition = {"conditionTree": [ConditionTreeLeaf(field="customer_id", operator=Operator.IN, value=record_ids)]}
 
         aggregation = Aggregation(
             component=PlainAggregation(
                 operation="Sum",
-                field=amount_cost_field_name,
+                field="amount",
                 groups=[PlainAggregationGroup(field="customer_id")],
             ),
         )
-        rows = await context.datasource.get_collection("order").aggregate(None, condition, aggregation)
+        rows = await context.datasource.get_collection("order").aggregate(context.caller, condition, aggregation)
         ret = []
         for record in records:
             filtered = [*filter(lambda r: r["group"]["customer_id"] == record["id"], rows)]
@@ -81,9 +80,7 @@ def customer_full_name() -> ComputedDefinition:
 class ExportJson(ActionBulk):
     GENERATE_FILE: bool = True
 
-    async def execute(
-        self, caller: User, context: ActionContextBulk, result_builder: ResultBuilder
-    ) -> Union[None, ActionResult]:
+    async def execute(self, context: ActionContextBulk, result_builder: ResultBuilder) -> Union[None, ActionResult]:
         records = await context.get_records(Projection("id", "full name", "age"))
         return result_builder.file(
             io.BytesIO(json.dumps({"data": records}).encode("utf-8")),
@@ -110,7 +107,7 @@ class AgeOperation(ActionSingle):
             "is_required": True,
             "default_value": "+",
             "value": "+",
-            "" "enum_values": ["+", "-"],
+            "enum_values": ["+", "-"],
         },
         {
             "type": ActionFieldType.NUMBER,
@@ -126,7 +123,7 @@ class AgeOperation(ActionSingle):
         },
         PlainStringDynamicField(
             label="test list",
-            type=ActionFieldType.STRING,
+            type=ActionFieldType.STRING_LIST,
             # is_required=False,
             is_required=lambda context: context.form_values.get("Value", 11) > 10,
             is_read_only=lambda context: context.form_values.get("Value", 11) <= 10,
@@ -134,18 +131,17 @@ class AgeOperation(ActionSingle):
             # is_read_only=False,
             # default_value=[1, 2],
         ),
-        PlainEnumDynamicField(label="Rating", type=ActionFieldType.ENUM, enum_values=["1", "2", "3", "4", "5"]),
+        PlainListEnumDynamicField(label="Rating", type=ActionFieldType.ENUM, enum_values=["1", "2", "3", "4", "5"]),
         PlainStringDynamicField(
             label="Put a comment",
             type=ActionFieldType.STRING,
             # Only display this field if the rating is 4 or 5
-            if_=lambda context: int(context.form_values.get("Rating", "0")) < 4,
+            if_=lambda context: int(context.form_values.get("Rating", "0") or "0") < 4,
         ),
+        PlainFileListDynamicField(label="test filelist", type=ActionFieldType.FILE_LIST, is_required=False),
     ]
 
-    async def execute(
-        self, caller: User, context: ActionContextSingle, result_builder: ResultBuilder
-    ) -> Union[None, ActionResult]:
+    async def execute(self, context: ActionContextSingle, result_builder: ResultBuilder) -> Union[None, ActionResult]:
         operation = add
         if context.form_values["Kind of operation"] == "-":
             operation = sub
@@ -153,5 +149,6 @@ class AgeOperation(ActionSingle):
 
         record = await context.get_record(Projection("age"))
         new_age = operation(record["age"], value)
-        await context.collection.update(caller, context.filter, {"age": new_age})
+        await context.collection.update(context.caller, context.filter, {"age": new_age})
         return result_builder.success("<h1> Success </h1>", options={"type": "html"})
+        # return result_builder.success("Success")  # , options={"type": "html"})

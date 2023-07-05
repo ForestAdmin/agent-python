@@ -2,6 +2,7 @@ import abc
 from typing import List, Optional
 
 from forestadmin.agent_toolkit.utils.context import User
+from forestadmin.datasource_toolkit.exceptions import ForestException
 from forestadmin.datasource_toolkit.interfaces.actions import ActionField, ActionResult
 from forestadmin.datasource_toolkit.interfaces.models.collections import Collection as CollectionModel
 from forestadmin.datasource_toolkit.interfaces.query.aggregation import AggregateResult, Aggregation
@@ -20,7 +21,7 @@ class Collection(CollectionModel, abc.ABC):
         data: RecordsDataAlias,
         filter: Optional[Filter],
     ) -> ActionResult:
-        pass
+        raise ForestException(f"Action {name} is not implemented")
 
     @abc.abstractmethod
     async def get_form(
@@ -30,7 +31,7 @@ class Collection(CollectionModel, abc.ABC):
         data: Optional[RecordsDataAlias],
         filter: Optional[Filter],
     ) -> List[ActionField]:
-        pass
+        return []
 
     @abc.abstractmethod
     async def create(self, caller: User, data: List[RecordsDataAlias]) -> List[RecordsDataAlias]:

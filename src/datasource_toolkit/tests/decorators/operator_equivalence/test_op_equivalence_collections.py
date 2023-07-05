@@ -3,9 +3,6 @@ import sys
 from unittest import TestCase
 from unittest.mock import patch
 
-from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.leaf import ConditionTreeLeaf
-from forestadmin.datasource_toolkit.interfaces.query.projections import Projection
-
 if sys.version_info >= (3, 9):
     import zoneinfo
 else:
@@ -31,7 +28,9 @@ from forestadmin.datasource_toolkit.interfaces.fields import (
     Operator,
     PrimitiveType,
 )
+from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.leaf import ConditionTreeLeaf
 from forestadmin.datasource_toolkit.interfaces.query.filter.paginated import PaginatedFilter, PaginatedFilterComponent
+from forestadmin.datasource_toolkit.interfaces.query.projections import Projection
 
 
 class TestComputedCollectionDecorator(TestCase):

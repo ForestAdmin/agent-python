@@ -1,5 +1,6 @@
 import enum
 import sys
+from uuid import UUID
 
 if sys.version_info >= (3, 8):
     from typing import Literal, TypedDict
@@ -25,6 +26,7 @@ class Operator(enum.Enum):
     STARTS_WITH = "starts_with"
     ENDS_WITH = "ends_with"
     CONTAINS = "contains"
+    # ICONTAINS = "icontains"
     NOT_CONTAINS = "not_contains"
     LONGER_THAN = "longer_than"
     SHORTER_THAN = "shorter_than"
@@ -191,3 +193,11 @@ def is_many_to_many(field: "FieldAlias") -> TypeGuard[ManyToMany]:
 
 def is_relation(field: "FieldAlias") -> TypeGuard[RelationAlias]:
     return is_many_to_one(field) or is_one_to_many(field) or is_one_to_one(field) or is_many_to_many(field)
+
+
+def is_valid_uuid(uuid: str) -> bool:
+    try:
+        UUID(uuid)
+        return True
+    except ValueError:
+        return False
