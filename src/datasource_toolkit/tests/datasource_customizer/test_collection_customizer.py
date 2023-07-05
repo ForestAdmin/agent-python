@@ -82,12 +82,6 @@ class TestCollectionCustomizer(TestCase):
                     foreign_key="category_id",
                     foreign_key_target="id",
                 ),
-                # "book": ManyToOne(
-                #     type=FieldType.MANY_TO_ONE,
-                #     foreign_collection="Book",
-                #     foreign_key="book_id",
-                #     foreign_key_target="id",
-                # ),
                 "person": ManyToOne(
                     type=FieldType.MANY_TO_ONE,
                     foreign_collection="Person",
