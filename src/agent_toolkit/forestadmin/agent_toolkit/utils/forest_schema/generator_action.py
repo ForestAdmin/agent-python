@@ -73,7 +73,7 @@ class SchemaActionGenerator:
             output["reference"] = f"{collection.name}.{pk}"
 
         elif "File" in field["type"].value:
-            output["type"] = ["File"] if 'List' in field["type"].value else "File"
+            output["type"] = ["File"] if "List" in field["type"].value else "File"
 
         elif field["type"].value.endswith("List"):
             output["type"] = [PrimitiveType(field["type"].value[:-4])]
