@@ -43,18 +43,24 @@ class TestDecoratorStack(TestCase):
             "forestadmin.datasource_toolkit.decorators.decorator_stack.DatasourceDecorator",
             return_value=self.datasource,
         ) as mocked_datasource_decorator:
-            DecoratorStack(self.datasource)
+            with patch(
+                "forestadmin.datasource_toolkit.decorators.decorator_stack.ChartDataSourceDecorator",
+                return_value=self.datasource,
+            ) as mocked_chart_datasource_decorator:
+                DecoratorStack(self.datasource)
 
-            call_list = [
-                call(self.datasource, EmptyCollectionDecorator),
-                call(self.datasource, ComputedCollectionDecorator),
-                call(self.datasource, OperatorEquivalenceCollectionDecorator),
-                call(self.datasource, SearchCollectionDecorator),
-                call(self.datasource, SegmentCollectionDecorator),
-                call(self.datasource, ActionCollectionDecorator),
-                call(self.datasource, SchemaCollectionDecorator),
-                call(self.datasource, ValidationCollectionDecorator),
-                call(self.datasource, PublicationFieldCollectionDecorator),
-                call(self.datasource, RenameFieldCollectionDecorator),
-            ]
-            mocked_datasource_decorator.assert_has_calls(call_list)
+                call_list = [
+                    call(self.datasource, EmptyCollectionDecorator),
+                    call(self.datasource, ComputedCollectionDecorator),
+                    call(self.datasource, OperatorEquivalenceCollectionDecorator),
+                    call(self.datasource, SearchCollectionDecorator),
+                    call(self.datasource, SegmentCollectionDecorator),
+                    # call(self.datasource, ChartCollectionDecorator),
+                    call(self.datasource, ActionCollectionDecorator),
+                    call(self.datasource, SchemaCollectionDecorator),
+                    call(self.datasource, ValidationCollectionDecorator),
+                    call(self.datasource, PublicationFieldCollectionDecorator),
+                    call(self.datasource, RenameFieldCollectionDecorator),
+                ]
+                mocked_chart_datasource_decorator.assert_called_once_with(self.datasource)
+                mocked_datasource_decorator.assert_has_calls(call_list)

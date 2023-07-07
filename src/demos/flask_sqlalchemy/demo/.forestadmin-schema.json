@@ -568,7 +568,7 @@
                             "enums": null,
                             "hook": null,
                             "isReadOnly": false,
-                            "isRequired": true,
+                            "isRequired": false,
                             "reference": null,
                             "type": "String",
                             "widget": null
@@ -831,11 +831,11 @@
     ],
     "meta": {
         "liana": "agent-python",
-        "liana_version": "0.1.0-beta.35",
+        "liana_version": "0.1.0-beta.32",
         "stack": {
             "engine": "python",
-            "engine_version": "3.11.3"
+            "engine_version": "3.10.5"
         },
-        "schemaFileHash": "4c47c69787de8ed01bb0c7649bb2da5b430121c8"
+        "schemaFileHash": "9f3636fb32b31573b11ca0cb6b453689af6de86c"
     }
 }

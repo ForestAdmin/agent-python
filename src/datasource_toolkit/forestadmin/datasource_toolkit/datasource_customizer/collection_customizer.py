@@ -1,6 +1,7 @@
 from typing import List
 
 from forestadmin.datasource_toolkit.decorators.action.types.actions import ActionAlias
+from forestadmin.datasource_toolkit.decorators.chart.types import CollectionChartDefinition
 from forestadmin.datasource_toolkit.decorators.computed.types import ComputedDefinition
 from forestadmin.datasource_toolkit.decorators.decorator_stack import DecoratorStack
 from forestadmin.datasource_toolkit.decorators.search.collections import SearchDefinition
@@ -56,3 +57,6 @@ class CollectionCustomizer:
 
     def replace_search(self, definition: SearchDefinition):
         self.stack.search.get_collection(self.collection_name).replace_search(definition)
+
+    def add_chart(self, name: str, definition: CollectionChartDefinition):
+        self.stack.chart.get_collection(self.collection_name).add_chart(name, definition)

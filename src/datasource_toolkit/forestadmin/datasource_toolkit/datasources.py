@@ -14,6 +14,10 @@ class Datasource(DatasourceInterface[BoundCollection]):
         self._collections: Dict[str, BoundCollection] = {}
 
     @property
+    def schema(self):
+        return {"charts": {}}
+
+    @property
     def collections(self) -> List[BoundCollection]:
         return list(self._collections.values())
 

@@ -1,4 +1,5 @@
 from forestadmin.datasource_toolkit.decorators.action.collections import ActionCollectionDecorator
+from forestadmin.datasource_toolkit.decorators.chart.chart_datasource_decorator import ChartDataSourceDecorator
 from forestadmin.datasource_toolkit.decorators.computed.collections import ComputedCollectionDecorator
 from forestadmin.datasource_toolkit.decorators.datasource_decorator import DatasourceDecorator
 from forestadmin.datasource_toolkit.decorators.empty.collection import EmptyCollectionDecorator
@@ -38,7 +39,7 @@ class DecoratorStack:
         # last = self.sort = DatasourceDecorator(last, SortCollection)
 
         # Step 3: Access to all fields AND emulated capabilities
-        # last = self.chart = ChartDataSourceDecorator(last)
+        last = self.chart = ChartDataSourceDecorator(last)
         last = self.action = DatasourceDecorator(last, ActionCollectionDecorator)
         last = self.schema = DatasourceDecorator(last, SchemaCollectionDecorator)
         # last = self.write = WriteDataSourceDecorator(last)

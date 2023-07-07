@@ -14,6 +14,8 @@ from forestadmin.datasource_toolkit.decorators.action.types.fields import (
     PlainListEnumDynamicField,
     PlainStringDynamicField,
 )
+from forestadmin.datasource_toolkit.decorators.chart.collection_chart_context import CollectionChartContext
+from forestadmin.datasource_toolkit.decorators.chart.result_builder import ResultBuilder as ResultBuilderChart
 from forestadmin.datasource_toolkit.decorators.computed.types import ComputedDefinition
 from forestadmin.datasource_toolkit.interfaces.actions import ActionFieldType, ActionResult
 from forestadmin.datasource_toolkit.interfaces.fields import Operator, PrimitiveType
@@ -23,8 +25,10 @@ from forestadmin.datasource_toolkit.interfaces.query.aggregation import (
     PlainAggregationGroup,
 )
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.leaf import ConditionTreeLeaf
+from forestadmin.datasource_toolkit.interfaces.query.filter.paginated import PaginatedFilter
+from forestadmin.datasource_toolkit.interfaces.query.filter.unpaginated import Filter
 from forestadmin.datasource_toolkit.interfaces.query.projections import Projection
-from forestadmin.datasource_toolkit.interfaces.records import RecordsDataAlias
+from forestadmin.datasource_toolkit.interfaces.records import CompositeIdAlias, RecordsDataAlias
 
 
 # segments
@@ -36,7 +40,9 @@ def french_address_segment(context: CollectionCustomizationContext):
 def customer_spending_computed():
     async def get_customer_spending_values(records: List[RecordsDataAlias], context: CollectionCustomizationContext):
         record_ids = [record["id"] for record in records]
-        condition = {"conditionTree": [ConditionTreeLeaf(field="customer_id", operator=Operator.IN, value=record_ids)]}
+        condition = Filter(
+            {"condition_tree": ConditionTreeLeaf(field="customer_id", operator=Operator.IN, value=record_ids)}
+        )
 
         aggregation = Aggregation(
             component=PlainAggregation(
@@ -46,6 +52,7 @@ def customer_spending_computed():
             ),
         )
         rows = await context.datasource.get_collection("order").aggregate(context.caller, condition, aggregation)
+        # rows = await context.datasource.get_collection("order").aggregate(context.caller, condition, aggregation)
         ret = []
         for record in records:
             filtered = [*filter(lambda r: r["group"]["customer_id"] == record["id"], rows)]
@@ -152,3 +159,29 @@ class AgeOperation(ActionSingle):
         await context.collection.update(context.caller, context.filter, {"age": new_age})
         return result_builder.success("<h1> Success </h1>", options={"type": "html"})
         # return result_builder.success("Success")  # , options={"type": "html"})
+
+
+# charts
+async def total_orders_customer_chart(
+    context: CollectionChartContext, result_builder: ResultBuilderChart, ids: CompositeIdAlias
+):
+    # total_spending = await context.get_record(Projection("TotalSpending"))
+    orders = await context.datasource.get_collection("order").aggregate(
+        caller=context.caller,
+        filter=Filter({"condition_tree": ConditionTreeLeaf("customer_id", Operator.EQUAL, ids[0])}),
+        # filter={"conditionTree": ConditionTreeLeaf("customer_id", Operator.EQUAL, ids[0])},
+        aggregation=Aggregation({"field": "amount", "operation": "Sum"}),
+    )
+    # return result_builder.value(total_spending["TotalSpending"])
+    return result_builder.value(orders[0]["value"])
+
+
+async def order_details(context: CollectionChartContext, result_builder: ResultBuilderChart, ids: CompositeIdAlias):
+    orders = await context.datasource.get_collection("order").list(
+        context.caller,
+        PaginatedFilter(
+            {"condition_tree": ConditionTreeLeaf("customer_id", Operator.IN, ids)},
+        ),
+        Projection("id", "customer_full_name"),
+    )
+    return result_builder.smart(orders)

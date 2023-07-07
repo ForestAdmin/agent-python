@@ -80,12 +80,14 @@ class TestAgent(TestCase):
         mocked_stats_resource.assert_called_once()
         mocked_action_resource.assert_called_once()
 
-        assert len(agent.resources) == 5
+        assert len(agent.resources) == 7
         assert "authentication" in agent.resources
         assert "crud" in agent.resources
         assert "crud_related" in agent.resources
         assert "stats" in agent.resources
         assert "actions" in agent.resources
+        assert "collection_charts" in agent.resources
+        assert "datasource_charts" in agent.resources
 
     def test_property_meta(
         self,

@@ -122,6 +122,14 @@ def build_blueprint(agent: Agent):  # noqa: C901
     async def stats(**_) -> FlaskResponse:  # type: ignore
         return await _get_collection_response(request, agent.resources["stats"])
 
+    @blueprint.route("/_charts/<chart_name>", methods=["POST", "GET"])
+    async def charts(**_) -> FlaskResponse:  # type: ignore
+        return await _get_collection_response(request, agent.resources["datasource_charts"])
+
+    @blueprint.route("/_charts/<collection_name>/<chart_name>", methods=["POST", "GET"])
+    async def charts_collection(**_) -> FlaskResponse:  # type: ignore
+        return await _get_collection_response(request, agent.resources["collection_charts"])
+
     @blueprint.route("/<collection_name>/count", methods=["GET"])
     async def count(**_) -> FlaskResponse:  # type: ignore
         return await _get_collection_response(request, agent.resources["crud"], "count")
@@ -131,7 +139,7 @@ def build_blueprint(agent: Agent):  # noqa: C901
         return await _get_collection_response(request, agent.resources["crud"], detail=True)
 
     @blueprint.route("/<collection_name>", methods=["GET", "POST", "DELETE"])
-    async def list(**_) -> FlaskResponse:  # type: ignore
+    async def list_(**_) -> FlaskResponse:  # type: ignore
         return await _get_collection_response(request, agent.resources["crud"])
 
     @blueprint.route("/<collection_name>/<pks>/relationships/<relation_name>", methods=["GET", "POST", "DELETE", "PUT"])
