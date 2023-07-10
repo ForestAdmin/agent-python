@@ -14,7 +14,7 @@ from forestadmin.datasource_toolkit.interfaces.fields import (
     Validation,
 )
 from forestadmin.datasource_toolkit.interfaces.models.collections import CollectionSchema
-from sqlalchemy import Enum, Table
+from sqlalchemy import ColumnDefault, Enum, Table
 from sqlalchemy.orm import Mapper
 from sqlalchemy.sql.schema import Column as SqlAlchemyColumn
 
@@ -50,11 +50,12 @@ class ColumnFactory:
     @classmethod
     def build(cls, column: SqlAlchemyColumn) -> Column:
         column_type = TypeConverter.convert(column.type)  # type: ignore
+        default_value = column.default.arg if isinstance(column.default, ColumnDefault) else column.default
         return {
             "column_type": column_type,
             "is_primary_key": column.primary_key,  # type: ignore
             "is_read_only": cls._build_is_read_only(column),
-            "default_value": column.default,  # type: ignore
+            "default_value": default_value,
             "is_sortable": True,
             "validations": cls._build_validations(column),
             "filter_operators": FilterOperator.get_for_type(column_type),
