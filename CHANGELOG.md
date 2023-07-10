@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.1.0-beta.39 (2023-07-10)
+
+### Fix
+
+* **sqlalchemy:** Default_value on fields now works for schema generation ([#89](https://github.com/ForestAdmin/agent-python/issues/89)) ([`f30b949`](https://github.com/ForestAdmin/agent-python/commit/f30b94907f12ef0449b1284f6ef6e602747b0b4b))
+
 ## v0.1.0-beta.38 (2023-07-05)
 
 
