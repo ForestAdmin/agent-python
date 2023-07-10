@@ -1,3 +1,4 @@
+import json
 from typing import Any, Dict, List, Optional
 
 from forestadmin.datasource_sqlalchemy.utils.type_converter import Converter as TypeConverter
@@ -50,7 +51,13 @@ class ColumnFactory:
     @classmethod
     def build(cls, column: SqlAlchemyColumn) -> Column:
         column_type = TypeConverter.convert(column.type)  # type: ignore
+
         default_value = column.default.arg if isinstance(column.default, ColumnDefault) else column.default
+        try:
+            json.dumps(default_value)
+        except TypeError:  # not JSON Serializable
+            default_value = None
+
         return {
             "column_type": column_type,
             "is_primary_key": column.primary_key,  # type: ignore
