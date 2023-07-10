@@ -15,13 +15,13 @@ if sys.version_info >= (3, 9):
 else:
     from backports import zoneinfo
 
-import forestadmin.agent_toolkit.resources.collections.charts_collection
+import forestadmin.agent_toolkit.resources.collections.charts_datasource
 from forestadmin.agent_toolkit.options import Options
-from forestadmin.agent_toolkit.resources.collections.requests import RequestCollection, RequestCollectionException
 from forestadmin.agent_toolkit.services.permissions import PermissionService
 from forestadmin.agent_toolkit.utils.context import Request, RequestMethod, Response, User
 from forestadmin.datasource_toolkit.collections import Collection
 from forestadmin.datasource_toolkit.datasources import Datasource
+from forestadmin.datasource_toolkit.decorators.chart.chart_datasource_decorator import ChartDataSourceDecorator
 from forestadmin.datasource_toolkit.interfaces.fields import FieldType, PrimitiveType
 
 
@@ -47,11 +47,11 @@ patch("forestadmin.agent_toolkit.resources.collections.decorators.authenticate",
 patch("forestadmin.agent_toolkit.resources.collections.decorators.authorize", mock_decorator_with_param).start()
 
 
-importlib.reload(forestadmin.agent_toolkit.resources.collections.charts_collection)
-from forestadmin.agent_toolkit.resources.collections.charts_collection import ChartsCollectionResource  # noqa: E402
+importlib.reload(forestadmin.agent_toolkit.resources.collections.charts_datasource)
+from forestadmin.agent_toolkit.resources.collections.charts_datasource import ChartsDatasourceResource  # noqa: E402
 
 
-class TestChartCollectionResource(TestCase):
+class TestChartDatasourceResource(TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         cls.loop = asyncio.new_event_loop()
@@ -87,61 +87,39 @@ class TestChartCollectionResource(TestCase):
         )
 
     def setUp(self) -> None:
-        self.chart_collection_resource = ChartsCollectionResource(
-            self.datasource, self.permission_service, self.options
+        self.decorated_datasource = ChartDataSourceDecorator(self.datasource)
+        self.chart_datasource_resource = ChartsDatasourceResource(
+            self.decorated_datasource, self.permission_service, self.options
         )
 
     def test_dispatch_should_return_400_on_bad_methods(self):
         for method in [RequestMethod.DELETE, RequestMethod.OPTION, RequestMethod.PUT]:
             request = Request(
                 method=method,
-                query={
-                    "collection_name": "Book",
-                    "chart_name": "test_chart_book",
-                },
-                body={"record_id": "1"},
+                query={"chart_name": "test_chart_book"},
+                body={},
                 headers={},
                 user=self.mocked_caller,
             )
-            response: Response = self.loop.run_until_complete(self.chart_collection_resource.dispatch(request, ""))
+            response: Response = self.loop.run_until_complete(self.chart_datasource_resource.dispatch(request, ""))
 
             response_content = json.loads(response.body)
             assert response.status == 400
             assert response_content["errors"][0] == f"Method {method.value} is not allow for this url."
 
-    def test_dispatch_should_return_400_if_no_collection_supplied(self):
-        request = Request(
-            method=RequestMethod.POST,
-            query={
-                # "collection_name": "Book",
-                "chart_name": "test_chart_book",
-            },
-            body={"record_id": "1"},
-            headers={},
-            user=self.mocked_caller,
-        )
-        response: Response = self.loop.run_until_complete(self.chart_collection_resource.dispatch(request, ""))
-
-        response_content = json.loads(response.body)
-        assert response.status == 400
-        assert response_content["errors"][0] == "🌳🌳🌳'collection_name' is missing in the request"
-
     def test_dispatch_should_call_handle_api_chart_when_POST(self):
         request = Request(
             method=RequestMethod.POST,
-            query={
-                "collection_name": "Book",
-                "chart_name": "test_chart_book",
-            },
-            body={"record_id": "1"},
+            query={"chart_name": "test_chart_book"},
+            body={},
             headers={},
             user=self.mocked_caller,
         )
 
         with patch.object(
-            self.chart_collection_resource, "handle_api_chart", new_callable=AsyncMock, return_value="Ok"
+            self.chart_datasource_resource, "handle_api_chart", new_callable=AsyncMock, return_value="Ok"
         ) as mocked_handle_api_chart:
-            response: Response = self.loop.run_until_complete(self.chart_collection_resource.dispatch(request, ""))
+            response: Response = self.loop.run_until_complete(self.chart_datasource_resource.dispatch(request, ""))
 
             mocked_handle_api_chart.assert_awaited_once()
 
@@ -152,19 +130,16 @@ class TestChartCollectionResource(TestCase):
     def test_dispatch_should_call_handle_api_chart_when_GET(self):
         request = Request(
             method=RequestMethod.GET,
-            query={
-                "collection_name": "Book",
-                "chart_name": "test_chart_book",
-            },
-            body={"record_id": "1"},
+            query={"chart_name": "test_chart_book"},
+            body=None,
             headers={},
             user=self.mocked_caller,
         )
 
         with patch.object(
-            self.chart_collection_resource, "handle_smart_chart", new_callable=AsyncMock, return_value="Ok"
+            self.chart_datasource_resource, "handle_smart_chart", new_callable=AsyncMock, return_value="Ok"
         ) as mocked_handle_smart_chart:
-            response: Response = self.loop.run_until_complete(self.chart_collection_resource.dispatch(request, ""))
+            response: Response = self.loop.run_until_complete(self.chart_datasource_resource.dispatch(request, ""))
 
             mocked_handle_smart_chart.assert_awaited_once()
 
@@ -176,21 +151,20 @@ class TestChartCollectionResource(TestCase):
         request = Request(
             method=RequestMethod.GET,
             query={
-                "collection_name": "Book",
                 "chart_name": "test_chart_book",
             },
-            body={"record_id": "1"},
+            body=None,
             headers={},
             user=self.mocked_caller,
         )
 
         with patch.object(
-            self.chart_collection_resource,
+            self.chart_datasource_resource,
             "handle_smart_chart",
             new_callable=AsyncMock,
             side_effect=Exception("chart_error"),
         ) as mocked_handle_smart_chart:
-            response: Response = self.loop.run_until_complete(self.chart_collection_resource.dispatch(request, ""))
+            response: Response = self.loop.run_until_complete(self.chart_datasource_resource.dispatch(request, ""))
 
             mocked_handle_smart_chart.assert_awaited_once()
 
@@ -198,64 +172,37 @@ class TestChartCollectionResource(TestCase):
             response_content = json.loads(response.body)
             assert response_content["errors"][0] == "chart_error"
 
-    def test_handle_api_chart_should_call_collection_render_chart(self):
+    def test_handle_api_chart_should_call_datasource_render_chart(self):
         request = Request(
             method=RequestMethod.POST,
             query={
-                "collection_name": "Book",
                 "chart_name": "test_chart_book",
             },
-            body={"record_id": "1"},
+            body={},
             headers={},
             user=self.mocked_caller,
         )
-        request_collection = RequestCollection.from_request(request, self.datasource)
 
         with patch.object(
-            self.book_collection, "render_chart", new_callable=AsyncMock, return_value=100
+            self.decorated_datasource, "render_chart", new_callable=AsyncMock, return_value=100
         ) as mocked_render_chart:
-            chart: Response = self.loop.run_until_complete(
-                self.chart_collection_resource.handle_api_chart(request_collection)
-            )
+            chart: Response = self.loop.run_until_complete(self.chart_datasource_resource.handle_api_chart(request))
 
-            mocked_render_chart.assert_awaited_once_with(self.mocked_caller, "test_chart_book", [1])
+            mocked_render_chart.assert_awaited_once_with(self.mocked_caller, "test_chart_book")
             assert chart["data"].pop("id") is not None
             assert chart == {"data": {"attributes": {"value": 100}, "type": "stats"}}
 
-    def test_handle_smart_chart_should_call_collection_render_chart(self):
+    def test_handle_smart_chart_should_call_datasource_render_chart(self):
         request = Request(
             method=RequestMethod.GET,
-            query={"collection_name": "Book", "chart_name": "test_chart_book", "record_id": "1"},
+            query={"chart_name": "test_chart_book"},
             headers={},
             user=self.mocked_caller,
         )
-        request_collection = RequestCollection.from_request(request, self.datasource)
-
         with patch.object(
-            self.book_collection, "render_chart", new_callable=AsyncMock, return_value=100
+            self.decorated_datasource, "render_chart", new_callable=AsyncMock, return_value=100
         ) as mocked_render_chart:
-            chart: Response = self.loop.run_until_complete(
-                self.chart_collection_resource.handle_smart_chart(request_collection)
-            )
+            chart: Response = self.loop.run_until_complete(self.chart_datasource_resource.handle_smart_chart(request))
 
-            mocked_render_chart.assert_awaited_once_with(self.mocked_caller, "test_chart_book", [1])
+            mocked_render_chart.assert_awaited_once_with(self.mocked_caller, "test_chart_book")
             assert chart == 100
-
-    def test_handle_smart_chart_should_raise_if_no_record_id_is_given(self):
-        request = Request(
-            method=RequestMethod.GET,
-            query={
-                "collection_name": "Book",
-                "chart_name": "test_chart_book",
-            },
-            headers={},
-            user=self.mocked_caller,
-        )
-        request_collection = RequestCollection.from_request(request, self.datasource)
-
-        self.assertRaisesRegex(
-            RequestCollectionException,
-            r"Collection smart chart need a record id in the 'record_id' GET parameter",
-            self.loop.run_until_complete,
-            self.chart_collection_resource.handle_smart_chart(request_collection),
-        )

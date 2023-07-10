@@ -26,9 +26,12 @@ class ChartsDatasourceResource(BaseCollectionResource):
         elif request.method.value == "GET":
             handle = self.handle_smart_chart
         else:
-            return build_client_error_response([f"Method {request.method} is not allow for this url."])
+            return build_client_error_response([f"Method {request.method.value} is not allow for this url."])
 
-        return build_success_response(await handle(request))
+        try:
+            return build_success_response(await handle(request))
+        except Exception as exc:
+            return build_client_error_response([str(exc)])
 
     @check_method(RequestMethod.POST)
     @authenticate
