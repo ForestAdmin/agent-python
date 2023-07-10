@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.1.0-beta.40 (2023-07-10)
+
+### Fix
+
+* **sqlalchemy:** Not json serializable default value (auto now) set to null in schema ([#90](https://github.com/ForestAdmin/agent-python/issues/90)) ([`de27104`](https://github.com/ForestAdmin/agent-python/commit/de271042381be3d075ffef97839ab0ba81db26e6))
+
 ## v0.1.0-beta.39 (2023-07-10)
 
 ### Fix
