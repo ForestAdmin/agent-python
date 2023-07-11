@@ -383,8 +383,9 @@ class FieldFactory(Generic[Context]):
         except KeyError:
             raise FieldFactoryException(f"Unknown field type: '{plain_field['type']}'")
 
-        del plain_field["type"]  # type: ignore
+        _plain_field = {**plain_field}
+        del _plain_field["type"]  # type: ignore
         try:
-            return cls_field(**plain_field)
+            return cls_field(**_plain_field)
         except (TypeError, AttributeError) as e:
             raise FieldFactoryException(f"Unable to build a field. cls: '{cls_field.__name__}', e: '{e}'")

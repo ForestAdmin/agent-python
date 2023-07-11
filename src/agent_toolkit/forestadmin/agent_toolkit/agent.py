@@ -33,6 +33,7 @@ class Resources(TypedDict):
 
 
 class Agent:
+    __IS_INITIALIZED: bool = False
     META: AgentMeta = None
 
     def __init__(self, options: Options):
@@ -82,9 +83,13 @@ class Agent:
         return meta
 
     async def start(self):
+        if Agent.__IS_INITIALIZED is True:
+            return
+
         for collection in self.customizer.stack.datasource.collections:
             create_json_api_schema(collection)
 
         api_map = await SchemaEmitter.get_serialized_schema(self.options, self.customizer.stack.datasource, self.meta)
 
         await ForestHttpApi.send_schema(self.options, api_map)
+        Agent.__IS_INITIALIZED = True
