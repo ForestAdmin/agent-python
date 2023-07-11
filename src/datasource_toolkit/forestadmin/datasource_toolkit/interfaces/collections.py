@@ -39,7 +39,7 @@ class Collection(CollectionModel, abc.ABC):
     @abc.abstractmethod
     async def render_chart(self, caller: User, name: str, record_id: List) -> Chart:
         """to render a chart"""
-        raise ForestException(f"Action {name} is not implemented")
+        raise ForestException(f"Chart {name} is not implemented")
 
     @abc.abstractmethod
     async def create(self, caller: User, data: List[RecordsDataAlias]) -> List[RecordsDataAlias]:
