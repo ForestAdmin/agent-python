@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.1.0-beta.41 (2023-07-11)
+
+### Fix
+
+* **agent_launching:** Prevent the agent to be start multiple times ([#91](https://github.com/ForestAdmin/agent-python/issues/91)) ([`b93cec1`](https://github.com/ForestAdmin/agent-python/commit/b93cec1839781a4a66a417d9daeca60a3fdc0444))
+
 ## v0.1.0-beta.40 (2023-07-10)
 
 ### Fix
