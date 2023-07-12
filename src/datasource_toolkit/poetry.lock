@@ -629,7 +629,7 @@ pyflakes = ">=3.0.0,<3.1.0"
 
 [[package]]
 name = "forestadmin-agent-toolkit"
-version = "0.1.0-beta.41"
+version = "0.1.0-beta.42"
 description = ""
 optional = false
 python-versions = ">=3.7,<4.0"
@@ -640,7 +640,7 @@ develop = true
 aiohttp = "~=3.8"
 "backports.zoneinfo" = {version = "~0.2.1", extras = ["tzdata"], markers = "python_version < \"3.9\""}
 cachetools = "~=5.2"
-forestadmin-datasource-toolkit = "^0.1.0-beta.41"
+forestadmin-datasource-toolkit = "^0.1.0-beta.42"
 marshmallow-jsonapi = ">=0.24.0, <1.0"
 oic = "~=1.4"
 pandas = [
