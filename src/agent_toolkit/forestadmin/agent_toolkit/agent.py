@@ -43,7 +43,7 @@ class Agent:
 
     def __init__(self, options: Options):
         self.options = copy.copy(DEFAULT_OPTIONS)
-        self.options.update(options)
+        self.options.update({k: v for k, v in options.items() if v is not None})
         self.customizer: DatasourceCustomizer = DatasourceCustomizer()
         self._resources = None
 
