@@ -86,7 +86,7 @@ class ResultBuilder:
                     "values": {"value": formatted.get(label, 0)},
                 }
             )
-        return TimeBasedChart(data_points)
+        return data_points
 
     @staticmethod
     def percentage(value: Union[int, float]) -> PercentageChart:
