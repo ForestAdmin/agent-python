@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.1.0-beta.42 (2023-07-12)
+
+### Feature
+
+* **chart:** Add chart decorator ([#92](https://github.com/ForestAdmin/agent-python/issues/92)) ([`bb876da`](https://github.com/ForestAdmin/agent-python/commit/bb876da273c65c6ab1e06f98ecaaf9ca79b6a0f2))
+
 ## v0.1.0-beta.41 (2023-07-11)
 
 ### Fix
