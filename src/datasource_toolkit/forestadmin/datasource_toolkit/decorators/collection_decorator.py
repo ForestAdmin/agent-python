@@ -3,6 +3,7 @@ from typing import List, Optional, Union, cast
 from forestadmin.agent_toolkit.utils.context import User
 from forestadmin.datasource_toolkit.collections import CollectionException
 from forestadmin.datasource_toolkit.interfaces.actions import ActionField, ActionResult
+from forestadmin.datasource_toolkit.interfaces.chart import Chart
 from forestadmin.datasource_toolkit.interfaces.collections import Collection
 from forestadmin.datasource_toolkit.interfaces.models.collections import BoundCollection, CollectionSchema, Datasource
 from forestadmin.datasource_toolkit.interfaces.query.aggregation import AggregateResult, Aggregation
@@ -73,6 +74,20 @@ class CollectionDecorator(Collection):
     async def create(self, caller: User, data: List[RecordsDataAlias]) -> List[RecordsDataAlias]:
         return await self.child_collection.create(caller, data)
 
+    async def update(self, caller: User, _filter: Optional[Filter], patch: RecordsDataAlias) -> None:
+        refined_filter = cast(Optional[Filter], await self._refine_filter(caller, _filter))
+        return await self.child_collection.update(caller, refined_filter, patch)
+
+    async def delete(self, caller: User, _filter: Optional[Filter]) -> None:
+        refined_filter = cast(Optional[Filter], await self._refine_filter(caller, _filter))
+        return await self.child_collection.delete(caller, refined_filter)
+
+    async def aggregate(
+        self, caller: User, _filter: Optional[Filter], aggregation: Aggregation, limit: Optional[int] = None
+    ) -> List[AggregateResult]:
+        refined_filter = cast(Optional[Filter], await self._refine_filter(caller, _filter))
+        return await self.child_collection.aggregate(caller, refined_filter, aggregation, limit)
+
     async def execute(
         self,
         caller: User,
@@ -93,16 +108,5 @@ class CollectionDecorator(Collection):
         refined_filter = cast(Optional[Filter], await self._refine_filter(caller, _filter))
         return await self.child_collection.get_form(caller, name, data, refined_filter)
 
-    async def update(self, caller: User, _filter: Optional[Filter], patch: RecordsDataAlias) -> None:
-        refined_filter = cast(Optional[Filter], await self._refine_filter(caller, _filter))
-        return await self.child_collection.update(caller, refined_filter, patch)
-
-    async def delete(self, caller: User, _filter: Optional[Filter]) -> None:
-        refined_filter = cast(Optional[Filter], await self._refine_filter(caller, _filter))
-        return await self.child_collection.delete(caller, refined_filter)
-
-    async def aggregate(
-        self, caller: User, _filter: Optional[Filter], aggregation: Aggregation, limit: Optional[int] = None
-    ) -> List[AggregateResult]:
-        refined_filter = cast(Optional[Filter], await self._refine_filter(caller, _filter))
-        return await self.child_collection.aggregate(caller, refined_filter, aggregation, limit)
+    async def render_chart(self, caller: User, name: str, record_id: List) -> Chart:
+        return await self.child_collection.render_chart(caller, name, record_id)

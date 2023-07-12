@@ -1,6 +1,8 @@
 from typing import Union
 
+from forestadmin.agent_toolkit.utils.context import User
 from forestadmin.datasource_toolkit.datasources import Datasource
+from forestadmin.datasource_toolkit.interfaces.chart import Chart
 
 
 class DatasourceDecorator(Datasource):
@@ -14,6 +16,8 @@ class DatasourceDecorator(Datasource):
         for collection in self.child_datasource.collections:
             self.add_collection(self.class_collection_decorator(collection, self))
 
-    # def get_charts(self):
+    def get_charts(self):
+        return self.child_datasource.get_charts()
 
-    # def render_chart(self, caller:User, name:str):
+    async def render_chart(self, caller: User, name: str) -> Chart:
+        return await self.child_datasource.render_chart(caller, name)

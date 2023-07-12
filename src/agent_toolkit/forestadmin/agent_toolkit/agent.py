@@ -10,6 +10,8 @@ from forestadmin.agent_toolkit.exceptions import AgentToolkitException
 from forestadmin.agent_toolkit.options import DEFAULT_OPTIONS, Options
 from forestadmin.agent_toolkit.resources.actions.resources import ActionResource
 from forestadmin.agent_toolkit.resources.collections import BoundCollection
+from forestadmin.agent_toolkit.resources.collections.charts_collection import ChartsCollectionResource
+from forestadmin.agent_toolkit.resources.collections.charts_datasource import ChartsDatasourceResource
 from forestadmin.agent_toolkit.resources.collections.crud import CrudResource
 from forestadmin.agent_toolkit.resources.collections.crud_related import CrudRelatedResource
 from forestadmin.agent_toolkit.resources.collections.stats import StatsResource
@@ -22,6 +24,7 @@ from forestadmin.agent_toolkit.utils.http import ForestHttpApi
 from forestadmin.datasource_toolkit.datasource_customizer.collection_customizer import CollectionCustomizer
 from forestadmin.datasource_toolkit.datasource_customizer.datasource_customizer import DatasourceCustomizer
 from forestadmin.datasource_toolkit.datasources import Datasource
+from forestadmin.datasource_toolkit.decorators.chart.types import DataSourceChartDefinition
 
 
 class Resources(TypedDict):
@@ -30,6 +33,8 @@ class Resources(TypedDict):
     crud_related: CrudRelatedResource
     stats: StatsResource
     actions: ActionResource
+    collection_charts: ChartsCollectionResource
+    datasource_charts: ChartsDatasourceResource
 
 
 class Agent:
@@ -60,6 +65,12 @@ class Agent:
             ),
             "stats": StatsResource(self.customizer.stack.datasource, self._permission_service, self.options),
             "actions": ActionResource(self.customizer.stack.datasource, self._permission_service, self.options),
+            "collection_charts": ChartsCollectionResource(
+                self.customizer.stack.datasource, self._permission_service, self.options
+            ),
+            "datasource_charts": ChartsDatasourceResource(
+                self.customizer.stack.datasource, self._permission_service, self.options
+            ),
         }
 
     @property
@@ -74,6 +85,9 @@ class Agent:
 
     def customize_collection(self, collection_name: str) -> CollectionCustomizer:
         return self.customizer.customize_collection(collection_name)
+
+    def add_chart(self, name: str, definition: DataSourceChartDefinition):
+        return self.customizer.add_chart(name, definition)
 
     @property
     def meta(self) -> AgentMeta:

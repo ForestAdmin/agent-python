@@ -2,6 +2,7 @@ from typing import Dict
 
 from forestadmin.datasource_toolkit.datasource_customizer.collection_customizer import CollectionCustomizer
 from forestadmin.datasource_toolkit.datasources import Datasource
+from forestadmin.datasource_toolkit.decorators.chart.types import DataSourceChartDefinition
 from forestadmin.datasource_toolkit.decorators.decorator_stack import DecoratorStack
 
 
@@ -28,3 +29,6 @@ class DatasourceCustomizer:
 
     def customize_collection(self, collection_name: str) -> CollectionCustomizer:
         return CollectionCustomizer(self, self.stack, collection_name)
+
+    def add_chart(self, name: str, definition: DataSourceChartDefinition):
+        self.stack.chart.add_chart(name, definition)

@@ -3,6 +3,7 @@ from typing import List, Optional, Union, cast
 from forestadmin.agent_toolkit.utils.context import User
 from forestadmin.datasource_toolkit.datasources import DatasourceException
 from forestadmin.datasource_toolkit.interfaces.actions import ActionField, ActionResult
+from forestadmin.datasource_toolkit.interfaces.chart import Chart
 from forestadmin.datasource_toolkit.interfaces.collections import Collection
 from forestadmin.datasource_toolkit.interfaces.models.collections import Datasource
 from forestadmin.datasource_toolkit.interfaces.query.aggregation import (
@@ -67,18 +68,6 @@ class RelaxedCollection(Collection):
     @property
     def schema(self):
         return self.collection.schema
-
-    async def execute(
-        self, caller: User, name: str, data: RecordsDataAlias, filter: Optional[Union[Filter, PlainFilter]]
-    ) -> ActionResult:
-        filter_instance = self._build_filter(filter)
-        return await self.collection.execute(caller, name, data, filter_instance)
-
-    async def get_form(
-        self, caller: User, name: str, data: Optional[RecordsDataAlias], filter: Optional[Filter]
-    ) -> List[ActionField]:
-        filter_instance = self._build_filter(filter)
-        return await super().get_form(caller, name, data, filter_instance)
 
     async def create(self, caller: User, data: List[RecordsDataAlias]) -> List[RecordsDataAlias]:
         return await self.collection.create(caller, data)
@@ -161,3 +150,18 @@ class RelaxedCollection(Collection):
         aggregation_instance = self._build_aggregation(aggregation)
 
         return await self.collection.aggregate(caller, filter_instance, aggregation_instance, limit)
+
+    async def execute(
+        self, caller: User, name: str, data: RecordsDataAlias, filter: Optional[Union[Filter, PlainFilter]]
+    ) -> ActionResult:
+        filter_instance = self._build_filter(filter)
+        return await self.collection.execute(caller, name, data, filter_instance)
+
+    async def get_form(
+        self, caller: User, name: str, data: Optional[RecordsDataAlias], filter: Optional[Filter]
+    ) -> List[ActionField]:
+        filter_instance = self._build_filter(filter)
+        return await super().get_form(caller, name, data, filter_instance)
+
+    async def render_chart(self, caller: User, name: str, record_id: List) -> Chart:
+        return await super().render_chart(caller, name, record_id)

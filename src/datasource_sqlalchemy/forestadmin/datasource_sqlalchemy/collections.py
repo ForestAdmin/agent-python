@@ -3,13 +3,12 @@ from collections import defaultdict
 from datetime import datetime
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union, cast
 
-from forestadmin.agent_toolkit.utils.context import User
-
 if sys.version_info >= (3, 9):
     import zoneinfo
 else:
     from backports import zoneinfo
 
+from forestadmin.agent_toolkit.utils.context import User
 from forestadmin.datasource_sqlalchemy.exceptions import SqlAlchemyCollectionException, handle_sqlalchemy_error
 from forestadmin.datasource_sqlalchemy.interfaces import (
     BaseSqlAlchemyCollection,
@@ -25,6 +24,7 @@ from forestadmin.datasource_sqlalchemy.utils.record_serializer import (
 )
 from forestadmin.datasource_sqlalchemy.utils.relationships import Relationships, merge_relationships
 from forestadmin.datasource_toolkit.interfaces.actions import ActionField, ActionResult
+from forestadmin.datasource_toolkit.interfaces.chart import Chart
 from forestadmin.datasource_toolkit.interfaces.fields import PrimitiveType, RelationAlias
 from forestadmin.datasource_toolkit.interfaces.query.aggregation import AggregateResult, Aggregation
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.base import ConditionTree
@@ -163,9 +163,6 @@ class SqlAlchemyCollection(BaseSqlAlchemyCollection):
             normalized_projection.extend(self._normalize_projection(child_fields, f"{prefix}{parent_field}:"))
         return Projection(*normalized_projection)
 
-    async def execute(self, caller: User, name: str, data: RecordsDataAlias, filter: Optional[Filter]) -> ActionResult:
-        return await super().execute(caller, name, data, filter)
-
     async def aggregate(
         self,
         caller: User,
@@ -230,3 +227,9 @@ class SqlAlchemyCollection(BaseSqlAlchemyCollection):
         self, caller: User, name: str, data: Optional[RecordsDataAlias], filter: Optional[Filter]
     ) -> List[ActionField]:
         return await super().get_form(caller, name, data, filter)
+
+    async def execute(self, caller: User, name: str, data: RecordsDataAlias, filter: Optional[Filter]) -> ActionResult:
+        return await super().execute(caller, name, data, filter)
+
+    async def render_chart(self, caller: User, name: str, record_id: List) -> Chart:
+        return await super().render_chart(caller, name, record_id)

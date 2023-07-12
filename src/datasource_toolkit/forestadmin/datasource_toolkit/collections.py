@@ -23,6 +23,7 @@ class Collection(CollectionInterface):
             "searchable": False,
             "segments": [],
             "countable": True,
+            "charts": {},
         }
 
     def __repr__(self) -> str:

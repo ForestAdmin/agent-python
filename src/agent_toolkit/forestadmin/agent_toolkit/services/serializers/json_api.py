@@ -1,9 +1,11 @@
 from typing import Any, Dict, List, Optional, Set, Tuple, Type, Union, cast
+from uuid import uuid4
 
 from forestadmin.agent_toolkit.exceptions import AgentToolkitException
 from forestadmin.agent_toolkit.utils.id import pack_id
 from forestadmin.datasource_toolkit.collections import Collection
 from forestadmin.datasource_toolkit.datasource_customizer.collection_customizer import CollectionCustomizer
+from forestadmin.datasource_toolkit.interfaces.chart import Chart
 from forestadmin.datasource_toolkit.interfaces.fields import (
     ColumnAlias,
     PrimitiveType,
@@ -237,3 +239,7 @@ def create_json_api_schema(collection: CollectionAlias):
             fcollection: CollectionAlias = collection
 
     return JsonApiSchemaType(schema_name(collection), (JsonApiSchema,), attributes)
+
+
+def render_chart(chart: Chart):
+    return {"id": str(uuid4()), "type": "stats", "attributes": {"value": chart}}

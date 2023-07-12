@@ -4,6 +4,7 @@ from typing import List, Optional
 from forestadmin.agent_toolkit.utils.context import User
 from forestadmin.datasource_toolkit.exceptions import ForestException
 from forestadmin.datasource_toolkit.interfaces.actions import ActionField, ActionResult
+from forestadmin.datasource_toolkit.interfaces.chart import Chart
 from forestadmin.datasource_toolkit.interfaces.models.collections import Collection as CollectionModel
 from forestadmin.datasource_toolkit.interfaces.query.aggregation import AggregateResult, Aggregation
 from forestadmin.datasource_toolkit.interfaces.query.filter.paginated import PaginatedFilter
@@ -21,6 +22,7 @@ class Collection(CollectionModel, abc.ABC):
         data: RecordsDataAlias,
         filter: Optional[Filter],
     ) -> ActionResult:
+        """to execute an action"""
         raise ForestException(f"Action {name} is not implemented")
 
     @abc.abstractmethod
@@ -31,26 +33,32 @@ class Collection(CollectionModel, abc.ABC):
         data: Optional[RecordsDataAlias],
         filter: Optional[Filter],
     ) -> List[ActionField]:
+        """to get the form of an action"""
         return []
 
     @abc.abstractmethod
+    async def render_chart(self, caller: User, name: str, record_id: List) -> Chart:
+        """to render a chart"""
+        raise ForestException(f"Chart {name} is not implemented")
+
+    @abc.abstractmethod
     async def create(self, caller: User, data: List[RecordsDataAlias]) -> List[RecordsDataAlias]:
-        pass
+        """to create records"""
 
     @abc.abstractmethod
     async def list(self, caller: User, filter: PaginatedFilter, projection: Projection) -> List[RecordsDataAlias]:
-        pass
+        """to list records"""
 
     @abc.abstractmethod
     async def update(self, caller: User, filter: Optional[Filter], patch: RecordsDataAlias) -> None:
-        pass
+        """to update records"""
 
     @abc.abstractmethod
     async def delete(self, caller: User, filter: Optional[Filter]) -> None:
-        pass
+        """to delete records"""
 
     @abc.abstractmethod
     async def aggregate(
         self, caller: User, filter: Optional[Filter], aggregation: Aggregation, limit: Optional[int] = None
     ) -> List[AggregateResult]:
-        pass
+        """to make aggregate request"""

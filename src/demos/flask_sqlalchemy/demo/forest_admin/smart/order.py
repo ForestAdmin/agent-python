@@ -3,16 +3,19 @@ import json
 from typing import List, Union
 
 from demo.models.models import ORDER_STATUS
+from forestadmin.datasource_toolkit.context.agent_context import AgentCustomizationContext
 from forestadmin.datasource_toolkit.context.collection_context import CollectionCustomizationContext
 from forestadmin.datasource_toolkit.decorators.action.context.base import ActionContext
 from forestadmin.datasource_toolkit.decorators.action.result_builder import ResultBuilder
 from forestadmin.datasource_toolkit.decorators.action.types.actions import ActionGlobal
 from forestadmin.datasource_toolkit.decorators.action.types.fields import PlainDynamicField
+from forestadmin.datasource_toolkit.decorators.chart.result_builder import ResultBuilder as ResultBuilderChart
 from forestadmin.datasource_toolkit.decorators.computed.types import ComputedDefinition
 from forestadmin.datasource_toolkit.interfaces.actions import ActionFieldType, ActionResult
 from forestadmin.datasource_toolkit.interfaces.fields import Operator, PrimitiveType
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.branch import Aggregator, ConditionTreeBranch
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.leaf import ConditionTreeLeaf
+from forestadmin.datasource_toolkit.interfaces.query.filter.paginated import PaginatedFilter
 from forestadmin.datasource_toolkit.interfaces.query.projections import Projection
 from forestadmin.datasource_toolkit.interfaces.records import RecordsDataAlias
 
@@ -107,3 +110,13 @@ class ExportJson(ActionGlobal):
         return result_builder.file(
             io.BytesIO(json.dumps({"data": records}, default=str).encode("utf-8")), "dumps.json", "application/json"
         )
+
+
+# charts
+
+
+async def total_order_chart(context: AgentCustomizationContext, result_builder: ResultBuilderChart):
+    records = await context.datasource.get_collection("order").list(
+        context.caller, PaginatedFilter({}), Projection("id")
+    )
+    return result_builder.value(len(records))

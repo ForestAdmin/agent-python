@@ -6,6 +6,8 @@ from demo.forest_admin.smart.customer import (
     customer_full_name,
     customer_spending_computed,
     french_address_segment,
+    order_details,
+    total_orders_customer_chart,
 )
 from demo.forest_admin.smart.order import ExportJson as ExportOrderJson
 from demo.forest_admin.smart.order import (
@@ -15,6 +17,7 @@ from demo.forest_admin.smart.order import (
     pending_order_segment,
     rejected_order_segment,
     suspicious_order_segment,
+    total_order_chart,
 )
 from demo.models.models import Base
 from forestadmin.datasource_sqlalchemy.datasource import SqlAlchemyDatasource
@@ -49,6 +52,8 @@ agent.customize_collection("customer").add_field("full_name", customer_full_name
 agent.customize_collection("customer").add_field("TotalSpending", customer_spending_computed())
 # # validation
 agent.customize_collection("customer").add_validation("age", {"operator": Operator.GREATER_THAN, "value": 0})
+agent.customize_collection("customer").add_chart("total_orders", total_orders_customer_chart)
+agent.customize_collection("customer").add_chart("orders_table", order_details)
 
 
 # # ## ORDERS
@@ -68,6 +73,13 @@ agent.customize_collection("order").add_validation("amount", {"operator": Operat
 # # computed
 agent.customize_collection("order").add_field("customer_full_name", get_customer_full_name_field())
 
+agent.add_chart("total_order", total_order_chart)
+agent.add_chart(
+    "mytablechart",
+    lambda ctx, result_builder: result_builder.smart(
+        [{"username": "Darth Vador", "points": 1500000}, {"username": "Luke Skywalker", "points": 2}]
+    ),
+)
 
 # add relations
 # # manyToOne

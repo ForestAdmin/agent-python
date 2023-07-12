@@ -58,6 +58,8 @@ class TestFlaskAgent(TestCase):
             "authentication": Mock(),
             "stats": Mock(),
             "actions": Mock(),
+            "collection_charts": Mock(),
+            "datasource_charts": Mock(),
         }
 
         blueprint = build_blueprint(agent)
@@ -70,6 +72,8 @@ class TestFlaskAgent(TestCase):
             call("/_actions/<collection_name>/<int:action_name>/<slug>", methods=["POST"]),
             call("/authentication", methods=["POST"]),
             call("/stats/<collection_name>", methods=["POST"]),
+            call("/_charts/<chart_name>", methods=["POST", "GET"]),
+            call("/_charts/<collection_name>/<chart_name>", methods=["POST", "GET"]),
             call("/<collection_name>/count", methods=["GET"]),
             call("/<collection_name>/<pks>", methods=["GET", "PUT", "DELETE"]),
             call("/<collection_name>", methods=["GET", "POST", "DELETE"]),
