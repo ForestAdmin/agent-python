@@ -31,7 +31,7 @@ agent.add_datasource(SqlAlchemyDatasource(Base))
 # # ## ADDRESS
 agent.customize_collection("address").add_segment("highOrderDelivery", high_delivery_address_segment)
 
-# agent.customize_collection("address").rename_field("country", "pays")
+agent.customize_collection("address").rename_field("country", "pays")
 agent.customize_collection("address").add_field("full_address", address_full_name_computed("country"))
 agent.customize_collection("address").rename_field("full_address", "complete_address")
 

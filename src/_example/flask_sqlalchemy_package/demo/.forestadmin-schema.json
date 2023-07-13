@@ -399,6 +399,22 @@
                 {
                     "defaultValue": null,
                     "enums": null,
+                    "field": "birthday_date",
+                    "integration": null,
+                    "inverseOf": null,
+                    "isFilterable": true,
+                    "isPrimaryKey": false,
+                    "isReadOnly": false,
+                    "isRequired": false,
+                    "isSortable": true,
+                    "isVirtual": false,
+                    "reference": null,
+                    "type": "Date",
+                    "validations": []
+                },
+                {
+                    "defaultValue": null,
+                    "enums": null,
                     "field": "first_name",
                     "integration": null,
                     "inverseOf": null,
@@ -831,11 +847,11 @@
     ],
     "meta": {
         "liana": "agent-python",
-        "liana_version": "0.1.0-beta.32",
+        "liana_version": "0.1.0-beta.42",
         "stack": {
             "engine": "python",
             "engine_version": "3.10.5"
         },
-        "schemaFileHash": "9f3636fb32b31573b11ca0cb6b453689af6de86c"
+        "schemaFileHash": "51087551fa4a8af8fd2a0bdb1439c19009c8e5bd"
     }
 }
