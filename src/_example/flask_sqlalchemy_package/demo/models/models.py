@@ -1,12 +1,10 @@
 import enum
 
-from sqlalchemy import Column, DateTime, Enum, ForeignKey, Integer, String, create_engine, func  # type: ignore
-from sqlalchemy.orm import declarative_base, relationship
+from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import Column, ColumnDefault, DateTime, Enum, ForeignKey, Integer, String, func
+from sqlalchemy.orm import relationship
 
-SQLITE_URI = "sqlite:///db.sql"
-engine = create_engine(SQLITE_URI, echo=False)
-Base = declarative_base(engine)
-Base.metadata.bind = engine
+db = SQLAlchemy()
 
 
 class ORDER_STATUS(enum.Enum):
@@ -16,29 +14,30 @@ class ORDER_STATUS(enum.Enum):
     REJECTED = "Rejected"
 
 
-class Address(Base):
+class Address(db.Model):
     __tablename__ = "address"
     id = Column(Integer, primary_key=True)
     street = Column(String(254), nullable=False)
     city = Column(String(254), nullable=False)
     country = Column(String(254), nullable=False)
-    zip_code = Column(String(5), nullable=False)
+    zip_code = Column(String(5), default=ColumnDefault("75000"), nullable=False)
     customers = relationship("Customer", secondary="customers_addresses", back_populates="addresses")
 
 
-class Customer(Base):
+class Customer(db.Model):
     __tablename__ = "customer"
     id = Column(Integer, primary_key=True)
     first_name = Column(String(254), nullable=False)
     last_name = Column(String(254), nullable=False)
+    birthday_date = Column(DateTime(timezone=True), default=func.now())
     age = Column(Integer, nullable=True)
     addresses = relationship("Address", secondary="customers_addresses", back_populates="customers")
 
 
-class Order(Base):
+class Order(db.Model):
     __tablename__ = "order"
     id = Column(Integer, primary_key=True)
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    created_at = Column(DateTime(timezone=True), default=func.now())
     amount = Column(Integer, nullable=False)
     customer = relationship("Customer", backref="orders")
     customer_id = Column(Integer, ForeignKey("customer.id"))
@@ -50,17 +49,17 @@ class Order(Base):
     cart = relationship("Cart", uselist=False, back_populates="order")
 
 
-class Cart(Base):
+class Cart(db.Model):
     __tablename__ = "cart"
     id = Column(Integer, primary_key=True)
 
     name = Column(String(254), nullable=False)
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    created_at = Column(DateTime(timezone=True), default=func.now())
     order_id = Column(Integer, ForeignKey("order.id"))
     order = relationship("Order", back_populates="cart", foreign_keys=[order_id])
 
 
-class CustomersAddresses(Base):
+class CustomersAddresses(db.Model):
     __tablename__ = "customers_addresses"
     customer_id = Column(Integer, ForeignKey("customer.id"), primary_key=True)
     address_id = Column(Integer, ForeignKey("address.id"), primary_key=True)
