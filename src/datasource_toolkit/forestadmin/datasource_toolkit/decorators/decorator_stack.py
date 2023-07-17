@@ -12,6 +12,7 @@ from forestadmin.datasource_toolkit.decorators.schema.collection import SchemaCo
 from forestadmin.datasource_toolkit.decorators.search.collections import SearchCollectionDecorator
 from forestadmin.datasource_toolkit.decorators.segments.collections import SegmentCollectionDecorator
 from forestadmin.datasource_toolkit.decorators.validation.collection import ValidationCollectionDecorator
+from forestadmin.datasource_toolkit.decorators.write.write_datasource_decorator import WriteDataSourceDecorator
 from forestadmin.datasource_toolkit.interfaces.models.collections import Datasource
 
 
@@ -42,7 +43,7 @@ class DecoratorStack:
         last = self.chart = ChartDataSourceDecorator(last)
         last = self.action = DatasourceDecorator(last, ActionCollectionDecorator)
         last = self.schema = DatasourceDecorator(last, SchemaCollectionDecorator)
-        # last = self.write = WriteDataSourceDecorator(last)
+        last = self.write = WriteDataSourceDecorator(last)
         # last = self.hook = DatasourceDecorator(last, HookCollection)
         last = self.validation = DatasourceDecorator(last, ValidationCollectionDecorator)
         # last = self.binary = DatasourceDecorator(last, BinaryCollection)
