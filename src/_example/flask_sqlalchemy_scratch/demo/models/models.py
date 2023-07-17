@@ -32,6 +32,7 @@ class Customer(Base):
     first_name = Column(String(254), nullable=False)
     last_name = Column(String(254), nullable=False)
     age = Column(Integer, nullable=True)
+    birthday_date = Column(DateTime(timezone=True), default=func.now())
     addresses = relationship("Address", secondary="customers_addresses", back_populates="customers")
 
 

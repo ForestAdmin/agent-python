@@ -29,6 +29,7 @@ def _populate_customers(nb: int = 500):
             Customer(
                 first_name=fake.first_name(),
                 last_name=fake.last_name(),
+                birthday_date=fake.date_of_birth(),
                 age=random.choices([None, random.randint(16, 120)])[0],
             )
         )

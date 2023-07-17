@@ -4,6 +4,7 @@ from demo.forest_admin.smart.customer import (
     AgeOperation,
     ExportJson,
     customer_full_name,
+    customer_full_name_write,
     customer_spending_computed,
     french_address_segment,
     order_details,
@@ -49,6 +50,8 @@ agent.customize_collection("customer").add_action("Export json", ExportJson())
 agent.customize_collection("customer").add_action("Age operation", AgeOperation())
 # # computed
 agent.customize_collection("customer").add_field("full_name", customer_full_name())
+agent.customize_collection("customer").replace_field_writing("full_name", customer_full_name_write)
+
 agent.customize_collection("customer").add_field("TotalSpending", customer_spending_computed())
 # # validation
 agent.customize_collection("customer").add_validation("age", {"operator": Operator.GREATER_THAN, "value": 0})

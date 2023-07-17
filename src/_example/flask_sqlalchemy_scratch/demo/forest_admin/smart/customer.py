@@ -17,6 +17,9 @@ from forestadmin.datasource_toolkit.decorators.action.types.fields import (
 from forestadmin.datasource_toolkit.decorators.chart.collection_chart_context import CollectionChartContext
 from forestadmin.datasource_toolkit.decorators.chart.result_builder import ResultBuilder as ResultBuilderChart
 from forestadmin.datasource_toolkit.decorators.computed.types import ComputedDefinition
+from forestadmin.datasource_toolkit.decorators.write.write_replace.write_customization_context import (
+    WriteCustomizationContext,
+)
 from forestadmin.datasource_toolkit.interfaces.actions import ActionFieldType, ActionResult
 from forestadmin.datasource_toolkit.interfaces.fields import Operator, PrimitiveType
 from forestadmin.datasource_toolkit.interfaces.query.aggregation import (
@@ -81,6 +84,11 @@ def customer_full_name() -> ComputedDefinition:
     #     "dependencies": ["first_name", "last_name"],
     #     "get_values": _get_customer_fullname_values,
     # }
+
+
+def customer_full_name_write(value: str, context: WriteCustomizationContext):
+    first_name, last_name = value.split(" - ", 1)
+    return {"first_name": first_name, "last_name": last_name}
 
 
 # actions

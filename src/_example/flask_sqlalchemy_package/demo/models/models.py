@@ -1,7 +1,7 @@
 import enum
 
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import Column, ColumnDefault, DateTime, Enum, ForeignKey, Integer, String, func
+from sqlalchemy import Column, DateTime, Enum, ForeignKey, Integer, String, func
 from sqlalchemy.orm import relationship
 
 db = SQLAlchemy()
@@ -19,8 +19,8 @@ class Address(db.Model):
     id = Column(Integer, primary_key=True)
     street = Column(String(254), nullable=False)
     city = Column(String(254), nullable=False)
-    country = Column(String(254), nullable=False)
-    zip_code = Column(String(5), default=ColumnDefault("75000"), nullable=False)
+    country = Column(String(254), default="France", nullable=False)
+    zip_code = Column(String(5), nullable=False)
     customers = relationship("Customer", secondary="customers_addresses", back_populates="addresses")
 
 

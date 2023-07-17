@@ -393,6 +393,22 @@
                 {
                     "defaultValue": null,
                     "enums": null,
+                    "field": "birthday_date",
+                    "integration": null,
+                    "inverseOf": null,
+                    "isFilterable": true,
+                    "isPrimaryKey": false,
+                    "isReadOnly": false,
+                    "isRequired": false,
+                    "isSortable": true,
+                    "isVirtual": false,
+                    "reference": null,
+                    "type": "Date",
+                    "validations": []
+                },
+                {
+                    "defaultValue": null,
+                    "enums": null,
                     "field": "first_name",
                     "integration": null,
                     "inverseOf": null,
@@ -420,7 +436,7 @@
                     "inverseOf": null,
                     "isFilterable": false,
                     "isPrimaryKey": false,
-                    "isReadOnly": true,
+                    "isReadOnly": false,
                     "isRequired": false,
                     "isSortable": false,
                     "isVirtual": false,
@@ -830,6 +846,6 @@
             "engine": "python",
             "engine_version": "3.10.5"
         },
-        "schemaFileHash": "79c54aa2356427e00348cd946ddba219da33aec7"
+        "schemaFileHash": "bbf17a9185a7a462300d3908aa248a0017418470"
     }
 }
