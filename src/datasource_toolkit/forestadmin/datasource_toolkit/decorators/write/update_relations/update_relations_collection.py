@@ -72,7 +72,8 @@ class UpdateRelationsCollection(CollectionDecorator):
         if len(creates) > 0:
             if field_schema["type"] == FieldType.MANY_TO_ONE:
                 # Create many-to-one relations
-                sub_record = await relation.create(caller, [patch])[0]
+                sub_record = await relation.create(caller, [patch])
+                sub_record = sub_record[0]
                 condition_tree = ConditionTreeFactory.match_records(relation.schema, creates)
                 parent_patch = {field_schema["foreign_key"]: sub_record[field_schema["foreign_key_target"]]}
 
@@ -81,10 +82,10 @@ class UpdateRelationsCollection(CollectionDecorator):
                 # Create the one-to-one relations that don't already exist
                 await relation.create(
                     caller,
-                    map(
-                        lambda record: {**patch, field_schema["origin_key"]: record[field_schema["origin_key_target"]]},
-                        creates,
-                    ),
+                    [
+                        {**patch, field_schema["origin_key"]: create[field_schema["origin_key_target"]]}
+                        for create in creates
+                    ],
                 )
 
         # Update the relations that already exist

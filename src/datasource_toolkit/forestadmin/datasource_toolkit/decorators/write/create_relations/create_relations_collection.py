@@ -17,35 +17,31 @@ class CreateRelationsCollection(CollectionDecorator):
         records_by_relation = self.__extract_relations(data)
 
         # Step 2: Create the many-to-one relations, and put the foreign keys in the records
-        for field_name, entries in filter(
-            lambda field_name, entries: self.schema["fields"][field_name]["type"] == FieldType.MANY_TO_ONE,
-            records_by_relation.items(),
-        ):
-            await self.__create_many_to_one_relation(caller, data, field_name, entries)
+        for field_name, entries in records_by_relation.items():
+            if self.schema["fields"].get(field_name, {}).get("type") == FieldType.MANY_TO_ONE:
+                await self.__create_many_to_one_relation(caller, data, field_name, entries)
 
         # Step 3: Create the records
-        records_with_pk = self.child_collection.create(caller, data)
+        records_with_pk = await self.child_collection.create(caller, data)
 
         # Step 4: Create the one-to-one relations
         # Note: the createOneToOneRelation method modifies the records_with_pk array in place!
-        for field_name, entries in filter(
-            lambda field_name, entries: self.schema["fields"][field_name]["type"] == FieldType.ONE_TO_ONE,
-            records_by_relation.items(),
-        ):
-            await self.__create_one_to_one_relation(caller, records_with_pk, field_name, entries)
+        for field_name, entries in records_by_relation.items():
+            if self.schema["fields"].get(field_name, {}).get("type") == FieldType.ONE_TO_ONE:
+                await self.__create_one_to_one_relation(caller, records_with_pk, field_name, entries)
 
         return records_with_pk
 
     def __extract_relations(self, records: List[RecordsDataAlias]) -> Dict[str, List[RecordWithIndex]]:
         records_by_relation = {}
 
-        for index, record in enumerate(records):
-            for field_name, sub_record in record.items():
-                if self.schema["fields"][field_name]["type"] != FieldType.COLUMN:
+        for index, record in enumerate([*records]):  # prevent "size change during iteration" error
+            for field_name, sub_record in {**record}.items():  # prevent "size change during iteration" error
+                if self.schema["fields"].get(field_name, {"type": None})["type"] != FieldType.COLUMN:
                     if records_by_relation.get(field_name) is None:
                         records_by_relation[field_name] = []
                     records_by_relation[field_name].append({"sub_record": sub_record, "index": index})
-                    del record[field_name]
+                    del records[index][field_name]
         return records_by_relation
 
     async def __create_many_to_one_relation(
@@ -53,8 +49,9 @@ class CreateRelationsCollection(CollectionDecorator):
     ):
         field_schema: ManyToOne = self.schema["fields"][field_name]
         relation: Collection = self.datasource.get_collection(field_schema["foreign_collection"])
-        creations = filter(lambda entry: records[entry["index"]][field_schema["foreign_key"]] is None, entries)
-        updates = filter(lambda entry: records[entry["index"]][field_schema["foreign_key"]] is not None, entries)
+
+        creations = [entry for entry in entries if records[entry["index"]].get(field_schema["foreign_key"]) is None]
+        updates = [entry for entry in entries if records[entry["index"]].get(field_schema["foreign_key"]) is not None]
 
         # Create the relations when the fk is not present
         if len(creations) > 0:
@@ -72,7 +69,8 @@ class CreateRelationsCollection(CollectionDecorator):
         for update in updates:
             value = records[update["index"]][field_schema["foreign_key"]]
             condition_tree = ConditionTreeLeaf(field_schema["foreign_key_target"], Operator.EQUAL, value)
-            await relation.update(caller, Filter({"condition_tree": condition_tree}))
+
+            await relation.update(caller, Filter({"condition_tree": condition_tree}), update["sub_record"])
 
     async def __create_one_to_one_relation(
         self, caller: User, records: List[RecordsDataAlias], field_name: str, entries: List[RecordWithIndex]

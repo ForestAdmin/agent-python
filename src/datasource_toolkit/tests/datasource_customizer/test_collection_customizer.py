@@ -2,6 +2,7 @@ import asyncio
 import sys
 from typing import Union
 from unittest import TestCase
+from unittest.mock import patch
 
 if sys.version_info >= (3, 9):
     import zoneinfo
@@ -15,6 +16,8 @@ from forestadmin.datasource_toolkit.datasource_customizer.datasource_customizer 
 from forestadmin.datasource_toolkit.datasources import Datasource
 from forestadmin.datasource_toolkit.decorators.action.result_builder import ResultBuilder
 from forestadmin.datasource_toolkit.decorators.action.types.actions import ActionSingle, Context
+from forestadmin.datasource_toolkit.decorators.chart.collection_chart_context import CollectionChartContext
+from forestadmin.datasource_toolkit.decorators.chart.result_builder import ResultBuilder as ResultBuilderChart
 from forestadmin.datasource_toolkit.decorators.computed.types import ComputedDefinition
 from forestadmin.datasource_toolkit.interfaces.actions import ActionResult
 from forestadmin.datasource_toolkit.interfaces.fields import (
@@ -220,3 +223,34 @@ class TestCollectionCustomizer(TestCase):
 
         schema = self.datasource_customizer.stack.publication.get_collection("Book").schema
         assert "action_man" in schema["actions"]
+
+    def test_add_validation(self):
+        self.person_customizer.add_validation("name", {"operator": Operator.LONGER_THAN, "value": 5})
+
+        schema = self.datasource_customizer.stack.publication.get_collection("Person").schema
+        assert schema["fields"]["name"]["validations"] == [{"operator": Operator.LONGER_THAN, "value": 5}]
+
+    def test_add_chart(self):
+        def chart_fn(context: CollectionChartContext, result_builder: ResultBuilderChart):
+            return result_builder.value(1)
+
+        with patch.object(
+            self.datasource_customizer.stack.chart.get_collection("Book"), "add_chart"
+        ) as mocked_add_chart:
+            self.book_customizer.add_chart("test_chart", chart_fn)
+            mocked_add_chart.assert_called_once_with("test_chart", chart_fn)
+
+        self.book_customizer.add_chart("test_chart", chart_fn)
+        schema = self.datasource_customizer.stack.publication.get_collection("Book").schema
+        assert "test_chart" in schema["charts"]
+        assert schema["charts"]["test_chart"] == chart_fn
+
+    def test_replace_field_writing(self):
+        def write_definition(value, context):
+            return {"name": value}
+
+        with patch.object(
+            self.datasource_customizer.stack.write.get_collection("Person"), "replace_field_writing"
+        ) as mocked_replace_field_writing:
+            self.person_customizer.replace_field_writing("name", write_definition)
+            mocked_replace_field_writing.assert_called_once_with("name", write_definition)

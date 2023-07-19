@@ -41,15 +41,11 @@ class WriteReplaceCollection(CollectionDecorator):
             new_records.append(await self._rewrite_patch(caller, "create", record))
 
         return await self.child_collection.create(caller, new_records)
-        # TODO: understand and choose
-        return await self.datasource._create.get_collection(self.name).create(caller, new_records)
 
     async def update(self, caller: User, _filter: Optional[Filter], patch: RecordsDataAlias):
         new_patch = await self._rewrite_patch(caller, "update", patch, [], _filter)
 
         return await self.child_collection.update(caller, _filter, new_patch)
-        # TODO: understand and choose
-        return await self.datasource._create.get_collection(self.name).update(caller, _filter, new_patch)
 
     async def _rewrite_patch(
         self,
@@ -83,10 +79,10 @@ class WriteReplaceCollection(CollectionDecorator):
         if key in used:
             raise ForestException(f"Cycle detected: {' -> '.join(used)}.")
 
-        field_schema = self.schema["fields"][key]
+        field_schema = self.schema["fields"].get(key, {})
 
         # Handle Column fields.
-        if field_schema["type"] == FieldType.COLUMN:
+        if field_schema.get("type") == FieldType.COLUMN:
             # We either call the customer handler or a default one that does nothing.
             handler = self._handlers.get(key, lambda value, context: {key: value})
             field_patch = handler(context.record[key], context)
@@ -95,11 +91,14 @@ class WriteReplaceCollection(CollectionDecorator):
             if field_patch is None:
                 field_patch: RecordsDataAlias = {}
 
+            if not isinstance(field_patch, dict):
+                raise ForestException(f"The write handler of {key} should return an object or nothing.")
+
             # Isolate change to our own value (which should not recurse) and the rest which should
             # trigger the other handlers.
             value = field_patch.pop(key, None)
 
-            new_patch = await self._rewrite_patch(context.caller, context.action, field_patch, used)
+            new_patch = await self._rewrite_patch(context.caller, context.action, field_patch, [*used, key])
 
             if value is not None:
                 return self._deep_merge({key: value}, new_patch)
@@ -107,10 +106,10 @@ class WriteReplaceCollection(CollectionDecorator):
                 return new_patch
 
         # Handle relation fields.
-        if field_schema["type"] in [FieldType.MANY_TO_ONE, FieldType.ONE_TO_ONE]:
+        if field_schema.get("type") in [FieldType.MANY_TO_ONE, FieldType.ONE_TO_ONE]:
             # Delegate relations to the appropriate collection.
-            relation = self.datasource.get_collection(self.name)
-            return {key: relation._rewrite_patch(context.caller, context.action, context.record[key])}
+            relation = self.datasource.get_collection(field_schema["foreign_collection"])
+            return {key: await relation._rewrite_patch(context.caller, context.action, context.record[key])}
 
         raise ForestException(f"Unknown field : {key}")
 

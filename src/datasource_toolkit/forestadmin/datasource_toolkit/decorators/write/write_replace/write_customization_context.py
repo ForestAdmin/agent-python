@@ -1,3 +1,4 @@
+from types import MappingProxyType
 from typing import Literal, Optional, Union
 
 from forestadmin.agent_toolkit.utils.context import User
@@ -18,5 +19,5 @@ class WriteCustomizationContext(CollectionCustomizationContext):
     ):
         self.action = action
         self.filter = filter_
-        self.record = {**record}
+        self.record = MappingProxyType({**record})
         super().__init__(collection, caller)
