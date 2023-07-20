@@ -18,6 +18,7 @@ from forestadmin.datasource_toolkit.datasources import Datasource
 from forestadmin.datasource_toolkit.decorators.write.write_datasource_decorator import WriteDataSourceDecorator
 from forestadmin.datasource_toolkit.interfaces.fields import Column, FieldType, ManyToOne, Operator, PrimitiveType
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.leaf import ConditionTreeLeaf
+from forestadmin.datasource_toolkit.interfaces.query.filter.paginated import PaginatedFilter
 from forestadmin.datasource_toolkit.interfaces.query.filter.unpaginated import Filter
 from forestadmin.datasource_toolkit.interfaces.query.projections import Projection
 
@@ -106,7 +107,8 @@ class TestWriteManyToMany(TestCase):
             mocked_update.assert_awaited_once_with(self.mocked_caller, filter_, {"title": "New title"})
 
     def test_should_create_related_record_when_not_exists(self):
-        filter_ = Filter({"condition_tree": ConditionTreeLeaf("id", Operator.EQUAL, 3)})
+        condition_tree = {"condition_tree": ConditionTreeLeaf("id", Operator.EQUAL, 3)}
+        filter_ = Filter(condition_tree)
 
         patch_update_book = patch.object(
             self.collection_book,
@@ -137,7 +139,9 @@ class TestWriteManyToMany(TestCase):
         )
 
         mock_update_book.assert_any_await(self.mocked_caller, filter_, {"title": "new title"})
-        mock_list_book.assert_any_await(self.mocked_caller, filter_, Projection("id", "author:id"))
+        mock_list_book.assert_any_await(
+            self.mocked_caller, PaginatedFilter(condition_tree), Projection("id", "author:id")
+        )
 
         mock_create_person.assert_any_await(self.mocked_caller, [{"first_name": "John", "last_name": "Doe"}])
         mock_update_book.assert_any_await(self.mocked_caller, filter_, {"author_id": 3})
@@ -147,7 +151,8 @@ class TestWriteManyToMany(TestCase):
         patch_create_person.stop()
 
     def test_update_should_update_related_record_if_exists(self):
-        filter_ = Filter({"condition_tree": ConditionTreeLeaf("id", Operator.EQUAL, 3)})
+        condition_tree = {"condition_tree": ConditionTreeLeaf("id", Operator.EQUAL, 3)}
+        filter_ = Filter(condition_tree)
 
         patch_update_book = patch.object(
             self.collection_book,
@@ -175,7 +180,9 @@ class TestWriteManyToMany(TestCase):
         )
 
         mock_update_book.assert_any_await(self.mocked_caller, filter_, {"title": "new title"})
-        mock_list_book.assert_any_await(self.mocked_caller, filter_, Projection("id", "author:id"))
+        mock_list_book.assert_any_await(
+            self.mocked_caller, PaginatedFilter(condition_tree), Projection("id", "author:id")
+        )
 
         mock_update_person.assert_any_await(self.mocked_caller, filter_, {"first_name": "John"})
 

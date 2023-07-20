@@ -18,6 +18,7 @@ from forestadmin.datasource_toolkit.datasources import Datasource
 from forestadmin.datasource_toolkit.decorators.write.write_datasource_decorator import WriteDataSourceDecorator
 from forestadmin.datasource_toolkit.interfaces.fields import Column, FieldType, OneToOne, Operator, PrimitiveType
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.leaf import ConditionTreeLeaf
+from forestadmin.datasource_toolkit.interfaces.query.filter.paginated import PaginatedFilter
 from forestadmin.datasource_toolkit.interfaces.query.filter.unpaginated import Filter
 from forestadmin.datasource_toolkit.interfaces.query.projections import Projection
 
@@ -122,13 +123,16 @@ class TestCollectionSingleOneToOne(TestCase):
         person_update_mock = person_update_patcher.start()
 
         # when
-        filter_ = Filter({"condition_tree": ConditionTreeLeaf("name", Operator.EQUAL, "a name")})
+        condition_tree = {"condition_tree": ConditionTreeLeaf("name", Operator.EQUAL, "a name")}
+        filter_ = Filter(condition_tree)
         self.loop.run_until_complete(
             self.collection_book_decorated.update(self.mocked_caller, filter_, {"title": "a title"})
         )
 
         # then
-        book_list_mock.assert_awaited_once_with(self.mocked_caller, filter_, Projection("id", "my_owner:id"))
+        book_list_mock.assert_awaited_once_with(
+            self.mocked_caller, PaginatedFilter(condition_tree), Projection("id", "my_owner:id")
+        )
         book_update_mock.assert_not_awaited()
         person_update_mock.assert_awaited_with(
             self.mocked_caller,

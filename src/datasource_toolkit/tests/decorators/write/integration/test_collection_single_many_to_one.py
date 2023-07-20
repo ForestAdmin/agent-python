@@ -233,7 +233,9 @@ class TestSingleManyToOne(TestCase):
         )
         person_list_mock.assert_awaited_with(
             self.mocked_caller,
-            Filter({"condition_tree": ConditionTreeLeaf("id", Operator.EQUAL, "123e4567-e89b-12d3-a456-111111111111")}),
+            PaginatedFilter(
+                {"condition_tree": ConditionTreeLeaf("id", Operator.EQUAL, "123e4567-e89b-12d3-a456-111111111111")}
+            ),
             Projection("id", "my_price:id"),
         )
         book_update_mock.assert_not_awaited()

@@ -1,5 +1,11 @@
+import sys
 from types import MappingProxyType
-from typing import Literal, Optional, Union
+from typing import Optional, Union
+
+if sys.version_info >= (3, 8):
+    from typing import Literal
+else:
+    from typing_extensions import Literal
 
 from forestadmin.agent_toolkit.utils.context import User
 from forestadmin.datasource_toolkit.context.collection_context import CollectionCustomizationContext
