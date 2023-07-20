@@ -6,6 +6,7 @@ from forestadmin.datasource_toolkit.collections import Collection
 from forestadmin.datasource_toolkit.decorators.collection_decorator import CollectionDecorator
 from forestadmin.datasource_toolkit.interfaces.fields import FieldType
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.factory import ConditionTreeFactory
+from forestadmin.datasource_toolkit.interfaces.query.filter.paginated import PaginatedFilter
 from forestadmin.datasource_toolkit.interfaces.query.filter.unpaginated import Filter
 from forestadmin.datasource_toolkit.interfaces.query.projections import Projection
 from forestadmin.datasource_toolkit.interfaces.records import RecordsDataAlias
@@ -34,7 +35,7 @@ class UpdateRelationsCollection(CollectionDecorator):
         if len(relation_keys) > 0:
             # Fetch the records that will be updated, to know which relations need to be created/updated
             projection = self.__build_projection(patch)
-            records = await self.child_collection.list(caller, _filter, projection)
+            records = await self.child_collection.list(caller, PaginatedFilter.from_base_filter(_filter), projection)
 
             for relation_key in relation_keys:
                 await self.__create_or_update_relation(caller, records, relation_key, patch[relation_key])
