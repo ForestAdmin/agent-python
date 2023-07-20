@@ -1,5 +1,5 @@
 from functools import reduce
-from typing import List
+from typing import List, Optional
 
 from forestadmin.agent_toolkit.utils.context import User
 from forestadmin.datasource_toolkit.collections import Collection
@@ -13,7 +13,7 @@ from forestadmin.datasource_toolkit.interfaces.records import RecordsDataAlias
 
 
 class UpdateRelationsCollection(CollectionDecorator):
-    async def update(self, caller: User, _filter: Filter | None, patch: RecordsDataAlias):
+    async def update(self, caller: User, _filter: Optional[Filter], patch: RecordsDataAlias):
         fields_schema = self.schema["fields"]
 
         # Step 1: Perform the normal update
