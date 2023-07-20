@@ -26,12 +26,7 @@ class UpdateRelationsCollection(CollectionDecorator):
             await self.child_collection.update(caller, _filter, patch_without_relations)
 
         # Step 2: Perform additional updates for relations
-        relation_keys = [
-            *filter(
-                lambda key: fields_schema[key]["type"] != FieldType.COLUMN,
-                patch.keys(),
-            )
-        ]
+        relation_keys = [key for key in patch.keys() if fields_schema[key]["type"] != FieldType.COLUMN]
         if len(relation_keys) > 0:
             # Fetch the records that will be updated, to know which relations need to be created/updated
             projection = self.__build_projection(patch)
