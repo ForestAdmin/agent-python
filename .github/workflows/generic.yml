@@ -103,7 +103,7 @@ jobs:
     name: Semantic release
     needs: [coverage]
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' && github.ref == 'refs/heads/beta'
+    # if: github.event_name == 'push' && github.ref == 'refs/heads/beta'
     strategy:
       matrix:
         python-version: ['3.10']
