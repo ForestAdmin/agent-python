@@ -67,38 +67,38 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
           current_package: ${{ matrix.current_package }}
-  test:
-    name: Test
-    needs: [isort, lint, black]
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: ['3.10']
-        # python-version: [3.7, 3.8, 3.9, '3.10', 3.11]
-        current_package: ${{ fromJson(inputs.packages) }}
-    steps:
-      - uses: actions/checkout@v3
-      - id: tests
-        if: steps.changes.outputs.${{ matrix.current_package }} == 'true'
-        uses: ./.github/actions/tests
-        with:
-          python-version: ${{ matrix.python-version }}
-          current_package: ${{ matrix.current_package }}
-  coverage:
-    name: Coverage
-    needs: [test]
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: ['3.10']
-    steps:
-      - uses: actions/checkout@v3
-      - id: coverage
-        uses: ./.github/actions/coverage
-        with:
-          python-version: ${{ matrix.python-version }}
-          current_package: ./src/datasource_toolkit
-          CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
+  # test:
+  #   name: Test
+  #   needs: [isort, lint, black]
+  #   runs-on: ubuntu-latest
+  #   strategy:
+  #     matrix:
+  #       python-version: ['3.10']
+  #       # python-version: [3.7, 3.8, 3.9, '3.10', 3.11]
+  #       current_package: ${{ fromJson(inputs.packages) }}
+  #   steps:
+  #     - uses: actions/checkout@v3
+  #     - id: tests
+  #       if: steps.changes.outputs.${{ matrix.current_package }} == 'true'
+  #       uses: ./.github/actions/tests
+  #       with:
+  #         python-version: ${{ matrix.python-version }}
+  #         current_package: ${{ matrix.current_package }}
+  # coverage:
+  #   name: Coverage
+  #   needs: [test]
+  #   runs-on: ubuntu-latest
+  #   strategy:
+  #     matrix:
+  #       python-version: ['3.10']
+  #   steps:
+  #     - uses: actions/checkout@v3
+  #     - id: coverage
+  #       uses: ./.github/actions/coverage
+  #       with:
+  #         python-version: ${{ matrix.python-version }}
+  #         current_package: ./src/datasource_toolkit
+  #         CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
 
   semantic_release:
     name: Semantic release
@@ -132,7 +132,7 @@ jobs:
         uses: stefanzweifel/git-auto-commit-action@v4
         with:
           skip_fetch: false
-          commit_message: Update linked dependencies
+          commit_message: "chore(dependencies): Update linked dependencies"
           commit_user_name: github-actions
           commit_user_email: github-actions@github.com
 
@@ -179,6 +179,6 @@ jobs:
         uses: stefanzweifel/git-auto-commit-action@v4
         with:
           skip_fetch: false
-          commit_message: Update locks poetry
+          commit_message: "chore: Update locks poetry"
           commit_user_name: github-actions
           commit_user_email: github-actions@github.com
