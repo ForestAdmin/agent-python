@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - beta
+      - semantic_release
   pull_request:
 jobs:
   GenericPackage:
