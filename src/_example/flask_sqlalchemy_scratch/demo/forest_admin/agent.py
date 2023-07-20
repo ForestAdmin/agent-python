@@ -1,5 +1,6 @@
 from demo.forest_admin.settings import SETTINGS
 from demo.forest_admin.smart.address import address_full_name_computed, high_delivery_address_segment
+from demo.forest_admin.smart.cart import cart_update_name
 from demo.forest_admin.smart.customer import (
     AgeOperation,
     ExportJson,
@@ -75,6 +76,7 @@ agent.customize_collection("order").add_action("Export json", ExportOrderJson())
 agent.customize_collection("order").add_validation("amount", {"operator": Operator.GREATER_THAN, "value": 0})
 # # computed
 agent.customize_collection("order").add_field("customer_full_name", get_customer_full_name_field())
+agent.customize_collection("cart").replace_field_writing("name", cart_update_name)
 
 agent.add_chart("total_order", total_order_chart)
 agent.add_chart(

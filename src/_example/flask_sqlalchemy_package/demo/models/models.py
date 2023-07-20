@@ -46,7 +46,7 @@ class Order(db.Model):
     delivering_address_id = Column(Integer, ForeignKey("address.id"))
     delivering_address = relationship("Address", foreign_keys=[delivering_address_id], backref="delivering_orders")
     status = Column(Enum(ORDER_STATUS))
-    cart = relationship("Cart", uselist=False, back_populates="order")
+    cart = relationship("Cart", uselist=False, backref="order")
 
 
 class Cart(db.Model):
@@ -56,7 +56,6 @@ class Cart(db.Model):
     name = Column(String(254), nullable=False)
     created_at = Column(DateTime(timezone=True), default=func.now())
     order_id = Column(Integer, ForeignKey("order.id"))
-    order = relationship("Order", back_populates="cart", foreign_keys=[order_id])
 
 
 class CustomersAddresses(db.Model):

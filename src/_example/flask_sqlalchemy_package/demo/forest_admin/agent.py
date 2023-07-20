@@ -20,6 +20,7 @@ from demo.forest_admin.smart.order import (
     suspicious_order_segment,
     total_order_chart,
 )
+from flask_sqlalchemy_package.demo.forest_admin.smart.cart import cart_update_name
 from forestadmin.datasource_toolkit.interfaces.fields import Operator
 from forestadmin.flask_agent.agent import Agent
 
@@ -70,6 +71,7 @@ def customize_agent(agent: Agent):
     agent.customize_collection("order").add_validation("amount", {"operator": Operator.GREATER_THAN, "value": 0})
     # # computed
     agent.customize_collection("order").add_field("customer_full_name", get_customer_full_name_field())
+    agent.customize_collection("cart").replace_field_writing("name", cart_update_name)
 
     agent.add_chart("total_order", total_order_chart)
     agent.add_chart(
