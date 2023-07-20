@@ -39,28 +39,45 @@ class TestDecoratorStack(TestCase):
         cls.datasource.add_collection(cls.collection_product)
 
     def test_creation_instantiate_all_decorator_with_datasource_decorator(self):
+        # mock for datasource decorator
+        datasource_decorators_to_patch = [
+            # (datasource_name, [arguments for call with])
+            ("ChartDataSourceDecorator", [self.datasource]),
+            ("WriteDataSourceDecorator", [self.datasource]),
+        ]
+        patched_datasource_decorators = []
+        for datasource_decorator, arg_list_expected in datasource_decorators_to_patch:
+            patcher = patch(
+                f"forestadmin.datasource_toolkit.decorators.decorator_stack.{datasource_decorator}",
+                return_value=self.datasource,
+            )
+            mock = patcher.start()
+
+            patched_datasource_decorators.append((patcher, mock, arg_list_expected))
+
+        # collection decorators
         with patch(
             "forestadmin.datasource_toolkit.decorators.decorator_stack.DatasourceDecorator",
             return_value=self.datasource,
         ) as mocked_datasource_decorator:
-            with patch(
-                "forestadmin.datasource_toolkit.decorators.decorator_stack.ChartDataSourceDecorator",
-                return_value=self.datasource,
-            ) as mocked_chart_datasource_decorator:
-                DecoratorStack(self.datasource)
+            DecoratorStack(self.datasource)
 
-                call_list = [
-                    call(self.datasource, EmptyCollectionDecorator),
-                    call(self.datasource, ComputedCollectionDecorator),
-                    call(self.datasource, OperatorEquivalenceCollectionDecorator),
-                    call(self.datasource, SearchCollectionDecorator),
-                    call(self.datasource, SegmentCollectionDecorator),
-                    # call(self.datasource, ChartCollectionDecorator),
-                    call(self.datasource, ActionCollectionDecorator),
-                    call(self.datasource, SchemaCollectionDecorator),
-                    call(self.datasource, ValidationCollectionDecorator),
-                    call(self.datasource, PublicationFieldCollectionDecorator),
-                    call(self.datasource, RenameFieldCollectionDecorator),
-                ]
-                mocked_chart_datasource_decorator.assert_called_once_with(self.datasource)
-                mocked_datasource_decorator.assert_has_calls(call_list)
+            call_list = [
+                call(self.datasource, EmptyCollectionDecorator),
+                call(self.datasource, ComputedCollectionDecorator),
+                call(self.datasource, OperatorEquivalenceCollectionDecorator),
+                call(self.datasource, SearchCollectionDecorator),
+                call(self.datasource, SegmentCollectionDecorator),
+                # call(self.datasource, ChartCollectionDecorator),
+                call(self.datasource, ActionCollectionDecorator),
+                call(self.datasource, SchemaCollectionDecorator),
+                # call(self.datasource, WriteDataSourceDecorator),
+                call(self.datasource, ValidationCollectionDecorator),
+                call(self.datasource, PublicationFieldCollectionDecorator),
+                call(self.datasource, RenameFieldCollectionDecorator),
+            ]
+            mocked_datasource_decorator.assert_has_calls(call_list)
+
+        for patcher, mocked, arg_list_expected in patched_datasource_decorators:
+            mocked.assert_called_once_with(*arg_list_expected)
+            patcher.stop()

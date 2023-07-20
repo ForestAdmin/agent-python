@@ -77,28 +77,6 @@
                 {
                     "defaultValue": null,
                     "enums": null,
-                    "field": "country",
-                    "integration": null,
-                    "inverseOf": null,
-                    "isFilterable": true,
-                    "isPrimaryKey": false,
-                    "isReadOnly": false,
-                    "isRequired": true,
-                    "isSortable": true,
-                    "isVirtual": false,
-                    "reference": null,
-                    "type": "String",
-                    "validations": [
-                        {
-                            "type": "is present",
-                            "value": null,
-                            "message": null
-                        }
-                    ]
-                },
-                {
-                    "defaultValue": null,
-                    "enums": null,
                     "field": "customers",
                     "inverseOf": "addresses",
                     "isFilterable": false,
@@ -146,6 +124,22 @@
                     "isVirtual": false,
                     "reference": null,
                     "type": "Number",
+                    "validations": []
+                },
+                {
+                    "defaultValue": "France",
+                    "enums": null,
+                    "field": "pays",
+                    "integration": null,
+                    "inverseOf": null,
+                    "isFilterable": true,
+                    "isPrimaryKey": false,
+                    "isReadOnly": false,
+                    "isRequired": false,
+                    "isSortable": true,
+                    "isVirtual": false,
+                    "reference": null,
+                    "type": "String",
                     "validations": []
                 },
                 {
@@ -442,7 +436,7 @@
                     "inverseOf": null,
                     "isFilterable": false,
                     "isPrimaryKey": false,
-                    "isReadOnly": true,
+                    "isReadOnly": false,
                     "isRequired": false,
                     "isSortable": false,
                     "isVirtual": false,
@@ -847,11 +841,11 @@
     ],
     "meta": {
         "liana": "agent-python",
-        "liana_version": "0.1.0-beta.42",
+        "liana_version": "0.1.0-beta.43",
         "stack": {
             "engine": "python",
             "engine_version": "3.10.5"
         },
-        "schemaFileHash": "51087551fa4a8af8fd2a0bdb1439c19009c8e5bd"
+        "schemaFileHash": "bbf17a9185a7a462300d3908aa248a0017418470"
     }
 }

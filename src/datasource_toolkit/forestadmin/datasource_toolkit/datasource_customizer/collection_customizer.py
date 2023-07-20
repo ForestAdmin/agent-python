@@ -6,6 +6,7 @@ from forestadmin.datasource_toolkit.decorators.computed.types import ComputedDef
 from forestadmin.datasource_toolkit.decorators.decorator_stack import DecoratorStack
 from forestadmin.datasource_toolkit.decorators.search.collections import SearchDefinition
 from forestadmin.datasource_toolkit.decorators.segments.collections import SegmentAlias
+from forestadmin.datasource_toolkit.decorators.write.write_replace.types import WriteDefinition
 
 
 class CollectionCustomizer:
@@ -60,3 +61,6 @@ class CollectionCustomizer:
 
     def add_chart(self, name: str, definition: CollectionChartDefinition):
         self.stack.chart.get_collection(self.collection_name).add_chart(name, definition)
+
+    def replace_field_writing(self, name: str, definition: WriteDefinition):
+        self.stack.write.get_collection(self.collection_name).replace_field_writing(name, definition)
