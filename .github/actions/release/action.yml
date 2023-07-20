@@ -6,6 +6,16 @@ inputs:
     description: "The package to release"
   GITHUB_TOKEN:
     required: true
+  GIT_AUTHOR_EMAIL:
+    required: true
+  GIT_AUTHOR_NAME:
+    required: true
+  GIT_COMMITTER_EMAIL:
+    required: true
+  GIT_COMMITTER_NAME:
+    required: true
+  SLACK_WEBHOOK:
+    required: true
 
 runs:
   using: "composite"
