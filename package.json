@@ -1,0 +1,22 @@
+{
+  "name": "agent-python",
+  "version": "0.1.0-beta.43",
+  "description": "The official Django liana for Forest.",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ForestAdmin/agent-python.git"
+  },
+  "author": "",
+  "license": "GPL-3.0",
+  "bugs": {
+    "url": "https://github.com/ForestAdmin/agent-python/issues"
+  },
+  "homepage": "https://github.com/ForestAdmin/agent-python#readme",
+  "devDependencies": {
+    "@semantic-release/changelog": "6.0.1",
+    "@semantic-release/exec": "6.0.3",
+    "@semantic-release/git": "10.0.1",
+    "semantic-release": "19.0.2",
+    "semantic-release-slack-bot": "3.5.2"
+  }
+}

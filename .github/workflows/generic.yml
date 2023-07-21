@@ -11,6 +11,18 @@ on:
         required: true
       PYPI_TOKEN:
         required: true
+      GH_TOKEN:
+        required: true
+      GIT_AUTHOR_EMAIL:
+        required: true
+      GIT_AUTHOR_NAME:
+        required: true
+      GIT_COMMITTER_EMAIL:
+        required: true
+      GIT_COMMITTER_NAME:
+        required: true
+      SLACK_WEBHOOK:
+        required: true
 jobs:
   changes:
     name: changes
@@ -103,7 +115,7 @@ jobs:
     name: Semantic release
     needs: [coverage]
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' && github.ref == 'refs/heads/beta'
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/beta')
     strategy:
       matrix:
         python-version: ['3.10']
@@ -113,31 +125,16 @@ jobs:
         uses: ./.github/actions/release
         with:
           packages: ${{ inputs.packages }}
-
-  update_dependencies:
-    name: Update local dependencies
-    needs: [semantic_release]
-    if: github.event_name == 'push' && github.ref == 'refs/heads/beta'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - id: dependencies
-        shell: bash
-        run: |
-          pip install toml
-          git pull
-          python .github/update_nested_dependencies.py
-      - id: commit
-        uses: stefanzweifel/git-auto-commit-action@v4
-        with:
-          skip_fetch: false
-          commit_message: Update linked dependencies
-          commit_user_name: github-actions
-          commit_user_email: github-actions@github.com
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+          GIT_AUTHOR_EMAIL: ${{ secrets.GIT_AUTHOR_EMAIL }}
+          GIT_AUTHOR_NAME: ${{ secrets.GIT_AUTHOR_NAME }}
+          GIT_COMMITTER_EMAIL: ${{ secrets.GIT_COMMITTER_EMAIL }}
+          GIT_COMMITTER_NAME: ${{ secrets.GIT_COMMITTER_NAME }}
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
 
   pypi:
     name: Push to pypi
-    if: github.event_name == 'push' && github.ref == 'refs/heads/beta'
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/beta') # && steps.semantic.outputs.new_release_published == 'true'
     needs: [semantic_release]
     runs-on: ubuntu-latest
     strategy:
@@ -146,6 +143,12 @@ jobs:
         python-version: ['3.10']
         current_package: ${{ fromJson(inputs.packages) }}
     steps:
+      - name: echo steps.semantic.outputs.new_release_published
+        run: |
+          echo "new release variable  :  ${{ steps.semantic.outputs.new_release_published }}"
+          echo "new release variable from needs :  ${{ needs.semantic_release.steps.semantic.outputs.new_release_published }}"
+          echo "new release version variable :  ${{ steps.semantic.outputs.new_release_version }}"
+          echo "new release version variable from needs:  ${{ needs.semantic_release.steps.semantic.outputs.new_release_version }}"
       - uses: actions/checkout@v3
       - id: pypi
         uses: ./.github/actions/pypi
@@ -153,31 +156,3 @@ jobs:
           current_package: ${{ matrix.current_package }}
           python-version: ${{ matrix.python-version }}
           pypi_token: ${{ secrets.PYPI_TOKEN }}
-
-  update_locks:
-    name: Update poetry locks
-    needs: [pypi]
-    if: github.event_name == 'push' && github.ref == 'refs/heads/beta'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - id: dependencies
-        shell: bash
-        env:
-          PYTHON_KEYRING_BACKEND: keyring.backends.null.Keyring
-        run: |
-          pip install toml
-          pip install poetry
-          git pull
-          cd ./src/agent_toolkit/
-          poetry search forestadmin-datasource-toolkit
-          poetry lock --no-update
-          cd -
-          python .github/update_nested_dependencies.py --only_update_lock
-      - id: commit
-        uses: stefanzweifel/git-auto-commit-action@v4
-        with:
-          skip_fetch: false
-          commit_message: Update locks poetry
-          commit_user_name: github-actions
-          commit_user_email: github-actions@github.com
