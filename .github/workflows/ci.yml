@@ -3,7 +3,7 @@ on:
   push:
     branches:
       - beta
-      # - main
+      - main
   pull_request:
 jobs:
   GenericPackage:
