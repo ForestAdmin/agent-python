@@ -1,3 +1,58 @@
+# 1.0.0-beta.1 (2023-07-21)
+
+
+### Bug Fixes
+
+* **agent_launching:** prevent the agent to be start multiple times ([#91](https://github.com/ForestAdmin/agent-python/issues/91)) ([b93cec1](https://github.com/ForestAdmin/agent-python/commit/b93cec1839781a4a66a417d9daeca60a3fdc0444))
+* **caller:** add caller where it was missing ([#86](https://github.com/ForestAdmin/agent-python/issues/86)) ([8067617](https://github.com/ForestAdmin/agent-python/commit/8067617c7c25ebdb8ad994e37682f6b6cd4cc1d5))
+* **datasource:** create sqlalchmydatasource when using flask_sqlalchemy package ([#83](https://github.com/ForestAdmin/agent-python/issues/83)) ([caae7d0](https://github.com/ForestAdmin/agent-python/commit/caae7d059911e6621909f1793a6bf4e0c2299e04))
+* **json file:** handle json schema file on disk ([#67](https://github.com/ForestAdmin/agent-python/issues/67)) ([313993d](https://github.com/ForestAdmin/agent-python/commit/313993da39fc4657e974de9f29a4e12bb547a985))
+* **python37:** fully compatible with python 3.7 ([#72](https://github.com/ForestAdmin/agent-python/issues/72)) ([71ee574](https://github.com/ForestAdmin/agent-python/commit/71ee5749eaddba5d1a42b3d5cab08118428b0279))
+* **sqlalchemy:** default_value on fields now works for schema generation ([#89](https://github.com/ForestAdmin/agent-python/issues/89)) ([f30b949](https://github.com/ForestAdmin/agent-python/commit/f30b94907f12ef0449b1284f6ef6e602747b0b4b))
+* **sqlalchemy:** not json serializable default value (auto now) set to null in schema ([#90](https://github.com/ForestAdmin/agent-python/issues/90)) ([de27104](https://github.com/ForestAdmin/agent-python/commit/de271042381be3d075ffef97839ab0ba81db26e6))
+* add some action test ([#60](https://github.com/ForestAdmin/agent-python/issues/60)) ([64f1ef6](https://github.com/ForestAdmin/agent-python/commit/64f1ef6c2245e2dd6657ab7e401057edfdfa237b))
+* ci didn't update the flask agent poetry.lock ([1563426](https://github.com/ForestAdmin/agent-python/commit/1563426e2f08bac71c1a058ede75bb675c79effa))
+* clean ci workflow ([24e79eb](https://github.com/ForestAdmin/agent-python/commit/24e79ebef226780973eeb8bb6be7625400e87bd1))
+* current smart features was sometimes broken ([#64](https://github.com/ForestAdmin/agent-python/issues/64)) ([08ab362](https://github.com/ForestAdmin/agent-python/commit/08ab36261b32b7b3a1e0159af89d6a177c1f7fd2))
+* extra async was missing for the flask dependency ([#55](https://github.com/ForestAdmin/agent-python/issues/55)) ([f4a9a01](https://github.com/ForestAdmin/agent-python/commit/f4a9a017d527ae661c6743e9c5e86bcec936a4c4))
+* lock ci ([2bff2ea](https://github.com/ForestAdmin/agent-python/commit/2bff2ea1527ced45848db0b8de3e08556e7eec1f))
+* lock ci ([62ed253](https://github.com/ForestAdmin/agent-python/commit/62ed253a310cf60dfe47db65050c5765f928ae8c))
+* poetry lock action ([#61](https://github.com/ForestAdmin/agent-python/issues/61)) ([c507805](https://github.com/ForestAdmin/agent-python/commit/c507805404ad8565ee275a49aedd9411a9af8fa3))
+* poetry lock ci ([#62](https://github.com/ForestAdmin/agent-python/issues/62)) ([489dabc](https://github.com/ForestAdmin/agent-python/commit/489dabc5a46e4fe5225651b7e599b49f04ce3346))
+* remove circular import caused by a bad typing ([#48](https://github.com/ForestAdmin/agent-python/issues/48)) ([a91f9c7](https://github.com/ForestAdmin/agent-python/commit/a91f9c76afe815fc66f999043bc523a6f9bfb4d0))
+* semantic release ci ([d23519a](https://github.com/ForestAdmin/agent-python/commit/d23519ab0e3feca9beb5a209fd3906647afcb3d3))
+* semantic release ci ([#17](https://github.com/ForestAdmin/agent-python/issues/17)) ([fbb389e](https://github.com/ForestAdmin/agent-python/commit/fbb389ef355697fe03abd5562971c35e5137f6c9))
+* semantic release ci ([#18](https://github.com/ForestAdmin/agent-python/issues/18)) ([245497b](https://github.com/ForestAdmin/agent-python/commit/245497b33cd2374c174a166e373f67770867ecb2))
+* semantic release ci ([#19](https://github.com/ForestAdmin/agent-python/issues/19)) ([cdfe63d](https://github.com/ForestAdmin/agent-python/commit/cdfe63d9611bf1d80fe527d4296c6ee1a0be6fdc))
+* semantic release workflow ([70f1bd5](https://github.com/ForestAdmin/agent-python/commit/70f1bd531dff9755b03890347971427aba5d198a))
+* semantic release workflow ([#22](https://github.com/ForestAdmin/agent-python/issues/22)) ([a3de15a](https://github.com/ForestAdmin/agent-python/commit/a3de15a55552df219715ca82b94c1c1fc69285f5))
+* semantic release workflow ([#53](https://github.com/ForestAdmin/agent-python/issues/53)) ([ac73506](https://github.com/ForestAdmin/agent-python/commit/ac735069f7004dd1e5af26f2440567c58ac6962c))
+* the factory to build the complete projection for a collection was broken ([#63](https://github.com/ForestAdmin/agent-python/issues/63)) ([7444234](https://github.com/ForestAdmin/agent-python/commit/7444234f13f9fe32a6ab784135e643181ccb6a79))
+* update the poetry.locks after the push to pypi in ci ([#58](https://github.com/ForestAdmin/agent-python/issues/58)) ([f460edf](https://github.com/ForestAdmin/agent-python/commit/f460edf279da88abb9d9628fecf500ced2db52cb))
+
+
+### Features
+
+* **authentication:** agent_url parameter no longer needed ([#71](https://github.com/ForestAdmin/agent-python/issues/71)) ([be3632d](https://github.com/ForestAdmin/agent-python/commit/be3632d1f03b2fa53cbcdf7ab6500bf62589fd2c))
+* **chart:** add chart decorator ([#92](https://github.com/ForestAdmin/agent-python/issues/92)) ([bb876da](https://github.com/ForestAdmin/agent-python/commit/bb876da273c65c6ab1e06f98ecaaf9ca79b6a0f2))
+* **csv:** add csv export ([#79](https://github.com/ForestAdmin/agent-python/issues/79)) ([469ba79](https://github.com/ForestAdmin/agent-python/commit/469ba79463f478fc190c2fa4e885a37b519d3a7c))
+* **datasource:** add datasource customizer ([#68](https://github.com/ForestAdmin/agent-python/issues/68)) ([3001fb2](https://github.com/ForestAdmin/agent-python/commit/3001fb2b30a28324feadd481081cc7042d87f1a9))
+* **decorator:** add empty decorator ([#78](https://github.com/ForestAdmin/agent-python/issues/78)) ([6db3486](https://github.com/ForestAdmin/agent-python/commit/6db3486c2dbb7c4f2af2d17f1d9d1c2028ed7cba))
+* **decorator:** add schema decorator ([#85](https://github.com/ForestAdmin/agent-python/issues/85)) ([3cdb643](https://github.com/ForestAdmin/agent-python/commit/3cdb643a5d89a931b14c9b9eecb6e1ad3e533fca))
+* **decorator:** add validation decorator ([#84](https://github.com/ForestAdmin/agent-python/issues/84)) ([0b2369f](https://github.com/ForestAdmin/agent-python/commit/0b2369f57df627a12243d5190934a79ef01c6132))
+* **semantic_release:** setting up semantic release ([#96](https://github.com/ForestAdmin/agent-python/issues/96)) ([f389ec0](https://github.com/ForestAdmin/agent-python/commit/f389ec0443913e127663678ceef321c21d429ba6))
+* **stats:** add the stats resources ([b39763f](https://github.com/ForestAdmin/agent-python/commit/b39763f27745cdcaf721d3cd1a23fe46a57b2b79))
+* **write_decorator:** add field_writing decorator ([#94](https://github.com/ForestAdmin/agent-python/issues/94)) ([919c31d](https://github.com/ForestAdmin/agent-python/commit/919c31df7b5b916031d4d9299558965d1b7bf1fb))
+* add caller support to collection calls ([#82](https://github.com/ForestAdmin/agent-python/issues/82)) ([e36e86e](https://github.com/ForestAdmin/agent-python/commit/e36e86e588966a9c12e8756a6dd96400fb0314a6))
+* add decorator stack ([#87](https://github.com/ForestAdmin/agent-python/issues/87)) ([573ca7e](https://github.com/ForestAdmin/agent-python/commit/573ca7ea0d21e901c721189e03a34d224affb8b2))
+* **sqlalchemy_datasource:** be compatible with flask_sqlalchemy integration ([#81](https://github.com/ForestAdmin/agent-python/issues/81)) ([7080129](https://github.com/ForestAdmin/agent-python/commit/708012940b0eab0af703e48acdd60780ca49cc94))
+* add liana real metadata ([#77](https://github.com/ForestAdmin/agent-python/issues/77)) ([cd14cd4](https://github.com/ForestAdmin/agent-python/commit/cd14cd49708af6607e5324afb2a6561856a482ce))
+* **settings:** add default settings to agent ([#66](https://github.com/ForestAdmin/agent-python/issues/66)) ([be60191](https://github.com/ForestAdmin/agent-python/commit/be601917c8ecc2d886e8bcfd826a3f282f8b2815))
+* add the release action ([064b3f8](https://github.com/ForestAdmin/agent-python/commit/064b3f85c6971247ab703f23b401fd043d1de321))
+* add the release action ([a80113a](https://github.com/ForestAdmin/agent-python/commit/a80113a2bae0ccd2f599819a27cf7fed4603d3e5))
+* flask-agent first alpha version ([6a0a644](https://github.com/ForestAdmin/agent-python/commit/6a0a644a587022cf38cd9836073835172c1ffb4b))
+* flask-agent first alpha version ([c6e369c](https://github.com/ForestAdmin/agent-python/commit/c6e369c0949192aac052d61abcf498cadda23a14))
+
 # Changelog
 
 <!--next-version-placeholder-->
