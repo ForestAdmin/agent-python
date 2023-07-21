@@ -1,7 +1,7 @@
 module.exports = {
   branches: [
     "main",
-    { name: "semantic_release", channel: "beta", prerelease: true },
+    { name: "beta", channel: "beta", prerelease: true },
   ],
   plugins: [
     [
@@ -35,42 +35,42 @@ module.exports = {
         message: 'chore(release): ${nextRelease.gitTag} [skip ci]\n\n${nextRelease.notes}',
       },
     ],
-    // '@semantic-release/github',
-    // [
-    //   'semantic-release-slack-bot',
-    //   {
-    //     markdownReleaseNotes: true,
-    //     notifyOnSuccess: true,
-    //     notifyOnFail: false,
-    //     onSuccessTemplate: {
-    //       text: "📦 $package_name@$npm_package_version has been released!",
-    //       blocks: [{
-    //         type: 'section',
-    //         text: {
-    //           type: 'mrkdwn',
-    //           text: '*New `$package_name` package released!*'
-    //         }
-    //       }, {
-    //         type: 'context',
-    //         elements: [{
-    //           type: 'mrkdwn',
-    //           text: "📦  *Version:* <$repo_url/releases/tag/$npm_package_version|$npm_package_version>"
-    //         }]
-    //       }, {
-    //         type: 'divider',
-    //       }],
-    //       attachments: [{
-    //         blocks: [{
-    //           type: 'section',
-    //           text: {
-    //             type: 'mrkdwn',
-    //             text: '*Changes* of version $release_notes',
-    //           },
-    //         }],
-    //       }],
-    //     },
-    //     packageName: 'agent-python',
-    //   }
-    // ],
+    '@semantic-release/github',
+    [
+      'semantic-release-slack-bot',
+      {
+        markdownReleaseNotes: true,
+        notifyOnSuccess: true,
+        notifyOnFail: false,
+        onSuccessTemplate: {
+          text: "📦 $package_name@$npm_package_version has been released!",
+          blocks: [{
+            type: 'section',
+            text: {
+              type: 'mrkdwn',
+              text: '*New `$package_name` package released!*'
+            }
+          }, {
+            type: 'context',
+            elements: [{
+              type: 'mrkdwn',
+              text: "📦  *Version:* <$repo_url/releases/tag/$npm_package_version|$npm_package_version>"
+            }]
+          }, {
+            type: 'divider',
+          }],
+          attachments: [{
+            blocks: [{
+              type: 'section',
+              text: {
+                type: 'mrkdwn',
+                text: '*Changes* of version $release_notes',
+              },
+            }],
+          }],
+        },
+        packageName: 'agent-python',
+      }
+    ],
   ]
 }
