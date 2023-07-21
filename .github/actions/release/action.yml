@@ -4,6 +4,7 @@ inputs:
   packages:
     required: true
     description: "The package to release"
+secrets:
   GH_TOKEN:
     required: true
   GIT_AUTHOR_EMAIL:
@@ -47,9 +48,9 @@ runs:
       with:
         semantic_version: 17.3.0
       env:
-        GITHUB_TOKEN: ${{ inputs.GH_TOKEN }}
-        GIT_AUTHOR_EMAIL: ${{ inputs.GIT_AUTHOR_EMAIL }}
-        GIT_AUTHOR_NAME: ${{ inputs.GIT_AUTHOR_NAME }}
-        GIT_COMMITTER_EMAIL: ${{ inputs.GIT_COMMITTER_EMAIL }}
-        GIT_COMMITTER_NAME: ${{ inputs.GIT_COMMITTER_NAME }}
-        SLACK_WEBHOOK: ${{ inputs.SLACK_WEBHOOK }}
+        GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+        GIT_AUTHOR_EMAIL: ${{ secrets.GIT_AUTHOR_EMAIL }}
+        GIT_AUTHOR_NAME: ${{ secrets.GIT_AUTHOR_NAME }}
+        GIT_COMMITTER_EMAIL: ${{ secrets.GIT_COMMITTER_EMAIL }}
+        GIT_COMMITTER_NAME: ${{ secrets.GIT_COMMITTER_NAME }}
+        SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
