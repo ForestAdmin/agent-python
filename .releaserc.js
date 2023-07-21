@@ -1,8 +1,7 @@
 module.exports = {
   branches: [
     "main",
-    { name: "beta", channel: "beta", prerelease: true },
-    { name: "semantic_release", channel: "semantic_release"}
+    { name: "semantic_release", channel: "beta", prerelease: true },
   ],
   plugins: [
     [
@@ -16,13 +15,12 @@ module.exports = {
     ],
     '@semantic-release/release-notes-generator',
     '@semantic-release/changelog',
-    //   [
-    //   '@semantic-release/exec',
-    //   {
-    //     prepareCmd: 'sed -i \'s/version = .*/version = ${nextRelease.version}/g\' setup.cfg; sed -i \'s/"version": ".*"/"version": "${nextRelease.version}"/g\' package.json;',
-    //     successCmd: 'touch .trigger-pypi-release',
-    //   },
-    // ],
+    [
+      '@semantic-release/exec',
+      {
+        prepareCmd: 'python .github/update_pyproject_versions.py ${nextRelease.version} ; sed -i \'s/"version": ".*"/"version": "${nextRelease.version}"/g\' package.json;',
+      },
+    ],
     [
       '@semantic-release/git',
       {
@@ -34,9 +32,10 @@ module.exports = {
           'src/datasource_toolkit/pyproject.toml',
           'src/flask_agent/pyproject.toml'
         ],
+        message: 'chore(release): ${nextRelease.gitTag} [skip ci]\n\n${nextRelease.notes}',
       },
     ],
-    '@semantic-release/github',
+    // '@semantic-release/github',
     // [
     //   'semantic-release-slack-bot',
     //   {

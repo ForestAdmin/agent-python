@@ -134,27 +134,6 @@ jobs:
           GIT_COMMITTER_NAME: ${{ secrets.GIT_COMMITTER_NAME }}
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
 
-  update_dependencies:
-    name: Update local dependencies
-    needs: [semantic_release]
-    if: github.event_name == 'push' && github.ref == 'refs/heads/beta'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - id: dependencies
-        shell: bash
-        run: |
-          pip install toml
-          git pull
-          python .github/update_nested_dependencies.py
-      - id: commit
-        uses: stefanzweifel/git-auto-commit-action@v4
-        with:
-          skip_fetch: false
-          commit_message: "chore(dependencies): Update linked dependencies"
-          commit_user_name: github-actions
-          commit_user_email: github-actions@github.com
-
   pypi:
     name: Push to pypi
     if: github.event_name == 'push' && github.ref == 'refs/heads/beta'
@@ -173,31 +152,3 @@ jobs:
           current_package: ${{ matrix.current_package }}
           python-version: ${{ matrix.python-version }}
           pypi_token: ${{ secrets.PYPI_TOKEN }}
-
-  update_locks:
-    name: Update poetry locks
-    needs: [pypi]
-    if: github.event_name == 'push' && github.ref == 'refs/heads/beta'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - id: dependencies
-        shell: bash
-        env:
-          PYTHON_KEYRING_BACKEND: keyring.backends.null.Keyring
-        run: |
-          pip install toml
-          pip install poetry
-          git pull
-          cd ./src/agent_toolkit/
-          poetry search forestadmin-datasource-toolkit
-          poetry lock --no-update
-          cd -
-          python .github/update_nested_dependencies.py --only_update_lock
-      - id: commit
-        uses: stefanzweifel/git-auto-commit-action@v4
-        with:
-          skip_fetch: false
-          commit_message: "chore: Update locks poetry"
-          commit_user_name: github-actions
-          commit_user_email: github-actions@github.com
