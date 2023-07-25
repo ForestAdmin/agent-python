@@ -106,7 +106,7 @@ class TypeGetter:
     def _get_array_type(
         cls, value: List[Any], type_context: Optional[PrimitiveType]
     ) -> Union[PrimitiveType, ValidationType]:
-        if len(value):
+        if len(value) == 0:
             return ValidationTypesArray.EMPTY
         mapping = (
             (PrimitiveType.NUMBER, ValidationTypesArray.NUMBER),
