@@ -30,6 +30,7 @@ from forestadmin.datasource_toolkit.interfaces.fields import (
     PrimitiveType,
 )
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.leaf import ConditionTreeLeaf
+from forestadmin.datasource_toolkit.validations.rules import MAP_ALLOWED_OPERATORS_FOR_COLUMN_TYPE
 
 
 class TestCollectionCustomizer(TestCase):
@@ -254,3 +255,34 @@ class TestCollectionCustomizer(TestCase):
         ) as mocked_replace_field_writing:
             self.person_customizer.replace_field_writing("name", write_definition)
             mocked_replace_field_writing.assert_called_once_with("name", write_definition)
+
+    def test_emulate_field_filtering(self):
+        with patch.object(
+            self.datasource_customizer.stack.early_op_emulate.get_collection("Person"),
+            "emulate_field_operator",
+        ) as mock_emulate_field_operator:
+            self.person_customizer.emulate_field_filtering("name")
+
+            for operator in MAP_ALLOWED_OPERATORS_FOR_COLUMN_TYPE[PrimitiveType.STRING]:
+                mock_emulate_field_operator.assert_any_call("name", operator)
+
+    def test_emulate_field_operator(self):
+        with patch.object(
+            self.datasource_customizer.stack.early_op_emulate.get_collection("Person"),
+            "emulate_field_operator",
+        ) as mock_emulate_field_operator:
+            self.person_customizer.emulate_field_operator("name", Operator.PRESENT)
+
+            mock_emulate_field_operator.assert_any_call("name", Operator.PRESENT)
+
+    def test_replace_field_operator(self):
+        def replacer(value, context):
+            return ConditionTreeLeaf("name", Operator.NOT_EQUAL, None)
+
+        with patch.object(
+            self.datasource_customizer.stack.early_op_emulate.get_collection("Person"),
+            "replace_field_operator",
+        ) as mock_replace_field_operator:
+            self.person_customizer.replace_field_operator("name", Operator.PRESENT, replacer)
+
+            mock_replace_field_operator.assert_any_call("name", Operator.PRESENT, replacer)

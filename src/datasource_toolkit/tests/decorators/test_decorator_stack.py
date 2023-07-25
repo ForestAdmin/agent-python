@@ -7,6 +7,7 @@ from forestadmin.datasource_toolkit.decorators.action.collections import ActionC
 from forestadmin.datasource_toolkit.decorators.computed.collections import ComputedCollectionDecorator
 from forestadmin.datasource_toolkit.decorators.decorator_stack import DecoratorStack
 from forestadmin.datasource_toolkit.decorators.empty.collection import EmptyCollectionDecorator
+from forestadmin.datasource_toolkit.decorators.operators_emulate.collections import OperatorsEmulateCollectionDecorator
 from forestadmin.datasource_toolkit.decorators.operators_equivalence.collections import (
     OperatorEquivalenceCollectionDecorator,
 )
@@ -65,6 +66,7 @@ class TestDecoratorStack(TestCase):
             call_list = [
                 call(self.datasource, EmptyCollectionDecorator),
                 call(self.datasource, ComputedCollectionDecorator),
+                call(self.datasource, OperatorsEmulateCollectionDecorator),
                 call(self.datasource, OperatorEquivalenceCollectionDecorator),
                 call(self.datasource, SearchCollectionDecorator),
                 call(self.datasource, SegmentCollectionDecorator),

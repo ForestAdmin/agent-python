@@ -27,27 +27,31 @@ class ConditionTree(abc.ABC):
     @property
     @abc.abstractmethod
     def projection(self) -> Projection:
-        pass
+        """return all fields manipulated by conditionTree"""
 
     @abc.abstractmethod
     def inverse(self) -> "ConditionTree":
-        pass
+        """inverse conditionTree"""
 
     @abc.abstractmethod
     def match(self, record: RecordsDataAlias, collection: Collection, timezone: zoneinfo.ZoneInfo) -> bool:
-        pass
+        """return conditionTree matching record"""
+
+    @abc.abstractmethod
+    def some_leaf(self, handler: Callable[["ConditionTreeLeaf"], bool]) -> bool:  # noqa:F821
+        """return bool if handler return True for at least on leaf"""
 
     @abc.abstractmethod
     def replace(self, handler: "ReplacerAlias") -> "ConditionTree":
-        pass
+        """replace in conditionTree applying hander"""
 
     @abc.abstractmethod
     async def replace_async(self, handler: "AsyncReplacerAlias") -> "ConditionTree":
-        pass
+        """like replace but async handler"""
 
     @abc.abstractmethod
     def apply(self, handler: "CallbackAlias") -> None:
-        pass
+        """apply handler to condition tree"""
 
     def filter(
         self, records: List[RecordsDataAlias], collection: Collection, timezone: zoneinfo.ZoneInfo
@@ -56,11 +60,11 @@ class ConditionTree(abc.ABC):
 
     @abc.abstractmethod
     def unnest(self) -> "ConditionTree":
-        pass
+        """un nest conditionTree"""
 
     @abc.abstractmethod
     def nest(self, prefix: str) -> "ConditionTree":
-        pass
+        """nest conditionTree"""
 
 
 class ConditionTreeComponent(TypedDict):
