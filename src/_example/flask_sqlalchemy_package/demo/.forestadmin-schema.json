@@ -434,7 +434,7 @@
                     "field": "full_name",
                     "integration": null,
                     "inverseOf": null,
-                    "isFilterable": false,
+                    "isFilterable": true,
                     "isPrimaryKey": false,
                     "isReadOnly": false,
                     "isRequired": false,
@@ -841,11 +841,11 @@
     ],
     "meta": {
         "liana": "agent-python",
-        "liana_version": "0.1.0-beta.43",
+        "liana_version": "1.0.0-beta.1",
         "stack": {
             "engine": "python",
             "engine_version": "3.10.5"
         },
-        "schemaFileHash": "bbf17a9185a7a462300d3908aa248a0017418470"
+        "schemaFileHash": "33815a38d21231b4856034f1fb27cf71e5a7ea6e"
     }
 }

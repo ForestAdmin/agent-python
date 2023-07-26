@@ -8,6 +8,13 @@ from demo.forest_admin.smart.customer import (
     customer_full_name_write,
     customer_spending_computed,
     french_address_segment,
+    full_name_equal,
+    full_name_greater_than,
+    full_name_in,
+    full_name_less_than,
+    full_name_like,
+    full_name_not_contains,
+    full_name_not_in,
     order_details,
     total_orders_customer_chart,
 )
@@ -51,7 +58,24 @@ agent.customize_collection("customer").add_action("Export json", ExportJson())
 agent.customize_collection("customer").add_action("Age operation", AgeOperation())
 # # computed
 agent.customize_collection("customer").add_field("full_name", customer_full_name())
+
+# custom write on computed
 agent.customize_collection("customer").replace_field_writing("full_name", customer_full_name_write)
+
+# custom operators for computed fields
+agent.customize_collection("customer").replace_field_operator("full_name", Operator.EQUAL, full_name_equal)
+agent.customize_collection("customer").replace_field_operator("full_name", Operator.IN, full_name_in)
+agent.customize_collection("customer").replace_field_operator("full_name", Operator.NOT_IN, full_name_not_in)
+agent.customize_collection("customer").replace_field_operator("full_name", Operator.LESS_THAN, full_name_less_than)
+agent.customize_collection("customer").replace_field_operator(
+    "full_name", Operator.GREATER_THAN, full_name_greater_than
+)
+agent.customize_collection("customer").replace_field_operator("full_name", Operator.LIKE, full_name_like)
+agent.customize_collection("customer").replace_field_operator(
+    "full_name", Operator.NOT_CONTAINS, full_name_not_contains
+)
+# emulate others operators
+agent.customize_collection("customer").emulate_field_filtering("full_name")
 
 agent.customize_collection("customer").add_field("TotalSpending", customer_spending_computed())
 # # validation

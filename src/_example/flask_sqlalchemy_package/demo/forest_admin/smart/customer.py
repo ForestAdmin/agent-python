@@ -27,6 +27,8 @@ from forestadmin.datasource_toolkit.interfaces.query.aggregation import (
     PlainAggregation,
     PlainAggregationGroup,
 )
+from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.base import ConditionTree
+from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.branch import Aggregator, ConditionTreeBranch
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.leaf import ConditionTreeLeaf
 from forestadmin.datasource_toolkit.interfaces.query.filter.paginated import PaginatedFilter
 from forestadmin.datasource_toolkit.interfaces.query.filter.unpaginated import Filter
@@ -89,6 +91,92 @@ def customer_full_name() -> ComputedDefinition:
 def customer_full_name_write(value: str, context: WriteCustomizationContext):
     first_name, last_name = value.split(" - ", 1)
     return {"first_name": first_name, "last_name": last_name}
+
+
+# operator
+async def full_name_equal(value, context: CollectionCustomizationContext) -> ConditionTree:
+    first_name, last_name = value.split(" - ")
+    return ConditionTreeBranch(
+        Aggregator.AND,
+        [
+            ConditionTreeLeaf("first_name", Operator.EQUAL, first_name),
+            ConditionTreeLeaf("last_name", Operator.EQUAL, last_name),
+        ],
+    )
+
+
+async def full_name_less_than(value, context: CollectionCustomizationContext):
+    return ConditionTreeBranch(
+        Aggregator.OR,
+        [
+            ConditionTreeLeaf("first_name", Operator.LESS_THAN, value),
+            ConditionTreeBranch(
+                Aggregator.AND,
+                [
+                    ConditionTreeLeaf("first_name", Operator.EQUAL, value),
+                    ConditionTreeLeaf("last_name", Operator.LESS_THAN, value),
+                ],
+            ),
+        ],
+    )
+
+
+async def full_name_greater_than(value, context: CollectionCustomizationContext):
+    return ConditionTreeBranch(
+        Aggregator.OR,
+        [
+            ConditionTreeLeaf("first_name", Operator.GREATER_THAN, value),
+            ConditionTreeBranch(
+                Aggregator.AND,
+                [
+                    ConditionTreeLeaf("first_name", Operator.EQUAL, value),
+                    ConditionTreeLeaf("last_name", Operator.GREATER_THAN, value),
+                ],
+            ),
+        ],
+    )
+
+
+async def full_name_in(value, context: CollectionCustomizationContext):
+    conditions = []
+    for v in value:
+        conditions.append(await full_name_equal(v, context))
+    return ConditionTreeBranch(Aggregator.OR, conditions)
+
+
+async def full_name_not_in(value, context: CollectionCustomizationContext):
+    condition_tree = await full_name_in(value, context)
+    return condition_tree.inverse()
+
+
+async def full_name_like(value, context: CollectionCustomizationContext):
+    return ConditionTreeBranch(
+        Aggregator.OR,
+        [
+            ConditionTreeLeaf("first_name", Operator.LIKE, value),
+            ConditionTreeLeaf("last_name", Operator.LIKE, value),
+        ],
+    )
+
+
+async def full_name_not_contains(value, context: CollectionCustomizationContext):
+    if " - " in value:
+        first_name, last_name = value.split(" - ")
+        return ConditionTreeBranch(
+            Aggregator.AND,
+            [
+                ConditionTreeLeaf("first_name", Operator.NOT_CONTAINS, first_name),
+                ConditionTreeLeaf("last_name", Operator.NOT_CONTAINS, last_name),
+            ],
+        )
+    else:
+        return ConditionTreeBranch(
+            Aggregator.AND,
+            [
+                ConditionTreeLeaf("first_name", Operator.NOT_CONTAINS, value),
+                ConditionTreeLeaf("last_name", Operator.NOT_CONTAINS, value),
+            ],
+        )
 
 
 # actions
