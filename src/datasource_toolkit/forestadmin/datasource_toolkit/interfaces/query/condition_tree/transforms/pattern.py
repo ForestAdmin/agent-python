@@ -43,9 +43,14 @@ def _ends_with_pattern(value: str) -> str:
     return f"%{value}"
 
 
+def _like_pattern(value: str) -> str:
+    return f"{value}"
+
+
 def pattern_transforms() -> Dict[Operator, List[Alternative]]:
     return {
         Operator.CONTAINS: [likes(_contains_pattern)],
         Operator.STARTS_WITH: [likes(_starts_with_pattern)],
         Operator.ENDS_WITH: [likes(_ends_with_pattern)],
+        Operator.LIKE: [likes(_like_pattern)],
     }
