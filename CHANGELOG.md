@@ -1,3 +1,10 @@
+# [1.0.0-beta.2](https://github.com/ForestAdmin/agent-python/compare/v1.0.0-beta.1...v1.0.0-beta.2) (2023-07-26)
+
+
+### Features
+
+* **decorator:** add operator emulate decorator ([#97](https://github.com/ForestAdmin/agent-python/issues/97)) ([056b520](https://github.com/ForestAdmin/agent-python/commit/056b520392f55b68cac2cd86943acc8be241eac7))
+
 # 1.0.0-beta.1 (2023-07-21)
 
 

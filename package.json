@@ -1,6 +1,6 @@
 {
   "name": "agent-python",
-  "version": "1.0.0-beta.1",
+  "version": "1.0.0-beta.2",
   "description": "The official Django liana for Forest.",
   "repository": {
     "type": "git",
