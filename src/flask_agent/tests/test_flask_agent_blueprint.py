@@ -16,7 +16,15 @@ class TestFlaskAgentBlueprint(TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         cls.mocked_resources = {}
-        for key in ["authentication", "crud", "crud_related", "stats", "actions"]:
+        for key in [
+            "authentication",
+            "crud",
+            "crud_related",
+            "stats",
+            "actions",
+            "collection_charts",
+            "datasource_charts",
+        ]:
             cls.mocked_resources[key] = AsyncMock()
             cls.mocked_resources[key].dispatch = AsyncMock(
                 return_value=Response(200, '{"mock": "ok"}', headers={"content-type": "application/json"})
@@ -158,3 +166,21 @@ class TestFlaskAgentBlueprint(TestCase):
         response = self.client.get("/forest/customer/1/relationships/orders.csv?timezone=Europe%2FParis")
         assert response.status_code == 200
         self.agent.resources["crud_related"].dispatch.assert_called_with(ANY, "csv")
+
+    def test_collection_chart(self):
+        response = self.client.get("/forest/_charts/customer/test_chart?timezone=Europe%2FParis")
+        assert response.status_code == 200
+        self.agent.resources["collection_charts"].dispatch.assert_called_with(ANY, "list")
+
+        response = self.client.post("/forest/_charts/customer/test_chart?timezone=Europe%2FParis")
+        assert response.status_code == 200
+        self.agent.resources["collection_charts"].dispatch.assert_called_with(ANY, "add")
+
+    def test_datasource_chart(self):
+        response = self.client.get("/forest/_charts/test_chart?timezone=Europe%2FParis")
+        assert response.status_code == 200
+        self.agent.resources["datasource_charts"].dispatch.assert_called_with(ANY, "list")
+
+        response = self.client.post("/forest/_charts/test_chart?timezone=Europe%2FParis")
+        assert response.status_code == 200
+        self.agent.resources["datasource_charts"].dispatch.assert_called_with(ANY, "add")

@@ -4,9 +4,12 @@ from forestadmin.datasource_toolkit.decorators.action.types.actions import Actio
 from forestadmin.datasource_toolkit.decorators.chart.types import CollectionChartDefinition
 from forestadmin.datasource_toolkit.decorators.computed.types import ComputedDefinition
 from forestadmin.datasource_toolkit.decorators.decorator_stack import DecoratorStack
+from forestadmin.datasource_toolkit.decorators.operators_emulate.types import OperatorDefinition
 from forestadmin.datasource_toolkit.decorators.search.collections import SearchDefinition
 from forestadmin.datasource_toolkit.decorators.segments.collections import SegmentAlias
 from forestadmin.datasource_toolkit.decorators.write.write_replace.types import WriteDefinition
+from forestadmin.datasource_toolkit.interfaces.fields import Operator, PrimitiveType
+from forestadmin.datasource_toolkit.validations.rules import MAP_ALLOWED_OPERATORS_FOR_COLUMN_TYPE
 
 
 class CollectionCustomizer:
@@ -64,3 +67,25 @@ class CollectionCustomizer:
 
     def replace_field_writing(self, name: str, definition: WriteDefinition):
         self.stack.write.get_collection(self.collection_name).replace_field_writing(name, definition)
+
+    def replace_field_operator(self, name: str, operator: Operator, replacer: OperatorDefinition):
+        # TODO: review for late or early operator
+        self.stack.early_op_emulate.get_collection(self.collection_name).replace_field_operator(
+            name, operator, replacer
+        )
+
+    def emulate_field_operator(self, name: str, operator: Operator):
+        # TODO: review for late or early operator
+        self.stack.early_op_emulate.get_collection(self.collection_name).emulate_field_operator(name, operator)
+
+    def emulate_field_filtering(self, name: str):
+        # TODO: use late operator emulate when relation decorator is implemented
+        collection = self.stack.early_op_emulate.get_collection(self.collection_name)
+        field = collection.schema["fields"][name]
+
+        if field["column_type"] == PrimitiveType.STRING:
+            operators = MAP_ALLOWED_OPERATORS_FOR_COLUMN_TYPE[field["column_type"]]
+
+            for operator in operators:
+                if operator not in field.get("filter_operators", {}):
+                    self.emulate_field_operator(name, operator)

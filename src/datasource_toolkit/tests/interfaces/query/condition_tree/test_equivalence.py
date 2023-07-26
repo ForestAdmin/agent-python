@@ -1,12 +1,8 @@
 # pyright: reportPrivateUsage=false
 from unittest import mock
 
-import pytest
 from forestadmin.datasource_toolkit.interfaces.fields import Operator, PrimitiveType
-from forestadmin.datasource_toolkit.interfaces.query.condition_tree.equivalence import (
-    ConditionTreeEquivalent,
-    ConditionTreeEquivalentException,
-)
+from forestadmin.datasource_toolkit.interfaces.query.condition_tree.equivalence import ConditionTreeEquivalent
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.leaf import ConditionTreeLeaf
 
 
@@ -69,10 +65,7 @@ def test_get_alternatives(
     fake_time_transform = {Operator.PREVIOUS_YEAR: "fake_previous_year_alternative"}
     time_transforms_mock.return_value = fake_time_transform
 
-    with pytest.raises(ConditionTreeEquivalentException) as e:
-        ConditionTreeEquivalent._get_alternatives(Operator.EQUAL)
-
-    assert str(e.value) == "🌳🌳🌳Unknown operator equal"
+    assert ConditionTreeEquivalent._get_alternatives(Operator.EQUAL) == []
     assert ConditionTreeEquivalent._alternatives == {
         **fake_equality_transforms,
         **fake_pattern_transform,
@@ -90,10 +83,8 @@ def test_get_alternatives(
         **fake_pattern_transform,
         **fake_time_transform,
     }
-    with pytest.raises(ConditionTreeEquivalentException) as e:
-        ConditionTreeEquivalent._get_alternatives(Operator.EQUAL)
 
-    assert str(e.value) == "🌳🌳🌳Unknown operator equal"
+    assert ConditionTreeEquivalent._get_alternatives(Operator.EQUAL) == []
     equality_transforms_mock.assert_not_called()
     pattern_transforms_mock.assert_not_called()
     time_transforms_mock.assert_not_called()

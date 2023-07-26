@@ -76,11 +76,12 @@ def test_ends_with_pattern():
 def test_pattern_transforms(
     ends_mock: mock.MagicMock, starts_mock: mock.MagicMock, contains_mock: mock.MagicMock, like_mock: mock.MagicMock
 ):
-    like_mock.side_effect = ["fake_contains", "fake_starts", "fake_ends"]
+    like_mock.side_effect = ["fake_contains", "fake_starts", "fake_ends", "fake_like"]
 
     assert pattern_transforms() == {
         Operator.CONTAINS: ["fake_contains"],
         Operator.STARTS_WITH: ["fake_starts"],
         Operator.ENDS_WITH: ["fake_ends"],
+        Operator.LIKE: ["fake_like"],
     }
     like_mock.assert_has_calls([mock.call(contains_mock), mock.call(starts_mock), mock.call(ends_mock)])

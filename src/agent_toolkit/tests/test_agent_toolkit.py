@@ -128,6 +128,28 @@ class TestAgent(TestCase):
         agent.customizer.add_datasource.assert_called_once_with(fake_datasource, {})
         assert agent._resources is None
 
+    def test_add_chart(
+        self,
+        mocked_schema_emitter__get_serialized_schema,
+        mocked_forest_http_api__send_schema,
+        mocked_action_resource,
+        mocked_stats_resource,
+        mocked_crud_related_resource,
+        mocked_crud_resource,
+        mocked_authentication_resource,
+        mocked_datasource_customizer,
+        mocked_permission_service,
+    ):
+        agent = Agent(self.fake_options)
+
+        def chart_fn(agent_context, result_builder):
+            return result_builder.value(42)
+
+        with patch.object(agent.customizer, "add_chart") as mock_add_chart:
+            agent.add_chart("test_chart", chart_fn)
+
+            mock_add_chart.assert_called_with("test_chart", chart_fn)
+
     def test_customize_datasource(
         self,
         mocked_schema_emitter__get_serialized_schema,
@@ -175,3 +197,13 @@ class TestAgent(TestCase):
         mocked_create_json_api_schema.assert_called_once_with("fake_collection")
         mocked_schema_emitter__get_serialized_schema.assert_called_once()
         mocked_forest_http_api__send_schema.assert_called_once()
+
+        # test we can only launch start once
+        mocked_create_json_api_schema.reset_mock()
+        mocked_schema_emitter__get_serialized_schema.reset_mock()
+        mocked_forest_http_api__send_schema.reset_mock()
+
+        loop.run_until_complete(agent.start())
+        mocked_create_json_api_schema.assert_not_called()
+        mocked_schema_emitter__get_serialized_schema.assert_not_called()
+        mocked_forest_http_api__send_schema.assert_not_called()

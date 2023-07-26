@@ -58,15 +58,15 @@ class FieldValidator:
         if not isinstance(column_type, PrimitiveType):
             return
 
-        type = TypeGetter.get(value, column_type)
+        type_ = TypeGetter.get(value, column_type)
 
         if column_type == PrimitiveType.ENUM:
-            cls.check_enum_value(type, schema, value)
+            cls.check_enum_value(type_, schema, value)
 
         if allowed_types:
-            if type not in allowed_types:
+            if type_ not in allowed_types:
                 raise FieldValidatorException(f'Wrong type for "{field}": {value}. Expects [{allowed_types}]')
-        elif type != column_type:
+        elif type_ != column_type:
             raise FieldValidatorException(f'Wrong type for "{field}": {value}. Expects {column_type}')
 
     @staticmethod

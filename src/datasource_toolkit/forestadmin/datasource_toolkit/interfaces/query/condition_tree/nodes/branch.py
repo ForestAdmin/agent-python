@@ -13,7 +13,7 @@ if sys.version_info >= (3, 8):
 else:
     from typing_extensions import Literal
 
-from typing import Any, List, Union
+from typing import Any, Callable, List, Union
 
 from forestadmin.datasource_toolkit.interfaces.models.collections import Collection
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.base import (
@@ -82,6 +82,13 @@ class ConditionTreeBranch(ConditionTree):
         if self.aggregator == Aggregator.OR:
             meth = any
         return meth([condition.match(record, collection, timezone) for condition in self.conditions])
+
+    def some_leaf(self, handler: Callable[["ConditionTreeLeaf"], bool]) -> bool:  # noqa:F821
+        for condition in self.conditions:
+            handler_res = handler(condition)
+            if handler_res is True:
+                return True
+        return False
 
     def apply(self, handler: "CallbackAlias") -> None:
         for condition in self.conditions:

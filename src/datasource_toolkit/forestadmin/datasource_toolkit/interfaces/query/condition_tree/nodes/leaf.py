@@ -219,6 +219,9 @@ class ConditionTreeLeaf(ConditionTree):
                 )
         return False
 
+    def some_leaf(self, handler: Callable[["ConditionTreeLeaf"], bool]) -> bool:  # noqa:F821
+        return handler(self)
+
     def unnest(self) -> "ConditionTreeLeaf":
         splited = self.field.split(":")
         if len(splited) > 1:

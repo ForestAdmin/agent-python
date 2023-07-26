@@ -64,12 +64,8 @@ class CollectionDecorator(Collection):
         return _filter
 
     async def list(self, caller: User, _filter: PaginatedFilter, projection: Projection) -> List[RecordsDataAlias]:
-        try:
-            refined_filter = cast(PaginatedFilter, await self._refine_filter(caller, _filter))
-        except Exception:
-            return []
-        else:
-            return await self.child_collection.list(caller, refined_filter, projection)  # type: ignore
+        refined_filter = cast(PaginatedFilter, await self._refine_filter(caller, _filter))
+        return await self.child_collection.list(caller, refined_filter, projection)
 
     async def create(self, caller: User, data: List[RecordsDataAlias]) -> List[RecordsDataAlias]:
         return await self.child_collection.create(caller, data)

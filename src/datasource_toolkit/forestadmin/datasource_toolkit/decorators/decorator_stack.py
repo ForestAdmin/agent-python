@@ -3,6 +3,7 @@ from forestadmin.datasource_toolkit.decorators.chart.chart_datasource_decorator 
 from forestadmin.datasource_toolkit.decorators.computed.collections import ComputedCollectionDecorator
 from forestadmin.datasource_toolkit.decorators.datasource_decorator import DatasourceDecorator
 from forestadmin.datasource_toolkit.decorators.empty.collection import EmptyCollectionDecorator
+from forestadmin.datasource_toolkit.decorators.operators_emulate.collections import OperatorsEmulateCollectionDecorator
 from forestadmin.datasource_toolkit.decorators.operators_equivalence.collections import (
     OperatorEquivalenceCollectionDecorator,
 )
@@ -27,11 +28,11 @@ class DecoratorStack:
         # on computed fields, and some computed fields depend on relation...)
         # Note that replacement goes before emulation, as replacements may use emulated operators.
         last = self.early_computed = DatasourceDecorator(last, ComputedCollectionDecorator)
-        # last = self.earlyOpEmulate = DatasourceDecorator(last, OperatorsEmulateCollection)
+        last = self.early_op_emulate = DatasourceDecorator(last, OperatorsEmulateCollectionDecorator)
         last = self.early_op_equivalence = DatasourceDecorator(last, OperatorEquivalenceCollectionDecorator)
         # last = self.relation = DatasourceDecorator(last, RelationCollection)
         # last = self.late_computed = DatasourceDecorator(last, ComputedCollectionDecorator)
-        # last = self.lateOpEmulate = DatasourceDecorator(last, OperatorsEmulateCollection)
+        # last = self.late_op_emulate = DatasourceDecorator(last, OperatorsEmulateCollection)
         # last = self.late_op_equivalence = DatasourceDecorator(last, OperatorEquivalenceCollectionDecorator)
 
         # Step 2: Those need access to all fields. They can be loaded in any order.

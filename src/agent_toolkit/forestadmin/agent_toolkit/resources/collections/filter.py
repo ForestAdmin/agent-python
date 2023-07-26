@@ -1,4 +1,5 @@
 import sys
+from distutils.util import strtobool
 
 if sys.version_info >= (3, 9):
     import zoneinfo
@@ -13,7 +14,7 @@ from forestadmin.agent_toolkit.resources.collections.requests import RequestColl
 from forestadmin.agent_toolkit.utils.context import Request
 from forestadmin.datasource_toolkit.collections import Collection
 from forestadmin.datasource_toolkit.datasource_customizer.collection_customizer import CollectionCustomizer
-from forestadmin.datasource_toolkit.interfaces.fields import is_column, is_many_to_one, is_one_to_one
+from forestadmin.datasource_toolkit.interfaces.fields import PrimitiveType, is_column, is_many_to_one, is_one_to_one
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.factory import (
     ConditionTreeFactory,
     ConditionTreeFactoryException,
@@ -27,6 +28,7 @@ from forestadmin.datasource_toolkit.interfaces.query.projections.factory import 
 from forestadmin.datasource_toolkit.interfaces.query.sort import Sort
 from forestadmin.datasource_toolkit.interfaces.query.sort.factory import SortFactory
 from forestadmin.datasource_toolkit.interfaces.records import CompositeIdAlias
+from forestadmin.datasource_toolkit.utils.collections import CollectionUtils
 from forestadmin.datasource_toolkit.validations.condition_tree import (
     ConditionTreeValidator,
     ConditionTreeValidatorException,
@@ -176,6 +178,7 @@ def parse_condition_tree(request: Union[RequestCollection, RequestRelationCollec
 
     jsoned_filters = json.loads(filters)
     try:
+        jsoned_filters["value"] = _parse_value(jsoned_filters, request.collection)
         condition_tree = ConditionTreeFactory.from_plain_object(jsoned_filters)
     except ConditionTreeFactoryException as e:
         raise FilterException(str(e))
@@ -186,6 +189,27 @@ def parse_condition_tree(request: Union[RequestCollection, RequestRelationCollec
         raise FilterException(str(e))
 
     return condition_tree
+
+
+def _parse_value(jsoned_filters, collection):
+    schema = CollectionUtils.get_field_schema(collection, jsoned_filters["field"])
+
+    if jsoned_filters["operator"] == "in" and isinstance(jsoned_filters["value"], str):
+        values = [val.strip() for val in jsoned_filters["value"].split(",")]
+
+        if schema["column_type"] == PrimitiveType.BOOLEAN:
+            values = [strtobool(value) for value in values]
+        elif schema["column_type"] == PrimitiveType.NUMBER:
+            new_values = []
+            for value in values:
+                try:
+                    new_val = int(value)
+                except ValueError:
+                    new_val = float(value)
+                new_values.append(new_val)
+            values = new_values
+        return values
+    return jsoned_filters["value"]
 
 
 def _parse_projection_fields(

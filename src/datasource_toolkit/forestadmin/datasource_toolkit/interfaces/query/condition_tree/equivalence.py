@@ -99,11 +99,7 @@ class ConditionTreeEquivalent:
                 **pattern_transforms(),
                 **time_transforms(),
             }
-        try:
-            alternatives = cls._alternatives[operator]
-        except KeyError:
-            raise ConditionTreeEquivalentException(f"Unknown operator {operator.value}")
-        return alternatives
+        return cls._alternatives.get(operator, [])
 
     @staticmethod
     def __apply_replacers(alternative: Alternative, replacers: List[Replacer]):

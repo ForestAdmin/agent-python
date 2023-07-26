@@ -134,7 +134,7 @@ jobs:
 
   pypi:
     name: Push to pypi
-    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/beta') # && steps.semantic.outputs.new_release_published == 'true'
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/beta') # && needs.semantic_release.outputs.new_release_published == 'true'
     needs: [semantic_release]
     runs-on: ubuntu-latest
     strategy:
@@ -145,10 +145,8 @@ jobs:
     steps:
       - name: echo steps.semantic.outputs.new_release_published
         run: |
-          echo "new release variable  :  ${{ steps.semantic.outputs.new_release_published }}"
-          echo "new release variable from needs :  ${{ needs.semantic_release.steps.semantic.outputs.new_release_published }}"
-          echo "new release version variable :  ${{ steps.semantic.outputs.new_release_version }}"
-          echo "new release version variable from needs:  ${{ needs.semantic_release.steps.semantic.outputs.new_release_version }}"
+          echo "new release variable from needs :  ${{ needs.semantic_release.outputs.new_release_published }}"
+          echo "new release version variable from needs:  ${{ needs.semantic_release.outputs.new_release_version }}"
       - uses: actions/checkout@v3
       - id: pypi
         uses: ./.github/actions/pypi
