@@ -84,7 +84,7 @@ class TestCollectionDecorator(TestCase):
         with patch.object(self.collection_product, "get_form", new_callable=AsyncMock) as mock_get_form:
             self.loop.run_until_complete(self.decorated_collection_product.get_form(self.mocked_caller, "foo", []))
 
-            mock_get_form.assert_awaited_once_with(self.mocked_caller, "foo", [], None)
+            mock_get_form.assert_awaited_once_with(self.mocked_caller, "foo", [], None, {})
 
     def test_create_should_call_child_collection_create(self):
         with patch.object(self.collection_product, "create", new_callable=AsyncMock) as mock_create:
