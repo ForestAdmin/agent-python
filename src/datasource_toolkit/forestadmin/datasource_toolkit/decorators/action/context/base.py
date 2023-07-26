@@ -36,10 +36,12 @@ class ActionContext(CollectionCustomizationContext):
         form_value: RecordsDataAlias,
         filter: Filter,
         used: Optional[Set[str]] = set(),
+        changed_field: Optional[str] = None,
     ):
         super(ActionContext, self).__init__(collection, caller)
         self.form_values = FormValueObserver(**form_value)
         self.filter = filter
+        self.changed_field = changed_field
 
     async def get_records(self, fields: Projection) -> List[RecordsDataAlias]:
         ProjectionValidator.validate(self.collection, fields)

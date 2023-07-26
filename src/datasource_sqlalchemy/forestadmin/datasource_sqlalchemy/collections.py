@@ -166,14 +166,14 @@ class SqlAlchemyCollection(BaseSqlAlchemyCollection):
     async def aggregate(
         self,
         caller: User,
-        filter: Optional[Filter],
+        filter_: Optional[Filter],
         aggregation: Aggregation,
         limit: Optional[int] = None,
     ) -> List[AggregateResult]:
         with self.datasource.Session.begin() as session:  #  type: ignore
             dialect: Dialect = session.bind.dialect  #  type: ignore
-            filter = cast(Filter, self._cast_filter(filter)) or None
-            query = QueryFactory.build_aggregate(dialect, self, filter, aggregation, limit)
+            filter_ = cast(Filter, self._cast_filter(filter_)) or None
+            query = QueryFactory.build_aggregate(dialect, self, filter_, aggregation, limit)
             res: List[Dict[str, Any]] = session.execute(query)  #  type: ignore
             return aggregations_to_records(res)
 
@@ -184,9 +184,9 @@ class SqlAlchemyCollection(BaseSqlAlchemyCollection):
             session.bulk_save_objects(instances, return_defaults=True)  # type: ignore
             return instances_to_records(self, instances)
 
-    async def update(self, caller: User, filter: Optional[Filter], patch: RecordsDataAlias) -> None:
+    async def update(self, caller: User, filter_: Optional[Filter], patch: RecordsDataAlias) -> None:
         with self.datasource.Session.begin() as session:  #  type: ignore
-            query = QueryFactory.update(self, filter, patch)
+            query = QueryFactory.update(self, filter_, patch)
             session.execute(query)  # type: ignore
 
     def _cast_condition_tree(self, tree: ConditionTree) -> ConditionTree:
@@ -202,34 +202,39 @@ class SqlAlchemyCollection(BaseSqlAlchemyCollection):
                 tree = tree.override({"value": iso_format})
         return tree
 
-    def _cast_filter(self, filter: Union[Filter, PaginatedFilter, None]) -> Union[Filter, PaginatedFilter, None]:
-        if filter and filter.condition_tree:
-            filter = filter.override(
-                {"condition_tree": filter.condition_tree.replace(self._cast_condition_tree)}  # type: ignore
+    def _cast_filter(self, filter_: Union[Filter, PaginatedFilter, None]) -> Union[Filter, PaginatedFilter, None]:
+        if filter_ and filter_.condition_tree:
+            filter_ = filter_.override(
+                {"condition_tree": filter_.condition_tree.replace(self._cast_condition_tree)}  # type: ignore
             )
-        return filter
+        return filter_
 
-    async def list(self, caller: User, filter: PaginatedFilter, projection: Projection) -> List[RecordsDataAlias]:
+    async def list(self, caller: User, filter_: PaginatedFilter, projection: Projection) -> List[RecordsDataAlias]:
         with self.datasource.Session.begin() as session:  #  type: ignore
             normalized_projection = self._normalize_projection(projection)
-            filter = cast(PaginatedFilter, self._cast_filter(filter))
-            query = QueryFactory.build_list(self, filter, normalized_projection)
+            filter_ = cast(PaginatedFilter, self._cast_filter(filter_))
+            query = QueryFactory.build_list(self, filter_, normalized_projection)
             res = session.execute(query).all()  #  type: ignore
-            records = projections_to_records(normalized_projection, res, filter.timezone)  # type: ignore
+            records = projections_to_records(normalized_projection, res, filter_.timezone)  # type: ignore
             return records
 
-    async def delete(self, caller: User, filter: Optional[Filter]) -> None:
+    async def delete(self, caller: User, filter_: Optional[Filter]) -> None:
         with self.datasource.Session.begin() as session:  #  type: ignore
-            query = QueryFactory.delete(self, filter)
+            query = QueryFactory.delete(self, filter_)
             session.execute(query)  # type: ignore
 
     async def get_form(
-        self, caller: User, name: str, data: Optional[RecordsDataAlias], filter: Optional[Filter]
+        self,
+        caller: User,
+        name: str,
+        data: Optional[RecordsDataAlias],
+        filter_: Optional[Filter],
+        meta: Optional[Dict[str, Any]],
     ) -> List[ActionField]:
-        return await super().get_form(caller, name, data, filter)
+        return await super().get_form(caller, name, data, filter_, meta)
 
-    async def execute(self, caller: User, name: str, data: RecordsDataAlias, filter: Optional[Filter]) -> ActionResult:
-        return await super().execute(caller, name, data, filter)
+    async def execute(self, caller: User, name: str, data: RecordsDataAlias, filter_: Optional[Filter]) -> ActionResult:
+        return await super().execute(caller, name, data, filter_)
 
     async def render_chart(self, caller: User, name: str, record_id: List) -> Chart:
         return await super().render_chart(caller, name, record_id)

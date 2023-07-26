@@ -1,5 +1,5 @@
 import abc
-from typing import List, Optional
+from typing import Any, Dict, List, Optional
 
 from forestadmin.agent_toolkit.utils.context import User
 from forestadmin.datasource_toolkit.exceptions import ForestException
@@ -20,7 +20,7 @@ class Collection(CollectionModel, abc.ABC):
         caller: User,
         name: str,
         data: RecordsDataAlias,
-        filter: Optional[Filter],
+        filter_: Optional[Filter],
     ) -> ActionResult:
         """to execute an action"""
         raise ForestException(f"Action {name} is not implemented")
@@ -31,7 +31,8 @@ class Collection(CollectionModel, abc.ABC):
         caller: User,
         name: str,
         data: Optional[RecordsDataAlias],
-        filter: Optional[Filter],
+        filter_: Optional[Filter],
+        meta: Optional[Dict[str, Any]],
     ) -> List[ActionField]:
         """to get the form of an action"""
         return []
@@ -46,19 +47,19 @@ class Collection(CollectionModel, abc.ABC):
         """to create records"""
 
     @abc.abstractmethod
-    async def list(self, caller: User, filter: PaginatedFilter, projection: Projection) -> List[RecordsDataAlias]:
+    async def list(self, caller: User, filter_: PaginatedFilter, projection: Projection) -> List[RecordsDataAlias]:
         """to list records"""
 
     @abc.abstractmethod
-    async def update(self, caller: User, filter: Optional[Filter], patch: RecordsDataAlias) -> None:
+    async def update(self, caller: User, filter_: Optional[Filter], patch: RecordsDataAlias) -> None:
         """to update records"""
 
     @abc.abstractmethod
-    async def delete(self, caller: User, filter: Optional[Filter]) -> None:
+    async def delete(self, caller: User, filter_: Optional[Filter]) -> None:
         """to delete records"""
 
     @abc.abstractmethod
     async def aggregate(
-        self, caller: User, filter: Optional[Filter], aggregation: Aggregation, limit: Optional[int] = None
+        self, caller: User, filter_: Optional[Filter], aggregation: Aggregation, limit: Optional[int] = None
     ) -> List[AggregateResult]:
         """to make aggregate request"""
