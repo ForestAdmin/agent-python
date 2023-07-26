@@ -195,6 +195,8 @@ class ExportJson(ActionBulk):
 class AgeOperation(ActionSingle):
     @staticmethod
     def get_value_summary(context: ActionContextSingle):
+        if context.changed_field not in ["Kind of operation", "Value"]:
+            return context.form_values.get("summary")
         sentence = ""
         if context.form_values.get("Kind of operation", "") == "+":
             sentence += "add "
@@ -264,7 +266,7 @@ async def total_orders_customer_chart(
     # total_spending = await context.get_record(Projection("TotalSpending"))
     orders = await context.datasource.get_collection("order").aggregate(
         caller=context.caller,
-        filter=Filter({"condition_tree": ConditionTreeLeaf("customer_id", Operator.EQUAL, ids[0])}),
+        filter_=Filter({"condition_tree": ConditionTreeLeaf("customer_id", Operator.EQUAL, ids[0])}),
         # filter={"conditionTree": ConditionTreeLeaf("customer_id", Operator.EQUAL, ids[0])},
         aggregation=Aggregation({"field": "amount", "operation": "Sum"}),
     )
