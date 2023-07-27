@@ -1,3 +1,10 @@
+# [1.0.0-beta.3](https://github.com/ForestAdmin/agent-python/compare/v1.0.0-beta.2...v1.0.0-beta.3) (2023-07-27)
+
+
+### Features
+
+* **actions:** add changed_field to ActionContext ([#99](https://github.com/ForestAdmin/agent-python/issues/99)) ([99d59dd](https://github.com/ForestAdmin/agent-python/commit/99d59dd1769a987d48020108c5b5ba6bf2a06c0b))
+
 # [1.0.0-beta.2](https://github.com/ForestAdmin/agent-python/compare/v1.0.0-beta.1...v1.0.0-beta.2) (2023-07-26)
 
 
