@@ -40,7 +40,7 @@ class ActionCollectionDecorator(CollectionDecorator):
         if not action:
             return await super().execute(caller, name, data, filter_)  # type: ignore
 
-        context = self._get_context(caller, action, data, filter_)
+        context = self._get_context(caller, action, data, filter_, None)
         response_builder = ResultBuilder()
         result = action.execute(context, response_builder)  # type: ignore
         if isinstance(result, Awaitable):
@@ -48,17 +48,22 @@ class ActionCollectionDecorator(CollectionDecorator):
         return result or {"type": "Success", "invalidated": set(), "format": "text", "message": "Success"}
 
     async def get_form(
-        self, caller: User, name: str, data: Optional[RecordsDataAlias], filter_: Optional[Filter] = None
+        self,
+        caller: User,
+        name: str,
+        data: Optional[RecordsDataAlias],
+        filter_: Optional[Filter] = None,
+        meta: Optional[Dict[str, Any]] = dict(),
     ) -> List[ActionField]:
         action = self._actions.get(name)
         if not action:
-            return await super().get_form(caller, name, data, filter_)  # type: ignore
+            return await super().get_form(caller, name, data, filter_, meta)  # type: ignore
         elif not action.form:
             return []
 
         form_values = data or {}
         used: Set[str] = set()
-        context = self._get_context(caller, action, form_values, filter_, used)
+        context = self._get_context(caller, action, form_values, filter_, used, meta.get("changed_field"))
         form_fields: List[DynamicField[ActionContext]] = cast(
             List[DynamicField[ActionContext]], [field for field in action.form]
         )
@@ -87,13 +92,14 @@ class ActionCollectionDecorator(CollectionDecorator):
         form_values: RecordsDataAlias,
         filter_: Optional[Filter] = None,
         used: Optional[Set[str]] = None,
+        changed_field: Optional[str] = None,
     ) -> ActionContext:
         return {
             ActionSingle.SCOPE: ActionContextSingle,
             ActionBulk.SCOPE: ActionContextBulk,
             ActionGlobal.SCOPE: ActionContext,
         }[action.SCOPE](
-            cast(Collection, self), caller, form_values, filter_, used  # type: ignore
+            cast(Collection, self), caller, form_values, filter_, used, changed_field  # type: ignore
         )
 
     async def _build_form_values(

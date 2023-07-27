@@ -89,7 +89,13 @@ class ActionResource(BaseCollectionResource):
             data = ForestValueConverter.make_form_data_from_fields(request.collection.datasource, forest_fields)
 
         _filter = await self._get_records_selection(request)
-        fields = await request.collection.get_form(request.user, request.action_name, data, _filter)
+        fields = await request.collection.get_form(
+            request.user,
+            request.action_name,
+            data,
+            _filter,
+            {"changed_field": request.body.get("data", {}).get("attributes", {}).get("changed_field")},
+        )
 
         return build_success_response(
             {

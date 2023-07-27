@@ -1,4 +1,4 @@
-from typing import List, Optional, Union, cast
+from typing import Any, Dict, List, Optional, Union, cast
 
 from forestadmin.agent_toolkit.utils.context import User
 from forestadmin.datasource_toolkit.collections import CollectionException
@@ -100,9 +100,10 @@ class CollectionDecorator(Collection):
         name: str,
         data: Optional[RecordsDataAlias],
         _filter: Optional[Filter] = None,
+        meta: Optional[Dict[str, Any]] = dict(),
     ) -> List[ActionField]:
         refined_filter = cast(Optional[Filter], await self._refine_filter(caller, _filter))
-        return await self.child_collection.get_form(caller, name, data, refined_filter)
+        return await self.child_collection.get_form(caller, name, data, refined_filter, meta)
 
     async def render_chart(self, caller: User, name: str, record_id: List) -> Chart:
         return await self.child_collection.render_chart(caller, name, record_id)
