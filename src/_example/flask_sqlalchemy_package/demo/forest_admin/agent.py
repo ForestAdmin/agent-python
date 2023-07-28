@@ -1,3 +1,4 @@
+from demo.forest_admin.forest_logging_customization import customize_forest_logging
 from demo.forest_admin.smart.address import address_full_name_computed, high_delivery_address_segment
 from demo.forest_admin.smart.cart import cart_update_name
 from demo.forest_admin.smart.customer import (
@@ -33,6 +34,8 @@ from forestadmin.flask_agent.agent import Agent
 
 
 def customize_agent(agent: Agent):
+    customize_forest_logging()
+
     # # ## ADDRESS
     agent.customize_collection("address").add_segment("highOrderDelivery", high_delivery_address_segment)
 
