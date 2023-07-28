@@ -4,6 +4,7 @@ import sys
 from typing import Optional, Tuple, Union
 
 import pkg_resources
+from forestadmin.agent_toolkit.forest_logger import ForestLogger
 
 if sys.version_info >= (3, 8):
     from typing import Literal
@@ -55,6 +56,7 @@ class Agent(BaseAgent):
         self.options["schema_path"] = os.path.join(app.root_path, ".forestadmin-schema.json")
         app.register_blueprint(self.blueprint, url_prefix="/forest")
         self.loop.run_until_complete(self.start())
+        ForestLogger.log("info", "Flask agent initialized")
 
 
 def build_agent(options: Options) -> Agent:

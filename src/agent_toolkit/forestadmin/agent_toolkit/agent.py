@@ -100,12 +100,22 @@ class Agent:
 
     async def start(self):
         if Agent.__IS_INITIALIZED is True:
+            ForestLogger.log("debug", "Agent already started.")
             return
+        ForestLogger.log("debug", "Stating agent")
 
         for collection in self.customizer.stack.datasource.collections:
             create_json_api_schema(collection)
 
-        api_map = await SchemaEmitter.get_serialized_schema(self.options, self.customizer.stack.datasource, self.meta)
+        try:
+            api_map = await SchemaEmitter.get_serialized_schema(
+                self.options, self.customizer.stack.datasource, self.meta
+            )
 
-        await ForestHttpApi.send_schema(self.options, api_map)
+            await ForestHttpApi.send_schema(self.options, api_map)
+
+        except Exception:
+            ForestLogger.log("warning", "Cannot send the apimap to Forest. Are you online?")
+
+        ForestLogger.log("debug", "Agent started")
         Agent.__IS_INITIALIZED = True

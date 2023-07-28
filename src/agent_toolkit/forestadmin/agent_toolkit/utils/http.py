@@ -1,14 +1,14 @@
 import sys
+from typing import Any, Dict, Optional
 
 if sys.version_info >= (3, 8):
     from typing import TypedDict
 else:
     from typing_extensions import TypedDict
 
-from typing import Any, Dict, Optional
-
 import aiohttp
 from forestadmin.agent_toolkit.exceptions import AgentToolkitException
+from forestadmin.agent_toolkit.forest_logger import ForestLogger
 from forestadmin.agent_toolkit.options import Options
 from forestadmin.agent_toolkit.utils.forest_schema.type import ForestSchema
 
@@ -83,7 +83,7 @@ class ForestHttpApi:
                 raise ForestHttpApiException(f"Failed to fetch {endpoint} : {exc}")
 
     @classmethod
-    async def send_schema(cls, options: Options, schema: ForestSchema):
+    async def send_schema(cls, options: Options, schema: ForestSchema) -> bool:
         ret = await cls.post(
             cls.build_enpoint(options["forest_server_url"], "/forest/apimaps/hashcheck"),
             {"schemaFileHash": schema["meta"]["schemaFileHash"]},
@@ -91,8 +91,11 @@ class ForestHttpApi:
         )
 
         if ret["sendSchema"] is True:
+            ForestLogger.log("info", "Schema was updated, sending new version.")
             await cls.post(
                 cls.build_enpoint(options["forest_server_url"], "/forest/apimaps"),
                 schema,
                 {"forest-secret-key": options["env_secret"], "content-type": "application/json"},
             )
+        else:
+            ForestLogger.log("info", "Schema was not updated since last run.")

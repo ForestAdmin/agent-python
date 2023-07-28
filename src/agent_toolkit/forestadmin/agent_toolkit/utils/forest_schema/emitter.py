@@ -9,7 +9,7 @@ else:
 
 from typing import Any, Dict, List, Union
 
-from forestadmin.agent_toolkit.exceptions import ForestException
+from forestadmin.agent_toolkit.forest_logger import ForestLogger
 from forestadmin.agent_toolkit.options import Options
 from forestadmin.agent_toolkit.utils.forest_schema.generator_collection import SchemaCollectionGenerator
 from forestadmin.agent_toolkit.utils.forest_schema.type import AgentMeta, ForestServerCollection
@@ -77,8 +77,9 @@ class SchemaEmitter:
                 meta.update(schema["meta"])
                 collections_schema = schema["collections"]
             except Exception:
-                raise ForestException(
-                    f"Can't read {options['schema_path']}. Providing a schema is mandatory in production."
+                ForestLogger.log(
+                    "warning",
+                    f"Can't read {options['schema_path']}. Providing a schema is mandatory in production. Skipping...",
                 )
 
         return cls.serialize(collections_schema, meta)
