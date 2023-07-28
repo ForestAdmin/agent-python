@@ -1,4 +1,6 @@
+import logging
 import sys
+from typing import Callable
 
 if sys.version_info >= (3, 8):
     from typing import TypedDict
@@ -14,8 +16,9 @@ class Options(TypedDict):
     forest_server_url: str
     is_production: bool
     schema_path: str
-    # logger
-    # loggerLevel
+    logger: Callable[[str, str], None]
+    logger_level: int
+    permissions_cache_duration_in_seconds: int
     # typingsPath
     # typingsMaxDepth
     # permissionsCacheDurationInSeconds
@@ -27,4 +30,7 @@ DEFAULT_OPTIONS: Options = {
     "is_production": False,
     "prefix": "forest",
     "forest_server_url": "https://api.forestadmin.com",
+    "logger": None,
+    "logger_level": logging.DEBUG,
+    "permissions_cache_duration_in_seconds": 15 * 60,
 }
