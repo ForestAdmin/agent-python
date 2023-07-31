@@ -117,5 +117,5 @@ class Agent:
         except Exception:
             ForestLogger.log("warning", "Cannot send the apimap to Forest. Are you online?")
 
-        ForestLogger.log("debug", "Agent started")
+        ForestLogger.log("info", "Agent started")
         Agent.__IS_INITIALIZED = True
