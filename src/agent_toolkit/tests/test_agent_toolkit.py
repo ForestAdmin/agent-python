@@ -216,10 +216,8 @@ class TestAgent(TestCase):
         mocked_schema_emitter__get_serialized_schema.assert_not_called()
         mocked_forest_http_api__send_schema.assert_not_called()
 
-    @patch("forestadmin.agent_toolkit.agent.create_json_api_schema")
     def test_start_dont_crash_if_schema_generation_or_sending_fail(
         self,
-        mocked_create_json_api_schema,
         mocked_schema_emitter__get_serialized_schema,
         mocked_forest_http_api__send_schema,
         mocked_action_resource,
@@ -241,6 +239,7 @@ class TestAgent(TestCase):
             side_effect=Exception,
         ):
             with self.assertLogs("forestadmin", level=logging.DEBUG) as logger:
+                Agent._Agent__IS_INITIALIZED = False
                 loop.run_until_complete(agent.start())
 
                 self.assertEqual(
