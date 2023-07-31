@@ -31,6 +31,6 @@ DEFAULT_OPTIONS: Options = {
     "prefix": "forest",
     "forest_server_url": "https://api.forestadmin.com",
     "logger": None,
-    "logger_level": logging.DEBUG,
+    "logger_level": logging.WARNING,
     "permissions_cache_duration_in_seconds": 15 * 60,
 }
