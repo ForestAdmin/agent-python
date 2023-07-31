@@ -239,7 +239,7 @@ class TestAgent(TestCase):
             "forestadmin.agent_toolkit.agent.SchemaEmitter.get_serialized_schema",
             new_callable=AsyncMock,
             side_effect=Exception,
-        ) as mocked_schema_emitter:
+        ):
             with self.assertLogs("forestadmin", level=logging.DEBUG) as logger:
                 loop.run_until_complete(agent.start())
 
