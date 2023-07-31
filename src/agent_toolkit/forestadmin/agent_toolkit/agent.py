@@ -7,6 +7,7 @@ else:
     from typing_extensions import TypedDict
 
 from forestadmin.agent_toolkit.exceptions import AgentToolkitException
+from forestadmin.agent_toolkit.forest_logger import ForestLogger
 from forestadmin.agent_toolkit.options import DEFAULT_OPTIONS, Options
 from forestadmin.agent_toolkit.resources.actions.resources import ActionResource
 from forestadmin.agent_toolkit.resources.collections import BoundCollection
@@ -46,13 +47,14 @@ class Agent:
         self.options.update({k: v for k, v in options.items() if v is not None})
         self.customizer: DatasourceCustomizer = DatasourceCustomizer()
         self._resources = None
+        ForestLogger.setup_logger(self.options["logger_level"], self.options["logger"])
 
         self._permission_service = PermissionService(
             {
                 "env_secret": self.options["env_secret"],
                 "forest_server_url": self.options["forest_server_url"],
                 "is_production": self.options["is_production"],
-                "permission_cache_duration": 60,
+                "permission_cache_duration": self.options["permissions_cache_duration_in_seconds"],
             }
         )
 
@@ -98,12 +100,22 @@ class Agent:
 
     async def start(self):
         if Agent.__IS_INITIALIZED is True:
+            ForestLogger.log("debug", "Agent already started.")
             return
+        ForestLogger.log("debug", "Starting agent")
 
         for collection in self.customizer.stack.datasource.collections:
             create_json_api_schema(collection)
 
-        api_map = await SchemaEmitter.get_serialized_schema(self.options, self.customizer.stack.datasource, self.meta)
+        try:
+            api_map = await SchemaEmitter.get_serialized_schema(
+                self.options, self.customizer.stack.datasource, self.meta
+            )
 
-        await ForestHttpApi.send_schema(self.options, api_map)
+            await ForestHttpApi.send_schema(self.options, api_map)
+
+        except Exception:
+            ForestLogger.log("warning", "Cannot send the apimap to Forest. Are you online?")
+
+        ForestLogger.log("info", "Agent started")
         Agent.__IS_INITIALIZED = True

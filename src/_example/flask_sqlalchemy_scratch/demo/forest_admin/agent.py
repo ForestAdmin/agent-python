@@ -1,3 +1,4 @@
+from demo.forest_admin.forest_logging_customization import customize_forest_logging
 from demo.forest_admin.settings import SETTINGS
 from demo.forest_admin.smart.address import address_full_name_computed, high_delivery_address_segment
 from demo.forest_admin.smart.cart import cart_update_name
