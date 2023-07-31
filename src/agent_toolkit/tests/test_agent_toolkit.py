@@ -46,7 +46,7 @@ class TestAgent(TestCase):
     ):
         with patch("forestadmin.agent_toolkit.agent.ForestLogger.setup_logger") as mock_logger:
             agent = Agent(self.fake_options)
-            mock_logger.assert_called_with(logging.WARNING, None)
+            mock_logger.assert_called_with(logging.INFO, None)
 
         assert agent.options["prefix"] == DEFAULT_OPTIONS["prefix"]
         assert agent.options["is_production"] == DEFAULT_OPTIONS["is_production"]
@@ -197,7 +197,7 @@ class TestAgent(TestCase):
 
         with self.assertLogs("forestadmin", level=logging.DEBUG) as logger:
             loop.run_until_complete(agent.start())
-            self.assertEqual(logger.output, ["DEBUG:forestadmin:Starting agent", "DEBUG:forestadmin:Agent started"])
+            self.assertEqual(logger.output, ["DEBUG:forestadmin:Starting agent", "INFO:forestadmin:Agent started"])
 
         mocked_create_json_api_schema.assert_called_once_with("fake_collection")
         mocked_schema_emitter__get_serialized_schema.assert_called_once()
@@ -247,7 +247,7 @@ class TestAgent(TestCase):
                     [
                         "DEBUG:forestadmin:Starting agent",
                         "WARNING:forestadmin:Cannot send the apimap to Forest. Are you online?",
-                        "DEBUG:forestadmin:Agent started",
+                        "INFO:forestadmin:Agent started",
                     ],
                 )
 
