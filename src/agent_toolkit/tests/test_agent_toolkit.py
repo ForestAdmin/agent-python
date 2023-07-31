@@ -1,4 +1,5 @@
 import asyncio
+import logging
 import sys
 from unittest import TestCase
 from unittest.mock import Mock, patch
@@ -43,7 +44,9 @@ class TestAgent(TestCase):
         mocked_datasource_customizer,
         mocked_permission_service,
     ):
-        agent = Agent(self.fake_options)
+        with patch("forestadmin.agent_toolkit.agent.ForestLogger.setup_logger") as mock_logger:
+            agent = Agent(self.fake_options)
+            mock_logger.assert_called_with(logging.WARNING, None)
 
         assert agent.options["prefix"] == DEFAULT_OPTIONS["prefix"]
         assert agent.options["is_production"] == DEFAULT_OPTIONS["is_production"]
@@ -187,12 +190,14 @@ class TestAgent(TestCase):
     ):
         loop = asyncio.new_event_loop()
 
-        agent = Agent(self.fake_options)
+        agent = Agent({**self.fake_options, "logger_level": logging.DEBUG})
         agent.META = "fake_meta"
 
         agent.customizer.stack.datasource.collections = ["fake_collection"]
 
-        loop.run_until_complete(agent.start())
+        with self.assertLogs("forestadmin", level=logging.DEBUG) as logger:
+            loop.run_until_complete(agent.start())
+            self.assertEqual(logger.output, ["DEBUG:forestadmin:Starting agent", "DEBUG:forestadmin:Agent started"])
 
         mocked_create_json_api_schema.assert_called_once_with("fake_collection")
         mocked_schema_emitter__get_serialized_schema.assert_called_once()
@@ -203,7 +208,48 @@ class TestAgent(TestCase):
         mocked_schema_emitter__get_serialized_schema.reset_mock()
         mocked_forest_http_api__send_schema.reset_mock()
 
-        loop.run_until_complete(agent.start())
+        with self.assertLogs("forestadmin", level=logging.DEBUG) as logger:
+            loop.run_until_complete(agent.start())
+            self.assertEqual(logger.output, ["DEBUG:forestadmin:Agent already started."])
+
         mocked_create_json_api_schema.assert_not_called()
         mocked_schema_emitter__get_serialized_schema.assert_not_called()
         mocked_forest_http_api__send_schema.assert_not_called()
+
+    @patch("forestadmin.agent_toolkit.agent.create_json_api_schema")
+    def test_start_dont_crash_if_schema_generation_or_sending_fail(
+        self,
+        mocked_create_json_api_schema,
+        mocked_schema_emitter__get_serialized_schema,
+        mocked_forest_http_api__send_schema,
+        mocked_action_resource,
+        mocked_stats_resource,
+        mocked_crud_related_resource,
+        mocked_crud_resource,
+        mocked_authentication_resource,
+        mocked_datasource_customizer,
+        mocked_permission_service,
+    ):
+        loop = asyncio.new_event_loop()
+
+        agent = Agent({**self.fake_options, "logger_level": logging.DEBUG, "is_production": True})
+        agent.META = "fake_meta"
+
+        with patch(
+            "forestadmin.agent_toolkit.agent.SchemaEmitter.get_serialized_schema",
+            new_callable=AsyncMock,
+            side_effect=Exception,
+        ) as mocked_schema_emitter:
+            with self.assertLogs("forestadmin", level=logging.DEBUG) as logger:
+                loop.run_until_complete(agent.start())
+
+                self.assertEqual(
+                    logger.output,
+                    [
+                        "DEBUG:forestadmin:Starting agent",
+                        "WARNING:forestadmin:Cannot send the apimap to Forest. Are you online?",
+                        "DEBUG:forestadmin:Agent started",
+                    ],
+                )
+
+        mocked_forest_http_api__send_schema.assert_not_awaited()
