@@ -1,3 +1,10 @@
+# [1.0.0-beta.4](https://github.com/ForestAdmin/agent-python/compare/v1.0.0-beta.3...v1.0.0-beta.4) (2023-07-31)
+
+
+### Features
+
+* **loggers:** add logger functionnality ([#100](https://github.com/ForestAdmin/agent-python/issues/100)) ([5d29726](https://github.com/ForestAdmin/agent-python/commit/5d29726f1c03df25d52eedc8279c4a812376552e))
+
 # [1.0.0-beta.3](https://github.com/ForestAdmin/agent-python/compare/v1.0.0-beta.2...v1.0.0-beta.3) (2023-07-27)
 
 
