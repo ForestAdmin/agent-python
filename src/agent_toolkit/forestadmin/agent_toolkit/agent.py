@@ -102,7 +102,7 @@ class Agent:
         if Agent.__IS_INITIALIZED is True:
             ForestLogger.log("debug", "Agent already started.")
             return
-        ForestLogger.log("debug", "Stating agent")
+        ForestLogger.log("debug", "Starting agent")
 
         for collection in self.customizer.stack.datasource.collections:
             create_json_api_schema(collection)

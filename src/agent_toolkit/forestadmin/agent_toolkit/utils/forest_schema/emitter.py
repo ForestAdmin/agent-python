@@ -78,9 +78,10 @@ class SchemaEmitter:
                 collections_schema = schema["collections"]
             except Exception:
                 ForestLogger.log(
-                    "warning",
+                    "error",
                     f"Can't read {options['schema_path']}. Providing a schema is mandatory in production. Skipping...",
                 )
+                raise
 
         return cls.serialize(collections_schema, meta)
 
