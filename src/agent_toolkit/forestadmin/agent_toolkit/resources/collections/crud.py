@@ -10,6 +10,7 @@ else:
 
 from typing import Any, Awaitable, Dict, List, Tuple, cast
 
+from forestadmin.agent_toolkit.forest_logger import ForestLogger
 from forestadmin.agent_toolkit.resources.collections import BaseCollectionResource
 from forestadmin.agent_toolkit.resources.collections.decorators import authenticate, authorize, check_method
 from forestadmin.agent_toolkit.resources.collections.exceptions import CollectionResourceException
@@ -24,17 +25,7 @@ from forestadmin.agent_toolkit.resources.collections.filter import (
 )
 from forestadmin.agent_toolkit.resources.collections.requests import RequestCollection, RequestCollectionException
 from forestadmin.agent_toolkit.services.serializers.json_api import JsonApiException, JsonApiSerializer
-from forestadmin.agent_toolkit.utils.context import (
-    Request,
-    RequestMethod,
-    Response,
-    User,
-    build_client_error_response,
-    build_csv_response,
-    build_no_content_response,
-    build_success_response,
-    build_unknown_response,
-)
+from forestadmin.agent_toolkit.utils.context import HttpResponseBuilder, Request, RequestMethod, Response, User
 from forestadmin.agent_toolkit.utils.csv import Csv, CsvException
 from forestadmin.agent_toolkit.utils.id import unpack_id
 from forestadmin.datasource_toolkit.collections import Collection
@@ -78,14 +69,14 @@ class CrudResource(BaseCollectionResource):
         try:
             request_collection = RequestCollection.from_request(request, self.datasource)
         except RequestCollectionException as e:
-            return build_client_error_response([str(e)])
+            ForestLogger.log("exception", e)
+            return HttpResponseBuilder.build_client_error_response([e])
 
         try:
             return await method(request_collection)
         except ForestValidationException as e:
-            return build_client_error_response(
-                [{"name": "ForestValidationException", "detail": str(e)[3:], "status": 400}]
-            )
+            ForestLogger.log("exception", e)
+            return HttpResponseBuilder.build_client_error_response([e])
 
     @check_method(RequestMethod.GET)
     @authenticate
@@ -95,7 +86,8 @@ class CrudResource(BaseCollectionResource):
         try:
             ids = unpack_id(collection.schema, request.pks)
         except (FieldValidatorException, CollectionResourceException) as e:
-            return build_client_error_response([str(e)])
+            ForestLogger.log("exception", e)
+            return HttpResponseBuilder.build_client_error_response([e])
 
         trees: List[ConditionTree] = [ConditionTreeFactory.match_ids(collection.schema, [ids])]
         scope_tree = await self.permission.get_scope(request)
@@ -108,7 +100,7 @@ class CrudResource(BaseCollectionResource):
         records = await collection.list(request.user, filter, projections)
 
         if not len(records):
-            return build_unknown_response()
+            return HttpResponseBuilder.build_unknown_response()
 
         for name, schema in collection.schema["fields"].items():
             if is_many_to_many(schema) or is_one_to_many(schema):
@@ -119,9 +111,10 @@ class CrudResource(BaseCollectionResource):
         try:
             dumped: Dict[str, Any] = schema(projections=projections).dump(records[0])  # type: ignore
         except JsonApiException as e:
-            return build_client_error_response([str(e)])
+            ForestLogger.log("exception", e)
+            return HttpResponseBuilder.build_client_error_response([e])
 
-        return build_success_response(dumped)
+        return HttpResponseBuilder.build_success_response(dumped)
 
     @check_method(RequestMethod.POST)
     @authenticate
@@ -132,26 +125,30 @@ class CrudResource(BaseCollectionResource):
         try:
             data: RecordsDataAlias = schema().load(request.body)  # type: ignore
         except JsonApiException as e:
-            return build_client_error_response([str(e)])
+            ForestLogger.log("exception", e)
+            return HttpResponseBuilder.build_client_error_response([e])
 
         record, one_to_one_relations = await self.extract_data(request.user, cast(Collection, collection), data)
 
         try:
             RecordValidator.validate(cast(Collection, collection), record)
         except RecordValidatorException as e:
-            return build_client_error_response([str(e)])
+            ForestLogger.log("exception", e)
+            return HttpResponseBuilder.build_client_error_response([e])
 
         try:
             records = await collection.create(request.user, [record])
         except DatasourceException as e:
-            return build_client_error_response([str(e)])
+            ForestLogger.log("exception", e)
+            return HttpResponseBuilder.build_client_error_response([e])
 
         try:
             await self._link_one_to_one_relations(request, records[0], one_to_one_relations)
         except CollectionResourceException as e:
-            return build_client_error_response([str(e)])
+            ForestLogger.log("exception", e)
+            return HttpResponseBuilder.build_client_error_response([e])
 
-        return build_success_response(
+        return HttpResponseBuilder.build_success_response(
             schema(projections=list(records[0].keys())).dump(records[0], many=False)  # type: ignore
         )
 
@@ -163,24 +160,27 @@ class CrudResource(BaseCollectionResource):
         try:
             paginated_filter = build_paginated_filter(request, scope_tree)
         except FilterException as e:
-            return build_client_error_response([str(e)])
+            ForestLogger.log("exception", e)
+            return HttpResponseBuilder.build_client_error_response([e])
         try:
             projections = parse_projection_with_pks(request)
         except DatasourceException as e:
-            return build_client_error_response([str(e)])
+            ForestLogger.log("exception", e)
+            return HttpResponseBuilder.build_client_error_response([e])
 
         records = await request.collection.list(request.user, paginated_filter, projections)
         schema = JsonApiSerializer.get(request.collection)
         try:
             dumped: Dict[str, Any] = schema(projections=projections).dump(records, many=True)  # type: ignore
         except JsonApiException as e:
-            return build_client_error_response([str(e)])
+            ForestLogger.log("exception", e)
+            return HttpResponseBuilder.build_client_error_response([e])
 
         # TODO: add something like this (but between crud and crud related ; function need adaptation)
         # if paginated_filter.search:
         #     dumped = add_search_metadata(dumped, paginated_filter.search)
 
-        return build_success_response(dumped)
+        return HttpResponseBuilder.build_success_response(dumped)
 
     @check_method(RequestMethod.GET)
     @authenticate
@@ -191,26 +191,31 @@ class CrudResource(BaseCollectionResource):
         try:
             paginated_filter = build_paginated_filter(request, scope_tree)
         except FilterException as e:
-            return build_client_error_response([str(e)])
+            ForestLogger.log("exception", e)
+            return HttpResponseBuilder.build_client_error_response([e])
         try:
             projections = parse_projection_with_pks(request)
         except DatasourceException as e:
-            return build_client_error_response([str(e)])
+            ForestLogger.log("exception", e)
+            return HttpResponseBuilder.build_client_error_response([e])
 
         records = await request.collection.list(request.user, paginated_filter, projections)
 
         try:
             csv_str = Csv.make_csv(records, projections)
         except CsvException as e:
-            return build_client_error_response([str(e)])
-        return build_csv_response(csv_str, f"{request.query.get('filename', request.collection.name)}.csv")
+            ForestLogger.log("exception", e)
+            return HttpResponseBuilder.build_client_error_response([e])
+        return HttpResponseBuilder.build_csv_response(
+            csv_str, f"{request.query.get('filename', request.collection.name)}.csv"
+        )
 
     @check_method(RequestMethod.GET)
     @authenticate
     @authorize("browse")
     async def count(self, request: RequestCollection) -> Response:
         if request.collection.schema["countable"] is False:
-            return build_success_response({"meta": {"count": "deactivated"}})
+            return HttpResponseBuilder.build_success_response({"meta": {"count": "deactivated"}})
 
         scope_tree = await self.permission.get_scope(request)
         filter = build_filter(request, scope_tree)
@@ -220,7 +225,7 @@ class CrudResource(BaseCollectionResource):
             count = result[0]["value"]
         except IndexError:
             count = 0
-        return build_success_response({"count": count})
+        return HttpResponseBuilder.build_success_response({"count": count})
 
     @check_method(RequestMethod.PUT)
     @authenticate
@@ -230,7 +235,8 @@ class CrudResource(BaseCollectionResource):
         try:
             ids = unpack_id(collection.schema, request.pks)
         except (FieldValidatorException, CollectionResourceException) as e:
-            return build_client_error_response([str(e)])
+            ForestLogger.log("exception", e)
+            return HttpResponseBuilder.build_client_error_response([e])
 
         if request.body and "data" in request.body and "relationships" in request.body["data"]:
             del request.body["data"]["relationships"]
@@ -239,11 +245,13 @@ class CrudResource(BaseCollectionResource):
         try:
             data: RecordsDataAlias = schema().load(request.body)  # type: ignore
         except JsonApiException as e:
-            return build_client_error_response([str(e)])
+            ForestLogger.log("exception", e)
+            return HttpResponseBuilder.build_client_error_response([e])
         try:
             RecordValidator.validate(cast(Collection, collection), data)
         except RecordValidatorException as e:
-            return build_client_error_response([str(e)])
+            ForestLogger.log("exception", e)
+            return HttpResponseBuilder.build_client_error_response([e])
 
         trees: List[ConditionTree] = [ConditionTreeFactory.match_ids(collection.schema, [ids])]
         scope_tree = await self.permission.get_scope(request)
@@ -260,9 +268,9 @@ class CrudResource(BaseCollectionResource):
         try:
             dumped: Dict[str, Any] = schema(projections=projection).dump(records[0])  # type: ignore
         except JsonApiException as e:
-            return build_client_error_response([str(e)])
+            return HttpResponseBuilder.build_client_error_response([e])
 
-        return build_success_response(dumped)
+        return HttpResponseBuilder.build_success_response(dumped)
 
     @check_method(RequestMethod.DELETE)
     @authenticate
@@ -272,10 +280,11 @@ class CrudResource(BaseCollectionResource):
         try:
             ids = unpack_id(collection.schema, request.pks)
         except (FieldValidatorException, CollectionResourceException) as e:
-            return build_client_error_response([str(e)])
+            ForestLogger.log("exception", e)
+            return HttpResponseBuilder.build_client_error_response([e])
 
         await self._delete(request, [ids])
-        return build_no_content_response()
+        return HttpResponseBuilder.build_no_content_response()
 
     @check_method(RequestMethod.DELETE)
     @authenticate
@@ -283,7 +292,7 @@ class CrudResource(BaseCollectionResource):
     async def delete_list(self, request: RequestCollection):
         ids, exclude_ids = parse_selection_ids(request)
         await self._delete(request, ids, exclude_ids)
-        return build_no_content_response()
+        return HttpResponseBuilder.build_no_content_response()
 
     async def _delete(self, request: RequestCollection, ids: List[CompositeIdAlias], exclude_ids: bool = False):
         selected_ids = ConditionTreeFactory.match_ids(request.collection.schema, ids)

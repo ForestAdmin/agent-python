@@ -6,17 +6,12 @@ if sys.version_info >= (3, 8):
 else:
     from typing_extensions import Literal
 
+from forestadmin.agent_toolkit.forest_logger import ForestLogger
 from forestadmin.agent_toolkit.resources.collections import BaseCollectionResource
 from forestadmin.agent_toolkit.resources.collections.decorators import authenticate, check_method
 from forestadmin.agent_toolkit.services.serializers import json_api
-from forestadmin.agent_toolkit.utils.context import (
-    FileResponse,
-    Request,
-    RequestMethod,
-    Response,
-    build_client_error_response,
-    build_success_response,
-)
+from forestadmin.agent_toolkit.utils.context import FileResponse, HttpResponseBuilder, Request, RequestMethod, Response
+from forestadmin.datasource_toolkit.exceptions import ForestException
 
 
 class ChartsDatasourceResource(BaseCollectionResource):
@@ -26,12 +21,15 @@ class ChartsDatasourceResource(BaseCollectionResource):
         elif request.method.value == "GET":
             handle = self.handle_smart_chart
         else:
-            return build_client_error_response([f"Method {request.method.value} is not allow for this url."])
+            msg = f"Method {request.method.value} is not allow for this url."
+            ForestLogger.log("error", msg)
+            return HttpResponseBuilder.build_client_error_response([ForestException(msg)])
 
         try:
-            return build_success_response(await handle(request))
+            return HttpResponseBuilder.build_success_response(await handle(request))
         except Exception as exc:
-            return build_client_error_response([str(exc)])
+            ForestLogger.log("exception", exc)
+            return HttpResponseBuilder.build_client_error_response([exc])
 
     @check_method(RequestMethod.POST)
     @authenticate

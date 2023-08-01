@@ -1,6 +1,5 @@
 import sys
-
-from forestadmin.agent_toolkit.utils.csv import Csv, CsvException
+from typing import Any, Dict, List, Union, cast
 
 if sys.version_info >= (3, 8):
     from typing import Literal
@@ -11,8 +10,7 @@ if sys.version_info >= (3, 9):
 else:
     from backports import zoneinfo
 
-from typing import Any, Dict, List, Union, cast
-
+from forestadmin.agent_toolkit.forest_logger import ForestLogger
 from forestadmin.agent_toolkit.resources.collections import BaseCollectionResource
 from forestadmin.agent_toolkit.resources.collections.decorators import authenticate, authorize, check_method
 from forestadmin.agent_toolkit.resources.collections.exceptions import CollectionResourceException
@@ -29,18 +27,12 @@ from forestadmin.agent_toolkit.resources.collections.requests import (
 )
 from forestadmin.agent_toolkit.services.serializers import DumpedResult, add_search_metadata
 from forestadmin.agent_toolkit.services.serializers.json_api import JsonApiException, JsonApiSerializer
-from forestadmin.agent_toolkit.utils.context import (
-    Request,
-    RequestMethod,
-    Response,
-    build_client_error_response,
-    build_csv_response,
-    build_no_content_response,
-    build_success_response,
-)
+from forestadmin.agent_toolkit.utils.context import HttpResponseBuilder, Request, RequestMethod, Response
+from forestadmin.agent_toolkit.utils.csv import Csv, CsvException
 from forestadmin.agent_toolkit.utils.id import unpack_id
 from forestadmin.datasource_toolkit.collections import Collection
 from forestadmin.datasource_toolkit.datasources import DatasourceException
+from forestadmin.datasource_toolkit.exceptions import ForestException
 from forestadmin.datasource_toolkit.interfaces.fields import (
     Operator,
     is_many_to_many,
@@ -68,7 +60,8 @@ class CrudRelatedResource(BaseCollectionResource):
         try:
             request_collection = RequestRelationCollection.from_request(request, self.datasource)
         except RequestCollectionException as e:
-            return build_client_error_response([str(e)])
+            ForestLogger.log("exception", e)
+            return HttpResponseBuilder.build_client_error_response([e])
         return await method(request_collection)
 
     @authenticate
@@ -76,11 +69,13 @@ class CrudRelatedResource(BaseCollectionResource):
     @check_method(RequestMethod.GET)
     async def list(self, request: RequestRelationCollection) -> Response:
         if not (is_one_to_many(request.relation) or is_many_to_many(request.relation)):
-            return build_client_error_response(["🌳🌳🌳Unhandled relation type"])
+            ForestLogger.log("error", "Unhandled relation type")
+            return HttpResponseBuilder.build_client_error_response([ForestException("Unhandled relation type")])
         try:
             ids = unpack_id(request.collection.schema, request.pks)
         except (FieldValidatorException, CollectionResourceException) as e:
-            return build_client_error_response([str(e)])
+            ForestLogger.log("exception", e)
+            return HttpResponseBuilder.build_client_error_response([e])
         scope_tree = await self.permission.get_scope(request, request.foreign_collection)
         paginated_filter = build_paginated_filter(request, scope_tree)
         projection = parse_projection_with_pks(request)
@@ -97,12 +92,13 @@ class CrudRelatedResource(BaseCollectionResource):
         try:
             dumped: DumpedResult = schema(projections=projection).dump(records, many=True)  # type: ignore
         except JsonApiException as e:
-            return build_client_error_response([str(e)])
+            ForestLogger.log("exception", e)
+            return HttpResponseBuilder.build_client_error_response([e])
 
         if paginated_filter.search:
             dumped = add_search_metadata(dumped, paginated_filter.search)
 
-        return build_success_response(cast(Dict[str, Any], dumped))
+        return HttpResponseBuilder.build_success_response(cast(Dict[str, Any], dumped))
 
     @authenticate
     @authorize("browse")
@@ -110,17 +106,20 @@ class CrudRelatedResource(BaseCollectionResource):
     @check_method(RequestMethod.GET)
     async def csv(self, request: RequestRelationCollection) -> Response:
         if not (is_one_to_many(request.relation) or is_many_to_many(request.relation)):
-            return build_client_error_response(["🌳🌳🌳Unhandled relation type"])
+            ForestLogger.log("error", "Unhandled relation type")
+            return HttpResponseBuilder.build_client_error_response([ForestException("Unhandled relation type")])
         try:
             ids = unpack_id(request.collection.schema, request.pks)
         except (FieldValidatorException, CollectionResourceException) as e:
-            return build_client_error_response([str(e)])
+            ForestLogger.log("exception", e)
+            return HttpResponseBuilder.build_client_error_response([e])
         scope_tree = await self.permission.get_scope(request, request.foreign_collection)
         paginated_filter = build_paginated_filter(request, scope_tree)
         try:
             projection = parse_projection_with_pks(request)
         except DatasourceException as e:
-            return build_client_error_response([str(e)])
+            ForestLogger.log("exception", e)
+            return HttpResponseBuilder.build_client_error_response([e])
         records = await CollectionUtils.list_relation(
             request.user,
             cast(Collection, request.collection),
@@ -134,8 +133,11 @@ class CrudRelatedResource(BaseCollectionResource):
         try:
             csv_str = Csv.make_csv(records, projection)
         except CsvException as e:
-            return build_client_error_response([str(e)])
-        return build_csv_response(csv_str, f"{request.query.get('filename', request.collection.name)}.csv")
+            ForestLogger.log("exception", e)
+            return HttpResponseBuilder.build_client_error_response([e])
+        return HttpResponseBuilder.build_csv_response(
+            csv_str, f"{request.query.get('filename', request.collection.name)}.csv"
+        )
 
     @authenticate
     @authorize("edit")
@@ -144,7 +146,8 @@ class CrudRelatedResource(BaseCollectionResource):
         try:
             parent_ids = unpack_id(request.collection.schema, request.pks)
         except (FieldValidatorException, CollectionResourceException) as e:
-            return build_client_error_response([str(e)])
+            ForestLogger.log("exception", e)
+            return HttpResponseBuilder.build_client_error_response([e])
 
         if (
             not request.body
@@ -153,16 +156,19 @@ class CrudRelatedResource(BaseCollectionResource):
             or not request.body["data"][0].get("id")
             # TODO: again another hardcoded "id" # SchemaUtils.get_primary_keys(schema)
         ):
-            return build_client_error_response(["🌳🌳🌳missing target's id"])
+            ForestLogger.log("error", "missing target's id")
+            return HttpResponseBuilder.build_client_error_response([ForestException("missing target's id")])
 
         try:
             # TODO: again another hardcoded "id" # SchemaUtils.get_primary_keys(schema)
             targeted_relation_ids = unpack_id(request.foreign_collection.schema, request.body["data"][0]["id"])
         except (FieldValidatorException, CollectionResourceException) as e:
-            return build_client_error_response([str(e)])
+            ForestLogger.log("exception", e)
+            return HttpResponseBuilder.build_client_error_response([e])
 
         if not (is_one_to_many(request.relation) or is_many_to_many(request.relation)):
-            return build_client_error_response(["🌳🌳🌳Unhandled relation type"])
+            ForestLogger.log("error", "Unhandled relation type")
+            return HttpResponseBuilder.build_client_error_response([ForestException("Unhandled relation type")])
 
         pks = SchemaUtils.get_primary_keys(request.foreign_collection.schema)[0]
         value = await CollectionUtils.get_value(
@@ -180,13 +186,16 @@ class CrudRelatedResource(BaseCollectionResource):
         try:
             parent_id = unpack_id(request.collection.schema, request.pks)
         except (FieldValidatorException, CollectionResourceException) as e:
-            return build_client_error_response([str(e)])
+            ForestLogger.log("exception", e)
+            return HttpResponseBuilder.build_client_error_response([e])
         if not request.body or not request.body.get("data") or "id" not in request.body["data"]:
-            return build_client_error_response(["🌳🌳🌳Relation id is missing"])
+            ForestLogger.log("error", "Relation id is missing")
+            return HttpResponseBuilder.build_client_error_response([ForestException("Relation id is missing")])
         try:
             linked_id = unpack_id(request.foreign_collection.schema, request.body["data"]["id"])
         except (FieldValidatorException, CollectionResourceException) as e:
-            return build_client_error_response([str(e)])
+            ForestLogger.log("exception", e)
+            return HttpResponseBuilder.build_client_error_response([e])
 
         if is_many_to_one(request.relation) or is_one_to_one(request.relation):
             if is_many_to_one(request.relation):
@@ -197,21 +206,24 @@ class CrudRelatedResource(BaseCollectionResource):
             try:
                 await meth(request, parent_id, linked_id, request.user.timezone)
             except (CollectionResourceException, DatasourceException) as e:
-                return build_client_error_response([str(e)])
-            return build_no_content_response()
-        return build_client_error_response(["🌳🌳🌳Unhandled relation type"])
+                ForestLogger.log("exception", e)
+                return HttpResponseBuilder.build_client_error_response([e])
+            return HttpResponseBuilder.build_no_content_response()
+        ForestLogger.log("error", "Unhandled relation type")
+        return HttpResponseBuilder.build_client_error_response([ForestException("Unhandled relation type")])
 
     @authenticate
     @authorize("browse")
     @check_method(RequestMethod.GET)
     async def count(self, request: RequestRelationCollection) -> Response:
         if request.foreign_collection.schema["countable"] is False:
-            return build_success_response({"meta": {"count": "deactivated"}})
+            return HttpResponseBuilder.build_success_response({"meta": {"count": "deactivated"}})
 
         try:
             parent_id = unpack_id(request.collection.schema, request.pks)
         except (FieldValidatorException, CollectionResourceException) as e:
-            return build_client_error_response([str(e)])
+            ForestLogger.log("exception", e)
+            return HttpResponseBuilder.build_client_error_response([e])
         scope_tree = await self.permission.get_scope(request, request.foreign_collection)
         filter = build_filter(request, scope_tree)
         aggregation = Aggregation({"operation": "Count"})
@@ -223,7 +235,7 @@ class CrudRelatedResource(BaseCollectionResource):
             count = result[0]["value"]
         except IndexError:
             count = 0
-        return build_success_response({"count": count})
+        return HttpResponseBuilder.build_success_response({"count": count})
 
     @authenticate
     @authorize("delete")
@@ -232,7 +244,8 @@ class CrudRelatedResource(BaseCollectionResource):
         try:
             parent_ids = unpack_id(request.collection.schema, request.pks)
         except (FieldValidatorException, CollectionResourceException) as e:
-            return build_client_error_response([str(e)])
+            ForestLogger.log("exception", e)
+            return HttpResponseBuilder.build_client_error_response([e])
 
         delete_mode = False
         if request.query:
@@ -248,15 +261,18 @@ class CrudRelatedResource(BaseCollectionResource):
             try:
                 await meth(request, parent_ids, delete_mode, filter)
             except (DatasourceException, CollectionResourceException) as e:
-                return build_client_error_response([str(e)])
-            return build_no_content_response()
-        return build_client_error_response(["🌳🌳🌳Unhandled relation type"])
+                ForestLogger.log("exception", e)
+                return HttpResponseBuilder.build_client_error_response([e])
+            return HttpResponseBuilder.build_no_content_response()
+
+        ForestLogger.log("error", "Unhandled relation type")
+        return HttpResponseBuilder.build_client_error_response([ForestException("Unhandled relation type")])
 
     async def _associate_one_to_many(
         self, request: RequestRelationCollection, parent_ids: CompositeIdAlias, id_value: Union[str, int]
     ) -> Response:
         if not is_one_to_many(request.relation):
-            return build_client_error_response(["🌳🌳🌳Unhandled relation type"])
+            return HttpResponseBuilder.build_client_error_response([ForestException("Unhandled relation type")])
         scope_tree = await self.permission.get_scope(request, request.foreign_collection)
         filter = build_filter(request, scope_tree)
         trees: List[ConditionTree] = [
@@ -271,15 +287,17 @@ class CrudRelatedResource(BaseCollectionResource):
         try:
             await request.foreign_collection.update(request.user, filter, {f"{request.relation['origin_key']}": value})
         except DatasourceException as e:
-            return build_client_error_response([str(e)])
+            ForestLogger.log("exception", e)
+            return HttpResponseBuilder.build_client_error_response([e])
         else:
-            return build_no_content_response()
+            return HttpResponseBuilder.build_no_content_response()
 
     async def _associate_many_to_many(
         self, request: RequestRelationCollection, parent_ids: CompositeIdAlias, foreign_id_value: Union[str, int]
     ):
         if not is_many_to_many(request.relation):
-            return build_client_error_response(["🌳🌳🌳Unhandled relation type"])
+            ForestLogger.log("error", "Unhandled relation type")
+            return HttpResponseBuilder.build_client_error_response([ForestException("Unhandled relation type")])
         id = SchemaUtils.get_primary_keys(request.collection.schema)
         origin_id_value = await CollectionUtils.get_value(
             request.user, cast(Collection, request.collection), parent_ids, id[0]
@@ -293,9 +311,10 @@ class CrudRelatedResource(BaseCollectionResource):
         try:
             await through_collection.create(request.user, [record])
         except DatasourceException as e:
-            return build_client_error_response([str(e)])
+            ForestLogger.log("exception", e)
+            return HttpResponseBuilder.build_client_error_response([e])
         else:
-            return build_no_content_response()
+            return HttpResponseBuilder.build_no_content_response()
 
     async def get_base_fk_filter(self, request: RequestRelationCollection):
         ids, exclude_ids = parse_selection_ids(request)

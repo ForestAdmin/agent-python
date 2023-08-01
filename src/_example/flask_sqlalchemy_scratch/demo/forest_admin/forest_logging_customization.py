@@ -54,3 +54,7 @@ def custom_logger_fn(level: str, message: str):
 
 def add_more_tree_to_errors(message):
     return "\x1b[31;41m🌳🌳" + message + "🌳🌳\x1b[0m"
+
+
+def custom_error_message_fn(error: Exception) -> str:
+    return (", ".join(error.args)) + "🌳🌳🌳"

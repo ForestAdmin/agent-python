@@ -54,7 +54,7 @@ class Agent(BaseAgent):
 
     def register_blueprint(self, app: Flask):
         self.options["schema_path"] = os.path.join(app.root_path, ".forestadmin-schema.json")
-        app.register_blueprint(self.blueprint, url_prefix="/forest")
+        app.register_blueprint(self.blueprint, url_prefix=f'/{self.options["prefix"]}')
         self.loop.run_until_complete(self.start())
         ForestLogger.log("info", "Flask agent initialized")
 

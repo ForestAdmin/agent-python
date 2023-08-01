@@ -19,9 +19,9 @@ class Options(TypedDict):
     logger: Callable[[str, str], None]
     logger_level: int
     permissions_cache_duration_in_seconds: int
+    customize_error_message: Callable[[Exception], str]
     # typingsPath
     # typingsMaxDepth
-    # permissionsCacheDurationInSeconds
     # skipSchemaUpdate
     # forestAdminClient
 
@@ -32,5 +32,6 @@ DEFAULT_OPTIONS: Options = {
     "forest_server_url": "https://api.forestadmin.com",
     "logger": None,
     "logger_level": logging.INFO,
+    "customize_error_message": None,
     "permissions_cache_duration_in_seconds": 15 * 60,
 }

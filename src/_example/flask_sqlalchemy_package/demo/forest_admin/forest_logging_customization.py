@@ -50,3 +50,7 @@ def custom_logger_fn(level: str, message: str):
     # reuse the forestadmin default logger permit to handle classical python logging customization
     forest_logger = logging.getLogger("forestadmin")
     getattr(forest_logger, level.lower())(message)
+
+
+def custom_error_message_fn(error: Exception) -> str:
+    return (", ".join(error.args)) + "🌳🌳🌳"

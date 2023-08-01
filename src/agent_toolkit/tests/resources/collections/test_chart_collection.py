@@ -106,8 +106,12 @@ class TestChartCollectionResource(TestCase):
             response: Response = self.loop.run_until_complete(self.chart_collection_resource.dispatch(request, ""))
 
             response_content = json.loads(response.body)
-            assert response.status == 400
-            assert response_content["errors"][0] == f"Method {method.value} is not allow for this url."
+            assert response.status == 500
+            assert response_content["errors"][0] == {
+                "name": "ForestException",
+                "detail": f"🌳🌳🌳Method {method.value} is not allow for this url.",
+                "status": 500,
+            }
 
     def test_dispatch_should_return_400_if_no_collection_supplied(self):
         request = Request(
@@ -123,8 +127,13 @@ class TestChartCollectionResource(TestCase):
         response: Response = self.loop.run_until_complete(self.chart_collection_resource.dispatch(request, ""))
 
         response_content = json.loads(response.body)
-        assert response.status == 400
-        assert response_content["errors"][0] == "🌳🌳🌳'collection_name' is missing in the request"
+        assert response.status == 500
+
+        assert response_content["errors"][0] == {
+            "name": "RequestCollectionException",
+            "detail": "🌳🌳🌳'collection_name' is missing in the request",
+            "status": 500,
+        }
 
     def test_dispatch_should_call_handle_api_chart_when_POST(self):
         request = Request(
@@ -194,9 +203,13 @@ class TestChartCollectionResource(TestCase):
 
             mocked_handle_smart_chart.assert_awaited_once()
 
-            assert response.status == 400
+            assert response.status == 500
             response_content = json.loads(response.body)
-            assert response_content["errors"][0] == "chart_error"
+            assert response_content["errors"][0] == {
+                "name": "Exception",
+                "detail": "chart_error",
+                "status": 500,
+            }
 
     def test_handle_api_chart_should_call_collection_render_chart(self):
         request = Request(

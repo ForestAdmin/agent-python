@@ -6,11 +6,11 @@ from forestadmin.agent_toolkit.resources.collections.requests import RequestColl
 from forestadmin.agent_toolkit.services.permissions import PermissionServiceException
 from forestadmin.agent_toolkit.utils.context import (
     FileResponse,
+    HttpResponseBuilder,
     Request,
     RequestMethod,
     Response,
     User,
-    build_method_not_allowed_response,
 )
 from jose import JWTError, jwt
 
@@ -73,7 +73,7 @@ def check_method(method: RequestMethod):
     def wrapper(fn: Callable[["BoundResource", BoundRequestCollection], Awaitable[Union[FileResponse, Response]]]):
         async def wrapped(self: "BoundResource", request: BoundRequestCollection) -> Union[FileResponse, Response]:
             if request.method != method:
-                return build_method_not_allowed_response()
+                return HttpResponseBuilder.build_method_not_allowed_response()
             return await fn(self, request)
 
         return wrapped
