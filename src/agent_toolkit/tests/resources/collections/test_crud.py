@@ -964,7 +964,7 @@ class TestCrudResource(TestCase):
         assert response_content["errors"][0] == {
             "detail": "🌳🌳🌳Missing timezone",
             "name": "FilterException",
-            "status": 500
+            "status": 500,
         }
 
         # DatasourceException
@@ -988,11 +988,7 @@ class TestCrudResource(TestCase):
 
         assert response.status == 400
         response_content = json.loads(response.body)
-        assert response_content["errors"][0] == {
-            "detail": "🌳🌳🌳",
-            "name": "DatasourceException",
-            "status": 500
-        }
+        assert response_content["errors"][0] == {"detail": "🌳🌳🌳", "name": "DatasourceException", "status": 500}
 
         # CsvException
         self.collection_order.list = AsyncMock(return_value=mock_orders)
@@ -1004,8 +1000,4 @@ class TestCrudResource(TestCase):
 
         assert response.status == 400
         response_content = json.loads(response.body)
-        assert response_content["errors"][0] == {
-            "detail": "🌳🌳🌳cannot make csv",
-            "name": "CsvException",
-            "status": 500
-        }
+        assert response_content["errors"][0] == {"detail": "🌳🌳🌳cannot make csv", "name": "CsvException", "status": 500}
