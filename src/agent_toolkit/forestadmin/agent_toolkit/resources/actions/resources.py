@@ -1,5 +1,6 @@
 from typing import Any, Dict, List, Optional, Union
 
+from forestadmin.agent_toolkit.forest_logger import ForestLogger
 from forestadmin.agent_toolkit.resources.actions.requests import ActionRequest, RequestActionException
 from forestadmin.agent_toolkit.resources.collections import BaseCollectionResource
 from forestadmin.agent_toolkit.resources.collections.crud import LiteralMethod
@@ -9,15 +10,7 @@ from forestadmin.agent_toolkit.resources.collections.filter import (
     parse_condition_tree,
     parse_selection_ids,
 )
-from forestadmin.agent_toolkit.utils.context import (
-    FileResponse,
-    Request,
-    RequestMethod,
-    Response,
-    build_client_error_response,
-    build_json_response,
-    build_success_response,
-)
+from forestadmin.agent_toolkit.utils.context import FileResponse, HttpResponseBuilder, Request, RequestMethod, Response
 from forestadmin.agent_toolkit.utils.forest_schema.action_values import ForestValueConverter
 from forestadmin.agent_toolkit.utils.forest_schema.generator_action import SchemaActionGenerator
 from forestadmin.agent_toolkit.utils.forest_schema.type import ForestServerActionField
@@ -34,8 +27,13 @@ class ActionResource(BaseCollectionResource):
         try:
             request_collection = ActionRequest.from_request(request, self.datasource)
         except RequestActionException as e:
-            return build_client_error_response([str(e)])
-        return await method(request_collection)
+            ForestLogger.log("exception", e)
+            return HttpResponseBuilder.build_client_error_response([e])
+        try:
+            return await method(request_collection)
+        except Exception as e:
+            ForestLogger.log("exception", e)
+            return HttpResponseBuilder.build_client_error_response([e])
 
     @check_method(RequestMethod.POST)
     @authenticate
@@ -50,14 +48,14 @@ class ActionResource(BaseCollectionResource):
         result = await request.collection.execute(request.user, request.action_name, data, filter)
 
         if result["type"] == ResultBuilder.ERROR:
-            return build_json_response(400, {"error": result["message"]})
+            return HttpResponseBuilder.build_json_response(400, {"error": result["message"]})
         elif result["type"] == ResultBuilder.SUCCESS:
             key = "success"
             if result["format"] == "html":
                 key = "html"
-            return build_success_response({key: result["message"]})
+            return HttpResponseBuilder.build_success_response({key: result["message"]})
         elif result["type"] == ResultBuilder.WEBHOOK:
-            return build_success_response(
+            return HttpResponseBuilder.build_success_response(
                 {
                     "webhook": {
                         "url": result["url"],
@@ -71,7 +69,7 @@ class ActionResource(BaseCollectionResource):
             return FileResponse(result["stream"], result["name"], result["mimeType"])
 
         elif result["type"] == ResultBuilder.REDIRECT:
-            return build_success_response({"redirectTo": result["path"]})
+            return HttpResponseBuilder.build_success_response({"redirectTo": result["path"]})
         raise
 
     @check_method(RequestMethod.POST)
@@ -97,7 +95,7 @@ class ActionResource(BaseCollectionResource):
             {"changed_field": request.body.get("data", {}).get("attributes", {}).get("changed_field")},
         )
 
-        return build_success_response(
+        return HttpResponseBuilder.build_success_response(
             {
                 "fields": [
                     await SchemaActionGenerator.build_field_schema(request.collection.datasource, field)

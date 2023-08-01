@@ -1,5 +1,7 @@
 import sys
 
+from forestadmin.agent_toolkit.forest_logger import ForestLogger
+
 if sys.version_info >= (3, 8):
     from typing import Literal
 else:
@@ -9,14 +11,9 @@ from forestadmin.agent_toolkit.resources.collections import BaseCollectionResour
 from forestadmin.agent_toolkit.resources.collections.decorators import authenticate, check_method
 from forestadmin.agent_toolkit.resources.collections.requests import RequestCollection, RequestCollectionException
 from forestadmin.agent_toolkit.services.serializers import json_api
-from forestadmin.agent_toolkit.utils.context import (
-    Request,
-    RequestMethod,
-    Response,
-    build_client_error_response,
-    build_success_response,
-)
+from forestadmin.agent_toolkit.utils.context import HttpResponseBuilder, Request, RequestMethod, Response
 from forestadmin.agent_toolkit.utils.id import unpack_id
+from forestadmin.datasource_toolkit.exceptions import ForestException
 
 
 class ChartsCollectionResource(BaseCollectionResource):
@@ -24,19 +21,23 @@ class ChartsCollectionResource(BaseCollectionResource):
         try:
             request_collection = RequestCollection.from_request(request, self.datasource)
         except RequestCollectionException as e:
-            return build_client_error_response([str(e)])
+            ForestLogger.log("exception", e)
+            return HttpResponseBuilder.build_client_error_response([e])
 
         if request.method == RequestMethod.POST:
             handle = self.handle_api_chart
         elif request.method == RequestMethod.GET:
             handle = self.handle_smart_chart
         else:
-            return build_client_error_response([f"Method {request.method.value} is not allow for this url."])
+            msg = f"Method {request.method.value} is not allow for this url."
+            ForestLogger.log("error", msg)
+            return HttpResponseBuilder.build_client_error_response([ForestException(msg)])
 
         try:
-            return build_success_response(await handle(request_collection))
+            return HttpResponseBuilder.build_success_response(await handle(request_collection))
         except Exception as exc:
-            return build_client_error_response([str(exc)])
+            ForestLogger.log("exception", exc)
+            return HttpResponseBuilder.build_client_error_response([exc])
 
     @check_method(RequestMethod.POST)
     @authenticate

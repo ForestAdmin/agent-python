@@ -19,6 +19,7 @@ from forestadmin.agent_toolkit.resources.collections.stats import StatsResource
 from forestadmin.agent_toolkit.resources.security.resources import Authentication
 from forestadmin.agent_toolkit.services.permissions import PermissionService
 from forestadmin.agent_toolkit.services.serializers.json_api import create_json_api_schema
+from forestadmin.agent_toolkit.utils.context import HttpResponseBuilder
 from forestadmin.agent_toolkit.utils.forest_schema.emitter import SchemaEmitter
 from forestadmin.agent_toolkit.utils.forest_schema.type import AgentMeta
 from forestadmin.agent_toolkit.utils.http import ForestHttpApi
@@ -47,7 +48,11 @@ class Agent:
         self.options.update({k: v for k, v in options.items() if v is not None})
         self.customizer: DatasourceCustomizer = DatasourceCustomizer()
         self._resources = None
+
         ForestLogger.setup_logger(self.options["logger_level"], self.options["logger"])
+
+        if "customize_error_message" in self.options:
+            HttpResponseBuilder.setup_error_message_customizer(self.options["customize_error_message"])
 
         self._permission_service = PermissionService(
             {

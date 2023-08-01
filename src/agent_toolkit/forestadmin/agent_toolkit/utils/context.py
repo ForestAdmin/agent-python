@@ -3,12 +3,15 @@ import json
 import sys
 from dataclasses import dataclass, field
 from io import BytesIO
-from typing import Any, Dict, List, Optional
+from typing import Any, Callable, Dict, List, Optional
+from urllib.error import HTTPError
 
 if sys.version_info >= (3, 9):
     from zoneinfo import ZoneInfo
 else:
     from backports.zoneinfo import ZoneInfo
+
+from forestadmin.datasource_toolkit.exceptions import ForestValidationException
 
 
 class RequestMethod(enum.Enum):
@@ -69,34 +72,66 @@ class FileResponse:
     mimetype: str
 
 
-def build_json_response(status: int, body: Dict[str, Any]):
-    return Response(status, json.dumps(body), headers={"content-type": "application/json"})
+class HttpResponseBuilder:
+    _ERROR_MESSAGE_CUSTOMIZER: Callable[[Exception], str] = None
 
+    @classmethod
+    def setup_error_message_customizer(cls, customizer_function: Callable[[Exception], str]):
+        cls._ERROR_MESSAGE_CUSTOMIZER = customizer_function
 
-def build_client_error_response(reasons: List[str]) -> Response:
-    return build_json_response(
-        400,
-        {"errors": reasons},
-    )
+    @staticmethod
+    def build_json_response(status: int, body: Dict[str, Any]) -> Response:
+        return Response(status, json.dumps(body), headers={"content-type": "application/json"})
 
+    @staticmethod
+    def build_client_error_response(reasons: List[Exception]) -> Response:
+        return HttpResponseBuilder.build_json_response(
+            400,
+            {
+                "errors": [
+                    {
+                        "name": error.__class__.__name__,
+                        "detail": HttpResponseBuilder._ERROR_MESSAGE_CUSTOMIZER(error)
+                        if HttpResponseBuilder._ERROR_MESSAGE_CUSTOMIZER is not None
+                        else str(error),
+                        "status": HttpResponseBuilder._get_error_status(error),
+                    }
+                    for error in reasons
+                ]
+            },
+        )
 
-def build_csv_response(body: str, filename: str) -> Response:
-    return Response(
-        200, body, headers={"content-type": "text/csv", "Content-Disposition": f'attachment; filename="{filename}"'}
-    )
+    @staticmethod
+    def build_csv_response(body: str, filename: str) -> Response:
+        return Response(
+            200, body, headers={"content-type": "text/csv", "Content-Disposition": f'attachment; filename="{filename}"'}
+        )
 
+    @staticmethod
+    def build_success_response(body: Dict[str, Any]) -> Response:
+        return HttpResponseBuilder.build_json_response(200, body)
 
-def build_success_response(body: Dict[str, Any]) -> Response:
-    return build_json_response(200, body)
+    @staticmethod
+    def build_unknown_response() -> Response:
+        return Response(404)
 
+    @staticmethod
+    def build_no_content_response() -> Response:
+        return Response(204)
 
-def build_unknown_response() -> Response:
-    return Response(404)
+    @staticmethod
+    def build_method_not_allowed_response() -> Response:
+        return Response(405)
 
+    @staticmethod
+    def _get_error_status(error: Exception):
+        if isinstance(error, ForestValidationException):
+            return 400
+        # if isinstance(error, ForestValidationException):
+        #     return 403
+        # if isinstance(error, UnprocessableError):
+        #     return 422
+        if isinstance(error, HTTPError):
+            return error.status
 
-def build_no_content_response() -> Response:
-    return Response(204)
-
-
-def build_method_not_allowed_response() -> Response:
-    return Response(405)
+        return 500

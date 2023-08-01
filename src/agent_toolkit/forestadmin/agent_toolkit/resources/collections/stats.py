@@ -1,6 +1,8 @@
 import sys
 from datetime import date, datetime
 
+from forestadmin.agent_toolkit.forest_logger import ForestLogger
+
 if sys.version_info >= (3, 8):
     from typing import Literal
 else:
@@ -14,14 +16,8 @@ from forestadmin.agent_toolkit.resources.collections import BaseCollectionResour
 from forestadmin.agent_toolkit.resources.collections.decorators import authenticate, check_method
 from forestadmin.agent_toolkit.resources.collections.filter import build_filter
 from forestadmin.agent_toolkit.resources.collections.requests import RequestCollection, RequestCollectionException
-from forestadmin.agent_toolkit.utils.context import (
-    FileResponse,
-    Request,
-    RequestMethod,
-    Response,
-    build_client_error_response,
-    build_success_response,
-)
+from forestadmin.agent_toolkit.utils.context import FileResponse, HttpResponseBuilder, Request, RequestMethod, Response
+from forestadmin.datasource_toolkit.exceptions import ForestException
 from forestadmin.datasource_toolkit.interfaces.fields import Column, PrimitiveType
 from forestadmin.datasource_toolkit.interfaces.query.aggregation import Aggregation
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.base import ConditionTree
@@ -51,16 +47,21 @@ class StatsResource(BaseCollectionResource):
         try:
             request_collection = RequestCollection.from_request(request, self.datasource)
         except RequestCollectionException as e:
-            return build_client_error_response([str(e)])
+            ForestLogger.log("exception", e)
+            return HttpResponseBuilder.build_client_error_response([e])
 
         try:
             meth = self.stats_method(request_collection.body["type"])  # type: ignore
         except KeyError:
-            return build_client_error_response(
-                [f"Unknown stats type {request_collection.body.get('type')}"]  # type: ignore
+            ForestLogger.log("exception", f"Unknown stats type {request_collection.body.get('type')}")
+            return HttpResponseBuilder.build_client_error_response(
+                [ForestException(f"Unknown stats type {request_collection.body.get('type')}")]  # type: ignore
             )
         except TypeError:
-            return build_client_error_response(["Missing stats type in request body"])
+            ForestLogger.log("exception", "Missing stats type in request body")
+            return HttpResponseBuilder.build_client_error_response(
+                [ForestException("Missing stats type in request body")]
+            )
         return await meth(request_collection)
 
     @check_method(RequestMethod.POST)
@@ -184,7 +185,9 @@ class StatsResource(BaseCollectionResource):
         return self._build_success_response(results)
 
     def _build_success_response(self, result: Any) -> Response:
-        return build_success_response({"data": {"id": uuid1().hex, "type": "stats", "attributes": {"value": result}}})
+        return HttpResponseBuilder.build_success_response(
+            {"data": {"id": uuid1().hex, "type": "stats", "attributes": {"value": result}}}
+        )
 
     def _with_count_previous(self, tree: ConditionTree):
         use_interval_res: List[bool] = []
