@@ -2,7 +2,7 @@ import logging
 import os
 from distutils.util import strtobool
 
-from demo.forest_admin.forest_logging_customization import custom_logger_fn
+from demo.forest_admin.forest_logging_customization import custom_error_message_fn, custom_logger_fn
 from forestadmin.agent_toolkit.options import Options
 
 SETTINGS: Options = {
@@ -12,4 +12,5 @@ SETTINGS: Options = {
     "is_production": strtobool(os.environ.get("FOREST_IS_PRODUCTION")),
     "logger_level": logging.DEBUG,
     "logger": lambda level, message: custom_logger_fn(level, message),
+    "customize_error_message": custom_error_message_fn,
 }
