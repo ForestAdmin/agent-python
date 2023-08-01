@@ -1,7 +1,6 @@
 import asyncio
 import sys
 
-from forestadmin.agent_toolkit.forest_logger import ForestLogger
 from typing_extensions import TypeGuard
 
 if sys.version_info >= (3, 8):
@@ -11,6 +10,7 @@ else:
 
 from typing import Any, Awaitable, Dict, List, Tuple, cast
 
+from forestadmin.agent_toolkit.forest_logger import ForestLogger
 from forestadmin.agent_toolkit.resources.collections import BaseCollectionResource
 from forestadmin.agent_toolkit.resources.collections.decorators import authenticate, authorize, check_method
 from forestadmin.agent_toolkit.resources.collections.exceptions import CollectionResourceException
@@ -76,11 +76,7 @@ class CrudResource(BaseCollectionResource):
             return await method(request_collection)
         except ForestValidationException as e:
             ForestLogger.log("exception", e)
-            return HttpResponseBuilder.build_client_error_response(
-                # TODO: validate here
-                # [{"name": "ForestValidationException", "detail": str(e)[3:], "status": 400}]
-                [e]
-            )
+            return HttpResponseBuilder.build_client_error_response([e])
 
     @check_method(RequestMethod.GET)
     @authenticate

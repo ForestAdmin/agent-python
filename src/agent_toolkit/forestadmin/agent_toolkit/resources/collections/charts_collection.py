@@ -1,12 +1,11 @@
 import sys
 
-from forestadmin.agent_toolkit.forest_logger import ForestLogger
-
 if sys.version_info >= (3, 8):
     from typing import Literal
 else:
     from typing_extensions import Literal
 
+from forestadmin.agent_toolkit.forest_logger import ForestLogger
 from forestadmin.agent_toolkit.resources.collections import BaseCollectionResource
 from forestadmin.agent_toolkit.resources.collections.decorators import authenticate, check_method
 from forestadmin.agent_toolkit.resources.collections.requests import RequestCollection, RequestCollectionException

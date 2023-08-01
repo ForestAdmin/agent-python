@@ -11,7 +11,7 @@ if sys.version_info >= (3, 9):
 else:
     from backports.zoneinfo import ZoneInfo
 
-from forestadmin.datasource_toolkit.exceptions import ForestValidationException
+from forestadmin.datasource_toolkit.exceptions import BusinessError, ForbiddenError, ForestValidationException
 
 
 class RequestMethod(enum.Enum):
@@ -86,15 +86,13 @@ class HttpResponseBuilder:
     @staticmethod
     def build_client_error_response(reasons: List[Exception]) -> Response:
         return HttpResponseBuilder.build_json_response(
-            400,
+            HttpResponseBuilder._get_error_status(reasons[0]),
             {
                 "errors": [
                     {
                         "name": error.__class__.__name__,
-                        "detail": HttpResponseBuilder._ERROR_MESSAGE_CUSTOMIZER(error)
-                        if HttpResponseBuilder._ERROR_MESSAGE_CUSTOMIZER is not None
-                        else str(error),
-                        "status": HttpResponseBuilder._get_error_status(error),
+                        "detail": HttpResponseBuilder._get_error_message(error),
+                        "status": HttpResponseBuilder._get_error_status(reasons[0]),
                     }
                     for error in reasons
                 ]
@@ -127,11 +125,21 @@ class HttpResponseBuilder:
     def _get_error_status(error: Exception):
         if isinstance(error, ForestValidationException):
             return 400
-        # if isinstance(error, ForestValidationException):
-        #     return 403
+        if isinstance(error, ForbiddenError):
+            return 403
         # if isinstance(error, UnprocessableError):
         #     return 422
         if isinstance(error, HTTPError):
             return error.status
 
         return 500
+
+    @staticmethod
+    def _get_error_message(error: Exception):
+        if isinstance(error, BusinessError):
+            return str(error)
+
+        if HttpResponseBuilder._ERROR_MESSAGE_CUSTOMIZER is not None:
+            return HttpResponseBuilder._ERROR_MESSAGE_CUSTOMIZER(error)
+        else:
+            return str(error)

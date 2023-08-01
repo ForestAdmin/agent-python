@@ -7,5 +7,13 @@ class DatasourceToolkitException(ForestException):
     pass
 
 
-class ForestValidationException(ForestException):
+class BusinessError(ForestException):
+    pass
+
+
+class ForestValidationException(BusinessError):
+    pass
+
+
+class ForbiddenError(BusinessError):
     pass

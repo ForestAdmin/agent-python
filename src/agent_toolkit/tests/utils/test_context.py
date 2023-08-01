@@ -3,7 +3,7 @@ from unittest import TestCase
 from urllib.error import HTTPError
 
 from forestadmin.agent_toolkit.utils.context import HttpResponseBuilder
-from forestadmin.datasource_toolkit.exceptions import ForestValidationException
+from forestadmin.datasource_toolkit.exceptions import ForestException, ForestValidationException
 
 
 class TestHttpResponseBuilder(TestCase):
@@ -54,6 +54,7 @@ class TestHttpResponseBuilder(TestCase):
         HttpResponseBuilder.setup_error_message_customizer(lambda error: error.args[0][3:])
         response = HttpResponseBuilder.build_client_error_response(
             [
+                ForestException("test exc"),
                 ForestValidationException("test exc"),
             ]
         )
@@ -66,8 +67,13 @@ class TestHttpResponseBuilder(TestCase):
             {
                 "errors": [
                     {
-                        "name": "ForestValidationException",
+                        "name": "ForestException",
                         "detail": "test exc",
+                        "status": 500,
+                    },
+                    {
+                        "name": "ForestValidationException",
+                        "detail": "🌳🌳🌳test exc",
                         "status": 400,
                     },
                 ]
