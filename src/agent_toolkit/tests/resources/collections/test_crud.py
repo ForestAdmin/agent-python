@@ -209,15 +209,22 @@ class TestCrudResource(TestCase):
         ):
             response = self.loop.run_until_complete(crud_resource.dispatch(request, "get"))
         assert response.status == 400
-        assert json.loads(response.body)["errors"][0] == "🌳🌳🌳test exception"
+        assert json.loads(response.body)["errors"][0] == {
+            "name": "RequestCollectionException",
+            "detail": "🌳🌳🌳test exception",
+            "status": 500,
+        }
 
         # Validation Exception
         with patch.object(crud_resource, "add", side_effect=ForestValidationException("test exception")):
             response = self.loop.run_until_complete(crud_resource.dispatch(request, "add"))
         assert response.status == 400
-        assert json.loads(response.body)["errors"][0]["status"] == 400
-        assert json.loads(response.body)["errors"][0]["name"] == "ForestValidationException"
-        assert json.loads(response.body)["errors"][0]["detail"] == "test exception"
+        body = json.loads(response.body)
+        assert body["errors"][0] == {
+            "name": "ForestValidationException",
+            "detail": "🌳🌳🌳test exception",
+            "status": 400,
+        }
 
     # get
     @patch("forestadmin.agent_toolkit.resources.collections.crud.unpack_id", return_value=[10])
@@ -349,7 +356,11 @@ class TestCrudResource(TestCase):
 
         assert response.status == 400
         response_content = json.loads(response.body)
-        assert response_content["errors"][0] == "🌳🌳🌳"
+        assert response_content["errors"][0] == {
+            "name": "JsonApiException",
+            "detail": "🌳🌳🌳",
+            "status": 500,
+        }
         mocked_unpack_id.assert_called_once()
         self.collection_order.list.assert_awaited()
 
@@ -359,7 +370,11 @@ class TestCrudResource(TestCase):
         response = self.loop.run_until_complete(crud_resource.get(request))
         assert response.status == 400
         response_content = json.loads(response.body)
-        assert response_content["errors"][0] == "🌳🌳🌳"
+        assert response_content["errors"][0] == {
+            "name": "CollectionResourceException",
+            "detail": "🌳🌳🌳",
+            "status": 500,
+        }
         mocked_unpack_id.assert_called_once()
 
     # add
@@ -425,7 +440,11 @@ class TestCrudResource(TestCase):
 
         assert response.status == 400
         response_content = json.loads(response.body)
-        assert response_content["errors"][0] == "🌳🌳🌳"
+        assert response_content["errors"][0] == {
+            "name": "JsonApiException",
+            "detail": "🌳🌳🌳",
+            "status": 500,
+        }
 
         mocked_json_serializer_get.return_value.load = Mock(return_value=mock_order)
 
@@ -437,7 +456,11 @@ class TestCrudResource(TestCase):
             response = self.loop.run_until_complete(crud_resource.add(request))
         assert response.status == 400
         response_content = json.loads(response.body)
-        assert response_content["errors"][0] == "🌳🌳🌳"
+        assert response_content["errors"][0] == {
+            "name": "RecordValidatorException",
+            "detail": "🌳🌳🌳",
+            "status": 500,
+        }
 
         # DatasourceException
         with patch(
@@ -447,7 +470,11 @@ class TestCrudResource(TestCase):
                 response = self.loop.run_until_complete(crud_resource.add(request))
         assert response.status == 400
         response_content = json.loads(response.body)
-        assert response_content["errors"][0] == "🌳🌳🌳"
+        assert response_content["errors"][0] == {
+            "name": "DatasourceException",
+            "detail": "🌳🌳🌳",
+            "status": 500,
+        }
 
         # CollectionResourceException
         with patch(
@@ -458,7 +485,11 @@ class TestCrudResource(TestCase):
                     response = self.loop.run_until_complete(crud_resource.add(request))
         assert response.status == 400
         response_content = json.loads(response.body)
-        assert response_content["errors"][0] == "🌳🌳🌳"
+        assert response_content["errors"][0] == {
+            "name": "CollectionResourceException",
+            "detail": "🌳🌳🌳",
+            "status": 500,
+        }
 
     @patch(
         "forestadmin.agent_toolkit.resources.collections.crud.ConditionTreeFactory.match_ids",
@@ -530,7 +561,11 @@ class TestCrudResource(TestCase):
 
         assert response.status == 400
         response_content = json.loads(response.body)
-        assert response_content["errors"][0] == "🌳🌳🌳Missing timezone"
+        assert response_content["errors"][0] == {
+            "name": "CollectionResourceException",
+            "detail": "🌳🌳🌳Missing timezone",
+            "status": 500,
+        }
 
     # list
     @patch(
@@ -595,7 +630,11 @@ class TestCrudResource(TestCase):
 
         assert response.status == 400
         response_content = json.loads(response.body)
-        assert response_content["errors"][0] == "🌳🌳🌳Missing timezone"
+        assert response_content["errors"][0] == {
+            "name": "FilterException",
+            "detail": "🌳🌳🌳Missing timezone",
+            "status": 500,
+        }
 
         # DatasourceException
         request = RequestCollection(
@@ -618,7 +657,11 @@ class TestCrudResource(TestCase):
 
         assert response.status == 400
         response_content = json.loads(response.body)
-        assert response_content["errors"][0] == "🌳🌳🌳"
+        assert response_content["errors"][0] == {
+            "name": "DatasourceException",
+            "detail": "🌳🌳🌳",
+            "status": 500,
+        }
 
         # JsonApiException
         self.collection_order.list = AsyncMock(return_value=mock_orders)
@@ -628,7 +671,11 @@ class TestCrudResource(TestCase):
 
         assert response.status == 400
         response_content = json.loads(response.body)
-        assert response_content["errors"][0] == "🌳🌳🌳"
+        assert response_content["errors"][0] == {
+            "name": "JsonApiException",
+            "detail": "🌳🌳🌳",
+            "status": 500,
+        }
 
     # count
     def test_count(self):
@@ -759,14 +806,14 @@ class TestCrudResource(TestCase):
             response = self.loop.run_until_complete(crud_resource.update(request))
         assert response.status == 400
         response_content = json.loads(response.body)
-        assert response_content["errors"][0] == "🌳🌳🌳"
+        assert response_content["errors"][0] == {"detail": "🌳🌳🌳", "name": "CollectionResourceException", "status": 500}
 
         # JsonApiException
         mocked_json_serializer_get.return_value.load = Mock(side_effect=JsonApiException)
         response = self.loop.run_until_complete(crud_resource.update(request))
         assert response.status == 400
         response_content = json.loads(response.body)
-        assert response_content["errors"][0] == "🌳🌳🌳"
+        assert response_content["errors"][0] == {"detail": "🌳🌳🌳", "name": "JsonApiException", "status": 500}
 
         # RecordValidatorException
         mocked_json_serializer_get.return_value.load = Mock(return_value=mock_order)
@@ -777,14 +824,14 @@ class TestCrudResource(TestCase):
             response = self.loop.run_until_complete(crud_resource.update(request))
         assert response.status == 400
         response_content = json.loads(response.body)
-        assert response_content["errors"][0] == "🌳🌳🌳"
+        assert response_content["errors"][0] == {"detail": "🌳🌳🌳", "name": "RecordValidatorException", "status": 500}
 
         # JsonApiException
         mocked_json_serializer_get.return_value.dump = Mock(side_effect=JsonApiException)
         response = self.loop.run_until_complete(crud_resource.update(request))
         assert response.status == 400
         response_content = json.loads(response.body)
-        assert response_content["errors"][0] == "🌳🌳🌳"
+        assert response_content["errors"][0] == {"detail": "🌳🌳🌳", "name": "JsonApiException", "status": 500}
 
     # delete
     @patch(
@@ -836,7 +883,7 @@ class TestCrudResource(TestCase):
 
         assert response.status == 400
         response_content = json.loads(response.body)
-        assert response_content["errors"][0] == "🌳🌳🌳"
+        assert response_content["errors"][0] == {"detail": "🌳🌳🌳", "name": "CollectionResourceException", "status": 500}
 
     @patch(
         "forestadmin.agent_toolkit.resources.collections.crud.ConditionTreeFactory.match_ids",
@@ -914,7 +961,11 @@ class TestCrudResource(TestCase):
 
         assert response.status == 400
         response_content = json.loads(response.body)
-        assert response_content["errors"][0] == "🌳🌳🌳Missing timezone"
+        assert response_content["errors"][0] == {
+            "detail": "🌳🌳🌳Missing timezone",
+            "name": "FilterException",
+            "status": 500
+        }
 
         # DatasourceException
         request = RequestCollection(
@@ -937,9 +988,13 @@ class TestCrudResource(TestCase):
 
         assert response.status == 400
         response_content = json.loads(response.body)
-        assert response_content["errors"][0] == "🌳🌳🌳"
+        assert response_content["errors"][0] == {
+            "detail": "🌳🌳🌳",
+            "name": "DatasourceException",
+            "status": 500
+        }
 
-        # JsonApiException
+        # CsvException
         self.collection_order.list = AsyncMock(return_value=mock_orders)
         with patch(
             "forestadmin.agent_toolkit.resources.collections.crud.Csv.make_csv",
@@ -949,4 +1004,8 @@ class TestCrudResource(TestCase):
 
         assert response.status == 400
         response_content = json.loads(response.body)
-        assert response_content["errors"][0] == "🌳🌳🌳cannot make csv"
+        assert response_content["errors"][0] == {
+            "detail": "🌳🌳🌳cannot make csv",
+            "name": "CsvException",
+            "status": 500
+        }

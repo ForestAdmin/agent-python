@@ -373,7 +373,11 @@ class TestCrudRelatedResource(TestCase):
 
         assert response.status == 400
         response_content = json.loads(response.body)
-        assert response_content["errors"][0] == "🌳🌳🌳Unhandled relation type"
+        assert response_content["errors"][0] == {
+            "name": "ForestException",
+            "detail": "🌳🌳🌳Unhandled relation type",
+            "status": 500,
+        }
 
         # collectionResourceException
         request_get_params = {
@@ -396,7 +400,11 @@ class TestCrudRelatedResource(TestCase):
 
         assert response.status == 400
         response_content = json.loads(response.body)
-        assert response_content["errors"][0] == "🌳🌳🌳primary keys are missing"
+        assert response_content["errors"][0] == {
+            "name": "CollectionResourceException",
+            "detail": "🌳🌳🌳primary keys are missing",
+            "status": 500,
+        }
 
         # # JsonApiException
         request_get_params["pks"] = "2"
@@ -415,7 +423,11 @@ class TestCrudRelatedResource(TestCase):
 
         assert response.status == 400
         response_content = json.loads(response.body)
-        assert response_content["errors"][0] == "🌳🌳🌳"
+        assert response_content["errors"][0] == {
+            "name": "JsonApiException",
+            "detail": "🌳🌳🌳",
+            "status": 500,
+        }
 
     # CSV
     def test_csv(self):
@@ -476,7 +488,11 @@ class TestCrudRelatedResource(TestCase):
 
         assert response.status == 400
         response_content = json.loads(response.body)
-        assert response_content["errors"][0] == "🌳🌳🌳Unhandled relation type"
+        assert response_content["errors"][0] == {
+            "name": "ForestException",
+            "detail": "🌳🌳🌳Unhandled relation type",
+            "status": 500,
+        }
 
         # FilterException
         request_get_params = {
@@ -498,7 +514,11 @@ class TestCrudRelatedResource(TestCase):
 
         assert response.status == 400
         response_content = json.loads(response.body)
-        assert response_content["errors"][0] == "🌳🌳🌳primary keys are missing"
+        assert response_content["errors"][0] == {
+            "name": "CollectionResourceException",
+            "detail": "🌳🌳🌳primary keys are missing",
+            "status": 500,
+        }
 
         # collectionResourceException
         request_get_params["pks"] = "2"
@@ -518,7 +538,11 @@ class TestCrudRelatedResource(TestCase):
 
         assert response.status == 400
         response_content = json.loads(response.body)
-        assert response_content["errors"][0] == "🌳🌳🌳"
+        assert response_content["errors"][0] == {
+            "name": "DatasourceException",
+            "detail": "🌳🌳🌳",
+            "status": 500,
+        }
 
         # JsonApiException
         self.collection_order.list = AsyncMock(return_value=mock_orders)
@@ -530,7 +554,11 @@ class TestCrudRelatedResource(TestCase):
 
         assert response.status == 400
         response_content = json.loads(response.body)
-        assert response_content["errors"][0] == "🌳🌳🌳cannot make csv"
+        assert response_content["errors"][0] == {
+            "name": "CsvException",
+            "detail": "🌳🌳🌳cannot make csv",
+            "status": 500,
+        }
 
     # add
     def test_add(self):
@@ -607,8 +635,11 @@ class TestCrudRelatedResource(TestCase):
 
         assert response.status == 400
         response_content = json.loads(response.body)
-        assert response_content["errors"][0] == "🌳🌳🌳primary keys are missing"
-
+        assert response_content["errors"][0] == {
+            "name": "CollectionResourceException",
+            "detail": "🌳🌳🌳primary keys are missing",
+            "status": 500,
+        }
         # no date body id
         request_get_params["pks"] = "2"
         request = RequestRelationCollection(
@@ -622,7 +653,11 @@ class TestCrudRelatedResource(TestCase):
         response = self.loop.run_until_complete(self.crud_related_resource.add(request))
         assert response.status == 400
         response_content = json.loads(response.body)
-        assert response_content["errors"][0] == "🌳🌳🌳missing target's id"
+        assert response_content["errors"][0] == {
+            "name": "ForestException",
+            "detail": "🌳🌳🌳missing target's id",
+            "status": 500,
+        }
 
         # unpack foreign id
         request = RequestRelationCollection(
@@ -644,7 +679,11 @@ class TestCrudRelatedResource(TestCase):
             response = self.loop.run_until_complete(self.crud_related_resource.add(request))
         assert response.status == 400
         response_content = json.loads(response.body)
-        assert response_content["errors"][0] == "🌳🌳🌳"
+        assert response_content["errors"][0] == {
+            "name": "CollectionResourceException",
+            "detail": "🌳🌳🌳",
+            "status": 500,
+        }
 
         # Unhandled relation type
         request = RequestRelationCollection(
@@ -668,7 +707,11 @@ class TestCrudRelatedResource(TestCase):
         response = self.loop.run_until_complete(self.crud_related_resource.add(request))
         assert response.status == 400
         response_content = json.loads(response.body)
-        assert response_content["errors"][0] == "🌳🌳🌳Unhandled relation type"
+        assert response_content["errors"][0] == {
+            "name": "ForestException",
+            "detail": "🌳🌳🌳Unhandled relation type",
+            "status": 500,
+        }
 
     @patch(
         "forestadmin.agent_toolkit.resources.collections.crud_related.ConditionTreeFactory.match_ids",
@@ -771,8 +814,11 @@ class TestCrudRelatedResource(TestCase):
         response = self.loop.run_until_complete(crud_related_resource.update_list(request))
         assert response.status == 400
         response_content = json.loads(response.body)
-        assert response_content["errors"][0] == "🌳🌳🌳primary keys are missing"
-
+        assert response_content["errors"][0] == {
+            "name": "CollectionResourceException",
+            "detail": "🌳🌳🌳primary keys are missing",
+            "status": 500,
+        }
         # no id for relation
         query_get_params["pks"] = "2"
         request = RequestRelationCollection(
@@ -796,7 +842,11 @@ class TestCrudRelatedResource(TestCase):
         response = self.loop.run_until_complete(crud_related_resource.update_list(request))
         assert response.status == 400
         response_content = json.loads(response.body)
-        assert response_content["errors"][0] == "🌳🌳🌳Relation id is missing"
+        assert response_content["errors"][0] == {
+            "name": "ForestException",
+            "detail": "🌳🌳🌳Relation id is missing",
+            "status": 500,
+        }
 
         # unpack_id raises Exception
         request = RequestRelationCollection(
@@ -828,7 +878,11 @@ class TestCrudRelatedResource(TestCase):
             response = self.loop.run_until_complete(crud_related_resource.update_list(request))
         assert response.status == 400
         response_content = json.loads(response.body)
-        assert response_content["errors"][0] == "🌳🌳🌳"
+        assert response_content["errors"][0] == {
+            "name": "CollectionResourceException",
+            "detail": "🌳🌳🌳",
+            "status": 500,
+        }
 
         # Error in update relation
         request = RequestRelationCollection(
@@ -854,7 +908,11 @@ class TestCrudRelatedResource(TestCase):
             response = self.loop.run_until_complete(crud_related_resource.update_list(request))
         assert response.status == 400
         response_content = json.loads(response.body)
-        assert response_content["errors"][0] == "🌳🌳🌳"
+        assert response_content["errors"][0] == {
+            "name": "CollectionResourceException",
+            "detail": "🌳🌳🌳",
+            "status": 500,
+        }
 
         # Unhandled relation
         request = RequestRelationCollection(
@@ -869,7 +927,11 @@ class TestCrudRelatedResource(TestCase):
 
         assert response.status == 400
         response_content = json.loads(response.body)
-        assert response_content["errors"][0] == "🌳🌳🌳Unhandled relation type"
+        assert response_content["errors"][0] == {
+            "name": "ForestException",
+            "detail": "🌳🌳🌳Unhandled relation type",
+            "status": 500,
+        }
 
     # Count
     def test_count(self):
@@ -942,7 +1004,11 @@ class TestCrudRelatedResource(TestCase):
         response = self.loop.run_until_complete(self.crud_related_resource.count(request))
         assert response.status == 400
         response_content = json.loads(response.body)
-        assert response_content["errors"][0] == "🌳🌳🌳primary keys are missing"
+        assert response_content["errors"][0] == {
+            "name": "CollectionResourceException",
+            "detail": "🌳🌳🌳primary keys are missing",
+            "status": 500,
+        }
 
         query_get_params["pks"] = "2"
         request = RequestRelationCollection(
@@ -1036,7 +1102,11 @@ class TestCrudRelatedResource(TestCase):
         response = self.loop.run_until_complete(crud_related_resource.delete_list(request))
         assert response.status == 400
         response_content = json.loads(response.body)
-        assert response_content["errors"][0] == "🌳🌳🌳primary keys are missing"
+        assert response_content["errors"][0] == {
+            "name": "CollectionResourceException",
+            "detail": "🌳🌳🌳primary keys are missing",
+            "status": 500,
+        }
 
         query_get_params["pks"] = "2"
         request = RequestRelationCollection(
@@ -1058,7 +1128,11 @@ class TestCrudRelatedResource(TestCase):
             fake_delete_many_to_many.assert_awaited()
         assert response.status == 400
         response_content = json.loads(response.body)
-        assert response_content["errors"][0] == "🌳🌳🌳"
+        assert response_content["errors"][0] == {
+            "name": "CollectionResourceException",
+            "detail": "🌳🌳🌳",
+            "status": 500,
+        }
 
         # unhandled relation
         request = RequestRelationCollection(
@@ -1079,7 +1153,11 @@ class TestCrudRelatedResource(TestCase):
         response = self.loop.run_until_complete(crud_related_resource.delete_list(request))
         assert response.status == 400
         response_content = json.loads(response.body)
-        assert response_content["errors"][0] == "🌳🌳🌳Unhandled relation type"
+        assert response_content["errors"][0] == {
+            "name": "ForestException",
+            "detail": "🌳🌳🌳Unhandled relation type",
+            "status": 500,
+        }
 
     # _associate_one_to_many
     def test_associate_one_to_many(self):
@@ -1126,7 +1204,11 @@ class TestCrudRelatedResource(TestCase):
 
         assert response.status == 400
         response_content = json.loads(response.body)
-        assert response_content["errors"][0] == "🌳🌳🌳Unhandled relation type"
+        assert response_content["errors"][0] == {
+            "name": "ForestException",
+            "detail": "🌳🌳🌳Unhandled relation type",
+            "status": 500,
+        }
 
         request = RequestRelationCollection(
             "GET",
@@ -1141,7 +1223,11 @@ class TestCrudRelatedResource(TestCase):
 
         assert response.status == 400
         response_content = json.loads(response.body)
-        assert response_content["errors"][0] == "🌳🌳🌳"
+        assert response_content["errors"][0] == {
+            "name": "DatasourceException",
+            "detail": "🌳🌳🌳",
+            "status": 500,
+        }
 
     # _associate_many_to_many
     def test_associate_many_to_many(self):
@@ -1178,7 +1264,11 @@ class TestCrudRelatedResource(TestCase):
         response = self.loop.run_until_complete(crud_related_resource._associate_many_to_many(request, [201], 2))
         assert response.status == 400
         response_content = json.loads(response.body)
-        assert response_content["errors"][0] == "🌳🌳🌳Unhandled relation type"
+        assert response_content["errors"][0] == {
+            "name": "ForestException",
+            "detail": "🌳🌳🌳Unhandled relation type",
+            "status": 500,
+        }
 
         request = RequestRelationCollection(
             "POST",
@@ -1194,7 +1284,11 @@ class TestCrudRelatedResource(TestCase):
             response = self.loop.run_until_complete(crud_related_resource._associate_many_to_many(request, [201], 2))
         assert response.status == 400
         response_content = json.loads(response.body)
-        assert response_content["errors"][0] == "🌳🌳🌳"
+        assert response_content["errors"][0] == {
+            "name": "DatasourceException",
+            "detail": "🌳🌳🌳",
+            "status": 500,
+        }
 
     # get_base_fk_filter
     @patch(

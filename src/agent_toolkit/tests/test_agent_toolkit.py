@@ -45,8 +45,12 @@ class TestAgent(TestCase):
         mocked_permission_service,
     ):
         with patch("forestadmin.agent_toolkit.agent.ForestLogger.setup_logger") as mock_logger:
-            agent = Agent(self.fake_options)
-            mock_logger.assert_called_with(logging.INFO, None)
+            with patch(
+                "forestadmin.agent_toolkit.agent.HttpResponseBuilder.setup_error_message_customizer"
+            ) as mock_error_customizer:
+                agent = Agent(self.fake_options)
+                mock_logger.assert_called_with(logging.INFO, None)
+                mock_error_customizer.assert_called_with(None)
 
         assert agent.options["prefix"] == DEFAULT_OPTIONS["prefix"]
         assert agent.options["is_production"] == DEFAULT_OPTIONS["is_production"]
@@ -60,6 +64,15 @@ class TestAgent(TestCase):
         assert agent.META is None
         mocked_datasource_customizer.assert_called_once()
         mocked_permission_service.assert_called_once()
+
+        def dumb_customize_error_function(error: Exception):
+            return str(error)
+
+        with patch(
+            "forestadmin.agent_toolkit.agent.HttpResponseBuilder.setup_error_message_customizer"
+        ) as mock_error_customizer:
+            agent = Agent({**self.fake_options, "customize_error_message": dumb_customize_error_function})
+            mock_error_customizer.assert_called_with(dumb_customize_error_function)
 
     def test_property_resources(
         self,
