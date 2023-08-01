@@ -1,3 +1,10 @@
+# [1.0.0-beta.5](https://github.com/ForestAdmin/agent-python/compare/v1.0.0-beta.4...v1.0.0-beta.5) (2023-08-01)
+
+
+### Features
+
+* **error_message:** add customize error message functionality ([#101](https://github.com/ForestAdmin/agent-python/issues/101)) ([62e8628](https://github.com/ForestAdmin/agent-python/commit/62e862814eb64d2846b2b64a4dc61fd60cb536bb))
+
 # [1.0.0-beta.4](https://github.com/ForestAdmin/agent-python/compare/v1.0.0-beta.3...v1.0.0-beta.4) (2023-07-31)
 
 
