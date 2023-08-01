@@ -134,7 +134,7 @@ jobs:
           GIT_COMMITTER_EMAIL: ${{ secrets.GIT_COMMITTER_EMAIL }}
           GIT_COMMITTER_NAME: ${{ secrets.GIT_COMMITTER_NAME }}
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
-      - id: echo debug
+      - id: debug_outputs
         run: |
           echo "new release variable from steps :  ${{ steps.release.outputs.new_release_version }}"
           echo "new release variable from steps (.value) :  ${{ steps.release.outputs.new_release_version.value }}"
