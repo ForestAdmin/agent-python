@@ -116,6 +116,9 @@ jobs:
     needs: [coverage]
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/beta')
+    outputs:
+      new_release_published: ${{ steps.release.outputs.new_release_published }}
+      new_release_version: ${{ steps.release.outputs.new_release_version }}
     strategy:
       matrix:
         python-version: ['3.10']
@@ -131,6 +134,11 @@ jobs:
           GIT_COMMITTER_EMAIL: ${{ secrets.GIT_COMMITTER_EMAIL }}
           GIT_COMMITTER_NAME: ${{ secrets.GIT_COMMITTER_NAME }}
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+      - id: echo debug
+        run: |
+          echo "new release variable from steps :  ${{ steps.release.outputs.new_release_version }}"
+          echo "new release variable from steps (.value) :  ${{ steps.release.outputs.new_release_version.value }}"
+
 
   pypi:
     name: Push to pypi
@@ -146,6 +154,7 @@ jobs:
       - name: echo steps.semantic.outputs.new_release_published
         run: |
           echo "new release variable from needs :  ${{ needs.semantic_release.outputs.new_release_published }}"
+          echo "new release variable from needs (.value) :  ${{ needs.semantic_release.outputs.new_release_published.value }}"
           echo "new release version variable from needs:  ${{ needs.semantic_release.outputs.new_release_version }}"
       - uses: actions/checkout@v3
       - id: pypi

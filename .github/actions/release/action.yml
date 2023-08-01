@@ -70,6 +70,5 @@ runs:
       name: store semantic release variables
       shell: bash
       run: |
-        echo "new_release_published=${{ steps.semantic.outputs.new_release_published }}"
         echo "new_release_published=${{ steps.semantic.outputs.new_release_published }}" >> "$GITHUB_OUTPUT"
         echo "new_release_version=${{ steps.semantic.outputs.new_release_version }}" >> "$GITHUB_OUTPUT"
