@@ -24,7 +24,7 @@ class TestHttpResponseBuilder(TestCase):
             ]
         )
 
-        self.assertEqual(response.status, 400)
+        self.assertEqual(response.status, 500)
         self.assertEqual(response.headers, {"content-type": "application/json"})
         content = json.loads(response.body)
         self.assertEqual(
@@ -59,7 +59,7 @@ class TestHttpResponseBuilder(TestCase):
             ]
         )
 
-        self.assertEqual(response.status, 400)
+        self.assertEqual(response.status, 500)
         self.assertEqual(response.headers, {"content-type": "application/json"})
         content = json.loads(response.body)
         self.assertEqual(

@@ -208,7 +208,7 @@ class TestCrudResource(TestCase):
             mock_request_collection, "from_request", side_effect=RequestCollectionException("test exception")
         ):
             response = self.loop.run_until_complete(crud_resource.dispatch(request, "get"))
-        assert response.status == 400
+        assert response.status == 500
         assert json.loads(response.body)["errors"][0] == {
             "name": "RequestCollectionException",
             "detail": "🌳🌳🌳test exception",
@@ -354,7 +354,7 @@ class TestCrudResource(TestCase):
 
         response = self.loop.run_until_complete(crud_resource.get(request))
 
-        assert response.status == 400
+        assert response.status == 500
         response_content = json.loads(response.body)
         assert response_content["errors"][0] == {
             "name": "JsonApiException",
@@ -368,7 +368,7 @@ class TestCrudResource(TestCase):
 
         mocked_unpack_id.side_effect = CollectionResourceException
         response = self.loop.run_until_complete(crud_resource.get(request))
-        assert response.status == 400
+        assert response.status == 500
         response_content = json.loads(response.body)
         assert response_content["errors"][0] == {
             "name": "CollectionResourceException",
@@ -438,7 +438,7 @@ class TestCrudResource(TestCase):
 
         response = self.loop.run_until_complete(crud_resource.add(request))
 
-        assert response.status == 400
+        assert response.status == 500
         response_content = json.loads(response.body)
         assert response_content["errors"][0] == {
             "name": "JsonApiException",
@@ -454,7 +454,7 @@ class TestCrudResource(TestCase):
             side_effect=RecordValidatorException,
         ):
             response = self.loop.run_until_complete(crud_resource.add(request))
-        assert response.status == 400
+        assert response.status == 500
         response_content = json.loads(response.body)
         assert response_content["errors"][0] == {
             "name": "RecordValidatorException",
@@ -468,7 +468,7 @@ class TestCrudResource(TestCase):
         ):
             with patch.object(self.collection_order, "create", new_callable=AsyncMock, side_effect=DatasourceException):
                 response = self.loop.run_until_complete(crud_resource.add(request))
-        assert response.status == 400
+        assert response.status == 500
         response_content = json.loads(response.body)
         assert response_content["errors"][0] == {
             "name": "DatasourceException",
@@ -483,7 +483,7 @@ class TestCrudResource(TestCase):
             with patch.object(self.collection_order, "create", new_callable=AsyncMock, return_value=[mock_order]):
                 with patch.object(crud_resource, "_link_one_to_one_relations", side_effect=CollectionResourceException):
                     response = self.loop.run_until_complete(crud_resource.add(request))
-        assert response.status == 400
+        assert response.status == 500
         response_content = json.loads(response.body)
         assert response_content["errors"][0] == {
             "name": "CollectionResourceException",
@@ -559,7 +559,7 @@ class TestCrudResource(TestCase):
             response = self.loop.run_until_complete(crud_resource.add(request))
             mock_collection_create.assert_awaited()
 
-        assert response.status == 400
+        assert response.status == 500
         response_content = json.loads(response.body)
         assert response_content["errors"][0] == {
             "name": "CollectionResourceException",
@@ -628,7 +628,7 @@ class TestCrudResource(TestCase):
         # FilterException
         response = self.loop.run_until_complete(crud_resource.list(request))
 
-        assert response.status == 400
+        assert response.status == 500
         response_content = json.loads(response.body)
         assert response_content["errors"][0] == {
             "name": "FilterException",
@@ -655,7 +655,7 @@ class TestCrudResource(TestCase):
         ):
             response = self.loop.run_until_complete(crud_resource.list(request))
 
-        assert response.status == 400
+        assert response.status == 500
         response_content = json.loads(response.body)
         assert response_content["errors"][0] == {
             "name": "DatasourceException",
@@ -669,7 +669,7 @@ class TestCrudResource(TestCase):
 
         response = self.loop.run_until_complete(crud_resource.list(request))
 
-        assert response.status == 400
+        assert response.status == 500
         response_content = json.loads(response.body)
         assert response_content["errors"][0] == {
             "name": "JsonApiException",
@@ -804,14 +804,14 @@ class TestCrudResource(TestCase):
             "forestadmin.agent_toolkit.resources.collections.crud.unpack_id", side_effect=CollectionResourceException
         ):
             response = self.loop.run_until_complete(crud_resource.update(request))
-        assert response.status == 400
+        assert response.status == 500
         response_content = json.loads(response.body)
         assert response_content["errors"][0] == {"detail": "🌳🌳🌳", "name": "CollectionResourceException", "status": 500}
 
         # JsonApiException
         mocked_json_serializer_get.return_value.load = Mock(side_effect=JsonApiException)
         response = self.loop.run_until_complete(crud_resource.update(request))
-        assert response.status == 400
+        assert response.status == 500
         response_content = json.loads(response.body)
         assert response_content["errors"][0] == {"detail": "🌳🌳🌳", "name": "JsonApiException", "status": 500}
 
@@ -822,14 +822,14 @@ class TestCrudResource(TestCase):
             side_effect=RecordValidatorException,
         ):
             response = self.loop.run_until_complete(crud_resource.update(request))
-        assert response.status == 400
+        assert response.status == 500
         response_content = json.loads(response.body)
         assert response_content["errors"][0] == {"detail": "🌳🌳🌳", "name": "RecordValidatorException", "status": 500}
 
         # JsonApiException
         mocked_json_serializer_get.return_value.dump = Mock(side_effect=JsonApiException)
         response = self.loop.run_until_complete(crud_resource.update(request))
-        assert response.status == 400
+        assert response.status == 500
         response_content = json.loads(response.body)
         assert response_content["errors"][0] == {"detail": "🌳🌳🌳", "name": "JsonApiException", "status": 500}
 
@@ -881,7 +881,7 @@ class TestCrudResource(TestCase):
         ):
             response = self.loop.run_until_complete(crud_resource.delete(request))
 
-        assert response.status == 400
+        assert response.status == 500
         response_content = json.loads(response.body)
         assert response_content["errors"][0] == {"detail": "🌳🌳🌳", "name": "CollectionResourceException", "status": 500}
 
@@ -959,7 +959,7 @@ class TestCrudResource(TestCase):
         # FilterException
         response = self.loop.run_until_complete(crud_resource.csv(request))
 
-        assert response.status == 400
+        assert response.status == 500
         response_content = json.loads(response.body)
         assert response_content["errors"][0] == {
             "detail": "🌳🌳🌳Missing timezone",
@@ -986,7 +986,7 @@ class TestCrudResource(TestCase):
         ):
             response = self.loop.run_until_complete(crud_resource.csv(request))
 
-        assert response.status == 400
+        assert response.status == 500
         response_content = json.loads(response.body)
         assert response_content["errors"][0] == {"detail": "🌳🌳🌳", "name": "DatasourceException", "status": 500}
 
@@ -998,6 +998,6 @@ class TestCrudResource(TestCase):
         ):
             response = self.loop.run_until_complete(crud_resource.csv(request))
 
-        assert response.status == 400
+        assert response.status == 500
         response_content = json.loads(response.body)
         assert response_content["errors"][0] == {"detail": "🌳🌳🌳cannot make csv", "name": "CsvException", "status": 500}

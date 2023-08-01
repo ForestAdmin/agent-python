@@ -106,7 +106,7 @@ class TestChartCollectionResource(TestCase):
             response: Response = self.loop.run_until_complete(self.chart_collection_resource.dispatch(request, ""))
 
             response_content = json.loads(response.body)
-            assert response.status == 400
+            assert response.status == 500
             assert response_content["errors"][0] == {
                 "name": "ForestException",
                 "detail": f"🌳🌳🌳Method {method.value} is not allow for this url.",
@@ -127,7 +127,7 @@ class TestChartCollectionResource(TestCase):
         response: Response = self.loop.run_until_complete(self.chart_collection_resource.dispatch(request, ""))
 
         response_content = json.loads(response.body)
-        assert response.status == 400
+        assert response.status == 500
 
         assert response_content["errors"][0] == {
             "name": "RequestCollectionException",
@@ -203,7 +203,7 @@ class TestChartCollectionResource(TestCase):
 
             mocked_handle_smart_chart.assert_awaited_once()
 
-            assert response.status == 400
+            assert response.status == 500
             response_content = json.loads(response.body)
             assert response_content["errors"][0] == {
                 "name": "Exception",

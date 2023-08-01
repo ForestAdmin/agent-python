@@ -92,7 +92,7 @@ class HttpResponseBuilder:
                     {
                         "name": error.__class__.__name__,
                         "detail": HttpResponseBuilder._get_error_message(error),
-                        "status": HttpResponseBuilder._get_error_status(reasons[0]),
+                        "status": HttpResponseBuilder._get_error_status(error),
                     }
                     for error in reasons
                 ]

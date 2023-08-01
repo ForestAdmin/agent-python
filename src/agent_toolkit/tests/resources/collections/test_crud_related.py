@@ -371,7 +371,7 @@ class TestCrudRelatedResource(TestCase):
 
         response = self.loop.run_until_complete(crud_related_resource.list(request))
 
-        assert response.status == 400
+        assert response.status == 500
         response_content = json.loads(response.body)
         assert response_content["errors"][0] == {
             "name": "ForestException",
@@ -398,7 +398,7 @@ class TestCrudRelatedResource(TestCase):
 
         response = self.loop.run_until_complete(crud_related_resource.list(request))
 
-        assert response.status == 400
+        assert response.status == 500
         response_content = json.loads(response.body)
         assert response_content["errors"][0] == {
             "name": "CollectionResourceException",
@@ -421,7 +421,7 @@ class TestCrudRelatedResource(TestCase):
 
         response = self.loop.run_until_complete(crud_related_resource.list(request))
 
-        assert response.status == 400
+        assert response.status == 500
         response_content = json.loads(response.body)
         assert response_content["errors"][0] == {
             "name": "JsonApiException",
@@ -486,7 +486,7 @@ class TestCrudRelatedResource(TestCase):
         )
         response = self.loop.run_until_complete(crud_related_resource.csv(request))
 
-        assert response.status == 400
+        assert response.status == 500
         response_content = json.loads(response.body)
         assert response_content["errors"][0] == {
             "name": "ForestException",
@@ -512,7 +512,7 @@ class TestCrudRelatedResource(TestCase):
         )
         response = self.loop.run_until_complete(crud_related_resource.csv(request))
 
-        assert response.status == 400
+        assert response.status == 500
         response_content = json.loads(response.body)
         assert response_content["errors"][0] == {
             "name": "CollectionResourceException",
@@ -536,7 +536,7 @@ class TestCrudRelatedResource(TestCase):
         ):
             response = self.loop.run_until_complete(crud_related_resource.csv(request))
 
-        assert response.status == 400
+        assert response.status == 500
         response_content = json.loads(response.body)
         assert response_content["errors"][0] == {
             "name": "DatasourceException",
@@ -552,7 +552,7 @@ class TestCrudRelatedResource(TestCase):
         ):
             response = self.loop.run_until_complete(crud_related_resource.csv(request))
 
-        assert response.status == 400
+        assert response.status == 500
         response_content = json.loads(response.body)
         assert response_content["errors"][0] == {
             "name": "CsvException",
@@ -633,7 +633,7 @@ class TestCrudRelatedResource(TestCase):
         # no_id exception
         response = self.loop.run_until_complete(self.crud_related_resource.add(request))
 
-        assert response.status == 400
+        assert response.status == 500
         response_content = json.loads(response.body)
         assert response_content["errors"][0] == {
             "name": "CollectionResourceException",
@@ -651,7 +651,7 @@ class TestCrudRelatedResource(TestCase):
             None,  # user
         )
         response = self.loop.run_until_complete(self.crud_related_resource.add(request))
-        assert response.status == 400
+        assert response.status == 500
         response_content = json.loads(response.body)
         assert response_content["errors"][0] == {
             "name": "ForestException",
@@ -677,7 +677,7 @@ class TestCrudRelatedResource(TestCase):
 
         with patch("forestadmin.agent_toolkit.resources.collections.crud_related.unpack_id", mocked_unpack_id):
             response = self.loop.run_until_complete(self.crud_related_resource.add(request))
-        assert response.status == 400
+        assert response.status == 500
         response_content = json.loads(response.body)
         assert response_content["errors"][0] == {
             "name": "CollectionResourceException",
@@ -705,7 +705,7 @@ class TestCrudRelatedResource(TestCase):
             None,  # user
         )
         response = self.loop.run_until_complete(self.crud_related_resource.add(request))
-        assert response.status == 400
+        assert response.status == 500
         response_content = json.loads(response.body)
         assert response_content["errors"][0] == {
             "name": "ForestException",
@@ -812,7 +812,7 @@ class TestCrudRelatedResource(TestCase):
         )
 
         response = self.loop.run_until_complete(crud_related_resource.update_list(request))
-        assert response.status == 400
+        assert response.status == 500
         response_content = json.loads(response.body)
         assert response_content["errors"][0] == {
             "name": "CollectionResourceException",
@@ -840,7 +840,7 @@ class TestCrudRelatedResource(TestCase):
             None,  # user
         )
         response = self.loop.run_until_complete(crud_related_resource.update_list(request))
-        assert response.status == 400
+        assert response.status == 500
         response_content = json.loads(response.body)
         assert response_content["errors"][0] == {
             "name": "ForestException",
@@ -876,7 +876,7 @@ class TestCrudRelatedResource(TestCase):
 
         with patch("forestadmin.agent_toolkit.resources.collections.crud_related.unpack_id", mocked_unpack_id):
             response = self.loop.run_until_complete(crud_related_resource.update_list(request))
-        assert response.status == 400
+        assert response.status == 500
         response_content = json.loads(response.body)
         assert response_content["errors"][0] == {
             "name": "CollectionResourceException",
@@ -906,7 +906,7 @@ class TestCrudRelatedResource(TestCase):
 
         with patch.object(crud_related_resource, "_update_many_to_one", side_effect=CollectionResourceException):
             response = self.loop.run_until_complete(crud_related_resource.update_list(request))
-        assert response.status == 400
+        assert response.status == 500
         response_content = json.loads(response.body)
         assert response_content["errors"][0] == {
             "name": "CollectionResourceException",
@@ -925,7 +925,7 @@ class TestCrudRelatedResource(TestCase):
         )
         response = self.loop.run_until_complete(crud_related_resource.update_list(request))
 
-        assert response.status == 400
+        assert response.status == 500
         response_content = json.loads(response.body)
         assert response_content["errors"][0] == {
             "name": "ForestException",
@@ -1002,7 +1002,7 @@ class TestCrudRelatedResource(TestCase):
             None,
         )
         response = self.loop.run_until_complete(self.crud_related_resource.count(request))
-        assert response.status == 400
+        assert response.status == 500
         response_content = json.loads(response.body)
         assert response_content["errors"][0] == {
             "name": "CollectionResourceException",
@@ -1100,7 +1100,7 @@ class TestCrudRelatedResource(TestCase):
             None,  # user
         )
         response = self.loop.run_until_complete(crud_related_resource.delete_list(request))
-        assert response.status == 400
+        assert response.status == 500
         response_content = json.loads(response.body)
         assert response_content["errors"][0] == {
             "name": "CollectionResourceException",
@@ -1126,7 +1126,7 @@ class TestCrudRelatedResource(TestCase):
         ) as fake_delete_many_to_many:
             response = self.loop.run_until_complete(crud_related_resource.delete_list(request))
             fake_delete_many_to_many.assert_awaited()
-        assert response.status == 400
+        assert response.status == 500
         response_content = json.loads(response.body)
         assert response_content["errors"][0] == {
             "name": "CollectionResourceException",
@@ -1151,7 +1151,7 @@ class TestCrudRelatedResource(TestCase):
             None,  # user
         )
         response = self.loop.run_until_complete(crud_related_resource.delete_list(request))
-        assert response.status == 400
+        assert response.status == 500
         response_content = json.loads(response.body)
         assert response_content["errors"][0] == {
             "name": "ForestException",
@@ -1202,7 +1202,7 @@ class TestCrudRelatedResource(TestCase):
         )
         response = self.loop.run_until_complete(crud_related_resource._associate_one_to_many(request, [201], 2))
 
-        assert response.status == 400
+        assert response.status == 500
         response_content = json.loads(response.body)
         assert response_content["errors"][0] == {
             "name": "ForestException",
@@ -1221,7 +1221,7 @@ class TestCrudRelatedResource(TestCase):
         with patch.object(self.collection_order, "update", new_callable=AsyncMock, side_effect=DatasourceException):
             response = self.loop.run_until_complete(crud_related_resource._associate_one_to_many(request, [201], 2))
 
-        assert response.status == 400
+        assert response.status == 500
         response_content = json.loads(response.body)
         assert response_content["errors"][0] == {
             "name": "DatasourceException",
@@ -1262,7 +1262,7 @@ class TestCrudRelatedResource(TestCase):
             None,  # user
         )
         response = self.loop.run_until_complete(crud_related_resource._associate_many_to_many(request, [201], 2))
-        assert response.status == 400
+        assert response.status == 500
         response_content = json.loads(response.body)
         assert response_content["errors"][0] == {
             "name": "ForestException",
@@ -1282,7 +1282,7 @@ class TestCrudRelatedResource(TestCase):
             self.collection_product_order, "create", new_callable=AsyncMock, side_effect=DatasourceException
         ):
             response = self.loop.run_until_complete(crud_related_resource._associate_many_to_many(request, [201], 2))
-        assert response.status == 400
+        assert response.status == 500
         response_content = json.loads(response.body)
         assert response_content["errors"][0] == {
             "name": "DatasourceException",
