@@ -67,7 +67,7 @@ class Sort(list):  # type: ignore
     def apply(self: List[PlainSortClause], records: List[RecordsDataAlias]) -> List[RecordsDataAlias]:
         for plain_sort in self[::-1]:
             records.sort(
-                key=lambda record: RecordUtils.get_field_value(record, plain_sort["field"]),
+                key=lambda record: RecordUtils.get_field_value(record, plain_sort["field"]) or 0,
                 reverse=not plain_sort["ascending"],
             )
         return records

@@ -97,10 +97,7 @@ class Projection(list):  # type: ignore
                     raise ProjectionException(f"the column ‘{column}‘ is missing in your record")
 
             for relation, projection in self.relations.items():
-                try:
-                    result[relation] = projection._reproject(record[relation])
-                except KeyError:
-                    raise ProjectionException(f"the relation ‘{relation}‘ is missing in your record")
+                result[relation] = projection._reproject(record.get(relation))
 
         return result
 

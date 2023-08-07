@@ -8,6 +8,7 @@ from forestadmin.datasource_toolkit.decorators.operators_equivalence.collections
     OperatorEquivalenceCollectionDecorator,
 )
 from forestadmin.datasource_toolkit.decorators.publication_field.collections import PublicationFieldCollectionDecorator
+from forestadmin.datasource_toolkit.decorators.relation.collections import RelationCollectionDecorator
 from forestadmin.datasource_toolkit.decorators.rename_field.collections import RenameFieldCollectionDecorator
 from forestadmin.datasource_toolkit.decorators.schema.collection import SchemaCollectionDecorator
 from forestadmin.datasource_toolkit.decorators.search.collections import SearchCollectionDecorator
@@ -30,10 +31,10 @@ class DecoratorStack:
         last = self.early_computed = DatasourceDecorator(last, ComputedCollectionDecorator)
         last = self.early_op_emulate = DatasourceDecorator(last, OperatorsEmulateCollectionDecorator)
         last = self.early_op_equivalence = DatasourceDecorator(last, OperatorEquivalenceCollectionDecorator)
-        # last = self.relation = DatasourceDecorator(last, RelationCollection)
-        # last = self.late_computed = DatasourceDecorator(last, ComputedCollectionDecorator)
-        # last = self.late_op_emulate = DatasourceDecorator(last, OperatorsEmulateCollection)
-        # last = self.late_op_equivalence = DatasourceDecorator(last, OperatorEquivalenceCollectionDecorator)
+        last = self.relation = DatasourceDecorator(last, RelationCollectionDecorator)
+        last = self.late_computed = DatasourceDecorator(last, ComputedCollectionDecorator)
+        last = self.late_op_emulate = DatasourceDecorator(last, OperatorsEmulateCollectionDecorator)
+        last = self.late_op_equivalence = DatasourceDecorator(last, OperatorEquivalenceCollectionDecorator)
 
         # Step 2: Those need access to all fields. They can be loaded in any order.
         last = self.search = DatasourceDecorator(last, SearchCollectionDecorator)
