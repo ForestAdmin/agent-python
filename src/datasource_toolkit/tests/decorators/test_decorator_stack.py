@@ -12,6 +12,7 @@ from forestadmin.datasource_toolkit.decorators.operators_equivalence.collections
     OperatorEquivalenceCollectionDecorator,
 )
 from forestadmin.datasource_toolkit.decorators.publication_field.collections import PublicationFieldCollectionDecorator
+from forestadmin.datasource_toolkit.decorators.relation.collections import RelationCollectionDecorator
 from forestadmin.datasource_toolkit.decorators.rename_field.collections import RenameFieldCollectionDecorator
 from forestadmin.datasource_toolkit.decorators.schema.collection import SchemaCollectionDecorator
 from forestadmin.datasource_toolkit.decorators.search.collections import SearchCollectionDecorator
@@ -65,6 +66,10 @@ class TestDecoratorStack(TestCase):
 
             call_list = [
                 call(self.datasource, EmptyCollectionDecorator),
+                call(self.datasource, ComputedCollectionDecorator),
+                call(self.datasource, OperatorsEmulateCollectionDecorator),
+                call(self.datasource, OperatorEquivalenceCollectionDecorator),
+                call(self.datasource, RelationCollectionDecorator),
                 call(self.datasource, ComputedCollectionDecorator),
                 call(self.datasource, OperatorsEmulateCollectionDecorator),
                 call(self.datasource, OperatorEquivalenceCollectionDecorator),

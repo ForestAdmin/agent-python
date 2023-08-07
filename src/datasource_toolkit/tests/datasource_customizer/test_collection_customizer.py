@@ -30,6 +30,7 @@ from forestadmin.datasource_toolkit.interfaces.fields import (
     PrimitiveType,
 )
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.leaf import ConditionTreeLeaf
+from forestadmin.datasource_toolkit.validations.field import FieldValidatorException
 from forestadmin.datasource_toolkit.validations.rules import MAP_ALLOWED_OPERATORS_FOR_COLUMN_TYPE
 
 
@@ -43,7 +44,12 @@ class TestCollectionCustomizer(TestCase):
         cls.collection_book = Collection("Book", cls.datasource)
         cls.collection_book.add_fields(
             {
-                "id": Column(column_type=PrimitiveType.NUMBER, is_primary_key=True, type=FieldType.COLUMN),
+                "id": Column(
+                    column_type=PrimitiveType.NUMBER,
+                    is_primary_key=True,
+                    type=FieldType.COLUMN,
+                    filter_operators=set([Operator.IN, Operator.EQUAL]),
+                ),
                 "title": Column(
                     column_type=PrimitiveType.STRING,
                     filter_operators=[Operator.LONGER_THAN],
@@ -78,8 +84,18 @@ class TestCollectionCustomizer(TestCase):
         cls.collection_book_person = Collection("BookPerson", cls.datasource)
         cls.collection_book_person.add_fields(
             {
-                "person_id": Column(column_type=PrimitiveType.NUMBER, is_primary_key=True, type=FieldType.COLUMN),
-                "book_id": Column(column_type=PrimitiveType.NUMBER, is_primary_key=True, type=FieldType.COLUMN),
+                "person_id": Column(
+                    column_type=PrimitiveType.NUMBER,
+                    is_primary_key=True,
+                    type=FieldType.COLUMN,
+                    filter_operators=set([Operator.IN, Operator.EQUAL]),
+                ),
+                "book_id": Column(
+                    column_type=PrimitiveType.NUMBER,
+                    is_primary_key=True,
+                    type=FieldType.COLUMN,
+                    filter_operators=set([Operator.IN, Operator.EQUAL]),
+                ),
                 "category": ManyToOne(
                     type=FieldType.MANY_TO_ONE,
                     foreign_collection="Category",
@@ -98,7 +114,12 @@ class TestCollectionCustomizer(TestCase):
         cls.collection_person = Collection("Person", cls.datasource)
         cls.collection_person.add_fields(
             {
-                "id": Column(column_type=PrimitiveType.NUMBER, is_primary_key=True, type=FieldType.COLUMN),
+                "id": Column(
+                    column_type=PrimitiveType.NUMBER,
+                    is_primary_key=True,
+                    type=FieldType.COLUMN,
+                    filter_operators=set([Operator.IN, Operator.EQUAL]),
+                ),
                 "name": Column(column_type=PrimitiveType.STRING, type=FieldType.COLUMN),
                 "name_read_only": Column(column_type=PrimitiveType.STRING, type=FieldType.COLUMN, is_read_only=True),
                 "books": ManyToMany(
@@ -109,6 +130,11 @@ class TestCollectionCustomizer(TestCase):
                     foreign_collection="Book",
                     through_collection="BookPerson",
                     type=FieldType.MANY_TO_MANY,
+                ),
+                "author_id": Column(
+                    column_type=PrimitiveType.NUMBER,
+                    type=FieldType.COLUMN,
+                    filter_operators=set([Operator.IN, Operator.EQUAL]),
                 ),
             }
         )
@@ -183,7 +209,27 @@ class TestCollectionCustomizer(TestCase):
         assert "test" in computed_collection._computeds
         assert returned_data == ["Foundation-2022", "Harry Potter-2022"]
 
-    # def test_add_field_should_add_a_field_to_late_collection(self):
+    def test_add_field_should_add_a_field_to_late_collection(self):
+        # Add a relation to itself on the record
+        self.person_customizer.add_many_to_one_relation("myself", "Person", "author_id", "author_id")
+
+        computed_definition = ComputedDefinition(
+            column_type=PrimitiveType.STRING,
+            dependencies=["name", "myself:name"],
+            get_values=lambda records: ["aaa" for record in records],
+        )
+        with patch.object(
+            self.datasource_customizer.stack.late_computed.get_collection("Person"),
+            "register_computed",
+            wraps=self.datasource_customizer.stack.late_computed.get_collection("Person").register_computed,
+        ) as mock_register_computed:
+            self.person_customizer.add_field("new_field", computed_definition)
+            mock_register_computed.assert_called_once_with("new_field", computed_definition)
+            self.assertIsNotNone(
+                self.datasource_customizer.stack.late_computed.get_collection("Person")
+                .schema["fields"]
+                .get("new_field")
+            )
 
     def test_add_segment_should_add_a_segment(self):
         self.book_customizer.add_segment("new_segment", lambda ctx: ConditionTreeLeaf("id", Operator.GREATER_THAN, 1))
@@ -202,6 +248,16 @@ class TestCollectionCustomizer(TestCase):
         self.book_customizer.disable_count()
 
         assert self.datasource_customizer.stack.schema.get_collection("Book").schema["countable"] is False
+
+    def test_rename_field_should_raise_if_name_contain_space(self):
+        self.assertRaisesRegex(
+            FieldValidatorException,
+            "The name of field 'new title' you configured on 'Book' must not contain space. "
+            + "Something like 'newTitle' should work has expected.",
+            self.book_customizer.rename_field,
+            "title",
+            "new title",
+        )
 
     def test_rename_field_should_rename_field_in_collection(self):
         self.book_customizer.rename_field("title", "new_title")
@@ -286,3 +342,88 @@ class TestCollectionCustomizer(TestCase):
             self.person_customizer.replace_field_operator("name", Operator.PRESENT, replacer)
 
             mock_replace_field_operator.assert_any_call("name", Operator.PRESENT, replacer)
+
+    def test_relation_add_many_to_one(self):
+        with patch.object(
+            self.datasource_customizer.stack.relation.get_collection("BookPerson"),
+            "add_relation",
+            wraps=self.datasource_customizer.stack.relation.get_collection("BookPerson").add_relation,
+        ) as mock_add_relation:
+            self.book_person_customizer.add_many_to_one_relation("my_author", "Person", "person_id", "id")
+            mock_add_relation.assert_called_once_with(
+                "my_author",
+                {
+                    "type": FieldType.MANY_TO_ONE,
+                    "foreign_collection": "Person",
+                    "foreign_key": "person_id",
+                    "foreign_key_target": "id",
+                },
+            )
+        self.assertIsNotNone(
+            self.datasource_customizer.stack.relation.get_collection("BookPerson").schema["fields"].get("my_author")
+        )
+
+    def test_relation_add_one_to_one(self):
+        with patch.object(
+            self.datasource_customizer.stack.relation.get_collection("Person"),
+            "add_relation",
+            wraps=self.datasource_customizer.stack.relation.get_collection("Person").add_relation,
+        ) as mock_add_relation:
+            self.person_customizer.add_one_to_one_relation("my_book_author", "BookPerson", "person_id", "id")
+            mock_add_relation.assert_called_once_with(
+                "my_book_author",
+                {
+                    "type": FieldType.ONE_TO_ONE,
+                    "foreign_collection": "BookPerson",
+                    "origin_key": "person_id",
+                    "origin_key_target": "id",
+                },
+            )
+        self.assertIsNotNone(
+            self.datasource_customizer.stack.relation.get_collection("Person").schema["fields"].get("my_book_author")
+        )
+
+    def test_relation_add_one_to_many(self):
+        with patch.object(
+            self.datasource_customizer.stack.relation.get_collection("Person"),
+            "add_relation",
+            wraps=self.datasource_customizer.stack.relation.get_collection("Person").add_relation,
+        ) as mock_add_relation:
+            self.person_customizer.add_one_to_many_relation("my_book_authors", "BookPerson", "person_id", "id")
+            mock_add_relation.assert_called_once_with(
+                "my_book_authors",
+                {
+                    "type": FieldType.ONE_TO_MANY,
+                    "foreign_collection": "BookPerson",
+                    "origin_key": "person_id",
+                    "origin_key_target": "id",
+                },
+            )
+        self.assertIsNotNone(
+            self.datasource_customizer.stack.relation.get_collection("Person").schema["fields"].get("my_book_authors")
+        )
+
+    def test_relation_add_many_to_many(self):
+        with patch.object(
+            self.datasource_customizer.stack.relation.get_collection("Person"),
+            "add_relation",
+            wraps=self.datasource_customizer.stack.relation.get_collection("Person").add_relation,
+        ) as mock_add_relation:
+            self.person_customizer.add_many_to_many_relation(
+                "my_books", "Book", "BookPerson", "person_id", "book_id", "id", "id"
+            )
+            mock_add_relation.assert_called_once_with(
+                "my_books",
+                {
+                    "type": FieldType.MANY_TO_MANY,
+                    "foreign_collection": "Book",
+                    "through_collection": "BookPerson",
+                    "origin_key": "person_id",
+                    "origin_key_target": "id",
+                    "foreign_key": "book_id",
+                    "foreign_key_target": "id",
+                },
+            )
+        self.assertIsNotNone(
+            self.datasource_customizer.stack.relation.get_collection("Person").schema["fields"].get("my_books")
+        )
