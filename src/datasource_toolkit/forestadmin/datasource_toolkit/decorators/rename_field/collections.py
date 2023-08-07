@@ -18,6 +18,7 @@ from forestadmin.datasource_toolkit.interfaces.query.filter.paginated import Pag
 from forestadmin.datasource_toolkit.interfaces.query.filter.unpaginated import Filter
 from forestadmin.datasource_toolkit.interfaces.query.projections import Projection
 from forestadmin.datasource_toolkit.interfaces.records import RecordsDataAlias
+from forestadmin.datasource_toolkit.validations.field import FieldValidator
 
 
 class RenameCollectionException(DatasourceToolkitException):
@@ -36,6 +37,9 @@ class RenameFieldCollectionDecorator(CollectionDecorator):
             raise RenameCollectionException(f"No such field '{current_name}'")
 
         initial_name = current_name
+
+        FieldValidator.validate_name(self.name, new_name)
+
         # Revert previous renaming (avoids conflicts and need to recurse on this.toSubCollection).
         if current_name in self._to_child_collection:
             child_name = self._to_child_collection[current_name]
