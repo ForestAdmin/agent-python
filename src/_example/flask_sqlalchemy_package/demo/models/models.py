@@ -1,7 +1,7 @@
 import enum
 
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import Column, DateTime, Enum, ForeignKey, Integer, String, func
+from sqlalchemy import Boolean, Column, DateTime, Enum, ForeignKey, Integer, String, func
 from sqlalchemy.orm import relationship
 
 db = SQLAlchemy()
@@ -32,6 +32,7 @@ class Customer(db.Model):
     birthday_date = Column(DateTime(timezone=True), default=func.now())
     age = Column(Integer, nullable=True)
     addresses = relationship("Address", secondary="customers_addresses", back_populates="customers")
+    is_vip = Column(Boolean, default=False)
 
 
 class Order(db.Model):

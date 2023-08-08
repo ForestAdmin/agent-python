@@ -29,7 +29,9 @@ from demo.forest_admin.smart.order import (
     suspicious_order_segment,
     total_order_chart,
 )
-from forestadmin.datasource_toolkit.interfaces.fields import Operator
+from forestadmin.datasource_toolkit.decorators.computed.types import ComputedDefinition
+from forestadmin.datasource_toolkit.interfaces.fields import Operator, PrimitiveType
+from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.leaf import ConditionTreeLeaf
 from forestadmin.flask_agent.agent import Agent
 
 
@@ -48,9 +50,20 @@ def customize_agent(agent: Agent):
     # deactivate count
     agent.customize_collection("address").disable_count()
 
+    # customers_addresses
+    agent.customize_collection("customers_addresses").add_many_to_one_relation(
+        "smart_customers", "customer", "customer_id"
+    )
+    agent.customize_collection("customers_addresses").add_many_to_one_relation(
+        "smart_addresses", "address", "address_id"
+    )
+
     # # ## CUSTOMERS
     # # import field ?
     agent.customize_collection("customer").add_segment("with french address", french_address_segment)
+    agent.customize_collection("customer").add_segment(
+        "VIP customers", lambda context: ConditionTreeLeaf("is_vip", Operator.EQUAL, True)
+    )
     # # action file bulk
     agent.customize_collection("customer").add_action("Export json", ExportJson())
     # # action single with form
@@ -80,6 +93,23 @@ def customize_agent(agent: Agent):
     agent.customize_collection("customer").add_validation("age", {"operator": Operator.GREATER_THAN, "value": 0})
     agent.customize_collection("customer").add_chart("total_orders", total_orders_customer_chart)
     agent.customize_collection("customer").add_chart("orders_table", order_details)
+    agent.customize_collection("customer").add_many_to_many_relation(
+        "smart_billing_addresses", "address", "order", "customer_id", "billing_address_id"
+    )
+    agent.customize_collection("customer").add_many_to_many_relation(
+        "smart_delivering_addresses", "address", "order", "customer_id", "delivering_address_id"
+    )
+
+    agent.customize_collection("cart").add_field(
+        "customer_id",
+        ComputedDefinition(
+            column_type=PrimitiveType.NUMBER,
+            dependencies=["order:customer_id"],
+            get_values=lambda records, context: [rec["order"]["customer_id"] for rec in records],
+        ),
+    )
+    agent.customize_collection("cart").emulate_field_operator("customer_id", Operator.IN)
+    agent.customize_collection("customer").add_one_to_many_relation("smart_carts", "cart", "customer_id")
 
     # # ## ORDERS
     # # segment
@@ -97,6 +127,8 @@ def customize_agent(agent: Agent):
     agent.customize_collection("order").add_validation("amount", {"operator": Operator.GREATER_THAN, "value": 0})
     # # computed
     agent.customize_collection("order").add_field("customer_full_name", get_customer_full_name_field())
+
+    # cart
     agent.customize_collection("cart").replace_field_writing("name", cart_update_name)
 
     agent.add_chart("total_order", total_order_chart)
@@ -109,19 +141,8 @@ def customize_agent(agent: Agent):
     agent.add_chart("total_order_week", nb_order_per_week)
 
     # add relations
-    # # manyToOne
     # # oneToOne
-    # # oneToMany
-    # # ManyToMany
     # # externalRelation
-
-    # add charts
-    # # value
-    # # objective
-    # # percentage
-    # # distribution
-    # # leader-board
-    # # time-based
 
     # hooks
     # # before/after, write/read

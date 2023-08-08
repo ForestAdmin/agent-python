@@ -1,6 +1,6 @@
 import enum
 
-from sqlalchemy import Column, DateTime, Enum, ForeignKey, Integer, String, create_engine, func  # type: ignore
+from sqlalchemy import Boolean, Column, DateTime, Enum, ForeignKey, Integer, String, create_engine, func  # type: ignore
 from sqlalchemy.orm import declarative_base, relationship
 
 SQLITE_URI = "sqlite:///db.sql"
@@ -34,6 +34,7 @@ class Customer(Base):
     age = Column(Integer, nullable=True)
     birthday_date = Column(DateTime(timezone=True), default=func.now())
     addresses = relationship("Address", secondary="customers_addresses", back_populates="customers")
+    is_vip = Column(Boolean, default=False)
 
 
 class Order(Base):
