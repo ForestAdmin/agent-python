@@ -81,14 +81,14 @@ class CollectionUtils:
     ) -> List[RecordsDataAlias]:
         from forestadmin.datasource_toolkit.interfaces.query.filter.factory import FilterFactory
 
-        if is_many_to_many(relation) and relation["foreign_relation"] and foreign_filter.is_nestable:
+        if is_many_to_many(relation) and relation.get("foreign_relation") and foreign_filter.is_nestable:
             through = collection.datasource.get_collection(relation["through_collection"])
             records = await through.list(
                 caller,
-                await FilterFactory.make_through_filter(collection, id, relation, foreign_filter),
-                projection.nest(relation["foreign_relation"]),
+                await FilterFactory.make_through_filter(caller, collection, id, relation, foreign_filter),
+                projection.nest(relation.get("foreign_relation")),
             )
-            return [record[relation["foreign_relation"]] for record in records]
+            return [record[relation.get("foreign_relation")] for record in records]
         return await foreign_collection.list(
             caller,
             await FilterFactory.make_foreign_filter(caller, collection, id, relation, foreign_filter),

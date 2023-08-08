@@ -20,12 +20,12 @@ class TypeGetter:
             return cls._get_array_type(value, type_context)
         elif isinstance(value, str):
             return cls._get_type_from_string(value, type_context)
+        elif isinstance(value, bool):
+            return PrimitiveType.BOOLEAN
         elif isinstance(value, float) or isinstance(value, int):
             return PrimitiveType.NUMBER
         elif isinstance(value, datetime):
             return PrimitiveType.DATE
-        elif isinstance(value, bool):
-            return PrimitiveType.BOOLEAN
         elif isinstance(value, dict) and type_context == PrimitiveType.JSON:
             return PrimitiveType.JSON
 
