@@ -178,7 +178,10 @@ def parse_condition_tree(request: Union[RequestCollection, RequestRelationCollec
 
     jsoned_filters = json.loads(filters)
     try:
-        jsoned_filters["value"] = _parse_value(jsoned_filters, request.collection)
+        if isinstance(request, RequestRelationCollection):
+            jsoned_filters["value"] = _parse_value(jsoned_filters, request.foreign_collection)
+        else:
+            jsoned_filters["value"] = _parse_value(jsoned_filters, request.collection)
         condition_tree = ConditionTreeFactory.from_plain_object(jsoned_filters)
     except ConditionTreeFactoryException as e:
         raise FilterException(str(e))
