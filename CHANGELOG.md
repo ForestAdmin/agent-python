@@ -1,3 +1,10 @@
+# [1.0.0-beta.6](https://github.com/ForestAdmin/agent-python/compare/v1.0.0-beta.5...v1.0.0-beta.6) (2023-08-08)
+
+
+### Bug Fixes
+
+* **search:** boolean filtering was broken ([#102](https://github.com/ForestAdmin/agent-python/issues/102)) ([164c7a2](https://github.com/ForestAdmin/agent-python/commit/164c7a262cd3cc0b9b304454c7c7ddaf84ca9b37))
+
 # [1.0.0-beta.5](https://github.com/ForestAdmin/agent-python/compare/v1.0.0-beta.4...v1.0.0-beta.5) (2023-08-01)
 
 
