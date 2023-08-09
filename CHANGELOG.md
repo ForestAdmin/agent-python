@@ -1,3 +1,10 @@
+# [1.0.0-beta.7](https://github.com/ForestAdmin/agent-python/compare/v1.0.0-beta.6...v1.0.0-beta.7) (2023-08-09)
+
+
+### Features
+
+* **relation:** add relation decorator ([#103](https://github.com/ForestAdmin/agent-python/issues/103)) ([c1f6859](https://github.com/ForestAdmin/agent-python/commit/c1f685978b0fc7194c0d42e145e4e894c30f8ec5))
+
 # [1.0.0-beta.6](https://github.com/ForestAdmin/agent-python/compare/v1.0.0-beta.5...v1.0.0-beta.6) (2023-08-08)
 
 
