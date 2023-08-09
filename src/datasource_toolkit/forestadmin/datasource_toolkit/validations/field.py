@@ -1,3 +1,4 @@
+import re
 from typing import Any, List, Optional, Union, cast
 
 from forestadmin.datasource_toolkit.exceptions import DatasourceToolkitException
@@ -85,4 +86,13 @@ class FieldValidator:
         if not is_enum_allowed:
             raise FieldValidatorException(
                 f'The given enum value(s) [{enum_value}] is not listed in [{column_schema["enum_values"]}]'
+            )
+
+    @staticmethod
+    def validate_name(collection_name: str, name: str):
+        if " " in name:
+            sanitized_name = re.sub(r" (.)", lambda m: m.group(1).upper(), name)
+            raise FieldValidatorException(
+                f"The name of field '{name}' you configured on '{collection_name}' must not contain space. "
+                f"Something like '{sanitized_name}' should work has expected."
             )

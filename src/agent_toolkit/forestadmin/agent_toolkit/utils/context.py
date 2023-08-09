@@ -130,7 +130,7 @@ class HttpResponseBuilder:
         # if isinstance(error, UnprocessableError):
         #     return 422
         if isinstance(error, HTTPError):
-            return error.status
+            return error.code
 
         return 500
 

@@ -39,6 +39,7 @@ def _populate_customers(nb: int = 500):
                 last_name=fake.last_name(),
                 birthday_date=fake.date_of_birth(),
                 age=random.choices([None, random.randint(16, 120)])[0],
+                is_vip=random.choice([True, False]),
             )
         )
     _bulk_insert(customers)

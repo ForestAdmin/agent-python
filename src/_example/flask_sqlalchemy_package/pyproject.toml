@@ -58,10 +58,13 @@ black = "~=22.10"
 [tool.poetry.group.sorter.dependencies]
 isort = "~=3.6"
 
+[tool.poe.executor]
+type = "simple"
+
 [tool.poe.tasks]
 init-db  = { script = "demo.models.utils.init_db:create_all" }
 populate-db  = { script = "demo.models.utils.populate_dev_db:populate" }
-runserver = { shell = "FLASK_APP=app python manage.py run -h 0.0.0.0 --debugger --reload" }
+runserver = { shell = "FLASK_APP=demo.app python manage.py run -h 0.0.0.0 --debugger --reload" }
 
 [tool.poetry.group.dev.dependencies]
 poethepoet = "^0.16.5"

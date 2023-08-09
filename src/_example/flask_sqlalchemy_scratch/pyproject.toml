@@ -57,6 +57,9 @@ black = "~=22.10"
 [tool.poetry.group.sorter.dependencies]
 isort = "~=3.6"
 
+[tool.poe.executor]
+type = "simple"
+
 [tool.poe.tasks]
 init-db  = { script = "demo.models.utils.init_db:create_all" }
 populate-db  = { script = "demo.models.utils.populate_dev_db:populate" }

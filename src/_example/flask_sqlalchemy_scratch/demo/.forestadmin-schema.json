@@ -198,6 +198,22 @@
                 {
                     "defaultValue": null,
                     "enums": null,
+                    "field": "customer_id",
+                    "integration": null,
+                    "inverseOf": null,
+                    "isFilterable": false,
+                    "isPrimaryKey": false,
+                    "isReadOnly": true,
+                    "isRequired": false,
+                    "isSortable": false,
+                    "isVirtual": false,
+                    "reference": null,
+                    "type": "Number",
+                    "validations": []
+                },
+                {
+                    "defaultValue": null,
+                    "enums": null,
                     "field": "id",
                     "integration": null,
                     "inverseOf": null,
@@ -328,6 +344,10 @@
                 }
             ],
             "segments": [
+                {
+                    "id": "customer.VIP customers",
+                    "name": "VIP customers"
+                },
                 {
                     "id": "customer.with french address",
                     "name": "with french address"
@@ -461,6 +481,22 @@
                     "validations": []
                 },
                 {
+                    "defaultValue": false,
+                    "enums": null,
+                    "field": "is_vip",
+                    "integration": null,
+                    "inverseOf": null,
+                    "isFilterable": true,
+                    "isPrimaryKey": false,
+                    "isReadOnly": false,
+                    "isRequired": false,
+                    "isSortable": true,
+                    "isVirtual": false,
+                    "reference": null,
+                    "type": "Boolean",
+                    "validations": []
+                },
+                {
                     "defaultValue": null,
                     "enums": null,
                     "field": "last_name",
@@ -499,6 +535,60 @@
                         "Number"
                     ],
                     "validations": []
+                },
+                {
+                    "defaultValue": null,
+                    "enums": null,
+                    "field": "smart_billing_addresses",
+                    "inverseOf": null,
+                    "isFilterable": false,
+                    "isPrimaryKey": false,
+                    "isReadOnly": false,
+                    "isRequired": false,
+                    "isSortable": false,
+                    "isVirtual": false,
+                    "reference": "address.id",
+                    "relationship": "BelongsToMany",
+                    "type": [
+                        "Number"
+                    ],
+                    "validations": []
+                },
+                {
+                    "defaultValue": null,
+                    "enums": null,
+                    "field": "smart_carts",
+                    "inverseOf": null,
+                    "isFilterable": false,
+                    "isPrimaryKey": false,
+                    "isReadOnly": false,
+                    "isRequired": false,
+                    "isSortable": false,
+                    "isVirtual": false,
+                    "reference": "cart.id",
+                    "relationship": "BelongsToMany",
+                    "type": [
+                        "Number"
+                    ],
+                    "validations": []
+                },
+                {
+                    "defaultValue": null,
+                    "enums": null,
+                    "field": "smart_delivering_addresses",
+                    "inverseOf": null,
+                    "isFilterable": false,
+                    "isPrimaryKey": false,
+                    "isReadOnly": false,
+                    "isRequired": false,
+                    "isSortable": false,
+                    "isVirtual": false,
+                    "reference": "address.id",
+                    "relationship": "BelongsToMany",
+                    "type": [
+                        "Number"
+                    ],
+                    "validations": []
                 }
             ]
         },
@@ -506,7 +596,7 @@
             "name": "customers_addresses",
             "isVirtual": false,
             "icon": null,
-            "isReadOnly": true,
+            "isReadOnly": false,
             "integration": null,
             "isSearchable": true,
             "onlyForRelationships": false,
@@ -544,6 +634,38 @@
                     "isSortable": true,
                     "isVirtual": false,
                     "reference": null,
+                    "type": "Number",
+                    "validations": []
+                },
+                {
+                    "defaultValue": null,
+                    "enums": null,
+                    "field": "smart_addresses",
+                    "inverseOf": null,
+                    "isFilterable": true,
+                    "isPrimaryKey": true,
+                    "isReadOnly": false,
+                    "isRequired": false,
+                    "isSortable": true,
+                    "isVirtual": false,
+                    "reference": "address.id",
+                    "relationship": "BelongsTo",
+                    "type": "Number",
+                    "validations": []
+                },
+                {
+                    "defaultValue": null,
+                    "enums": null,
+                    "field": "smart_customers",
+                    "inverseOf": null,
+                    "isFilterable": true,
+                    "isPrimaryKey": true,
+                    "isReadOnly": false,
+                    "isRequired": false,
+                    "isSortable": true,
+                    "isVirtual": false,
+                    "reference": "customer.id",
+                    "relationship": "BelongsTo",
                     "type": "Number",
                     "validations": []
                 }
@@ -841,11 +963,11 @@
     ],
     "meta": {
         "liana": "agent-python",
-        "liana_version": "1.0.0-beta.1",
+        "liana_version": "1.0.0-beta.5",
         "stack": {
             "engine": "python",
-            "engine_version": "3.10.5"
+            "engine_version": "3.10.11"
         },
-        "schemaFileHash": "33815a38d21231b4856034f1fb27cf71e5a7ea6e"
+        "schemaFileHash": "a52adf36cec0fdd590dcf04fd76415a4f85abe30"
     }
 }

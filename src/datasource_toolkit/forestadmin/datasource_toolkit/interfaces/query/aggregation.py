@@ -95,8 +95,14 @@ class Aggregation:
         aggregate_fields = [self.field, *[group["field"] for group in self.groups]]
         return Projection(*[field for field in aggregate_fields if field is not None])
 
-    def apply(self, records: List[RecordsDataAlias], timezone: str) -> List[AggregateResult]:
-        return self._format_summaries(self._create_summaries(records, timezone))
+    def apply(
+        self, records: List[RecordsDataAlias], timezone: str, limit: Optional[int] = None
+    ) -> List[AggregateResult]:
+        rows = self._format_summaries(self._create_summaries(records, timezone))
+        rows = sorted(rows, key=lambda r: r["value"])
+        if limit is not None and len(rows) > limit:
+            rows = rows[:limit]
+        return rows
 
     def _prefix_handler(self, prefix: str) -> Callable[[str], str]:
         def __prefix(field: str) -> str:

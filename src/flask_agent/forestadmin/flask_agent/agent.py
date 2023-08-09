@@ -4,7 +4,6 @@ import sys
 from typing import Optional, Tuple, Union
 
 import pkg_resources
-from forestadmin.agent_toolkit.forest_logger import ForestLogger
 
 if sys.version_info >= (3, 8):
     from typing import Literal
@@ -16,6 +15,7 @@ from flask.app import Flask
 from flask.wrappers import Request as FlaskRequest
 from flask.wrappers import Response as FlaskResponse
 from forestadmin.agent_toolkit.agent import Agent as BaseAgent
+from forestadmin.agent_toolkit.forest_logger import ForestLogger
 from forestadmin.agent_toolkit.options import Options
 from forestadmin.agent_toolkit.resources.base import BaseResource
 from forestadmin.agent_toolkit.resources.collections.crud import LiteralMethod as CrudLiteralMethod
