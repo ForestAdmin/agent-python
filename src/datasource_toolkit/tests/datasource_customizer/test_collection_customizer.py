@@ -2,7 +2,7 @@ import asyncio
 import sys
 from typing import Union
 from unittest import TestCase
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 if sys.version_info >= (3, 9):
     import zoneinfo
@@ -19,6 +19,7 @@ from forestadmin.datasource_toolkit.decorators.action.types.actions import Actio
 from forestadmin.datasource_toolkit.decorators.chart.collection_chart_context import CollectionChartContext
 from forestadmin.datasource_toolkit.decorators.chart.result_builder import ResultBuilder as ResultBuilderChart
 from forestadmin.datasource_toolkit.decorators.computed.types import ComputedDefinition
+from forestadmin.datasource_toolkit.decorators.hook.types import HookHandler
 from forestadmin.datasource_toolkit.interfaces.actions import ActionResult
 from forestadmin.datasource_toolkit.interfaces.fields import (
     Column,
@@ -427,3 +428,15 @@ class TestCollectionCustomizer(TestCase):
         self.assertIsNotNone(
             self.datasource_customizer.stack.relation.get_collection("Person").schema["fields"].get("my_books")
         )
+
+    def test_add_hook_should_call_hook_decorator(self):
+        hook_handler: HookHandler = Mock(HookHandler)
+
+        with patch.object(
+            self.datasource_customizer.stack.hook.get_collection("Person"),
+            "add_hook",
+            wraps=self.datasource_customizer.stack.hook.get_collection("Person").add_hook,
+        ) as mocked_add_hook:
+            self.person_customizer.add_hook("Before", "List", hook_handler)
+
+            mocked_add_hook.assert_called_once_with("Before", "List", hook_handler)

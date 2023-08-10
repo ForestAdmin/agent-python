@@ -3,6 +3,7 @@ from forestadmin.datasource_toolkit.decorators.chart.chart_datasource_decorator 
 from forestadmin.datasource_toolkit.decorators.computed.collections import ComputedCollectionDecorator
 from forestadmin.datasource_toolkit.decorators.datasource_decorator import DatasourceDecorator
 from forestadmin.datasource_toolkit.decorators.empty.collection import EmptyCollectionDecorator
+from forestadmin.datasource_toolkit.decorators.hook.collections import CollectionHookDecorator
 from forestadmin.datasource_toolkit.decorators.operators_emulate.collections import OperatorsEmulateCollectionDecorator
 from forestadmin.datasource_toolkit.decorators.operators_equivalence.collections import (
     OperatorEquivalenceCollectionDecorator,
@@ -46,7 +47,7 @@ class DecoratorStack:
         last = self.action = DatasourceDecorator(last, ActionCollectionDecorator)
         last = self.schema = DatasourceDecorator(last, SchemaCollectionDecorator)
         last = self.write = WriteDataSourceDecorator(last)
-        # last = self.hook = DatasourceDecorator(last, HookCollection)
+        last = self.hook = DatasourceDecorator(last, CollectionHookDecorator)
         last = self.validation = DatasourceDecorator(last, ValidationCollectionDecorator)
         # last = self.binary = DatasourceDecorator(last, BinaryCollection)
 

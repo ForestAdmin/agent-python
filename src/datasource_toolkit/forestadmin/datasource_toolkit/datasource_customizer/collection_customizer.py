@@ -4,6 +4,7 @@ from forestadmin.datasource_toolkit.decorators.action.types.actions import Actio
 from forestadmin.datasource_toolkit.decorators.chart.types import CollectionChartDefinition
 from forestadmin.datasource_toolkit.decorators.computed.types import ComputedDefinition
 from forestadmin.datasource_toolkit.decorators.decorator_stack import DecoratorStack
+from forestadmin.datasource_toolkit.decorators.hook.types import CrudMethod, HookHandler, Position
 from forestadmin.datasource_toolkit.decorators.operators_emulate.types import OperatorDefinition
 from forestadmin.datasource_toolkit.decorators.relation.types import (
     PartialManyToMany,
@@ -160,3 +161,6 @@ class CollectionCustomizer:
 
     def _add_relation(self, name: str, definition: RelationDefinition):
         self.stack.relation.get_collection(self.collection_name).add_relation(name, definition)
+
+    def add_hook(self, position: Position, type: CrudMethod, handler: HookHandler):
+        self.stack.hook.get_collection(self.collection_name).add_hook(position, type, handler)
