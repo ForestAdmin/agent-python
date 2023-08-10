@@ -1,3 +1,10 @@
+# [1.0.0-beta.8](https://github.com/ForestAdmin/agent-python/compare/v1.0.0-beta.7...v1.0.0-beta.8) (2023-08-10)
+
+
+### Features
+
+* **hooks:** add hook decorator ([#104](https://github.com/ForestAdmin/agent-python/issues/104)) ([d6c75ee](https://github.com/ForestAdmin/agent-python/commit/d6c75ee4001b68c2feb3cf6468fa185dc8421677))
+
 # [1.0.0-beta.7](https://github.com/ForestAdmin/agent-python/compare/v1.0.0-beta.6...v1.0.0-beta.7) (2023-08-09)
 
 
