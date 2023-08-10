@@ -15,6 +15,8 @@ from demo.forest_admin.smart.customer import (
     full_name_like,
     full_name_not_contains,
     full_name_not_in,
+    hook_customer_after_list,
+    hook_customer_before_create,
     order_details,
     total_orders_customer_chart,
 )
@@ -110,6 +112,10 @@ def customize_agent(agent: Agent):
     )
     agent.customize_collection("cart").emulate_field_operator("customer_id", Operator.IN)
     agent.customize_collection("customer").add_one_to_many_relation("smart_carts", "cart", "customer_id")
+
+    # hooks
+    agent.customize_collection("customer").add_hook("Before", "Create", hook_customer_before_create)
+    agent.customize_collection("customer").add_hook("After", "List", hook_customer_after_list)
 
     # # ## ORDERS
     # # segment

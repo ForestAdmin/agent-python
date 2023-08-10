@@ -1,5 +1,6 @@
 import io
 import json
+import logging
 from operator import add, sub
 from typing import List, Union
 
@@ -17,6 +18,8 @@ from forestadmin.datasource_toolkit.decorators.action.types.fields import (
 from forestadmin.datasource_toolkit.decorators.chart.collection_chart_context import CollectionChartContext
 from forestadmin.datasource_toolkit.decorators.chart.result_builder import ResultBuilder as ResultBuilderChart
 from forestadmin.datasource_toolkit.decorators.computed.types import ComputedDefinition
+from forestadmin.datasource_toolkit.decorators.hook.context.create import HookBeforeCreateContext
+from forestadmin.datasource_toolkit.decorators.hook.context.list import HookAfterListContext
 from forestadmin.datasource_toolkit.decorators.write.write_replace.write_customization_context import (
     WriteCustomizationContext,
 )
@@ -283,3 +286,23 @@ async def order_details(context: CollectionChartContext, result_builder: ResultB
         Projection("id", "customer_full_name"),
     )
     return result_builder.smart(orders)
+
+
+#  hooks
+
+
+def hook_customer_before_create(context: HookBeforeCreateContext):
+    for data in context.data:
+        if data.get("last_name", "").lower() == "norris" and data.get("first_name", "").lower() == "chuck":
+            context.throw_forbidden_error("You can't hit Chuck Norris; even on a keyboard !!!")
+
+
+async def hook_customer_after_list(context: HookAfterListContext):
+    logger = logging.getLogger("forestadmin")
+    if context.filter.condition_tree is not None:
+        logger.info("you're looking for someone ??")
+
+    if len(context.records) > 0:
+        logger.info("All these customers, you must be rich !!!")
+    else:
+        logger.info("No customers, No problems !!!")
