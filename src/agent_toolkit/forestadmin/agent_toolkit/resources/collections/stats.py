@@ -61,7 +61,11 @@ class StatsResource(BaseCollectionResource):
             return HttpResponseBuilder.build_client_error_response(
                 [ForestException("Missing stats type in request body")]
             )
-        return await meth(request_collection)
+        try:
+            return await meth(request_collection)
+        except Exception as exc:
+            ForestLogger.log("exception", exc)
+            return HttpResponseBuilder.build_client_error_response([exc])
 
     @check_method(RequestMethod.POST)
     @authenticate

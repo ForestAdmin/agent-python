@@ -62,7 +62,11 @@ class CrudRelatedResource(BaseCollectionResource):
         except RequestCollectionException as e:
             ForestLogger.log("exception", e)
             return HttpResponseBuilder.build_client_error_response([e])
-        return await method(request_collection)
+        try:
+            return await method(request_collection)
+        except Exception as exc:
+            ForestLogger.log("exception", exc)
+            return HttpResponseBuilder.build_client_error_response([exc])
 
     @authenticate
     @authorize("browse")
