@@ -17,6 +17,7 @@ from forestadmin.datasource_toolkit.decorators.search.collections import SearchD
 from forestadmin.datasource_toolkit.decorators.segments.collections import SegmentAlias
 from forestadmin.datasource_toolkit.decorators.write.write_replace.types import WriteDefinition
 from forestadmin.datasource_toolkit.interfaces.fields import FieldType, Operator, PrimitiveType
+from forestadmin.datasource_toolkit.interfaces.query.sort import PlainSortClause
 from forestadmin.datasource_toolkit.utils.collections import CollectionUtils, CollectionUtilsException
 from forestadmin.datasource_toolkit.validations.rules import MAP_ALLOWED_OPERATORS_FOR_COLUMN_TYPE
 
@@ -164,3 +165,9 @@ class CollectionCustomizer:
 
     def add_hook(self, position: Position, type: CrudMethod, handler: HookHandler):
         self.stack.hook.get_collection(self.collection_name).add_hook(position, type, handler)
+
+    def emulate_field_sorting(self, name: str):
+        self.stack.sort_emulate.get_collection(self.collection_name).emulate_field_sorting(name)
+
+    def replace_field_sorting(self, name: str, equivalent_sort: List[PlainSortClause]):
+        self.stack.sort_emulate.get_collection(self.collection_name).replace_field_sorting(name, equivalent_sort)
