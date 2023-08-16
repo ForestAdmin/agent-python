@@ -440,3 +440,24 @@ class TestCollectionCustomizer(TestCase):
             self.person_customizer.add_hook("Before", "List", hook_handler)
 
             mocked_add_hook.assert_called_once_with("Before", "List", hook_handler)
+
+    def test_emulate_field_sorting(self):
+        with patch.object(
+            self.datasource_customizer.stack.sort_emulate.get_collection("Person"),
+            "emulate_field_sorting",
+            # wraps=self.datasource_customizer.stack.sort_emulate.get_collection("Person").emulate_field_sorting,
+        ) as mocked_emulate_field_sorting:
+            self.person_customizer.emulate_field_sorting("name")
+
+            mocked_emulate_field_sorting.assert_called_once_with("name")
+
+    def test_replace_field_sorting(self):
+        sort_clause = {"field": "name", "ascending": True}
+        with patch.object(
+            self.datasource_customizer.stack.sort_emulate.get_collection("Person"),
+            "replace_field_sorting",
+            # wraps=self.datasource_customizer.stack.sort_emulate.get_collection("Person").replace_field_sorting,
+        ) as mocked_replace_field_sorting:
+            self.person_customizer.replace_field_sorting("name", sort_clause)
+
+            mocked_replace_field_sorting.assert_called_once_with("name", sort_clause)
