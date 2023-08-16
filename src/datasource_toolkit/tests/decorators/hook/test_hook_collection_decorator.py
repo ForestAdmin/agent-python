@@ -79,7 +79,7 @@ class TestBeforeHookCollectionDecorator(TestHookCollectionDecorator):
         )
 
         hook.assert_called_once()
-        args = hook.call_args.args
+        args = hook.call_args_list[0][0]
         self.assertEqual(args[0].caller, self.mocked_caller)
         self.assertEqual(args[0].filter, filter_)
         self.assertEqual(args[0].projection, projection)
@@ -93,7 +93,7 @@ class TestBeforeHookCollectionDecorator(TestHookCollectionDecorator):
         self.loop.run_until_complete(self.decorated_collection_transaction.create(self.mocked_caller, data))
 
         hook.assert_called_once()
-        args = hook.call_args.args
+        args = hook.call_args_list[0][0]
         self.assertEqual(args[0].caller, self.mocked_caller)
         self.assertEqual(args[0].data, data)
 
@@ -107,7 +107,7 @@ class TestBeforeHookCollectionDecorator(TestHookCollectionDecorator):
         self.loop.run_until_complete(self.decorated_collection_transaction.update(self.mocked_caller, filter_, patch))
 
         hook.assert_called_once()
-        args = hook.call_args.args
+        args = hook.call_args_list[0][0]
         self.assertEqual(args[0].caller, self.mocked_caller)
         self.assertEqual(args[0].filter, filter_)
         self.assertEqual(args[0].patch, patch)
@@ -121,7 +121,7 @@ class TestBeforeHookCollectionDecorator(TestHookCollectionDecorator):
         self.loop.run_until_complete(self.decorated_collection_transaction.delete(self.mocked_caller, filter_))
 
         hook.assert_called_once()
-        args = hook.call_args.args
+        args = hook.call_args_list[0][0]
         self.assertEqual(args[0].caller, self.mocked_caller)
         self.assertEqual(args[0].filter, filter_)
 
@@ -137,7 +137,7 @@ class TestBeforeHookCollectionDecorator(TestHookCollectionDecorator):
         )
 
         hook.assert_called_once()
-        args = hook.call_args.args
+        args = hook.call_args_list[0][0]
         self.assertEqual(args[0].caller, self.mocked_caller)
         self.assertEqual(args[0].filter, filter_)
         self.assertEqual(args[0].aggregation, aggregation)
@@ -161,7 +161,7 @@ class TestAfterHookCollectionDecorator(TestHookCollectionDecorator):
             mocked_list.assert_awaited_once()
 
         hook.assert_called_once()
-        args = hook.call_args.args
+        args = hook.call_args_list[0][0]
         self.assertEqual(args[0].caller, self.mocked_caller)
         self.assertEqual(args[0].filter, filter_)
         self.assertEqual(args[0].projection, projection)
@@ -181,7 +181,7 @@ class TestAfterHookCollectionDecorator(TestHookCollectionDecorator):
             mocked_create.assert_awaited_once()
 
         hook.assert_called_once()
-        args = hook.call_args.args
+        args = hook.call_args_list[0][0]
         self.assertEqual(args[0].caller, self.mocked_caller)
         self.assertEqual(args[0].data, data)
         self.assertEqual(args[0].records, records)
@@ -204,7 +204,7 @@ class TestAfterHookCollectionDecorator(TestHookCollectionDecorator):
             mocked_update.assert_awaited_once()
 
         hook.assert_called_once()
-        args = hook.call_args.args
+        args = hook.call_args_list[0][0]
         self.assertEqual(args[0].caller, self.mocked_caller)
         self.assertEqual(args[0].filter, filter_)
         self.assertEqual(args[0].patch, patch_)
@@ -224,7 +224,7 @@ class TestAfterHookCollectionDecorator(TestHookCollectionDecorator):
             mocked_delete.assert_awaited_once()
 
         hook.assert_called_once()
-        args = hook.call_args.args
+        args = hook.call_args_list[0][0]
         self.assertEqual(args[0].caller, self.mocked_caller)
         self.assertEqual(args[0].filter, filter_)
 
@@ -245,7 +245,7 @@ class TestAfterHookCollectionDecorator(TestHookCollectionDecorator):
             mocked_aggregate.assert_awaited_once()
 
         hook.assert_called_once()
-        args = hook.call_args.args
+        args = hook.call_args_list[0][0]
         self.assertEqual(args[0].caller, self.mocked_caller)
         self.assertEqual(args[0].filter, filter_)
         self.assertEqual(args[0].aggregation, aggregation)
