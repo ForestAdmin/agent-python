@@ -44,14 +44,11 @@ class Sort(list):  # type: ignore
 
     def nest(self: List[PlainSortClause], prefix: str) -> "Sort":
         if prefix:
-            for plain_sort in self:
-                plain_sort["field"] = f'{prefix}:{plain_sort["field"]}'
+            return Sort(map(lambda plain_sort: {**plain_sort, "field": f'{prefix}:{plain_sort["field"]}'}, self))
         return self
 
     def inverse(self: List[PlainSortClause]) -> "Sort":
-        for plain_sort in self:
-            plain_sort["ascending"] = not plain_sort["ascending"]
-        return self
+        return Sort(map(lambda clause: {**clause, "ascending": not clause["ascending"]}, self))
 
     def unnest(self: List[PlainSortClause]) -> "Sort":
         splited = self[0]["field"].split(":")

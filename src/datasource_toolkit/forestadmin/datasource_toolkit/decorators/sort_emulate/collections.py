@@ -103,7 +103,7 @@ class SortCollectionDecorator(CollectionDecorator):
                 .nest(prefix)
             )
 
-        # Field that e own: recursively replace using equivalent sort
+        # Field that we own: recursively replace using equivalent sort
         equivalent_sort = self._sorts.get(clause["field"])
         if equivalent_sort:
             if clause["ascending"] is False:
