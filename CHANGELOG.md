@@ -1,3 +1,10 @@
+# [1.0.0-beta.9](https://github.com/ForestAdmin/agent-python/compare/v1.0.0-beta.8...v1.0.0-beta.9) (2023-08-17)
+
+
+### Features
+
+* **sort_emulate:** add sort_emulate decorator ([#105](https://github.com/ForestAdmin/agent-python/issues/105)) ([73fef74](https://github.com/ForestAdmin/agent-python/commit/73fef74c0216561221de93bbfbafd916b46863fd))
+
 # [1.0.0-beta.8](https://github.com/ForestAdmin/agent-python/compare/v1.0.0-beta.7...v1.0.0-beta.8) (2023-08-10)
 
 
