@@ -1,4 +1,6 @@
 import logging
+import sys
+import traceback
 from typing import Callable
 
 logger = logging.getLogger("forestadmin")
@@ -26,7 +28,31 @@ class ForestLogger:
 
     @staticmethod
     def default_logger_function(level: str, message: str):
-        getattr(logging.getLogger("forestadmin"), level.lower())(message)
+        # find in call stack the call to ForestLogger.log
+        current_logging_frame = None
+        for frame in traceback.extract_stack()[::-1]:
+            # get the last frame
+            if frame.line.startswith("ForestLogger.log("):
+                current_logging_frame = frame
+                break
+
+        if current_logging_frame:
+            # handle a log record built with the logging frame data
+            logger.handle(
+                logger.makeRecord(
+                    logger.name,
+                    _LOG_LEVELS[level.upper()],
+                    current_logging_frame.filename,
+                    current_logging_frame.lineno,
+                    message,
+                    {},
+                    sys.exc_info() if level.lower() == "exception" else None,
+                    current_logging_frame.name,
+                )
+            )
+        else:
+            # I don't know why we may be in this else, but if we are...
+            getattr(logger, level.lower())(message, stack_info=True)
 
     @classmethod
     def setup_logger(cls, log_level, custom_fn):
