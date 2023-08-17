@@ -18,6 +18,7 @@ from forestadmin.datasource_toolkit.decorators.rename_field.collections import R
 from forestadmin.datasource_toolkit.decorators.schema.collection import SchemaCollectionDecorator
 from forestadmin.datasource_toolkit.decorators.search.collections import SearchCollectionDecorator
 from forestadmin.datasource_toolkit.decorators.segments.collections import SegmentCollectionDecorator
+from forestadmin.datasource_toolkit.decorators.sort_emulate.collections import SortCollectionDecorator
 from forestadmin.datasource_toolkit.decorators.validation.collection import ValidationCollectionDecorator
 from forestadmin.datasource_toolkit.interfaces.fields import Column, FieldType, PrimitiveType
 
@@ -76,6 +77,7 @@ class TestDecoratorStack(TestCase):
                 call(self.datasource, OperatorEquivalenceCollectionDecorator),
                 call(self.datasource, SearchCollectionDecorator),
                 call(self.datasource, SegmentCollectionDecorator),
+                call(self.datasource, SortCollectionDecorator),
                 # call(self.datasource, ChartCollectionDecorator),
                 call(self.datasource, ActionCollectionDecorator),
                 call(self.datasource, SchemaCollectionDecorator),

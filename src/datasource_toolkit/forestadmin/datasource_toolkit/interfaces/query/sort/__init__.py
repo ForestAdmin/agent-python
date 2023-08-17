@@ -32,28 +32,25 @@ class Sort(list):  # type: ignore
     def projection(self: List[PlainSortClause]) -> Projection:
         return Projection(*[plain_sort["field"] for plain_sort in self])
 
-    def replace_clauses(self: List[PlainSortClause], callback: "ReplaceCallback"):
+    def replace_clauses(self: List[PlainSortClause], callback: "ReplaceCallback") -> "Sort":
         clauses: List[PlainSortClause] = []
         for plain_sort in self:
             clause = callback(plain_sort)
             if isinstance(clause, list):
-                clauses.append(*clause)  # type: ignore
+                clauses.extend(clause)  # type: ignore
             else:
                 clauses.append(clause)
         return Sort(clauses)
 
-    def nest(self: List[PlainSortClause], prefix: str) -> List[PlainSortClause]:
+    def nest(self: List[PlainSortClause], prefix: str) -> "Sort":
         if prefix:
-            for plain_sort in self:
-                plain_sort["field"] = f'{prefix}:{plain_sort["field"]}'
+            return Sort(map(lambda plain_sort: {**plain_sort, "field": f'{prefix}:{plain_sort["field"]}'}, self))
         return self
 
-    def inverse(self: List[PlainSortClause]) -> List[PlainSortClause]:
-        for plain_sort in self:
-            plain_sort["ascending"] = not plain_sort["ascending"]
-        return self
+    def inverse(self: List[PlainSortClause]) -> "Sort":
+        return Sort(map(lambda clause: {**clause, "ascending": not clause["ascending"]}, self))
 
-    def unnest(self: List[PlainSortClause]) -> List[PlainSortClause]:
+    def unnest(self: List[PlainSortClause]) -> "Sort":
         splited = self[0]["field"].split(":")
         prefix = splited[0]
         plain_sorts: List[PlainSortClause] = []

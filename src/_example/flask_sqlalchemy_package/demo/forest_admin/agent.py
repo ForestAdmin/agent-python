@@ -46,6 +46,14 @@ def customize_agent(agent: Agent):
     agent.customize_collection("address").rename_field("country", "pays")
     agent.customize_collection("address").add_field("full_address", address_full_name_computed("country"))
     agent.customize_collection("address").rename_field("full_address", "complete_address")
+    agent.customize_collection("address").replace_field_sorting(
+        "full_address",
+        [
+            {"field": "country", "ascending": True},
+            {"field": "city", "ascending": True},
+            {"field": "street", "ascending": True},
+        ],
+    )
 
     # changing visibility
     agent.customize_collection("address").remove_field("zip_code")

@@ -14,6 +14,7 @@ from forestadmin.datasource_toolkit.decorators.rename_field.collections import R
 from forestadmin.datasource_toolkit.decorators.schema.collection import SchemaCollectionDecorator
 from forestadmin.datasource_toolkit.decorators.search.collections import SearchCollectionDecorator
 from forestadmin.datasource_toolkit.decorators.segments.collections import SegmentCollectionDecorator
+from forestadmin.datasource_toolkit.decorators.sort_emulate.collections import SortCollectionDecorator
 from forestadmin.datasource_toolkit.decorators.validation.collection import ValidationCollectionDecorator
 from forestadmin.datasource_toolkit.decorators.write.write_datasource_decorator import WriteDataSourceDecorator
 from forestadmin.datasource_toolkit.interfaces.models.collections import Datasource
@@ -40,7 +41,7 @@ class DecoratorStack:
         # Step 2: Those need access to all fields. They can be loaded in any order.
         last = self.search = DatasourceDecorator(last, SearchCollectionDecorator)
         last = self.segment = DatasourceDecorator(last, SegmentCollectionDecorator)
-        # last = self.sort = DatasourceDecorator(last, SortCollection)
+        last = self.sort_emulate = DatasourceDecorator(last, SortCollectionDecorator)
 
         # Step 3: Access to all fields AND emulated capabilities
         last = self.chart = ChartDataSourceDecorator(last)
