@@ -48,6 +48,14 @@ agent.customize_collection("address").add_segment("highOrderDelivery", high_deli
 agent.customize_collection("address").rename_field("country", "pays")
 agent.customize_collection("address").add_field("full_address", address_full_name_computed("country"))
 agent.customize_collection("address").rename_field("full_address", "complete_address")
+agent.customize_collection("address").replace_field_sorting(
+    "full_address",
+    [
+        {"field": "country", "ascending": True},
+        {"field": "city", "ascending": True},
+        {"field": "street", "ascending": True},
+    ],
+)
 
 # customers_addresses
 agent.customize_collection("customers_addresses").add_many_to_one_relation("smart_customers", "customer", "customer_id")
