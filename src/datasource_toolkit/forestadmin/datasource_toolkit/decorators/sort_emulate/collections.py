@@ -56,7 +56,7 @@ class SortCollectionDecorator(CollectionDecorator):
 
         # Fetch the whole collection, but only with the fields we need to sort
         reference_records: List[RecordsDataAlias] = await self.child_collection.list(
-            caller, _filter.override({"sort": None, "page": None}), _filter.sort.projection.with_pks(self)
+            caller, child_filter.override({"sort": None, "page": None}), child_filter.sort.projection.with_pks(self)
         )
 
         reference_records = child_filter.sort.apply(reference_records)
