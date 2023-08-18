@@ -183,11 +183,7 @@ def parse_condition_tree(request: Union[RequestCollection, RequestRelationCollec
         else:
             collection = request.collection
 
-        if "conditions" in json_filters:
-            for condition in json_filters["conditions"]:
-                condition["value"] = _parse_value(condition, collection)
-        else:
-            json_filters["value"] = _parse_value(json_filters, collection)
+        json_filters = _parse_value(json_filters, collection)
 
         condition_tree = ConditionTreeFactory.from_plain_object(json_filters)
     except ConditionTreeFactoryException as e:
@@ -202,6 +198,11 @@ def parse_condition_tree(request: Union[RequestCollection, RequestRelationCollec
 
 
 def _parse_value(jsoned_filters, collection):
+    if "conditions" in jsoned_filters:
+        for condition in jsoned_filters["conditions"]:
+            condition = _parse_value(condition, collection)
+        return jsoned_filters
+
     schema = CollectionUtils.get_field_schema(collection, jsoned_filters["field"])
 
     if jsoned_filters["operator"] == "in" and isinstance(jsoned_filters["value"], str):
@@ -218,8 +219,9 @@ def _parse_value(jsoned_filters, collection):
                     new_val = float(value)
                 new_values.append(new_val)
             values = new_values
-        return values
-    return jsoned_filters["value"]
+
+        jsoned_filters["value"] = values
+    return jsoned_filters
 
 
 def _parse_projection_fields(
