@@ -133,3 +133,8 @@ class ConditionTreeBranch(ConditionTree):
     def unnest(self) -> ConditionTree:
         prefix = self._get_prefix()
         return self._remove_prefix(prefix)
+
+    def to_plain_object(self) -> BranchComponents:
+        return BranchComponents(
+            aggregator=self.aggregator.value, conditions=[condition.to_plain_object() for condition in self.conditions]
+        )

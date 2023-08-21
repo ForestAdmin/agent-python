@@ -1,5 +1,6 @@
 import abc
 import sys
+from typing import Any, Awaitable, Callable, Dict, List, TypeVar, Union
 
 if sys.version_info >= (3, 9):
     import zoneinfo
@@ -10,8 +11,6 @@ if sys.version_info >= (3, 8):
     from typing import TypedDict
 else:
     from typing_extensions import TypedDict
-
-from typing import Awaitable, Callable, List, TypeVar, Union
 
 from forestadmin.datasource_toolkit.exceptions import DatasourceToolkitException
 from forestadmin.datasource_toolkit.interfaces.models.collections import Collection
@@ -65,6 +64,10 @@ class ConditionTree(abc.ABC):
     @abc.abstractmethod
     def nest(self, prefix: str) -> "ConditionTree":
         """nest conditionTree"""
+
+    @abc.abstractmethod
+    def to_plain_object(self) -> Dict[str, Any]:
+        """return a component version of self. Inverse of ConditionTreeFactory.from_plain_object"""
 
 
 class ConditionTreeComponent(TypedDict):

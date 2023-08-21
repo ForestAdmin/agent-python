@@ -267,3 +267,6 @@ class ConditionTreeLeaf(ConditionTree):
             )
             is not None
         )
+
+    def to_plain_object(self) -> LeafComponents:
+        return LeafComponents(field=self.field, operator=self.operator.value, value=self.value)
