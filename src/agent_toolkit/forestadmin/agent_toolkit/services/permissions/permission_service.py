@@ -57,6 +57,10 @@ class PermissionService:
         self.options = options
         self.cache: TTLCache[int, Any] = TTLCache(maxsize=256, ttl=options["permission_cache_duration"])
 
+    def invalidate_cache(self, rendering_id: int):
+        if rendering_id in self.cache.get("forest.scopes", {}):
+            del self.cache[rendering_id]
+
     async def can(self, caller: User, collection: Collection, action: str, allow_fetch: bool = False):
         if not await self._has_permission_system():
             return True
