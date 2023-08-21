@@ -135,11 +135,23 @@ class StatsResource(BaseCollectionResource):
             }
         )
         rows = await request.collection.aggregate(request.user, current_filter, aggregation)
-        values = {
-            datetime.fromisoformat(row["group"][request.body["group_by_date_field"]]).date(): row["value"]
-            for row in rows
-            if row["group"][request.body["group_by_date_field"]] is not None
-        }
+        values = {}
+        for row in rows:
+            label = row["group"][request.body["group_by_date_field"]]
+            if label is not None:
+                if isinstance(label, str):
+                    label = datetime.fromisoformat(label).date()
+                elif isinstance(label, datetime):
+                    label = label.date()
+                elif isinstance(label, date):
+                    pass
+                else:
+                    ForestLogger.log(
+                        "warning",
+                        f"The time chart label type must be 'str' or 'date', not {type(label)}. Skipping this record.",
+                    )
+                values[label] = row["value"]
+
         dates = list(values.keys())
         dates.sort()
         end = dates[-1]
