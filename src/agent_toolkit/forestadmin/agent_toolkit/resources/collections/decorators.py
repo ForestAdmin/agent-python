@@ -61,7 +61,7 @@ def authorize(action: str):
                 if action == "chart":
                     await self.permission.can_chart(request.user, request)
                 else:
-                    await self.permission.can(request.user, request.collection, f"{action}:{request.collection.name}")
+                    await self.permission.can(request.user, request.collection, f"{action}")
             except PermissionServiceException as e:
                 return Response(status=e.STATUS, body=e.message)
 

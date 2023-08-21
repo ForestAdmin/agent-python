@@ -149,7 +149,9 @@ class PermissionService:
 
     async def _has_permission_system(self) -> bool:
         if "forest.has_permission" not in self.cache:
-            self.cache["forest.has_permission"] = not (await ForestHttpApi.get_environment_permissions(self.options))
+            self.cache["forest.has_permission"] = not (
+                await ForestHttpApi.get_environment_permissions(self.options) is True
+            )
 
         return self.cache["forest.has_permission"]
 
@@ -187,11 +189,13 @@ class PermissionService:
             ForestLogger.log("Debug", "Fetching environment permissions")
             response = await ForestHttpApi.get_environment_permissions(self.options)
             collections = {}
-            for name, collection in response.items():
+            for name, collection in response["collections"].items():
                 collections[name] = {
                     **_decode_crud_permissions(collection),
                     **_decode_actions_permissions(collection),
                 }
+            self.cache["forest.collections"] = collections
+
         return self.cache["forest.collections"]
 
 
