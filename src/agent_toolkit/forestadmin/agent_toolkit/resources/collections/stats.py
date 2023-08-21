@@ -12,7 +12,7 @@ from uuid import uuid1
 import pandas as pd
 from forestadmin.agent_toolkit.forest_logger import ForestLogger
 from forestadmin.agent_toolkit.resources.collections import BaseCollectionResource
-from forestadmin.agent_toolkit.resources.collections.decorators import authenticate, check_method
+from forestadmin.agent_toolkit.resources.collections.decorators import authenticate, authorize, check_method
 from forestadmin.agent_toolkit.resources.collections.filter import build_filter
 from forestadmin.agent_toolkit.resources.collections.requests import RequestCollection, RequestCollectionException
 from forestadmin.agent_toolkit.utils.context import FileResponse, HttpResponseBuilder, Request, RequestMethod, Response
@@ -69,6 +69,7 @@ class StatsResource(BaseCollectionResource):
 
     @check_method(RequestMethod.POST)
     @authenticate
+    @authorize("chart")
     async def value(self, request: RequestCollection) -> Response:
         current_filter = await self._get_filter(request)
         result = {
@@ -90,6 +91,7 @@ class StatsResource(BaseCollectionResource):
 
     @check_method(RequestMethod.POST)
     @authenticate
+    @authorize("chart")
     async def objective(self, request: RequestCollection) -> Response:
         current_filter = await self._get_filter(request)
         result = {"value": await self._compute_value(request, current_filter)}
@@ -97,6 +99,7 @@ class StatsResource(BaseCollectionResource):
 
     @check_method(RequestMethod.POST)
     @authenticate
+    @authorize("chart")
     async def pie(self, request: RequestCollection) -> Response:
         if not request.body:
             raise Exception
@@ -104,17 +107,17 @@ class StatsResource(BaseCollectionResource):
         current_filter = await self._get_filter(request)
         aggregation = Aggregation(
             {
-                "operation": request.body["aggregate"],
-                "field": request.body.get("aggregate_field"),
-                "groups": [{"field": request.body["group_by_field"]}],
+                "operation": request.body["aggregator"],
+                "field": request.body.get("aggregateFieldName"),
+                "groups": [{"field": request.body["groupByFieldName"]}],
             }
         )
         rows = await request.collection.aggregate(request.user, current_filter, aggregation)
         results: List[Dict[str, Union[str, int]]] = []
         for row in rows:
-            key = row["group"][request.body["group_by_field"]]
-            if ":" not in request.body["group_by_field"]:
-                field = request.collection.get_field(request.body["group_by_field"])
+            key = row["group"][request.body["groupByFieldName"]]
+            if ":" not in request.body["groupByFieldName"]:
+                field = request.collection.get_field(request.body["groupByFieldName"])
                 if cast(Column, field)["column_type"] == PrimitiveType.ENUM:
                     key = key.value
             results.append({"key": key, "value": row["value"]})
@@ -122,6 +125,7 @@ class StatsResource(BaseCollectionResource):
 
     @check_method(RequestMethod.POST)
     @authenticate
+    @authorize("chart")
     async def line(self, request: RequestCollection) -> Response:
         if not request.body:
             raise Exception
@@ -129,15 +133,15 @@ class StatsResource(BaseCollectionResource):
         current_filter = await self._get_filter(request)
         aggregation = Aggregation(
             {
-                "operation": request.body["aggregate"],
-                "field": request.body.get("aggregate_field"),
-                "groups": [{"field": request.body["group_by_date_field"], "operation": request.body["time_range"]}],
+                "operation": request.body["aggregator"],
+                "field": request.body.get("aggregateFieldName"),
+                "groups": [{"field": request.body["groupByFieldName"], "operation": request.body["timeRange"]}],
             }
         )
         rows = await request.collection.aggregate(request.user, current_filter, aggregation)
         values = {}
         for row in rows:
-            label = row["group"][request.body["group_by_date_field"]]
+            label = row["group"][request.body["groupByFieldName"]]
             if label is not None:
                 if isinstance(label, str):
                     label = datetime.fromisoformat(label).date()
@@ -158,11 +162,11 @@ class StatsResource(BaseCollectionResource):
         start = dates[0]
         datapoints: List[Dict[str, Union[date, Dict[str, int]]]] = []
         for dt in pd.date_range(  # type: ignore
-            start=start, end=end, freq=self.FREQUENCIES[request.body["time_range"]].value
+            start=start, end=end, freq=self.FREQUENCIES[request.body["timeRange"]].value
         ).to_pydatetime():
             datapoints.append(
                 {
-                    "label": dt.strftime(self.FORMAT[request.body["time_range"]]),
+                    "label": dt.strftime(self.FORMAT[request.body["timeRange"]]),
                     "values": {"value": values.get(dt.date(), 0)},
                 }
             )
@@ -170,14 +174,15 @@ class StatsResource(BaseCollectionResource):
 
     @check_method(RequestMethod.POST)
     @authenticate
+    @authorize("chart")
     async def leader_board(self, request: RequestCollection) -> Response:
         if not request.body:
             raise Exception
-        aggregate = request.body["aggregate"]
-        label_field = request.body["label_field"]
-        relationship_field = request.body["relationship_field"]
+        aggregate = request.body["aggregator"]
+        label_field = request.body["labelFieldName"]
+        relationship_field = request.body["relationshipFieldName"]
         limit = request.body["limit"]
-        aggregate_field = request.body.get("aggregate_field")
+        aggregate_field = request.body.get("aggregateFieldName")
         if not aggregate_field:
             relation = SchemaUtils.get_to_many_relation(request.collection.schema, relationship_field)
             foreign_collection = relation["foreign_collection"]
@@ -222,7 +227,7 @@ class StatsResource(BaseCollectionResource):
         if not request.body:
             raise Exception
         aggregation = Aggregation(
-            {"operation": request.body["aggregate"], "field": request.body.get("aggregate_field")}
+            {"operation": request.body["aggregator"], "field": request.body.get("aggregateFieldName")}
         )
         rows = await request.collection.aggregate(request.user, filter, aggregation)
         res = 0

@@ -58,7 +58,10 @@ def authorize(action: str):
     def wrapper(fn: Callable[["BoundResource", BoundRequestCollection], Awaitable[Any]]):
         async def wrapped1(self: "BoundResource", request: BoundRequestCollection) -> Union[FileResponse, Response]:
             try:
-                await self.permission.can(request.user, request.collection, f"{action}:{request.collection.name}")
+                if action == "chart":
+                    await self.permission.can_chart(request.user, request)
+                else:
+                    await self.permission.can(request.user, request.collection, f"{action}:{request.collection.name}")
             except PermissionServiceException as e:
                 return Response(status=e.STATUS, body=e.message)
 

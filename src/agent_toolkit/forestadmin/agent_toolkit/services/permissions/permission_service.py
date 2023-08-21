@@ -80,6 +80,23 @@ class PermissionService:
             raise ForbiddenError(f"You don't have permission to {action} this collection.")
         return is_allowed
 
+    async def can_chart(self, caller: User, request: RequestCollection) -> bool:
+        hash_request = request.body["type"] + ":" + _hash_chart(request.body)
+        is_allowed = hash_request in await self._get_chart_data(request.user.rendering_id, False)
+
+        # Refetch
+        if is_allowed is False:
+            is_allowed = hash_request in await self._get_chart_data(request.user.rendering_id, True)
+
+        # still not allowed - throw forbidden message
+        if is_allowed is False:
+            ForestLogger.log(
+                "debug", f"User {caller.user_id} cannot retrieve chart on rendering {request.user.rendering_id}"
+            )
+            raise ForbiddenError("You don't have permission to access this collection.")
+        ForestLogger.log("debug", f"User {caller.user_id} can retrieve chart on rendering {request.user.rendering_id}")
+        return is_allowed
+
     async def get_scope(
         self,
         request: Union[RequestCollection, RequestRelationCollection],
@@ -142,6 +159,21 @@ class PermissionService:
             self.cache["forest.users"] = users
 
         return self.cache["forest.users"][user_id]
+
+    async def _get_chart_data(self, rendering_id: int, force_fetch: bool = False) -> Dict:
+        if force_fetch and "forest.stats" in self.cache:
+            del self.cache["forest.stats"]
+
+        if "forest.stats" not in self.cache:
+            ForestLogger.log("debug", f"Loading rendering permissions for rendering {rendering_id}")
+            response = await ForestHttpApi.get_rendering_permissions(rendering_id, self.options)
+
+            stat_hash = []
+            for stat in response["stats"]:
+                stat_hash.append(f'{stat["type"]}:{_hash_chart(stat)}')
+            self.cache["forest.stats"] = stat_hash
+
+        return self.cache["forest.stats"]
 
     async def _get_collection_permissions_data(self, force_fetch: bool = False):
         if force_fetch and "forest.collections" in self.cache:
@@ -275,3 +307,54 @@ def _decode_chart_permissions(stats: Dict[str, Any]):
             h = hash(json.dumps(dict((k, v) for k, v in frontend_chart.items() if v is not None)))
             hashes.append(f"chart:{h}")
     return hashes
+
+
+################
+# Hash methods #
+################
+
+
+def _dict_hash(data: Dict) -> str:
+    sorted_data = _order_dict(data)
+    return sha1(json.dumps(sorted_data).encode()).hexdigest()
+
+
+def _hash_chart(chart):
+    known_chart_keys = [
+        "type",
+        "apiRoute",
+        "smartRoute",
+        "query",
+        "labelFieldName",
+        "filter",
+        "sourceCollectionName",
+        "aggregator",
+        "aggregateFieldName",
+        "groupByFieldName",
+        "relationshipFieldName",
+        "limit",
+        "timeRange",
+        "objective",
+        "numeratorChartId",
+        "denominatorChartId",
+    ]
+    dct = {
+        k: v
+        for k, v in chart.items()
+        if k in known_chart_keys and v is not None and (not isinstance(v, Iterable) or len(v) > 0)
+    }
+    return _dict_hash(dct)
+
+
+def _order_dict(dictionary):
+    result = {}
+    for key in sorted(dictionary.keys()):
+        if isinstance(dictionary[key], dict):
+            result[key] = _order_dict(dictionary[key])
+        elif isinstance(dictionary[key], list):
+            result[key] = []
+            for i, _ in enumerate(dictionary[key]):
+                result[key].append(_order_dict(dictionary[key][i]))
+        else:
+            result[key] = dictionary[key]
+    return result
