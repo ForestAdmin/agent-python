@@ -1,3 +1,11 @@
+# [1.0.0-beta.10](https://github.com/ForestAdmin/agent-python/compare/v1.0.0-beta.9...v1.0.0-beta.10) (2023-08-21)
+
+
+### Bug Fixes
+
+* **condition_tree:** nested conditionTreeBranch are now recursively parsed ([#106](https://github.com/ForestAdmin/agent-python/issues/106)) ([427871f](https://github.com/ForestAdmin/agent-python/commit/427871ff82126a8bd7b534c89099c3582a40f0c7))
+* **stats:** error on time chart time label parsing ([#107](https://github.com/ForestAdmin/agent-python/issues/107)) ([5f6cf39](https://github.com/ForestAdmin/agent-python/commit/5f6cf3931983ee610f0d3efcda7484d456aaf493))
+
 # [1.0.0-beta.9](https://github.com/ForestAdmin/agent-python/compare/v1.0.0-beta.8...v1.0.0-beta.9) (2023-08-17)
 
 
