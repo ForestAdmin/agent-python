@@ -3,7 +3,7 @@ from typing import Any, Awaitable, Callable, TypeVar, Union
 from forestadmin.agent_toolkit.resources.collections import BaseCollectionResource
 from forestadmin.agent_toolkit.resources.collections.filter import parse_timezone
 from forestadmin.agent_toolkit.resources.collections.requests import RequestCollection
-from forestadmin.agent_toolkit.services.permissions import PermissionServiceException
+from forestadmin.agent_toolkit.services.permissions.permission_service import PermissionServiceException
 from forestadmin.agent_toolkit.utils.context import (
     FileResponse,
     HttpResponseBuilder,
@@ -58,7 +58,7 @@ def authorize(action: str):
     def wrapper(fn: Callable[["BoundResource", BoundRequestCollection], Awaitable[Any]]):
         async def wrapped1(self: "BoundResource", request: BoundRequestCollection) -> Union[FileResponse, Response]:
             try:
-                await self.permission.can(request, f"{action}:{request.collection.name}")
+                await self.permission.can(request.user, request.collection, f"{action}:{request.collection.name}")
             except PermissionServiceException as e:
                 return Response(status=e.STATUS, body=e.message)
 
