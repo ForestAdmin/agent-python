@@ -1,4 +1,5 @@
 import sys
+from ast import literal_eval
 from distutils.util import strtobool
 
 if sys.version_info >= (3, 9):
@@ -99,10 +100,10 @@ def parse_sort(request: Union[RequestCollection, RequestRelationCollection]):
     if not sort_string:
         return SortFactory.by_primary_keys(_get_collection(request))
 
-    sort_field = sort_string
+    sort_field = sort_string.replace(".", ":")
     is_descending = sort_string[0] == "-"
     if is_descending:
-        sort_field = sort_string[1:]
+        sort_field = sort_field[1:]
     return Sort([{"field": sort_field, "ascending": not is_descending}])
 
 
@@ -173,10 +174,15 @@ def parse_condition_tree(request: Union[RequestCollection, RequestRelationCollec
     filters: Optional[str] = _subset_or_query(request, "filters")
     if not filters and request.body and "filters" in request.body:
         filters = request.body["filters"]
+    else:
+        filters: Optional[str] = _subset_or_query(request, "filter")
+        if not filters and request.body and "filter" in request.body:
+            filters = request.body["filter"]
+
     if not filters:
         return None
 
-    json_filters = json.loads(filters)
+    json_filters = json.loads(filters) if isinstance(filters, str) else filters
     try:
         if isinstance(request, RequestRelationCollection):
             collection = request.foreign_collection
@@ -205,22 +211,26 @@ def _parse_value(jsoned_filters, collection):
 
     schema = CollectionUtils.get_field_schema(collection, jsoned_filters["field"])
 
+    new_value = jsoned_filters["value"]
     if jsoned_filters["operator"] == "in" and isinstance(jsoned_filters["value"], str):
         values = [val.strip() for val in jsoned_filters["value"].split(",")]
 
         if schema["column_type"] == PrimitiveType.BOOLEAN:
-            values = [strtobool(value) for value in values]
+            new_value = [strtobool(value) for value in values]
         elif schema["column_type"] == PrimitiveType.NUMBER:
             new_values = []
             for value in values:
-                try:
-                    new_val = int(value)
-                except ValueError:
-                    new_val = float(value)
+                new_val = literal_eval(value)
                 new_values.append(new_val)
-            values = new_values
+            new_value = new_values
 
-        jsoned_filters["value"] = values
+    elif schema["column_type"] == PrimitiveType.NUMBER:
+        new_value = literal_eval(jsoned_filters["value"])
+
+    elif schema["column_type"] == PrimitiveType.BOOLEAN:
+        new_value = strtobool(jsoned_filters["value"])
+
+    jsoned_filters["value"] = new_value
     return jsoned_filters
 
 

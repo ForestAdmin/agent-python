@@ -1,3 +1,4 @@
+import json
 import sys
 from datetime import date, datetime
 
@@ -16,9 +17,12 @@ from forestadmin.agent_toolkit.resources.collections.decorators import authentic
 from forestadmin.agent_toolkit.resources.collections.filter import build_filter
 from forestadmin.agent_toolkit.resources.collections.requests import RequestCollection, RequestCollectionException
 from forestadmin.agent_toolkit.utils.context import FileResponse, HttpResponseBuilder, Request, RequestMethod, Response
+from forestadmin.agent_toolkit.utils.context_variable_injector import ContextVariableInjector
+from forestadmin.agent_toolkit.utils.context_variable_instantiator import ContextVariablesInstantiator
 from forestadmin.datasource_toolkit.exceptions import ForestException
 from forestadmin.datasource_toolkit.interfaces.fields import Column, PrimitiveType
 from forestadmin.datasource_toolkit.interfaces.query.aggregation import Aggregation
+from forestadmin.datasource_toolkit.interfaces.query.condition_tree.factory import ConditionTreeFactory
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.base import ConditionTree
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.branch import Aggregator, ConditionTreeBranch
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.leaf import ConditionTreeLeaf
@@ -220,7 +224,8 @@ class StatsResource(BaseCollectionResource):
         return any(use_interval_res)
 
     async def _get_filter(self, request: RequestCollection) -> Filter:
-        scope_tree = await self.permission.get_scope(request, request.collection)
+        scope_tree = await self.permission.get_scope(request.user, request.collection)
+        await self.__inject_context_variables(request)
         return build_filter(request, scope_tree)
 
     async def _compute_value(self, request: RequestCollection, filter: Filter) -> int:
@@ -234,3 +239,27 @@ class StatsResource(BaseCollectionResource):
         if len(rows):
             res = int(rows[0]["value"])
         return res
+
+    async def __inject_context_variables(self, request: RequestCollection):
+        context_variables_dct = request.body.pop("contextVariables", {})
+        if request.body.get("filter") is None:
+            return
+
+        context_variables = await ContextVariablesInstantiator.build_context_variables(
+            request.user, context_variables_dct, self.permission
+        )
+        condition_tree = request.body["filter"]
+        if isinstance(request.body["filter"], str):
+            condition_tree = json.loads(condition_tree)
+
+        condition_tree = ConditionTreeFactory.from_plain_object(condition_tree)
+
+        injected_filter: ConditionTree = condition_tree.replace(
+            lambda leaf: ConditionTreeLeaf(
+                leaf.field,
+                leaf.operator,
+                ContextVariableInjector.inject_context_in_value(leaf.value, context_variables),
+            )
+        )
+
+        request.body["filter"] = injected_filter.to_plain_object()

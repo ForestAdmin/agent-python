@@ -24,6 +24,8 @@ class TypeGetter:
             return PrimitiveType.BOOLEAN
         elif isinstance(value, float) or isinstance(value, int):
             return PrimitiveType.NUMBER
+        elif isinstance(value, date):
+            return PrimitiveType.DATE_ONLY
         elif isinstance(value, datetime):
             return PrimitiveType.DATE
         elif isinstance(value, dict) and type_context == PrimitiveType.JSON:
