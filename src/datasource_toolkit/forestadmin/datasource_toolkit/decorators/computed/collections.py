@@ -61,11 +61,8 @@ class ComputedCollectionDecorator(CollectionDecorator):
         if not any([self.get_computed(field) for field in aggregation.projection]):
             return await self.child_collection.aggregate(caller, _filter, aggregation, limit)
 
-        records = await self.list(caller, _filter, aggregation.projection)
-        return aggregation.apply(
-            records,
-            caller.timezone,
-        )
+        records = await self.list(caller, PaginatedFilter.from_base_filter(_filter), aggregation.projection)
+        return aggregation.apply(records, caller.timezone, limit)
 
     def _refine_schema(self, sub_schema: CollectionSchema) -> CollectionSchema:
         computed_fields_schema = {**sub_schema["fields"]}
