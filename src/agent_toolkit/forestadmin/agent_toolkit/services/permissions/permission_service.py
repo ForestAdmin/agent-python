@@ -5,8 +5,6 @@ from collections.abc import Iterable
 from hashlib import sha1
 from typing import Any, Dict, List, Optional, Set, Tuple, Union, cast
 
-from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.branch import ConditionTreeBranch
-
 if sys.version_info >= (3, 8):
     from typing import TypedDict
 else:
@@ -14,16 +12,18 @@ else:
 
 from cachetools import TTLCache
 from forestadmin.agent_toolkit.forest_logger import ForestLogger
-from forestadmin.agent_toolkit.resources.collections.requests import RequestCollection, RequestRelationCollection
+from forestadmin.agent_toolkit.resources.collections.requests import RequestCollection
 from forestadmin.agent_toolkit.services.permissions.options import RoleOptions
 from forestadmin.agent_toolkit.utils.context import User
+from forestadmin.agent_toolkit.utils.context_variable_injector import ContextVariableInjector
+from forestadmin.agent_toolkit.utils.context_variables import ContextVariables
 from forestadmin.agent_toolkit.utils.http import ForestHttpApi
 from forestadmin.datasource_toolkit.collections import Collection
 from forestadmin.datasource_toolkit.datasource_customizer.collection_customizer import CollectionCustomizer
 from forestadmin.datasource_toolkit.exceptions import ForbiddenError
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.factory import ConditionTreeFactory
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.base import ConditionTree
-from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.leaf import ConditionTreeLeaf
+from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.branch import ConditionTreeBranch
 
 
 #########
@@ -103,49 +103,19 @@ class PermissionService:
 
     async def get_scope(
         self,
-        request: Union[RequestCollection, RequestRelationCollection],
-        collection: Union[Collection, CollectionCustomizer, None] = None,
+        caller: User,
+        collection: Union[Collection, CollectionCustomizer],
     ) -> Optional[ConditionTree]:
-        if not request.user:
-            raise PermissionServiceException("Unauthenticated request", 401)
-        else:
-            perms = await self._get_rendering_permissions(request.user.rendering_id)
-            name = request.collection.name
-            if collection:
-                name = collection.name
-            try:
-                scope: Scope = perms["scopes"][name]
-            except KeyError:
-                return None
+        permissions = await self._get_scope_and_team_data(caller.rendering_id)
+        scope = permissions["scopes"].get(collection.name)
+        if scope is None:
+            return None
 
-            def build_scope_leaf(tree: ConditionTree) -> ConditionTree:
-                if isinstance(tree, ConditionTreeLeaf):
-                    dynamic_value = scope["dynamic_scope_values"].get(request.user.user_id)  # type: ignore
-                    if isinstance(tree.value, str) and tree.value.startswith("$currentUser"):
-                        if dynamic_value:
-                            value = dynamic_value[tree.value]
-                        elif tree.value.startswith("$currentUser.tags."):
-                            value = request.user.tags[tree.value[18:]]  # type: ignore
-                        else:
-                            value = getattr(request.user, tree.value[13:])
+        team = permissions["team"]
+        user = await self.get_user_data(caller.user_id)
 
-                        return tree.override({"value": value})
-                return tree
-
-        return scope["condition_tree"].replace(build_scope_leaf)
-
-    async def _get_rendering_permissions(self, rendering_id: int) -> PermissionBody:
-        if rendering_id not in self.cache:
-            permission_body = await ForestHttpApi.get_permissions(
-                {
-                    "env_secret": self.options["env_secret"],
-                    "forest_server_url": self.options["forest_server_url"],
-                    "is_production": self.options["is_production"],
-                },
-                rendering_id,
-            )
-            self.cache[rendering_id] = decode_permission_body(rendering_id, permission_body)
-        return self.cache[rendering_id]
+        context_variable = ContextVariables(team, user)
+        return ContextVariableInjector.inject_context_in_filter(scope, context_variable)
 
     async def _has_permission_system(self) -> bool:
         if "forest.has_permission" not in self.cache:
@@ -165,6 +135,10 @@ class PermissionService:
             self.cache["forest.users"] = users
 
         return self.cache["forest.users"][user_id]
+
+    async def get_team(self, rendering_id: int):
+        permissions = await self._get_scope_and_team_data(rendering_id)
+        return permissions["team"]
 
     async def _get_chart_data(self, rendering_id: int, force_fetch: bool = False) -> Dict:
         if force_fetch and "forest.stats" in self.cache:
@@ -198,10 +172,27 @@ class PermissionService:
 
         return self.cache["forest.collections"]
 
+    async def _get_scope_and_team_data(self, rendering_id: int):
+        if "forest.scopes" not in self.cache:
+            response = await ForestHttpApi.get_rendering_permissions(rendering_id, self.options)
+            data = {"scopes": _decode_scope_permissions(response["collections"]), "team": response["team"]}
+
+            self.cache["forest.scopes"] = data
+
+        return self.cache["forest.scopes"]
+
 
 ##################
 # Decode methods #
 ##################
+
+
+def _decode_scope_permissions(raw_permission: Dict):
+    scopes = {}
+    for collection_name, value in raw_permission.items():
+        if value.get("scope") is not None:
+            scopes[collection_name] = ConditionTreeFactory.from_plain_object(value["scope"])
+    return scopes
 
 
 def _decode_crud_permissions(collection: Dict) -> Dict:

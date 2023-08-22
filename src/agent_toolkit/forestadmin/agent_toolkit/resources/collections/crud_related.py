@@ -80,7 +80,7 @@ class CrudRelatedResource(BaseCollectionResource):
         except (FieldValidatorException, CollectionResourceException) as e:
             ForestLogger.log("exception", e)
             return HttpResponseBuilder.build_client_error_response([e])
-        scope_tree = await self.permission.get_scope(request, request.foreign_collection)
+        scope_tree = await self.permission.get_scope(request.user, request.foreign_collection)
         paginated_filter = build_paginated_filter(request, scope_tree)
         projection = parse_projection_with_pks(request)
         records = await CollectionUtils.list_relation(
@@ -117,7 +117,7 @@ class CrudRelatedResource(BaseCollectionResource):
         except (FieldValidatorException, CollectionResourceException) as e:
             ForestLogger.log("exception", e)
             return HttpResponseBuilder.build_client_error_response([e])
-        scope_tree = await self.permission.get_scope(request, request.foreign_collection)
+        scope_tree = await self.permission.get_scope(request.user, request.foreign_collection)
         paginated_filter = build_paginated_filter(request, scope_tree)
         try:
             projection = parse_projection_with_pks(request)
@@ -228,7 +228,7 @@ class CrudRelatedResource(BaseCollectionResource):
         except (FieldValidatorException, CollectionResourceException) as e:
             ForestLogger.log("exception", e)
             return HttpResponseBuilder.build_client_error_response([e])
-        scope_tree = await self.permission.get_scope(request, request.foreign_collection)
+        scope_tree = await self.permission.get_scope(request.user, request.foreign_collection)
         filter = build_filter(request, scope_tree)
         aggregation = Aggregation({"operation": "Count"})
 
@@ -277,7 +277,7 @@ class CrudRelatedResource(BaseCollectionResource):
     ) -> Response:
         if not is_one_to_many(request.relation):
             return HttpResponseBuilder.build_client_error_response([ForestException("Unhandled relation type")])
-        scope_tree = await self.permission.get_scope(request, request.foreign_collection)
+        scope_tree = await self.permission.get_scope(request.user, request.foreign_collection)
         filter = build_filter(request, scope_tree)
         trees: List[ConditionTree] = [
             ConditionTreeLeaf(request.relation["origin_key_target"], Operator.EQUAL, id_value),
@@ -330,7 +330,7 @@ class CrudRelatedResource(BaseCollectionResource):
         if exclude_ids:
             selected_ids = selected_ids.inverse()
 
-        scope_tree = await self.permission.get_scope(request, request.foreign_collection)
+        scope_tree = await self.permission.get_scope(request.user, request.foreign_collection)
         filter = build_filter(request, scope_tree)
         trees = [selected_ids]
         if scope_tree:
@@ -403,7 +403,7 @@ class CrudRelatedResource(BaseCollectionResource):
         if not is_one_to_one(request.relation):
             raise CollectionResourceException("Unhandled relation type")
 
-        scope = await self.permission.get_scope(request)
+        scope = await self.permission.get_scope(request.user, request.collection)
         origin_value = await CollectionUtils.get_value(
             request.user, cast(Collection, request.collection), parent_id, request.relation["origin_key_target"]
         )
@@ -442,7 +442,7 @@ class CrudRelatedResource(BaseCollectionResource):
         if not is_many_to_one(request.relation):
             raise CollectionResourceException("Unhandled relation type")
 
-        scope = await self.permission.get_scope(request)
+        scope = await self.permission.get_scope(request.user, request.collection)
         foreign_value = await CollectionUtils.get_value(
             request.user, cast(Collection, request.collection), linked_id, request.relation["foreign_key_target"]
         )
