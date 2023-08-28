@@ -11,18 +11,44 @@ class DatasourceToolkitException(ForestException):
 
 
 class BusinessError(DatasourceToolkitException):
-    def __init__(self, message: str = "", data: Optional[Dict[str, Any]] = None, *args: object) -> None:
+    def __init__(self, message: str = "", data: Optional[Dict[str, Any]] = None, name: str = "", *args: object) -> None:
         self.data = data
+        self.name = name
         super().__init__(message, *args)
 
 
-class ForestValidationException(BusinessError):
+class ValidationError(BusinessError):
+    def __init__(
+        self, message: str = "", data: Optional[Dict[str, Any]] = None, name: str = "ValidationError", *args: object
+    ) -> None:
+        super().__init__(message, data, name, *args)
+
     pass
 
 
 class ForbiddenError(BusinessError):
-    pass
+    def __init__(
+        self, message: str = "", data: Optional[Dict[str, Any]] = None, name: str = "ForbiddenError", *args: object
+    ) -> None:
+        super().__init__(message, data, name, *args)
 
 
 class UnprocessableError(BusinessError):
-    pass
+    def __init__(
+        self, message: str = "", data: Optional[Dict[str, Any]] = None, name: str = "UnprocessableError", *args: object
+    ) -> None:
+        super().__init__(message, data, name, *args)
+
+
+class ConflictError(BusinessError):
+    def __init__(
+        self, message: str = "", data: Optional[Dict[str, Any]] = None, name: str = "ConflictError", *args: object
+    ) -> None:
+        super().__init__(message, data, name, *args)
+
+
+class RequireApproval(ForbiddenError):
+    def __init__(
+        self, message: str = "", data: Optional[Dict[str, Any]] = None, name: str = "RequireApproval", *args: object
+    ) -> None:
+        super().__init__(message, data, name, *args)

@@ -11,7 +11,7 @@ if sys.version_info >= (3, 9):
 else:
     from backports.zoneinfo import ZoneInfo
 
-from forestadmin.datasource_toolkit.exceptions import BusinessError, ForbiddenError, ForestValidationException
+from forestadmin.datasource_toolkit.exceptions import BusinessError, ForbiddenError, UnprocessableError, ValidationError
 
 
 class RequestMethod(enum.Enum):
@@ -85,18 +85,21 @@ class HttpResponseBuilder:
 
     @staticmethod
     def build_client_error_response(reasons: List[Exception]) -> Response:
+        errors = []
+        for error in reasons:
+            tmp = {
+                "name": HttpResponseBuilder._get_error_name(error),
+                "detail": HttpResponseBuilder._get_error_message(error),
+                "status": HttpResponseBuilder._get_error_status(error),
+            }
+            if hasattr(error, "data") and getattr(error, "data") is not None:
+                tmp["data"] = error.data
+
+            errors.append(tmp)
+
         return HttpResponseBuilder.build_json_response(
             HttpResponseBuilder._get_error_status(reasons[0]),
-            {
-                "errors": [
-                    {
-                        "name": error.__class__.__name__,
-                        "detail": HttpResponseBuilder._get_error_message(error),
-                        "status": HttpResponseBuilder._get_error_status(error),
-                    }
-                    for error in reasons
-                ]
-            },
+            {"errors": errors},
         )
 
     @staticmethod
@@ -123,12 +126,12 @@ class HttpResponseBuilder:
 
     @staticmethod
     def _get_error_status(error: Exception):
-        if isinstance(error, ForestValidationException):
+        if isinstance(error, ValidationError):
             return 400
         if isinstance(error, ForbiddenError):
             return 403
-        # if isinstance(error, UnprocessableError):
-        #     return 422
+        if isinstance(error, UnprocessableError):
+            return 422
         if isinstance(error, HTTPError):
             return error.code
 
@@ -137,9 +140,16 @@ class HttpResponseBuilder:
     @staticmethod
     def _get_error_message(error: Exception):
         if isinstance(error, BusinessError):
-            return str(error)
+            return str(error.args[0][3:])
 
         if HttpResponseBuilder._ERROR_MESSAGE_CUSTOMIZER is not None:
             return HttpResponseBuilder._ERROR_MESSAGE_CUSTOMIZER(error)
         else:
             return str(error)
+
+    @staticmethod
+    def _get_error_name(error: Exception):
+        if hasattr(error, "name") and getattr(error, "name") is not None:
+            return error.name
+        else:
+            return error.__class__.__name__

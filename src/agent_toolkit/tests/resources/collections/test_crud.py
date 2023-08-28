@@ -21,7 +21,7 @@ from forestadmin.agent_toolkit.utils.context import Request
 from forestadmin.agent_toolkit.utils.csv import CsvException
 from forestadmin.datasource_toolkit.collections import Collection
 from forestadmin.datasource_toolkit.datasources import Datasource, DatasourceException
-from forestadmin.datasource_toolkit.exceptions import ForestValidationException
+from forestadmin.datasource_toolkit.exceptions import ValidationError
 from forestadmin.datasource_toolkit.interfaces.fields import FieldType, Operator, PrimitiveType
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.leaf import ConditionTreeLeaf
 from forestadmin.datasource_toolkit.validations.records import RecordValidatorException
@@ -216,12 +216,12 @@ class TestCrudResource(TestCase):
         }
 
         # Validation Exception
-        with patch.object(crud_resource, "add", side_effect=ForestValidationException("test exception")):
+        with patch.object(crud_resource, "add", side_effect=ValidationError("test exception")):
             response = self.loop.run_until_complete(crud_resource.dispatch(request, "add"))
         assert response.status == 400
         body = json.loads(response.body)
         assert body["errors"][0] == {
-            "name": "ForestValidationException",
+            "name": "ValidationError",
             "detail": "🌳🌳🌳test exception",
             "status": 400,
         }

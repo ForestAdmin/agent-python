@@ -1,8 +1,6 @@
 import sys
 from unittest import TestCase
 
-from forestadmin.datasource_toolkit.exceptions import ForbiddenError, ForestValidationException, UnprocessableError
-
 if sys.version_info >= (3, 9):
     import zoneinfo
 else:
@@ -12,6 +10,7 @@ from forestadmin.agent_toolkit.utils.context import User
 from forestadmin.datasource_toolkit.collections import Collection
 from forestadmin.datasource_toolkit.datasources import Datasource
 from forestadmin.datasource_toolkit.decorators.hook.context.hooks import HookContext
+from forestadmin.datasource_toolkit.exceptions import ForbiddenError, UnprocessableError, ValidationError
 
 
 class FakeHookContext(HookContext):
@@ -49,4 +48,4 @@ class TestHookContext(TestCase):
 
     def test_throw_validation_error_should_throw_validation_error(self):
         message = "validation"
-        self.assertRaisesRegex(ForestValidationException, "🌳🌳🌳" + message, self.context.throw_validation_error, message)
+        self.assertRaisesRegex(ValidationError, "🌳🌳🌳" + message, self.context.throw_validation_error, message)
