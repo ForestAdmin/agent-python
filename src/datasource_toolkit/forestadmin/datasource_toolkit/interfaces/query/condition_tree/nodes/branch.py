@@ -44,10 +44,7 @@ class BranchComponents(ConditionTreeComponent):
 
 
 def is_branch_component(tree: Any) -> TypeGuard[BranchComponents]:
-    return hasattr(tree, "keys") and sorted(tree.keys()) == [
-        "aggregator",
-        "conditions",
-    ]
+    return isinstance(tree, dict) and "aggregator" in tree.keys() and "conditions" in tree.keys()
 
 
 class ConditionTreeBranch(ConditionTree):
