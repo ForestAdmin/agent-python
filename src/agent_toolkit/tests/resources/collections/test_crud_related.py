@@ -22,7 +22,7 @@ from forestadmin.agent_toolkit.resources.collections.requests import (
     RequestCollectionException,
     RequestRelationCollection,
 )
-from forestadmin.agent_toolkit.services.permissions import PermissionService
+from forestadmin.agent_toolkit.services.permissions.permission_service import PermissionService
 from forestadmin.agent_toolkit.services.serializers.json_api import JsonApiException
 from forestadmin.agent_toolkit.utils.context import Request, User
 from forestadmin.agent_toolkit.utils.csv import CsvException

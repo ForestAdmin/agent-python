@@ -15,7 +15,7 @@ import forestadmin.agent_toolkit.resources.collections.crud
 from forestadmin.agent_toolkit.options import Options
 from forestadmin.agent_toolkit.resources.collections.exceptions import CollectionResourceException
 from forestadmin.agent_toolkit.resources.collections.requests import RequestCollection, RequestCollectionException
-from forestadmin.agent_toolkit.services.permissions import PermissionService
+from forestadmin.agent_toolkit.services.permissions.permission_service import PermissionService
 from forestadmin.agent_toolkit.services.serializers.json_api import JsonApiException
 from forestadmin.agent_toolkit.utils.context import Request
 from forestadmin.agent_toolkit.utils.csv import CsvException
@@ -222,7 +222,7 @@ class TestCrudResource(TestCase):
         body = json.loads(response.body)
         assert body["errors"][0] == {
             "name": "ValidationError",
-            "detail": "🌳🌳🌳test exception",
+            "detail": "test exception",
             "status": 400,
         }
 

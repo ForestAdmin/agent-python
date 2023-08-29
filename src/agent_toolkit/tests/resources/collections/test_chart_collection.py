@@ -18,7 +18,7 @@ else:
 import forestadmin.agent_toolkit.resources.collections.charts_collection
 from forestadmin.agent_toolkit.options import Options
 from forestadmin.agent_toolkit.resources.collections.requests import RequestCollection, RequestCollectionException
-from forestadmin.agent_toolkit.services.permissions import PermissionService
+from forestadmin.agent_toolkit.services.permissions.permission_service import PermissionService
 from forestadmin.agent_toolkit.utils.context import Request, RequestMethod, Response, User
 from forestadmin.datasource_toolkit.collections import Collection
 from forestadmin.datasource_toolkit.datasources import Datasource

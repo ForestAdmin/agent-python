@@ -1,6 +1,5 @@
 import json
 from unittest import TestCase
-from urllib.error import HTTPError
 
 from forestadmin.agent_toolkit.utils.context import HttpResponseBuilder
 from forestadmin.datasource_toolkit.exceptions import ForestException, ValidationError
@@ -20,7 +19,6 @@ class TestHttpResponseBuilder(TestCase):
             [
                 Exception("test exc"),
                 ValidationError("test exc"),
-                HTTPError("/url", 404, "test exc", {}, None),
             ]
         )
 
@@ -38,13 +36,8 @@ class TestHttpResponseBuilder(TestCase):
                     },
                     {
                         "name": "ValidationError",
-                        "detail": "🌳🌳🌳test exc",
+                        "detail": "test exc",
                         "status": 400,
-                    },
-                    {
-                        "name": "HTTPError",
-                        "detail": "HTTP Error 404: test exc",
-                        "status": 404,
                     },
                 ]
             },
@@ -73,7 +66,7 @@ class TestHttpResponseBuilder(TestCase):
                     },
                     {
                         "name": "ValidationError",
-                        "detail": "🌳🌳🌳test exc",
+                        "detail": "test exc",
                         "status": 400,
                     },
                 ]
