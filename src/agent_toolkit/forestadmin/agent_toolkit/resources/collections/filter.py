@@ -174,7 +174,7 @@ def parse_condition_tree(request: Union[RequestCollection, RequestRelationCollec
     filters: Optional[str] = _subset_or_query(request, "filters")
     if not filters and request.body and "filters" in request.body:
         filters = request.body["filters"]
-    else:
+    elif filters is None:
         filters: Optional[str] = _subset_or_query(request, "filter")
         if not filters and request.body and "filter" in request.body:
             filters = request.body["filter"]
@@ -228,7 +228,9 @@ def _parse_value(jsoned_filters, collection):
         new_value = literal_eval(jsoned_filters["value"])
 
     elif schema["column_type"] == PrimitiveType.BOOLEAN:
-        new_value = strtobool(jsoned_filters["value"])
+        new_value = (
+            strtobool(jsoned_filters["value"]) if isinstance(jsoned_filters["value"], str) else jsoned_filters["value"]
+        )
 
     jsoned_filters["value"] = new_value
     return jsoned_filters
