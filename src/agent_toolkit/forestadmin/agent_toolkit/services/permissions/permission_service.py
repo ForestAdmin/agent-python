@@ -14,16 +14,20 @@ from cachetools import TTLCache
 from forestadmin.agent_toolkit.forest_logger import ForestLogger
 from forestadmin.agent_toolkit.resources.collections.requests import RequestCollection
 from forestadmin.agent_toolkit.services.permissions.options import RoleOptions
+from forestadmin.agent_toolkit.services.permissions.smart_actions_checker import SmartActionChecker
 from forestadmin.agent_toolkit.utils.context import User
 from forestadmin.agent_toolkit.utils.context_variable_injector import ContextVariableInjector
 from forestadmin.agent_toolkit.utils.context_variables import ContextVariables
+from forestadmin.agent_toolkit.utils.forest_schema.emitter import SchemaEmitter
+from forestadmin.agent_toolkit.utils.forest_schema.type import ForestServerAction
 from forestadmin.agent_toolkit.utils.http import ForestHttpApi
 from forestadmin.datasource_toolkit.collections import Collection
 from forestadmin.datasource_toolkit.datasource_customizer.collection_customizer import CollectionCustomizer
-from forestadmin.datasource_toolkit.exceptions import ForbiddenError
+from forestadmin.datasource_toolkit.exceptions import ForbiddenError, ForestException
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.factory import ConditionTreeFactory
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.base import ConditionTree
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.branch import ConditionTreeBranch
+from forestadmin.datasource_toolkit.interfaces.query.filter.unpaginated import Filter
 
 
 #########
@@ -99,6 +103,35 @@ class PermissionService:
             )
             raise ForbiddenError("You don't have permission to access this collection.")
         ForestLogger.log("debug", f"User {caller.user_id} can retrieve chart on rendering {request.user.rendering_id}")
+        return is_allowed
+
+    async def can_smart_action(
+        self, request: RequestCollection, collection: Collection, filter_: Filter, allow_fetch: bool = True
+    ):
+        if not await self._has_permission_system():
+            return True
+
+        user_data = await self.get_user_data(request.user.user_id)
+        collection_data = await self._get_collection_permissions_data(allow_fetch)
+        action = await self._find_action_from_endpoint(collection, request.query, request.method)
+
+        if action is None:
+            raise ForestException(f"The collection {collection.name} does not have this smart action")
+
+        smart_action_approval = SmartActionChecker(
+            request,
+            collection,
+            collection_data[collection.name]["actions"][action["name"]],
+            request.user,
+            user_data["roleId"],
+            filter_,
+        )
+        # can_execute raise error if unauthorized
+        is_allowed = await smart_action_approval.can_execute()
+
+        allowed_txt = "not allowed" if not is_allowed else "allowed"
+        ForestLogger.log("debug", f"User {user_data['roleId']} is {allowed_txt} to perform {action['name']}")
+
         return is_allowed
 
     async def get_scope(
@@ -180,6 +213,22 @@ class PermissionService:
             self.cache["forest.scopes"] = data
 
         return self.cache["forest.scopes"]
+
+    async def _find_action_from_endpoint(
+        self, collection: Collection, get_params: Dict, http_method: str
+    ) -> Optional[ForestServerAction]:
+        actions = await SchemaEmitter.generate(self.options["prefix"], collection.datasource)
+        actions = [col for col in actions if col["name"] == collection.name][0]["actions"]
+        if len(actions) == 0:
+            return None
+
+        actions = [
+            action
+            for action in actions
+            if action["id"] == f"{collection.name}-{get_params['action_name']}-{get_params['slug']}"
+            and http_method.value == action["httpMethod"]
+        ]
+        return actions[0]
 
 
 ##################

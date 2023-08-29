@@ -32,6 +32,7 @@ class ForestValueConverter:
 
     @staticmethod
     def make_form_unsafe_data(raw_data: Dict[str, Any]) -> Dict[str, Any]:
+        # TODO: wtf is this method ??
         return raw_data
 
     @staticmethod
@@ -40,7 +41,10 @@ class ForestValueConverter:
     ) -> Dict[str, Any]:
         data: Dict[str, Any] = {}
         for key, value in raw_data.items():
-            field: ActionField = list(filter(lambda f: f["label"] == key, fields))[0]  # type: ignore
+            _fields = list(filter(lambda f: f["label"] == key, fields))  # type: ignore
+            if len(_fields) != 1:
+                continue
+            field: ActionField = _fields[0]
             if field["type"] == ActionFieldType.COLLECTION and value:
                 collection = datasource.get_collection(cast(str, field["collection_name"]))
                 data[key] = unpack_id(collection.schema, value)
@@ -65,5 +69,8 @@ class ForestValueConverter:
         elif field["type"] == ActionFieldType.COLLECTION:
             value = cast(CompositeIdAlias, value)
             return "|".join(value)
+
+        # TODO: File
+        # TODO: FIleList
 
         return value

@@ -11,3 +11,4 @@ class RoleOptions(TypedDict):
     env_secret: str
     is_production: bool
     permission_cache_duration: int
+    prefix: str

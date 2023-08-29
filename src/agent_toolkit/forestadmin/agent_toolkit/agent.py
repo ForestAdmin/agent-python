@@ -60,6 +60,7 @@ class Agent:
                 "forest_server_url": self.options["forest_server_url"],
                 "is_production": self.options["is_production"],
                 "permission_cache_duration": self.options["permissions_cache_duration_in_seconds"],
+                "prefix": self.options["prefix"],
             }
         )
 
