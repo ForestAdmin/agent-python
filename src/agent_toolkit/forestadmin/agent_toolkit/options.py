@@ -1,6 +1,6 @@
 import logging
 import sys
-from typing import Callable
+from typing import Callable, Optional
 
 if sys.version_info >= (3, 8):
     from typing import TypedDict
@@ -20,6 +20,7 @@ class Options(TypedDict):
     logger_level: int
     permissions_cache_duration_in_seconds: int
     customize_error_message: Callable[[Exception], str]
+    instant_cache_refresh: Optional[bool]
     # typingsPath
     # typingsMaxDepth
     # skipSchemaUpdate
@@ -34,4 +35,5 @@ DEFAULT_OPTIONS: Options = {
     "logger_level": logging.INFO,
     "customize_error_message": None,
     "permissions_cache_duration_in_seconds": 15 * 60,
+    "instant_cache_refresh": None,
 }

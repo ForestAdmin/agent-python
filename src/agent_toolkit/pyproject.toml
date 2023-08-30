@@ -20,6 +20,7 @@ oic = "~=1.4"
 python-jose = ">=3.3, <4.0"
 cachetools = "~=5.2"
 marshmallow-jsonapi = ">=0.24.0, <1.0"
+sseclient-py = "^1.5"
 forestadmin-datasource-toolkit = "^1.0.0-beta.10"
 [[tool.poetry.dependencies.pandas]]
 version = "<=1.1.5"

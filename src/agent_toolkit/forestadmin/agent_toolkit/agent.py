@@ -18,6 +18,7 @@ from forestadmin.agent_toolkit.resources.collections.crud_related import CrudRel
 from forestadmin.agent_toolkit.resources.collections.stats import StatsResource
 from forestadmin.agent_toolkit.resources.security.resources import Authentication
 from forestadmin.agent_toolkit.services.permissions.permission_service import PermissionService
+from forestadmin.agent_toolkit.services.permissions.sse_cache_invalidation import SSECacheInvalidation
 from forestadmin.agent_toolkit.services.serializers.json_api import create_json_api_schema
 from forestadmin.agent_toolkit.utils.context import HttpResponseBuilder
 from forestadmin.agent_toolkit.utils.forest_schema.emitter import SchemaEmitter
@@ -46,6 +47,8 @@ class Agent:
     def __init__(self, options: Options):
         self.options = copy.copy(DEFAULT_OPTIONS)
         self.options.update({k: v for k, v in options.items() if v is not None})
+        if self.options["instant_cache_refresh"] is None:
+            self.options["instant_cache_refresh"] = self.options["is_production"]
         self.customizer: DatasourceCustomizer = DatasourceCustomizer()
         self._resources = None
 
@@ -63,6 +66,11 @@ class Agent:
                 "prefix": self.options["prefix"],
             }
         )
+        self._sse_thread = SSECacheInvalidation(self._permission_service, self.options)
+
+    def __del__(self):
+        if hasattr(self, "_sse_thread") and self._sse_thread.is_alive():
+            self._sse_thread.stop()
 
     def __mk_resources(self):
         self._resources: Resources = {
@@ -109,7 +117,6 @@ class Agent:
             ForestLogger.log("debug", "Agent already started.")
             return
         ForestLogger.log("debug", "Starting agent")
-
         for collection in self.customizer.stack.datasource.collections:
             create_json_api_schema(collection)
 
@@ -122,6 +129,9 @@ class Agent:
 
         except Exception:
             ForestLogger.log("warning", "Cannot send the apimap to Forest. Are you online?")
+
+        if self.options["instant_cache_refresh"]:
+            self._sse_thread.start()
 
         ForestLogger.log("info", "Agent started")
         Agent.__IS_INITIALIZED = True
