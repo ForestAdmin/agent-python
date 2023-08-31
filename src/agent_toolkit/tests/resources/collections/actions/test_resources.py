@@ -69,7 +69,8 @@ class BaseTestActionResource(TestCase):
     def setUpClass(cls) -> None:
         cls.loop = asyncio.new_event_loop()
         cls.permission_service = Mock(PermissionService)
-        cls.permission_service.get_scope.return_value = None
+        cls.permission_service.get_scope = AsyncMock(return_value=None)
+        cls.permission_service.can_smart_action = AsyncMock(return_value=True)
         cls.options = Options(
             auth_secret="fake_secret",
             env_secret="fake_secret",
@@ -392,9 +393,6 @@ class TestHookActionResource(BaseTestActionResource):
 
     def test_hook_should_compute_form_and_return_it_with_all_condition_tree_parsing(self):
         self.decorated_collection_book.add_action("test_action_bulk", TestHookActionResource.TestActionBulk())
-        self.permission_service.get_scope.return_value = ConditionTreeLeaf(
-            field="id", operator=Operator.GREATER_THAN, value=-2
-        )
         request = ActionRequest(
             method=RequestMethod.POST,
             action_name="test_action_bulk",
@@ -462,7 +460,13 @@ class TestHookActionResource(BaseTestActionResource):
             user=self.mocked_caller,
         )
 
-        response = self.loop.run_until_complete(self.action_resource.hook(request))
+        with patch.object(
+            self.permission_service,
+            "get_scope",
+            new_callable=AsyncMock,
+            return_value=ConditionTreeLeaf(field="id", operator=Operator.GREATER_THAN, value=-2),
+        ):
+            response = self.loop.run_until_complete(self.action_resource.hook(request))
         self.assertEqual(response.status, 200)
         content = json.loads(response.body)
         self.assertEqual(
