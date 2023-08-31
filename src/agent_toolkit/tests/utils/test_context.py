@@ -34,11 +34,7 @@ class TestHttpResponseBuilder(TestCase):
                         "detail": "test exc",
                         "status": 500,
                     },
-                    {
-                        "name": "ValidationError",
-                        "detail": "test exc",
-                        "status": 400,
-                    },
+                    {"name": "ValidationError", "detail": "test exc", "status": 400, "data": {}},
                 ]
             },
         )
@@ -64,11 +60,7 @@ class TestHttpResponseBuilder(TestCase):
                         "detail": "test exc",
                         "status": 500,
                     },
-                    {
-                        "name": "ValidationError",
-                        "detail": "test exc",
-                        "status": 400,
-                    },
+                    {"name": "ValidationError", "detail": "test exc", "status": 400, "data": {}},
                 ]
             },
         )

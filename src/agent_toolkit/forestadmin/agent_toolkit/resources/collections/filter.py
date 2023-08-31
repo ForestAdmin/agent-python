@@ -220,12 +220,12 @@ def _parse_value(jsoned_filters, collection):
         elif schema["column_type"] == PrimitiveType.NUMBER:
             new_values = []
             for value in values:
-                new_val = literal_eval(value)
+                new_val = literal_eval(str(value))
                 new_values.append(new_val)
             new_value = new_values
 
     elif schema["column_type"] == PrimitiveType.NUMBER:
-        new_value = literal_eval(jsoned_filters["value"])
+        new_value = literal_eval(str(jsoned_filters["value"]))
 
     elif schema["column_type"] == PrimitiveType.BOOLEAN:
         new_value = (

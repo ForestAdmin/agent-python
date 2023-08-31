@@ -1,9 +1,16 @@
+import sys
 from typing import Any, Dict, List, Optional, Union
+
+from forestadmin.datasource_toolkit.interfaces.query.filter.factory import FilterFactory
+
+if sys.version_info >= (3, 8):
+    from typing import Literal
+else:
+    from typing_extensions import Literal
 
 from forestadmin.agent_toolkit.forest_logger import ForestLogger
 from forestadmin.agent_toolkit.resources.actions.requests import ActionRequest, RequestActionException
 from forestadmin.agent_toolkit.resources.collections import BaseCollectionResource
-from forestadmin.agent_toolkit.resources.collections.crud import LiteralMethod
 from forestadmin.agent_toolkit.resources.collections.decorators import authenticate, check_method
 from forestadmin.agent_toolkit.resources.collections.filter import (
     build_filter,
@@ -14,6 +21,7 @@ from forestadmin.agent_toolkit.utils.context import FileResponse, HttpResponseBu
 from forestadmin.agent_toolkit.utils.forest_schema.action_values import ForestValueConverter
 from forestadmin.agent_toolkit.utils.forest_schema.generator_action import SchemaActionGenerator
 from forestadmin.agent_toolkit.utils.forest_schema.type import ForestServerActionField
+from forestadmin.agent_toolkit.utils.id import unpack_id
 from forestadmin.datasource_toolkit.decorators.action.result_builder import ResultBuilder
 from forestadmin.datasource_toolkit.exceptions import BusinessError
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.factory import ConditionTreeFactory
@@ -21,6 +29,8 @@ from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.base i
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.branch import Aggregator, ConditionTreeBranch
 from forestadmin.datasource_toolkit.interfaces.query.filter.unpaginated import Filter
 from jose import jwt
+
+LiteralMethod = Literal["execute", "hook"]
 
 
 class ActionResource(BaseCollectionResource):
@@ -78,7 +88,6 @@ class ActionResource(BaseCollectionResource):
 
         elif result["type"] == ResultBuilder.REDIRECT:
             return HttpResponseBuilder.build_success_response({"redirectTo": result["path"]})
-        raise
 
     @check_method(RequestMethod.POST)
     @authenticate
@@ -113,8 +122,6 @@ class ActionResource(BaseCollectionResource):
         )
 
     async def _get_records_selection(self, request: ActionRequest) -> Filter:
-        if not request.body:
-            raise Exception()
         trees: List[ConditionTree] = []
         selection_ids, exclude_ids = parse_selection_ids(request)
         selected_ids = ConditionTreeFactory.match_ids(request.collection.schema, selection_ids)
@@ -134,11 +141,15 @@ class ActionResource(BaseCollectionResource):
             condition_tree = ConditionTreeFactory.intersect(trees)
         else:
             condition_tree = None
-        filter = build_filter(request, condition_tree)
+        filter_ = build_filter(request, condition_tree)
+
         attributes: Dict[str, Any] = request.body.get("data", {}).get("attributes", {})
-        if "parent_association_name" in attributes:
-            pass
-        return filter
+        if attributes.get("parent_association_name") is not None:
+            parent = self.datasource.get_collection(attributes["parent_collection_name"])
+            relation = parent.schema["fields"][attributes["parent_association_name"]]
+            parent_id = unpack_id(parent.schema, attributes["parent_collection_id"])
+            filter_ = await FilterFactory.make_foreign_filter(request.user, parent, parent_id, relation, filter_)
+        return filter_
 
     def _middleware_custom_action_approval_request_data(self, request: ActionRequest):
         if request.body.get("data", {}).get("attributes", {}).get("signed_approval_request") is not None:

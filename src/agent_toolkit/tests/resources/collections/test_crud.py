@@ -220,11 +220,7 @@ class TestCrudResource(TestCase):
             response = self.loop.run_until_complete(crud_resource.dispatch(request, "add"))
         assert response.status == 400
         body = json.loads(response.body)
-        assert body["errors"][0] == {
-            "name": "ValidationError",
-            "detail": "test exception",
-            "status": 400,
-        }
+        assert body["errors"][0] == {"name": "ValidationError", "detail": "test exception", "status": 400, "data": {}}
 
     # get
     @patch("forestadmin.agent_toolkit.resources.collections.crud.unpack_id", return_value=[10])

@@ -163,8 +163,7 @@ def build_blueprint(agent: Agent):  # noqa: C901
     @blueprint.route("/scope-cache-invalidation", methods=["POST"])
     async def scope_cache_invalidation(**_) -> FlaskResponse:  # type: ignore
         agent._permission_service.invalidate_cache("forest.scopes")
-        rsp = FlaskResponse()
-        rsp.status = 204
+        rsp = FlaskResponse(status=204)
         return rsp
 
     return blueprint
