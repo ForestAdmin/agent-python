@@ -1,7 +1,6 @@
 from typing import Any, Dict, Optional, Union
 
 from forestadmin.agent_toolkit.exceptions import AgentToolkitException
-from forestadmin.agent_toolkit.resources.collections import BoundCollection
 from forestadmin.agent_toolkit.resources.collections.requests import RequestArgs as CollectionRequestArgs
 from forestadmin.agent_toolkit.resources.collections.requests import RequestCollection
 from forestadmin.agent_toolkit.utils.context import Request, RequestMethod, User
@@ -9,6 +8,7 @@ from forestadmin.datasource_toolkit.collections import Collection
 from forestadmin.datasource_toolkit.datasource_customizer.collection_customizer import CollectionCustomizer
 from forestadmin.datasource_toolkit.datasource_customizer.datasource_customizer import DatasourceCustomizer
 from forestadmin.datasource_toolkit.datasources import Datasource
+from forestadmin.datasource_toolkit.interfaces.models.collections import BoundCollection
 from typing_extensions import Self
 
 

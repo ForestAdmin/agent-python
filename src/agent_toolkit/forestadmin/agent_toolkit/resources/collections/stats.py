@@ -12,7 +12,7 @@ from uuid import uuid1
 
 import pandas as pd
 from forestadmin.agent_toolkit.forest_logger import ForestLogger
-from forestadmin.agent_toolkit.resources.collections import BaseCollectionResource
+from forestadmin.agent_toolkit.resources.collections.base_collection_resource import BaseCollectionResource
 from forestadmin.agent_toolkit.resources.collections.decorators import authenticate, authorize, check_method
 from forestadmin.agent_toolkit.resources.collections.filter import build_filter
 from forestadmin.agent_toolkit.resources.collections.requests import RequestCollection, RequestCollectionException

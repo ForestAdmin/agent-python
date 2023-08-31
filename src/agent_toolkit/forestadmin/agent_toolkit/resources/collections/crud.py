@@ -11,7 +11,7 @@ else:
 from typing import Any, Awaitable, Dict, List, Tuple, cast
 
 from forestadmin.agent_toolkit.forest_logger import ForestLogger
-from forestadmin.agent_toolkit.resources.collections import BaseCollectionResource
+from forestadmin.agent_toolkit.resources.collections.base_collection_resource import BaseCollectionResource
 from forestadmin.agent_toolkit.resources.collections.decorators import authenticate, authorize, check_method
 from forestadmin.agent_toolkit.resources.collections.exceptions import CollectionResourceException
 from forestadmin.agent_toolkit.resources.collections.filter import (

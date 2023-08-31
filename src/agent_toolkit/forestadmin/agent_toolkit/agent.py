@@ -10,7 +10,6 @@ from forestadmin.agent_toolkit.exceptions import AgentToolkitException
 from forestadmin.agent_toolkit.forest_logger import ForestLogger
 from forestadmin.agent_toolkit.options import DEFAULT_OPTIONS, Options
 from forestadmin.agent_toolkit.resources.actions.resources import ActionResource
-from forestadmin.agent_toolkit.resources.collections import BoundCollection
 from forestadmin.agent_toolkit.resources.collections.charts_collection import ChartsCollectionResource
 from forestadmin.agent_toolkit.resources.collections.charts_datasource import ChartsDatasourceResource
 from forestadmin.agent_toolkit.resources.collections.crud import CrudResource
@@ -28,6 +27,7 @@ from forestadmin.datasource_toolkit.datasource_customizer.collection_customizer 
 from forestadmin.datasource_toolkit.datasource_customizer.datasource_customizer import DatasourceCustomizer
 from forestadmin.datasource_toolkit.datasources import Datasource
 from forestadmin.datasource_toolkit.decorators.chart.types import DataSourceChartDefinition
+from forestadmin.datasource_toolkit.interfaces.models.collections import BoundCollection
 
 
 class Resources(TypedDict):

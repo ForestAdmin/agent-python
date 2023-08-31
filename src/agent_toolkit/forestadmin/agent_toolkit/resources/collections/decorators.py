@@ -1,6 +1,6 @@
 from typing import Any, Awaitable, Callable, TypeVar, Union
 
-from forestadmin.agent_toolkit.resources.collections import BaseCollectionResource
+from forestadmin.agent_toolkit.resources.collections.base_collection_resource import BaseCollectionResource
 from forestadmin.agent_toolkit.resources.collections.filter import parse_timezone
 from forestadmin.agent_toolkit.resources.collections.requests import RequestCollection
 from forestadmin.agent_toolkit.services.permissions.permissions_types import PermissionServiceException
