@@ -56,13 +56,13 @@ class SmartActionChecker:
             self.role_id in self.smart_action["triggerEnabled"]
             and self.role_id not in self.smart_action["approvalRequired"]
         ):
-            if len(self.smart_action["triggerConditions"]) == 0 or self._match_conditions("triggerConditions"):
+            if len(self.smart_action["triggerConditions"]) == 0 or await self._match_conditions("triggerConditions"):
                 return True
         elif (
             self.role_id in self.smart_action["triggerEnabled"]
             and self.role_id in self.smart_action["approvalRequired"]
         ):
-            if len(self.smart_action["approvalRequiredConditions"]) == 0 or self._match_conditions(
+            if len(self.smart_action["approvalRequiredConditions"]) == 0 or await self._match_conditions(
                 "approvalRequiredConditions"
             ):
                 raise RequireApproval(
@@ -72,7 +72,9 @@ class SmartActionChecker:
                     self.smart_action["userApprovalEnabled"],
                 )
             else:
-                if len(self.smart_action["triggerConditions"]) == 0 or self._match_conditions("triggerConditions"):
+                if len(self.smart_action["triggerConditions"]) == 0 or await self._match_conditions(
+                    "triggerConditions"
+                ):
                     return True
 
         raise ForbiddenError(

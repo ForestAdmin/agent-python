@@ -56,7 +56,7 @@ class PermissionService:
             raise ForbiddenError(f"You don't have permission to {action} this collection.")
         return is_allowed
 
-    async def can_chart(self, caller: User, request: RequestCollection) -> bool:
+    async def can_chart(self, request: RequestCollection) -> bool:
         hash_request = request.body["type"] + ":" + _hash_chart(request.body)
         is_allowed = hash_request in await self._get_chart_data(request.user.rendering_id, False)
 
@@ -67,10 +67,12 @@ class PermissionService:
         # still not allowed - throw forbidden message
         if is_allowed is False:
             ForestLogger.log(
-                "debug", f"User {caller.user_id} cannot retrieve chart on rendering {request.user.rendering_id}"
+                "debug", f"User {request.user.user_id} cannot retrieve chart on rendering {request.user.rendering_id}"
             )
-            raise ForbiddenError("You don't have permission to access this collection.")
-        ForestLogger.log("debug", f"User {caller.user_id} can retrieve chart on rendering {request.user.rendering_id}")
+            raise ForbiddenError("You don't have permission to access this chart.")
+        ForestLogger.log(
+            "debug", f"User {request.user.user_id} can retrieve chart on rendering {request.user.rendering_id}"
+        )
         return is_allowed
 
     async def can_smart_action(
@@ -185,8 +187,8 @@ class PermissionService:
     async def _find_action_from_endpoint(
         self, collection: Collection, get_params: Dict, http_method: str
     ) -> Optional[ForestServerAction]:
-        actions = await SchemaEmitter.generate(self.options["prefix"], collection.datasource)
-        actions = [col for col in actions if col["name"] == collection.name][0]["actions"]
+        collections = await SchemaEmitter.generate(self.options["prefix"], collection.datasource)
+        actions = [col for col in collections if col["name"] == collection.name][0]["actions"]
         if len(actions) == 0:
             return None
 
@@ -196,4 +198,4 @@ class PermissionService:
             if action["id"] == f"{collection.name}-{get_params['action_name']}-{get_params['slug']}"
             and http_method.value == action["httpMethod"]
         ]
-        return actions[0]
+        return actions[0] if len(actions) > 0 else None
