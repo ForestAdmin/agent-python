@@ -35,7 +35,7 @@ def unpack_id(schema: CollectionSchema, pks: str) -> CompositeIdAlias:
         value = pk_values[i]
 
         if schema_field["column_type"] == PrimitiveType.NUMBER:
-            value = literal_eval(value)
+            value = literal_eval(str(value))
         try:
             FieldValidator.validate_value(field_name, schema_field, value)
         except FieldValidatorException:
