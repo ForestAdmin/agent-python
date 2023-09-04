@@ -1,17 +1,10 @@
-import itertools
 import json
 from collections.abc import Iterable
 from hashlib import sha1
-from typing import Any, Dict, List, Set, Tuple, cast
+from typing import Any, Dict
 
-from forestadmin.agent_toolkit.services.permissions.permissions_types import (
-    PermissionBody,
-    PermissionServiceException,
-    Scope,
-)
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.factory import ConditionTreeFactory
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.base import ConditionTree
-from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.branch import ConditionTreeBranch
 
 ##################
 # Decode methods #
@@ -50,93 +43,6 @@ def _decode_actions_permissions(collection: Dict[Any, Any]) -> Dict[Any, Any]:
             "selfApprovalEnabled": action["selfApprovalEnabled"]["roles"],
         }
     return actions
-
-
-def decode_permission_body(rendering_id: int, body: Dict[str, Any]) -> PermissionBody:
-    if not body["meta"].get("rolesACLActivated"):
-        raise PermissionServiceException("Roles V2 are unsupported")
-
-    collections: Dict[str, Any] = {}
-    stats: Dict[str, Any] = body.get("stats", {})
-    renderings: Dict[str, Any] = {}
-
-    if "data" in body:
-        if body["data"].get("collections"):
-            collections = body["data"]["collections"]
-
-        renderings = body["data"].get("renderings", {})
-        if str(rendering_id) in renderings:
-            renderings = renderings[str(rendering_id)]
-    actions, actions_by_user = _decode_action_permissions(collections)
-    actions.update(_decode_chart_permissions(stats))
-
-    scopes = _decode_scopes(renderings)
-
-    return {"actions": actions, "actions_by_user": actions_by_user, "scopes": scopes}
-
-
-def _decode_scopes(rendering: Dict[str, Any]) -> Dict[str, Scope]:
-    scopes: Dict[str, Scope] = {}
-    for name, v in rendering.items():
-        if v.get("scope"):
-            scopes[name] = {
-                **v["scope"],
-                "condition_tree": cast(
-                    ConditionTreeBranch, ConditionTreeFactory.from_plain_object(v["scope"]["filter"])
-                ),
-                "dynamic_scope_values": v["scope"]["dynamicScopesValues"].get("users", {}),
-            }
-    return scopes
-
-
-def _decode_action_permissions(collections: Dict[str, Any]) -> Tuple[Set[str], Dict[str, Set[int]]]:
-    actions: Set[str] = set()
-    actions_by_user: Dict[str, Set[int]] = {}
-
-    for name, settings in collections.items():
-        for action_name, user_ids in settings.get("collection", {}).items():
-            # Remove 'Enabled' from the name
-            short_name = action_name[:-7]
-            key = f"{short_name}:{name}"
-            if isinstance(user_ids, bool):
-                actions.add(key)
-            else:
-                actions_by_user[key] = set(user_ids)
-
-        for action_name, perms in settings.get("actions", {}).items():
-            user_ids = perms["triggerEnabled"]
-            key = f"custom:{action_name}:{name}"
-            if isinstance(user_ids, bool):
-                actions.add(key)
-            else:
-                actions_by_user[key] = set(user_ids)
-
-    return actions, actions_by_user
-
-
-def _decode_chart_permissions(stats: Dict[str, Any]) -> List[str]:
-    server_charts = list(itertools.chain(*stats.values()))
-    hashes: List[str] = []
-    for chart in server_charts:
-        if isinstance(chart, str):  # Queries
-            hashes.append(f"chart:{hash(chart)}")
-        else:
-            frontend_chart = {
-                "type": chart.get("type"),
-                "filters": chart.get("filter"),
-                "aggregate": chart.get("aggregator"),
-                "aggregate_field": chart.get("aggregateFieldName"),
-                "collection": chart.get("sourceCollectionId"),
-                "time_range": chart.get("timeRange"),
-                "group_by_date_field": (chart.get("type") == "Line" and chart.get("groupByFieldName")) or None,
-                "group_by_field": (chart.get("type") != "Line" and chart.get("groupByFieldName")) or None,
-                "limit": chart.get("limit"),
-                "label_field": chart.get("labelFieldName"),
-                "relationship_field": chart.get("relationshipFieldName"),
-            }
-            h = hash(json.dumps(dict((k, v) for k, v in frontend_chart.items() if v is not None)))
-            hashes.append(f"chart:{h}")
-    return hashes
 
 
 ################

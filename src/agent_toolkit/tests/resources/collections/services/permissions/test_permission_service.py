@@ -1,24 +1,14 @@
 import asyncio
 import sys
-from typing import Any, Coroutine, Dict, Literal, Union
+from typing import Any, Coroutine, Dict, Optional, Union
 from unittest import TestCase
 from unittest.mock import _patch, patch
 
-from forestadmin.agent_toolkit.resources.collections.requests import RequestCollection
-from forestadmin.datasource_toolkit.decorators.action.collections import ActionCollectionDecorator
-from forestadmin.datasource_toolkit.decorators.action.context.single import ActionContextSingle
-from forestadmin.datasource_toolkit.decorators.action.result_builder import ResultBuilder
-from forestadmin.datasource_toolkit.decorators.action.types.actions import ActionSingle
-from forestadmin.datasource_toolkit.decorators.datasource_decorator import DatasourceDecorator
-from forestadmin.datasource_toolkit.exceptions import ForbiddenError, ForestException
-from forestadmin.datasource_toolkit.interfaces.actions import ActionResult
-from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.base import ConditionTree
-from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.branch import Aggregator
-from forestadmin.datasource_toolkit.interfaces.query.filter.unpaginated import Filter
-
 if sys.version_info < (3, 8):
     from mock import AsyncMock
+    from typing_extensions import Literal
 else:
+    from typing import Literal
     from unittest.mock import AsyncMock
 
 
@@ -27,13 +17,24 @@ if sys.version_info >= (3, 9):
 else:
     from backports import zoneinfo
 
+from forestadmin.agent_toolkit.resources.collections.requests import RequestCollection
 from forestadmin.agent_toolkit.services.permissions.options import RoleOptions
 from forestadmin.agent_toolkit.services.permissions.permission_service import PermissionService
 from forestadmin.agent_toolkit.utils.context import RequestMethod, User
 from forestadmin.agent_toolkit.utils.http import ForestHttpApi
 from forestadmin.datasource_toolkit.collections import Collection
 from forestadmin.datasource_toolkit.datasources import Datasource
+from forestadmin.datasource_toolkit.decorators.action.collections import ActionCollectionDecorator
+from forestadmin.datasource_toolkit.decorators.action.context.single import ActionContextSingle
+from forestadmin.datasource_toolkit.decorators.action.result_builder import ResultBuilder
+from forestadmin.datasource_toolkit.decorators.action.types.actions import ActionSingle
+from forestadmin.datasource_toolkit.decorators.datasource_decorator import DatasourceDecorator
+from forestadmin.datasource_toolkit.exceptions import ForbiddenError, ForestException
+from forestadmin.datasource_toolkit.interfaces.actions import ActionResult
 from forestadmin.datasource_toolkit.interfaces.fields import FieldType, Operator, PrimitiveType
+from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.base import ConditionTree
+from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.branch import Aggregator
+from forestadmin.datasource_toolkit.interfaces.query.filter.unpaginated import Filter
 
 MockHttpApiMethods = Union[
     Literal["get_environment_permissions"], Literal["get_users"], Literal["get_rendering_permissions"]
@@ -221,6 +222,27 @@ class Test01CachePermissionService(BaseTestPermissionService):
         self.assertIsNotNone(self.permission_service.cache["forest.users"])
         self.permission_service.invalidate_cache("forest.users")
         self.assertNotIn("forest.users", self.permission_service.cache)
+
+    def test_dont_call_api_when_something_is_cached(self):
+        http_patches: PatchHttpApiDict = self.mock_forest_http_api()
+        http_patches: PatchHttpApiDict = self.mock_forest_http_api()
+        http_mocks: MockHttpApiDict = {name: patch.start() for name, patch in http_patches.items()}
+
+        response_1 = self.loop.run_until_complete(self.permission_service._get_chart_data(1))
+        response_2 = self.loop.run_until_complete(self.permission_service._get_chart_data(1))
+        self.assertEqual(response_1, response_2)
+
+        response_1 = self.loop.run_until_complete(self.permission_service.get_user_data(1))
+        response_2 = self.loop.run_until_complete(self.permission_service.get_user_data(1))
+        self.assertEqual(response_1, response_2)
+
+        response_1 = self.loop.run_until_complete(self.permission_service._get_collection_permissions_data())
+        response_2 = self.loop.run_until_complete(self.permission_service._get_collection_permissions_data())
+        self.assertEqual(response_1, response_2)
+
+        [mock.assert_awaited_once() for name, mock in http_mocks.items()]
+
+        [patch.stop() for name, patch in http_patches.items()]
 
 
 class Test02CanPermissionService(BaseTestPermissionService):
@@ -486,7 +508,7 @@ class Test05CanSmartActionPermissionService(BaseTestPermissionService):
         class MarkAsLiveAction(ActionSingle):
             def execute(
                 self, context: ActionContextSingle, result_builder: ResultBuilder
-            ) -> Coroutine[Any, Any, ActionResult | None]:
+            ) -> Coroutine[Any, Any, Optional[ActionResult]]:
                 return result_builder.success("success")
 
         self.decorated_collection_booking.add_action("Mark as live", MarkAsLiveAction())
