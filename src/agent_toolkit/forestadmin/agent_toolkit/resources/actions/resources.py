@@ -1,8 +1,6 @@
 import sys
 from typing import Any, Dict, List, Optional, Union
 
-from forestadmin.datasource_toolkit.interfaces.query.filter.factory import FilterFactory
-
 if sys.version_info >= (3, 8):
     from typing import Literal
 else:
@@ -27,6 +25,7 @@ from forestadmin.datasource_toolkit.exceptions import BusinessError
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.factory import ConditionTreeFactory
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.base import ConditionTree
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.branch import Aggregator, ConditionTreeBranch
+from forestadmin.datasource_toolkit.interfaces.query.filter.factory import FilterFactory
 from forestadmin.datasource_toolkit.interfaces.query.filter.unpaginated import Filter
 from jose import jwt
 

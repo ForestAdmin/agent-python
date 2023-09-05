@@ -47,6 +47,9 @@ patch("forestadmin.agent_toolkit.resources.collections.decorators.authenticate",
 patch("forestadmin.agent_toolkit.resources.collections.decorators.authorize", mock_decorator_with_param).start()
 
 
+# how to mock decorators, and why they are not testable :
+# https://dev.to/stack-labs/how-to-mock-a-decorator-in-python-55jc
+
 importlib.reload(forestadmin.agent_toolkit.resources.collections.charts_collection)
 from forestadmin.agent_toolkit.resources.collections.charts_collection import ChartsCollectionResource  # noqa: E402
 
