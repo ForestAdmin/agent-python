@@ -17,9 +17,6 @@ class ContextVariableInjector:
                 lambda condition: ContextVariableInjector.inject_context_in_filter(condition, context_variable)
             )
 
-        def fn(leaf):
-            leaf.override({"value": ContextVariableInjector.inject_context_in_value(filter_.value, context_variable)})
-
         return filter_.replace(
             lambda leaf: leaf.override(
                 {"value": ContextVariableInjector.inject_context_in_value(filter_.value, context_variable)}

@@ -130,6 +130,15 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+# customs
+venv*
+src/tmp_venv/
+virtualenv/
+
+# custom
+test_cover_like_ci.sh
+.python-version
+package-lock.json
 
 # Spyder project settings
 .spyderproject
