@@ -7,7 +7,7 @@ from forestadmin.datasource_toolkit.context.agent_context import AgentCustomizat
 from forestadmin.datasource_toolkit.context.collection_context import CollectionCustomizationContext
 from forestadmin.datasource_toolkit.decorators.action.context.base import ActionContext
 from forestadmin.datasource_toolkit.decorators.action.result_builder import ResultBuilder
-from forestadmin.datasource_toolkit.decorators.action.types.actions import ActionGlobal
+from forestadmin.datasource_toolkit.decorators.action.types.actions import ActionBulk, ActionGlobal
 from forestadmin.datasource_toolkit.decorators.action.types.fields import PlainDynamicField
 from forestadmin.datasource_toolkit.decorators.chart.result_builder import ResultBuilder as ResultBuilderChart
 from forestadmin.datasource_toolkit.decorators.computed.types import ComputedDefinition
@@ -114,9 +114,23 @@ class ExportJson(ActionGlobal):
         )
 
 
+class RefundOrder(ActionBulk):
+    FORM: List[PlainDynamicField] = [
+        {
+            "type": ActionFieldType.STRING,
+            "label": "reason",
+            "is_required": False,
+            "description": "",
+            "default_value": "",
+            "value": "",
+        },
+    ]
+
+    async def execute(self, context: ActionContext, result_builder: ResultBuilder) -> Union[None, ActionResult]:
+        return result_builder.success("fake refund")
+
+
 # charts
-
-
 async def total_order_chart(context: AgentCustomizationContext, result_builder: ResultBuilderChart):
     records = await context.datasource.get_collection("order").list(
         context.caller, PaginatedFilter({}), Projection("id")
@@ -127,7 +141,7 @@ async def total_order_chart(context: AgentCustomizationContext, result_builder: 
 async def nb_order_per_week(context: AgentCustomizationContext, result_builder: ResultBuilderChart):
     records = await context.datasource.get_collection("order").aggregate(
         context.caller,
-        Filter({"condition_tree": ConditionTreeLeaf("created_at", Operator.BEFORE, "1990-01-01")}),
+        Filter({"condition_tree": ConditionTreeLeaf("created_at", Operator.BEFORE, "2022-01-01")}),
         Aggregation(
             PlainAggregation(
                 field="created_at",

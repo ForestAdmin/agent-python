@@ -23,9 +23,11 @@ from demo.forest_admin.smart.customer import (
 )
 from demo.forest_admin.smart.order import ExportJson as ExportOrderJson
 from demo.forest_admin.smart.order import (
+    RefundOrder,
     delivered_order_segment,
     dispatched_order_segment,
     get_customer_full_name_field,
+    nb_order_per_week,
     pending_order_segment,
     rejected_order_segment,
     suspicious_order_segment,
@@ -133,11 +135,15 @@ agent.customize_collection("order").add_segment("Delivered order", delivered_ord
 agent.customize_collection("order").add_segment("Rejected order", rejected_order_segment)
 agent.customize_collection("order").add_segment("Dispatched order", dispatched_order_segment)
 agent.customize_collection("order").add_segment("Suspicious order", suspicious_order_segment)
+agent.customize_collection("order").add_segment(
+    "newly_created", lambda context: ConditionTreeLeaf("created_at", Operator.AFTER, "2023-01-01")
+)
 
 # # rename
 agent.customize_collection("order").rename_field("amount", "cost")
 # # action file global
 agent.customize_collection("order").add_action("Export json", ExportOrderJson())
+agent.customize_collection("order").add_action("Refund order(s)", RefundOrder())
 # # validation
 agent.customize_collection("order").add_validation("amount", {"operator": Operator.GREATER_THAN, "value": 0})
 # # computed
@@ -154,6 +160,7 @@ agent.add_chart(
         [{"username": "Darth Vador", "points": 1500000}, {"username": "Luke Skywalker", "points": 2}]
     ),
 )
+agent.add_chart("total_order_week", nb_order_per_week)
 
 # add relations
 # # oneToOne

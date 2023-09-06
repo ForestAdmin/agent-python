@@ -7,15 +7,17 @@ from forestadmin.datasource_toolkit.context.agent_context import AgentCustomizat
 from forestadmin.datasource_toolkit.context.collection_context import CollectionCustomizationContext
 from forestadmin.datasource_toolkit.decorators.action.context.base import ActionContext
 from forestadmin.datasource_toolkit.decorators.action.result_builder import ResultBuilder
-from forestadmin.datasource_toolkit.decorators.action.types.actions import ActionGlobal
+from forestadmin.datasource_toolkit.decorators.action.types.actions import ActionBulk, ActionGlobal
 from forestadmin.datasource_toolkit.decorators.action.types.fields import PlainDynamicField
 from forestadmin.datasource_toolkit.decorators.chart.result_builder import ResultBuilder as ResultBuilderChart
 from forestadmin.datasource_toolkit.decorators.computed.types import ComputedDefinition
 from forestadmin.datasource_toolkit.interfaces.actions import ActionFieldType, ActionResult
 from forestadmin.datasource_toolkit.interfaces.fields import Operator, PrimitiveType
+from forestadmin.datasource_toolkit.interfaces.query.aggregation import Aggregation, DateOperation, PlainAggregation
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.branch import Aggregator, ConditionTreeBranch
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.leaf import ConditionTreeLeaf
 from forestadmin.datasource_toolkit.interfaces.query.filter.paginated import PaginatedFilter
+from forestadmin.datasource_toolkit.interfaces.query.filter.unpaginated import Filter
 from forestadmin.datasource_toolkit.interfaces.query.projections import Projection
 from forestadmin.datasource_toolkit.interfaces.records import RecordsDataAlias
 
@@ -112,9 +114,42 @@ class ExportJson(ActionGlobal):
         )
 
 
+class RefundOrder(ActionBulk):
+    FORM: List[PlainDynamicField] = [
+        {
+            "type": ActionFieldType.STRING,
+            "label": "reason",
+            "is_required": False,
+            "description": "",
+            "default_value": "",
+            "value": "",
+        },
+    ]
+
+    async def execute(self, context: ActionContext, result_builder: ResultBuilder) -> Union[None, ActionResult]:
+        return result_builder.success("fake refund")
+
+
 # charts
 async def total_order_chart(context: AgentCustomizationContext, result_builder: ResultBuilderChart):
     records = await context.datasource.get_collection("order").list(
         context.caller, PaginatedFilter({}), Projection("id")
     )
     return result_builder.value(len(records))
+
+
+async def nb_order_per_week(context: AgentCustomizationContext, result_builder: ResultBuilderChart):
+    records = await context.datasource.get_collection("order").aggregate(
+        context.caller,
+        Filter({"condition_tree": ConditionTreeLeaf("created_at", Operator.BEFORE, "2022-01-01")}),
+        Aggregation(
+            PlainAggregation(
+                field="created_at",
+                operation="Count",
+                groups=[{"field": "created_at", "operation": DateOperation.WEEK}],
+            )
+        ),
+    )
+    return result_builder.time_based(
+        DateOperation.WEEK, {entry["group"]["created_at"]: entry["value"] for entry in records}
+    )

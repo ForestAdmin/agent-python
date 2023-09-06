@@ -22,6 +22,7 @@ from demo.forest_admin.smart.customer import (
 )
 from demo.forest_admin.smart.order import ExportJson as ExportOrderJson
 from demo.forest_admin.smart.order import (
+    RefundOrder,
     delivered_order_segment,
     dispatched_order_segment,
     get_customer_full_name_field,
@@ -132,11 +133,15 @@ def customize_agent(agent: Agent):
     agent.customize_collection("order").add_segment("Rejected order", rejected_order_segment)
     agent.customize_collection("order").add_segment("Dispatched order", dispatched_order_segment)
     agent.customize_collection("order").add_segment("Suspicious order", suspicious_order_segment)
+    agent.customize_collection("order").add_segment(
+        "newly_created", lambda context: ConditionTreeLeaf("created_at", Operator.AFTER, "2023-01-01")
+    )
 
     # # rename
     agent.customize_collection("order").rename_field("amount", "cost")
     # # action file global
     agent.customize_collection("order").add_action("Export json", ExportOrderJson())
+    agent.customize_collection("order").add_action("Refund order(s)", RefundOrder())
     # # validation
     agent.customize_collection("order").add_validation("amount", {"operator": Operator.GREATER_THAN, "value": 0})
     # # computed

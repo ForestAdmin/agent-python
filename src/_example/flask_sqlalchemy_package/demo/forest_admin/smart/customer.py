@@ -246,7 +246,9 @@ class AgeOperation(ActionSingle):
             # Only display this field if the rating is 4 or 5
             if_=lambda context: int(context.form_values.get("Rating", "0") or "0") < 4,
         ),
-        PlainFileListDynamicField(label="test filelist", type=ActionFieldType.FILE_LIST, is_required=False),
+        PlainFileListDynamicField(
+            label="test filelist", type=ActionFieldType.FILE_LIST, is_required=False, default_value=[]
+        ),
     ]
 
     async def execute(self, context: ActionContextSingle, result_builder: ResultBuilder) -> Union[None, ActionResult]:

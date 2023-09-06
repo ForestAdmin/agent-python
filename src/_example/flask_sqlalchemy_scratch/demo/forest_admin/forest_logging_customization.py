@@ -34,6 +34,8 @@ def customize_forest_logging():
     handler.setLevel(logging.DEBUG)
     handler.setFormatter(ColorizedFormatter("%(asctime)s %(pathname)s:%(lineno)d %(levelname)s: %(message)s"))
 
+    for handler in forest_logger.handlers:
+        forest_logger.removeHandler(handler)
     forest_logger.addHandler(handler)
     forest_logger.setLevel(logging.DEBUG)
 

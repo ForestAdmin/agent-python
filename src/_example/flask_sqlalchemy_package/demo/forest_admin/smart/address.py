@@ -9,6 +9,7 @@ from forestadmin.datasource_toolkit.interfaces.query.aggregation import (
     PlainAggregationGroup,
 )
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.leaf import ConditionTreeLeaf
+from forestadmin.datasource_toolkit.interfaces.query.filter.unpaginated import Filter
 from forestadmin.datasource_toolkit.interfaces.records import RecordsDataAlias
 
 # segments
@@ -16,7 +17,8 @@ from forestadmin.datasource_toolkit.interfaces.records import RecordsDataAlias
 
 async def high_delivery_address_segment(context: CollectionCustomizationContext):
     rows = await context.datasource.get_collection("order").aggregate(
-        None,
+        context.caller,
+        Filter({}),
         Aggregation(
             component=PlainAggregation(
                 PlainAggregation(operation="Count", groups=[PlainAggregationGroup(field="delivering_address_id")])
