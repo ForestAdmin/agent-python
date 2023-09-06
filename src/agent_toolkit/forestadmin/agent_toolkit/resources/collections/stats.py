@@ -1,14 +1,13 @@
 import json
 import sys
 from datetime import date, datetime
+from typing import Any, Dict, List, Optional, Union, cast
+from uuid import uuid1
 
 if sys.version_info >= (3, 8):
     from typing import Literal
 else:
     from typing_extensions import Literal
-
-from typing import Any, Dict, List, Union, cast
-from uuid import uuid1
 
 import pandas as pd
 from forestadmin.agent_toolkit.forest_logger import ForestLogger
@@ -26,14 +25,13 @@ from forestadmin.datasource_toolkit.interfaces.query.condition_tree.factory impo
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.base import ConditionTree
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.branch import Aggregator, ConditionTreeBranch
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.leaf import ConditionTreeLeaf
-from forestadmin.datasource_toolkit.interfaces.query.condition_tree.transforms.time import Frequency
 from forestadmin.datasource_toolkit.interfaces.query.filter.factory import FilterFactory
 from forestadmin.datasource_toolkit.interfaces.query.filter.unpaginated import Filter
 from forestadmin.datasource_toolkit.utils.schema import SchemaUtils
 
 
 class StatsResource(BaseCollectionResource):
-    FREQUENCIES = {"Day": Frequency.DAY, "Week": Frequency.WEEK, "Month": Frequency.MONTH, "Year": Frequency.YEAR}
+    FREQUENCIES = {"Day": "d", "Week": "W-MON", "Month": "BMS", "Year": "BYS"}
 
     FORMAT = {"Day": "%d/%m/%Y", "Week": "W%V-%Y", "Month": "%b %Y", "Year": "%Y"}
 
@@ -46,7 +44,9 @@ class StatsResource(BaseCollectionResource):
             "Leaderboard": self.leader_board,
         }[type]
 
-    async def dispatch(self, request: Request, method_name: Literal["add"]) -> Union[Response, FileResponse]:
+    async def dispatch(
+        self, request: Request, method_name: Optional[Literal["add"]] = None
+    ) -> Union[Response, FileResponse]:
         try:
             request_collection = RequestCollection.from_request(request, self.datasource)
         except RequestCollectionException as e:
@@ -75,6 +75,8 @@ class StatsResource(BaseCollectionResource):
     @authenticate
     @authorize("chart")
     async def value(self, request: RequestCollection) -> Response:
+        if not request.body:
+            raise Exception
         current_filter = await self._get_filter(request)
         result = {
             "countCurrent": await self._compute_value(request, current_filter),
@@ -97,6 +99,8 @@ class StatsResource(BaseCollectionResource):
     @authenticate
     @authorize("chart")
     async def objective(self, request: RequestCollection) -> Response:
+        if not request.body:
+            raise Exception
         current_filter = await self._get_filter(request)
         result = {"value": await self._compute_value(request, current_filter)}
         return self._build_success_response(result)
@@ -133,6 +137,9 @@ class StatsResource(BaseCollectionResource):
     async def line(self, request: RequestCollection) -> Response:
         if not request.body:
             raise Exception
+        for key in ["timeRange", "groupByFieldName", "aggregator"]:
+            if key not in request.body:
+                raise ForestException(f"The parameter {key} is not defined")
 
         current_filter = await self._get_filter(request)
         aggregation = Aggregation(
@@ -143,7 +150,8 @@ class StatsResource(BaseCollectionResource):
             }
         )
         rows = await request.collection.aggregate(request.user, current_filter, aggregation)
-        values = {}
+        dates = []
+        values_label = {}
         for row in rows:
             label = row["group"][request.body["groupByFieldName"]]
             if label is not None:
@@ -158,23 +166,24 @@ class StatsResource(BaseCollectionResource):
                         "warning",
                         f"The time chart label type must be 'str' or 'date', not {type(label)}. Skipping this record.",
                     )
-                values[label] = row["value"]
+                dates.append(label)
+                values_label[label.strftime(self.FORMAT[request.body["timeRange"]])] = row["value"]
 
-        dates = list(values.keys())
         dates.sort()
         end = dates[-1]
         start = dates[0]
-        datapoints: List[Dict[str, Union[date, Dict[str, int]]]] = []
+        data_points: List[Dict[str, Union[date, Dict[str, int]]]] = []
         for dt in pd.date_range(  # type: ignore
-            start=start, end=end, freq=self.FREQUENCIES[request.body["timeRange"]].value
+            start=start, end=end, freq=self.FREQUENCIES[request.body["timeRange"]]
         ).to_pydatetime():
-            datapoints.append(
+            label = dt.strftime(self.FORMAT[request.body["timeRange"]])
+            data_points.append(
                 {
-                    "label": dt.strftime(self.FORMAT[request.body["timeRange"]]),
-                    "values": {"value": values.get(dt.date(), 0)},
+                    "label": label,
+                    "values": {"value": values_label.get(label, 0)},
                 }
             )
-        return self._build_success_response(datapoints)
+        return self._build_success_response(data_points)
 
     @check_method(RequestMethod.POST)
     @authenticate
@@ -182,10 +191,15 @@ class StatsResource(BaseCollectionResource):
     async def leader_board(self, request: RequestCollection) -> Response:
         if not request.body:
             raise Exception
+        for key in ["aggregator", "labelFieldName", "relationshipFieldName"]:
+            if key not in request.body:
+                raise ForestException(f"The parameter {key} is not defined")
+
         aggregate = request.body["aggregator"]
         label_field = request.body["labelFieldName"]
         relationship_field = request.body["relationshipFieldName"]
-        limit = request.body["limit"]
+        limit = request.body.get("limit")
+        limit = int(limit) if isinstance(limit, str) else limit
         aggregate_field = request.body.get("aggregateFieldName")
         if not aggregate_field:
             relation = SchemaUtils.get_to_many_relation(request.collection.schema, relationship_field)
@@ -202,7 +216,7 @@ class StatsResource(BaseCollectionResource):
             }
         )
 
-        rows = await request.collection.aggregate(request.user, current_filter, aggregation, int(limit))
+        rows = await request.collection.aggregate(request.user, current_filter, aggregation, limit)
         results: List[Dict[str, Union[str, int]]] = []
         for row in rows:
             results.append({"key": row["group"][label_field], "value": row["value"]})
@@ -229,8 +243,6 @@ class StatsResource(BaseCollectionResource):
         return build_filter(request, scope_tree)
 
     async def _compute_value(self, request: RequestCollection, filter: Filter) -> int:
-        if not request.body:
-            raise Exception
         aggregation = Aggregation(
             {"operation": request.body["aggregator"], "field": request.body.get("aggregateFieldName")}
         )
