@@ -6,8 +6,6 @@ from datetime import date, datetime
 from unittest import TestCase
 from unittest.mock import Mock, patch
 
-from forestadmin.datasource_toolkit.exceptions import ForestException
-
 if sys.version_info < (3, 8):
     from mock import AsyncMock
 else:
@@ -25,6 +23,7 @@ from forestadmin.agent_toolkit.services.permissions.permission_service import Pe
 from forestadmin.agent_toolkit.utils.context import Request, RequestMethod, User
 from forestadmin.datasource_toolkit.collections import Collection
 from forestadmin.datasource_toolkit.datasources import Datasource
+from forestadmin.datasource_toolkit.exceptions import ForestException
 from forestadmin.datasource_toolkit.interfaces.fields import FieldType, Operator, PrimitiveType
 
 
@@ -62,7 +61,17 @@ class TestStatResource(TestCase):
         cls.loop = asyncio.new_event_loop()
         cls.permission_service = Mock(PermissionService)
         cls.permission_service.get_scope = AsyncMock(return_value=None)
-        # cls.permission_service.can = AsyncMock(return_value=True)
+        cls.permission_service.get_user_data = AsyncMock(return_value={
+            "id": 1,
+            "firstName": "dummy",
+            "lastName": "user",
+            "fullName": "dummy user",
+            "email": "dummy@user.fr",
+            "tags": {},
+            "roleId": 1,
+            "permissionLevel": "admin",
+        })
+        cls.permission_service.get_team = AsyncMock(return_value={"id": 7, "name": "Operations"})
         cls.options = Options(
             auth_secret="fake_secret",
             env_secret="fake_secret",
@@ -380,9 +389,9 @@ class TestValueStatsResource(TestStatResource):
             ) as mock_build_filter:
                 response = self.loop.run_until_complete(self.stat_resource.value(request))
                 mock_build_filter.assert_called_once()
-                self.assertEqual(mock_build_filter.call_args.args[0].body["filter"]["field"], "year")
-                self.assertEqual(mock_build_filter.call_args.args[0].body["filter"]["operator"], "equal")
-                self.assertEqual(mock_build_filter.call_args.args[0].body["filter"]["value"], 2022)
+                self.assertEqual(mock_build_filter.call_args_list[0][0][0].body["filter"]["field"], "year")
+                self.assertEqual(mock_build_filter.call_args_list[0][0][0].body["filter"]["operator"], "equal")
+                self.assertEqual(mock_build_filter.call_args_list[0][0][0].body["filter"]["value"], 2022)
             mock_aggregate.assert_awaited_once()
         content_body = json.loads(response.body)
         self.assertEqual(response.status, 200)

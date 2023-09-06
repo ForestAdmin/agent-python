@@ -19,20 +19,12 @@ class ForestHttpApiException(AgentToolkitException):
 class HttpOptions(TypedDict):
     env_secret: str
     forest_server_url: str
-    is_production: bool
 
 
 class ForestHttpApi:
     @staticmethod
     def build_endpoint(forest_server_url: str, url: str):
         return f"{forest_server_url}{url}"
-
-    # obsolete
-    @classmethod
-    async def get_permissions(cls, options: HttpOptions, rendering_id: int) -> Dict[str, Any]:  # type: ignore
-        endpoint = cls.build_endpoint(options["forest_server_url"], f"/liana/v3/permissions?renderingId={rendering_id}")
-        headers = {"forest-secret-key": options["env_secret"]}
-        return await cls.get(endpoint, headers)
 
     @classmethod
     async def get_environment_permissions(cls, options: HttpOptions):
@@ -55,22 +47,20 @@ class ForestHttpApi:
     @classmethod
     async def get_open_id_issuer_metadata(cls, options: HttpOptions) -> Dict[str, Any]:
         endpoint = cls.build_endpoint(options["forest_server_url"], "/oidc/.well-known/openid-configuration")
-        response = await cls.get(endpoint, {"forest-secret-key": options["env_secret"]})
-        return response
+        return await cls.get(endpoint, {"forest-secret-key": options["env_secret"]})
 
     @classmethod
     async def get_rendering_authorization(cls, rendering_id: int, access_token: str, options: HttpOptions):
         endpoint = cls.build_endpoint(
             options["forest_server_url"], f"/liana/v2/renderings/{rendering_id}/authorization"
         )
-        response = await cls.get(
+        return await cls.get(
             endpoint,
             {
                 "forest-token": access_token,
                 "forest-secret-key": options["env_secret"],
             },
         )
-        return response
 
     @staticmethod
     async def get(endpoint: str, headers: Dict[str, str]) -> Dict[str, Any]:
@@ -82,8 +72,8 @@ class ForestHttpApi:
                     raise ForestHttpApiException(
                         f"Failed to fetch {endpoint} ({response.status}, {headers} {await response.text()})"
                     )
-            except aiohttp.ClientError:
-                raise ForestHttpApiException(f"Failed to fetch {endpoint}")
+            except aiohttp.ClientError as exc:
+                raise ForestHttpApiException(f"Failed to fetch {endpoint} : {exc}")
 
     @staticmethod
     async def post(endpoint: str, body: Dict[str, Any], headers: Dict[str, str]) -> Optional[Dict[str, Any]]:
