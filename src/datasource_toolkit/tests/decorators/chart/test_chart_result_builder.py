@@ -11,23 +11,28 @@ class TestResultBuilder(TestCase):
         ResultBuilder.value(42, 34) == {"countCurrent": 42, "countPrevious": 34}
 
     def test_distribution_should_return_correct_format(self):
-        assert ResultBuilder.distribution({"a": 10, "b": 11}) == [{"key": "a", "value": 10}, {"key": "b", "value": 11}]
+        self.assertEqual(
+            ResultBuilder.distribution({"a": 10, "b": 11}), [{"key": "a", "value": 10}, {"key": "b", "value": 11}]
+        )
 
     def test_time_based_should_return_correct_format_day_from_string(self):
-        assert ResultBuilder.time_based(
-            DateOperation.DAY,
-            {
-                "1985-10-27": 2,
-                "1985-10-26": 1,
-                "1985-10-30": 3,
-            },
-        ) == [
-            {"label": "26/10/1985", "values": {"value": 1}},
-            {"label": "27/10/1985", "values": {"value": 2}},
-            {"label": "28/10/1985", "values": {"value": 0}},
-            {"label": "29/10/1985", "values": {"value": 0}},
-            {"label": "30/10/1985", "values": {"value": 3}},
-        ]
+        self.assertEqual(
+            ResultBuilder.time_based(
+                DateOperation.DAY,
+                {
+                    "1985-10-27": 2,
+                    "1985-10-26": 1,
+                    "1985-10-30": 3,
+                },
+            ),
+            [
+                {"label": "26/10/1985", "values": {"value": 1}},
+                {"label": "27/10/1985", "values": {"value": 2}},
+                {"label": "28/10/1985", "values": {"value": 0}},
+                {"label": "29/10/1985", "values": {"value": 0}},
+                {"label": "30/10/1985", "values": {"value": 3}},
+            ],
+        )
 
     def test_time_based_should_return_correct_format_day_from_date(self):
         assert ResultBuilder.time_based(
@@ -102,10 +107,7 @@ class TestResultBuilder(TestCase):
                 "1986-01-07": 3,
             },
         )
-        assert result == [
-            {"label": "1985", "values": {"value": 1}},
-            {"label": "1986", "values": {"value": 7}},
-        ]
+        assert result == [{"label": "1985", "values": {"value": 1}}, {"label": "1986", "values": {"value": 7}}]
 
     def test_percentage_should_return_correct_format(self):
         result = ResultBuilder.percentage(42)
@@ -116,13 +118,7 @@ class TestResultBuilder(TestCase):
         assert result == {"value": 42, "objective": 54}
 
     def test_leaderboard_should_return_correct_format(self):
-        result = ResultBuilder.leaderboard(
-            {
-                "a": 10,
-                "b": 30,
-                "c": 20,
-            }
-        )
+        result = ResultBuilder.leaderboard({"a": 10, "b": 30, "c": 20})
         assert result == [{"key": "a", "value": 10}, {"key": "c", "value": 20}, {"key": "b", "value": 30}]
 
     def test_smart_return_expected_format(self):

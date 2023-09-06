@@ -61,16 +61,18 @@ class TestStatResource(TestCase):
         cls.loop = asyncio.new_event_loop()
         cls.permission_service = Mock(PermissionService)
         cls.permission_service.get_scope = AsyncMock(return_value=None)
-        cls.permission_service.get_user_data = AsyncMock(return_value={
-            "id": 1,
-            "firstName": "dummy",
-            "lastName": "user",
-            "fullName": "dummy user",
-            "email": "dummy@user.fr",
-            "tags": {},
-            "roleId": 1,
-            "permissionLevel": "admin",
-        })
+        cls.permission_service.get_user_data = AsyncMock(
+            return_value={
+                "id": 1,
+                "firstName": "dummy",
+                "lastName": "user",
+                "fullName": "dummy user",
+                "email": "dummy@user.fr",
+                "tags": {},
+                "roleId": 1,
+                "permissionLevel": "admin",
+            }
+        )
         cls.permission_service.get_team = AsyncMock(return_value={"id": 7, "name": "Operations"})
         cls.options = Options(
             auth_secret="fake_secret",

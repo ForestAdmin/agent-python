@@ -103,7 +103,7 @@ class TestForestHttp(TestCase):
     @skipIf(
         sys.version_info < (3, 8),
         "in python 3.7 there is an error mocking context manager;"
-        " and python 3.7 will soon be removed from package compatibility"
+        " and python 3.7 will soon be removed from package compatibility",
     )
     def test_post_should_make_a_post_request_and_return_json(self):
         mock_response = Mock()
@@ -132,7 +132,7 @@ class TestForestHttp(TestCase):
     @skipIf(
         sys.version_info < (3, 8),
         "in python 3.7 there is an error mocking context manager;"
-        " and python 3.7 will soon be removed from package compatibility"
+        " and python 3.7 will soon be removed from package compatibility",
     )
     def test_post_should_make_a_post_request_and_return_None_if_no_200_answer(self):
         response = Mock()
@@ -159,7 +159,7 @@ class TestForestHttp(TestCase):
     @skipIf(
         sys.version_info < (3, 8),
         "in python 3.7 there is an error mocking context manager;"
-        " and python 3.7 will soon be removed from package compatibility"
+        " and python 3.7 will soon be removed from package compatibility",
     )
     def test_post_should_make_a_post_request_and_raise_exception_on_http_error(self):
         mock_session = Mock()
@@ -184,7 +184,7 @@ class TestForestHttp(TestCase):
     @skipIf(
         sys.version_info < (3, 8),
         "in python 3.7 there is an error mocking context manager;"
-        " and python 3.7 will soon be removed from package compatibility"
+        " and python 3.7 will soon be removed from package compatibility",
     )
     def test_get_should_make_a_get_request_and_return_json(self):
         mock_response = Mock()
@@ -211,7 +211,7 @@ class TestForestHttp(TestCase):
     @skipIf(
         sys.version_info < (3, 8),
         "in python 3.7 there is an error mocking context manager;"
-        " and python 3.7 will soon be removed from package compatibility"
+        " and python 3.7 will soon be removed from package compatibility",
     )
     def test_get_should_make_a_get_request_and_return_None_if_no_200_answer(self):
         response = Mock()
@@ -235,7 +235,7 @@ class TestForestHttp(TestCase):
     @skipIf(
         sys.version_info < (3, 8),
         "in python 3.7 there is an error mocking context manager;"
-        " and python 3.7 will soon be removed from package compatibility"
+        " and python 3.7 will soon be removed from package compatibility",
     )
     def test_get_should_make_a_get_request_and_raise_exception_on_http_error(self):
         mock_session = Mock()
