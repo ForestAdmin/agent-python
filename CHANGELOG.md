@@ -1,3 +1,10 @@
+# [1.0.0-beta.11](https://github.com/ForestAdmin/agent-python/compare/v1.0.0-beta.10...v1.0.0-beta.11) (2023-09-07)
+
+
+### Features
+
+* **permissions_v4:** add conditional approval, chart context variable ([#108](https://github.com/ForestAdmin/agent-python/issues/108)) ([afc49d6](https://github.com/ForestAdmin/agent-python/commit/afc49d63a4f6d9d470bd5fa48ae41b98377241f0))
+
 # [1.0.0-beta.10](https://github.com/ForestAdmin/agent-python/compare/v1.0.0-beta.9...v1.0.0-beta.10) (2023-08-21)
 
 
