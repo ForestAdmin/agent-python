@@ -4,12 +4,8 @@ import importlib
 import json
 import sys
 from unittest import TestCase
-from unittest.mock import ANY, Mock, patch
+from unittest.mock import ANY, AsyncMock, Mock, patch
 
-if sys.version_info < (3, 8):
-    from mock import AsyncMock
-else:
-    from unittest.mock import AsyncMock
 if sys.version_info >= (3, 9):
     import zoneinfo
 else:

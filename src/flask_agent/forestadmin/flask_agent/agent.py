@@ -1,15 +1,9 @@
 import asyncio
 import os
 import sys
-from typing import Optional, Tuple, Union
+from typing import Literal, Optional, Tuple, Union
 
 import pkg_resources
-
-if sys.version_info >= (3, 8):
-    from typing import Literal
-else:
-    from typing_extensions import Literal
-
 from flask import Blueprint, request
 from flask.app import Flask
 from flask.wrappers import Request as FlaskRequest

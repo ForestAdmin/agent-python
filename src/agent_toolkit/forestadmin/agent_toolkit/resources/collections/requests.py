@@ -1,10 +1,4 @@
-import sys
-from typing import Any, Dict, Optional, TypeVar, Union
-
-if sys.version_info >= (3, 8):
-    from typing import TypedDict
-else:
-    from typing_extensions import TypedDict
+from typing import Any, Dict, Optional, TypedDict, TypeVar, Union
 
 from forestadmin.agent_toolkit.exceptions import AgentToolkitException
 from forestadmin.agent_toolkit.resources.collections.exceptions import CollectionResourceException

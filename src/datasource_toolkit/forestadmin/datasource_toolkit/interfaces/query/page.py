@@ -1,11 +1,4 @@
-import sys
-
-if sys.version_info >= (3, 8):
-    from typing import TypedDict
-else:
-    from typing_extensions import TypedDict
-
-from typing import List, Optional
+from typing import List, Optional, TypedDict
 
 from forestadmin.datasource_toolkit.interfaces.records import RecordsDataAlias
 from typing_extensions import Self

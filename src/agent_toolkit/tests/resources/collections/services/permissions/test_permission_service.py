@@ -1,16 +1,8 @@
 import asyncio
 import sys
-from typing import Any, Coroutine, Dict, Optional, Union
+from typing import Any, Coroutine, Dict, Literal, Optional, Union
 from unittest import TestCase
-from unittest.mock import _patch, patch
-
-if sys.version_info < (3, 8):
-    from mock import AsyncMock
-    from typing_extensions import Literal
-else:
-    from typing import Literal
-    from unittest.mock import AsyncMock
-
+from unittest.mock import AsyncMock, _patch, patch
 
 if sys.version_info >= (3, 9):
     import zoneinfo

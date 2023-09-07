@@ -1,11 +1,5 @@
-import sys
 from unittest import TestCase
-from unittest.mock import ANY, PropertyMock, patch
-
-if sys.version_info >= (3, 8):
-    from unittest.mock import AsyncMock
-else:
-    from mock import AsyncMock
+from unittest.mock import ANY, AsyncMock, PropertyMock, patch
 
 from flask import Flask
 from forestadmin.agent_toolkit.utils.context import Response

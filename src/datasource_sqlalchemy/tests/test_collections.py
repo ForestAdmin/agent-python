@@ -5,13 +5,12 @@ from datetime import datetime
 from unittest import TestCase
 from unittest.mock import Mock, patch
 
-from forestadmin.agent_toolkit.utils.context import User
-
 if sys.version_info >= (3, 9):
     import zoneinfo
 else:
     from backports import zoneinfo
 
+from forestadmin.agent_toolkit.utils.context import User
 from forestadmin.datasource_sqlalchemy.collections import SqlAlchemyCollection, SqlAlchemyCollectionFactory
 from forestadmin.datasource_sqlalchemy.datasource import SqlAlchemyDatasource
 from forestadmin.datasource_sqlalchemy.exceptions import SqlAlchemyCollectionException

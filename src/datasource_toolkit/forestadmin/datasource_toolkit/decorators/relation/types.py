@@ -1,10 +1,4 @@
-import sys
-from typing import Optional, Union
-
-if sys.version_info >= (3, 8):
-    from typing import Literal, TypedDict
-else:
-    from typing_extensions import Literal, TypedDict
+from typing import Literal, Optional, TypedDict, Union
 
 from forestadmin.datasource_toolkit.interfaces.fields import FieldType
 

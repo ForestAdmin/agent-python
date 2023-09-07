@@ -2,14 +2,8 @@ import asyncio
 import csv
 import importlib
 import json
-import sys
 from unittest import TestCase
-from unittest.mock import Mock, patch
-
-if sys.version_info < (3, 8):
-    from mock import AsyncMock
-else:
-    from unittest.mock import AsyncMock
+from unittest.mock import AsyncMock, Mock, patch
 
 import forestadmin.agent_toolkit.resources.collections.crud
 from forestadmin.agent_toolkit.options import Options

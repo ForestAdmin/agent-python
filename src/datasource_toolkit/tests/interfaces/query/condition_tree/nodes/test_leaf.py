@@ -1,11 +1,4 @@
-import sys
-
-if sys.version_info < (3, 8):
-    from mock import AsyncMock
-else:
-    from unittest.mock import AsyncMock
-
-from unittest import mock
+from unittest.mock import AsyncMock, MagicMock, Mock, patch
 
 import pytest
 from forestadmin.datasource_toolkit.interfaces.fields import Operator
@@ -84,8 +77,8 @@ def test_condition_tree_projection():
     assert tree.projection == Projection("test")
 
 
-@mock.patch("forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.leaf.ConditionTreeLeaf.override")
-def test_condition_tree_leaf_inverse(mock_override: mock.Mock):
+@patch("forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.leaf.ConditionTreeLeaf.override")
+def test_condition_tree_leaf_inverse(mock_override: Mock):
     tree = ConditionTreeLeaf(field="test", operator=Operator.PRESENT)
     tree.inverse()
     mock_override.assert_called_once_with({"operator": Operator.BLANK})
@@ -165,8 +158,8 @@ def test_condition_tree_leaf_inverse_exception(operator: Operator):
     assert str(e.value) == f"🌳🌳🌳Operator '{operator}' cannot be inverted."
 
 
-@mock.patch("forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.leaf.ConditionTreeLeaf.load")
-def test_condition_tree_leaf_handle_replace_tree(mock_load: mock.Mock):
+@patch("forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.leaf.ConditionTreeLeaf.load")
+def test_condition_tree_leaf_handle_replace_tree(mock_load: Mock):
     mock_load.return_value = "fake"
     tree = LeafComponents(field="test", operator="blank")
     replaced_tree = ConditionTreeLeaf._handle_replace_tree(tree)  # type: ignore
@@ -180,13 +173,13 @@ def test_condition_tree_leaf_handle_replace_tree(mock_load: mock.Mock):
     mock_load.assert_not_called()
 
 
-@mock.patch(
+@patch(
     "forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.leaf.ConditionTreeLeaf._handle_replace_tree"
 )
-def test_condition_tree_leaf_replace(mock_handle_replace_tree: mock.Mock):
+def test_condition_tree_leaf_replace(mock_handle_replace_tree: Mock):
     mock_handle_replace_tree.return_value = "fake"
     tree = ConditionTreeLeaf(field="test", operator=Operator.BLANK)
-    replacer: ReplacerAlias = mock.MagicMock()
+    replacer: ReplacerAlias = MagicMock()
     replacer.return_value = "replacer_value"
 
     assert tree.replace(replacer) == "fake"
@@ -197,7 +190,7 @@ def test_condition_tree_leaf_replace(mock_handle_replace_tree: mock.Mock):
 @pytest.mark.asyncio
 async def test_condition_tree_leaf_aync_replace():
     # @mock.patch doesn't work with mark.asyncio so we use context
-    with mock.patch(
+    with patch(
         "forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.leaf.ConditionTreeLeaf._handle_replace_tr"
         "ee"
     ) as mock_handle_replace_tree:
@@ -211,7 +204,7 @@ async def test_condition_tree_leaf_aync_replace():
 
 
 def test__condition_tree_leaf_apply():
-    handler: CallbackAlias = mock.MagicMock(return_value="fake")
+    handler: CallbackAlias = MagicMock(return_value="fake")
     tree = ConditionTreeLeaf(field="test", operator=Operator.BLANK)
     assert tree.apply(handler) == "fake"
     handler.assert_called_once_with(tree)
@@ -246,8 +239,8 @@ def test_condition_tree_leaf_override():
     )
 
 
-@mock.patch("forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.leaf.ConditionTreeLeaf.override")
-def test_condition_tree_leaf_replace_field(mock_override: mock.MagicMock):
+@patch("forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.leaf.ConditionTreeLeaf.override")
+def test_condition_tree_leaf_replace_field(mock_override: MagicMock):
     mock_override.return_value = "fake"
     tree = ConditionTreeLeaf(field="test", operator=Operator.BLANK)
     assert tree.replace_field("new_field") == "fake"
@@ -281,11 +274,11 @@ def test_condition_tree_leaf_verify_number_values():
         tree._verify_is_number_values("a")  # type: ignore
 
 
-@mock.patch(
+@patch(
     "forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes"
     ".leaf.ConditionTreeLeaf._verify_is_number_values"
 )
-def test_condition_tree_leaf_less_than(mock_verify_number: mock.Mock):
+def test_condition_tree_leaf_less_than(mock_verify_number: Mock):
     tree = ConditionTreeLeaf(field="test", operator=Operator.LESS_THAN, value=1)
     assert tree._less_than(0) is True  # type: ignore
     assert tree._less_than(1) is False  # type: ignore
@@ -296,11 +289,11 @@ def test_condition_tree_leaf_less_than(mock_verify_number: mock.Mock):
         tree._less_than("0")  # type: ignore
 
 
-@mock.patch(
+@patch(
     "forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes"
     ".leaf.ConditionTreeLeaf._verify_is_number_values"
 )
-def test_condition_tree_leaf_greater_than(mock_verify_number: mock.Mock):
+def test_condition_tree_leaf_greater_than(mock_verify_number: Mock):
     tree = ConditionTreeLeaf(field="test", operator=Operator.GREATER_THAN, value=1)
     assert tree._greater_than(2) is True  # type: ignore
     assert tree._greater_than(1) is False  # type: ignore
@@ -349,29 +342,29 @@ def test_condition_tree_leaf_shorter_than():
 
 def test_condition_tree_leaf_not_equal_not_contains():
     record: RecordsDataAlias = {}
-    collection: Collection = mock.MagicMock()
+    collection: Collection = MagicMock()
     timezone = "UTC"
     tree = ConditionTreeLeaf(field="test", operator=Operator.NOT_CONTAINS, value="a")
-    inversed_tree = mock.MagicMock(name="toto")
-    inversed_tree.match = mock.MagicMock(name="tutu", return_value=False)
-    inverse_mock = mock.MagicMock(return_value=inversed_tree)
-    with mock.patch.object(tree, "inverse", inverse_mock):
+    inversed_tree = MagicMock(name="toto")
+    inversed_tree.match = MagicMock(name="tutu", return_value=False)
+    inverse_mock = MagicMock(return_value=inversed_tree)
+    with patch.object(tree, "inverse", inverse_mock):
         res = tree._not_equal_not_contains(record, collection, timezone)  # type: ignore
         assert res("value") is True
         inverse_mock.assert_called_once()
         inversed_tree.match.assert_called_once_with(record, collection, timezone)  # type: ignore
 
 
-@mock.patch("forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.leaf.RecordUtils.get_field_value")
-def test_simple_condition_tree_leaf_match(mock_get_field_value: mock.Mock):
+@patch("forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.leaf.RecordUtils.get_field_value")
+def test_simple_condition_tree_leaf_match(mock_get_field_value: Mock):
     record: RecordsDataAlias = {}
-    collection: Collection = mock.MagicMock()
+    collection: Collection = MagicMock()
     timezone = "UTC"
     mock_get_field_value.return_value = "fake_field_value"
-    m = mock.MagicMock(return_value="fake_res")
+    m = MagicMock(return_value="fake_res")
 
     tree = ConditionTreeLeaf(field="test", operator=Operator.EQUAL, value=1)
-    with mock.patch.object(tree, "_equal", m):
+    with patch.object(tree, "_equal", m):
         assert tree.match(record, collection, timezone) == "fake_res"
         mock_get_field_value.assert_called_once_with(record, "test")
         m.assert_called_once_with("fake_field_value")
@@ -380,7 +373,7 @@ def test_simple_condition_tree_leaf_match(mock_get_field_value: mock.Mock):
     mock_get_field_value.reset_mock()
 
     tree = ConditionTreeLeaf(field="test", operator=Operator.LESS_THAN, value=1)
-    with mock.patch.object(tree, "_less_than", m):
+    with patch.object(tree, "_less_than", m):
         assert tree.match(record, collection, timezone) == "fake_res"
         mock_get_field_value.assert_called_once_with(record, "test")
         m.assert_called_once_with("fake_field_value")
@@ -389,7 +382,7 @@ def test_simple_condition_tree_leaf_match(mock_get_field_value: mock.Mock):
     mock_get_field_value.reset_mock()
 
     tree = ConditionTreeLeaf(field="test", operator=Operator.GREATER_THAN, value=1)
-    with mock.patch.object(tree, "_greater_than", m):
+    with patch.object(tree, "_greater_than", m):
         assert tree.match(record, collection, timezone) == "fake_res"
         mock_get_field_value.assert_called_once_with(record, "test")
         m.assert_called_once_with("fake_field_value")
@@ -398,7 +391,7 @@ def test_simple_condition_tree_leaf_match(mock_get_field_value: mock.Mock):
     mock_get_field_value.reset_mock()
 
     tree = ConditionTreeLeaf(field="test", operator=Operator.LIKE, value=1)
-    with mock.patch.object(tree, "_like", m):
+    with patch.object(tree, "_like", m):
         assert tree.match(record, collection, timezone) == "fake_res"
         mock_get_field_value.assert_called_once_with(record, "test")
         m.assert_called_once_with("fake_field_value")
@@ -407,7 +400,7 @@ def test_simple_condition_tree_leaf_match(mock_get_field_value: mock.Mock):
     mock_get_field_value.reset_mock()
 
     tree = ConditionTreeLeaf(field="test", operator=Operator.LONGER_THAN, value=1)
-    with mock.patch.object(tree, "_longer_than", m):
+    with patch.object(tree, "_longer_than", m):
         assert tree.match(record, collection, timezone) == "fake_res"
         mock_get_field_value.assert_called_once_with(record, "test")
         m.assert_called_once_with("fake_field_value")
@@ -416,7 +409,7 @@ def test_simple_condition_tree_leaf_match(mock_get_field_value: mock.Mock):
     mock_get_field_value.reset_mock()
 
     tree = ConditionTreeLeaf(field="test", operator=Operator.SHORTER_THAN, value=1)
-    with mock.patch.object(tree, "_shorter_than", m):
+    with patch.object(tree, "_shorter_than", m):
         assert tree.match(record, collection, timezone) == "fake_res"
         mock_get_field_value.assert_called_once_with(record, "test")
         m.assert_called_once_with("fake_field_value")
@@ -425,7 +418,7 @@ def test_simple_condition_tree_leaf_match(mock_get_field_value: mock.Mock):
     mock_get_field_value.reset_mock()
 
     tree = ConditionTreeLeaf(field="test", operator=Operator.INCLUDES_ALL, value=1)
-    with mock.patch.object(tree, "_includes_all", m):
+    with patch.object(tree, "_includes_all", m):
         assert tree.match(record, collection, timezone) == "fake_res"
         mock_get_field_value.assert_called_once_with(record, "test")
         m.assert_called_once_with("fake_field_value")
@@ -433,11 +426,11 @@ def test_simple_condition_tree_leaf_match(mock_get_field_value: mock.Mock):
     m.reset_mock()
     mock_get_field_value.reset_mock()
 
-    _m = mock.MagicMock(return_value="fake_res")
-    m = mock.MagicMock(return_value=_m)
+    _m = MagicMock(return_value="fake_res")
+    m = MagicMock(return_value=_m)
 
     tree = ConditionTreeLeaf(field="test", operator=Operator.NOT_CONTAINS, value=1)
-    with mock.patch.object(tree, "_not_equal_not_contains", m):
+    with patch.object(tree, "_not_equal_not_contains", m):
         assert tree.match(record, collection, timezone) == "fake_res"
         mock_get_field_value.assert_called_once_with(record, "test")
         m.assert_called_once_with(record, collection, timezone)
@@ -447,11 +440,11 @@ def test_simple_condition_tree_leaf_match(mock_get_field_value: mock.Mock):
     m.reset_mock()
     mock_get_field_value.reset_mock()
 
-    _m = mock.MagicMock(return_value="fake_res")
-    m = mock.MagicMock(return_value=_m)
+    _m = MagicMock(return_value="fake_res")
+    m = MagicMock(return_value=_m)
 
     tree = ConditionTreeLeaf(field="test", operator=Operator.NOT_EQUAL, value=1)
-    with mock.patch.object(tree, "_not_equal_not_contains", m):
+    with patch.object(tree, "_not_equal_not_contains", m):
         assert tree.match(record, collection, timezone) == "fake_res"
         mock_get_field_value.assert_called_once_with(record, "test")
         m.assert_called_once_with(record, collection, timezone)
@@ -462,8 +455,8 @@ def test_simple_condition_tree_leaf_match(mock_get_field_value: mock.Mock):
     mock_get_field_value.reset_mock()
 
 
-@mock.patch("forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.leaf.ConditionTreeLeaf.override")
-def test_condition_tree_leaf_unnest(mock_override: mock.MagicMock):
+@patch("forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.leaf.ConditionTreeLeaf.override")
+def test_condition_tree_leaf_unnest(mock_override: MagicMock):
     mock_override.return_value = ConditionTreeLeaf(field="subtest", operator=Operator.BLANK)
     tree = ConditionTreeLeaf(field="test:subtest", operator=Operator.BLANK)
     assert tree.unnest() == ConditionTreeLeaf(field="subtest", operator=Operator.BLANK)
@@ -480,8 +473,8 @@ def test_condition_tree_leaf_unnest(mock_override: mock.MagicMock):
         tree.unnest()
 
 
-@mock.patch("forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.leaf.ConditionTreeLeaf.override")
-def test_condition_tree_leaf_nest(mock_override: mock.MagicMock):
+@patch("forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.leaf.ConditionTreeLeaf.override")
+def test_condition_tree_leaf_nest(mock_override: MagicMock):
     mock_override.return_value = ConditionTreeLeaf(field="prefix:test", operator=Operator.BLANK)
     tree = ConditionTreeLeaf(field="test", operator=Operator.BLANK)
     assert tree.nest("prefix") == ConditionTreeLeaf(field="prefix:test", operator=Operator.BLANK)

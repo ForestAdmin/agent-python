@@ -1,15 +1,7 @@
 import enum
-import sys
-
-if sys.version_info >= (3, 8):
-    from typing import Literal, TypedDict
-else:
-    from typing_extensions import Literal, TypedDict
-
-from typing import Any, List, Optional, Union
+from typing import Any, List, Literal, Optional, TypedDict, Union
 
 from forestadmin.datasource_toolkit.interfaces.fields import ColumnAlias
-from typing_extensions import NotRequired
 
 
 class ValidationType(enum.Enum):
@@ -127,9 +119,9 @@ class ForestServerCollection(TypedDict):
     isVirtual: bool
     onlyForRelationships: bool
     paginationType: LiteralPage
-    actions: NotRequired[List[ForestServerAction]]
+    actions: Optional[List[ForestServerAction]]
     fields: List[ForestServerField]
-    segments: NotRequired[List[ForestServerSegment]]
+    segments: Optional[List[ForestServerSegment]]
 
 
 class ForestSchema(TypedDict):

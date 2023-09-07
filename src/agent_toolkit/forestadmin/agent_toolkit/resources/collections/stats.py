@@ -1,13 +1,7 @@
 import json
-import sys
 from datetime import date, datetime
-from typing import Any, Dict, List, Optional, Union, cast
+from typing import Any, Dict, List, Literal, Optional, Union, cast
 from uuid import uuid1
-
-if sys.version_info >= (3, 8):
-    from typing import Literal
-else:
-    from typing_extensions import Literal
 
 import pandas as pd
 from forestadmin.agent_toolkit.forest_logger import ForestLogger

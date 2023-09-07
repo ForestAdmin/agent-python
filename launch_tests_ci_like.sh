@@ -5,8 +5,8 @@ EXECUTOR="poetry run coverage"
 
 PACKAGES="agent_toolkit datasource_sqlalchemy datasource_toolkit flask_agent"
 # PACKAGES="datasource_toolkit"
-PYTHON_VERSIONS="3.7 3.8 3.9 3.10 3.11"
-# PYTHON_VERSIONS="3.7 3.11"
+PYTHON_VERSIONS="3.8 3.9 3.10 3.11"
+# PYTHON_VERSIONS="3.8 3.11"
 
 eval "$(pyenv init -)"
 mkdir -p $ARTIFACT_DIR

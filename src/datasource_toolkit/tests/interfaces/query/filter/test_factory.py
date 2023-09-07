@@ -1,20 +1,14 @@
 import sys
+from typing import cast
+from unittest import mock
 
-from forestadmin.agent_toolkit.utils.context import User
-
-if sys.version_info < (3, 8):
-    from mock import AsyncMock
-else:
-    from unittest.mock import AsyncMock
 if sys.version_info >= (3, 9):
     import zoneinfo
 else:
     from backports import zoneinfo
 
-from typing import cast
-from unittest import mock
-
 import pytest
+from forestadmin.agent_toolkit.utils.context import User
 from forestadmin.datasource_toolkit.collections import Collection
 from forestadmin.datasource_toolkit.interfaces.fields import FieldType, ManyToMany, Operator
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.branch import Aggregator, ConditionTreeBranch
@@ -108,11 +102,11 @@ def test_build_for_through_relation():
 async def test_make_through_filter():
     with mock.patch(
         "forestadmin.datasource_toolkit.interfaces.query.filter.factory.CollectionUtils.get_value",
-        new_callable=AsyncMock,
+        new_callable=mock.AsyncMock,
     ) as mock_get_value:
         with mock.patch(
             "forestadmin.datasource_toolkit.interfaces.query.filter.factory.FilterFactory.make_foreign_filter",
-            new_callable=AsyncMock,
+            new_callable=mock.AsyncMock,
         ) as mock_make_foreign_filter:
             with mock.patch.object(Collection, "__abstractmethods__", new_callable=set):
                 collection = Collection(name="test", datasource=mock.MagicMock())  # type: ignore
@@ -176,7 +170,7 @@ async def test_make_through_filter():
                     "lation"
                 ) as mock_build_for_through_relation:
                     fake_collection = mock.Mock(name="fake_collection", spec=Collection)
-                    fake_collection.list = AsyncMock(
+                    fake_collection.list = mock.AsyncMock(
                         return_value=[
                             {"id": "fake_record_1"},
                             {"id": "fake_record_2"},

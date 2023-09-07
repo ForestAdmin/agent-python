@@ -1,13 +1,6 @@
 import enum
-import sys
 from dataclasses import dataclass
-
-if sys.version_info >= (3, 8):
-    from typing import Literal, TypedDict
-else:
-    from typing_extensions import Literal, TypedDict
-
-from typing import Any, Dict, List, Optional, Set, Union
+from typing import Any, Dict, List, Literal, Optional, Set, TypedDict, Union
 
 
 class ActionsScope(enum.Enum):

@@ -1,16 +1,11 @@
 import abc
 import sys
-from typing import Any, Awaitable, Callable, Dict, List, TypeVar, Union
+from typing import Any, Awaitable, Callable, Dict, List, TypedDict, TypeVar, Union
 
 if sys.version_info >= (3, 9):
     import zoneinfo
 else:
     from backports import zoneinfo
-
-if sys.version_info >= (3, 8):
-    from typing import TypedDict
-else:
-    from typing_extensions import TypedDict
 
 from forestadmin.datasource_toolkit.exceptions import DatasourceToolkitException
 from forestadmin.datasource_toolkit.interfaces.models.collections import Collection

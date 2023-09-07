@@ -1,12 +1,5 @@
-import sys
-
-if sys.version_info < (3, 8):
-    from mock import AsyncMock
-else:
-    from unittest.mock import AsyncMock
-
 from unittest import mock
-from unittest.mock import MagicMock
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 from forestadmin.datasource_toolkit.interfaces.fields import Operator

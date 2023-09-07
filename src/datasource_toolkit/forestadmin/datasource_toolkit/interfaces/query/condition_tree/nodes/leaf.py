@@ -1,12 +1,11 @@
 import re
 import sys
+from typing import Any, Callable, List, Optional, Union, cast
 
 if sys.version_info >= (3, 9):
     import zoneinfo
 else:
     from backports import zoneinfo
-
-from typing import Any, Callable, List, Optional, Union, cast
 
 from forestadmin.datasource_toolkit.exceptions import DatasourceToolkitException
 from forestadmin.datasource_toolkit.interfaces.fields import LITERAL_OPERATORS, Operator, is_column
