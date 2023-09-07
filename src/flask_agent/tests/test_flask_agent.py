@@ -77,6 +77,7 @@ class TestFlaskAgent(TestCase):
             call("/<collection_name>/<pks>/relationships/<relation_name>/count", methods=["GET"]),
             call("/<collection_name>.csv", methods=["GET"]),
             call("/<collection_name>/<pks>/relationships/<relation_name>.csv", methods=["GET"]),
+            call("/scope-cache-invalidation", methods=["POST"]),
         ]
         blueprint.route.assert_has_calls(calls, any_order=True)
         assert blueprint.route.call_count == len(calls)

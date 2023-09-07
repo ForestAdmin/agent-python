@@ -1,3 +1,4 @@
+from ast import literal_eval
 from typing import Any, Awaitable, Callable, List, Optional, Tuple, Union
 
 from forestadmin.agent_toolkit.utils.context import User
@@ -77,10 +78,7 @@ class SearchCollectionDecorator(CollectionDecorator):
             and search.isnumeric()
             and Operator.EQUAL in schema.get("filter_operators", [])
         ):
-            try:
-                value = int(search)
-            except ValueError:
-                value = float(search)
+            value = literal_eval(str(search))
             return ConditionTreeLeaf(field, Operator.EQUAL, value)
 
         if schema["column_type"] == PrimitiveType.ENUM and Operator.EQUAL in schema.get("filter_operators", []):

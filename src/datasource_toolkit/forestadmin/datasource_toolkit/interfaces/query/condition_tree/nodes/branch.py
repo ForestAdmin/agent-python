@@ -44,10 +44,7 @@ class BranchComponents(ConditionTreeComponent):
 
 
 def is_branch_component(tree: Any) -> TypeGuard[BranchComponents]:
-    return hasattr(tree, "keys") and sorted(tree.keys()) == [
-        "aggregator",
-        "conditions",
-    ]
+    return isinstance(tree, dict) and "aggregator" in tree.keys() and "conditions" in tree.keys()
 
 
 class ConditionTreeBranch(ConditionTree):
@@ -133,3 +130,8 @@ class ConditionTreeBranch(ConditionTree):
     def unnest(self) -> ConditionTree:
         prefix = self._get_prefix()
         return self._remove_prefix(prefix)
+
+    def to_plain_object(self) -> BranchComponents:
+        return BranchComponents(
+            aggregator=self.aggregator.value, conditions=[condition.to_plain_object() for condition in self.conditions]
+        )

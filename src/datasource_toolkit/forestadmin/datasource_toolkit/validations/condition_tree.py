@@ -79,7 +79,7 @@ class ConditionTreeValidator:
             value_type = TypeGetter.get(value, column_schema["column_type"])
 
         error_msg = (
-            f'The given value attribute "{value}" (type: {value_type}) has an unexpected value'
+            f'The given value attribute "{value}" (type: {value_type}) has an unexpected value '
             'for the given operator "{condition_tree.operator}."'
         )
         allowed_types = MAP_ALLOWED_TYPES_FOR_OPERATOR.get(condition_tree.operator, [])

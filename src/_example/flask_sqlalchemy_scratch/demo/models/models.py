@@ -22,7 +22,7 @@ class Address(Base):
     street = Column(String(254), nullable=False)
     city = Column(String(254), nullable=False)
     country = Column(String(254), default="France", nullable=False)
-    zip_code = Column(String(5), nullable=False)
+    zip_code = Column(String(5), nullable=False, default="75009")
     customers = relationship("Customer", secondary="customers_addresses", back_populates="addresses")
 
 

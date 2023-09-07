@@ -11,18 +11,75 @@ class DatasourceToolkitException(ForestException):
 
 
 class BusinessError(DatasourceToolkitException):
-    def __init__(self, message: str = "", data: Optional[Dict[str, Any]] = None, *args: object) -> None:
+    def __init__(
+        self,
+        message: str = "",
+        headers: Optional[Dict[str, Any]] = None,
+        name: str = "ValidationError",
+        data: Optional[Dict[str, Any]] = {},
+        *args: object,
+    ) -> None:
+        self.headers = headers
         self.data = data
+        self.name = name
         super().__init__(message, *args)
 
 
-class ForestValidationException(BusinessError):
-    pass
+class ValidationError(BusinessError):
+    def __init__(
+        self,
+        message: str = "",
+        headers: Optional[Dict[str, Any]] = None,
+        name: str = "ValidationError",
+        data: Optional[Dict[str, Any]] = {},
+        *args: object,
+    ) -> None:
+        super().__init__(message, headers, name, data, *args)
 
 
 class ForbiddenError(BusinessError):
-    pass
+    def __init__(
+        self,
+        message: str = "",
+        headers: Optional[Dict[str, Any]] = None,
+        name: str = "ForbiddenError",
+        data: Optional[Dict[str, Any]] = {},
+        *args: object,
+    ) -> None:
+        super().__init__(message, headers, name, data, *args)
 
 
 class UnprocessableError(BusinessError):
-    pass
+    def __init__(
+        self,
+        message: str = "",
+        headers: Optional[Dict[str, Any]] = None,
+        name: str = "UnprocessableError",
+        data: Optional[Dict[str, Any]] = {},
+        *args: object,
+    ) -> None:
+        super().__init__(message, headers, name, data, *args)
+
+
+class ConflictError(BusinessError):
+    def __init__(
+        self,
+        message: str = "",
+        headers: Optional[Dict[str, Any]] = None,
+        name: str = "ConflictError",
+        data: Optional[Dict[str, Any]] = {},
+        *args: object,
+    ) -> None:
+        super().__init__(message, headers, name, data, *args)
+
+
+class RequireApproval(ForbiddenError):
+    def __init__(
+        self,
+        message: str = "",
+        headers: Optional[Dict[str, Any]] = None,
+        name: str = "RequireApproval",
+        data: Optional[Dict[str, Any]] = {},
+        *args: object,
+    ) -> None:
+        super().__init__(message, headers, name, data, *args)

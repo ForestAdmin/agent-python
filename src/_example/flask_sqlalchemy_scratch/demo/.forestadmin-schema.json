@@ -725,6 +725,37 @@
                             "changeHook"
                         ]
                     }
+                },
+                {
+                    "id": "order-1-refund order(s)",
+                    "name": "Refund order(s)",
+                    "type": "bulk",
+                    "baseUrl": null,
+                    "endpoint": "/forest/_actions/order/1/refund order(s)",
+                    "httpMethod": "POST",
+                    "redirect": null,
+                    "download": false,
+                    "fields": [
+                        {
+                            "field": "reason",
+                            "value": "",
+                            "defaultValue": null,
+                            "description": "",
+                            "enums": null,
+                            "hook": null,
+                            "isReadOnly": false,
+                            "isRequired": false,
+                            "reference": null,
+                            "type": "String",
+                            "widget": null
+                        }
+                    ],
+                    "hooks": {
+                        "load": false,
+                        "change": [
+                            "changeHook"
+                        ]
+                    }
                 }
             ],
             "segments": [
@@ -747,6 +778,10 @@
                 {
                     "id": "order.Suspicious order",
                     "name": "Suspicious order"
+                },
+                {
+                    "id": "order.newly_created",
+                    "name": "newly_created"
                 }
             ],
             "fields": [
@@ -963,11 +998,11 @@
     ],
     "meta": {
         "liana": "agent-python",
-        "liana_version": "1.0.0-beta.5",
+        "liana_version": "1.0.0-beta.9",
         "stack": {
             "engine": "python",
             "engine_version": "3.10.11"
         },
-        "schemaFileHash": "d59d9922e0f26fbb81ddc533f36e193f9ba2e7da"
+        "schemaFileHash": "56d3d57157e76e6f06268fadeb37b49c7bdf6aa6"
     }
 }

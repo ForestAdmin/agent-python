@@ -39,9 +39,7 @@ class LeafComponents(ConditionTreeComponent):
 
 
 def is_leaf_component(tree: Any) -> TypeGuard[LeafComponents]:
-    keys = ["field", "operator"]
-    keys = [keys, [*keys, "value"]]
-    return hasattr(tree, "keys") and sorted(tree.keys()) in keys
+    return isinstance(tree, dict) and "field" in tree.keys() and "operator" in tree.keys()
 
 
 class OverrideLeafComponents(ConditionTreeComponent, total=False):
@@ -267,3 +265,6 @@ class ConditionTreeLeaf(ConditionTree):
             )
             is not None
         )
+
+    def to_plain_object(self) -> LeafComponents:
+        return LeafComponents(field=self.field, operator=self.operator.value, value=self.value)

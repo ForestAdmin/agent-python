@@ -22,7 +22,7 @@ from forestadmin.agent_toolkit.resources.collections.requests import (
     RequestCollectionException,
     RequestRelationCollection,
 )
-from forestadmin.agent_toolkit.services.permissions import PermissionService
+from forestadmin.agent_toolkit.services.permissions.permission_service import PermissionService
 from forestadmin.agent_toolkit.services.serializers.json_api import JsonApiException
 from forestadmin.agent_toolkit.utils.context import Request, User
 from forestadmin.agent_toolkit.utils.csv import CsvException
@@ -79,6 +79,9 @@ def mock_authenticate(fn):
 patch("forestadmin.agent_toolkit.resources.collections.decorators.check_method", mock_decorator_with_param).start()
 patch("forestadmin.agent_toolkit.resources.collections.decorators.authenticate", mock_authenticate).start()
 patch("forestadmin.agent_toolkit.resources.collections.decorators.authorize", mock_decorator_with_param).start()
+
+# how to mock decorators, and why they are not testable :
+# https://dev.to/stack-labs/how-to-mock-a-decorator-in-python-55jc
 
 importlib.reload(forestadmin.agent_toolkit.resources.collections.crud_related)
 from forestadmin.agent_toolkit.resources.collections.crud_related import CrudRelatedResource  # noqa: E402

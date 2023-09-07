@@ -184,3 +184,9 @@ class TestFlaskAgentBlueprint(TestCase):
         response = self.client.post("/forest/_charts/test_chart?timezone=Europe%2FParis")
         assert response.status_code == 200
         self.agent.resources["datasource_charts"].dispatch.assert_called_with(ANY, "add")
+
+    def test_invalidate_cache(self):
+        with patch.object(self.agent._permission_service, "invalidate_cache") as mocked_invalidate_cache:
+            response = self.client.post("/forest/scope-cache-invalidation")
+            mocked_invalidate_cache.assert_called_with("forest.scopes")
+        assert response.status_code == 204

@@ -18,11 +18,7 @@ from forestadmin.datasource_toolkit.collections import Collection
 from forestadmin.datasource_toolkit.datasources import Datasource
 from forestadmin.datasource_toolkit.decorators.datasource_decorator import DatasourceDecorator
 from forestadmin.datasource_toolkit.decorators.validation.collection import ValidationCollectionDecorator
-from forestadmin.datasource_toolkit.exceptions import (
-    DatasourceToolkitException,
-    ForestException,
-    ForestValidationException,
-)
+from forestadmin.datasource_toolkit.exceptions import DatasourceToolkitException, ForestException, ValidationError
 from forestadmin.datasource_toolkit.interfaces.fields import (
     Column,
     FieldType,
@@ -128,7 +124,7 @@ class TesValidationCollectionDecorator(TestCase):
         decorated_collection_book.add_validation("sub_title", {"operator": Operator.LONGER_THAN, "value": 5})
 
         self.assertRaisesRegex(
-            ForestValidationException,
+            ValidationError,
             r"🌳🌳🌳sub_title failed validation rule: 'longer_than\(5\)'",
             self.loop.run_until_complete,
             decorated_collection_book.create(
@@ -138,7 +134,7 @@ class TesValidationCollectionDecorator(TestCase):
         )
 
         self.assertRaisesRegex(
-            ForestValidationException,
+            ValidationError,
             r"🌳🌳🌳title failed validation rule: 'longer_than\(5\)'",
             self.loop.run_until_complete,
             decorated_collection_book.create(
@@ -159,7 +155,7 @@ class TesValidationCollectionDecorator(TestCase):
 
         decorated_collection_book.add_validation("title", {"operator": Operator.PRESENT})
         self.assertRaisesRegex(
-            ForestValidationException,
+            ValidationError,
             r"🌳🌳🌳title failed validation rule: 'present'",
             self.loop.run_until_complete,
             decorated_collection_book.create(
@@ -174,7 +170,7 @@ class TesValidationCollectionDecorator(TestCase):
         decorated_collection_book.add_validation("sub_title", {"operator": Operator.LONGER_THAN, "value": 5})
 
         self.assertRaisesRegex(
-            ForestValidationException,
+            ValidationError,
             r"🌳🌳🌳sub_title failed validation rule: 'longer_than\(5\)'",
             self.loop.run_until_complete,
             decorated_collection_book.update(
@@ -198,7 +194,7 @@ class TesValidationCollectionDecorator(TestCase):
 
         decorated_collection_book.add_validation("title", {"operator": Operator.PRESENT})
         self.assertRaisesRegex(
-            ForestValidationException,
+            ValidationError,
             r"🌳🌳🌳title failed validation rule: 'present'",
             self.loop.run_until_complete,
             decorated_collection_book.update(

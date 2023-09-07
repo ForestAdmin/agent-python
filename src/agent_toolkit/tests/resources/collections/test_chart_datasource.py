@@ -17,7 +17,7 @@ else:
 
 import forestadmin.agent_toolkit.resources.collections.charts_datasource
 from forestadmin.agent_toolkit.options import Options
-from forestadmin.agent_toolkit.services.permissions import PermissionService
+from forestadmin.agent_toolkit.services.permissions.permission_service import PermissionService
 from forestadmin.agent_toolkit.utils.context import Request, RequestMethod, Response, User
 from forestadmin.datasource_toolkit.collections import Collection
 from forestadmin.datasource_toolkit.datasources import Datasource
@@ -46,6 +46,9 @@ patch("forestadmin.agent_toolkit.resources.collections.decorators.check_method",
 patch("forestadmin.agent_toolkit.resources.collections.decorators.authenticate", mock_decorator_no_param).start()
 patch("forestadmin.agent_toolkit.resources.collections.decorators.authorize", mock_decorator_with_param).start()
 
+
+# how to mock decorators, and why they are not testable :
+# https://dev.to/stack-labs/how-to-mock-a-decorator-in-python-55jc
 
 importlib.reload(forestadmin.agent_toolkit.resources.collections.charts_datasource)
 from forestadmin.agent_toolkit.resources.collections.charts_datasource import ChartsDatasourceResource  # noqa: E402

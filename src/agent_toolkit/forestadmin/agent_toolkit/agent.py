@@ -10,14 +10,14 @@ from forestadmin.agent_toolkit.exceptions import AgentToolkitException
 from forestadmin.agent_toolkit.forest_logger import ForestLogger
 from forestadmin.agent_toolkit.options import DEFAULT_OPTIONS, Options
 from forestadmin.agent_toolkit.resources.actions.resources import ActionResource
-from forestadmin.agent_toolkit.resources.collections import BoundCollection
 from forestadmin.agent_toolkit.resources.collections.charts_collection import ChartsCollectionResource
 from forestadmin.agent_toolkit.resources.collections.charts_datasource import ChartsDatasourceResource
 from forestadmin.agent_toolkit.resources.collections.crud import CrudResource
 from forestadmin.agent_toolkit.resources.collections.crud_related import CrudRelatedResource
 from forestadmin.agent_toolkit.resources.collections.stats import StatsResource
 from forestadmin.agent_toolkit.resources.security.resources import Authentication
-from forestadmin.agent_toolkit.services.permissions import PermissionService
+from forestadmin.agent_toolkit.services.permissions.permission_service import PermissionService
+from forestadmin.agent_toolkit.services.permissions.sse_cache_invalidation import SSECacheInvalidation
 from forestadmin.agent_toolkit.services.serializers.json_api import create_json_api_schema
 from forestadmin.agent_toolkit.utils.context import HttpResponseBuilder
 from forestadmin.agent_toolkit.utils.forest_schema.emitter import SchemaEmitter
@@ -27,6 +27,7 @@ from forestadmin.datasource_toolkit.datasource_customizer.collection_customizer 
 from forestadmin.datasource_toolkit.datasource_customizer.datasource_customizer import DatasourceCustomizer
 from forestadmin.datasource_toolkit.datasources import Datasource
 from forestadmin.datasource_toolkit.decorators.chart.types import DataSourceChartDefinition
+from forestadmin.datasource_toolkit.interfaces.models.collections import BoundCollection
 
 
 class Resources(TypedDict):
@@ -46,6 +47,8 @@ class Agent:
     def __init__(self, options: Options):
         self.options = copy.copy(DEFAULT_OPTIONS)
         self.options.update({k: v for k, v in options.items() if v is not None})
+        if self.options["instant_cache_refresh"] is None:
+            self.options["instant_cache_refresh"] = self.options["is_production"]
         self.customizer: DatasourceCustomizer = DatasourceCustomizer()
         self._resources = None
 
@@ -60,8 +63,14 @@ class Agent:
                 "forest_server_url": self.options["forest_server_url"],
                 "is_production": self.options["is_production"],
                 "permission_cache_duration": self.options["permissions_cache_duration_in_seconds"],
+                "prefix": self.options["prefix"],
             }
         )
+        self._sse_thread = SSECacheInvalidation(self._permission_service, self.options)
+
+    def __del__(self):
+        if hasattr(self, "_sse_thread") and self._sse_thread.is_alive():
+            self._sse_thread.stop()
 
     def __mk_resources(self):
         self._resources: Resources = {
@@ -108,7 +117,6 @@ class Agent:
             ForestLogger.log("debug", "Agent already started.")
             return
         ForestLogger.log("debug", "Starting agent")
-
         for collection in self.customizer.stack.datasource.collections:
             create_json_api_schema(collection)
 
@@ -121,6 +129,9 @@ class Agent:
 
         except Exception:
             ForestLogger.log("warning", "Cannot send the apimap to Forest. Are you online?")
+
+        if self.options["instant_cache_refresh"]:
+            self._sse_thread.start()
 
         ForestLogger.log("info", "Agent started")
         Agent.__IS_INITIALIZED = True

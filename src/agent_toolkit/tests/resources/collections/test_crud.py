@@ -15,13 +15,13 @@ import forestadmin.agent_toolkit.resources.collections.crud
 from forestadmin.agent_toolkit.options import Options
 from forestadmin.agent_toolkit.resources.collections.exceptions import CollectionResourceException
 from forestadmin.agent_toolkit.resources.collections.requests import RequestCollection, RequestCollectionException
-from forestadmin.agent_toolkit.services.permissions import PermissionService
+from forestadmin.agent_toolkit.services.permissions.permission_service import PermissionService
 from forestadmin.agent_toolkit.services.serializers.json_api import JsonApiException
 from forestadmin.agent_toolkit.utils.context import Request
 from forestadmin.agent_toolkit.utils.csv import CsvException
 from forestadmin.datasource_toolkit.collections import Collection
 from forestadmin.datasource_toolkit.datasources import Datasource, DatasourceException
-from forestadmin.datasource_toolkit.exceptions import ForestValidationException
+from forestadmin.datasource_toolkit.exceptions import ValidationError
 from forestadmin.datasource_toolkit.interfaces.fields import FieldType, Operator, PrimitiveType
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.leaf import ConditionTreeLeaf
 from forestadmin.datasource_toolkit.validations.records import RecordValidatorException
@@ -47,6 +47,9 @@ def mock_decorator_no_param(fn):
 patch("forestadmin.agent_toolkit.resources.collections.decorators.check_method", mock_decorator_with_param).start()
 patch("forestadmin.agent_toolkit.resources.collections.decorators.authenticate", mock_decorator_no_param).start()
 patch("forestadmin.agent_toolkit.resources.collections.decorators.authorize", mock_decorator_with_param).start()
+
+# how to mock decorators, and why they are not testable :
+# https://dev.to/stack-labs/how-to-mock-a-decorator-in-python-55jc
 
 importlib.reload(forestadmin.agent_toolkit.resources.collections.crud)
 from forestadmin.agent_toolkit.resources.collections.crud import CrudResource  # noqa: E402
@@ -216,15 +219,11 @@ class TestCrudResource(TestCase):
         }
 
         # Validation Exception
-        with patch.object(crud_resource, "add", side_effect=ForestValidationException("test exception")):
+        with patch.object(crud_resource, "add", side_effect=ValidationError("test exception")):
             response = self.loop.run_until_complete(crud_resource.dispatch(request, "add"))
         assert response.status == 400
         body = json.loads(response.body)
-        assert body["errors"][0] == {
-            "name": "ForestValidationException",
-            "detail": "🌳🌳🌳test exception",
-            "status": 400,
-        }
+        assert body["errors"][0] == {"name": "ValidationError", "detail": "test exception", "status": 400, "data": {}}
 
     # get
     @patch("forestadmin.agent_toolkit.resources.collections.crud.unpack_id", return_value=[10])

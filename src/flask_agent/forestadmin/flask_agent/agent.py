@@ -160,4 +160,10 @@ def build_blueprint(agent: Agent):  # noqa: C901
     async def csv_related(**_) -> FlaskResponse:  # type: ignore
         return await _get_collection_response(request, agent.resources["crud_related"], "csv")
 
+    @blueprint.route("/scope-cache-invalidation", methods=["POST"])
+    async def scope_cache_invalidation(**_) -> FlaskResponse:  # type: ignore
+        agent._permission_service.invalidate_cache("forest.scopes")
+        rsp = FlaskResponse(status=204)
+        return rsp
+
     return blueprint

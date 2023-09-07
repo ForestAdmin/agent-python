@@ -130,6 +130,13 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+venv*
+src/tmp_venv/
+virtualenv/
+
+# custom
+.python-version
+package-lock.json
 
 # Spyder project settings
 .spyderproject

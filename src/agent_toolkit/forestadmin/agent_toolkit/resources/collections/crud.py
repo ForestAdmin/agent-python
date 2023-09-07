@@ -11,7 +11,7 @@ else:
 from typing import Any, Awaitable, Dict, List, Tuple, cast
 
 from forestadmin.agent_toolkit.forest_logger import ForestLogger
-from forestadmin.agent_toolkit.resources.collections import BaseCollectionResource
+from forestadmin.agent_toolkit.resources.collections.base_collection_resource import BaseCollectionResource
 from forestadmin.agent_toolkit.resources.collections.decorators import authenticate, authorize, check_method
 from forestadmin.agent_toolkit.resources.collections.exceptions import CollectionResourceException
 from forestadmin.agent_toolkit.resources.collections.filter import (
@@ -89,7 +89,7 @@ class CrudResource(BaseCollectionResource):
             return HttpResponseBuilder.build_client_error_response([e])
 
         trees: List[ConditionTree] = [ConditionTreeFactory.match_ids(collection.schema, [ids])]
-        scope_tree = await self.permission.get_scope(request)
+        scope_tree = await self.permission.get_scope(request.user, request.collection)
         if scope_tree:
             trees.append(scope_tree)
 
@@ -155,7 +155,7 @@ class CrudResource(BaseCollectionResource):
     @authenticate
     @authorize("browse")
     async def list(self, request: RequestCollection) -> Response:
-        scope_tree = await self.permission.get_scope(request)
+        scope_tree = await self.permission.get_scope(request.user, request.collection)
         try:
             paginated_filter = build_paginated_filter(request, scope_tree)
         except FilterException as e:
@@ -186,7 +186,7 @@ class CrudResource(BaseCollectionResource):
     @authorize("browse")
     @authorize("export")
     async def csv(self, request: RequestCollection) -> Response:
-        scope_tree = await self.permission.get_scope(request)
+        scope_tree = await self.permission.get_scope(request.user, request.collection)
         try:
             paginated_filter = build_paginated_filter(request, scope_tree)
         except FilterException as e:
@@ -216,7 +216,7 @@ class CrudResource(BaseCollectionResource):
         if request.collection.schema["countable"] is False:
             return HttpResponseBuilder.build_success_response({"meta": {"count": "deactivated"}})
 
-        scope_tree = await self.permission.get_scope(request)
+        scope_tree = await self.permission.get_scope(request.user, request.collection)
         filter = build_filter(request, scope_tree)
         aggregation = Aggregation({"operation": "Count"})
         result = await request.collection.aggregate(request.user, filter, aggregation)
@@ -253,7 +253,7 @@ class CrudResource(BaseCollectionResource):
             return HttpResponseBuilder.build_client_error_response([e])
 
         trees: List[ConditionTree] = [ConditionTreeFactory.match_ids(collection.schema, [ids])]
-        scope_tree = await self.permission.get_scope(request)
+        scope_tree = await self.permission.get_scope(request.user, request.collection)
         if scope_tree:
             trees.append(scope_tree)
 
@@ -301,7 +301,7 @@ class CrudResource(BaseCollectionResource):
         query_param_condition_tree = parse_condition_tree(request)
         if query_param_condition_tree:
             trees.append(query_param_condition_tree)
-        scope_tree = await self.permission.get_scope(request)
+        scope_tree = await self.permission.get_scope(request.user, request.collection)
         if scope_tree:
             trees.append(scope_tree)
 
@@ -311,7 +311,7 @@ class CrudResource(BaseCollectionResource):
         self, request: RequestCollection, record: RecordsDataAlias, relation: OneToOne, linked: RecordsDataAlias
     ):
         foreign_collection = self.datasource.get_collection(relation["foreign_collection"])
-        scope = await self.permission.get_scope(request, foreign_collection)
+        scope = await self.permission.get_scope(request.user, foreign_collection)
         await self.permission.can(request, f"edit:{request.collection.name}")
         origin_value = record[relation["origin_key_target"]]
 

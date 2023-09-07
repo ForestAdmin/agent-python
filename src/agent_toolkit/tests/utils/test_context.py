@@ -1,9 +1,8 @@
 import json
 from unittest import TestCase
-from urllib.error import HTTPError
 
 from forestadmin.agent_toolkit.utils.context import HttpResponseBuilder
-from forestadmin.datasource_toolkit.exceptions import ForestException, ForestValidationException
+from forestadmin.datasource_toolkit.exceptions import ForestException, ValidationError
 
 
 class TestHttpResponseBuilder(TestCase):
@@ -19,8 +18,7 @@ class TestHttpResponseBuilder(TestCase):
         response = HttpResponseBuilder.build_client_error_response(
             [
                 Exception("test exc"),
-                ForestValidationException("test exc"),
-                HTTPError("/url", 404, "test exc", {}, None),
+                ValidationError("test exc"),
             ]
         )
 
@@ -36,16 +34,7 @@ class TestHttpResponseBuilder(TestCase):
                         "detail": "test exc",
                         "status": 500,
                     },
-                    {
-                        "name": "ForestValidationException",
-                        "detail": "🌳🌳🌳test exc",
-                        "status": 400,
-                    },
-                    {
-                        "name": "HTTPError",
-                        "detail": "HTTP Error 404: test exc",
-                        "status": 404,
-                    },
+                    {"name": "ValidationError", "detail": "test exc", "status": 400, "data": {}},
                 ]
             },
         )
@@ -55,7 +44,7 @@ class TestHttpResponseBuilder(TestCase):
         response = HttpResponseBuilder.build_client_error_response(
             [
                 ForestException("test exc"),
-                ForestValidationException("test exc"),
+                ValidationError("test exc"),
             ]
         )
 
@@ -71,11 +60,7 @@ class TestHttpResponseBuilder(TestCase):
                         "detail": "test exc",
                         "status": 500,
                     },
-                    {
-                        "name": "ForestValidationException",
-                        "detail": "🌳🌳🌳test exc",
-                        "status": 400,
-                    },
+                    {"name": "ValidationError", "detail": "test exc", "status": 400, "data": {}},
                 ]
             },
         )
