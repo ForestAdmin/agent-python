@@ -576,13 +576,18 @@ class TestCrudResource(TestCase):
                 "collection_name": "order",
                 "timezone": "Europe/Paris",
                 "fields[order]": "id,cost",
+                "search": "20",
             },
             {},
             None,
         )
         crud_resource = CrudResource(self.datasource, self.permission_service, self.options)
         mocked_json_serializer_get.return_value.dump = Mock(
-            return_value={"data": {"type": "order", "attributes": mock_orders}}
+            return_value={
+                "data": [
+                    {"type": "order", "attributes": mock_order, "id": mock_order["id"]} for mock_order in mock_orders
+                ]
+            }
         )
         self.collection_order.list = AsyncMock(return_value=mock_orders)
 
@@ -590,14 +595,18 @@ class TestCrudResource(TestCase):
 
         assert response.status == 200
         response_content = json.loads(response.body)
-        assert isinstance(response_content["data"], dict)
-        assert len(response_content["data"]["attributes"]) == 2
-        assert response_content["data"]["attributes"][0]["cost"] == mock_orders[0]["cost"]
-        assert response_content["data"]["attributes"][0]["id"] == mock_orders[0]["id"]
-        assert response_content["data"]["attributes"][1]["cost"] == mock_orders[1]["cost"]
-        assert response_content["data"]["attributes"][1]["id"] == mock_orders[1]["id"]
-        assert response_content["data"]["type"] == "order"
+        assert isinstance(response_content["data"], list)
+        assert len(response_content["data"]) == 2
+        assert response_content["data"][0]["type"] == "order"
+        assert response_content["data"][0]["attributes"]["cost"] == mock_orders[0]["cost"]
+        assert response_content["data"][0]["attributes"]["id"] == mock_orders[0]["id"]
+        assert response_content["data"][1]["type"] == "order"
+        assert response_content["data"][1]["attributes"]["cost"] == mock_orders[1]["cost"]
+        assert response_content["data"][1]["attributes"]["id"] == mock_orders[1]["id"]
         self.collection_order.list.assert_awaited()
+
+        assert response_content["meta"]["decorators"]["0"] == {"id": 10, "search": ["cost"]}
+        assert response_content["meta"]["decorators"]["1"] == {"id": 11, "search": ["cost"]}
 
     @patch(
         "forestadmin.agent_toolkit.resources.collections.crud.JsonApiSerializer.get",

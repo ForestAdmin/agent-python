@@ -15,6 +15,7 @@ from forestadmin.agent_toolkit.resources.collections.filter import (
     parse_timezone,
 )
 from forestadmin.agent_toolkit.resources.collections.requests import RequestCollection, RequestCollectionException
+from forestadmin.agent_toolkit.services.serializers import add_search_metadata
 from forestadmin.agent_toolkit.services.serializers.json_api import JsonApiException, JsonApiSerializer
 from forestadmin.agent_toolkit.utils.context import HttpResponseBuilder, Request, RequestMethod, Response, User
 from forestadmin.agent_toolkit.utils.csv import Csv, CsvException
@@ -160,9 +161,8 @@ class CrudResource(BaseCollectionResource):
             ForestLogger.log("exception", e)
             return HttpResponseBuilder.build_client_error_response([e])
 
-        # TODO: add something like this (but between crud and crud related ; function need adaptation)
-        # if paginated_filter.search:
-        #     dumped = add_search_metadata(dumped, paginated_filter.search)
+        if paginated_filter.search:
+            dumped = add_search_metadata(dumped, paginated_filter.search)
 
         return HttpResponseBuilder.build_success_response(dumped)
 

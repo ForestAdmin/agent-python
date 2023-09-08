@@ -344,6 +344,9 @@ class TestCrudRelatedResource(TestCase):
         assert response_content["data"][1]["id"] == mock_orders[1]["id"]
         assert response_content["data"][1]["type"] == "order"
 
+        assert response_content["meta"]["decorators"]["0"] == {"id": 10, "search": ["cost"]}
+        assert response_content["meta"]["decorators"]["1"] == {"id": 11, "search": ["cost"]}
+
     @patch(
         "forestadmin.agent_toolkit.resources.collections.crud_related.JsonApiSerializer.get",
         return_value=Mock,
