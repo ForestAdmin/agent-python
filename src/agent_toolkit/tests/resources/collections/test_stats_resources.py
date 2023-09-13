@@ -91,6 +91,7 @@ class TestStatResource(TestCase):
                     "is_primary_key": False,
                     "type": FieldType.COLUMN,
                     "filter_operators": set([Operator.YESTERDAY]),
+                    "validations": [],
                 },
                 "year": {
                     "column_type": PrimitiveType.NUMBER,
