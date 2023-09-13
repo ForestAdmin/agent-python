@@ -142,7 +142,7 @@ class FilterFactory:
             origin_tree = ConditionTreeLeaf(relation["origin_key"], Operator.EQUAL, origin_value)
         else:
             through = collection.datasource.get_collection(relation["through_collection"])
-            through_tree = ConditionTreeLeaf(relation["origin_key"], Operator.EQUAL, origin_value)
+            through_tree = ConditionTreeLeaf(relation["origin_key"], Operator.EQUAL, str(origin_value))
             records = await through.list(
                 caller,
                 PaginatedFilter({"condition_tree": through_tree}),
@@ -151,7 +151,7 @@ class FilterFactory:
             origin_tree = ConditionTreeLeaf(
                 relation["foreign_key_target"],
                 Operator.IN,
-                [record[relation["foreign_key"]] for record in records],
+                [str(record[relation["foreign_key"]]) for record in records],
             )
         trees: List[ConditionTree] = [origin_tree]
         if base_foreign_key_filter.condition_tree:
