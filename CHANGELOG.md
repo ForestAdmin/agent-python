@@ -1,3 +1,10 @@
+# [1.0.0-beta.13](https://github.com/ForestAdmin/agent-python/compare/v1.0.0-beta.12...v1.0.0-beta.13) (2023-09-13)
+
+
+### Bug Fixes
+
+* **search_metadata:** metadata of a search are now returned ([#111](https://github.com/ForestAdmin/agent-python/issues/111)) ([82b73e5](https://github.com/ForestAdmin/agent-python/commit/82b73e56cc3be5cc44cd856c735c8852a937d655))
+
 # [1.0.0-beta.12](https://github.com/ForestAdmin/agent-python/compare/v1.0.0-beta.11...v1.0.0-beta.12) (2023-09-13)
 
 
