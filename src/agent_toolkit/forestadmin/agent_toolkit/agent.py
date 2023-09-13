@@ -112,18 +112,22 @@ class Agent:
             ForestLogger.log("debug", "Agent already started.")
             return
         ForestLogger.log("debug", "Starting agent")
-        for collection in self.customizer.stack.datasource.collections:
-            create_json_api_schema(collection)
 
         try:
             api_map = await SchemaEmitter.get_serialized_schema(
                 self.options, self.customizer.stack.datasource, self.meta
             )
+        except Exception:
+            ForestLogger.log("Error", "Error generating forest schema")
 
+        try:
             await ForestHttpApi.send_schema(self.options, api_map)
 
         except Exception:
             ForestLogger.log("warning", "Cannot send the apimap to Forest. Are you online?")
+
+        for collection in self.customizer.stack.datasource.collections:
+            create_json_api_schema(collection)
 
         if self.options["instant_cache_refresh"]:
             self._sse_thread.start()
