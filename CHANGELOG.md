@@ -1,3 +1,10 @@
+# [1.0.0-beta.12](https://github.com/ForestAdmin/agent-python/compare/v1.0.0-beta.11...v1.0.0-beta.12) (2023-09-13)
+
+
+### Bug Fixes
+
+* **logger:** file path and line number are now preserved ([#109](https://github.com/ForestAdmin/agent-python/issues/109)) ([b3b9064](https://github.com/ForestAdmin/agent-python/commit/b3b9064527428cb4c04e3726854c7a52f3ab04b1))
+
 # [1.0.0-beta.11](https://github.com/ForestAdmin/agent-python/compare/v1.0.0-beta.10...v1.0.0-beta.11) (2023-09-07)
 
 
