@@ -1,17 +1,9 @@
-import sys
-
-from forestadmin.datasource_toolkit.utils import removeprefix
-
-if sys.version_info >= (3, 8):
-    from typing import TypedDict
-else:
-    from typing_extensions import TypedDict
-
-from typing import Callable, List, Union
+from typing import Callable, List, TypedDict, Union
 
 from forestadmin.datasource_toolkit.exceptions import DatasourceToolkitException
 from forestadmin.datasource_toolkit.interfaces.query.projections import Projection
 from forestadmin.datasource_toolkit.interfaces.records import RecordsDataAlias
+from forestadmin.datasource_toolkit.utils import removeprefix
 from forestadmin.datasource_toolkit.utils.records import RecordUtils
 
 

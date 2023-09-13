@@ -1,16 +1,10 @@
 import sys
+from typing import Any, Callable, Dict, List, TypedDict, cast
 
 if sys.version_info >= (3, 9):
     import zoneinfo
 else:
     from backports import zoneinfo
-
-from typing import Any, Callable, Dict, List, cast
-
-if sys.version_info >= (3, 8):
-    from typing import TypedDict
-else:
-    from typing_extensions import TypedDict
 
 from forestadmin.datasource_toolkit.interfaces.fields import Operator, PrimitiveType
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.factory import ConditionTreeFactory

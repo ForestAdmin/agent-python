@@ -1,11 +1,4 @@
-import sys
-
-if sys.version_info >= (3, 8):
-    from typing import TypedDict
-else:
-    from typing_extensions import TypedDict
-
-from typing import Any, Awaitable, Callable, Generic, List, Optional, TypeVar, Union
+from typing import Any, Awaitable, Callable, Generic, List, Optional, TypedDict, TypeVar, Union
 
 from forestadmin.datasource_toolkit.decorators.action.context.base import ActionContext
 from forestadmin.datasource_toolkit.exceptions import DatasourceToolkitException

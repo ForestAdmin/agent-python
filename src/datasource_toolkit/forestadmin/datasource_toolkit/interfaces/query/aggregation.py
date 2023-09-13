@@ -1,19 +1,14 @@
 import enum
 import json
 import sys
+from datetime import datetime, timedelta
 from numbers import Number
+from typing import Any, Callable, Dict, List, Literal, Optional, TypedDict, Union
 
-if sys.version_info >= (3, 8):
-    from typing import Literal, TypedDict
-else:
-    from typing_extensions import Literal, TypedDict
 if sys.version_info >= (3, 9):
     import zoneinfo
 else:
     from backports import zoneinfo
-
-from datetime import datetime, timedelta
-from typing import Any, Callable, Dict, List, Optional, Union
 
 from forestadmin.datasource_toolkit.interfaces.query.projections import Projection
 from forestadmin.datasource_toolkit.interfaces.records import RecordsDataAlias

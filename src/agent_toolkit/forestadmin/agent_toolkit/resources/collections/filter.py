@@ -1,14 +1,13 @@
+import json
 import sys
 from ast import literal_eval
 from distutils.util import strtobool
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 if sys.version_info >= (3, 9):
     import zoneinfo
 else:
     from backports import zoneinfo
-
-import json
-from typing import Any, Dict, List, Optional, Tuple, Union
 
 from forestadmin.agent_toolkit.exceptions import AgentToolkitException
 from forestadmin.agent_toolkit.resources.collections.requests import RequestCollection, RequestRelationCollection

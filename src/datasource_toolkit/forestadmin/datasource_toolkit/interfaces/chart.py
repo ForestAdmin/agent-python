@@ -1,11 +1,4 @@
-import sys
-from typing import List, Optional, TypeVar, Union
-
-if sys.version_info >= (3, 8):
-    from typing import TypedDict
-else:
-    from typing_extensions import TypedDict
-
+from typing import List, Optional, TypedDict, TypeVar, Union
 
 ValueChart = TypedDict("ValueChart", {"countCurrent": Union[int, float], "countPrevious": Optional[Union[int, float]]})
 

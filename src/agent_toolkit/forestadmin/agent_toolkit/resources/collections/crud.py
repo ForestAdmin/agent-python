@@ -1,14 +1,5 @@
 import asyncio
-import sys
-
-from typing_extensions import TypeGuard
-
-if sys.version_info >= (3, 8):
-    from typing import Literal
-else:
-    from typing_extensions import Literal
-
-from typing import Any, Awaitable, Dict, List, Tuple, cast
+from typing import Any, Awaitable, Dict, List, Literal, Tuple, cast
 
 from forestadmin.agent_toolkit.forest_logger import ForestLogger
 from forestadmin.agent_toolkit.resources.collections.base_collection_resource import BaseCollectionResource
@@ -52,12 +43,6 @@ from forestadmin.datasource_toolkit.utils.collections import CollectionUtils
 from forestadmin.datasource_toolkit.utils.schema import SchemaUtils
 from forestadmin.datasource_toolkit.validations.field import FieldValidatorException
 from forestadmin.datasource_toolkit.validations.records import RecordValidator, RecordValidatorException
-
-
-# unused ???
-def is_request_collection(request: Request) -> TypeGuard[RequestCollection]:
-    return hasattr(request, "collection")
-
 
 LiteralMethod = Literal["list", "count", "add", "delete_list", "csv"]
 

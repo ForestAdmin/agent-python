@@ -1,12 +1,6 @@
 import asyncio
-import sys
 from unittest import TestCase
-from unittest.mock import patch
-
-if sys.version_info < (3, 8):
-    from mock import AsyncMock
-else:
-    from unittest.mock import AsyncMock
+from unittest.mock import AsyncMock, patch
 
 from forestadmin.agent_toolkit.resources.collections.base_collection_resource import BaseCollectionResource
 from forestadmin.agent_toolkit.resources.collections.decorators import _authenticate, _authorize, _check_method

@@ -1,10 +1,6 @@
 import sys
-from typing import Any, Dict, List, Union, cast
+from typing import Any, Dict, List, Literal, Union, cast
 
-if sys.version_info >= (3, 8):
-    from typing import Literal
-else:
-    from typing_extensions import Literal
 if sys.version_info >= (3, 9):
     import zoneinfo
 else:

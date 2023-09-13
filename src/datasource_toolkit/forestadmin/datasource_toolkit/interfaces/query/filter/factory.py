@@ -1,14 +1,12 @@
 import sys
-
-from forestadmin.agent_toolkit.utils.context import User
+from typing import List, Union, cast
 
 if sys.version_info >= (3, 9):
     import zoneinfo
 else:
     from backports import zoneinfo
 
-from typing import List, Union, cast
-
+from forestadmin.agent_toolkit.utils.context import User
 from forestadmin.datasource_toolkit.collections import Collection
 from forestadmin.datasource_toolkit.exceptions import DatasourceToolkitException
 from forestadmin.datasource_toolkit.interfaces.fields import FieldType, ManyToMany, OneToMany, Operator

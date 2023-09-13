@@ -1,12 +1,6 @@
 import asyncio
-import sys
-from unittest import TestCase, skipIf
-from unittest.mock import Mock, call, patch
-
-if sys.version_info < (3, 8):
-    from mock import AsyncMock
-else:
-    from unittest.mock import AsyncMock
+from unittest import TestCase
+from unittest.mock import AsyncMock, Mock, call, patch
 
 import aiohttp
 from forestadmin.agent_toolkit.utils.http import ForestHttpApi, ForestHttpApiException, HttpOptions
@@ -100,11 +94,6 @@ class TestForestHttp(TestCase):
                 ]
             )
 
-    @skipIf(
-        sys.version_info < (3, 8),
-        "in python 3.7 there is an error mocking context manager;"
-        " and python 3.7 will soon be removed from package compatibility",
-    )
     def test_post_should_make_a_post_request_and_return_json(self):
         mock_response = Mock()
         mock_response.status = 200
@@ -129,11 +118,6 @@ class TestForestHttp(TestCase):
         mock_session.post.assert_called_once_with("http://addr", json={"body": "dict"}, headers={"headers": "headers"})
         mock_response.json.assert_awaited_once()
 
-    @skipIf(
-        sys.version_info < (3, 8),
-        "in python 3.7 there is an error mocking context manager;"
-        " and python 3.7 will soon be removed from package compatibility",
-    )
     def test_post_should_make_a_post_request_and_return_None_if_no_200_answer(self):
         response = Mock()
         response.status = 204
@@ -156,11 +140,6 @@ class TestForestHttp(TestCase):
 
         mock_session.post.assert_called_once_with("http://addr", json={"body": "dict"}, headers={"headers": "headers"})
 
-    @skipIf(
-        sys.version_info < (3, 8),
-        "in python 3.7 there is an error mocking context manager;"
-        " and python 3.7 will soon be removed from package compatibility",
-    )
     def test_post_should_make_a_post_request_and_raise_exception_on_http_error(self):
         mock_session = Mock()
         mock_session.post = Mock(side_effect=aiohttp.ClientError("client_error"))
@@ -181,11 +160,6 @@ class TestForestHttp(TestCase):
 
         mock_session.post.assert_called_once_with("http://addr", json={"body": "dict"}, headers={"headers": "headers"})
 
-    @skipIf(
-        sys.version_info < (3, 8),
-        "in python 3.7 there is an error mocking context manager;"
-        " and python 3.7 will soon be removed from package compatibility",
-    )
     def test_get_should_make_a_get_request_and_return_json(self):
         mock_response = Mock()
         mock_response.status = 200
@@ -208,11 +182,6 @@ class TestForestHttp(TestCase):
         mock_session.get.assert_called_once_with("http://addr", headers={"headers": "headers"})
         mock_response.json.assert_awaited_once()
 
-    @skipIf(
-        sys.version_info < (3, 8),
-        "in python 3.7 there is an error mocking context manager;"
-        " and python 3.7 will soon be removed from package compatibility",
-    )
     def test_get_should_make_a_get_request_and_return_None_if_no_200_answer(self):
         response = Mock()
         response.status = 204
@@ -232,11 +201,6 @@ class TestForestHttp(TestCase):
             self.assertIsNone(response)
         mock_session.get.assert_called_once_with("http://addr", headers={"headers": "headers"})
 
-    @skipIf(
-        sys.version_info < (3, 8),
-        "in python 3.7 there is an error mocking context manager;"
-        " and python 3.7 will soon be removed from package compatibility",
-    )
     def test_get_should_make_a_get_request_and_raise_exception_on_http_error(self):
         mock_session = Mock()
         mock_session.__aexit__ = Mock()

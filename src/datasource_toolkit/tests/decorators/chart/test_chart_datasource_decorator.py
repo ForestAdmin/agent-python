@@ -1,12 +1,8 @@
 import asyncio
 import sys
 from unittest import TestCase
-from unittest.mock import PropertyMock, patch
+from unittest.mock import AsyncMock, PropertyMock, patch
 
-if sys.version_info >= (3, 8):
-    from unittest.mock import AsyncMock
-else:
-    from mock import AsyncMock
 if sys.version_info >= (3, 9):
     import zoneinfo
 else:

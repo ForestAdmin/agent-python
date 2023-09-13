@@ -1,13 +1,6 @@
 import json
-import sys
 from hashlib import sha1
-
-if sys.version_info >= (3, 8):
-    from typing import Literal
-else:
-    from typing_extensions import Literal
-
-from typing import Any, Dict, List, Union
+from typing import Any, Dict, List, Literal, Union
 
 from forestadmin.agent_toolkit.forest_logger import ForestLogger
 from forestadmin.agent_toolkit.options import Options

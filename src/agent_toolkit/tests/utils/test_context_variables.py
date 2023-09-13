@@ -1,7 +1,12 @@
 import asyncio
 import sys
 from unittest import TestCase
-from unittest.mock import Mock
+from unittest.mock import AsyncMock, Mock
+
+if sys.version_info >= (3, 9):
+    import zoneinfo
+else:
+    from backports import zoneinfo
 
 from forestadmin.agent_toolkit.services.permissions.permission_service import PermissionService
 from forestadmin.agent_toolkit.utils.context import User
@@ -10,16 +15,6 @@ from forestadmin.agent_toolkit.utils.context_variable_instantiator import Contex
 from forestadmin.datasource_toolkit.interfaces.fields import Operator
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.branch import Aggregator, ConditionTreeBranch
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.leaf import ConditionTreeLeaf
-
-if sys.version_info < (3, 8):
-    from mock import AsyncMock
-else:
-    from unittest.mock import AsyncMock
-
-if sys.version_info >= (3, 9):
-    import zoneinfo
-else:
-    from backports import zoneinfo
 
 
 class TestContextVariableStack(TestCase):

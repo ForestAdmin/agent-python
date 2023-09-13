@@ -1,10 +1,5 @@
 import json
-import sys
-
-if sys.version_info >= (3, 8):
-    from typing import Literal
-else:
-    from typing_extensions import Literal
+from typing import Literal
 
 from forestadmin.agent_toolkit.options import Options
 from forestadmin.agent_toolkit.resources.base import BaseResource
