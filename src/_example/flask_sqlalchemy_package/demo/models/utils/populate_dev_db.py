@@ -1,4 +1,5 @@
 import datetime
+import os
 import random
 import sys
 from typing import Any, List, Set
@@ -14,7 +15,8 @@ from flask.app import Flask
 from sqlalchemy.orm import sessionmaker
 
 app = Flask(__name__)
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///../db.sql"
+db_path = os.path.abspath(os.path.join(__file__, "..", "..", "..", "..", "db.sql"))
+app.config["SQLALCHEMY_DATABASE_URI"] = f"sqlite:///{db_path}"
 
 fake = Faker(["it_IT", "en_US", "ja_JP", "fr_FR"])
 

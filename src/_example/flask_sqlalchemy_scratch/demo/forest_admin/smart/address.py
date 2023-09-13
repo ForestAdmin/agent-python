@@ -27,7 +27,7 @@ async def high_delivery_address_segment(context: CollectionCustomizationContext)
         100,
     )
     return ConditionTreeLeaf(
-        field="id", operator=Operator.IN, value=[row["group"]["delivering_address_id"] for row in rows]
+        field="pk", operator=Operator.IN, value=[row["group"]["delivering_address_id"] for row in rows]
     )
 
 

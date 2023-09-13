@@ -100,7 +100,7 @@ class ExportJson(ActionGlobal):
     async def execute(self, context: ActionContext, result_builder: ResultBuilder) -> Union[None, ActionResult]:
         records = await context.get_records(
             Projection(
-                "id",
+                "pk",
                 "customer:full_name",
                 "billing_address:full_address",
                 "delivering_address:full_address",
@@ -133,7 +133,7 @@ class RefundOrder(ActionBulk):
 # charts
 async def total_order_chart(context: AgentCustomizationContext, result_builder: ResultBuilderChart):
     records = await context.datasource.get_collection("order").list(
-        context.caller, PaginatedFilter({}), Projection("id")
+        context.caller, PaginatedFilter({}), Projection("pk")
     )
     return result_builder.value(len(records))
 

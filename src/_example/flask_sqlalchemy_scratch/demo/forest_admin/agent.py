@@ -9,6 +9,7 @@ from demo.forest_admin.smart.customer import (
     customer_full_name_write,
     customer_spending_computed,
     french_address_segment,
+    full_name_contains,
     full_name_equal,
     full_name_greater_than,
     full_name_in,
@@ -97,6 +98,7 @@ agent.customize_collection("customer").replace_field_operator("full_name", Opera
 agent.customize_collection("customer").replace_field_operator(
     "full_name", Operator.NOT_CONTAINS, full_name_not_contains
 )
+agent.customize_collection("customer").replace_field_operator("full_name", Operator.CONTAINS, full_name_contains)
 # emulate others operators
 agent.customize_collection("customer").emulate_field_filtering("full_name")
 
@@ -152,6 +154,9 @@ agent.customize_collection("order").add_field("customer_full_name", get_customer
 # cart
 
 agent.customize_collection("cart").replace_field_writing("name", cart_update_name)
+agent.customize_collection("cart").add_segment(
+    "No order", lambda ctx: ConditionTreeLeaf("order_id", Operator.EQUAL, None)
+)
 
 agent.add_chart("total_order", total_order_chart)
 agent.add_chart(
