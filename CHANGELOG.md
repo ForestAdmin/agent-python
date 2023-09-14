@@ -1,3 +1,10 @@
+# [1.0.0-beta.14](https://github.com/ForestAdmin/agent-python/compare/v1.0.0-beta.13...v1.0.0-beta.14) (2023-09-14)
+
+
+### Bug Fixes
+
+* **datasource-customizer:** add has_field_changed function to handle change hook on this field ([#113](https://github.com/ForestAdmin/agent-python/issues/113)) ([603c685](https://github.com/ForestAdmin/agent-python/commit/603c685f1a9ad2280a80b6708a66c394ca509fab))
+
 # [1.0.0-beta.13](https://github.com/ForestAdmin/agent-python/compare/v1.0.0-beta.12...v1.0.0-beta.13) (2023-09-13)
 
 
