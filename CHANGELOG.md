@@ -1,3 +1,10 @@
+# [1.0.0-beta.15](https://github.com/ForestAdmin/agent-python/compare/v1.0.0-beta.14...v1.0.0-beta.15) (2023-09-14)
+
+
+### Bug Fixes
+
+* **export:** should return CSV with relationship fields ([#114](https://github.com/ForestAdmin/agent-python/issues/114)) ([1e396c7](https://github.com/ForestAdmin/agent-python/commit/1e396c71fd101caa04ae840689ac589a60385ac7))
+
 # [1.0.0-beta.14](https://github.com/ForestAdmin/agent-python/compare/v1.0.0-beta.13...v1.0.0-beta.14) (2023-09-14)
 
 
