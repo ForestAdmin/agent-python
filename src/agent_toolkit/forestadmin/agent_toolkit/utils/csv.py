@@ -40,5 +40,12 @@ class Csv:
 
             elif isinstance(value, date):
                 updates[key] = value.strftime("%Y-%m-%d")
-        row.update(updates)
-        return row
+
+            elif isinstance(value, dict):
+                sub_row = Csv.format_field(value)
+                for sub_name, sub_value in sub_row.items():
+                    updates[f"{key}:{sub_name}"] = sub_value
+            else:
+                updates[key] = value
+
+        return updates
