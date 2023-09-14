@@ -198,7 +198,7 @@ class ExportJson(ActionBulk):
 class AgeOperation(ActionSingle):
     @staticmethod
     def get_value_summary(context: ActionContextSingle):
-        if context.changed_field not in ["Kind of operation", "Value"]:
+        if not context.has_field_changed("Kind of operation") and not context.has_field_changed("Value"):
             return context.form_values.get("summary")
         sentence = ""
         if context.form_values.get("Kind of operation", "") == "+":
@@ -232,12 +232,10 @@ class AgeOperation(ActionSingle):
         PlainStringDynamicField(
             label="test list",
             type=ActionFieldType.STRING_LIST,
-            # is_required=False,
             is_required=lambda context: context.form_values.get("Value", 11) > 10,
             is_read_only=lambda context: context.form_values.get("Value", 11) <= 10,
-            if_=lambda context: context.form_values.get("Value", 11) > 10,
-            # is_read_only=False,
-            # default_value=[1, 2],
+            if_=lambda context: context.form_values.get("Value", 0) > 10,
+            default_value=lambda context: [1, 2],
         ),
         PlainListEnumDynamicField(label="Rating", type=ActionFieldType.ENUM, enum_values=["1", "2", "3", "4", "5"]),
         PlainStringDynamicField(

@@ -1,4 +1,5 @@
 import asyncio
+import logging
 import sys
 from typing import Any, Coroutine, Union
 from unittest import TestCase
@@ -360,7 +361,7 @@ class TestActionCollectionCustomizer(TestCase):
             ),
         ]
 
-    def test_get_form_should_work_with_changed_field(self):
+    def test_get_form_should_work_with_changed_field_warning(self):
         class TestAction(ActionSingle):
             SCOPE = ActionsScope.SINGLE
             FORM = [
@@ -379,9 +380,17 @@ class TestActionCollectionCustomizer(TestCase):
 
         self.product_collection.add_action("action_test", TestAction())
 
-        result = self.loop.run_until_complete(
-            self.product_collection.get_form(self.mocked_caller, "action_test", {"first_name": "John"}, None, {})
-        )
+        with self.assertLogs("forestadmin", level=logging.DEBUG) as logger:
+            result = self.loop.run_until_complete(
+                self.product_collection.get_form(self.mocked_caller, "action_test", {"first_name": "John"}, None, {})
+            )
+            self.assertEqual(
+                logger.output,
+                [
+                    "WARNING:forestadmin:context.changed_field == 'field_name' is now deprecated, "
+                    + "use context.has_field_changed('field_name') instead.",
+                ],
+            )
         assert result == [
             ActionField(
                 label="rating",
@@ -411,6 +420,71 @@ class TestActionCollectionCustomizer(TestCase):
                 collection_name=None,
                 enum_values=[1, 2, 3, 4, 5],
                 watch_changes=False,
+            ),
+            ActionField(
+                label="Put a comment",
+                type=ActionFieldType.STRING,
+                description="",
+                is_read_only=False,
+                is_required=False,
+                value=None,
+                collection_name=None,
+                enum_values=None,
+                watch_changes=False,
+            ),
+        ]
+
+    def test_get_form_should_make_dynamic_field_on_context_has_changed_field(self):
+        class TestAction(ActionSingle):
+            SCOPE = ActionsScope.SINGLE
+            FORM = [
+                PlainEnumDynamicField(label="rating", type=ActionFieldType.ENUM, enum_values=[1, 2, 3, 4, 5]),
+                PlainStringDynamicField(
+                    label="Put a comment",
+                    type=ActionFieldType.STRING,
+                    if_=lambda context: context.has_field_changed("rating"),
+                ),
+            ]
+
+            async def execute(
+                self, context: ActionContextSingle, result_builder: ResultBuilder
+            ) -> Coroutine[Any, Any, Union[ActionResult, None]]:
+                result_builder.success("Bravo !!!")
+
+        self.product_collection.add_action("action_test", TestAction())
+
+        result = self.loop.run_until_complete(
+            self.product_collection.get_form(self.mocked_caller, "action_test", {"first_name": "John"}, None, {})
+        )
+        assert result == [
+            ActionField(
+                label="rating",
+                type=ActionFieldType.ENUM,
+                description="",
+                is_read_only=False,
+                is_required=False,
+                value=None,
+                collection_name=None,
+                enum_values=[1, 2, 3, 4, 5],
+                watch_changes=True,
+            ),
+        ]
+        result = self.loop.run_until_complete(
+            self.product_collection.get_form(
+                self.mocked_caller, "action_test", {"first_name": "John"}, None, {"changed_field": "rating"}
+            )
+        )
+        assert result == [
+            ActionField(
+                label="rating",
+                type=ActionFieldType.ENUM,
+                description="",
+                is_read_only=False,
+                is_required=False,
+                value=None,
+                collection_name=None,
+                enum_values=[1, 2, 3, 4, 5],
+                watch_changes=True,
             ),
             ActionField(
                 label="Put a comment",
