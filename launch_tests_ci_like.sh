@@ -23,13 +23,16 @@ do
     do
         cd $package
 
+        echo "# --- # testing $package with python $py_version"
         pyenv shell $py_version  # use python desired version
+
+        echo "# installing depencies"
         python -m venv ../tmp_venv  # create virtualenv
         source ../tmp_venv/bin/activate  # activate it
         rm -f poetry.lock  # theoricaly useless
-        poetry install --with=test  # install requirements
+        poetry install --with=test -q  # install requirements (-q: quiet)
 
-        echo "# --- # testing $package with $(python --version)"
+        echo "# running tests"
         $EXECUTOR run -m pytest  # run tests
 
         deactivate  # deactivate venv
