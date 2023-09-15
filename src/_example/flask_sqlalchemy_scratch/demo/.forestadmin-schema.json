@@ -30,7 +30,7 @@
                     "isSortable": false,
                     "isVirtual": false,
                     "reference": "order.pk",
-                    "relationship": "BelongsToMany",
+                    "relationship": "HasMany",
                     "type": [
                         "Number"
                     ],
@@ -104,7 +104,7 @@
                     "isSortable": false,
                     "isVirtual": false,
                     "reference": "order.pk",
-                    "relationship": "BelongsToMany",
+                    "relationship": "HasMany",
                     "type": [
                         "Number"
                     ],
@@ -265,24 +265,8 @@
                     "isRequired": false,
                     "isSortable": true,
                     "isVirtual": false,
-                    "reference": "order.order_id",
-                    "relationship": "HasOne",
-                    "type": "Number",
-                    "validations": []
-                },
-                {
-                    "defaultValue": null,
-                    "enums": null,
-                    "field": "order_id",
-                    "integration": null,
-                    "inverseOf": null,
-                    "isFilterable": true,
-                    "isPrimaryKey": false,
-                    "isReadOnly": false,
-                    "isRequired": false,
-                    "isSortable": true,
-                    "isVirtual": false,
-                    "reference": null,
+                    "reference": "order.pk",
+                    "relationship": "BelongsTo",
                     "type": "Number",
                     "validations": []
                 },
@@ -535,7 +519,7 @@
                     "isSortable": false,
                     "isVirtual": false,
                     "reference": "order.pk",
-                    "relationship": "BelongsToMany",
+                    "relationship": "HasMany",
                     "type": [
                         "Number"
                     ],
@@ -587,7 +571,7 @@
                     "isSortable": false,
                     "isVirtual": false,
                     "reference": "cart.pk",
-                    "relationship": "BelongsToMany",
+                    "relationship": "HasMany",
                     "type": [
                         "Number"
                     ],
@@ -778,7 +762,7 @@
                     "defaultValue": null,
                     "enums": null,
                     "field": "billing_address",
-                    "inverseOf": null,
+                    "inverseOf": "billing_orders",
                     "isFilterable": true,
                     "isPrimaryKey": false,
                     "isReadOnly": false,
@@ -853,7 +837,7 @@
                     "defaultValue": null,
                     "enums": null,
                     "field": "customer",
-                    "inverseOf": null,
+                    "inverseOf": "orders",
                     "isFilterable": true,
                     "isPrimaryKey": false,
                     "isReadOnly": false,
@@ -885,7 +869,7 @@
                     "defaultValue": null,
                     "enums": null,
                     "field": "delivering_address",
-                    "inverseOf": null,
+                    "inverseOf": "delivering_orders",
                     "isFilterable": true,
                     "isPrimaryKey": false,
                     "isReadOnly": false,
@@ -939,11 +923,11 @@
     ],
     "meta": {
         "liana": "agent-python",
-        "liana_version": "1.0.0-beta.10",
+        "liana_version": "1.0.0-beta.13",
         "stack": {
             "engine": "python",
             "engine_version": "3.10.11"
         },
-        "schemaFileHash": "afbff71bcbdb76843197cdc97c1b978537eb1d4d"
+        "schemaFileHash": "78bdd09036fcc0d844f5a2c7f7d6202e8f0d84bd"
     }
 }
