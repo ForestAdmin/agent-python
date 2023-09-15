@@ -70,7 +70,8 @@ async def _authorize(
     if action == "chart":
         await self.permission.can_chart(request)
     else:
-        await self.permission.can(request.user, request.collection, f"{action}")
+        collection = request.foreign_collection if hasattr(request, "foreign_collection") else request.collection
+        await self.permission.can(request.user, collection, f"{action}")
 
     return await decorated_fn(self, request)
 

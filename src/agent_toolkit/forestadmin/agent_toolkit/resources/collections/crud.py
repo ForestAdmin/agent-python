@@ -22,6 +22,7 @@ from forestadmin.agent_toolkit.utils.csv import Csv, CsvException
 from forestadmin.agent_toolkit.utils.id import unpack_id
 from forestadmin.datasource_toolkit.collections import Collection
 from forestadmin.datasource_toolkit.datasources import DatasourceException
+from forestadmin.datasource_toolkit.exceptions import ForbiddenError
 from forestadmin.datasource_toolkit.interfaces.fields import (
     ManyToOne,
     OneToOne,
@@ -59,6 +60,8 @@ class CrudResource(BaseCollectionResource):
 
         try:
             return await method(request_collection)
+        except ForbiddenError as exc:
+            return HttpResponseBuilder.build_client_error_response([exc])
         except Exception as e:
             ForestLogger.log("exception", e)
             return HttpResponseBuilder.build_client_error_response([e])

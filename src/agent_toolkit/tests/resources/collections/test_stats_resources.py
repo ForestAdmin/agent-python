@@ -13,6 +13,7 @@ else:
 
 import forestadmin.agent_toolkit.resources.collections.stats
 from forestadmin.agent_toolkit.options import Options
+from forestadmin.agent_toolkit.resources.collections.filter import build_filter
 from forestadmin.agent_toolkit.resources.collections.requests import RequestCollection
 from forestadmin.agent_toolkit.services.permissions.permission_service import PermissionService
 from forestadmin.agent_toolkit.utils.context import Request, RequestMethod, User
@@ -22,26 +23,26 @@ from forestadmin.datasource_toolkit.exceptions import ForestException
 from forestadmin.datasource_toolkit.interfaces.fields import FieldType, Operator, PrimitiveType
 
 
-def mock_decorator_with_param(*args, **kwargs):
-    def decorator(fn):
-        def decorated_function(*args, **kwargs):
-            return fn(*args, **kwargs)
+def authenticate_mock(fn):
+    async def wrapped2(self, request):
+        request.user = User(
+            rendering_id=1,
+            user_id=1,
+            tags={},
+            email="dummy@user.fr",
+            first_name="dummy",
+            last_name="user",
+            team="operational",
+            timezone=zoneinfo.ZoneInfo("Europe/Paris"),
+        )
 
-        return decorated_function
+        return await fn(self, request)
 
-    return decorator
-
-
-def mock_decorator_no_param(fn):
-    def decorated_function(*args, **kwargs):
-        return fn(*args, **kwargs)
-
-    return decorated_function
+    return wrapped2
 
 
-patch("forestadmin.agent_toolkit.resources.collections.decorators.check_method", mock_decorator_with_param).start()
-patch("forestadmin.agent_toolkit.resources.collections.decorators.authenticate", mock_decorator_no_param).start()
-patch("forestadmin.agent_toolkit.resources.collections.decorators.authorize", mock_decorator_with_param).start()
+patch("forestadmin.agent_toolkit.resources.collections.decorators.authenticate", authenticate_mock).start()
+
 
 # how to mock decorators, and why they are not testable :
 # https://dev.to/stack-labs/how-to-mock-a-decorator-in-python-55jc
@@ -56,6 +57,7 @@ class TestStatResource(TestCase):
         cls.loop = asyncio.new_event_loop()
         cls.permission_service = Mock(PermissionService)
         cls.permission_service.get_scope = AsyncMock(return_value=None)
+        cls.permission_service.can_chart = AsyncMock(return_value=True)
         cls.permission_service.get_user_data = AsyncMock(
             return_value={
                 "id": 1,
@@ -382,7 +384,7 @@ class TestValueStatsResource(TestStatResource):
         ) as mock_aggregate:
             with patch(
                 "forestadmin.agent_toolkit.resources.collections.stats.build_filter",
-                wraps=forestadmin.agent_toolkit.resources.collections.stats.build_filter,
+                wraps=build_filter,
             ) as mock_build_filter:
                 response = self.loop.run_until_complete(self.stat_resource.value(request))
                 mock_build_filter.assert_called_once()
