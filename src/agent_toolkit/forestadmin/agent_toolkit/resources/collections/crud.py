@@ -366,8 +366,13 @@ class CrudResource(BaseCollectionResource):
                     # one_to_one_relations.append((field, dict([(pk, value[i]) for i, pk in enumerate(pk_names)])))
                 else:
                     field = cast(ManyToOne, field)
-                    record[field["foreign_key"]] = await CollectionUtils.get_value(
+                    value = await CollectionUtils.get_value(
                         caller, cast(Collection, foreign_collection), [value], field["foreign_key_target"]
                     )
+                    try:
+                        value = int(value)
+                    except ValueError:
+                        pass
+                    record[field["foreign_key"]] = value
 
         return record, one_to_one_relations
