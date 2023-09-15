@@ -5,11 +5,8 @@ from forestadmin.datasource_toolkit.collections import Collection
 from forestadmin.datasource_toolkit.exceptions import DatasourceToolkitException
 from forestadmin.datasource_toolkit.interfaces.fields import (
     FieldAlias,
-    FieldType,
     ManyToMany,
-    ManyToOne,
     OneToMany,
-    OneToOne,
     RelationAlias,
     is_many_to_many,
     is_many_to_one,
@@ -143,30 +140,15 @@ class CollectionUtils:
                 continue
 
             if (
-                (
-                    is_many_to_many(field_schema)
-                    and is_many_to_many(relation)
-                    and CollectionUtils.is_many_to_many_inverse(field_schema, relation)
-                )
-                or (
-                    is_many_to_one(field_schema)
-                    and (is_one_to_one(relation) or is_one_to_many(relation))
-                    and CollectionUtils.is_many_to_one_inverse(field_schema, relation)
-                )
-                or (
-                    (is_one_to_one(field_schema) or is_one_to_many(field_schema))
-                    and ((is_many_to_one(relation) or is_one_to_one(relation)))
-                    and (
-                        CollectionUtils.is_other_inverse(field_schema, relation)
-                        or CollectionUtils.is_one_to_one_inverse(field_schema, relation)
-                    )
-                )
+                CollectionUtils.is_many_to_many_inverse(field_schema, relation)
+                or CollectionUtils.is_many_to_one_inverse(field_schema, relation)
+                or CollectionUtils.is_other_inverse(field_schema, relation)
             ):
                 inverse = name
         return inverse
 
     @staticmethod
-    def is_many_to_many_inverse(field: ManyToMany, relation_field: ManyToMany) -> bool:
+    def is_many_to_many_inverse(field: RelationAlias, relation_field: RelationAlias) -> bool:
         if (
             is_many_to_many(field)
             and is_many_to_many(relation_field)
@@ -178,31 +160,20 @@ class CollectionUtils:
         return False
 
     @staticmethod
-    def is_many_to_one_inverse(field: ManyToOne, relation_field: Union[ManyToOne, OneToOne]) -> bool:
+    def is_many_to_one_inverse(field: RelationAlias, relation_field: RelationAlias) -> bool:
         if (
-            field["type"] == FieldType.MANY_TO_ONE
-            and (relation_field["type"] == FieldType.ONE_TO_MANY or relation_field["type"] == FieldType.ONE_TO_ONE)
+            is_many_to_one(field)
+            and (is_one_to_many(relation_field) or is_one_to_one(relation_field))
             and field["foreign_key"] == relation_field["origin_key"]
         ):
             return True
         return False
 
     @staticmethod
-    def is_one_to_one_inverse(field: ManyToOne, relation_field: Union[ManyToOne, OneToOne]) -> bool:
+    def is_other_inverse(field: RelationAlias, relation_field: RelationAlias) -> bool:
         if (
-            field["type"] == FieldType.ONE_TO_ONE
-            and relation_field["type"] == FieldType.ONE_TO_ONE
-            and field["origin_key_target"] == relation_field["origin_key"]
-            and field["origin_key"] == relation_field["origin_key_target"]
-        ):
-            return True
-        return False
-
-    @staticmethod
-    def is_other_inverse(field: Union[OneToOne, OneToMany], relation_field: ManyToOne) -> bool:
-        if (
-            field["type"] == FieldType.MANY_TO_ONE
-            and (relation_field["type"] == FieldType.ONE_TO_MANY or relation_field["type"] == FieldType.ONE_TO_ONE)
+            (is_one_to_many(field) or is_one_to_one(field))
+            and is_many_to_one(relation_field)
             and field["origin_key"] == relation_field["foreign_key"]
         ):
             return True

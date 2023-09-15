@@ -97,14 +97,6 @@ class ForestServerAction(TypedDict):
     hooks: ForestServerActionHooks
 
 
-"""
-export type ForestServerSegment = {
-  id: string;
-  name: string;
-};
-"""
-
-
 class ForestServerSegment(TypedDict):
     id: str
     name: str

@@ -58,3 +58,4 @@ mv .coverage ../
 
 cd ..
 rm -rf $ARTIFACT_DIR
+poetry -C src/datasource_sqlalchemy run coverage report | tail -1

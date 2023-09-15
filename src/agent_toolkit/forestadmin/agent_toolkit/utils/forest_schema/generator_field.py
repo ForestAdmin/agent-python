@@ -3,7 +3,7 @@ from typing import Dict, Union, cast
 from forestadmin.agent_toolkit.utils.forest_schema.filterable import FrontendFilterableUtils
 from forestadmin.agent_toolkit.utils.forest_schema.type import ForestServerField, RelationServer
 from forestadmin.agent_toolkit.utils.forest_schema.validation import FrontendValidationUtils
-from forestadmin.datasource_toolkit.collections import Collection, CollectionException
+from forestadmin.datasource_toolkit.collections import Collection
 from forestadmin.datasource_toolkit.datasource_customizer.collection_customizer import CollectionCustomizer
 from forestadmin.datasource_toolkit.interfaces.fields import (
     Column,
@@ -29,7 +29,7 @@ from forestadmin.datasource_toolkit.utils.schema import SchemaUtils
 class SchemaFieldGenerator:
     RELATION_MAPPING: Dict[FieldType, RelationServer] = {
         FieldType.ONE_TO_ONE: "HasOne",
-        FieldType.ONE_TO_MANY: "BelongsToMany",
+        FieldType.ONE_TO_MANY: "HasMany",
         FieldType.MANY_TO_ONE: "BelongsTo",
         FieldType.MANY_TO_MANY: "BelongsToMany",
     }
@@ -111,25 +111,22 @@ class SchemaFieldGenerator:
 
     @classmethod
     def build_one_to_one_schema(
-        cls, relation: OneToOne, foreign_collection: Collection, base_schema: ForestServerField
+        cls, relation: OneToOne, collection: Collection, foreign_collection: Collection, base_schema: ForestServerField
     ) -> ForestServerField:
-        key = relation["origin_key_target"]
-        try:
-            column = foreign_collection.get_field(relation["origin_key_target"])
-        except CollectionException:
-            column = foreign_collection.get_field(relation["origin_key"])
+        target_field = collection.schema["fields"][relation["origin_key_target"]]
+        key_field = foreign_collection.schema["fields"][relation["origin_key"]]
 
-        key_schema = cast(Column, column)
         return {
             **base_schema,
-            "type": cls.build_column_type(key_schema["column_type"]),
+            "type": cls.build_column_type(key_field["column_type"]),
             "defaultValue": None,
             "isFilterable": cls.is_foreign_collection_filterable(foreign_collection),
             "isPrimaryKey": False,
             "isRequired": False,
-            "isSortable": bool(key_schema["is_sortable"]),
+            "isReadOnly": bool(key_field["is_read_only"]),
+            "isSortable": bool(target_field["is_sortable"]),
             "validations": [],
-            "reference": f"{foreign_collection.name}.{key}",
+            "reference": f"{foreign_collection.name}.{relation['origin_key_target']}",
         }
 
     @classmethod
@@ -144,7 +141,6 @@ class SchemaFieldGenerator:
             key = relation["origin_key_target"]
             key_schema = cast(Column, collection.get_field(key))
         else:
-            relation = cast(ManyToMany, relation)
             key = relation["foreign_key_target"]
             key_schema = cast(Column, foreign_collection.get_field(key))
 
@@ -200,7 +196,7 @@ class SchemaFieldGenerator:
         if is_many_to_many(field_schema) or is_one_to_many(field_schema):
             res = cls.build_to_many_relation_schema(field_schema, collection, foreign_collection, relation_schema)
         elif is_one_to_one(field_schema):
-            res = cls.build_one_to_one_schema(field_schema, foreign_collection, relation_schema)
+            res = cls.build_one_to_one_schema(field_schema, collection, foreign_collection, relation_schema)
         else:
             res = cls.build_many_to_one_schema(
                 cast(ManyToOne, field_schema), collection, foreign_collection, relation_schema

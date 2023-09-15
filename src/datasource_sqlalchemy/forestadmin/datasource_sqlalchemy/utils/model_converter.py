@@ -16,7 +16,7 @@ from forestadmin.datasource_toolkit.interfaces.fields import (
     Validation,
 )
 from forestadmin.datasource_toolkit.interfaces.models.collections import CollectionSchema
-from sqlalchemy import ColumnDefault, Enum, Table, inspect
+from sqlalchemy import ColumnDefault, Enum, Table
 from sqlalchemy.orm import Mapper
 from sqlalchemy.sql.schema import Column as SqlAlchemyColumn
 
@@ -152,14 +152,7 @@ class CollectionFactory:
                         relation = cls._build_one_to_one(relationship)
 
                 elif relationship.direction.name == "MANYTOONE":
-                    inspector = inspect(relationship.entity.entity)
-                    for sname, s in inspector.relationships.items():
-                        if sname == relationship.back_populates:
-                            if s.uselist is False:
-                                relation = cls._build_one_to_one(relationship)
-                                break
-                    else:
-                        relation = cls._build_many_to_one(relationship)
+                    relation = cls._build_many_to_one(relationship)
 
                 # if not relationship.back_populates:  # type: ignore
                 #     # one to many
