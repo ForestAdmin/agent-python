@@ -1,3 +1,10 @@
+# [1.0.0-beta.16](https://github.com/ForestAdmin/agent-python/compare/v1.0.0-beta.15...v1.0.0-beta.16) (2023-09-15)
+
+
+### Bug Fixes
+
+* **permissions:** permissions on related collection are now correctly checked ([#115](https://github.com/ForestAdmin/agent-python/issues/115)) ([99b750d](https://github.com/ForestAdmin/agent-python/commit/99b750d171d32a6468f1d12e0eaf7fb1c80c3df8))
+
 # [1.0.0-beta.15](https://github.com/ForestAdmin/agent-python/compare/v1.0.0-beta.14...v1.0.0-beta.15) (2023-09-14)
 
 
