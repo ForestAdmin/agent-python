@@ -20,7 +20,7 @@ from forestadmin.agent_toolkit.resources.collections.requests import (
 )
 from forestadmin.agent_toolkit.services.permissions.permission_service import PermissionService
 from forestadmin.agent_toolkit.services.serializers.json_api import JsonApiException
-from forestadmin.agent_toolkit.utils.context import Request, User
+from forestadmin.agent_toolkit.utils.context import Request, RequestMethod, User
 from forestadmin.agent_toolkit.utils.csv import CsvException
 from forestadmin.agent_toolkit.utils.id import unpack_id
 from forestadmin.datasource_toolkit.collections import Collection
@@ -38,24 +38,7 @@ from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.branch
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.leaf import ConditionTreeLeaf
 
 
-def mock_decorator_with_param(*args, **kwargs):
-    def decorator(fn):
-        def decorated_function(*args, **kwargs):
-            return fn(*args, **kwargs)
-
-        return decorated_function
-
-    return decorator
-
-
-def mock_decorator_no_param(fn):
-    def decorated_function(*args, **kwargs):
-        return fn(*args, **kwargs)
-
-    return decorated_function
-
-
-def mock_authenticate(fn):
+def authenticate_mock(fn):
     async def wrapped2(self, request):
         request.user = User(
             rendering_id=1,
@@ -67,14 +50,13 @@ def mock_authenticate(fn):
             team="operational",
             timezone=zoneinfo.ZoneInfo("Europe/Paris"),
         )
+
         return await fn(self, request)
 
     return wrapped2
 
 
-patch("forestadmin.agent_toolkit.resources.collections.decorators.check_method", mock_decorator_with_param).start()
-patch("forestadmin.agent_toolkit.resources.collections.decorators.authenticate", mock_authenticate).start()
-patch("forestadmin.agent_toolkit.resources.collections.decorators.authorize", mock_decorator_with_param).start()
+patch("forestadmin.agent_toolkit.resources.collections.decorators.authenticate", authenticate_mock).start()
 
 # how to mock decorators, and why they are not testable :
 # https://dev.to/stack-labs/how-to-mock-a-decorator-in-python-55jc
@@ -225,9 +207,6 @@ class TestCrudRelatedResource(TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         cls.loop = asyncio.new_event_loop()
-        cls.permission_service = Mock(PermissionService)
-        cls.permission_service.get_scope = AsyncMock(return_value=ConditionTreeLeaf("id", Operator.GREATER_THAN, 0))
-        cls.permission_service.can = AsyncMock()
         cls.options = Options(
             auth_secret="fake_secret",
             env_secret="fake_secret",
@@ -247,7 +226,15 @@ class TestCrudRelatedResource(TestCase):
             "product": cls.collection_product,
             "product_order": cls.collection_product_order,
         }
-        cls.crud_related_resource = CrudRelatedResource(cls.datasource, cls.permission_service, cls.options)
+
+    def setUp(self):
+        self.permission_service = Mock(PermissionService)
+        self.permission_service.can = AsyncMock(return_value=True)
+        self.permission_service.get_scope = AsyncMock(return_value=ConditionTreeLeaf("id", Operator.GREATER_THAN, 0))
+        self.crud_related_resource = CrudRelatedResource(self.datasource, self.permission_service, self.options)
+
+    def tearDown(self):
+        self.permission_service.can = None
 
     # -- dispatch
     def test_dispatch(self):
@@ -302,7 +289,7 @@ class TestCrudRelatedResource(TestCase):
         mock_orders = [{"id": 10, "cost": 200}, {"id": 11, "cost": 201}]
 
         request = RequestRelationCollection(
-            "GET",
+            RequestMethod.GET,
             *self.mk_request_customer_order_one_to_many(),
             None,
             {
@@ -333,6 +320,9 @@ class TestCrudRelatedResource(TestCase):
             response = self.loop.run_until_complete(crud_related_resource.list(request))
             mocked_collection_list.assert_awaited()
 
+        self.permission_service.can.assert_any_await(request.user, request.foreign_collection, "browse")
+        self.permission_service.can.reset_mock()
+
         assert response.status == 200
         response_content = json.loads(response.body)
         assert isinstance(response_content["data"], list)
@@ -357,7 +347,7 @@ class TestCrudRelatedResource(TestCase):
 
         # Relation Type
         request = RequestRelationCollection(
-            "GET",
+            RequestMethod.GET,
             self.collection_customer,
             self.collection_order,
             OneToOne(
@@ -372,6 +362,9 @@ class TestCrudRelatedResource(TestCase):
         )
 
         response = self.loop.run_until_complete(crud_related_resource.list(request))
+
+        self.permission_service.can.assert_any_await(request.user, request.foreign_collection, "browse")
+        self.permission_service.can.reset_mock()
 
         assert response.status == 500
         response_content = json.loads(response.body)
@@ -390,7 +383,7 @@ class TestCrudRelatedResource(TestCase):
             # "pks": "2",  # error on customer id
         }
         request = RequestRelationCollection(
-            "GET",
+            RequestMethod.GET,
             *self.mk_request_customer_order_one_to_many(),
             None,
             request_get_params,
@@ -399,6 +392,9 @@ class TestCrudRelatedResource(TestCase):
         )
 
         response = self.loop.run_until_complete(crud_related_resource.list(request))
+
+        self.permission_service.can.assert_any_await(request.user, request.foreign_collection, "browse")
+        self.permission_service.can.reset_mock()
 
         assert response.status == 500
         response_content = json.loads(response.body)
@@ -411,7 +407,7 @@ class TestCrudRelatedResource(TestCase):
         # # JsonApiException
         request_get_params["pks"] = "2"
         request = RequestRelationCollection(
-            "GET",
+            RequestMethod.GET,
             *self.mk_request_customer_order_one_to_many(),
             None,
             request_get_params,
@@ -422,6 +418,9 @@ class TestCrudRelatedResource(TestCase):
         mocked_json_serializer_get.return_value.dump = Mock(side_effect=JsonApiException)
 
         response = self.loop.run_until_complete(crud_related_resource.list(request))
+
+        self.permission_service.can.assert_any_await(request.user, request.foreign_collection, "browse")
+        self.permission_service.can.reset_mock()
 
         assert response.status == 500
         response_content = json.loads(response.body)
@@ -436,7 +435,7 @@ class TestCrudRelatedResource(TestCase):
         mock_orders = [{"id": 10, "cost": 200}, {"id": 11, "cost": 201}]
 
         request = RequestRelationCollection(
-            "GET",
+            RequestMethod.GET,
             *self.mk_request_customer_order_one_to_many(),
             None,
             {
@@ -456,6 +455,9 @@ class TestCrudRelatedResource(TestCase):
         ) as mocked_collection_list:
             response = self.loop.run_until_complete(self.crud_related_resource.csv(request))
             mocked_collection_list.assert_awaited()
+        self.permission_service.can.assert_any_await(request.user, request.foreign_collection, "browse")
+        self.permission_service.can.assert_any_await(request.user, request.foreign_collection, "export")
+        self.permission_service.can.reset_mock()
 
         assert response.status == 200
         csv_reader = csv.DictReader(response.body)
@@ -473,7 +475,7 @@ class TestCrudRelatedResource(TestCase):
 
         # Relation Type
         request = RequestRelationCollection(
-            "GET",
+            RequestMethod.GET,
             self.collection_customer,
             self.collection_order,
             OneToOne(
@@ -488,6 +490,9 @@ class TestCrudRelatedResource(TestCase):
         )
         response = self.loop.run_until_complete(crud_related_resource.csv(request))
 
+        self.permission_service.can.assert_any_await(request.user, request.foreign_collection, "browse")
+        self.permission_service.can.assert_any_await(request.user, request.foreign_collection, "export")
+        self.permission_service.can.reset_mock()
         assert response.status == 500
         response_content = json.loads(response.body)
         assert response_content["errors"][0] == {
@@ -505,7 +510,7 @@ class TestCrudRelatedResource(TestCase):
             # "pks": "2",  # error on customer id
         }
         request = RequestRelationCollection(
-            "GET",
+            RequestMethod.GET,
             *self.mk_request_customer_order_one_to_many(),
             None,
             request_get_params,
@@ -513,6 +518,9 @@ class TestCrudRelatedResource(TestCase):
             None,
         )
         response = self.loop.run_until_complete(crud_related_resource.csv(request))
+        self.permission_service.can.assert_any_await(request.user, request.foreign_collection, "browse")
+        self.permission_service.can.assert_any_await(request.user, request.foreign_collection, "export")
+        self.permission_service.can.reset_mock()
 
         assert response.status == 500
         response_content = json.loads(response.body)
@@ -525,7 +533,7 @@ class TestCrudRelatedResource(TestCase):
         # collectionResourceException
         request_get_params["pks"] = "2"
         request = RequestRelationCollection(
-            "GET",
+            RequestMethod.GET,
             *self.mk_request_customer_order_one_to_many(),
             None,
             request_get_params,
@@ -537,6 +545,9 @@ class TestCrudRelatedResource(TestCase):
             side_effect=DatasourceException,
         ):
             response = self.loop.run_until_complete(crud_related_resource.csv(request))
+        self.permission_service.can.assert_any_await(request.user, request.foreign_collection, "browse")
+        self.permission_service.can.assert_any_await(request.user, request.foreign_collection, "export")
+        self.permission_service.can.reset_mock()
 
         assert response.status == 500
         response_content = json.loads(response.body)
@@ -554,6 +565,10 @@ class TestCrudRelatedResource(TestCase):
         ):
             response = self.loop.run_until_complete(crud_related_resource.csv(request))
 
+        self.permission_service.can.assert_any_await(request.user, request.foreign_collection, "browse")
+        self.permission_service.can.assert_any_await(request.user, request.foreign_collection, "export")
+        self.permission_service.can.reset_mock()
+
         assert response.status == 500
         response_content = json.loads(response.body)
         assert response_content["errors"][0] == {
@@ -566,7 +581,7 @@ class TestCrudRelatedResource(TestCase):
     def test_add(self):
         # One to Many
         request = RequestRelationCollection(
-            "POST",
+            RequestMethod.POST,
             *self.mk_request_customer_order_one_to_many(),
             {"data": [{"id": "201", "type": "order"}]},  # body
             {
@@ -582,13 +597,15 @@ class TestCrudRelatedResource(TestCase):
 
         with patch.object(self.collection_order, "update", new_callable=AsyncMock) as mock_collection_update:
             response = self.loop.run_until_complete(crud_related_resource.add(request))
-
             mock_collection_update.assert_awaited()
+
+        self.permission_service.can.assert_any_await(request.user, request.collection, "edit")
+        self.permission_service.can.reset_mock()
         assert response.status == 204
 
         # many to Many
         request = RequestRelationCollection(
-            "POST",
+            RequestMethod.POST,
             *self.mk_request_order_product_many_to_many(),
             {"data": [{"id": "201", "type": "product"}]},  # body
             {
@@ -606,6 +623,8 @@ class TestCrudRelatedResource(TestCase):
             response = self.loop.run_until_complete(crud_related_resource.add(request))
 
             mock_collection_create.assert_awaited()
+        self.permission_service.can.assert_any_await(request.user, request.collection, "edit")
+        self.permission_service.can.reset_mock()
 
         assert response.status == 204
 
@@ -624,7 +643,7 @@ class TestCrudRelatedResource(TestCase):
             # "pks": "2",  # customer id
         }
         request = RequestRelationCollection(
-            "POST",
+            RequestMethod.POST,
             *self.mk_request_customer_order_one_to_many(),
             {"data": [{"id": "201", "type": "order"}]},  # body
             request_get_params,  # query
@@ -634,6 +653,9 @@ class TestCrudRelatedResource(TestCase):
 
         # no_id exception
         response = self.loop.run_until_complete(self.crud_related_resource.add(request))
+
+        self.permission_service.can.assert_any_await(request.user, request.collection, "edit")
+        self.permission_service.can.reset_mock()
 
         assert response.status == 500
         response_content = json.loads(response.body)
@@ -645,7 +667,7 @@ class TestCrudRelatedResource(TestCase):
         # no date body id
         request_get_params["pks"] = "2"
         request = RequestRelationCollection(
-            "POST",
+            RequestMethod.POST,
             *self.mk_request_customer_order_one_to_many(),
             {},  # body
             request_get_params,  # query
@@ -653,6 +675,8 @@ class TestCrudRelatedResource(TestCase):
             None,  # user
         )
         response = self.loop.run_until_complete(self.crud_related_resource.add(request))
+        self.permission_service.can.assert_any_await(request.user, request.collection, "edit")
+        self.permission_service.can.reset_mock()
         assert response.status == 500
         response_content = json.loads(response.body)
         assert response_content["errors"][0] == {
@@ -663,7 +687,7 @@ class TestCrudRelatedResource(TestCase):
 
         # unpack foreign id
         request = RequestRelationCollection(
-            "POST",
+            RequestMethod.POST,
             *self.mk_request_customer_order_one_to_many(),
             {"data": [{"id": "201", "type": "order"}]},  # body
             request_get_params,  # query
@@ -679,6 +703,8 @@ class TestCrudRelatedResource(TestCase):
 
         with patch("forestadmin.agent_toolkit.resources.collections.crud_related.unpack_id", mocked_unpack_id):
             response = self.loop.run_until_complete(self.crud_related_resource.add(request))
+        self.permission_service.can.assert_any_await(request.user, request.collection, "edit")
+        self.permission_service.can.reset_mock()
         assert response.status == 500
         response_content = json.loads(response.body)
         assert response_content["errors"][0] == {
@@ -689,7 +715,7 @@ class TestCrudRelatedResource(TestCase):
 
         # Unhandled relation type
         request = RequestRelationCollection(
-            "POST",
+            RequestMethod.POST,
             self.collection_customer,
             self.collection_order,
             OneToOne(
@@ -707,6 +733,8 @@ class TestCrudRelatedResource(TestCase):
             None,  # user
         )
         response = self.loop.run_until_complete(self.crud_related_resource.add(request))
+        self.permission_service.can.assert_any_await(request.user, request.collection, "edit")
+        self.permission_service.can.reset_mock()
         assert response.status == 500
         response_content = json.loads(response.body)
         assert response_content["errors"][0] == {
@@ -724,7 +752,7 @@ class TestCrudRelatedResource(TestCase):
 
         # one to one  (order & cart)
         request = RequestRelationCollection(
-            "PUT",
+            RequestMethod.PUT,
             self.collection_order,
             self.collection_cart,
             OneToOne(
@@ -748,13 +776,15 @@ class TestCrudRelatedResource(TestCase):
         )
 
         response = self.loop.run_until_complete(crud_related_resource.update_list(request))
+        self.permission_service.can.assert_any_await(request.user, request.foreign_collection, "edit")
+        self.permission_service.can.reset_mock()
 
         assert response.status == 204
         self.collection_cart.update.assert_awaited()
 
         # many to one (order & customer)
         request = RequestRelationCollection(
-            "PUT",
+            RequestMethod.PUT,
             self.collection_order,
             self.collection_customer,
             ManyToOne(
@@ -778,6 +808,8 @@ class TestCrudRelatedResource(TestCase):
         )
 
         response = self.loop.run_until_complete(crud_related_resource.update_list(request))
+        self.permission_service.can.assert_any_await(request.user, request.collection, "edit")
+        self.permission_service.can.reset_mock()
 
         assert response.status == 204
         self.collection_cart.update.assert_awaited()
@@ -795,7 +827,7 @@ class TestCrudRelatedResource(TestCase):
         del query_get_params["pks"]
         query_get_params["timezone"] = "Europe/Paris"
         request = RequestRelationCollection(
-            "PUT",
+            RequestMethod.PUT,
             self.collection_order,
             self.collection_customer,
             ManyToOne(
@@ -814,6 +846,7 @@ class TestCrudRelatedResource(TestCase):
         )
 
         response = self.loop.run_until_complete(crud_related_resource.update_list(request))
+        self.permission_service.can.assert_not_awaited()
         assert response.status == 500
         response_content = json.loads(response.body)
         assert response_content["errors"][0] == {
@@ -824,7 +857,7 @@ class TestCrudRelatedResource(TestCase):
         # no id for relation
         query_get_params["pks"] = "2"
         request = RequestRelationCollection(
-            "PUT",
+            RequestMethod.PUT,
             self.collection_order,
             self.collection_customer,
             ManyToOne(
@@ -842,6 +875,8 @@ class TestCrudRelatedResource(TestCase):
             None,  # user
         )
         response = self.loop.run_until_complete(crud_related_resource.update_list(request))
+        self.permission_service.can.assert_not_awaited()
+
         assert response.status == 500
         response_content = json.loads(response.body)
         assert response_content["errors"][0] == {
@@ -852,7 +887,7 @@ class TestCrudRelatedResource(TestCase):
 
         # unpack_id raises Exception
         request = RequestRelationCollection(
-            "PUT",
+            RequestMethod.PUT,
             self.collection_order,
             self.collection_customer,
             ManyToOne(
@@ -878,6 +913,8 @@ class TestCrudRelatedResource(TestCase):
 
         with patch("forestadmin.agent_toolkit.resources.collections.crud_related.unpack_id", mocked_unpack_id):
             response = self.loop.run_until_complete(crud_related_resource.update_list(request))
+        self.permission_service.can.assert_not_awaited()
+
         assert response.status == 500
         response_content = json.loads(response.body)
         assert response_content["errors"][0] == {
@@ -888,7 +925,7 @@ class TestCrudRelatedResource(TestCase):
 
         # Error in update relation
         request = RequestRelationCollection(
-            "PUT",
+            RequestMethod.PUT,
             self.collection_order,
             self.collection_customer,
             ManyToOne(
@@ -908,6 +945,7 @@ class TestCrudRelatedResource(TestCase):
 
         with patch.object(crud_related_resource, "_update_many_to_one", side_effect=CollectionResourceException):
             response = self.loop.run_until_complete(crud_related_resource.update_list(request))
+        self.permission_service.can.assert_not_awaited()
         assert response.status == 500
         response_content = json.loads(response.body)
         assert response_content["errors"][0] == {
@@ -918,7 +956,7 @@ class TestCrudRelatedResource(TestCase):
 
         # Unhandled relation
         request = RequestRelationCollection(
-            "PUT",
+            RequestMethod.PUT,
             *self.mk_request_order_product_many_to_many(),
             {"data": {"id": "201", "type": "customer"}},  # body
             query_get_params,  # query
@@ -926,6 +964,7 @@ class TestCrudRelatedResource(TestCase):
             None,  # user
         )
         response = self.loop.run_until_complete(crud_related_resource.update_list(request))
+        self.permission_service.can.assert_not_awaited()
 
         assert response.status == 500
         response_content = json.loads(response.body)
@@ -938,7 +977,7 @@ class TestCrudRelatedResource(TestCase):
     # Count
     def test_count(self):
         request = RequestRelationCollection(
-            "GET",
+            RequestMethod.GET,
             *self.mk_request_customer_order_one_to_many(),
             None,
             {
@@ -959,6 +998,8 @@ class TestCrudRelatedResource(TestCase):
         ) as mock_aggregate_relation:
             response = self.loop.run_until_complete(self.crud_related_resource.count(request))
             mock_aggregate_relation.assert_awaited()
+        self.permission_service.can.assert_any_await(request.user, request.foreign_collection, "browse")
+        self.permission_service.can.reset_mock()
 
         assert response.status == 200
         response_content = json.loads(response.body)
@@ -966,7 +1007,7 @@ class TestCrudRelatedResource(TestCase):
 
     def test_deactivate_count(self):
         request = RequestRelationCollection(
-            "GET",
+            RequestMethod.GET,
             *self.mk_request_customer_order_one_to_many(),
             None,
             {
@@ -981,6 +1022,9 @@ class TestCrudRelatedResource(TestCase):
         )
         self.collection_order._schema["countable"] = False
         response = self.loop.run_until_complete(self.crud_related_resource.count(request))
+        self.permission_service.can.assert_any_await(request.user, request.foreign_collection, "browse")
+        self.permission_service.can.reset_mock()
+
         self.collection_order._schema["countable"] = True
 
         assert response.status == 200
@@ -996,7 +1040,7 @@ class TestCrudRelatedResource(TestCase):
             # "pks": "2",  # customer id
         }
         request = RequestRelationCollection(
-            "GET",
+            RequestMethod.GET,
             *self.mk_request_customer_order_one_to_many(),
             None,
             query_get_params,
@@ -1004,6 +1048,8 @@ class TestCrudRelatedResource(TestCase):
             None,
         )
         response = self.loop.run_until_complete(self.crud_related_resource.count(request))
+        self.permission_service.can.assert_any_await(request.user, request.foreign_collection, "browse")
+        self.permission_service.can.reset_mock()
         assert response.status == 500
         response_content = json.loads(response.body)
         assert response_content["errors"][0] == {
@@ -1014,7 +1060,7 @@ class TestCrudRelatedResource(TestCase):
 
         query_get_params["pks"] = "2"
         request = RequestRelationCollection(
-            "GET",
+            RequestMethod.GET,
             *self.mk_request_customer_order_one_to_many(),
             None,
             query_get_params,
@@ -1028,6 +1074,8 @@ class TestCrudRelatedResource(TestCase):
         ) as mock_aggregate_relation:
             response = self.loop.run_until_complete(self.crud_related_resource.count(request))
             mock_aggregate_relation.assert_awaited()
+        self.permission_service.can.assert_any_await(request.user, request.foreign_collection, "browse")
+        self.permission_service.can.reset_mock()
         assert response.status == 200
         response_content = json.loads(response.body)
         assert response_content["count"] == 0
@@ -1047,7 +1095,7 @@ class TestCrudRelatedResource(TestCase):
             "pks": "2",  # customer id
         }
         request = RequestRelationCollection(
-            "DELETE",
+            RequestMethod.DELETE,
             *self.mk_request_customer_order_one_to_many(),
             {"data": [{"id": 201, "type": "order"}]},
             query_get_params,
@@ -1059,6 +1107,8 @@ class TestCrudRelatedResource(TestCase):
         ) as fake_delete_one_to_many:
             response = self.loop.run_until_complete(self.crud_related_resource.delete_list(request))
             fake_delete_one_to_many.assert_awaited()
+        self.permission_service.can.assert_any_await(request.user, request.collection, "delete")
+        self.permission_service.can.reset_mock()
 
         assert response.status == 204
 
@@ -1066,7 +1116,7 @@ class TestCrudRelatedResource(TestCase):
         # many to many (order & products)
         del query_get_params["fields[order]"]
         request = RequestRelationCollection(
-            "PUT",
+            RequestMethod.DELETE,
             *self.mk_request_order_product_many_to_many(),
             {"data": [{"id": "201", "type": "product"}]},  # body
             query_get_params,  # query
@@ -1078,6 +1128,8 @@ class TestCrudRelatedResource(TestCase):
         ) as fake_delete_many_to_many:
             response = self.loop.run_until_complete(self.crud_related_resource.delete_list(request))
             fake_delete_many_to_many.assert_awaited()
+        self.permission_service.can.assert_any_await(request.user, request.collection, "delete")
+        self.permission_service.can.reset_mock()
 
         assert response.status == 204
 
@@ -1094,7 +1146,7 @@ class TestCrudRelatedResource(TestCase):
             # "pks": "2",  # customer id
         }
         request = RequestRelationCollection(
-            "PUT",
+            RequestMethod.DELETE,
             *self.mk_request_order_product_many_to_many(),
             {"data": [{"id": "201", "type": "product"}]},  # body
             query_get_params,  # query
@@ -1102,6 +1154,8 @@ class TestCrudRelatedResource(TestCase):
             None,  # user
         )
         response = self.loop.run_until_complete(crud_related_resource.delete_list(request))
+        self.permission_service.can.assert_any_await(request.user, request.collection, "delete")
+        self.permission_service.can.reset_mock()
         assert response.status == 500
         response_content = json.loads(response.body)
         assert response_content["errors"][0] == {
@@ -1112,7 +1166,7 @@ class TestCrudRelatedResource(TestCase):
 
         query_get_params["pks"] = "2"
         request = RequestRelationCollection(
-            "PUT",
+            RequestMethod.DELETE,
             *self.mk_request_order_product_many_to_many(),
             {"data": [{"id": "201", "type": "product"}]},  # body
             query_get_params,  # query
@@ -1128,6 +1182,8 @@ class TestCrudRelatedResource(TestCase):
         ) as fake_delete_many_to_many:
             response = self.loop.run_until_complete(crud_related_resource.delete_list(request))
             fake_delete_many_to_many.assert_awaited()
+        self.permission_service.can.assert_any_await(request.user, request.collection, "delete")
+        self.permission_service.can.reset_mock()
         assert response.status == 500
         response_content = json.loads(response.body)
         assert response_content["errors"][0] == {
@@ -1138,7 +1194,7 @@ class TestCrudRelatedResource(TestCase):
 
         # unhandled relation
         request = RequestRelationCollection(
-            "PUT",
+            RequestMethod.DELETE,
             self.collection_order,
             self.collection_product,
             ManyToOne(
@@ -1153,6 +1209,8 @@ class TestCrudRelatedResource(TestCase):
             None,  # user
         )
         response = self.loop.run_until_complete(crud_related_resource.delete_list(request))
+        self.permission_service.can.assert_any_await(request.user, request.collection, "delete")
+        self.permission_service.can.reset_mock()
         assert response.status == 500
         response_content = json.loads(response.body)
         assert response_content["errors"][0] == {
@@ -1172,7 +1230,7 @@ class TestCrudRelatedResource(TestCase):
             "pks": "2",
         }
         request = RequestRelationCollection(
-            "POST",
+            RequestMethod.POST,
             *self.mk_request_customer_order_one_to_many(),
             None,
             query_get_params,
@@ -1185,7 +1243,7 @@ class TestCrudRelatedResource(TestCase):
 
         # errors
         request = RequestRelationCollection(
-            "POST",
+            RequestMethod.POST,
             self.collection_customer,
             self.collection_order,
             OneToOne(
@@ -1213,7 +1271,7 @@ class TestCrudRelatedResource(TestCase):
         }
 
         request = RequestRelationCollection(
-            "GET",
+            RequestMethod.POST,
             *self.mk_request_customer_order_one_to_many(),
             None,
             query_get_params,
@@ -1241,7 +1299,7 @@ class TestCrudRelatedResource(TestCase):
             "pks": "2",  # order id
         }
         request = RequestRelationCollection(
-            "POST",
+            RequestMethod.POST,
             *self.mk_request_order_product_many_to_many(),
             {"data": [{"id": "201", "type": "product"}]},  # body
             query_get_params,  # query
@@ -1256,7 +1314,7 @@ class TestCrudRelatedResource(TestCase):
         assert response.status == 204
 
         request = RequestRelationCollection(
-            "POST",
+            RequestMethod.POST,
             *self.mk_request_customer_order_one_to_many(),
             {"data": [{"id": "201", "type": "product"}]},  # body
             query_get_params,  # query
@@ -1273,7 +1331,7 @@ class TestCrudRelatedResource(TestCase):
         }
 
         request = RequestRelationCollection(
-            "POST",
+            RequestMethod.POST,
             *self.mk_request_order_product_many_to_many(),
             {"data": [{"id": "201", "type": "product"}]},  # body
             query_get_params,  # query
@@ -1307,7 +1365,7 @@ class TestCrudRelatedResource(TestCase):
         }
         crud_related_resource = CrudRelatedResource(self.datasource, self.permission_service, self.options)
         request = RequestRelationCollection(
-            "DELETE",
+            RequestMethod.DELETE,
             *self.mk_request_customer_order_one_to_many(),
             {"data": [{"id": 201, "type": "order"}]},
             query_get_params,
@@ -1332,7 +1390,7 @@ class TestCrudRelatedResource(TestCase):
 
         # no id
         request = RequestRelationCollection(
-            "DELETE",
+            RequestMethod.DELETE,
             *self.mk_request_customer_order_one_to_many(),
             {"data": {}},
             query_get_params,
@@ -1345,7 +1403,7 @@ class TestCrudRelatedResource(TestCase):
 
         # exclude ids
         request = RequestRelationCollection(
-            "DELETE",
+            RequestMethod.DELETE,
             *self.mk_request_customer_order_one_to_many(),
             {"data": {"attributes": {"all_records": True, "all_records_ids_excluded": ["201"]}}},
             query_get_params,
@@ -1380,7 +1438,7 @@ class TestCrudRelatedResource(TestCase):
             "pks": "2",  # customer id
         }
         request = RequestRelationCollection(
-            "DELETE",
+            RequestMethod.DELETE,
             *self.mk_request_customer_order_one_to_many(),
             {"data": [{"id": 201, "type": "order"}]},
             query_get_params,
@@ -1409,7 +1467,7 @@ class TestCrudRelatedResource(TestCase):
 
         # error
         request = RequestRelationCollection(
-            "PUT",
+            RequestMethod.DELETE,
             *self.mk_request_order_product_many_to_many(),
             {"data": [{"id": "201", "type": "product"}]},  # body
             query_get_params,  # query
@@ -1441,7 +1499,7 @@ class TestCrudRelatedResource(TestCase):
             "delete": "false",
         }
         request = RequestRelationCollection(
-            "DELETE",
+            RequestMethod.DELETE,
             *self.mk_request_order_product_many_to_many(),
             {"data": [{"id": "201", "type": "product"}]},  # body
             query_get_params,  # query
@@ -1456,7 +1514,7 @@ class TestCrudRelatedResource(TestCase):
         # delete
         query_get_params["delete"] = "true"
         request = RequestRelationCollection(
-            "DELETE",
+            RequestMethod.DELETE,
             *self.mk_request_order_product_many_to_many(),
             {"data": [{"id": "201", "type": "product"}]},  # body
             query_get_params,  # query
@@ -1472,7 +1530,7 @@ class TestCrudRelatedResource(TestCase):
 
         # errors
         request = RequestRelationCollection(
-            "DELETE",
+            RequestMethod.DELETE,
             *self.mk_request_customer_order_one_to_many(),
             {"data": [{"id": 201, "type": "order"}]},
             query_get_params,
@@ -1487,7 +1545,7 @@ class TestCrudRelatedResource(TestCase):
         )
 
         request = RequestRelationCollection(
-            "DELETE",
+            RequestMethod.DELETE,
             *self.mk_request_order_product_many_to_many(),
             {"data": [{"id": "201", "type": "product"}]},  # body
             query_get_params,  # query
@@ -1513,7 +1571,7 @@ class TestCrudRelatedResource(TestCase):
             "pks": "2",  # order id
         }
         request = RequestRelationCollection(
-            "PUT",
+            RequestMethod.PUT,
             self.collection_order,
             self.collection_cart,
             OneToOne(
@@ -1534,6 +1592,8 @@ class TestCrudRelatedResource(TestCase):
         self.loop.run_until_complete(
             crud_related_resource._update_one_to_one(request, [2], [201], zoneinfo.ZoneInfo("Europe/Paris"))
         )
+        self.permission_service.can.assert_any_await(request.user, request.foreign_collection, "edit")
+        self.permission_service.can.reset_mock()
         # self.collection_order.update.assert_awaited()
         self.collection_cart.update.assert_awaited()
         update_call_list = self.collection_cart.update.await_args_list
@@ -1564,7 +1624,7 @@ class TestCrudRelatedResource(TestCase):
 
         # error
         request = RequestRelationCollection(
-            "PUT",
+            RequestMethod.PUT,
             self.collection_order,
             self.collection_cart,
             ManyToMany(  # error
@@ -1587,6 +1647,8 @@ class TestCrudRelatedResource(TestCase):
             self.loop.run_until_complete,
             crud_related_resource._update_one_to_one(request, [2], [201], zoneinfo.ZoneInfo("Europe/Paris")),
         )
+        self.permission_service.can.assert_not_awaited()
+        self.permission_service.can.reset_mock()
 
     @patch(
         "forestadmin.agent_toolkit.resources.collections.crud_related.ConditionTreeFactory.match_ids",
@@ -1602,7 +1664,7 @@ class TestCrudRelatedResource(TestCase):
             "pks": "2",  # order id
         }
         request = RequestRelationCollection(
-            "PUT",
+            RequestMethod.PUT,
             self.collection_order,
             self.collection_customer,
             ManyToOne(
@@ -1619,11 +1681,13 @@ class TestCrudRelatedResource(TestCase):
         self.loop.run_until_complete(
             crud_related_resource._update_many_to_one(request, [2], [201], zoneinfo.ZoneInfo("Europe/Paris"))
         )
+        self.permission_service.can.assert_any_await(request.user, request.collection, "edit")
+        self.permission_service.can.reset_mock()
         self.collection_order.update.assert_awaited_once_with(ANY, ANY, {"customer_id": 201})
 
         # error
         request = RequestRelationCollection(
-            "PUT",
+            RequestMethod.PUT,
             self.collection_order,
             self.collection_customer,
             ManyToMany(  # error
@@ -1641,3 +1705,5 @@ class TestCrudRelatedResource(TestCase):
             self.loop.run_until_complete,
             crud_related_resource._update_many_to_one(request, [2], [201], zoneinfo.ZoneInfo("Europe/Paris")),
         )
+
+        self.permission_service.can.assert_not_awaited()

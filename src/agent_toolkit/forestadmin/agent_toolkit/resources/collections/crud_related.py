@@ -28,7 +28,7 @@ from forestadmin.agent_toolkit.utils.csv import Csv, CsvException
 from forestadmin.agent_toolkit.utils.id import unpack_id
 from forestadmin.datasource_toolkit.collections import Collection
 from forestadmin.datasource_toolkit.datasources import DatasourceException
-from forestadmin.datasource_toolkit.exceptions import ForestException
+from forestadmin.datasource_toolkit.exceptions import ForbiddenError, ForestException
 from forestadmin.datasource_toolkit.interfaces.fields import (
     Operator,
     is_many_to_many,
@@ -60,6 +60,8 @@ class CrudRelatedResource(BaseCollectionResource):
             return HttpResponseBuilder.build_client_error_response([e])
         try:
             return await method(request_collection)
+        except ForbiddenError as exc:
+            return HttpResponseBuilder.build_client_error_response([exc])
         except Exception as exc:
             ForestLogger.log("exception", exc)
             return HttpResponseBuilder.build_client_error_response([exc])
@@ -140,9 +142,10 @@ class CrudRelatedResource(BaseCollectionResource):
         )
 
     @authenticate
-    @authorize("edit")
     @check_method(RequestMethod.POST)
     async def add(self, request: RequestRelationCollection) -> Response:
+        await self.permission.can(request.user, request.collection, "edit")
+
         try:
             parent_ids = unpack_id(request.collection.schema, request.pks)
         except (FieldValidatorException, CollectionResourceException) as e:
@@ -180,7 +183,6 @@ class CrudRelatedResource(BaseCollectionResource):
             return await self._associate_many_to_many(request, parent_ids, value)
 
     @authenticate
-    @authorize("edit")
     @check_method(RequestMethod.PUT)
     async def update_list(self, request: RequestRelationCollection) -> Response:
         try:
@@ -238,9 +240,9 @@ class CrudRelatedResource(BaseCollectionResource):
         return HttpResponseBuilder.build_success_response({"count": count})
 
     @authenticate
-    @authorize("delete")
     @check_method(RequestMethod.DELETE)
     async def delete_list(self, request: RequestRelationCollection) -> Response:
+        await self.permission.can(request.user, request.collection, "delete")
         try:
             parent_ids = unpack_id(request.collection.schema, request.pks)
         except (FieldValidatorException, CollectionResourceException) as e:
@@ -399,7 +401,8 @@ class CrudRelatedResource(BaseCollectionResource):
         if not is_one_to_one(request.relation):
             raise CollectionResourceException("Unhandled relation type")
 
-        scope = await self.permission.get_scope(request.user, request.collection)
+        scope = await self.permission.get_scope(request.user, request.foreign_collection)
+        await self.permission.can(request.user, request.foreign_collection, "edit")
         origin_value = await CollectionUtils.get_value(
             request.user, cast(Collection, request.collection), parent_id, request.relation["origin_key_target"]
         )
@@ -439,6 +442,8 @@ class CrudRelatedResource(BaseCollectionResource):
             raise CollectionResourceException("Unhandled relation type")
 
         scope = await self.permission.get_scope(request.user, request.collection)
+        await self.permission.can(request.user, request.collection, "edit")
+
         foreign_value = await CollectionUtils.get_value(
             request.user, cast(Collection, request.collection), linked_id, request.relation["foreign_key_target"]
         )

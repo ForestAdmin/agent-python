@@ -2,8 +2,14 @@ import asyncio
 import csv
 import importlib
 import json
+import sys
 from unittest import TestCase
 from unittest.mock import AsyncMock, Mock, patch
+
+if sys.version_info >= (3, 9):
+    import zoneinfo
+else:
+    from backports import zoneinfo
 
 import forestadmin.agent_toolkit.resources.collections.crud
 from forestadmin.agent_toolkit.options import Options
@@ -11,7 +17,7 @@ from forestadmin.agent_toolkit.resources.collections.exceptions import Collectio
 from forestadmin.agent_toolkit.resources.collections.requests import RequestCollection, RequestCollectionException
 from forestadmin.agent_toolkit.services.permissions.permission_service import PermissionService
 from forestadmin.agent_toolkit.services.serializers.json_api import JsonApiException
-from forestadmin.agent_toolkit.utils.context import Request
+from forestadmin.agent_toolkit.utils.context import Request, RequestMethod, User
 from forestadmin.agent_toolkit.utils.csv import CsvException
 from forestadmin.datasource_toolkit.collections import Collection
 from forestadmin.datasource_toolkit.datasources import Datasource, DatasourceException
@@ -21,27 +27,25 @@ from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.leaf i
 from forestadmin.datasource_toolkit.validations.records import RecordValidatorException
 
 
-def mock_decorator_with_param(*args, **kwargs):
-    def decorator(fn):
-        def decorated_function(*args, **kwargs):
-            return fn(*args, **kwargs)
+def authenticate_mock(fn):
+    async def wrapped2(self, request):
+        request.user = User(
+            rendering_id=1,
+            user_id=1,
+            tags={},
+            email="dummy@user.fr",
+            first_name="dummy",
+            last_name="user",
+            team="operational",
+            timezone=zoneinfo.ZoneInfo("Europe/Paris"),
+        )
 
-        return decorated_function
+        return await fn(self, request)
 
-    return decorator
-
-
-def mock_decorator_no_param(fn):
-    def decorated_function(*args, **kwargs):
-        return fn(*args, **kwargs)
-
-    return decorated_function
+    return wrapped2
 
 
-patch("forestadmin.agent_toolkit.resources.collections.decorators.check_method", mock_decorator_with_param).start()
-patch("forestadmin.agent_toolkit.resources.collections.decorators.authenticate", mock_decorator_no_param).start()
-patch("forestadmin.agent_toolkit.resources.collections.decorators.authorize", mock_decorator_with_param).start()
-
+patch("forestadmin.agent_toolkit.resources.collections.decorators.authenticate", authenticate_mock).start()
 # how to mock decorators, and why they are not testable :
 # https://dev.to/stack-labs/how-to-mock-a-decorator-in-python-55jc
 
@@ -128,9 +132,6 @@ class TestCrudResource(TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         cls.loop = asyncio.new_event_loop()
-        cls.permission_service = Mock(PermissionService)
-        cls.permission_service.get_scope = AsyncMock(return_value=ConditionTreeLeaf("id", Operator.GREATER_THAN, 0))
-        cls.permission_service.can = AsyncMock()
         cls.options = Options(
             auth_secret="fake_secret",
             env_secret="fake_secret",
@@ -148,10 +149,15 @@ class TestCrudResource(TestCase):
             "cart": cls.collection_cart,
         }
 
+    def setUp(self):
+        self.permission_service = Mock(PermissionService)
+        self.permission_service.get_scope = AsyncMock(return_value=ConditionTreeLeaf("id", Operator.GREATER_THAN, 0))
+        self.permission_service.can = AsyncMock(return_value=None)
+
     # dispatch
     def test_dispatch(self):
         request = Request(
-            method="GET",
+            method=RequestMethod.GET,
             query={
                 "collection_name": "order",
             },
@@ -193,7 +199,7 @@ class TestCrudResource(TestCase):
     @patch("forestadmin.agent_toolkit.resources.collections.crud.RequestCollection")
     def test_dispatch_error(self, mock_request_collection: Mock):
         request = Request(
-            method="GET",
+            method=RequestMethod.GET,
             query={
                 "collection": "order",
             },
@@ -240,7 +246,7 @@ class TestCrudResource(TestCase):
         mock_order = {"id": 10, "cost": 200}
         self.collection_order.list = AsyncMock(return_value=[mock_order])
         request = RequestCollection(
-            "GET", self.collection_order, None, {"collection_name": "order", "pks": "10"}, {}, None
+            RequestMethod.GET, self.collection_order, None, {"collection_name": "order", "pks": "10"}, {}, None
         )
         crud_resource = CrudResource(self.datasource, self.permission_service, self.options)
         mocked_json_serializer_get.return_value.dump = Mock(
@@ -249,6 +255,8 @@ class TestCrudResource(TestCase):
 
         response = self.loop.run_until_complete(crud_resource.get(request))
 
+        self.permission_service.can.assert_any_await(request.user, request.collection, "read")
+        self.permission_service.can.reset_mock()
         response_content = json.loads(response.body)
         assert response.status == 200
         assert isinstance(response_content["data"], dict)
@@ -282,6 +290,8 @@ class TestCrudResource(TestCase):
         ):
             response = self.loop.run_until_complete(crud_resource.get(request))
 
+        self.permission_service.can.assert_any_await(request.user, request.collection, "read")
+        self.permission_service.can.reset_mock()
         response_content = json.loads(response.body)
         assert response.status == 200
         assert isinstance(response_content["data"], dict)
@@ -309,11 +319,13 @@ class TestCrudResource(TestCase):
     ):
         self.collection_order.list = AsyncMock(return_value=[])
         request = RequestCollection(
-            "GET", self.collection_order, None, {"collection_name": "order", "pks": "10"}, {}, None
+            RequestMethod.GET, self.collection_order, None, {"collection_name": "order", "pks": "10"}, {}, None
         )
         crud_resource = CrudResource(self.datasource, self.permission_service, self.options)
 
         response = self.loop.run_until_complete(crud_resource.get(request))
+        self.permission_service.can.assert_any_await(request.user, request.collection, "read")
+        self.permission_service.can.reset_mock()
 
         assert response.status == 404
         assert response.body is None
@@ -340,13 +352,15 @@ class TestCrudResource(TestCase):
         mock_order = {"id": 10, "costt": 200}
         self.collection_order.list = AsyncMock(return_value=[mock_order])
         request = RequestCollection(
-            "GET", self.collection_order, None, {"collection_name": "order", "pks": "10"}, {}, None
+            RequestMethod.GET, self.collection_order, None, {"collection_name": "order", "pks": "10"}, {}, None
         )
         crud_resource = CrudResource(self.datasource, self.permission_service, self.options)
         mocked_json_serializer_get.return_value.dump = Mock(side_effect=JsonApiException)
 
         response = self.loop.run_until_complete(crud_resource.get(request))
 
+        self.permission_service.can.assert_any_await(request.user, request.collection, "read")
+        self.permission_service.can.reset_mock()
         assert response.status == 500
         response_content = json.loads(response.body)
         assert response_content["errors"][0] == {
@@ -361,6 +375,8 @@ class TestCrudResource(TestCase):
 
         mocked_unpack_id.side_effect = CollectionResourceException
         response = self.loop.run_until_complete(crud_resource.get(request))
+        self.permission_service.can.assert_any_await(request.user, request.collection, "read")
+        self.permission_service.can.reset_mock()
         assert response.status == 500
         response_content = json.loads(response.body)
         assert response_content["errors"][0] == {
@@ -384,7 +400,7 @@ class TestCrudResource(TestCase):
         mock_order = {"id": 10, "cost": 200}
 
         request = RequestCollection(
-            "POST", self.collection_order, json.dumps(mock_order), {"collection_name": "order"}, {}, None
+            RequestMethod.POST, self.collection_order, json.dumps(mock_order), {"collection_name": "order"}, {}, None
         )
         crud_resource = CrudResource(self.datasource, self.permission_service, self.options)
         mocked_json_serializer_get.return_value.load = Mock(return_value=mock_order)
@@ -401,6 +417,8 @@ class TestCrudResource(TestCase):
             response = self.loop.run_until_complete(crud_resource.add(request))
 
             mock_collection_create.assert_awaited()
+        self.permission_service.can.assert_any_await(request.user, request.collection, "add")
+        self.permission_service.can.reset_mock()
 
         mocked_record_validator_validate.assert_called()
         response_content = json.loads(response.body)
@@ -421,7 +439,7 @@ class TestCrudResource(TestCase):
         mock_order = {"id": 10, "cost": 200}
 
         request = RequestCollection(
-            "POST", self.collection_order, json.dumps(mock_order), {"collection_name": "order"}, {}, None
+            RequestMethod.POST, self.collection_order, json.dumps(mock_order), {"collection_name": "order"}, {}, None
         )
         crud_resource = CrudResource(self.datasource, self.permission_service, self.options)
         crud_resource.extract_data = AsyncMock(return_value=(mock_order, []))
@@ -430,6 +448,8 @@ class TestCrudResource(TestCase):
         mocked_json_serializer_get.return_value.load = Mock(side_effect=JsonApiException)
 
         response = self.loop.run_until_complete(crud_resource.add(request))
+        self.permission_service.can.assert_any_await(request.user, request.collection, "add")
+        self.permission_service.can.reset_mock()
 
         assert response.status == 500
         response_content = json.loads(response.body)
@@ -461,6 +481,8 @@ class TestCrudResource(TestCase):
         ):
             with patch.object(self.collection_order, "create", new_callable=AsyncMock, side_effect=DatasourceException):
                 response = self.loop.run_until_complete(crud_resource.add(request))
+        self.permission_service.can.assert_any_await(request.user, request.collection, "add")
+        self.permission_service.can.reset_mock()
         assert response.status == 500
         response_content = json.loads(response.body)
         assert response_content["errors"][0] == {
@@ -476,6 +498,8 @@ class TestCrudResource(TestCase):
             with patch.object(self.collection_order, "create", new_callable=AsyncMock, return_value=[mock_order]):
                 with patch.object(crud_resource, "_link_one_to_one_relations", side_effect=CollectionResourceException):
                     response = self.loop.run_until_complete(crud_resource.add(request))
+        self.permission_service.can.assert_any_await(request.user, request.collection, "add")
+        self.permission_service.can.reset_mock()
         assert response.status == 500
         response_content = json.loads(response.body)
         assert response_content["errors"][0] == {
@@ -502,7 +526,7 @@ class TestCrudResource(TestCase):
         mock_order = {"id": 10, "cost": 200, "status": 1, "cart": 1}
 
         request = RequestCollection(
-            "POST",
+            RequestMethod.POST,
             self.collection_order,
             json.dumps(mock_order),
             {
@@ -524,6 +548,8 @@ class TestCrudResource(TestCase):
             response = self.loop.run_until_complete(crud_resource.add(request))
 
             mock_collection_create.assert_awaited()
+        self.permission_service.can.assert_any_await(request.user, request.collection, "add")
+        self.permission_service.can.reset_mock()
 
         mocked_record_validator_validate.assert_called()
         response_content = json.loads(response.body)
@@ -537,7 +563,7 @@ class TestCrudResource(TestCase):
         self.collection_cart.update.assert_awaited()
 
         request = RequestCollection(
-            "POST",
+            RequestMethod.POST,
             self.collection_order,
             json.dumps(mock_order),
             {
@@ -551,6 +577,8 @@ class TestCrudResource(TestCase):
         ) as mock_collection_create:
             response = self.loop.run_until_complete(crud_resource.add(request))
             mock_collection_create.assert_awaited()
+        self.permission_service.can.assert_any_await(request.user, request.collection, "add")
+        self.permission_service.can.reset_mock()
 
         assert response.status == 500
         response_content = json.loads(response.body)
@@ -569,7 +597,7 @@ class TestCrudResource(TestCase):
         mock_orders = [{"id": 10, "cost": 200}, {"id": 11, "cost": 201}]
 
         request = RequestCollection(
-            "GET",
+            RequestMethod.GET,
             self.collection_order,
             None,
             {
@@ -592,6 +620,8 @@ class TestCrudResource(TestCase):
         self.collection_order.list = AsyncMock(return_value=mock_orders)
 
         response = self.loop.run_until_complete(crud_resource.list(request))
+        self.permission_service.can.assert_any_await(request.user, request.collection, "browse")
+        self.permission_service.can.reset_mock()
 
         assert response.status == 200
         response_content = json.loads(response.body)
@@ -615,7 +645,7 @@ class TestCrudResource(TestCase):
     def test_list_errors(self, mocked_json_serializer_get: Mock):
         mock_orders = [{"id": 10, "cost": 200}, {"id": 11, "cost": 201}]
         request = RequestCollection(
-            "GET",
+            RequestMethod.GET,
             self.collection_order,
             None,
             {
@@ -629,6 +659,8 @@ class TestCrudResource(TestCase):
 
         # FilterException
         response = self.loop.run_until_complete(crud_resource.list(request))
+        self.permission_service.can.assert_any_await(request.user, request.collection, "browse")
+        self.permission_service.can.reset_mock()
 
         assert response.status == 500
         response_content = json.loads(response.body)
@@ -640,7 +672,7 @@ class TestCrudResource(TestCase):
 
         # DatasourceException
         request = RequestCollection(
-            "GET",
+            RequestMethod.GET,
             self.collection_order,
             None,
             {
@@ -670,6 +702,8 @@ class TestCrudResource(TestCase):
         mocked_json_serializer_get.return_value.dump = Mock(side_effect=JsonApiException)
 
         response = self.loop.run_until_complete(crud_resource.list(request))
+        self.permission_service.can.assert_any_await(request.user, request.collection, "browse")
+        self.permission_service.can.reset_mock()
 
         assert response.status == 500
         response_content = json.loads(response.body)
@@ -682,12 +716,19 @@ class TestCrudResource(TestCase):
     # count
     def test_count(self):
         request = RequestCollection(
-            "GET", self.collection_order, None, {"collection_name": "order", "timezone": "Europe/Paris"}, {}, None
+            RequestMethod.GET,
+            self.collection_order,
+            None,
+            {"collection_name": "order", "timezone": "Europe/Paris"},
+            {},
+            None,
         )
         self.collection_order.aggregate = AsyncMock(return_value=[{"value": 1000, "group": {}}])
         crud_resource = CrudResource(self.datasource, self.permission_service, self.options)
 
         response = self.loop.run_until_complete(crud_resource.count(request))
+        self.permission_service.can.assert_any_await(request.user, request.collection, "browse")
+        self.permission_service.can.reset_mock()
 
         assert response.status == 200
         response_content = json.loads(response.body)
@@ -697,6 +738,8 @@ class TestCrudResource(TestCase):
 
         self.collection_order.aggregate = AsyncMock(return_value=[])
         response = self.loop.run_until_complete(crud_resource.count(request))
+        self.permission_service.can.assert_any_await(request.user, request.collection, "browse")
+        self.permission_service.can.reset_mock()
 
         assert response.status == 200
         response_content = json.loads(response.body)
@@ -705,12 +748,19 @@ class TestCrudResource(TestCase):
 
     def test_deactivate_count(self):
         request = RequestCollection(
-            "GET", self.collection_order, None, {"collection_name": "order", "timezone": "Europe/Paris"}, {}, None
+            RequestMethod.GET,
+            self.collection_order,
+            None,
+            {"collection_name": "order", "timezone": "Europe/Paris"},
+            {},
+            None,
         )
         crud_resource = CrudResource(self.datasource, self.permission_service, self.options)
 
         self.collection_order._schema["countable"] = False
         response = self.loop.run_until_complete(crud_resource.count(request))
+        self.permission_service.can.assert_any_await(request.user, request.collection, "browse")
+        self.permission_service.can.reset_mock()
         self.collection_order._schema["countable"] = True
 
         assert response.status == 200
@@ -737,7 +787,7 @@ class TestCrudResource(TestCase):
     ):
         mock_order = {"id": 10, "cost": 201}
         request = RequestCollection(
-            "PUT",
+            RequestMethod.PUT,
             self.collection_order,
             {"data": {"attributes": {"cost": 201}, "relationships": {}}},
             {
@@ -758,6 +808,8 @@ class TestCrudResource(TestCase):
         )
 
         response = self.loop.run_until_complete(crud_resource.update(request))
+        self.permission_service.can.assert_any_await(request.user, request.collection, "edit")
+        self.permission_service.can.reset_mock()
 
         assert response.status == 200
         response_content = json.loads(response.body)
@@ -787,7 +839,7 @@ class TestCrudResource(TestCase):
         self.collection_order.update = AsyncMock()
         self.collection_order.list = AsyncMock(return_value=[mock_order])
         request = RequestCollection(
-            "PUT",
+            RequestMethod.PUT,
             self.collection_order,
             {"data": {"attributes": {"cost": 201}, "relationships": {}}},
             {
@@ -806,6 +858,8 @@ class TestCrudResource(TestCase):
             "forestadmin.agent_toolkit.resources.collections.crud.unpack_id", side_effect=CollectionResourceException
         ):
             response = self.loop.run_until_complete(crud_resource.update(request))
+        self.permission_service.can.assert_any_await(request.user, request.collection, "edit")
+        self.permission_service.can.reset_mock()
         assert response.status == 500
         response_content = json.loads(response.body)
         assert response_content["errors"][0] == {"detail": "🌳🌳🌳", "name": "CollectionResourceException", "status": 500}
@@ -813,6 +867,8 @@ class TestCrudResource(TestCase):
         # JsonApiException
         mocked_json_serializer_get.return_value.load = Mock(side_effect=JsonApiException)
         response = self.loop.run_until_complete(crud_resource.update(request))
+        self.permission_service.can.assert_any_await(request.user, request.collection, "edit")
+        self.permission_service.can.reset_mock()
         assert response.status == 500
         response_content = json.loads(response.body)
         assert response_content["errors"][0] == {"detail": "🌳🌳🌳", "name": "JsonApiException", "status": 500}
@@ -824,6 +880,8 @@ class TestCrudResource(TestCase):
             side_effect=RecordValidatorException,
         ):
             response = self.loop.run_until_complete(crud_resource.update(request))
+        self.permission_service.can.assert_any_await(request.user, request.collection, "edit")
+        self.permission_service.can.reset_mock()
         assert response.status == 500
         response_content = json.loads(response.body)
         assert response_content["errors"][0] == {"detail": "🌳🌳🌳", "name": "RecordValidatorException", "status": 500}
@@ -831,6 +889,8 @@ class TestCrudResource(TestCase):
         # JsonApiException
         mocked_json_serializer_get.return_value.dump = Mock(side_effect=JsonApiException)
         response = self.loop.run_until_complete(crud_resource.update(request))
+        self.permission_service.can.assert_any_await(request.user, request.collection, "edit")
+        self.permission_service.can.reset_mock()
         assert response.status == 500
         response_content = json.loads(response.body)
         assert response_content["errors"][0] == {"detail": "🌳🌳🌳", "name": "JsonApiException", "status": 500}
@@ -852,7 +912,7 @@ class TestCrudResource(TestCase):
         mocked_match_ids: Mock,
     ):
         request = RequestCollection(
-            "DELETE",
+            RequestMethod.DELETE,
             self.collection_order,
             None,
             {"collection_name": "order", "timezone": "Europe/Paris", "pks": "10"},
@@ -862,13 +922,15 @@ class TestCrudResource(TestCase):
         self.collection_order.delete = AsyncMock()
         crud_resource = CrudResource(self.datasource, self.permission_service, self.options)
         response = self.loop.run_until_complete(crud_resource.delete(request))
+        self.permission_service.can.assert_any_await(request.user, request.collection, "delete")
+        self.permission_service.can.reset_mock()
 
         assert response.status == 204
         self.collection_order.delete.assert_awaited()
 
     def test_delete_error(self):
         request = RequestCollection(
-            "DELETE",
+            RequestMethod.DELETE,
             self.collection_order,
             None,
             {"collection_name": "order", "timezone": "Europe/Paris", "pks": "10"},
@@ -882,6 +944,8 @@ class TestCrudResource(TestCase):
             "forestadmin.agent_toolkit.resources.collections.crud.unpack_id", side_effect=CollectionResourceException
         ):
             response = self.loop.run_until_complete(crud_resource.delete(request))
+        self.permission_service.can.assert_any_await(request.user, request.collection, "delete")
+        self.permission_service.can.reset_mock()
 
         assert response.status == 500
         response_content = json.loads(response.body)
@@ -896,7 +960,7 @@ class TestCrudResource(TestCase):
         mocked_match_ids: Mock,
     ):
         request = RequestCollection(
-            "DELETE",
+            RequestMethod.DELETE,
             self.collection_order,
             {"data": {"attributes": {"all_records": True, "all_records_ids_excluded": [10]}}},
             {"collection_name": "order", "timezone": "Europe/Paris", "pks": "10"},
@@ -907,6 +971,8 @@ class TestCrudResource(TestCase):
         self.collection_order.delete = AsyncMock()
 
         response = self.loop.run_until_complete(crud_resource.delete_list(request))
+        self.permission_service.can.assert_any_await(request.user, request.collection, "delete")
+        self.permission_service.can.reset_mock()
 
         assert response.status == 204
         self.collection_order.delete.assert_awaited()
@@ -916,7 +982,7 @@ class TestCrudResource(TestCase):
         mock_orders = [{"id": 10, "cost": 200}, {"id": 11, "cost": 201}]
 
         request = RequestCollection(
-            "GET",
+            RequestMethod.GET,
             self.collection_order,
             None,
             {
@@ -931,6 +997,9 @@ class TestCrudResource(TestCase):
         self.collection_order.list = AsyncMock(return_value=mock_orders)
 
         response = self.loop.run_until_complete(crud_resource.csv(request))
+        self.permission_service.can.assert_any_await(request.user, request.collection, "browse")
+        self.permission_service.can.assert_any_await(request.user, request.collection, "export")
+        self.permission_service.can.reset_mock()
 
         assert response.status == 200
         self.collection_order.list.assert_awaited()
@@ -946,7 +1015,7 @@ class TestCrudResource(TestCase):
     def test_csv_errors(self):
         mock_orders = [{"id": 10, "cost": 200}, {"id": 11, "cost": 201}]
         request = RequestCollection(
-            "GET",
+            RequestMethod.GET,
             self.collection_order,
             None,
             {
@@ -960,6 +1029,9 @@ class TestCrudResource(TestCase):
 
         # FilterException
         response = self.loop.run_until_complete(crud_resource.csv(request))
+        self.permission_service.can.assert_any_await(request.user, request.collection, "browse")
+        self.permission_service.can.assert_any_await(request.user, request.collection, "export")
+        self.permission_service.can.reset_mock()
 
         assert response.status == 500
         response_content = json.loads(response.body)
@@ -971,7 +1043,7 @@ class TestCrudResource(TestCase):
 
         # DatasourceException
         request = RequestCollection(
-            "GET",
+            RequestMethod.GET,
             self.collection_order,
             None,
             {
@@ -987,6 +1059,9 @@ class TestCrudResource(TestCase):
             side_effect=DatasourceException,
         ):
             response = self.loop.run_until_complete(crud_resource.csv(request))
+        self.permission_service.can.assert_any_await(request.user, request.collection, "browse")
+        self.permission_service.can.assert_any_await(request.user, request.collection, "export")
+        self.permission_service.can.reset_mock()
 
         assert response.status == 500
         response_content = json.loads(response.body)
@@ -999,6 +1074,9 @@ class TestCrudResource(TestCase):
             side_effect=CsvException("cannot make csv"),
         ):
             response = self.loop.run_until_complete(crud_resource.csv(request))
+        self.permission_service.can.assert_any_await(request.user, request.collection, "browse")
+        self.permission_service.can.assert_any_await(request.user, request.collection, "export")
+        self.permission_service.can.reset_mock()
 
         assert response.status == 500
         response_content = json.loads(response.body)

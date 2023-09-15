@@ -20,28 +20,25 @@ from forestadmin.datasource_toolkit.decorators.chart.chart_datasource_decorator 
 from forestadmin.datasource_toolkit.interfaces.fields import FieldType, PrimitiveType
 
 
-def mock_decorator_with_param(*args, **kwargs):
-    def decorator(fn):
-        def decorated_function(*args, **kwargs):
-            return fn(*args, **kwargs)
+def authenticate_mock(fn):
+    async def wrapped2(self, request):
+        request.user = User(
+            rendering_id=1,
+            user_id=1,
+            tags={},
+            email="dummy@user.fr",
+            first_name="dummy",
+            last_name="user",
+            team="operational",
+            timezone=zoneinfo.ZoneInfo("Europe/Paris"),
+        )
 
-        return decorated_function
+        return await fn(self, request)
 
-    return decorator
-
-
-def mock_decorator_no_param(fn):
-    def decorated_function(*args, **kwargs):
-        return fn(*args, **kwargs)
-
-    return decorated_function
-
-
-patch("forestadmin.agent_toolkit.resources.collections.decorators.check_method", mock_decorator_with_param).start()
-patch("forestadmin.agent_toolkit.resources.collections.decorators.authenticate", mock_decorator_no_param).start()
-patch("forestadmin.agent_toolkit.resources.collections.decorators.authorize", mock_decorator_with_param).start()
+    return wrapped2
 
 
+patch("forestadmin.agent_toolkit.resources.collections.decorators.authenticate", authenticate_mock).start()
 # how to mock decorators, and why they are not testable :
 # https://dev.to/stack-labs/how-to-mock-a-decorator-in-python-55jc
 
