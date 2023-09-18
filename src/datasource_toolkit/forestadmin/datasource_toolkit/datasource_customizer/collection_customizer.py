@@ -1,6 +1,6 @@
 from typing import List, Optional
 
-from forestadmin.datasource_toolkit.decorators.action.types.actions import ActionAlias
+from forestadmin.datasource_toolkit.decorators.action.types.actions import ActionDict
 from forestadmin.datasource_toolkit.decorators.chart.types import CollectionChartDefinition
 from forestadmin.datasource_toolkit.decorators.computed.types import ComputedDefinition
 from forestadmin.datasource_toolkit.decorators.decorator_stack import DecoratorStack
@@ -30,7 +30,7 @@ class CollectionCustomizer:
         self.stack = stack
         self.collection_name = collection_name
 
-    def add_action(self, name: str, action: ActionAlias):
+    def add_action(self, name: str, action: ActionDict):
         self.stack.action.get_collection(self.collection_name).add_action(name, action)
 
     def add_segment(self, name: str, segment: SegmentAlias):

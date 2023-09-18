@@ -7,14 +7,15 @@ from forestadmin.datasource_toolkit.decorators.action.context.bulk import Action
 from forestadmin.datasource_toolkit.decorators.action.context.single import ActionContextSingle
 from forestadmin.datasource_toolkit.decorators.action.result_builder import ResultBuilder
 from forestadmin.datasource_toolkit.decorators.action.types.actions import (
-    ActionAlias,
     ActionBulk,
+    ActionDict,
     ActionGlobal,
     ActionSingle,
+    BaseAction,
 )
-from forestadmin.datasource_toolkit.decorators.action.types.fields import DynamicField
+from forestadmin.datasource_toolkit.decorators.action.types.fields import BaseDynamicField, DynamicField, FieldFactory
 from forestadmin.datasource_toolkit.decorators.collection_decorator import CollectionDecorator
-from forestadmin.datasource_toolkit.interfaces.actions import Action, ActionField, ActionResult
+from forestadmin.datasource_toolkit.interfaces.actions import Action, ActionField, ActionResult, ActionsScope
 from forestadmin.datasource_toolkit.interfaces.models.collections import CollectionSchema
 from forestadmin.datasource_toolkit.interfaces.query.filter.unpaginated import Filter
 from forestadmin.datasource_toolkit.interfaces.records import RecordsDataAlias
@@ -23,10 +24,19 @@ from forestadmin.datasource_toolkit.interfaces.records import RecordsDataAlias
 class ActionCollectionDecorator(CollectionDecorator):
     def __init__(self, *args: Any, **kwargs: Any):
         super().__init__(*args, **kwargs)
-        self._actions: Dict[str, ActionAlias] = {}
+        self._actions: Dict[str, ActionDict] = {}
 
-    def add_action(self, name: str, action: ActionAlias):
-        self._actions[name] = action
+    def add_action(self, name: str, action: ActionDict):
+        # TODO: simplify this when removing deprecation of class style actions
+
+        if isinstance(action, BaseAction):
+            self._actions[name] = action.to_dict()
+        else:
+            action["form"] = [
+                FieldFactory.build(field) if not isinstance(field, BaseDynamicField) else field
+                for field in action.get("form", [])
+            ]
+            self._actions[name] = action
         self.mark_schema_as_dirty()
 
     async def execute(
@@ -42,7 +52,8 @@ class ActionCollectionDecorator(CollectionDecorator):
 
         context = self._get_context(caller, action, data, filter_, None)
         response_builder = ResultBuilder()
-        result = action.execute(context, response_builder)  # type: ignore
+        # result = action.execute(context, response_builder)  # type: ignore
+        result = action["execute"](context, response_builder)  # type: ignore
         if isinstance(result, Awaitable):
             result = await result
         return result or {"type": "Success", "invalidated": set(), "format": "text", "message": "Success"}
@@ -58,14 +69,14 @@ class ActionCollectionDecorator(CollectionDecorator):
         action = self._actions.get(name)
         if not action:
             return await super().get_form(caller, name, data, filter_, meta)  # type: ignore
-        elif not action.form:
+        elif not action.get("form"):
             return []
 
         form_values = data or {}
         used: Set[str] = set()
         context = self._get_context(caller, action, form_values, filter_, used, meta.get("changed_field"))
         form_fields: List[DynamicField[ActionContext]] = cast(
-            List[DynamicField[ActionContext]], [field for field in action.form]
+            List[DynamicField[ActionContext]], [field for field in action.get("form", [])]
         )
 
         form_values = await self._build_form_values(context, form_fields, form_values)
@@ -78,10 +89,10 @@ class ActionCollectionDecorator(CollectionDecorator):
         actions_schema = {}
         for name, action in self._actions.items():
             dynamics: List[bool] = []
-            for field in action.form or []:
+            for field in action.get("form", []):
                 dynamics.append(field.is_dynamic)
             actions_schema[name] = Action(
-                scope=action.SCOPE, generate_file=action.GENERATE_FILE, static_form=not any(dynamics)
+                scope=action["scope"], generate_file=action.get("generate_file", False), static_form=not any(dynamics)
             )
         return {**sub_schema, "actions": actions_schema}
 
@@ -95,10 +106,10 @@ class ActionCollectionDecorator(CollectionDecorator):
         changed_field: Optional[str] = None,
     ) -> ActionContext:
         return {
-            ActionSingle.SCOPE: ActionContextSingle,
-            ActionBulk.SCOPE: ActionContextBulk,
-            ActionGlobal.SCOPE: ActionContext,
-        }[action.SCOPE](
+            ActionsScope.SINGLE: ActionContextSingle,
+            ActionsScope.BULK: ActionContextBulk,
+            ActionsScope.GLOBAL: ActionContext,
+        }[action["scope"]](
             cast(Collection, self), caller, form_values, filter_, used, changed_field  # type: ignore
         )
 
