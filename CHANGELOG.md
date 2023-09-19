@@ -1,3 +1,10 @@
+# [1.0.0-beta.18](https://github.com/ForestAdmin/agent-python/compare/v1.0.0-beta.17...v1.0.0-beta.18) (2023-09-19)
+
+
+### Features
+
+* **smart_actions:** smart actions can be defined using the classical forest api ([#116](https://github.com/ForestAdmin/agent-python/issues/116)) ([a2f80cb](https://github.com/ForestAdmin/agent-python/commit/a2f80cb6ee3975545cd9b9d77941824242c0d3f2))
+
 # [1.0.0-beta.17](https://github.com/ForestAdmin/agent-python/compare/v1.0.0-beta.16...v1.0.0-beta.17) (2023-09-19)
 
 
