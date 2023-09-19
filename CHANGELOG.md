@@ -1,3 +1,10 @@
+# [1.0.0-beta.17](https://github.com/ForestAdmin/agent-python/compare/v1.0.0-beta.16...v1.0.0-beta.17) (2023-09-19)
+
+
+### Bug Fixes
+
+* **schema:** permit to use primary keys not named 'id' ([#112](https://github.com/ForestAdmin/agent-python/issues/112)) ([c3185be](https://github.com/ForestAdmin/agent-python/commit/c3185be31d61f3e0b076c7298ed20ca72e9ffb15))
+
 # [1.0.0-beta.16](https://github.com/ForestAdmin/agent-python/compare/v1.0.0-beta.15...v1.0.0-beta.16) (2023-09-15)
 
 
