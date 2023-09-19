@@ -4,9 +4,12 @@ from demo.forest_admin.smart.cart import cart_update_name
 from demo.forest_admin.smart.customer import (
     AgeOperation,
     ExportJson,
+    age_operation_action_dict,
+    age_operation_action_obj_reuse,
     customer_full_name,
     customer_full_name_write,
     customer_spending_computed,
+    export_json_action_dict,
     french_address_segment,
     full_name_contains,
     full_name_equal,
@@ -26,6 +29,7 @@ from demo.forest_admin.smart.order import (
     RefundOrder,
     delivered_order_segment,
     dispatched_order_segment,
+    export_orders_json,
     get_customer_full_name_field,
     nb_order_per_week,
     pending_order_segment,
@@ -77,9 +81,14 @@ def customize_agent(agent: Agent):
         "VIP customers", lambda context: ConditionTreeLeaf("is_vip", Operator.EQUAL, True)
     )
     # # action file bulk
-    agent.customize_collection("customer").add_action("Export json", ExportJson())
+    agent.customize_collection("customer").add_action("Export json class", ExportJson())
+    agent.customize_collection("customer").add_action("Export json dict", export_json_action_dict)
     # # action single with form
-    agent.customize_collection("customer").add_action("Age operation", AgeOperation())
+    agent.customize_collection("customer").add_action("Age operation class", AgeOperation())
+    agent.customize_collection("customer").add_action(
+        "Age operation manual class reuse", age_operation_action_obj_reuse
+    )
+    agent.customize_collection("customer").add_action("Age operation dict", age_operation_action_dict)
     # # computed
     agent.customize_collection("customer").add_field("full_name", customer_full_name())
     # custom write on computed
@@ -142,8 +151,11 @@ def customize_agent(agent: Agent):
     # # rename
     agent.customize_collection("order").rename_field("amount", "cost")
     # # action file global
-    agent.customize_collection("order").add_action("Export json", ExportOrderJson())
-    agent.customize_collection("order").add_action("Refund order(s)", RefundOrder())
+    agent.customize_collection("order").add_action("Export json class", ExportOrderJson())
+    agent.customize_collection("order").add_action("Export json dict", export_orders_json)
+
+    agent.customize_collection("order").add_action("Refund order(s) class", RefundOrder())
+    agent.customize_collection("order").add_action("Refund order(s) call to_dict", RefundOrder().to_dict())
     # # validation
     agent.customize_collection("order").add_validation("amount", {"operator": Operator.GREATER_THAN, "value": 0})
     # # computed

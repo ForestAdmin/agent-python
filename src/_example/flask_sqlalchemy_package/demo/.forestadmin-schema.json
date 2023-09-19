@@ -284,11 +284,11 @@
             "searchField": null,
             "actions": [
                 {
-                    "id": "customer-0-export json",
-                    "name": "Export json",
+                    "id": "customer-0-export json class",
+                    "name": "Export json class",
                     "type": "bulk",
                     "baseUrl": null,
-                    "endpoint": "/forest/_actions/customer/0/export json",
+                    "endpoint": "/forest/_actions/customer/0/export json class",
                     "httpMethod": "POST",
                     "redirect": null,
                     "download": true,
@@ -301,11 +301,90 @@
                     }
                 },
                 {
-                    "id": "customer-1-age operation",
-                    "name": "Age operation",
+                    "id": "customer-1-export json dict",
+                    "name": "Export json dict",
+                    "type": "bulk",
+                    "baseUrl": null,
+                    "endpoint": "/forest/_actions/customer/1/export json dict",
+                    "httpMethod": "POST",
+                    "redirect": null,
+                    "download": true,
+                    "fields": [],
+                    "hooks": {
+                        "load": false,
+                        "change": [
+                            "changeHook"
+                        ]
+                    }
+                },
+                {
+                    "id": "customer-2-age operation class",
+                    "name": "Age operation class",
                     "type": "single",
                     "baseUrl": null,
-                    "endpoint": "/forest/_actions/customer/1/age operation",
+                    "endpoint": "/forest/_actions/customer/2/age operation class",
+                    "httpMethod": "POST",
+                    "redirect": null,
+                    "download": false,
+                    "fields": [
+                        {
+                            "field": "Loading...",
+                            "type": "String",
+                            "isReadOnly": true,
+                            "defaultValue": "Form is loading",
+                            "value": null,
+                            "description": "",
+                            "enums": null,
+                            "hook": null,
+                            "isRequired": false,
+                            "reference": null,
+                            "widget": null
+                        }
+                    ],
+                    "hooks": {
+                        "load": true,
+                        "change": [
+                            "changeHook"
+                        ]
+                    }
+                },
+                {
+                    "id": "customer-3-age operation manual class reuse",
+                    "name": "Age operation manual class reuse",
+                    "type": "single",
+                    "baseUrl": null,
+                    "endpoint": "/forest/_actions/customer/3/age operation manual class reuse",
+                    "httpMethod": "POST",
+                    "redirect": null,
+                    "download": false,
+                    "fields": [
+                        {
+                            "field": "Loading...",
+                            "type": "String",
+                            "isReadOnly": true,
+                            "defaultValue": "Form is loading",
+                            "value": null,
+                            "description": "",
+                            "enums": null,
+                            "hook": null,
+                            "isRequired": false,
+                            "reference": null,
+                            "widget": null
+                        }
+                    ],
+                    "hooks": {
+                        "load": true,
+                        "change": [
+                            "changeHook"
+                        ]
+                    }
+                },
+                {
+                    "id": "customer-4-age operation dict",
+                    "name": "Age operation dict",
+                    "type": "single",
+                    "baseUrl": null,
+                    "endpoint": "/forest/_actions/customer/4/age operation dict",
                     "httpMethod": "POST",
                     "redirect": null,
                     "download": false,
@@ -640,11 +719,11 @@
             "searchField": null,
             "actions": [
                 {
-                    "id": "order-0-export json",
-                    "name": "Export json",
+                    "id": "order-0-export json class",
+                    "name": "Export json class",
                     "type": "global",
                     "baseUrl": null,
-                    "endpoint": "/forest/_actions/order/0/export json",
+                    "endpoint": "/forest/_actions/order/0/export json class",
                     "httpMethod": "POST",
                     "redirect": null,
                     "download": true,
@@ -684,11 +763,86 @@
                     }
                 },
                 {
-                    "id": "order-1-refund order(s)",
-                    "name": "Refund order(s)",
+                    "id": "order-1-export json dict",
+                    "name": "Export json dict",
+                    "type": "global",
+                    "baseUrl": null,
+                    "endpoint": "/forest/_actions/order/1/export json dict",
+                    "httpMethod": "POST",
+                    "redirect": null,
+                    "download": false,
+                    "fields": [
+                        {
+                            "field": "dummy field",
+                            "value": "",
+                            "defaultValue": null,
+                            "description": "",
+                            "enums": null,
+                            "hook": null,
+                            "isReadOnly": false,
+                            "isRequired": false,
+                            "reference": null,
+                            "type": "String",
+                            "widget": null
+                        },
+                        {
+                            "field": "customer",
+                            "value": "",
+                            "defaultValue": null,
+                            "description": "",
+                            "enums": null,
+                            "hook": null,
+                            "isReadOnly": false,
+                            "isRequired": true,
+                            "reference": "customer.id",
+                            "type": "Number",
+                            "widget": null
+                        }
+                    ],
+                    "hooks": {
+                        "load": false,
+                        "change": [
+                            "changeHook"
+                        ]
+                    }
+                },
+                {
+                    "id": "order-2-refund order(s) class",
+                    "name": "Refund order(s) class",
                     "type": "bulk",
                     "baseUrl": null,
-                    "endpoint": "/forest/_actions/order/1/refund order(s)",
+                    "endpoint": "/forest/_actions/order/2/refund order(s) class",
+                    "httpMethod": "POST",
+                    "redirect": null,
+                    "download": false,
+                    "fields": [
+                        {
+                            "field": "reason",
+                            "value": "",
+                            "defaultValue": null,
+                            "description": "",
+                            "enums": null,
+                            "hook": null,
+                            "isReadOnly": false,
+                            "isRequired": false,
+                            "reference": null,
+                            "type": "String",
+                            "widget": null
+                        }
+                    ],
+                    "hooks": {
+                        "load": false,
+                        "change": [
+                            "changeHook"
+                        ]
+                    }
+                },
+                {
+                    "id": "order-3-refund order(s) call to_dict",
+                    "name": "Refund order(s) call to_dict",
+                    "type": "bulk",
+                    "baseUrl": null,
+                    "endpoint": "/forest/_actions/order/3/refund order(s) call to_dict",
                     "httpMethod": "POST",
                     "redirect": null,
                     "download": false,
@@ -912,6 +1066,6 @@
             "engine": "python",
             "engine_version": "3.10.11"
         },
-        "schemaFileHash": "cd2c3cf4213b2585c70f70b5409897a95452dcb9"
+        "schemaFileHash": "d4cca317541ea0ab68d20d945ed034d261288cba"
     }
 }

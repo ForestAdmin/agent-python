@@ -7,11 +7,11 @@ from forestadmin.datasource_toolkit.context.agent_context import AgentCustomizat
 from forestadmin.datasource_toolkit.context.collection_context import CollectionCustomizationContext
 from forestadmin.datasource_toolkit.decorators.action.context.base import ActionContext
 from forestadmin.datasource_toolkit.decorators.action.result_builder import ResultBuilder
-from forestadmin.datasource_toolkit.decorators.action.types.actions import ActionBulk, ActionGlobal
+from forestadmin.datasource_toolkit.decorators.action.types.actions import ActionBulk, ActionDict, ActionGlobal
 from forestadmin.datasource_toolkit.decorators.action.types.fields import PlainDynamicField
 from forestadmin.datasource_toolkit.decorators.chart.result_builder import ResultBuilder as ResultBuilderChart
 from forestadmin.datasource_toolkit.decorators.computed.types import ComputedDefinition
-from forestadmin.datasource_toolkit.interfaces.actions import ActionFieldType, ActionResult
+from forestadmin.datasource_toolkit.interfaces.actions import ActionFieldType, ActionResult, ActionsScope
 from forestadmin.datasource_toolkit.interfaces.fields import Operator, PrimitiveType
 from forestadmin.datasource_toolkit.interfaces.query.aggregation import Aggregation, DateOperation, PlainAggregation
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.branch import Aggregator, ConditionTreeBranch
@@ -112,6 +112,47 @@ class ExportJson(ActionGlobal):
         return result_builder.file(
             io.BytesIO(json.dumps({"data": records}, default=str).encode("utf-8")), "dumps.json", "application/json"
         )
+
+
+async def execute_export_json(context: ActionContext, result_builder: ResultBuilder) -> Union[None, ActionResult]:
+    records = await context.get_records(
+        Projection(
+            "id",
+            "customer:full_name",
+            "billing_address:full_address",
+            "delivering_address:full_address",
+            "status",
+            "amount",
+        )
+    )
+    return result_builder.file(
+        io.BytesIO(json.dumps({"data": records}, default=str).encode("utf-8")), "dumps.json", "application/json"
+    )
+
+
+export_orders_json: ActionDict = {
+    "scope": ActionsScope.GLOBAL,
+    "execute": execute_export_json,
+    "form": [
+        {
+            "type": ActionFieldType.STRING,
+            "label": "dummy field",
+            "is_required": False,
+            "description": "",
+            "default_value": "",
+            "value": "",
+        },
+        {
+            "type": ActionFieldType.COLLECTION,
+            "collection_name": "customer",
+            "label": "customer",
+            "is_required": True,
+            "description": "",
+            "default_value": "",
+            "value": "",
+        },
+    ],
+}
 
 
 class RefundOrder(ActionBulk):

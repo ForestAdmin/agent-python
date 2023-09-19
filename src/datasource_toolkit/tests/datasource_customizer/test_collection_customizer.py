@@ -20,7 +20,7 @@ from forestadmin.datasource_toolkit.decorators.chart.collection_chart_context im
 from forestadmin.datasource_toolkit.decorators.chart.result_builder import ResultBuilder as ResultBuilderChart
 from forestadmin.datasource_toolkit.decorators.computed.types import ComputedDefinition
 from forestadmin.datasource_toolkit.decorators.hook.types import HookHandler
-from forestadmin.datasource_toolkit.interfaces.actions import ActionResult
+from forestadmin.datasource_toolkit.interfaces.actions import ActionResult, ActionsScope
 from forestadmin.datasource_toolkit.interfaces.fields import (
     Column,
     FieldType,
@@ -272,12 +272,21 @@ class TestCollectionCustomizer(TestCase):
         schema = self.datasource_customizer.stack.publication.get_collection("Book").schema
         assert "title" not in schema["fields"]
 
-    def test_add_action_should_add_action_in_collection(self):
+    def test_add_action_should_add_old_style_action_in_collection(self):
+        # TODO: remove this one when removing deprecation
         class ActionMan(ActionSingle):
             async def execute(self, context: Context, result_builder: ResultBuilder) -> Union[None, ActionResult]:
                 return None
 
         self.book_customizer.add_action("action_man", ActionMan())
+
+        schema = self.datasource_customizer.stack.publication.get_collection("Book").schema
+        assert "action_man" in schema["actions"]
+
+    def test_add_action_should_add_action_in_collection(self):
+        self.book_customizer.add_action(
+            "action_man", {"scope": ActionsScope.SINGLE, "execute": lambda ctx, result_builder: None}
+        )
 
         schema = self.datasource_customizer.stack.publication.get_collection("Book").schema
         assert "action_man" in schema["actions"]

@@ -8,13 +8,8 @@ from forestadmin.datasource_toolkit.context.collection_context import Collection
 from forestadmin.datasource_toolkit.decorators.action.context.bulk import ActionContextBulk
 from forestadmin.datasource_toolkit.decorators.action.context.single import ActionContextSingle
 from forestadmin.datasource_toolkit.decorators.action.result_builder import ResultBuilder
-from forestadmin.datasource_toolkit.decorators.action.types.actions import ActionBulk, ActionSingle
-from forestadmin.datasource_toolkit.decorators.action.types.fields import (
-    PlainDynamicField,
-    PlainFileListDynamicField,
-    PlainListEnumDynamicField,
-    PlainStringDynamicField,
-)
+from forestadmin.datasource_toolkit.decorators.action.types.actions import ActionBulk, ActionDict, ActionSingle
+from forestadmin.datasource_toolkit.decorators.action.types.fields import PlainDynamicField
 from forestadmin.datasource_toolkit.decorators.chart.collection_chart_context import CollectionChartContext
 from forestadmin.datasource_toolkit.decorators.chart.result_builder import ResultBuilder as ResultBuilderChart
 from forestadmin.datasource_toolkit.decorators.computed.types import ComputedDefinition
@@ -23,7 +18,7 @@ from forestadmin.datasource_toolkit.decorators.hook.context.list import HookAfte
 from forestadmin.datasource_toolkit.decorators.write.write_replace.write_customization_context import (
     WriteCustomizationContext,
 )
-from forestadmin.datasource_toolkit.interfaces.actions import ActionFieldType, ActionResult
+from forestadmin.datasource_toolkit.interfaces.actions import ActionFieldType, ActionResult, ActionsScope
 from forestadmin.datasource_toolkit.interfaces.fields import Operator, PrimitiveType
 from forestadmin.datasource_toolkit.interfaces.query.aggregation import (
     Aggregation,
@@ -203,6 +198,7 @@ async def full_name_contains(value, context: CollectionCustomizationContext):
 
 
 # actions
+# ######## Export json
 class ExportJson(ActionBulk):
     GENERATE_FILE: bool = True
 
@@ -215,16 +211,34 @@ class ExportJson(ActionBulk):
         )
 
 
+# agent.customize_collection("customer").add_action("Export json obj", ExportJson())
+
+
+async def export_customers_json(context: ActionContextBulk, result_builder: ResultBuilder) -> Union[None, ActionResult]:
+    records = await context.get_records(Projection("id", "full name", "age"))
+    return result_builder.file(
+        io.BytesIO(json.dumps({"data": records}).encode("utf-8")),
+        "dumps.json",
+        "application/json",
+    )
+
+
+export_json_action_dict: ActionDict = {
+    "scope": ActionsScope.BULK,
+    "generate_file": True,
+    "execute": export_customers_json,
+}
+# agent.customize_collection("customer").add_action("Export json dict", export_json_action_dict)
+
+
+# ######## Age Operation
+# class style
 class AgeOperation(ActionSingle):
     @staticmethod
     def get_value_summary(context: ActionContextSingle):
         if not context.has_field_changed("Kind of operation") and not context.has_field_changed("Value"):
             return context.form_values.get("summary")
-        sentence = ""
-        if context.form_values.get("Kind of operation", "") == "+":
-            sentence += "add "
-        elif context.form_values.get("Kind of operation", "") == "-":
-            sentence += "minus "
+        sentence = "add " if context.form_values.get("Kind of operation", "") == "+" else "minus "
         sentence += str(context.form_values.get("Value", ""))
         return sentence
 
@@ -249,24 +263,22 @@ class AgeOperation(ActionSingle):
             "is_read_only": True,
             "value": get_value_summary,
         },
-        PlainStringDynamicField(
-            label="test list",
-            type=ActionFieldType.STRING_LIST,
-            is_required=lambda context: context.form_values.get("Value", 11) > 10,
-            is_read_only=lambda context: context.form_values.get("Value", 11) <= 10,
-            if_=lambda context: context.form_values.get("Value", 11) > 10,
-            default_value=[1, 2],
-        ),
-        PlainListEnumDynamicField(label="Rating", type=ActionFieldType.ENUM, enum_values=["1", "2", "3", "4", "5"]),
-        PlainStringDynamicField(
-            label="Put a comment",
-            type=ActionFieldType.STRING,
+        {
+            "label": "test list",
+            "type": ActionFieldType.STRING_LIST,
+            "is_required": lambda context: context.form_values.get("Value", 11) > 10,
+            "is_read_only": lambda context: context.form_values.get("Value", 11) <= 10,
+            # "if_": lambda context: context.form_values.get("Value", 0) > 10,
+            "default_value": lambda context: [1, 2],
+        },
+        {"label": "Rating", "type": ActionFieldType.ENUM, "enum_values": ["1", "2", "3", "4", "5"]},
+        {
+            "label": "Put a comment",
+            "type": ActionFieldType.STRING,
             # Only display this field if the rating is 4 or 5
-            if_=lambda context: int(context.form_values.get("Rating", "0") or "0") < 4,
-        ),
-        PlainFileListDynamicField(
-            label="test filelist", type=ActionFieldType.FILE_LIST, is_required=False, default_value=[]
-        ),
+            "if_": lambda context: int(context.form_values.get("Rating", "0") or "0") < 4,
+        },
+        {"label": "test filelist", "type": ActionFieldType.FILE_LIST, "is_required": False, "default_value": []},
     ]
 
     async def execute(self, context: ActionContextSingle, result_builder: ResultBuilder) -> Union[None, ActionResult]:
@@ -276,24 +288,98 @@ class AgeOperation(ActionSingle):
         value = context.form_values["Value"]
 
         record = await context.get_record(Projection("age"))
-        new_age = operation(record["age"], value)
-        await context.collection.update(context.caller, context.filter, {"age": new_age})
+        await context.collection.update(context.caller, context.filter, {"age": operation(record["age"], value)})
         return result_builder.success("<h1> Success </h1>", options={"type": "html"})
-        # return result_builder.success("Success")  # , options={"type": "html"})
 
 
-# charts
+# agent.customize_collection("customer").add_action("Age operation 1", AgeOperation())
+
+
+# dict style reusing class
+age_operation_action_obj_reuse: ActionDict = {
+    "scope": ActionsScope.SINGLE,
+    "execute": AgeOperation().execute,
+    "form": AgeOperation.FORM,
+}
+# agent.customize_collection("customer").add_action("Age operation 2", age_operation_action_obj_reuse)
+
+
+# dict style
+def age_operation_get_value_summary(context: ActionContextSingle):
+    if not context.has_field_changed("Kind of operation") and not context.has_field_changed("Value"):
+        return context.form_values.get("summary")
+    sentence = "add " if context.form_values.get("Kind of operation", "") == "+" else "minus "
+    sentence += str(context.form_values.get("Value", ""))
+    return sentence
+
+
+async def age_operation_execute(
+    context: ActionContextSingle, result_builder: ResultBuilder
+) -> Union[None, ActionResult]:
+    operation = add
+    if context.form_values["Kind of operation"] == "-":
+        operation = sub
+    value = context.form_values["Value"]
+
+    record = await context.get_record(Projection("age"))
+    await context.collection.update(context.caller, context.filter, {"age": operation(record["age"], value)})
+    return result_builder.success("<h1> Success </h1>", options={"type": "html"})
+
+
+age_operation_action_dict: ActionDict = {
+    "scope": ActionsScope.SINGLE,
+    "execute": age_operation_execute,
+    "form": [
+        {
+            "type": ActionFieldType.ENUM,
+            "label": "Kind of operation",
+            "is_required": True,
+            "default_value": "+",
+            "value": "+",
+            "enum_values": ["+", "-"],
+        },
+        {
+            "type": ActionFieldType.NUMBER,
+            "label": "Value",
+            "default_value": 0,
+        },
+        {
+            "type": ActionFieldType.STRING,
+            "label": "summary",
+            "is_required": False,
+            "is_read_only": True,
+            "value": age_operation_get_value_summary,
+        },
+        {
+            "label": "test list",
+            "type": ActionFieldType.STRING_LIST,
+            "is_required": lambda context: context.form_values.get("Value", 11) > 10,
+            "is_read_only": lambda context: context.form_values.get("Value", 11) <= 10,
+            "if_": lambda context: context.form_values.get("Value", 0) > 10,
+            "default_value": lambda context: [1, 2],
+        },
+        {"label": "Rating", "type": ActionFieldType.ENUM, "enum_values": ["1", "2", "3", "4", "5"]},
+        {
+            "label": "Put a comment",
+            "type": ActionFieldType.STRING,
+            # Only display this field if the rating is 4 or 5
+            "if_": lambda context: int(context.form_values.get("Rating", "0") or "0") < 4,
+        },
+        {"label": "test filelist", "type": ActionFieldType.FILE_LIST, "is_required": False, "default_value": []},
+    ],
+}
+# agent.customize_collection("customer").add_action("Age operation 3", age_operation_action_dict)
+
+
+# # charts
 async def total_orders_customer_chart(
     context: CollectionChartContext, result_builder: ResultBuilderChart, ids: CompositeIdAlias
 ):
-    # total_spending = await context.get_record(Projection("TotalSpending"))
     orders = await context.datasource.get_collection("order").aggregate(
         caller=context.caller,
         filter_=Filter({"condition_tree": ConditionTreeLeaf("customer_id", Operator.EQUAL, ids[0])}),
-        # filter={"conditionTree": ConditionTreeLeaf("customer_id", Operator.EQUAL, ids[0])},
         aggregation=Aggregation({"field": "amount", "operation": "Sum"}),
     )
-    # return result_builder.value(total_spending["TotalSpending"])
     return result_builder.value(orders[0]["value"])
 
 
