@@ -1,6 +1,7 @@
 import json
 from typing import Any, Dict, List, Optional
 
+from forestadmin.agent_toolkit.forest_logger import ForestLogger
 from forestadmin.datasource_sqlalchemy.utils.type_converter import Converter as TypeConverter
 from forestadmin.datasource_sqlalchemy.utils.type_converter import FilterOperator
 from forestadmin.datasource_toolkit.interfaces.fields import (
@@ -94,7 +95,7 @@ class CollectionFactory:
         return {
             "foreign_collection": relation.target.name,
             "foreign_key": list(relation.local_columns)[0].name,
-            "foreign_key_target": list(relation.remote_side)[0].name,
+            "foreign_key_target": relation.target.primary_key.columns[0].name,
             "type": FieldType.MANY_TO_ONE,
         }
 
@@ -139,22 +140,37 @@ class CollectionFactory:
             fields[column.name] = ColumnFactory.build(column)  # type: ignore
 
         if mapper:
-            for relationship in mapper.relationships:  # type: ignore
+            for name, relationship in mapper.relationships.items():  # type: ignore
                 relation: Optional[RelationAlias] = None
-                if not relationship.back_populates:  # type: ignore
-                    # one to many
-                    relation = cls._build_one_to_many(relationship)
-                else:
-                    if relationship.uselist is False:  # type: ignore
-                        if list(relationship.local_columns)[0].foreign_keys:  # type: ignore
-                            relation = cls._build_many_to_one(relationship)
-                        else:
-                            relation = cls._build_one_to_one(relationship)
-                    elif relationship.secondary is not None:  # type: ignore
-                        relation = cls._build_many_to_many(model, relationship)
-                    else:
-                        relation = cls._build_one_to_many(relationship)
+                if relationship.direction.name == "MANYTOMANY":
+                    relation = cls._build_many_to_many(model, relationship)
 
-                    if relation:
-                        fields[relationship.key] = relation  # type: ignore
+                elif relationship.direction.name == "ONETOMANY":
+                    if relationship.uselist:
+                        relation = cls._build_one_to_many(relationship)
+                    else:
+                        relation = cls._build_one_to_one(relationship)
+
+                elif relationship.direction.name == "MANYTOONE":
+                    relation = cls._build_many_to_one(relationship)
+
+                # if not relationship.back_populates:  # type: ignore
+                #     # one to many
+                #     relation = cls._build_one_to_many(relationship)
+                # else:
+                #     if relationship.uselist is False:  # type: ignore
+                #         if list(relationship.local_columns)[0].foreign_keys:  # type: ignore
+                #             relation = cls._build_many_to_one(relationship)
+                #         else:
+                #             relation = cls._build_one_to_one(relationship)
+                #     elif relationship.secondary is not None:  # type: ignore
+                #         relation = cls._build_many_to_many(model, relationship)
+                #     else:
+                #         relation = cls._build_one_to_many(relationship)
+
+                if relation is not None:
+                    fields[relationship.key] = relation  # type: ignore
+                else:
+                    ForestLogger.log("error", f"A relation is not handled during introspection: {model.name}.{name} ")
+
         return {"actions": {}, "fields": fields, "searchable": False, "segments": []}

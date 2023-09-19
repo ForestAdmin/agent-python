@@ -6,6 +6,7 @@ from forestadmin.datasource_toolkit.interfaces.fields import (
     OneToMany,
     is_column,
     is_many_to_many,
+    is_many_to_one,
     is_one_to_many,
 )
 from forestadmin.datasource_toolkit.interfaces.models.collections import CollectionSchema
@@ -28,7 +29,7 @@ class SchemaUtils:
     def is_foreign_key(schema: CollectionSchema, name: str) -> bool:
         field = schema["fields"][name]
         for relation in schema["fields"].values():
-            if is_many_to_many(relation) and relation["foreign_key"] == name:
+            if (is_many_to_one(relation)) and relation["foreign_key"] == name:
                 break
         else:
             return False

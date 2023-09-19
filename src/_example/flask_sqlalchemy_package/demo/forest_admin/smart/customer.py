@@ -182,6 +182,26 @@ async def full_name_not_contains(value, context: CollectionCustomizationContext)
         )
 
 
+async def full_name_contains(value, context: CollectionCustomizationContext):
+    if " - " in value:
+        first_name, last_name = value.split(" - ")
+        return ConditionTreeBranch(
+            Aggregator.AND,
+            [
+                ConditionTreeLeaf("first_name", Operator.CONTAINS, first_name),
+                ConditionTreeLeaf("last_name", Operator.CONTAINS, last_name),
+            ],
+        )
+    else:
+        return ConditionTreeBranch(
+            Aggregator.AND,
+            [
+                ConditionTreeLeaf("first_name", Operator.CONTAINS, value),
+                ConditionTreeLeaf("last_name", Operator.CONTAINS, value),
+            ],
+        )
+
+
 # actions
 class ExportJson(ActionBulk):
     GENERATE_FILE: bool = True

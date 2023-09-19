@@ -47,7 +47,7 @@ def french_address_segment(context: CollectionCustomizationContext):
 # computed fields
 def customer_spending_computed():
     async def get_customer_spending_values(records: List[RecordsDataAlias], context: CollectionCustomizationContext):
-        record_ids = [record["id"] for record in records]
+        record_ids = [record["pk"] for record in records]
         condition = Filter(
             {"condition_tree": ConditionTreeLeaf(field="customer_id", operator=Operator.IN, value=record_ids)}
         )
@@ -63,14 +63,14 @@ def customer_spending_computed():
         # rows = await context.datasource.get_collection("order").aggregate(context.caller, condition, aggregation)
         ret = []
         for record in records:
-            filtered = [*filter(lambda r: r["group"]["customer_id"] == record["id"], rows)]
+            filtered = [*filter(lambda r: r["group"]["customer_id"] == record["pk"], rows)]
             row = filtered[0] if len(filtered) > 0 else {}
             ret.append(row.get("value", 0))
 
         return ret
 
     return ComputedDefinition(
-        column_type=PrimitiveType.NUMBER, dependencies=["id"], get_values=get_customer_spending_values
+        column_type=PrimitiveType.NUMBER, dependencies=["pk"], get_values=get_customer_spending_values
     )
 
 
@@ -182,12 +182,32 @@ async def full_name_not_contains(value, context: CollectionCustomizationContext)
         )
 
 
+async def full_name_contains(value, context: CollectionCustomizationContext):
+    if " - " in value:
+        first_name, last_name = value.split(" - ")
+        return ConditionTreeBranch(
+            Aggregator.AND,
+            [
+                ConditionTreeLeaf("first_name", Operator.CONTAINS, first_name),
+                ConditionTreeLeaf("last_name", Operator.CONTAINS, last_name),
+            ],
+        )
+    else:
+        return ConditionTreeBranch(
+            Aggregator.AND,
+            [
+                ConditionTreeLeaf("first_name", Operator.CONTAINS, value),
+                ConditionTreeLeaf("last_name", Operator.CONTAINS, value),
+            ],
+        )
+
+
 # actions
 class ExportJson(ActionBulk):
     GENERATE_FILE: bool = True
 
     async def execute(self, context: ActionContextBulk, result_builder: ResultBuilder) -> Union[None, ActionResult]:
-        records = await context.get_records(Projection("id", "full name", "age"))
+        records = await context.get_records(Projection("pk", "full_name", "age"))
         return result_builder.file(
             io.BytesIO(json.dumps({"data": records}).encode("utf-8")),
             "dumps.json",
@@ -201,6 +221,7 @@ class AgeOperation(ActionSingle):
         if not context.has_field_changed("Kind of operation") and not context.has_field_changed("Value"):
             return context.form_values.get("summary")
         sentence = ""
+
         if context.form_values.get("Kind of operation", "") == "+":
             sentence += "add "
         elif context.form_values.get("Kind of operation", "") == "-":
@@ -283,7 +304,7 @@ async def order_details(context: CollectionChartContext, result_builder: ResultB
         PaginatedFilter(
             {"condition_tree": ConditionTreeLeaf("customer_id", Operator.IN, ids)},
         ),
-        Projection("id", "customer_full_name"),
+        Projection("pk", "customer_full_name"),
     )
     return result_builder.smart(orders)
 

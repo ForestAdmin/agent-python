@@ -96,11 +96,16 @@ class WriteReplaceCollection(CollectionDecorator):
 
             # Isolate change to our own value (which should not recurse) and the rest which should
             # trigger the other handlers.
-            value = field_patch.pop(key, None)
+            if key in field_patch:
+                value = field_patch.pop(key)
+                is_value = True
+            else:
+                value = None
+                is_value = False
 
             new_patch = await self._rewrite_patch(context.caller, context.action, field_patch, [*used, key])
 
-            if value is not None:
+            if is_value:
                 return self._deep_merge({key: value}, new_patch)
             else:
                 return new_patch

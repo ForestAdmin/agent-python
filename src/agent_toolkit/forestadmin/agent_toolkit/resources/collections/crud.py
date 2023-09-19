@@ -84,7 +84,7 @@ class CrudResource(BaseCollectionResource):
 
         filter = PaginatedFilter({"condition_tree": ConditionTreeFactory.intersect(trees)})
 
-        projections = ProjectionFactory.all(cast(Collection, collection))
+        projections = parse_projection_with_pks(request)
         records = await collection.list(request.user, filter, projections)
 
         if not len(records):
@@ -219,6 +219,7 @@ class CrudResource(BaseCollectionResource):
     @authorize("edit")
     async def update(self, request: RequestCollection) -> Response:
         collection = request.collection
+        pk_fields = SchemaUtils.get_primary_keys(collection.schema)
         try:
             ids = unpack_id(collection.schema, request.pks)
         except (FieldValidatorException, CollectionResourceException) as e:
@@ -231,6 +232,9 @@ class CrudResource(BaseCollectionResource):
         schema = JsonApiSerializer.get(collection)
         try:
             data: RecordsDataAlias = schema().load(request.body)  # type: ignore
+            if pk_fields[0] != "id":
+                data.update({pk_fields[0]: ids[0]})
+                del data["id"]
         except JsonApiException as e:
             ForestLogger.log("exception", e)
             return HttpResponseBuilder.build_client_error_response([e])
@@ -362,8 +366,13 @@ class CrudResource(BaseCollectionResource):
                     # one_to_one_relations.append((field, dict([(pk, value[i]) for i, pk in enumerate(pk_names)])))
                 else:
                     field = cast(ManyToOne, field)
-                    record[field["foreign_key"]] = await CollectionUtils.get_value(
+                    value = await CollectionUtils.get_value(
                         caller, cast(Collection, foreign_collection), [value], field["foreign_key_target"]
                     )
+                    try:
+                        value = int(value)
+                    except ValueError:
+                        pass
+                    record[field["foreign_key"]] = value
 
         return record, one_to_one_relations

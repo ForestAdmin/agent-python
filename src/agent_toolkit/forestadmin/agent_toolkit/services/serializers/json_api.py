@@ -7,7 +7,8 @@ from forestadmin.datasource_toolkit.collections import Collection
 from forestadmin.datasource_toolkit.datasource_customizer.collection_customizer import CollectionCustomizer
 from forestadmin.datasource_toolkit.interfaces.chart import Chart
 from forestadmin.datasource_toolkit.interfaces.fields import (
-    ColumnAlias,
+    FieldAlias,
+    Operator,
     PrimitiveType,
     RelationAlias,
     is_column,
@@ -15,6 +16,7 @@ from forestadmin.datasource_toolkit.interfaces.fields import (
     is_one_to_many,
 )
 from forestadmin.datasource_toolkit.interfaces.query.projections import Projection
+from forestadmin.datasource_toolkit.utils.schema import SchemaUtils
 from marshmallow.exceptions import MarshmallowError
 from marshmallow.schema import SchemaMeta
 from marshmallow_jsonapi import Schema, fields  # type: ignore
@@ -61,30 +63,42 @@ def _map_primitive_type(_type: PrimitiveType):
     return TYPES.get(_type, fields.Str)
 
 
-def _map_attribute_to_marshmallow(column_alias: ColumnAlias):
-    if isinstance(column_alias, PrimitiveType):
-        return _map_primitive_type(column_alias)()
-    elif isinstance(column_alias, list):
-        return fields.List
+def _map_attribute_to_marshmallow(column_alias: FieldAlias):
+    if isinstance(column_alias["column_type"], PrimitiveType):
+        type_ = _map_primitive_type(column_alias["column_type"])
+    elif isinstance(column_alias["column_type"], list):
+        type_ = fields.List
     else:
-        return fields.Raw
+        type_ = fields.Raw
+
+    is_nullable = column_alias["is_read_only"] is True or (
+        column_alias.get("validations") is not None
+        and {"operator": Operator.PRESENT} not in column_alias["validations"]
+    )
+    return type_(allow_none=is_nullable)
 
 
 def _create_relationship(collection: CollectionAlias, field_name: str, relation: RelationAlias):
     many = is_one_to_many(relation) or is_many_to_many(relation)
+    kwargs = {
+        "many": many,
+        "related_url": f"/forest/{collection.name}/{{{collection.name.lower()}_id}}/relationships/{field_name}",
+        "related_url_kwargs": {f"{collection.name.lower()}_id": "<__forest_id__>"},
+        "collection": collection,
+    }
     if is_many_to_many(relation):
         type_ = relation["through_collection"].lower()
     else:
         type_ = relation["foreign_collection"].lower()
+        kwargs["id_field"] = SchemaUtils.get_primary_keys(collection.datasource.get_collection(type_).schema)[0]
 
-    return ForestRelationShip(
-        type_=type_,
-        many=many,
-        schema=f"{type_}_schema",
-        related_url=f"/forest/{collection.name}/{{{collection.name.lower()}_id}}/relationships/{field_name}",
-        related_url_kwargs={f"{collection.name.lower()}_id": "<__forest_id__>"},
-        collection=collection,
+    kwargs.update(
+        {
+            "type_": type_,
+            "schema": f"{type_}_schema",
+        }
     )
+    return ForestRelationShip(**kwargs)
 
 
 def _create_schema_attributes(collection: CollectionAlias) -> Dict[str, Any]:
@@ -92,7 +106,7 @@ def _create_schema_attributes(collection: CollectionAlias) -> Dict[str, Any]:
 
     for name, field_schema in collection.schema["fields"].items():
         if is_column(field_schema):
-            attributes[name] = _map_attribute_to_marshmallow(field_schema["column_type"])
+            attributes[name] = _map_attribute_to_marshmallow(field_schema)
         else:
             attributes[name] = _create_relationship(collection, name, cast(RelationAlias, field_schema))
     if "id" not in attributes:
@@ -159,6 +173,8 @@ class ForestSchema(Schema):
             kwargs["only"] = only
             if "include_data" not in kwargs:
                 kwargs["include_data"] = include_data
+        if kwargs.get("only") is not None and "id" not in kwargs["only"]:
+            kwargs["only"].add("id")
         super(ForestSchema, self).__init__(*args, **kwargs)  # type: ignore
 
     def _build_only_included_data(self, projections: Projection):
@@ -170,8 +186,6 @@ class ForestSchema(Schema):
                 include_data.add(projection.split(":")[0])
             else:
                 only.add(projection)
-        if "id" not in only:
-            only.add("id")
         return only, include_data
 
     def get_resource_links(self, item: Any):
@@ -184,7 +198,8 @@ class ForestSchema(Schema):
         if isinstance(obj, list):
             for o in obj:
                 self._populate_id(o)
-        elif "id" not in obj:
+            return obj
+        if "id" not in obj:
             obj["id"] = pack_id(self.Meta.fcollection.schema, obj)  # type: ignore
         return obj
 

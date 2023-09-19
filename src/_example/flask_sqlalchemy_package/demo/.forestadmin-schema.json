@@ -30,7 +30,7 @@
                     "isSortable": false,
                     "isVirtual": false,
                     "reference": "order.id",
-                    "relationship": "BelongsToMany",
+                    "relationship": "HasMany",
                     "type": [
                         "Number"
                     ],
@@ -104,7 +104,7 @@
                     "isSortable": false,
                     "isVirtual": false,
                     "reference": "order.id",
-                    "relationship": "BelongsToMany",
+                    "relationship": "HasMany",
                     "type": [
                         "Number"
                     ],
@@ -177,7 +177,12 @@
             "paginationType": "page",
             "searchField": null,
             "actions": [],
-            "segments": [],
+            "segments": [
+                {
+                    "id": "cart.No order",
+                    "name": "No order"
+                }
+            ],
             "fields": [
                 {
                     "defaultValue": null,
@@ -262,22 +267,6 @@
                     "isVirtual": false,
                     "reference": "order.id",
                     "relationship": "BelongsTo",
-                    "type": "Number",
-                    "validations": []
-                },
-                {
-                    "defaultValue": null,
-                    "enums": null,
-                    "field": "order_id",
-                    "integration": null,
-                    "inverseOf": null,
-                    "isFilterable": true,
-                    "isPrimaryKey": false,
-                    "isReadOnly": false,
-                    "isRequired": false,
-                    "isSortable": true,
-                    "isVirtual": false,
-                    "reference": null,
                     "type": "Number",
                     "validations": []
                 }
@@ -530,7 +519,7 @@
                     "isSortable": false,
                     "isVirtual": false,
                     "reference": "order.id",
-                    "relationship": "BelongsToMany",
+                    "relationship": "HasMany",
                     "type": [
                         "Number"
                     ],
@@ -566,7 +555,7 @@
                     "isSortable": false,
                     "isVirtual": false,
                     "reference": "cart.id",
-                    "relationship": "BelongsToMany",
+                    "relationship": "HasMany",
                     "type": [
                         "Number"
                     ],
@@ -605,38 +594,6 @@
             "actions": [],
             "segments": [],
             "fields": [
-                {
-                    "defaultValue": null,
-                    "enums": null,
-                    "field": "address_id",
-                    "integration": null,
-                    "inverseOf": null,
-                    "isFilterable": true,
-                    "isPrimaryKey": true,
-                    "isReadOnly": true,
-                    "isRequired": false,
-                    "isSortable": true,
-                    "isVirtual": false,
-                    "reference": null,
-                    "type": "Number",
-                    "validations": []
-                },
-                {
-                    "defaultValue": null,
-                    "enums": null,
-                    "field": "customer_id",
-                    "integration": null,
-                    "inverseOf": null,
-                    "isFilterable": true,
-                    "isPrimaryKey": true,
-                    "isReadOnly": true,
-                    "isRequired": false,
-                    "isSortable": true,
-                    "isVirtual": false,
-                    "reference": null,
-                    "type": "Number",
-                    "validations": []
-                },
                 {
                     "defaultValue": null,
                     "enums": null,
@@ -804,22 +761,6 @@
                 {
                     "defaultValue": null,
                     "enums": null,
-                    "field": "billing_address_id",
-                    "integration": null,
-                    "inverseOf": null,
-                    "isFilterable": true,
-                    "isPrimaryKey": false,
-                    "isReadOnly": false,
-                    "isRequired": false,
-                    "isSortable": true,
-                    "isVirtual": false,
-                    "reference": null,
-                    "type": "Number",
-                    "validations": []
-                },
-                {
-                    "defaultValue": null,
-                    "enums": null,
                     "field": "cart",
                     "inverseOf": "order",
                     "isFilterable": true,
@@ -911,22 +852,6 @@
                 {
                     "defaultValue": null,
                     "enums": null,
-                    "field": "customer_id",
-                    "integration": null,
-                    "inverseOf": null,
-                    "isFilterable": true,
-                    "isPrimaryKey": false,
-                    "isReadOnly": false,
-                    "isRequired": false,
-                    "isSortable": true,
-                    "isVirtual": false,
-                    "reference": null,
-                    "type": "Number",
-                    "validations": []
-                },
-                {
-                    "defaultValue": null,
-                    "enums": null,
                     "field": "delivering_address",
                     "inverseOf": "delivering_orders",
                     "isFilterable": true,
@@ -937,22 +862,6 @@
                     "isVirtual": false,
                     "reference": "address.id",
                     "relationship": "BelongsTo",
-                    "type": "Number",
-                    "validations": []
-                },
-                {
-                    "defaultValue": null,
-                    "enums": null,
-                    "field": "delivering_address_id",
-                    "integration": null,
-                    "inverseOf": null,
-                    "isFilterable": true,
-                    "isPrimaryKey": false,
-                    "isReadOnly": false,
-                    "isRequired": false,
-                    "isSortable": true,
-                    "isVirtual": false,
-                    "reference": null,
                     "type": "Number",
                     "validations": []
                 },
@@ -998,11 +907,11 @@
     ],
     "meta": {
         "liana": "agent-python",
-        "liana_version": "1.0.0-beta.10",
+        "liana_version": "1.0.0-beta.13",
         "stack": {
             "engine": "python",
             "engine_version": "3.10.11"
         },
-        "schemaFileHash": "56d3d57157e76e6f06268fadeb37b49c7bdf6aa6"
+        "schemaFileHash": "cd2c3cf4213b2585c70f70b5409897a95452dcb9"
     }
 }

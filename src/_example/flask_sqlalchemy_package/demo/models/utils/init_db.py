@@ -1,8 +1,12 @@
+import os
+
 from demo.models.models import db
 from flask.app import Flask
 
 app = Flask(__name__)
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///../db.sql"
+
+db_path = os.path.abspath(os.path.join(__file__, "..", "..", "..", "..", "db.sql"))
+app.config["SQLALCHEMY_DATABASE_URI"] = f"sqlite:///{db_path}"
 
 
 def create_all():

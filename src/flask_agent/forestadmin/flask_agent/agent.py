@@ -138,6 +138,10 @@ def build_blueprint(agent: Agent):  # noqa: C901
     async def list_(**_) -> FlaskResponse:  # type: ignore
         return await _get_collection_response(request, agent.resources["crud"])
 
+    @blueprint.route("/<collection_name>.csv", methods=["GET"])
+    async def csv(**_) -> FlaskResponse:  # type: ignore
+        return await _get_collection_response(request, agent.resources["crud"], "csv")
+
     @blueprint.route("/<collection_name>/<pks>/relationships/<relation_name>", methods=["GET", "POST", "DELETE", "PUT"])
     async def list_related(**_) -> FlaskResponse:  # type: ignore
         return await _get_collection_response(request, agent.resources["crud_related"])
@@ -145,10 +149,6 @@ def build_blueprint(agent: Agent):  # noqa: C901
     @blueprint.route("/<collection_name>/<pks>/relationships/<relation_name>/count", methods=["GET"])
     async def count_related(**_) -> FlaskResponse:  # type: ignore
         return await _get_collection_response(request, agent.resources["crud_related"], "count")
-
-    @blueprint.route("/<collection_name>.csv", methods=["GET"])
-    async def csv(**_) -> FlaskResponse:  # type: ignore
-        return await _get_collection_response(request, agent.resources["crud"], "csv")
 
     @blueprint.route("/<collection_name>/<pks>/relationships/<relation_name>.csv", methods=["GET"])
     async def csv_related(**_) -> FlaskResponse:  # type: ignore

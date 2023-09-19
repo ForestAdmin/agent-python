@@ -280,15 +280,8 @@ class TestCrudResource(TestCase):
                 }
             }
         )
-        with patch(
-            "forestadmin.agent_toolkit.resources.collections.crud.ProjectionFactory.all",
-            return_value=[
-                "id",
-                "cost",
-                "customer",
-            ],
-        ):
-            response = self.loop.run_until_complete(crud_resource.get(request))
+
+        response = self.loop.run_until_complete(crud_resource.get(request))
 
         self.permission_service.can.assert_any_await(request.user, request.collection, "read")
         self.permission_service.can.reset_mock()

@@ -12,12 +12,12 @@ class IdException(BaseException):
     pass
 
 
-def pack_id(schema: CollectionSchema, record: RecordsDataAlias):
+def pack_id(schema: CollectionSchema, record: RecordsDataAlias) -> str:
     schema_pks = SchemaUtils.get_primary_keys(schema)
     if len(schema_pks) == 0:
         raise IdException("")
-    pks = [str(record.get(pk, "")) for pk in schema_pks]
-    if not all(pks):
+    pks = [str(record[pk]) for pk in schema_pks if record.get(pk) is not None]
+    if len(pks) == 0:
         raise IdException("")
 
     return "|".join(pks)  # type: ignore

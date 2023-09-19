@@ -76,7 +76,7 @@ def _populate_orders(addresses: List[Address]) -> List[Order]:
 def _populate_carts(orders: List[Order]) -> List[Order]:
     carts: List[Cart] = []
     for order in orders:
-        c = Cart(name=fake.language_name(), id=order.id, order_id=order.id)
+        c = Cart(name=fake.language_name(), pk=order.pk, order_id=order.pk)
         order.cart = c
         carts.append(c)
 
@@ -92,6 +92,6 @@ def populate():
         session.add_all(orders)
         orders = session.query(Order)
 
-        orders, carts = _populate_carts(addresses)
+        orders, carts = _populate_carts(orders)
         session.add_all(carts)
         session.commit()

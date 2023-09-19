@@ -4,6 +4,7 @@ from typing import Any, List, Optional, Union, cast
 from forestadmin.datasource_toolkit.exceptions import DatasourceToolkitException
 from forestadmin.datasource_toolkit.interfaces.fields import (
     Column,
+    Operator,
     PrimitiveType,
     is_column,
     is_many_to_one,
@@ -63,6 +64,9 @@ class FieldValidator:
 
         if column_type == PrimitiveType.ENUM:
             cls.check_enum_value(type_, schema, value)
+
+        if value is None and {"operator": Operator.PRESENT} not in schema["validations"]:
+            return
 
         if allowed_types:
             if type_ not in allowed_types:

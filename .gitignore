@@ -130,7 +130,7 @@ venv/
 ENV/
 env.bak/
 venv.bak/
-venv*
+venv*/
 src/tmp_venv/
 virtualenv/
 

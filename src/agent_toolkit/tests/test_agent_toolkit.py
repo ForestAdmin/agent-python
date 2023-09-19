@@ -253,6 +253,7 @@ class TestAgent(TestCase):
                     logger.output,
                     [
                         "DEBUG:forestadmin:Starting agent",
+                        "ERROR:forestadmin:Error generating forest schema",
                         "WARNING:forestadmin:Cannot send the apimap to Forest. Are you online?",
                         "INFO:forestadmin:Agent started",
                     ],

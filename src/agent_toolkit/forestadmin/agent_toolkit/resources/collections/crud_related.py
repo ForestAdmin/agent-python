@@ -144,8 +144,8 @@ class CrudRelatedResource(BaseCollectionResource):
     @authenticate
     @check_method(RequestMethod.POST)
     async def add(self, request: RequestRelationCollection) -> Response:
+        """link"""
         await self.permission.can(request.user, request.collection, "edit")
-
         try:
             parent_ids = unpack_id(request.collection.schema, request.pks)
         except (FieldValidatorException, CollectionResourceException) as e:
@@ -157,13 +157,11 @@ class CrudRelatedResource(BaseCollectionResource):
             or "data" not in request.body
             or len(request.body["data"]) == 0
             or not request.body["data"][0].get("id")
-            # TODO: again another hardcoded "id" # SchemaUtils.get_primary_keys(schema)
         ):
             ForestLogger.log("error", "missing target's id")
             return HttpResponseBuilder.build_client_error_response([ForestException("missing target's id")])
 
         try:
-            # TODO: again another hardcoded "id" # SchemaUtils.get_primary_keys(schema)
             targeted_relation_ids = unpack_id(request.foreign_collection.schema, request.body["data"][0]["id"])
         except (FieldValidatorException, CollectionResourceException) as e:
             ForestLogger.log("exception", e)
@@ -185,6 +183,7 @@ class CrudRelatedResource(BaseCollectionResource):
     @authenticate
     @check_method(RequestMethod.PUT)
     async def update_list(self, request: RequestRelationCollection) -> Response:
+        """edit one to one or many to one from crud"""
         try:
             parent_id = unpack_id(request.collection.schema, request.pks)
         except (FieldValidatorException, CollectionResourceException) as e:
@@ -242,6 +241,7 @@ class CrudRelatedResource(BaseCollectionResource):
     @authenticate
     @check_method(RequestMethod.DELETE)
     async def delete_list(self, request: RequestRelationCollection) -> Response:
+        """delete and dissociate"""
         await self.permission.can(request.user, request.collection, "delete")
         try:
             parent_ids = unpack_id(request.collection.schema, request.pks)
@@ -407,16 +407,17 @@ class CrudRelatedResource(BaseCollectionResource):
             request.user, cast(Collection, request.collection), parent_id, request.relation["origin_key_target"]
         )
 
+        # Break old relation (may update zero or one records).
         trees: List[ConditionTree] = [ConditionTreeLeaf(request.relation["origin_key"], Operator.EQUAL, origin_value)]
         if scope:
             trees.append(scope)
-
         await request.foreign_collection.update(
             request.user,
             Filter({"condition_tree": ConditionTreeFactory.intersect(trees), "timezone": timezone}),
-            {f"{request.relation['origin_key']}": origin_value},
+            {request.relation["origin_key"]: None},
         )
 
+        # Create new relation (will update exactly one record).
         trees = [ConditionTreeFactory.match_ids(request.foreign_collection.schema, [linked_id])]
         if scope:
             trees.append(scope)
@@ -428,7 +429,7 @@ class CrudRelatedResource(BaseCollectionResource):
                     "timezone": timezone,
                 }
             ),
-            {f"{request.relation['origin_key']}": origin_value},
+            {request.relation["origin_key"]: origin_value},
         )
 
     async def _update_many_to_one(

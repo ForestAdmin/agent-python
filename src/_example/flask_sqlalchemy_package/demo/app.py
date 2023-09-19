@@ -1,3 +1,5 @@
+import os
+
 from demo.forest_admin.agent import customize_agent
 from demo.forest_admin.settings import SETTINGS
 from demo.models.models import db
@@ -9,7 +11,10 @@ from forestadmin.flask_agent.agent import build_agent
 
 def create_app():
     app = Flask(__name__)
-    app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///../db.sql"
+
+    db_path = os.path.abspath(os.path.join(__file__, "..", "..", "db.sql"))
+
+    app.config["SQLALCHEMY_DATABASE_URI"] = f"sqlite:///{db_path}"
 
     CORS(
         app,
