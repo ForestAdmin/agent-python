@@ -53,9 +53,14 @@ class ActionResource(BaseCollectionResource):
         await self.permission.can_smart_action(request, request.collection, filter_)
 
         raw_data: Dict[str, Any] = request.body.get("data", {}).get("attributes", {}).get("values", {})  # type: ignore
+
+        # As forms are dynamic, we don't have any way to ensure that we're parsing the data correctly
+        # => better send invalid data to the getForm() customer handler than to the execute() one.
         unsafe_data = ForestValueConverter.make_form_unsafe_data(raw_data)
-        fields = await request.collection.get_form(request.user, request.action_name, raw_data, filter_)
-        data = ForestValueConverter.make_form_data(request.collection.datasource, unsafe_data, fields)
+        fields = await request.collection.get_form(request.user, request.action_name, unsafe_data, filter_)
+
+        # Now that we have the field list, we can parse the data again.
+        data = ForestValueConverter.make_form_data(request.collection.datasource, raw_data, fields)
         result = await request.collection.execute(request.user, request.action_name, data, filter_)
 
         if result["type"] == ResultBuilder.ERROR:
@@ -92,15 +97,15 @@ class ActionResource(BaseCollectionResource):
             .get("attributes", {})  # type: ignore
             .get("fields", [])  # type: ignore
         )
-        data: Optional[Dict[str, Any]] = None
+        unsafe_data: Optional[Dict[str, Any]] = None
         if forest_fields:
-            data = ForestValueConverter.make_form_data_from_fields(request.collection.datasource, forest_fields)
+            unsafe_data = ForestValueConverter.make_form_data_from_fields(request.collection.datasource, forest_fields)
 
         _filter = await self._get_records_selection(request)
         fields = await request.collection.get_form(
             request.user,
             request.action_name,
-            data,
+            unsafe_data,
             _filter,
             {"changed_field": request.body.get("data", {}).get("attributes", {}).get("changed_field")},
         )

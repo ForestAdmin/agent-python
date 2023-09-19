@@ -14,7 +14,7 @@ class File:
     mime_type: str
     buffer: str
     name: str
-    charset: Optional[str]
+    charset: Optional[str] = None
 
 
 @dataclass
