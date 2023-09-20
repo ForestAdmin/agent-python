@@ -1,10 +1,9 @@
-from typing import Any, Dict, List
+from typing import Any, List, Set
 
 from forestadmin.agent_toolkit.utils.context import User
 from forestadmin.datasource_toolkit.decorators.collection_decorator import CollectionDecorator
-from forestadmin.datasource_toolkit.exceptions import DatasourceToolkitException
+from forestadmin.datasource_toolkit.exceptions import DatasourceToolkitException, ForestException
 from forestadmin.datasource_toolkit.interfaces.fields import (
-    FieldAlias,
     is_column,
     is_many_to_many,
     is_many_to_one,
@@ -19,20 +18,25 @@ class PublicationCollectionException(DatasourceToolkitException):
     pass
 
 
-class PublicationFieldCollectionDecorator(CollectionDecorator):
+class PublicationCollectionDecorator(CollectionDecorator):
     def __init__(self, *args: Any, **kwargs: Any):
-        self._unpublished: Dict[str, FieldAlias] = {}
+        self._blacklist: Set[str] = set()
         super().__init__(*args, **kwargs)
 
     def change_field_visibility(self, name: str, visible: bool):
-        if name in self._unpublished and visible:
-            self._unpublished.pop(name)
-        else:
-            field = self.get_field(name)
-            if is_column(field) and field.get("is_primary_key", False):
-                raise PublicationCollectionException("Cannot hide primary key")
-            if not visible:
-                self._unpublished[name] = field
+        """Show/hide fields from the schema"""
+        field = self.child_collection.schema["fields"].get(name)
+        if field is None:
+            raise ForestException(f"No such field '{name}'")
+
+        if is_column(field) and field.get("is_primary_key", False):
+            raise ForestException("Cannot hide primary key")
+
+        if visible is False:
+            self._blacklist.add(name)
+        elif visible is True and name in self._blacklist:
+            self._blacklist.remove(name)
+
         self.mark_schema_as_dirty()
 
     def _refine_schema(self, sub_schema: CollectionSchema) -> CollectionSchema:
@@ -42,31 +46,44 @@ class PublicationFieldCollectionDecorator(CollectionDecorator):
                 new_field_schema[name] = field
         return {**sub_schema, "fields": new_field_schema}
 
-    def _is_published(self, name: str) -> bool:
-        field = self.child_collection.get_field(name)
-        return name not in self._unpublished and (
-            is_column(field)
-            or (
-                (is_many_to_one(field) and self._is_published(field["foreign_key"]))
-                or (
-                    (is_one_to_one(field) or is_one_to_many(field))
-                    and self.datasource.get_collection(field["foreign_collection"])._is_published(field["origin_key"])
-                )
-                or (
-                    is_many_to_many(field)
-                    and self.datasource.get_collection(field["through_collection"])._is_published(field["foreign_key"])
-                    and self.datasource.get_collection(field["through_collection"])._is_published(field["origin_key"])
-                )
-            )
-        )
-
     async def create(self, caller: User, data: List[RecordsDataAlias]) -> List[RecordsDataAlias]:
         records = await super().create(caller, data)
-        new_records = []
-        for record in records:
-            tmp_record = {}
-            for field_name, field in record.items():
-                if field_name not in self._unpublished:
-                    tmp_record[field_name] = field
-            new_records.append(tmp_record)
-        return new_records
+        return [{key: value for key, value in record.items() if key not in self._blacklist} for record in records]
+
+    def _is_published(self, name: str) -> bool:
+        # explicit hidden
+        if name in self._blacklist:
+            return False
+
+        # implicit hidden
+        field = self.child_collection.get_field(name)
+
+        if is_many_to_one(field):
+            return (
+                self.datasource.is_published(field["foreign_collection"])
+                and self._is_published(field["foreign_key"])
+                and self.datasource.get_collection(field["foreign_collection"])._is_published(
+                    field["foreign_key_target"]
+                )
+            )
+
+        if is_one_to_one(field) or is_one_to_many(field):
+            return (
+                self.datasource.is_published(field["foreign_collection"])
+                and self.datasource.get_collection(field["foreign_collection"])._is_published(field["origin_key"])
+                and self._is_published(field["origin_key_target"])
+            )
+
+        if is_many_to_many(field):
+            return (
+                self.datasource.is_published(field["through_collection"])
+                and self.datasource.is_published(field["foreign_collection"])
+                and self.datasource.get_collection(field["through_collection"])._is_published(field["foreign_key"])
+                and self.datasource.get_collection(field["through_collection"])._is_published(field["origin_key"])
+                and self._is_published(field["origin_key_target"])
+                and self.datasource.get_collection(field["foreign_collection"])._is_published(
+                    field["foreign_key_target"]
+                )
+            )
+
+        return True

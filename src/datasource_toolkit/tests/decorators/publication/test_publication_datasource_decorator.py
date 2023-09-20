@@ -1,7 +1,6 @@
 import asyncio
 import sys
 from unittest import TestCase
-from unittest.mock import AsyncMock, patch
 
 if sys.version_info >= (3, 9):
     import zoneinfo
@@ -9,13 +8,10 @@ else:
     from backports import zoneinfo
 
 from forestadmin.agent_toolkit.utils.context import User
-from forestadmin.datasource_toolkit.collections import Collection, CollectionException
+from forestadmin.datasource_toolkit.collections import Collection
 from forestadmin.datasource_toolkit.datasources import Datasource
-from forestadmin.datasource_toolkit.decorators.datasource_decorator import DatasourceDecorator
-from forestadmin.datasource_toolkit.decorators.publication_field.collections import (
-    PublicationCollectionException,
-    PublicationFieldCollectionDecorator,
-)
+from forestadmin.datasource_toolkit.decorators.publication_field.datasource import PublicationDataSourceDecorator
+from forestadmin.datasource_toolkit.exceptions import ForestException
 from forestadmin.datasource_toolkit.interfaces.fields import (
     Column,
     FieldType,
@@ -27,7 +23,7 @@ from forestadmin.datasource_toolkit.interfaces.fields import (
 )
 
 
-class TestPublicationFieldCollectionDecorator(TestCase):
+class TestPublicationDatasourceDecorator(TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         cls.loop = asyncio.new_event_loop()
@@ -115,77 +111,53 @@ class TestPublicationFieldCollectionDecorator(TestCase):
             timezone=zoneinfo.ZoneInfo("Europe/Paris"),
         )
 
-    def setUp(self) -> None:
-        self.datasource_decorator = DatasourceDecorator(self.datasource, PublicationFieldCollectionDecorator)
-
-        self.decorated_collection_person = self.datasource_decorator.get_collection("Person")
-        self.decorated_collection_person_book = self.datasource_decorator.get_collection("BookPerson")
-        self.decorated_collection_book = self.datasource_decorator.get_collection("Book")
-
-    def test_change_visibility_error_on_non_existent_field(self):
-        self.assertRaisesRegex(
-            CollectionException,
-            r"🌳🌳🌳No such field unknown in the collection Person",
-            self.decorated_collection_person.change_field_visibility,
-            "unknown",
-            False,
+    def test_should_return_all_collections_when_no_parameter_is_provided(self):
+        decorated_datasource = PublicationDataSourceDecorator(self.datasource)
+        self.assertEquals(decorated_datasource.get_collection("Book").name, self.datasource.get_collection("Book").name)
+        self.assertEquals(
+            decorated_datasource.get_collection("Person").name, self.datasource.get_collection("Person").name
         )
 
-    def test_change_visibility_error_on_primary_key_field(self):
+    def test_keep_collections_matching_should_throw_if_name_is_unknown(self):
+        decorated_datasource = PublicationDataSourceDecorator(self.datasource)
         self.assertRaisesRegex(
-            PublicationCollectionException,
-            r"🌳🌳🌳Cannot hide primary key",
-            self.decorated_collection_person.change_field_visibility,
-            "id",
-            False,
+            ForestException,
+            "🌳🌳🌳Collection 'unknown' not found",
+            decorated_datasource.keep_collections_matching,
+            ["unknown"],
+        )
+        self.assertRaisesRegex(
+            ForestException,
+            "🌳🌳🌳Collection 'unknown' not found",
+            decorated_datasource.keep_collections_matching,
+            [],
+            ["unknown"],
         )
 
-    def test_schema_dont_update_if_no_changes(self):
-        assert self.decorated_collection_person_book.schema == self.collection_book_person.schema
-        assert self.decorated_collection_book.schema == self.collection_book.schema
-        assert self.decorated_collection_person.schema == self.collection_person.schema
+    def test_keep_collections_matching_should_remove_book_person_collection(self):
+        decorated_datasource = PublicationDataSourceDecorator(self.datasource)
+        decorated_datasource.keep_collections_matching(["Book", "Person"])
 
-    def test_schema_dont_move_after_hide_and_show(self):
-        self.decorated_collection_person.change_field_visibility("book", False)
-        self.decorated_collection_person.change_field_visibility("book", True)
+        self.assertRaisesRegex(
+            ForestException,
+            "🌳🌳🌳Collection BookPerson was removed",
+            decorated_datasource.get_collection,
+            "BookPerson",
+        )
 
-        assert self.decorated_collection_person.schema == self.collection_person.schema
+        self.assertNotIn("persons", decorated_datasource.get_collection("Book").schema["fields"].keys())
+        self.assertNotIn("books", decorated_datasource.get_collection("Person").schema["fields"].keys())
 
-    def test_field_not_in_schema_after_hiding(self):
-        self.decorated_collection_book.change_field_visibility("title", False)
-        assert "title" not in self.decorated_collection_book.schema["fields"]
+    def test_keep_collections_matching_should_remove_books_collection(self):
+        decorated_datasource = PublicationDataSourceDecorator(self.datasource)
+        decorated_datasource.keep_collections_matching([], ["Book"])
 
-    def test_hiding_does_not_affect_other_fields(self):
-        self.decorated_collection_book.change_field_visibility("title", False)
+        self.assertRaisesRegex(
+            ForestException,
+            "🌳🌳🌳Collection Book was removed",
+            decorated_datasource.get_collection,
+            "Book",
+        )
 
-        field_names = self.decorated_collection_book.schema["fields"].keys()
-        assert "id" in field_names
-        assert "author_id" in field_names
-        assert "author" in field_names
-        assert "persons" in field_names
-
-    def test_hiding_does_not_affect_other_collections(self):
-        self.decorated_collection_book.change_field_visibility("title", False)
-
-        assert self.decorated_collection_person_book.schema == self.collection_book_person.schema
-        assert self.decorated_collection_person.schema == self.collection_person.schema
-
-    def test_create_should_not_return_hidden_fields(self):
-        # create = {"id": 1, "author_id": 2, "title": "foundation"}
-        create = {"id": 1, "author_id": 2}
-        self.decorated_collection_book.change_field_visibility("title", False)
-
-        with patch.object(self.collection_book, "create", new_callable=AsyncMock, return_value=[create]):
-            created = self.loop.run_until_complete(self.decorated_collection_book.create(self.mocked_caller, [create]))
-
-        assert created == [{"id": 1, "author_id": 2}]
-
-    def test_hiding_fk_should_hide_fk(self):
-        self.decorated_collection_book.change_field_visibility("author_id", False)
-
-        assert "author_id" not in self.decorated_collection_person_book.schema["fields"]
-
-    def test_hiding_fk_should_hide_linked_relations(self):
-        self.decorated_collection_book.change_field_visibility("author_id", False)
-
-        assert "author" not in self.decorated_collection_person_book.schema["fields"]
+        self.assertNotIn("book", decorated_datasource.get_collection("BookPerson").schema["fields"].keys())
+        self.assertNotIn("book", decorated_datasource.get_collection("Person").schema["fields"].keys())

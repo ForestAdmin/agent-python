@@ -8,7 +8,7 @@ from forestadmin.datasource_toolkit.decorators.operators_emulate.collections imp
 from forestadmin.datasource_toolkit.decorators.operators_equivalence.collections import (
     OperatorEquivalenceCollectionDecorator,
 )
-from forestadmin.datasource_toolkit.decorators.publication_field.collections import PublicationFieldCollectionDecorator
+from forestadmin.datasource_toolkit.decorators.publication_field.datasource import PublicationDataSourceDecorator
 from forestadmin.datasource_toolkit.decorators.relation.collections import RelationCollectionDecorator
 from forestadmin.datasource_toolkit.decorators.rename_field.collections import RenameFieldCollectionDecorator
 from forestadmin.datasource_toolkit.decorators.schema.collection import SchemaCollectionDecorator
@@ -53,7 +53,7 @@ class DecoratorStack:
         # last = self.binary = DatasourceDecorator(last, BinaryCollection)
 
         # Step 4: Renaming must be either the very first or very last so that naming in customer code is consistent.
-        last = self.publication = DatasourceDecorator(last, PublicationFieldCollectionDecorator)
+        last = self.publication = PublicationDataSourceDecorator(last)
         last = self.rename_field = DatasourceDecorator(last, RenameFieldCollectionDecorator)
 
         self.datasource = last

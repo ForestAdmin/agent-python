@@ -1,9 +1,11 @@
-from typing import Dict
+from typing import List, Union
 
 from forestadmin.datasource_toolkit.datasource_customizer.collection_customizer import CollectionCustomizer
+from forestadmin.datasource_toolkit.datasource_customizer.types import DataSourceOptions
 from forestadmin.datasource_toolkit.datasources import Datasource
 from forestadmin.datasource_toolkit.decorators.chart.types import DataSourceChartDefinition
 from forestadmin.datasource_toolkit.decorators.decorator_stack import DecoratorStack
+from forestadmin.datasource_toolkit.decorators.publication_field.datasource import PublicationDataSourceDecorator
 
 
 class DatasourceCustomizer:
@@ -11,11 +13,10 @@ class DatasourceCustomizer:
         self.composite_datasource: Datasource = Datasource()
         self.stack = DecoratorStack(self.composite_datasource)
 
-    def add_datasource(self, datasource: Datasource, options: Dict):
-        # if "include" in options or "exclude" in options:
-        #     $datasource = new PublicationCollectionDatasourceDecorator($datasource);
-        #     $datasource->build();
-        #     $datasource->keepCollectionsMatching($options['include'] ?? [], $options['exclude'] ?? []);
+    def add_datasource(self, datasource: Datasource, options: DataSourceOptions):
+        if "include" in options or "exclude" in options:
+            publication_decorator = PublicationDataSourceDecorator(datasource)
+            publication_decorator.keep_collections_matching(options.get("include", []), options.get("exclude", []))
 
         # if "rename" in options:
         #     $datasource = new RenameCollectionDatasourceDecorator($datasource);
@@ -32,3 +33,6 @@ class DatasourceCustomizer:
 
     def add_chart(self, name: str, definition: DataSourceChartDefinition):
         self.stack.chart.add_chart(name, definition)
+
+    def remove_collection(self, names: Union[str, List[str]]):
+        self.stack.publication.keep_collections_matching([], [names] if isinstance(names, str) else names)
