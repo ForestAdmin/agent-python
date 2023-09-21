@@ -10,7 +10,7 @@ else:
 from forestadmin.agent_toolkit.utils.context import User
 from forestadmin.datasource_toolkit.collections import Collection
 from forestadmin.datasource_toolkit.datasources import Datasource
-from forestadmin.datasource_toolkit.decorators.publication_field.datasource import PublicationDataSourceDecorator
+from forestadmin.datasource_toolkit.decorators.publication.datasource import PublicationDataSourceDecorator
 from forestadmin.datasource_toolkit.exceptions import ForestException
 from forestadmin.datasource_toolkit.interfaces.fields import (
     Column,
@@ -113,8 +113,8 @@ class TestPublicationDatasourceDecorator(TestCase):
 
     def test_should_return_all_collections_when_no_parameter_is_provided(self):
         decorated_datasource = PublicationDataSourceDecorator(self.datasource)
-        self.assertEquals(decorated_datasource.get_collection("Book").name, self.datasource.get_collection("Book").name)
-        self.assertEquals(
+        self.assertEqual(decorated_datasource.get_collection("Book").name, self.datasource.get_collection("Book").name)
+        self.assertEqual(
             decorated_datasource.get_collection("Person").name, self.datasource.get_collection("Person").name
         )
 

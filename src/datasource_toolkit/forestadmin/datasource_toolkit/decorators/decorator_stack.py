@@ -8,7 +8,7 @@ from forestadmin.datasource_toolkit.decorators.operators_emulate.collections imp
 from forestadmin.datasource_toolkit.decorators.operators_equivalence.collections import (
     OperatorEquivalenceCollectionDecorator,
 )
-from forestadmin.datasource_toolkit.decorators.publication_field.datasource import PublicationDataSourceDecorator
+from forestadmin.datasource_toolkit.decorators.publication.datasource import PublicationDataSourceDecorator
 from forestadmin.datasource_toolkit.decorators.relation.collections import RelationCollectionDecorator
 from forestadmin.datasource_toolkit.decorators.rename_field.collections import RenameFieldCollectionDecorator
 from forestadmin.datasource_toolkit.decorators.schema.collection import SchemaCollectionDecorator

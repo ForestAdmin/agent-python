@@ -5,7 +5,7 @@ from forestadmin.datasource_toolkit.datasource_customizer.types import DataSourc
 from forestadmin.datasource_toolkit.datasources import Datasource
 from forestadmin.datasource_toolkit.decorators.chart.types import DataSourceChartDefinition
 from forestadmin.datasource_toolkit.decorators.decorator_stack import DecoratorStack
-from forestadmin.datasource_toolkit.decorators.publication_field.datasource import PublicationDataSourceDecorator
+from forestadmin.datasource_toolkit.decorators.publication.datasource import PublicationDataSourceDecorator
 
 
 class DatasourceCustomizer:
@@ -13,10 +13,14 @@ class DatasourceCustomizer:
         self.composite_datasource: Datasource = Datasource()
         self.stack = DecoratorStack(self.composite_datasource)
 
-    def add_datasource(self, datasource: Datasource, options: DataSourceOptions):
+    def add_datasource(self, datasource: Datasource, options: Optional[DataSourceOptions] = None):
+        if options is None:
+            options = {}
+
         if "include" in options or "exclude" in options:
             publication_decorator = PublicationDataSourceDecorator(datasource)
             publication_decorator.keep_collections_matching(options.get("include", []), options.get("exclude", []))
+            datasource = publication_decorator
 
         # if "rename" in options:
         #     $datasource = new RenameCollectionDatasourceDecorator($datasource);

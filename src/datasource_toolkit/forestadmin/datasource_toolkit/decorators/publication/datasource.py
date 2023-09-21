@@ -2,7 +2,7 @@ from typing import List, Optional, Set, Union
 
 from forestadmin.datasource_toolkit.datasources import Datasource
 from forestadmin.datasource_toolkit.decorators.datasource_decorator import DatasourceDecorator
-from forestadmin.datasource_toolkit.decorators.publication_field.collections import PublicationCollectionDecorator
+from forestadmin.datasource_toolkit.decorators.publication.collections import PublicationCollectionDecorator
 from forestadmin.datasource_toolkit.exceptions import ForestException
 from forestadmin.datasource_toolkit.interfaces.models.collections import BoundCollection
 
@@ -11,10 +11,11 @@ class PublicationDataSourceDecorator(DatasourceDecorator):
     def __init__(self, child_datasource: Union[Datasource, DatasourceDecorator]):
         super().__init__(child_datasource, PublicationCollectionDecorator)
         self._blacklist: Set[str] = set()
+        self.child_datasource = child_datasource
 
     @property
     def collections(self) -> List[BoundCollection]:
-        return [self.get_collection(c.name) for c in super().collections if c.name not in self._blacklist]
+        return [self.get_collection(c.name) for c in self.child_datasource.collections if c.name not in self._blacklist]
 
     def get_collection(self, name: str) -> BoundCollection:
         if name in self._blacklist:

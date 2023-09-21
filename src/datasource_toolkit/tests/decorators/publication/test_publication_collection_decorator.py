@@ -11,7 +11,7 @@ else:
 from forestadmin.agent_toolkit.utils.context import User
 from forestadmin.datasource_toolkit.collections import Collection
 from forestadmin.datasource_toolkit.datasources import Datasource
-from forestadmin.datasource_toolkit.decorators.publication_field.datasource import PublicationDataSourceDecorator
+from forestadmin.datasource_toolkit.decorators.publication.datasource import PublicationDataSourceDecorator
 from forestadmin.datasource_toolkit.exceptions import ForestException
 from forestadmin.datasource_toolkit.interfaces.fields import (
     Column,
