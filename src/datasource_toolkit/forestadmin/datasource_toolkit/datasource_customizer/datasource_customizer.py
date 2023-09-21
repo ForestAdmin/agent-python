@@ -1,4 +1,4 @@
-from typing import List, Union
+from typing import List, Optional, Union
 
 from forestadmin.datasource_toolkit.datasource_customizer.collection_customizer import CollectionCustomizer
 from forestadmin.datasource_toolkit.datasource_customizer.types import DataSourceOptions
@@ -6,6 +6,7 @@ from forestadmin.datasource_toolkit.datasources import Datasource
 from forestadmin.datasource_toolkit.decorators.chart.types import DataSourceChartDefinition
 from forestadmin.datasource_toolkit.decorators.decorator_stack import DecoratorStack
 from forestadmin.datasource_toolkit.decorators.publication.datasource import PublicationDataSourceDecorator
+from forestadmin.datasource_toolkit.decorators.rename_collection.datasource import RenameCollectionDataSourceDecorator
 
 
 class DatasourceCustomizer:
@@ -22,10 +23,10 @@ class DatasourceCustomizer:
             publication_decorator.keep_collections_matching(options.get("include", []), options.get("exclude", []))
             datasource = publication_decorator
 
-        # if "rename" in options:
-        #     $datasource = new RenameCollectionDatasourceDecorator($datasource);
-        #     $datasource->build();
-        #     $datasource->renameCollections($options['rename'] ?? []);
+        if "rename" in options:
+            rename_decorator = RenameCollectionDataSourceDecorator(datasource)
+            rename_decorator.rename_collections(options.get("rename", {}))
+            datasource = rename_decorator
 
         for collection in datasource.collections:
             self.composite_datasource.add_collection(collection)

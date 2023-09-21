@@ -16,6 +16,10 @@ class DatasourceDecorator(Datasource):
         for collection in self.child_datasource.collections:
             self.add_collection(self.class_collection_decorator(collection, self))
 
+    @property
+    def collections(self):
+        return [self.get_collection(c.name) for c in self.child_datasource.collections]
+
     def get_charts(self):
         return self.child_datasource.get_charts()
 
