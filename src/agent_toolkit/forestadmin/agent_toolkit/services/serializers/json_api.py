@@ -87,9 +87,9 @@ def _create_relationship(collection: CollectionAlias, field_name: str, relation:
         "collection": collection,
     }
     if is_many_to_many(relation):
-        type_ = relation["through_collection"].lower()
+        type_ = relation["through_collection"]
     else:
-        type_ = relation["foreign_collection"].lower()
+        type_ = relation["foreign_collection"]
         kwargs["id_field"] = SchemaUtils.get_primary_keys(collection.datasource.get_collection(type_).schema)[0]
 
     kwargs.update(
