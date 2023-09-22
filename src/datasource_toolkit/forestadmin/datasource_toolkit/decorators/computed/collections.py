@@ -39,6 +39,7 @@ class ComputedCollectionDecorator(CollectionDecorator):
     def register_computed(self, name: str, computed: ComputedDefinition):
         if computed.get("dependencies") is None or len(computed["dependencies"]) == 0:
             raise ComputedDecoratorException(f"Computed field '{self.name}.{name}' must have at least one dependency")
+        FieldValidator.validate_name(self.name, name)
         for field in computed["dependencies"]:
             try:
                 FieldValidator.validate(self.child_collection, field)  # type: ignore
