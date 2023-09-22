@@ -39,5 +39,5 @@ class DatasourceCustomizer:
     def add_chart(self, name: str, definition: DataSourceChartDefinition):
         self.stack.chart.add_chart(name, definition)
 
-    def remove_collection(self, names: Union[str, List[str]]):
+    def remove_collections(self, names: Union[str, List[str]]):
         self.stack.publication.keep_collections_matching([], [names] if isinstance(names, str) else names)

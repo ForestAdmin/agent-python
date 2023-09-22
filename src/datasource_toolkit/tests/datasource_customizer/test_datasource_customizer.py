@@ -129,5 +129,5 @@ class TestDatasourceCustomizerRemoveCollection(BaseTestDatasourceCustomizer):
     def test_remove_collection_should_work(self):
         self.datasource_customizer.add_datasource(self.datasource)
 
-        self.datasource_customizer.remove_collection("Category")
+        self.datasource_customizer.remove_collections("Category")
         self.assertNotIn("Category", set([c.name for c in self.datasource_customizer.stack.datasource.collections]))

@@ -160,6 +160,25 @@ class TestAgent(TestCase):
 
             mock_add_chart.assert_called_with("test_chart", chart_fn)
 
+    def test_remove_collections(
+        self,
+        mocked_schema_emitter__get_serialized_schema,
+        mocked_forest_http_api__send_schema,
+        mocked_action_resource,
+        mocked_stats_resource,
+        mocked_crud_related_resource,
+        mocked_crud_resource,
+        mocked_authentication_resource,
+        mocked_datasource_customizer,
+        mocked_permission_service,
+    ):
+        agent = Agent(self.fake_options)
+
+        with patch.object(agent.customizer, "remove_collections") as mock_remove_collections:
+            agent.remove_collections("collections")
+
+            mock_remove_collections.assert_called_with("collections")
+
     def test_customize_datasource(
         self,
         mocked_schema_emitter__get_serialized_schema,

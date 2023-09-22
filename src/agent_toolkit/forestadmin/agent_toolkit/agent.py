@@ -1,5 +1,5 @@
 import copy
-from typing import Optional, TypedDict
+from typing import List, Optional, TypedDict, Union
 
 from forestadmin.agent_toolkit.exceptions import AgentToolkitException
 from forestadmin.agent_toolkit.forest_logger import ForestLogger
@@ -99,6 +99,9 @@ class Agent:
 
     def customize_collection(self, collection_name: str) -> CollectionCustomizer:
         return self.customizer.customize_collection(collection_name)
+
+    def remove_collections(self, names: Union[str, List[str]]):
+        return self.customizer.remove_collections(names)
 
     def add_chart(self, name: str, definition: DataSourceChartDefinition):
         return self.customizer.add_chart(name, definition)
