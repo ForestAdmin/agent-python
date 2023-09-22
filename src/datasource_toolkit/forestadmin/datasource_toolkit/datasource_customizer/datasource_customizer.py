@@ -14,6 +14,14 @@ class DatasourceCustomizer:
         self.composite_datasource: Datasource = Datasource()
         self.stack = DecoratorStack(self.composite_datasource)
 
+    @property
+    def schema(self):
+        return self.stack.validation.schema
+
+    @property
+    def collections(self):
+        return [self.get_collection(c.name) for c in self.stack.validation.collections]
+
     def add_datasource(self, datasource: Datasource, options: Optional[DataSourceOptions] = None):
         if options is None:
             options = {}
@@ -34,6 +42,9 @@ class DatasourceCustomizer:
         self.stack = DecoratorStack(self.composite_datasource)
 
     def customize_collection(self, collection_name: str) -> CollectionCustomizer:
+        return self.get_collection(collection_name)
+
+    def get_collection(self, collection_name: str) -> CollectionCustomizer:
         return CollectionCustomizer(self, self.stack, collection_name)
 
     def add_chart(self, name: str, definition: DataSourceChartDefinition):

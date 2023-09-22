@@ -30,6 +30,10 @@ class CollectionCustomizer:
         self.stack = stack
         self.collection_name = collection_name
 
+    @property
+    def schema(self):
+        return self.stack.validation.get_collection(self.collection_name)
+
     def add_action(self, name: str, action: ActionDict):
         self.stack.action.get_collection(self.collection_name).add_action(name, action)
 
