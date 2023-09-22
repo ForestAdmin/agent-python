@@ -1,6 +1,8 @@
+import json
 from typing import Any, Dict, Optional, TypedDict
 
-import aiohttp
+from aiohttp import ClientSession, client_exceptions
+from aiohttp.web import HTTPException
 from forestadmin.agent_toolkit.exceptions import AgentToolkitException
 from forestadmin.agent_toolkit.forest_logger import ForestLogger
 from forestadmin.agent_toolkit.utils.forest_schema.type import ForestSchema
@@ -58,27 +60,69 @@ class ForestHttpApi:
 
     @staticmethod
     async def get(endpoint: str, headers: Dict[str, str]) -> Dict[str, Any]:
-        async with aiohttp.ClientSession() as session:
+        async with ClientSession() as session:
             try:
                 async with session.get(endpoint, headers=headers) as response:
                     if response.status == 200:
                         return await response.json()
-                    raise ForestHttpApiException(
-                        f"Failed to fetch {endpoint} ({response.status}, {headers} {await response.text()})"
-                    )
-            except aiohttp.ClientError as exc:
-                raise ForestHttpApiException(f"Failed to fetch {endpoint} : {exc}")
+                    raise HTTPException(text=await response.text(), headers=headers)
+            except Exception as exc:
+                await ForestHttpApi._handle_server_error(endpoint, exc)
 
     @staticmethod
     async def post(endpoint: str, body: Dict[str, Any], headers: Dict[str, str]) -> Optional[Dict[str, Any]]:
-        async with aiohttp.ClientSession() as session:
+        async with ClientSession() as session:
             try:
                 async with session.post(endpoint, json=body, headers=headers) as response:
                     if response.status == 200:
                         return await response.json()
-                    return None
-            except aiohttp.ClientError as exc:
-                raise ForestHttpApiException(f"Failed to fetch {endpoint} : {exc}")
+                    if response.status == 204:
+                        return None
+                    if str(response.status).startswith("4") or str(response.status).startswith("5"):
+                        raise HTTPException(text=await response.text(), headers=headers)
+            except Exception as exc:
+                await ForestHttpApi._handle_server_error(endpoint, exc)
+
+    @staticmethod
+    async def _handle_server_error(endpoint: str, error: Exception) -> Exception:
+        new_error = None
+        if isinstance(error, client_exceptions.ClientConnectorCertificateError):
+            new_error = ForestHttpApiException(
+                "ForestAdmin server TLS certificate cannot be verified. "
+                + "Please check that your system time is set properly."
+            )
+
+        elif isinstance(error, HTTPException):
+            server_message = None
+            if error.status in [-1, 0, 502]:
+                new_error = ForestHttpApiException("Failed to reach ForestAdmin server. Are you online?")
+            elif error.status == 404:
+                new_error = ForestHttpApiException(
+                    "ForestAdmin server failed to find the project related to the envSecret you configured."
+                    + " Can you check that you copied it properly in the Forest initialization?"
+                )
+            elif error.status == 503:
+                new_error = ForestHttpApiException(
+                    "Forest is in maintenance for a few minutes. We are upgrading your experience in "
+                    + "the forest. We just need a few more minutes to get it right."
+                )
+            elif error.body:
+                try:
+                    err_body = json.loads(error.body)
+                    err_body = err_body.get("errors", [])
+                    if len(err_body) > 0:
+                        server_message = err_body[0].get("detail")
+                except Exception:
+                    server_message = None
+
+            if new_error is None and server_message is not None:
+                new_error = ForestHttpApiException(f"Failed to fetch {endpoint} : {server_message}.")
+
+        if new_error is None:
+            new_error = ForestHttpApiException(f"Failed to fetch {endpoint}: {error})")
+
+        ForestLogger.log("error", ". ".join(new_error.args))
+        raise new_error
 
     @classmethod
     async def send_schema(cls, options: HttpOptions, schema: ForestSchema) -> bool:
