@@ -473,7 +473,7 @@ class TestHookActionResource(BaseTestActionResource):
                 {
                     "field": "Value",
                     "value": 5,
-                    "defaultValue": None,
+                    "defaultValue": 0,
                     "description": "",
                     "enums": None,
                     "hook": "changeHook",
@@ -486,7 +486,7 @@ class TestHookActionResource(BaseTestActionResource):
                 {
                     "field": "Summary",
                     "value": "value is 5",
-                    "defaultValue": None,
+                    "defaultValue": "",
                     "description": "",
                     "enums": None,
                     "hook": None,

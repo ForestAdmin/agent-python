@@ -58,7 +58,7 @@ class SchemaActionGenerator:
             "value": value,
             # When sending to server, we need to rename 'value' into 'defaultValue'
             # otherwise, it does not gets applied 🤷‍♂️
-            "defaultValue": value,
+            "defaultValue": field["default_value"],
             "description": field["description"],
             "enums": None,
             "hook": None,
