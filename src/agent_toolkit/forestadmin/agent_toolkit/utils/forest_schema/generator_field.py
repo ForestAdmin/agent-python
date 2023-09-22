@@ -151,7 +151,7 @@ class SchemaFieldGenerator:
             "isFilterable": False,
             "isPrimaryKey": False,
             "isRequired": False,
-            "isSortable": False,
+            "isSortable": True,
             "validations": [],
             "reference": f"{foreign_collection.name}.{key}",
         }
