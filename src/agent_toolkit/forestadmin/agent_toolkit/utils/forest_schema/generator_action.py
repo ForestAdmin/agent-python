@@ -52,10 +52,13 @@ class SchemaActionGenerator:
     async def build_field_schema(
         cls, datasource: Datasource[Collection], field: ActionField
     ) -> ForestServerActionField:
+        value = ForestValueConverter.value_to_forest(field, field["value"])
         output: ForestServerActionField = {
             "field": field["label"],
-            "value": ForestValueConverter.value_to_forest(field, field["value"]),
-            "defaultValue": None,
+            "value": value,
+            # When sending to server, we need to rename 'value' into 'defaultValue'
+            # otherwise, it does not gets applied 🤷‍♂️
+            "defaultValue": value,
             "description": field["description"],
             "enums": None,
             "hook": None,
