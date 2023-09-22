@@ -119,18 +119,20 @@ class Agent:
             return
         ForestLogger.log("debug", "Starting agent")
 
-        try:
-            api_map = await SchemaEmitter.get_serialized_schema(
-                self.options, self.customizer.stack.datasource, self.meta
-            )
-        except Exception:
-            ForestLogger.log("Error", "Error generating forest schema")
+        if self.options["skip_schema_update"] is False:
+            try:
+                api_map = await SchemaEmitter.get_serialized_schema(
+                    self.options, self.customizer.stack.datasource, self.meta
+                )
+            except Exception:
+                ForestLogger.log("Error", "Error generating forest schema")
 
-        try:
-            await ForestHttpApi.send_schema(self.options, api_map)
-
-        except Exception:
-            ForestLogger.log("warning", "Cannot send the apimap to Forest. Are you online?")
+            try:
+                await ForestHttpApi.send_schema(self.options, api_map)
+            except Exception:
+                ForestLogger.log("warning", "Cannot send the apimap to Forest. Are you online?")
+        else:
+            ForestLogger.log("warning", 'Schema update was skipped (caused by options["skip_schema_update"]=True)')
 
         for collection in self.customizer.stack.datasource.collections:
             create_json_api_schema(collection)

@@ -15,6 +15,7 @@ class Options(TypedDict):
     permissions_cache_duration_in_seconds: int
     customize_error_message: Callable[[Exception], str]
     instant_cache_refresh: Optional[bool]
+    skip_schema_update: Optional[bool]
     # typingsPath
     # typingsMaxDepth
     # skipSchemaUpdate
@@ -30,4 +31,5 @@ DEFAULT_OPTIONS: Options = {
     "customize_error_message": None,
     "permissions_cache_duration_in_seconds": 15 * 60,
     "instant_cache_refresh": None,
+    "skip_schema_update": False,
 }
