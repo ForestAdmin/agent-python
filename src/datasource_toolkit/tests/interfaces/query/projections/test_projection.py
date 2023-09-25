@@ -94,3 +94,20 @@ def test_unnest():
 
     projection = Projection("r1:c1", "r1:c2", "r1:c3")
     assert projection.unnest() == Projection("c1", "c2", "c3")
+
+
+def test_equal():
+    projection_1 = Projection("c1", "c2", "r1:c1")
+    projection_2 = Projection("c2", "c1", "r1:c1")
+    assert projection_1 == projection_2
+
+    projection_3 = Projection("c2", "c3", "r1:c1")
+    assert projection_1 != projection_3
+
+    projection_1 = Projection("c1", "r1:c1")
+    projection_2 = Projection("c2", "c3", "r1:c1")
+    assert projection_1 != projection_2
+
+    projection_1 = Projection("c2", "r1:c1", "c3", "c2")
+    projection_2 = Projection("c2", "c3", "r1:c1")
+    assert projection_1 == projection_2

@@ -53,6 +53,9 @@ class ComputedCollectionDecorator(CollectionDecorator):
     async def list(self, caller: User, _filter: PaginatedFilter, projection: Projection) -> List[RecordsDataAlias]:
         new_projection = projection.replace(lambda path: rewrite_fields(self, path))
         records: List[Optional[RecordsDataAlias]] = await super().list(caller, _filter, new_projection)  # type: ignore
+        if new_projection == projection:
+            return records
+
         context = CollectionCustomizationContext(cast(Collection, self), caller)
         return await compute_from_records(context, self, new_projection, projection, records)
 
