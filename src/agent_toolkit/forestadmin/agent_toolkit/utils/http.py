@@ -119,7 +119,7 @@ class ForestHttpApi:
                 new_error = ForestHttpApiException(f"Failed to fetch {endpoint} : {server_message}.")
 
         if new_error is None:
-            new_error = ForestHttpApiException(f"Failed to fetch {endpoint}: {error})")
+            new_error = ForestHttpApiException(f"Failed to fetch {endpoint}: {error}")
 
         ForestLogger.log("error", ". ".join(new_error.args))
         raise new_error
