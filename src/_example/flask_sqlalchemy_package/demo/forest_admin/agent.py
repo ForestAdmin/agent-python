@@ -40,10 +40,10 @@ from demo.forest_admin.smart.order import (
 from forestadmin.datasource_toolkit.decorators.computed.types import ComputedDefinition
 from forestadmin.datasource_toolkit.interfaces.fields import Operator, PrimitiveType
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.leaf import ConditionTreeLeaf
-from forestadmin.flask_agent.agent import Agent
+from forestadmin.flask_agent.agent import FlaskAgent
 
 
-def customize_agent(agent: Agent):
+def customize_agent(agent: FlaskAgent):
     customize_forest_logging()
 
     # # ## ADDRESS
