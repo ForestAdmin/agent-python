@@ -14,42 +14,40 @@ class ForestHttpApiException(AgentToolkitException):
 
 class HttpOptions(TypedDict):
     env_secret: str
-    forest_server_url: str
+    server_url: str
 
 
 class ForestHttpApi:
     @staticmethod
-    def build_endpoint(forest_server_url: str, url: str):
-        return f"{forest_server_url}{url}"
+    def build_endpoint(server_url: str, url: str):
+        return f"{server_url}{url}"
 
     @classmethod
     async def get_environment_permissions(cls, options: HttpOptions):
-        endpoint = cls.build_endpoint(options["forest_server_url"], "/liana/v4/permissions/environment")
+        endpoint = cls.build_endpoint(options["server_url"], "/liana/v4/permissions/environment")
         headers = {"forest-secret-key": options["env_secret"]}
         return await cls.get(endpoint, headers)
 
     @classmethod
     async def get_users(cls, options: HttpOptions):
-        endpoint = cls.build_endpoint(options["forest_server_url"], "/liana/v4/permissions/users")
+        endpoint = cls.build_endpoint(options["server_url"], "/liana/v4/permissions/users")
         headers = {"forest-secret-key": options["env_secret"]}
         return await cls.get(endpoint, headers)
 
     @classmethod
     async def get_rendering_permissions(cls, rendering_id: int, options: HttpOptions):
-        endpoint = cls.build_endpoint(options["forest_server_url"], f"/liana/v4/permissions/renderings/{rendering_id}")
+        endpoint = cls.build_endpoint(options["server_url"], f"/liana/v4/permissions/renderings/{rendering_id}")
         headers = {"forest-secret-key": options["env_secret"]}
         return await cls.get(endpoint, headers)
 
     @classmethod
     async def get_open_id_issuer_metadata(cls, options: HttpOptions) -> Dict[str, Any]:
-        endpoint = cls.build_endpoint(options["forest_server_url"], "/oidc/.well-known/openid-configuration")
+        endpoint = cls.build_endpoint(options["server_url"], "/oidc/.well-known/openid-configuration")
         return await cls.get(endpoint, {"forest-secret-key": options["env_secret"]})
 
     @classmethod
     async def get_rendering_authorization(cls, rendering_id: int, access_token: str, options: HttpOptions):
-        endpoint = cls.build_endpoint(
-            options["forest_server_url"], f"/liana/v2/renderings/{rendering_id}/authorization"
-        )
+        endpoint = cls.build_endpoint(options["server_url"], f"/liana/v2/renderings/{rendering_id}/authorization")
         return await cls.get(
             endpoint,
             {
@@ -132,7 +130,7 @@ class ForestHttpApi:
     @classmethod
     async def send_schema(cls, options: HttpOptions, schema: ForestSchema) -> bool:
         ret = await cls.post(
-            cls.build_endpoint(options["forest_server_url"], "/forest/apimaps/hashcheck"),
+            cls.build_endpoint(options["server_url"], "/forest/apimaps/hashcheck"),
             {"schemaFileHash": schema["meta"]["schemaFileHash"]},
             {"forest-secret-key": options["env_secret"], "content-type": "application/json"},
         )
@@ -140,7 +138,7 @@ class ForestHttpApi:
         if ret["sendSchema"] is True:
             ForestLogger.log("info", "Schema was updated, sending new version.")
             await cls.post(
-                cls.build_endpoint(options["forest_server_url"], "/forest/apimaps"),
+                cls.build_endpoint(options["server_url"], "/forest/apimaps"),
                 schema,
                 {"forest-secret-key": options["env_secret"], "content-type": "application/json"},
             )

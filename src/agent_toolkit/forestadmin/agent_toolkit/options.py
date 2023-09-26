@@ -7,7 +7,7 @@ class Options(TypedDict):
     auth_secret: str
     prefix: str
     env_secret: str
-    forest_server_url: str
+    server_url: str
     is_production: bool
     schema_path: str
     logger: Callable[[str, str], None]

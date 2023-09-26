@@ -80,7 +80,7 @@ class BaseTestPermissionService(TestCase):
             timezone=zoneinfo.ZoneInfo("Europe/Paris"),
         )
         cls.options: RoleOptions = {
-            "forest_server_url": "https://api.developpement.forestadmin.com",
+            "server_url": "https://api.developpement.forestadmin.com",
             "env_secret": "env_secret",
             "prefix": "",
             "is_production": False,

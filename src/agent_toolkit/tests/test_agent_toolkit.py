@@ -51,7 +51,7 @@ class TestAgent(TestCase):
         assert agent.options["prefix"] == DEFAULT_OPTIONS["prefix"]
         assert agent.options["is_production"] == DEFAULT_OPTIONS["is_production"]
 
-        assert agent.options["forest_server_url"] == DEFAULT_OPTIONS["forest_server_url"]
+        assert agent.options["server_url"] == DEFAULT_OPTIONS["server_url"]
         assert agent.options["env_secret"] == self.fake_options["env_secret"]
         assert agent.options["auth_secret"] == self.fake_options["auth_secret"]
 

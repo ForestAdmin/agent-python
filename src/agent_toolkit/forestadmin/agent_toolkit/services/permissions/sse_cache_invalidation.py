@@ -31,7 +31,7 @@ class SSECacheInvalidation(Thread):
 
     def run(self) -> None:
         while not self._exit_thread:
-            url = f"{self.options['forest_server_url']}/liana/v4/subscribe-to-events"
+            url = f"{self.options['_server_url']}/liana/v4/subscribe-to-events"
             headers = {"forest-secret-key": self.options["env_secret"], "Accept": "text/event-stream"}
             try:
                 http = urllib3.PoolManager()
