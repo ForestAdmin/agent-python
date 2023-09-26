@@ -1,7 +1,7 @@
 from unittest import TestCase
 from unittest.mock import Mock, call, patch
 
-from forestadmin.flask_agent.agent import Agent, _after_request, build_blueprint, create_agent
+from forestadmin.flask_agent.agent import FlaskAgent, _after_request, build_blueprint, create_agent
 
 
 class TestFlaskAgent(TestCase):
@@ -14,7 +14,7 @@ class TestFlaskAgent(TestCase):
     @patch("forestadmin.flask_agent.agent.build_blueprint", return_value="blueprint")
     def test_create_agent(self, mock_build_blueprint, mock_base_agent, mock_new_event_loop):
         agent = create_agent(self.options)
-        assert isinstance(agent, Agent)
+        assert isinstance(agent, FlaskAgent)
         assert mock_new_event_loop.called
         assert mock_base_agent.called
         assert mock_build_blueprint.called
@@ -46,7 +46,7 @@ class TestFlaskAgent(TestCase):
     @patch("forestadmin.flask_agent.agent.BaseAgent.__init__")
     @patch("forestadmin.flask_agent.agent.Blueprint")
     def test_build_blueprint(self, mocked_blueprint, mock_base_agent, mock_base_agent_resources, mock_get_event_loop):
-        agent = Agent(self.options)
+        agent = FlaskAgent(self.options)
         agent.options = self.options
         mock_base_agent_resources.return_value = {
             "crud": Mock(),
