@@ -16,16 +16,12 @@ class Options(TypedDict):
     customize_error_message: Callable[[Exception], str]
     instant_cache_refresh: Optional[bool]
     skip_schema_update: Optional[bool]
-    # typingsPath
-    # typingsMaxDepth
-    # skipSchemaUpdate
-    # forestAdminClient
 
 
 DEFAULT_OPTIONS: Options = {
     "is_production": False,
-    "prefix": "",
-    "forest_server_url": "https://api.forestadmin.com",
+    "prefix": "forest",
+    "server_url": "https://api.forestadmin.com",
     "logger": None,
     "logger_level": logging.INFO,
     "customize_error_message": None,
