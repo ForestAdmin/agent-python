@@ -45,39 +45,19 @@ class FilterFactory:
         return __replace
 
     @classmethod
-    def get_previous_period_filter(cls, filter: Filter) -> Filter:
-        if not filter.condition_tree:
+    def get_previous_period_filter(cls, filter_: Filter) -> Filter:
+        if not filter_.condition_tree:
             raise FilterFactoryException("Unable to shift a filter without condition_tree")
 
-        filter = filter.override(
+        filter_ = filter_.override(
             {
-                "condition_tree": filter.condition_tree.replace(
-                    cls._shift_period_filter(filter.timezone or zoneinfo.ZoneInfo("UTC"))
+                "condition_tree": filter_.condition_tree.replace(
+                    cls._shift_period_filter(filter_.timezone or zoneinfo.ZoneInfo("UTC"))
                 )
             }
         )
 
-        return filter
-
-    @staticmethod
-    def _build_for_through_relation(
-        base_foreign_key_filter: PaginatedFilter,
-        origin_key: str,
-        foreign_relation: str,
-        origin_value: Union[int, str],
-    ):
-        base_through_filter = base_foreign_key_filter.nest(foreign_relation)
-        leaf = ConditionTreeLeaf(origin_key, Operator.EQUAL, origin_value)
-        if not base_through_filter.condition_tree:
-            condition_tree = leaf
-        else:
-            condition_tree = ConditionTreeFactory.intersect(
-                [
-                    leaf,
-                    base_through_filter.condition_tree,
-                ]
-            )
-        return base_through_filter.override({"condition_tree": condition_tree})
+        return filter_
 
     @classmethod
     async def make_through_filter(
@@ -85,21 +65,40 @@ class FilterFactory:
         caller: User,
         collection: Collection,
         id: CompositeIdAlias,
-        relation: ManyToMany,
+        relation_name: str,
         _base_foreign_key_filter: Union[PaginatedFilter, Filter],
     ) -> PaginatedFilter:
         if is_filter(_base_foreign_key_filter):
             base_foreign_key_filter: PaginatedFilter = PaginatedFilter.from_base_filter(_base_foreign_key_filter)
         else:
             base_foreign_key_filter = cast(PaginatedFilter, _base_foreign_key_filter)
+
+        relation = collection.schema["fields"][relation_name]
+        foreign_relation = CollectionUtils.get_through_target(collection, relation_name)
+
+        # Optimization for many to many when there is not search/segment (saves one query)
         origin_value = await CollectionUtils.get_value(caller, collection, id, relation["origin_key_target"])
-        if relation["foreign_relation"] and base_foreign_key_filter.is_nestable:
-            return cls._build_for_through_relation(
-                base_foreign_key_filter,
-                relation["origin_key"],
-                relation["foreign_relation"],
-                origin_value,
+        if foreign_relation and base_foreign_key_filter.is_nestable:
+            foreign_key_schema = collection.datasource.get_collection(relation["through_collection"]).schema["fields"][
+                relation["foreign_key"]
+            ]
+            base_through_filter = _base_foreign_key_filter.nest(foreign_relation)
+            condition_tree = ConditionTreeFactory.intersect(
+                [
+                    ConditionTreeLeaf(relation["origin_key"], Operator.EQUAL, origin_value),
+                    base_foreign_key_filter.condition_tree,
+                ]
             )
+            if (
+                foreign_key_schema["type"] == FieldType.COLUMN
+                and Operator.PRESENT in foreign_key_schema["filter_operators"]
+            ):
+                present = ConditionTreeLeaf(relation["foreign_key"], Operator.PRESENT)
+                condition_tree = ConditionTreeFactory.intersect([condition_tree, present])
+            return base_through_filter.override({"condition_tree": condition_tree})
+
+        # Otherwise we have no choice but to call the target collection so that search and segment
+        # are correctly apply, and then match ids in the though collection.
         target = collection.datasource.get_collection(relation["foreign_collection"])
         records = await target.list(
             caller,
@@ -136,13 +135,27 @@ class FilterFactory:
             base_foreign_key_filter = cast(PaginatedFilter, _base_foreign_key_filter)
         origin_value = await CollectionUtils.get_value(caller, collection, id, relation["origin_key_target"])
 
+        # Compute condition tree to match parent record.
         origin_tree: ConditionTree
 
         if relation["type"] == FieldType.ONE_TO_MANY:
+            # OneToMany case (can be done in one request all the time)
             origin_tree = ConditionTreeLeaf(relation["origin_key"], Operator.EQUAL, origin_value)
         else:
+            # ManyToMany case (more complicated...)
             through = collection.datasource.get_collection(relation["through_collection"])
+            foreign_key_schema = through.schema["fields"][relation["foreign_key"]]
             through_tree = ConditionTreeLeaf(relation["origin_key"], Operator.EQUAL, str(origin_value))
+
+            # Handle null foreign key case only when the datasource supports it.
+            if (
+                foreign_key_schema["type"] == FieldType.COLUMN
+                and Operator.PRESENT in foreign_key_schema["filter_operators"]
+            ):
+                through_tree = ConditionTreeFactory.intersect(
+                    [through_tree, ConditionTreeLeaf(relation["foreign_key"], Operator.PRESENT)]
+                )
+
             records = await through.list(
                 caller,
                 PaginatedFilter({"condition_tree": through_tree}),
@@ -151,7 +164,8 @@ class FilterFactory:
             origin_tree = ConditionTreeLeaf(
                 relation["foreign_key_target"],
                 Operator.IN,
-                [str(record[relation["foreign_key"]]) for record in records],
+                # filter out null values in case the 'Present' operator was not supported
+                [str(record[relation["foreign_key"]]) for record in records if record.get(relation["foreign_key"])],
             )
         trees: List[ConditionTree] = [origin_tree]
         if base_foreign_key_filter.condition_tree:

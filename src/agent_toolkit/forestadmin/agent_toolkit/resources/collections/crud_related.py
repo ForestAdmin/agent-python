@@ -86,7 +86,7 @@ class CrudRelatedResource(BaseCollectionResource):
             cast(Collection, request.collection),
             ids,
             cast(Collection, request.foreign_collection),
-            request.relation,
+            request.relation_name,
             paginated_filter,
             projection,
         )
@@ -127,7 +127,7 @@ class CrudRelatedResource(BaseCollectionResource):
             cast(Collection, request.collection),
             ids,
             cast(Collection, request.foreign_collection),
-            request.relation,
+            request.relation_name,
             paginated_filter,
             projection,
         )
@@ -372,7 +372,7 @@ class CrudRelatedResource(BaseCollectionResource):
             request.user,
             cast(Collection, request.collection),
             parent_id,
-            request.relation,
+            request.relation_name,
             base_target_filter,
         )
         through_collection = request.collection.datasource.get_collection(request.relation["through_collection"])

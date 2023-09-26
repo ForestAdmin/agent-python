@@ -2,10 +2,9 @@ from typing import List, Optional, Union, cast
 
 from forestadmin.agent_toolkit.utils.context import User
 from forestadmin.datasource_toolkit.collections import Collection
-from forestadmin.datasource_toolkit.exceptions import DatasourceToolkitException
+from forestadmin.datasource_toolkit.exceptions import DatasourceToolkitException, ForestException
 from forestadmin.datasource_toolkit.interfaces.fields import (
     FieldAlias,
-    ManyToMany,
     OneToMany,
     RelationAlias,
     is_many_to_many,
@@ -75,17 +74,19 @@ class CollectionUtils:
         collection: Collection,
         id: CompositeIdAlias,
         foreign_collection: Collection,
-        relation: Union[ManyToMany, OneToMany],
+        relation_name: str,
         foreign_filter: PaginatedFilter,
         projection: Projection,
     ) -> List[RecordsDataAlias]:
         from forestadmin.datasource_toolkit.interfaces.query.filter.factory import FilterFactory
 
+        relation = collection.schema["fields"][relation_name]
+
         if is_many_to_many(relation) and relation.get("foreign_relation") and foreign_filter.is_nestable:
             through = collection.datasource.get_collection(relation["through_collection"])
             records = await through.list(
                 caller,
-                await FilterFactory.make_through_filter(caller, collection, id, relation, foreign_filter),
+                await FilterFactory.make_through_filter(caller, collection, id, relation_name, foreign_filter),
                 projection.nest(relation.get("foreign_relation")),
             )
             return [record[relation.get("foreign_relation")] for record in records]
@@ -112,7 +113,7 @@ class CollectionUtils:
 
         if is_many_to_many(relation) and relation["foreign_relation"] and foreign_filter.is_nestable:
             through = collection.datasource.get_collection(relation["through_collection"])
-            filter = await FilterFactory.make_through_filter(collection, id, relation, foreign_filter)
+            filter = await FilterFactory.make_through_filter(collection, id, relation_name, foreign_filter)
 
             nested_records = await through.aggregate(
                 caller, filter.to_base_filter(), aggregation.nest(relation["foreign_relation"]), limit
@@ -178,3 +179,20 @@ class CollectionUtils:
         ):
             return True
         return False
+
+    @staticmethod
+    def get_through_target(collection: Collection, relation_name: str) -> Optional[str]:
+        relation = collection.schema["fields"].get(relation_name)
+        if not relation or not is_many_to_many(relation):
+            raise ForestException("Relation must be many to many")
+
+        through_collection = collection.datasource.get_collection(relation["through_collection"])
+        for field_name, field in through_collection.schema["fields"].items():
+            if (
+                is_many_to_one(field)
+                and field["foreign_collection"] == relation["foreign_collection"]
+                and field["foreign_key"] == relation["foreign_key"]
+                and field["foreign_key_target"] == relation["foreign_key_target"]
+            ):
+                return field_name
+        return None

@@ -25,6 +25,7 @@ from forestadmin.agent_toolkit.utils.csv import CsvException
 from forestadmin.agent_toolkit.utils.id import unpack_id
 from forestadmin.datasource_toolkit.collections import Collection
 from forestadmin.datasource_toolkit.datasources import Datasource, DatasourceException
+from forestadmin.datasource_toolkit.exceptions import ForbiddenError
 from forestadmin.datasource_toolkit.interfaces.fields import (
     FieldType,
     ManyToMany,
@@ -78,7 +79,7 @@ class TestCrudRelatedResource(TestCase):
                     "origin_key_target": "id",
                 }
             ),
-            "orders",
+            "order",
         ]
 
     def mk_request_order_product_many_to_many(self):
@@ -131,12 +132,23 @@ class TestCrudRelatedResource(TestCase):
         cls.collection_order = cls._create_collection(
             "order",
             {
-                "id": {"column_type": PrimitiveType.NUMBER, "is_primary_key": True, "type": FieldType.COLUMN},
+                "id": {
+                    "column_type": PrimitiveType.NUMBER,
+                    "is_primary_key": True,
+                    "type": FieldType.COLUMN,
+                    "filter_operators": set([Operator.PRESENT]),
+                },
                 "cost": {"column_type": PrimitiveType.NUMBER, "is_primary_key": False, "type": FieldType.COLUMN},
                 "products": {
                     "column_type": PrimitiveType.NUMBER,
-                    "is_primary_key": False,
                     "type": FieldType.MANY_TO_MANY,
+                    "through_collection": "product_order",
+                    "foreign_collection": "product",
+                    "foreign_relation": "product",
+                    "foreign_key": "product_id",
+                    "foreign_key_target": "id",
+                    "origin_key": "order_id",
+                    "origin_key_target": "id",
                 },
                 "customer": {
                     "column_type": PrimitiveType.NUMBER,
@@ -145,6 +157,11 @@ class TestCrudRelatedResource(TestCase):
                     "foreign_collection": "customer",
                     "foreign_key_target": "id",
                     "foreign_key": "customer",
+                },
+                "customer_id": {
+                    "column_type": PrimitiveType.NUMBER,
+                    "is_primary_key": False,
+                    "type": FieldType.COLUMN,
                 },
                 "cart": {
                     "column_type": PrimitiveType.NUMBER,
@@ -161,10 +178,20 @@ class TestCrudRelatedResource(TestCase):
         cls.collection_product_order = cls._create_collection(
             "product_order",
             {
-                "product_id": {"column_type": PrimitiveType.NUMBER, "is_primary_key": True, "type": FieldType.COLUMN},
-                "order_id": {"column_type": PrimitiveType.NUMBER, "is_primary_key": True, "type": FieldType.COLUMN},
-                "searchable": True,
-                "segments": [],
+                "product_id": {
+                    "column_type": PrimitiveType.NUMBER,
+                    "is_primary_key": True,
+                    "type": FieldType.COLUMN,
+                    "filter_operators": set([Operator.PRESENT]),
+                },
+                "order_id": {
+                    "column_type": PrimitiveType.NUMBER,
+                    "is_primary_key": True,
+                    "type": FieldType.COLUMN,
+                    "searchable": True,
+                    "segments": [],
+                    "filter_operators": set([Operator.PRESENT]),
+                },
             },
         )
 
@@ -173,7 +200,12 @@ class TestCrudRelatedResource(TestCase):
         cls.collection_product = cls._create_collection(
             "product",
             {
-                "id": {"column_type": PrimitiveType.NUMBER, "is_primary_key": True, "type": FieldType.COLUMN},
+                "id": {
+                    "column_type": PrimitiveType.NUMBER,
+                    "is_primary_key": True,
+                    "type": FieldType.COLUMN,
+                    "filter_operators": set([Operator.PRESENT]),
+                },
                 "name": {"column_type": PrimitiveType.STRING, "is_primary_key": False, "type": FieldType.COLUMN},
             },
         )
@@ -182,7 +214,12 @@ class TestCrudRelatedResource(TestCase):
         cls.collection_cart = cls._create_collection(
             "cart",
             {
-                "id": {"column_type": PrimitiveType.NUMBER, "is_primary_key": True, "type": FieldType.COLUMN},
+                "id": {
+                    "column_type": PrimitiveType.NUMBER,
+                    "is_primary_key": True,
+                    "type": FieldType.COLUMN,
+                    "filter_operators": set([Operator.PRESENT]),
+                },
                 "name": {"column_type": PrimitiveType.STRING, "is_primary_key": False, "type": FieldType.COLUMN},
             },
         )
@@ -191,15 +228,25 @@ class TestCrudRelatedResource(TestCase):
         cls.collection_customer = cls._create_collection(
             "customer",
             {
-                "id": {"column_type": PrimitiveType.NUMBER, "is_primary_key": True, "type": FieldType.COLUMN},
-                "name": {"column_type": PrimitiveType.STRING, "is_primary_key": False, "type": FieldType.COLUMN},
+                "id": {
+                    "column_type": PrimitiveType.NUMBER,
+                    "is_primary_key": True,
+                    "type": FieldType.COLUMN,
+                    "filter_operators": set([Operator.PRESENT]),
+                },
+                "name": {
+                    "column_type": PrimitiveType.STRING,
+                    "is_primary_key": False,
+                    "type": FieldType.COLUMN,
+                    "filter_operators": set([Operator.PRESENT]),
+                },
                 "order": {
                     "column_type": PrimitiveType.NUMBER,
                     "is_primary_key": False,
-                    "type": FieldType.MANY_TO_MANY,
+                    "type": FieldType.ONE_TO_MANY,
                     "foreign_collection": "order",
+                    "origin_key": "customer_id",
                     "origin_key_target": "id",
-                    # "origin_key": "_id",
                 },
             },
         )
@@ -274,11 +321,24 @@ class TestCrudRelatedResource(TestCase):
             method="GET",
             query={"collection_name": "customer", "relation_name": "order"},
         )
-        mock_request_relation_collection.from_request = Mock(side_effect=RequestCollectionException("test exception"))
 
         self.assertRaises(
             AttributeError, self.loop.run_until_complete, self.crud_related_resource.dispatch(request, "get")
         )
+
+        with patch.object(
+            mock_request_relation_collection, "from_request", side_effect=RequestCollectionException("test exception")
+        ):
+            response = self.loop.run_until_complete(self.crud_related_resource.dispatch(request, "list"))
+        self.assertEqual(response.status, 500)
+
+        with patch.object(self.crud_related_resource, "list", side_effect=ForbiddenError("")):
+            response = self.loop.run_until_complete(self.crud_related_resource.dispatch(request, "list"))
+        self.assertEqual(response.status, 403)
+
+        with patch.object(self.crud_related_resource, "list", side_effect=Exception("")):
+            response = self.loop.run_until_complete(self.crud_related_resource.dispatch(request, "list"))
+        self.assertEqual(response.status, 500)
 
     # -- list
     @patch(
@@ -1508,7 +1568,14 @@ class TestCrudRelatedResource(TestCase):
         )
         _filter = self.loop.run_until_complete(crud_related_resource.get_base_fk_filter(request))
 
-        self.loop.run_until_complete(crud_related_resource._delete_many_to_many(request, [2], False, _filter))
+        with patch.object(self.collection_product, "list", new_callable=AsyncMock, return_value=[{"id": 1}, {"id": 2}]):
+            with patch.object(
+                self.collection_product_order,
+                "list",
+                new_callable=AsyncMock,
+                return_value=[{"product_id": 1}, {"product_id": 2}],
+            ):
+                self.loop.run_until_complete(crud_related_resource._delete_many_to_many(request, [2], False, _filter))
         self.datasource.get_collection("product_order").delete.assert_awaited()
 
         # delete
@@ -1525,7 +1592,13 @@ class TestCrudRelatedResource(TestCase):
         _filter = self.loop.run_until_complete(crud_related_resource.get_base_fk_filter(request))
 
         with patch.object(self.collection_product_order, "list", new_callable=AsyncMock):
-            self.loop.run_until_complete(crud_related_resource._delete_many_to_many(request, [2], True, _filter))
+            with patch.object(
+                self.collection_product,
+                "list",
+                new_callable=AsyncMock,
+                return_value=[{"id": 1}, {"id": 2}],
+            ):
+                self.loop.run_until_complete(crud_related_resource._delete_many_to_many(request, [2], True, _filter))
         self.collection_product.delete.assert_awaited()
 
         # errors
@@ -1554,7 +1627,15 @@ class TestCrudRelatedResource(TestCase):
         )
         with patch.object(self.collection_product, "delete", side_effect=DatasourceException, new_callable=AsyncMock):
             with patch.object(self.collection_product_order, "list", new_callable=AsyncMock):
-                self.loop.run_until_complete(crud_related_resource._delete_many_to_many(request, [2], True, _filter))
+                with patch.object(
+                    self.collection_product,
+                    "list",
+                    new_callable=AsyncMock,
+                    return_value=[{"id": 1}, {"id": 2}],
+                ):
+                    self.loop.run_until_complete(
+                        crud_related_resource._delete_many_to_many(request, [2], True, _filter)
+                    )
 
     # _update_one_to_one
     @patch(
