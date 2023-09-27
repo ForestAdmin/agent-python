@@ -27,20 +27,19 @@ class TestFlaskAgentBlueprint(TestCase):
             )
 
         cls.app = Flask(__name__)
+        cls.app.config.update(
+            {
+                "FOREST_ENV_SECRET": "da4fc9331a68a18c2262154c74d9acb22f335724c8f2a510f8df187fa808703e",
+                "FOREST_AUTH_SECRET": "fake",
+            }
+        )
         patch(
             "forestadmin.agent_toolkit.agent.Agent.get_resources",
             return_value=cls.mocked_resources,
             new_callable=AsyncMock,
         ).start()
-        cls.agent = create_agent(
-            {
-                "env_secret": "fake",
-                "auth_secret": "fake",
-                "agent_url": "fake",
-            }
-        )
-        cls.agent.start = AsyncMock()
-        cls.agent.register_blueprint(cls.app)
+
+        cls.agent = create_agent(cls.app)
         cls.client = cls.app.test_client()
 
     def test_index(self):
@@ -207,4 +206,5 @@ class TestFlaskAgentBlueprint(TestCase):
         with patch.object(self.agent._permission_service, "invalidate_cache") as mocked_invalidate_cache:
             response = self.client.post("/forest/scope-cache-invalidation")
             mocked_invalidate_cache.assert_called_with("forest.scopes")
+        assert response.status_code == 204
         assert response.status_code == 204

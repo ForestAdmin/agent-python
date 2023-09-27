@@ -71,7 +71,7 @@ class FlaskAgent(BaseAgent):
         return self._blueprint
 
     def start(self):
-        self.loop.run_until_complete(super()._start())
+        self.loop.run_until_complete(self._start())
         ForestLogger.log("info", "Flask agent initialized")
 
 
