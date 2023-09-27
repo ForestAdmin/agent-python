@@ -2,7 +2,7 @@ from typing import Dict, List, Optional, TypedDict
 
 from forestadmin.agent_toolkit.exceptions import AgentToolkitException
 from forestadmin.agent_toolkit.forest_logger import ForestLogger
-from forestadmin.agent_toolkit.options import DEFAULT_OPTIONS, Options
+from forestadmin.agent_toolkit.options import Options, OptionValidator
 from forestadmin.agent_toolkit.resources.actions.resources import ActionResource
 from forestadmin.agent_toolkit.resources.collections.charts_collection import ChartsCollectionResource
 from forestadmin.agent_toolkit.resources.collections.charts_datasource import ChartsDatasourceResource
@@ -44,7 +44,7 @@ class Agent:
     def __init__(self, options: Options):
         self._resources = None
         self.customizer: DatasourceCustomizer = DatasourceCustomizer()
-        self.__handle_options(options)
+        self.options: Options = OptionValidator.validate_options(OptionValidator.with_defaults(options))
 
         ForestLogger.setup_logger(self.options["logger_level"], self.options["logger"])
         if self.options.get("customize_error_message") is not None:
@@ -66,13 +66,6 @@ class Agent:
     def __del__(self):
         if hasattr(self, "_sse_thread") and self._sse_thread.is_alive():
             self._sse_thread.stop()
-
-    def __handle_options(self, options):
-        self.options = {**DEFAULT_OPTIONS}
-        self.options.update({k: v for k, v in options.items() if v is not None})
-
-        if self.options.get("instant_cache_refresh") is None:
-            self.options["instant_cache_refresh"] = self.options["is_production"]
 
     async def __mk_resources(self):
         self._resources: Resources = {
