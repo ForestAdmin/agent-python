@@ -32,6 +32,7 @@ class OptionValidator:
         "logger_level": logging.INFO,
         "customize_error_message": None,
         "permissions_cache_duration_in_seconds": 15 * 60,
+        "skip_schema_update": False,
     }
 
     @classmethod
