@@ -108,7 +108,7 @@ class TestForestHttp(TestCase):
         client_session_mock.return_value.__aenter__ = AsyncMock(return_value=mock_session)
         client_session_mock.return_value.__aexit__ = AsyncMock()
 
-        with patch("forestadmin.agent_toolkit.utils.http.aiohttp.ClientSession", client_session_mock):
+        with patch("forestadmin.agent_toolkit.utils.http.ClientSession", client_session_mock):
             response = self.loop.run_until_complete(
                 ForestHttpApi.post("http://addr", {"body": "dict"}, {"headers": "headers"})
             )
@@ -131,7 +131,7 @@ class TestForestHttp(TestCase):
         client_session_mock.return_value.__aenter__ = AsyncMock(return_value=mock_session)
         client_session_mock.return_value.__aexit__ = AsyncMock()
 
-        with patch("forestadmin.agent_toolkit.utils.http.aiohttp.ClientSession", client_session_mock):
+        with patch("forestadmin.agent_toolkit.utils.http.ClientSession", client_session_mock):
             response = self.loop.run_until_complete(
                 ForestHttpApi.post("http://addr", {"body": "dict"}, {"headers": "headers"})
             )
@@ -150,10 +150,10 @@ class TestForestHttp(TestCase):
         client_session_mock.return_value.__aenter__ = AsyncMock(return_value=mock_session)
         client_session_mock.return_value.__aexit__ = AsyncMock(return_value=False)
 
-        with patch("forestadmin.agent_toolkit.utils.http.aiohttp.ClientSession", client_session_mock):
+        with patch("forestadmin.agent_toolkit.utils.http.ClientSession", client_session_mock):
             self.assertRaisesRegex(
                 ForestHttpApiException,
-                r"🌳🌳🌳Failed to fetch http://addr : client_error",
+                r"🌳🌳🌳Failed to fetch http://addr: client_error",
                 self.loop.run_until_complete,
                 ForestHttpApi.post("http://addr", {"body": "dict"}, {"headers": "headers"}),
             )
@@ -174,7 +174,7 @@ class TestForestHttp(TestCase):
         client_session_mock.return_value.__aenter__ = AsyncMock(return_value=mock_session)
         client_session_mock.return_value.__aexit__ = AsyncMock()
 
-        with patch("forestadmin.agent_toolkit.utils.http.aiohttp.ClientSession", client_session_mock):
+        with patch("forestadmin.agent_toolkit.utils.http.ClientSession", client_session_mock):
             response = self.loop.run_until_complete(ForestHttpApi.get("http://addr", {"headers": "headers"}))
 
             self.assertEqual(response, {"ret": True})
@@ -195,7 +195,7 @@ class TestForestHttp(TestCase):
         client_session_mock.return_value.__aenter__ = AsyncMock(return_value=mock_session)
         client_session_mock.return_value.__aexit__ = AsyncMock()
 
-        with patch("forestadmin.agent_toolkit.utils.http.aiohttp.ClientSession", client_session_mock):
+        with patch("forestadmin.agent_toolkit.utils.http.ClientSession", client_session_mock):
             response = self.loop.run_until_complete(ForestHttpApi.get("http://addr", {"headers": "headers"}))
 
             self.assertIsNone(response)
@@ -213,10 +213,10 @@ class TestForestHttp(TestCase):
         client_session_mock.return_value.__aexit__ = AsyncMock(return_value=False)
         client_session_mock.__aexit__ = AsyncMock(return_value=False)
 
-        with patch("forestadmin.agent_toolkit.utils.http.aiohttp.ClientSession", client_session_mock):
+        with patch("forestadmin.agent_toolkit.utils.http.ClientSession", client_session_mock):
             self.assertRaisesRegex(
                 ForestHttpApiException,
-                r"🌳🌳🌳Failed to fetch http://addr : client_error",
+                r"🌳🌳🌳Failed to fetch http://addr: client_error",
                 self.loop.run_until_complete,
                 ForestHttpApi.get("http://addr", {"headers": "headers"}),
             )

@@ -16,6 +16,7 @@ from forestadmin.agent_toolkit.utils.forest_schema.type import ForestServerActio
 from forestadmin.agent_toolkit.utils.id import unpack_id
 from forestadmin.datasource_toolkit.decorators.action.result_builder import ResultBuilder
 from forestadmin.datasource_toolkit.exceptions import BusinessError
+from forestadmin.datasource_toolkit.interfaces.actions import ActionsScope
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.factory import ConditionTreeFactory
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.base import ConditionTree
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.branch import Aggregator, ConditionTreeBranch
@@ -121,13 +122,9 @@ class ActionResource(BaseCollectionResource):
 
     async def _get_records_selection(self, request: ActionRequest) -> Filter:
         trees: List[ConditionTree] = []
-        selection_ids, exclude_ids = parse_selection_ids(request)
-        selected_ids = ConditionTreeFactory.match_ids(request.collection.schema, selection_ids)
-        if exclude_ids:
-            selected_ids = selected_ids.inverse()
+        attributes: Dict[str, Any] = request.body.get("data", {}).get("attributes", {})
 
-        if selected_ids != ConditionTreeBranch(Aggregator.OR, []):
-            trees.append(selected_ids)
+        # Match user filter + search + scope? + segment.
         query_param_condition_tree = parse_condition_tree(request)
         if query_param_condition_tree:
             trees.append(query_param_condition_tree)
@@ -141,11 +138,24 @@ class ActionResource(BaseCollectionResource):
             condition_tree = None
         filter_ = build_filter(request, condition_tree)
 
-        attributes: Dict[str, Any] = request.body.get("data", {}).get("attributes", {})
+        # Restrict the filter to the selected records for single or bulk actions.
+        if request.collection.schema["actions"][request.action_name].scope != ActionsScope.GLOBAL:
+            selection_ids, exclude_ids = parse_selection_ids(request)
+            selected_ids = ConditionTreeFactory.match_ids(request.collection.schema, selection_ids)
+            if exclude_ids:
+                selected_ids = selected_ids.inverse()
+            if selected_ids != ConditionTreeBranch(Aggregator.OR, []):
+                trees.append(selected_ids)
+                filter_ = filter_.override(
+                    {"condition_tree": ConditionTreeFactory.intersect([filter_.condition_tree, selected_ids])}
+                )
+
+        # Restrict the filter further for the "related data" page.
         if attributes.get("parent_association_name") is not None:
             parent = self.datasource.get_collection(attributes["parent_collection_name"])
             relation = parent.schema["fields"][attributes["parent_association_name"]]
             parent_id = unpack_id(parent.schema, attributes["parent_collection_id"])
+
             filter_ = await FilterFactory.make_foreign_filter(request.user, parent, parent_id, relation, filter_)
         return filter_
 

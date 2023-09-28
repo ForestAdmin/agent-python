@@ -61,6 +61,7 @@ class BaseDynamicField(Generic[Context, Result]):
             is_read_only=await self.is_read_only(context),
             is_required=await self.is_required(context),
             value=await self.value(context) or default_value,
+            default_value=await self.default_value(context),
             collection_name=None,
             enum_values=None,
             watch_changes=False,

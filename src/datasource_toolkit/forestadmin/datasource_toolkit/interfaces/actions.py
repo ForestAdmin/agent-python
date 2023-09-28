@@ -47,6 +47,7 @@ class ActionField(TypedDict):
     is_required: Optional[bool]
     is_read_only: Optional[bool]
     value: Optional[Any]
+    default_value: Optional[Any]
     watch_changes: bool
     enum_values: Optional[List[str]]
     collection_name: Optional[str]

@@ -8,6 +8,7 @@ from forestadmin.datasource_toolkit.interfaces.query.aggregation import Aggregat
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.factory import ConditionTreeFactory
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.leaf import ConditionTreeLeaf
 from forestadmin.datasource_toolkit.interfaces.query.filter.unpaginated import Filter
+from forestadmin.datasource_toolkit.utils.schema import SchemaUtils
 
 
 class SmartActionChecker:
@@ -83,15 +84,16 @@ class SmartActionChecker:
 
     async def _match_conditions(self, condition_name: str) -> bool:
         try:
+            pk_field = SchemaUtils.get_primary_keys(self.collection.schema)[0]
             if self.request.body.get("data", {}).get("attributes", {}).get("all_records"):
                 condition_record_filter = ConditionTreeLeaf(
-                    "id",
+                    pk_field,
                     Operator.NOT_EQUAL,
                     self.request.body.get("data", {}).get("attributes", {}).get("all_records_ids_excluded"),
                 )
             else:
                 condition_record_filter = ConditionTreeLeaf(
-                    "id",
+                    pk_field,
                     Operator.IN,
                     self.request.body.get("data", {}).get("attributes", {}).get("ids"),
                 )

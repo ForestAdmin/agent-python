@@ -19,18 +19,19 @@ class CollectionDecorator(Collection):
         self._datasource = datasource
         self._last_schema = None
 
+        # When the child collection invalidates its schema, we also invalidate ours.
+        # This is done like this, and not in the markSchemaAsDirty method, because we don't have
+        # a reference to parent collections from children.
         if isinstance(self.child_collection, CollectionDecorator):
-            # ugly hack to mark parent schema as dirty
             child_mark_schema_as_dirty = self.child_collection.mark_schema_as_dirty
 
             def patched_mark_schema_as_dirty():
+                # Call the original method (the child)
                 child_mark_schema_as_dirty()
+                # Invalidate our schema (the parent)
                 self.mark_schema_as_dirty()
 
             self.child_collection.mark_schema_as_dirty = patched_mark_schema_as_dirty
-
-    # def __getattr__(self, name: str):
-    #     return getattr(self.child_collection, name)
 
     def mark_schema_as_dirty(self):
         self._last_schema = None
@@ -45,6 +46,7 @@ class CollectionDecorator(Collection):
 
     @property
     def schema(self) -> CollectionSchema:
+        # If the schema is not cached (at the first call, or after a markSchemaAsDirty call)
         if self._last_schema is None:
             self._last_schema = self._refine_schema(self.child_collection.schema)
         return self._last_schema

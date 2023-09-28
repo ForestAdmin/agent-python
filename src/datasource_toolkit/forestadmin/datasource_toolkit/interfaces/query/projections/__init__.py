@@ -22,6 +22,9 @@ class Projection(list):  # type: ignore
     def columns(self) -> List[str]:
         return list(filter(lambda x: ":" not in x, self))
 
+    def __eq__(self, other: "Projection") -> bool:
+        return set(self) == set(other)
+
     @property
     def relations(self: List[str]) -> Dict[str, "Projection"]:
         relations: Dict[str, Projection] = DefaultDict(Projection)

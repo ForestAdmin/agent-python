@@ -39,6 +39,7 @@ class ComputedCollectionDecorator(CollectionDecorator):
     def register_computed(self, name: str, computed: ComputedDefinition):
         if computed.get("dependencies") is None or len(computed["dependencies"]) == 0:
             raise ComputedDecoratorException(f"Computed field '{self.name}.{name}' must have at least one dependency")
+        FieldValidator.validate_name(self.name, name)
         for field in computed["dependencies"]:
             try:
                 FieldValidator.validate(self.child_collection, field)  # type: ignore
@@ -52,6 +53,9 @@ class ComputedCollectionDecorator(CollectionDecorator):
     async def list(self, caller: User, _filter: PaginatedFilter, projection: Projection) -> List[RecordsDataAlias]:
         new_projection = projection.replace(lambda path: rewrite_fields(self, path))
         records: List[Optional[RecordsDataAlias]] = await super().list(caller, _filter, new_projection)  # type: ignore
+        if new_projection == projection:
+            return records
+
         context = CollectionCustomizationContext(cast(Collection, self), caller)
         return await compute_from_records(context, self, new_projection, projection, records)
 

@@ -14,7 +14,7 @@ This project has been designed with scalability in mind to fit requirements from
 - [First circle](https://www.firstcircle.ph)
 - [Forest Admin](https://www.forestadmin.com) of course :-)
 - [Heetch](https://www.heetch.com)
-- [Lunchr](https://www.lunchr.co)
+- [Swile](https://www.swile.co)
 - [Pillow](https://www.pillow.com)
 - [Qonto](https://www.qonto.eu)
 - [Shadow](https://shadow.tech)
