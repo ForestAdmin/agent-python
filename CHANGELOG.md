@@ -1,3 +1,10 @@
+# [1.0.0-beta.20](https://github.com/ForestAdmin/agent-python/compare/v1.0.0-beta.19...v1.0.0-beta.20) (2023-09-28)
+
+
+### Bug Fixes
+
+* catchup nodejs bugfixes ([#118](https://github.com/ForestAdmin/agent-python/issues/118)) ([c14b89c](https://github.com/ForestAdmin/agent-python/commit/c14b89c4d18ec1eb6c0b160fa2458528d19d2764))
+
 # [1.0.0-beta.19](https://github.com/ForestAdmin/agent-python/compare/v1.0.0-beta.18...v1.0.0-beta.19) (2023-09-28)
 
 
