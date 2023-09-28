@@ -49,6 +49,9 @@ class CollectionDecorator(Collection):
             self._last_schema = self._refine_schema(self.child_collection.schema)
         return self._last_schema
 
+    def get_native_driver(self):
+        return self.child_collection.get_native_driver()
+
     def get_field(self, name: str):
         try:
             return self.schema["fields"][name]

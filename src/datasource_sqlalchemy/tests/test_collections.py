@@ -19,6 +19,7 @@ from forestadmin.datasource_toolkit.interfaces.query.aggregation import Aggregat
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.leaf import ConditionTreeLeaf
 from forestadmin.datasource_toolkit.interfaces.query.filter.paginated import PaginatedFilter
 from forestadmin.datasource_toolkit.interfaces.query.projections import Projection
+from sqlalchemy.orm.session import Session
 from tests.fixture import models
 
 
@@ -295,6 +296,15 @@ class TestSqlAlchemyCollectionWithModels(TestCase):
         assert [*filter(lambda item: item["group"]["customer_id"] == 8, results)][0]["value"] == 4890.0
         assert [*filter(lambda item: item["group"]["customer_id"] == 9, results)][0]["value"] == 4984.5
         assert [*filter(lambda item: item["group"]["customer_id"] == 10, results)][0]["value"] == 3408.5
+
+    def test_get_native_driver_should_return_connection(self):
+        Session_ = self.datasource.get_collection("order").get_native_driver()
+        with Session_() as connection:
+            self.assertIsInstance(connection, Session)
+            self.assertEqual(str(connection.bind.url), "sqlite:////Users/julien/git/agent-python/test_db.sql")
+
+            rows = connection.execute('select id,amount from "order"  where id =  3').all()
+        self.assertEqual(rows, [(3, 5285)])
 
 
 class testSqlAlchemyCollectionFactory(TestCase):

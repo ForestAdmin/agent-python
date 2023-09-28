@@ -38,6 +38,7 @@ from sqlalchemy import Table
 from sqlalchemy import column as SqlAlchemyColumn
 from sqlalchemy.engine import Dialect
 from sqlalchemy.orm import Mapper, RelationshipProperty
+from sqlalchemy.orm.session import Session
 from sqlalchemy.sql import Alias, alias
 
 
@@ -106,6 +107,9 @@ class SqlAlchemyCollection(BaseSqlAlchemyCollection):
     @property
     def factory(self) -> SqlAlchemyCollectionFactory:
         return self._factory
+
+    def get_native_driver(self) -> Session:
+        return self.datasource.Session
 
     def get_column(self, name: str, alias_: Optional[Alias] = None) -> SqlAlchemyColumn:
         mapper = self.mapper
