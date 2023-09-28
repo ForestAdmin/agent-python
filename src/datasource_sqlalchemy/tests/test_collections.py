@@ -301,7 +301,7 @@ class TestSqlAlchemyCollectionWithModels(TestCase):
         Session_ = self.datasource.get_collection("order").get_native_driver()
         with Session_() as connection:
             self.assertIsInstance(connection, Session)
-            self.assertEqual(str(connection.bind.url), "sqlite:////Users/julien/git/agent-python/test_db.sql")
+            self.assertEqual(str(connection.bind.url), f"sqlite:///{models.test_db_path}")
 
             rows = connection.execute('select id,amount from "order"  where id =  3').all()
         self.assertEqual(rows, [(3, 5285)])
