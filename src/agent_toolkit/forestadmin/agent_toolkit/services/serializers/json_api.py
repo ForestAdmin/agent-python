@@ -163,7 +163,7 @@ class ForestRelationShip(fields.Relationship):
             obj["__forest_id__"] = obj["id"]
         res: Any = super(ForestRelationShip, self).get_related_url(obj)  # type: ignore
         del obj["__forest_id__"]
-        return res
+        return {"href": res}
 
 
 class ForestSchema(Schema):
