@@ -1,6 +1,6 @@
 import asyncio
 from unittest import TestCase
-from unittest.mock import PropertyMock, patch
+from unittest.mock import patch
 
 from forestadmin.datasource_toolkit.collections import Collection
 from forestadmin.datasource_toolkit.context.relaxed_wrappers.collection import RelaxedCollection
