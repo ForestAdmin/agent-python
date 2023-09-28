@@ -1,3 +1,10 @@
+# [1.0.0-beta.19](https://github.com/ForestAdmin/agent-python/compare/v1.0.0-beta.18...v1.0.0-beta.19) (2023-09-28)
+
+
+### Features
+
+* **publication:** add include, exclude and rename options to add_datasource   ([#117](https://github.com/ForestAdmin/agent-python/issues/117)) ([b191971](https://github.com/ForestAdmin/agent-python/commit/b191971b76089fdf53a3ce4007ea684af83f3a26))
+
 # [1.0.0-beta.18](https://github.com/ForestAdmin/agent-python/compare/v1.0.0-beta.17...v1.0.0-beta.18) (2023-09-19)
 
 
