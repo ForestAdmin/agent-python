@@ -1,5 +1,5 @@
 import copy
-from typing import TypedDict
+from typing import List, Optional, TypedDict, Union
 
 from forestadmin.agent_toolkit.exceptions import AgentToolkitException
 from forestadmin.agent_toolkit.forest_logger import ForestLogger
@@ -20,6 +20,7 @@ from forestadmin.agent_toolkit.utils.forest_schema.type import AgentMeta
 from forestadmin.agent_toolkit.utils.http import ForestHttpApi
 from forestadmin.datasource_toolkit.datasource_customizer.collection_customizer import CollectionCustomizer
 from forestadmin.datasource_toolkit.datasource_customizer.datasource_customizer import DatasourceCustomizer
+from forestadmin.datasource_toolkit.datasource_customizer.types import DataSourceOptions
 from forestadmin.datasource_toolkit.datasources import Datasource
 from forestadmin.datasource_toolkit.decorators.chart.types import DataSourceChartDefinition
 from forestadmin.datasource_toolkit.interfaces.models.collections import BoundCollection
@@ -90,12 +91,17 @@ class Agent:
             self.__mk_resources()
         return self._resources
 
-    def add_datasource(self, datasource: Datasource[BoundCollection]):
-        self.customizer.add_datasource(datasource, {})
+    def add_datasource(self, datasource: Datasource[BoundCollection], options: Optional[DataSourceOptions] = None):
+        if options is None:
+            options = {}
+        self.customizer.add_datasource(datasource, options)
         self._resources = None
 
     def customize_collection(self, collection_name: str) -> CollectionCustomizer:
         return self.customizer.customize_collection(collection_name)
+
+    def remove_collections(self, names: Union[str, List[str]]):
+        return self.customizer.remove_collections(names)
 
     def add_chart(self, name: str, definition: DataSourceChartDefinition):
         return self.customizer.add_chart(name, definition)

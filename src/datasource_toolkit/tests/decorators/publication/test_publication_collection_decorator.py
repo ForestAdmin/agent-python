@@ -9,13 +9,10 @@ else:
     from backports import zoneinfo
 
 from forestadmin.agent_toolkit.utils.context import User
-from forestadmin.datasource_toolkit.collections import Collection, CollectionException
+from forestadmin.datasource_toolkit.collections import Collection
 from forestadmin.datasource_toolkit.datasources import Datasource
-from forestadmin.datasource_toolkit.decorators.datasource_decorator import DatasourceDecorator
-from forestadmin.datasource_toolkit.decorators.publication_field.collections import (
-    PublicationCollectionException,
-    PublicationFieldCollectionDecorator,
-)
+from forestadmin.datasource_toolkit.decorators.publication.datasource import PublicationDataSourceDecorator
+from forestadmin.datasource_toolkit.exceptions import ForestException
 from forestadmin.datasource_toolkit.interfaces.fields import (
     Column,
     FieldType,
@@ -27,7 +24,7 @@ from forestadmin.datasource_toolkit.interfaces.fields import (
 )
 
 
-class TestPublicationFieldCollectionDecorator(TestCase):
+class TestPublicationCollectionDecorator(TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         cls.loop = asyncio.new_event_loop()
@@ -116,7 +113,7 @@ class TestPublicationFieldCollectionDecorator(TestCase):
         )
 
     def setUp(self) -> None:
-        self.datasource_decorator = DatasourceDecorator(self.datasource, PublicationFieldCollectionDecorator)
+        self.datasource_decorator = PublicationDataSourceDecorator(self.datasource)
 
         self.decorated_collection_person = self.datasource_decorator.get_collection("Person")
         self.decorated_collection_person_book = self.datasource_decorator.get_collection("BookPerson")
@@ -124,8 +121,8 @@ class TestPublicationFieldCollectionDecorator(TestCase):
 
     def test_change_visibility_error_on_non_existent_field(self):
         self.assertRaisesRegex(
-            CollectionException,
-            r"🌳🌳🌳No such field unknown in the collection Person",
+            ForestException,
+            r"🌳🌳🌳No such field 'unknown'",
             self.decorated_collection_person.change_field_visibility,
             "unknown",
             False,
@@ -133,7 +130,7 @@ class TestPublicationFieldCollectionDecorator(TestCase):
 
     def test_change_visibility_error_on_primary_key_field(self):
         self.assertRaisesRegex(
-            PublicationCollectionException,
+            ForestException,
             r"🌳🌳🌳Cannot hide primary key",
             self.decorated_collection_person.change_field_visibility,
             "id",
@@ -151,7 +148,6 @@ class TestPublicationFieldCollectionDecorator(TestCase):
 
         assert self.decorated_collection_person.schema == self.collection_person.schema
 
-    def test_field_not_in_schema_after_hiding(self):
         self.decorated_collection_book.change_field_visibility("title", False)
         assert "title" not in self.decorated_collection_book.schema["fields"]
 
