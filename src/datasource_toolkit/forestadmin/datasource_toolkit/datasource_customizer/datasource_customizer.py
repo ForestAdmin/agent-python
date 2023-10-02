@@ -1,4 +1,4 @@
-from typing import List, Optional, Union
+from typing import Dict, List, Optional, Union
 
 from forestadmin.datasource_toolkit.datasource_customizer.collection_customizer import CollectionCustomizer
 from forestadmin.datasource_toolkit.datasource_customizer.types import DataSourceOptions
@@ -18,6 +18,10 @@ class DatasourceCustomizer:
     def schema(self):
         return self.stack.validation.schema
 
+    async def get_datasource(self):
+        await self.stack.apply_queue_customization()
+        return self.stack.datasource
+
     @property
     def collections(self):
         return [self.get_collection(c.name) for c in self.stack.validation.collections]
@@ -26,20 +30,22 @@ class DatasourceCustomizer:
         if options is None:
             options = {}
 
-        if "include" in options or "exclude" in options:
-            publication_decorator = PublicationDataSourceDecorator(datasource)
-            publication_decorator.keep_collections_matching(options.get("include", []), options.get("exclude", []))
-            datasource = publication_decorator
+        async def _add_datasource():
+            nonlocal datasource
+            if "include" in options or "exclude" in options:
+                publication_decorator = PublicationDataSourceDecorator(datasource)
+                publication_decorator.keep_collections_matching(options.get("include", []), options.get("exclude", []))
+                datasource = publication_decorator
 
-        if "rename" in options:
-            rename_decorator = RenameCollectionDataSourceDecorator(datasource)
-            rename_decorator.rename_collections(options.get("rename", {}))
-            datasource = rename_decorator
+            if "rename" in options:
+                rename_decorator = RenameCollectionDataSourceDecorator(datasource)
+                rename_decorator.rename_collections(options.get("rename", {}))
+                datasource = rename_decorator
 
-        for collection in datasource.collections:
-            self.composite_datasource.add_collection(collection)
+            for collection in datasource.collections:
+                self.composite_datasource.add_collection(collection)
 
-        self.stack = DecoratorStack(self.composite_datasource)
+        self.stack.queue_customization(_add_datasource)
 
     def customize_collection(self, collection_name: str) -> CollectionCustomizer:
         return self.get_collection(collection_name)
@@ -48,7 +54,19 @@ class DatasourceCustomizer:
         return CollectionCustomizer(self, self.stack, collection_name)
 
     def add_chart(self, name: str, definition: DataSourceChartDefinition):
-        self.stack.chart.add_chart(name, definition)
+        async def _add_chart():
+            self.stack.chart.add_chart(name, definition)
+
+        self.stack.queue_customization(_add_chart)
 
     def remove_collections(self, names: Union[str, List[str]]):
-        self.stack.publication.keep_collections_matching([], [names] if isinstance(names, str) else names)
+        async def _remove_collections():
+            self.stack.publication.keep_collections_matching([], [names] if isinstance(names, str) else names)
+
+        self.stack.queue_customization(_remove_collections)
+
+    def use(self, plugin: type, options: Optional[Dict] = {}):
+        async def _use():
+            plugin().run(self, None, options)
+
+        self.stack.queue_customization(_use)

@@ -68,27 +68,26 @@ class Agent:
         if hasattr(self, "_sse_thread") and self._sse_thread.is_alive():
             self._sse_thread.stop()
 
-    def __mk_resources(self):
+    async def __mk_resources(self):
         self._resources: Resources = {
             "authentication": Authentication(self.options),
-            "crud": CrudResource(self.customizer.stack.datasource, self._permission_service, self.options),
+            "crud": CrudResource(await self.customizer.get_datasource(), self._permission_service, self.options),
             "crud_related": CrudRelatedResource(
-                self.customizer.stack.datasource, self._permission_service, self.options
+                await self.customizer.get_datasource(), self._permission_service, self.options
             ),
-            "stats": StatsResource(self.customizer.stack.datasource, self._permission_service, self.options),
-            "actions": ActionResource(self.customizer.stack.datasource, self._permission_service, self.options),
+            "stats": StatsResource(await self.customizer.get_datasource(), self._permission_service, self.options),
+            "actions": ActionResource(await self.customizer.get_datasource(), self._permission_service, self.options),
             "collection_charts": ChartsCollectionResource(
-                self.customizer.stack.datasource, self._permission_service, self.options
+                await self.customizer.get_datasource(), self._permission_service, self.options
             ),
             "datasource_charts": ChartsDatasourceResource(
-                self.customizer.stack.datasource, self._permission_service, self.options
+                await self.customizer.get_datasource(), self._permission_service, self.options
             ),
         }
 
-    @property
-    def resources(self) -> Resources:
+    async def get_resources(self):
         if self._resources is None:
-            self.__mk_resources()
+            await self.__mk_resources()
         return self._resources
 
     def add_datasource(self, datasource: Datasource[BoundCollection], options: Optional[DataSourceOptions] = None):
@@ -122,10 +121,10 @@ class Agent:
         if self.options["skip_schema_update"] is False:
             try:
                 api_map = await SchemaEmitter.get_serialized_schema(
-                    self.options, self.customizer.stack.datasource, self.meta
+                    self.options, await self.customizer.get_datasource(), self.meta
                 )
             except Exception:
-                ForestLogger.log("Error", "Error generating forest schema")
+                ForestLogger.log("error", "Error generating forest schema")
 
             try:
                 await ForestHttpApi.send_schema(self.options, api_map)
@@ -134,7 +133,7 @@ class Agent:
         else:
             ForestLogger.log("warning", 'Schema update was skipped (caused by options["skip_schema_update"]=True)')
 
-        for collection in self.customizer.stack.datasource.collections:
+        for collection in (await self.customizer.get_datasource()).collections:
             create_json_api_schema(collection)
 
         if self.options["instant_cache_refresh"]:

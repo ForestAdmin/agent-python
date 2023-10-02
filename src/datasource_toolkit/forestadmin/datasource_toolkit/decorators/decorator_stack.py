@@ -1,3 +1,5 @@
+from typing import Awaitable, List
+
 from forestadmin.datasource_toolkit.decorators.action.collections import ActionCollectionDecorator
 from forestadmin.datasource_toolkit.decorators.chart.chart_datasource_decorator import ChartDataSourceDecorator
 from forestadmin.datasource_toolkit.decorators.computed.collections import ComputedCollectionDecorator
@@ -22,6 +24,7 @@ from forestadmin.datasource_toolkit.interfaces.models.collections import Datasou
 
 class DecoratorStack:
     def __init__(self, datasource: Datasource) -> None:
+        self._customizations: List = list()
         last = datasource
 
         # Step 0: Do not query datasource when we know the result with yield an empty set.
@@ -57,3 +60,16 @@ class DecoratorStack:
         last = self.rename_field = DatasourceDecorator(last, RenameFieldCollectionDecorator)
 
         self.datasource = last
+
+    def queue_customization(self, customization: Awaitable[None]):
+        self._customizations.append(customization)
+
+    async def apply_queue_customization(self):
+        queued_customization = self._customizations.copy()
+        self._customizations = []
+
+        queued_customization.reverse()
+        while len(queued_customization) > 0:
+            customization = queued_customization.pop()
+            await customization()
+            await self.apply_queue_customization()
