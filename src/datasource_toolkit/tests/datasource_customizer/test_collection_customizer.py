@@ -179,6 +179,7 @@ class TestCollectionCustomizer(TestCase):
     def setUp(self) -> None:
         self.datasource_customizer = DatasourceCustomizer()
         self.datasource_customizer.add_datasource(self.datasource, {})
+        self.loop.run_until_complete(self.datasource_customizer.stack.apply_queue_customization())
 
         self.book_customizer = CollectionCustomizer(
             self.datasource_customizer, self.datasource_customizer.stack, "Book"
@@ -203,6 +204,8 @@ class TestCollectionCustomizer(TestCase):
             column_type=PrimitiveType.STRING, dependencies=["title"], get_values=get_values
         )
         self.book_customizer.add_field("test", computed_definition)
+        self.loop.run_until_complete(self.datasource_customizer.stack.apply_queue_customization())
+
         computed_collection = self.datasource_customizer.stack.early_computed.get_collection("Book")
 
         returned_data = self.loop.run_until_complete(computed_collection.get_computed("test")["get_values"](data, None))
@@ -225,6 +228,7 @@ class TestCollectionCustomizer(TestCase):
             wraps=self.datasource_customizer.stack.late_computed.get_collection("Person").register_computed,
         ) as mock_register_computed:
             self.person_customizer.add_field("new_field", computed_definition)
+            self.loop.run_until_complete(self.datasource_customizer.stack.apply_queue_customization())
             mock_register_computed.assert_called_once_with("new_field", computed_definition)
             self.assertIsNotNone(
                 self.datasource_customizer.stack.late_computed.get_collection("Person")
@@ -234,6 +238,7 @@ class TestCollectionCustomizer(TestCase):
 
     def test_add_segment_should_add_a_segment(self):
         self.book_customizer.add_segment("new_segment", lambda ctx: ConditionTreeLeaf("id", Operator.GREATER_THAN, 1))
+        self.loop.run_until_complete(self.datasource_customizer.stack.apply_queue_customization())
         stack = self.datasource_customizer.stack
         assert "new_segment" in stack.segment.get_collection("Book")._segments
 
@@ -243,33 +248,37 @@ class TestCollectionCustomizer(TestCase):
 
         self.book_customizer.replace_search(search_replacer)
 
+        self.loop.run_until_complete(self.datasource_customizer.stack.apply_queue_customization())
         assert self.datasource_customizer.stack.search.get_collection("Book")._replacer == search_replacer
 
     def test_disable_count_should_disable_count_on_collection(self):
         self.book_customizer.disable_count()
+        self.loop.run_until_complete(self.datasource_customizer.stack.apply_queue_customization())
 
         assert self.datasource_customizer.stack.schema.get_collection("Book").schema["countable"] is False
 
     def test_rename_field_should_raise_if_name_contain_space(self):
+        self.book_customizer.rename_field("title", "new title")
         self.assertRaisesRegex(
             FieldValidatorException,
             "The name of field 'new title' you configured on 'Book' must not contain space. "
             + "Something like 'newTitle' should work has expected.",
-            self.book_customizer.rename_field,
-            "title",
-            "new title",
+            self.loop.run_until_complete,
+            self.datasource_customizer.stack.apply_queue_customization(),
         )
 
     def test_rename_field_should_rename_field_in_collection(self):
         self.book_customizer.rename_field("title", "new_title")
+        self.loop.run_until_complete(self.datasource_customizer.stack.apply_queue_customization())
 
-        schema = self.datasource_customizer.stack.rename_field.get_collection("Book").schema
+        schema = self.loop.run_until_complete(self.datasource_customizer.get_datasource()).get_collection("Book").schema
         assert "new_title" in schema["fields"]
         assert "title" not in schema["fields"]
 
     def test_remove_field_should_remove_field_in_collection(self):
         self.book_customizer.remove_field("title")
-        schema = self.datasource_customizer.stack.publication.get_collection("Book").schema
+
+        schema = self.loop.run_until_complete(self.datasource_customizer.get_datasource()).get_collection("Book").schema
         assert "title" not in schema["fields"]
 
     def test_add_action_should_add_old_style_action_in_collection(self):
@@ -280,7 +289,7 @@ class TestCollectionCustomizer(TestCase):
 
         self.book_customizer.add_action("action_man", ActionMan())
 
-        schema = self.datasource_customizer.stack.publication.get_collection("Book").schema
+        schema = self.loop.run_until_complete(self.datasource_customizer.get_datasource()).get_collection("Book").schema
         assert "action_man" in schema["actions"]
 
     def test_add_action_should_add_action_in_collection(self):
@@ -288,13 +297,15 @@ class TestCollectionCustomizer(TestCase):
             "action_man", {"scope": ActionsScope.SINGLE, "execute": lambda ctx, result_builder: None}
         )
 
-        schema = self.datasource_customizer.stack.publication.get_collection("Book").schema
+        schema = self.loop.run_until_complete(self.datasource_customizer.get_datasource()).get_collection("Book").schema
         assert "action_man" in schema["actions"]
 
     def test_add_validation(self):
         self.person_customizer.add_validation("name", {"operator": Operator.LONGER_THAN, "value": 5})
 
-        schema = self.datasource_customizer.stack.publication.get_collection("Person").schema
+        schema = (
+            self.loop.run_until_complete(self.datasource_customizer.get_datasource()).get_collection("Person").schema
+        )
         assert schema["fields"]["name"]["validations"] == [{"operator": Operator.LONGER_THAN, "value": 5}]
 
     def test_add_chart(self):
@@ -305,10 +316,11 @@ class TestCollectionCustomizer(TestCase):
             self.datasource_customizer.stack.chart.get_collection("Book"), "add_chart"
         ) as mocked_add_chart:
             self.book_customizer.add_chart("test_chart", chart_fn)
+            self.loop.run_until_complete(self.datasource_customizer.stack.apply_queue_customization())
             mocked_add_chart.assert_called_once_with("test_chart", chart_fn)
 
         self.book_customizer.add_chart("test_chart", chart_fn)
-        schema = self.datasource_customizer.stack.publication.get_collection("Book").schema
+        schema = self.loop.run_until_complete(self.datasource_customizer.get_datasource()).get_collection("Book").schema
         assert "test_chart" in schema["charts"]
         assert schema["charts"]["test_chart"] == chart_fn
 
@@ -320,6 +332,7 @@ class TestCollectionCustomizer(TestCase):
             self.datasource_customizer.stack.write.get_collection("Person"), "replace_field_writing"
         ) as mocked_replace_field_writing:
             self.person_customizer.replace_field_writing("name", write_definition)
+            self.loop.run_until_complete(self.datasource_customizer.stack.apply_queue_customization())
             mocked_replace_field_writing.assert_called_once_with("name", write_definition)
 
     def test_emulate_field_filtering(self):
@@ -328,6 +341,7 @@ class TestCollectionCustomizer(TestCase):
             "emulate_field_operator",
         ) as mock_emulate_field_operator:
             self.person_customizer.emulate_field_filtering("name")
+            self.loop.run_until_complete(self.datasource_customizer.stack.apply_queue_customization())
 
             for operator in MAP_ALLOWED_OPERATORS_FOR_COLUMN_TYPE[PrimitiveType.STRING]:
                 mock_emulate_field_operator.assert_any_call("name", operator)
@@ -338,6 +352,7 @@ class TestCollectionCustomizer(TestCase):
             "emulate_field_operator",
         ) as mock_emulate_field_operator:
             self.person_customizer.emulate_field_operator("name", Operator.PRESENT)
+            self.loop.run_until_complete(self.datasource_customizer.stack.apply_queue_customization())
 
             mock_emulate_field_operator.assert_any_call("name", Operator.PRESENT)
 
@@ -350,6 +365,7 @@ class TestCollectionCustomizer(TestCase):
             "replace_field_operator",
         ) as mock_replace_field_operator:
             self.person_customizer.replace_field_operator("name", Operator.PRESENT, replacer)
+            self.loop.run_until_complete(self.datasource_customizer.stack.apply_queue_customization())
 
             mock_replace_field_operator.assert_any_call("name", Operator.PRESENT, replacer)
 
@@ -360,6 +376,7 @@ class TestCollectionCustomizer(TestCase):
             wraps=self.datasource_customizer.stack.relation.get_collection("BookPerson").add_relation,
         ) as mock_add_relation:
             self.book_person_customizer.add_many_to_one_relation("my_author", "Person", "person_id", "id")
+            self.loop.run_until_complete(self.datasource_customizer.stack.apply_queue_customization())
             mock_add_relation.assert_called_once_with(
                 "my_author",
                 {
@@ -380,6 +397,7 @@ class TestCollectionCustomizer(TestCase):
             wraps=self.datasource_customizer.stack.relation.get_collection("Person").add_relation,
         ) as mock_add_relation:
             self.person_customizer.add_one_to_one_relation("my_book_author", "BookPerson", "person_id", "id")
+            self.loop.run_until_complete(self.datasource_customizer.stack.apply_queue_customization())
             mock_add_relation.assert_called_once_with(
                 "my_book_author",
                 {
@@ -400,6 +418,7 @@ class TestCollectionCustomizer(TestCase):
             wraps=self.datasource_customizer.stack.relation.get_collection("Person").add_relation,
         ) as mock_add_relation:
             self.person_customizer.add_one_to_many_relation("my_book_authors", "BookPerson", "person_id", "id")
+            self.loop.run_until_complete(self.datasource_customizer.stack.apply_queue_customization())
             mock_add_relation.assert_called_once_with(
                 "my_book_authors",
                 {
@@ -422,6 +441,7 @@ class TestCollectionCustomizer(TestCase):
             self.person_customizer.add_many_to_many_relation(
                 "my_books", "Book", "BookPerson", "person_id", "book_id", "id", "id"
             )
+            self.loop.run_until_complete(self.datasource_customizer.stack.apply_queue_customization())
             mock_add_relation.assert_called_once_with(
                 "my_books",
                 {
@@ -447,6 +467,7 @@ class TestCollectionCustomizer(TestCase):
             wraps=self.datasource_customizer.stack.hook.get_collection("Person").add_hook,
         ) as mocked_add_hook:
             self.person_customizer.add_hook("Before", "List", hook_handler)
+            self.loop.run_until_complete(self.datasource_customizer.stack.apply_queue_customization())
 
             mocked_add_hook.assert_called_once_with("Before", "List", hook_handler)
 
@@ -457,6 +478,7 @@ class TestCollectionCustomizer(TestCase):
             # wraps=self.datasource_customizer.stack.sort_emulate.get_collection("Person").emulate_field_sorting,
         ) as mocked_emulate_field_sorting:
             self.person_customizer.emulate_field_sorting("name")
+            self.loop.run_until_complete(self.datasource_customizer.stack.apply_queue_customization())
 
             mocked_emulate_field_sorting.assert_called_once_with("name")
 
@@ -468,5 +490,6 @@ class TestCollectionCustomizer(TestCase):
             # wraps=self.datasource_customizer.stack.sort_emulate.get_collection("Person").replace_field_sorting,
         ) as mocked_replace_field_sorting:
             self.person_customizer.replace_field_sorting("name", sort_clause)
+            self.loop.run_until_complete(self.datasource_customizer.stack.apply_queue_customization())
 
             mocked_replace_field_sorting.assert_called_once_with("name", sort_clause)

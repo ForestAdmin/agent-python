@@ -64,54 +64,68 @@ class TestDatasourceCustomizerAddDatasource(BaseTestDatasourceCustomizer):
     def test_add_datasource_should_add_collections_of_datasource(self):
         self.datasource_customizer.add_datasource(self.datasource)
 
-        self.assertEqual(self.datasource_customizer.stack.datasource.get_collection("Person").name, "Person")
-        self.assertEqual(self.datasource_customizer.stack.datasource.get_collection("Category").name, "Category")
+        self.assertEqual(
+            self.loop.run_until_complete(self.datasource_customizer.get_datasource()).get_collection("Person").name,
+            "Person",
+        )
+        self.assertEqual(
+            self.loop.run_until_complete(self.datasource_customizer.get_datasource()).get_collection("Category").name,
+            "Category",
+        )
 
     def test_add_datasource_should_hide_collection(self):
         self.datasource_customizer.add_datasource(self.datasource, {"exclude": ["Category"]})
 
-        self.assertEqual(len(self.datasource_customizer.stack.datasource.collections), 1)
-        self.assertEqual(self.datasource_customizer.stack.datasource.get_collection("Person").name, "Person")
+        self.assertEqual(len(self.loop.run_until_complete(self.datasource_customizer.get_datasource()).collections), 1)
+        self.assertEqual(
+            self.loop.run_until_complete(self.datasource_customizer.get_datasource()).get_collection("Person").name,
+            "Person",
+        )
 
     def test_add_datasource_exclude_should_throw_when_collection_is_unknown(self):
+        self.datasource_customizer.add_datasource(self.datasource, {"exclude": ["Foo"]})
         self.assertRaisesRegex(
             ForestException,
             r"🌳🌳🌳Collection 'Foo' not found",
-            self.datasource_customizer.add_datasource,
-            self.datasource,
-            {"exclude": ["Foo"]},
+            self.loop.run_until_complete,
+            self.datasource_customizer.stack.apply_queue_customization(),
         )
 
     def test_add_datasource_should_add_only_a_specific_collection(self):
         self.datasource_customizer.add_datasource(self.datasource, {"include": ["Category"]})
 
-        self.assertEqual(len(self.datasource_customizer.stack.datasource.collections), 1)
-        self.assertEqual(self.datasource_customizer.stack.datasource.get_collection("Category").name, "Category")
+        self.assertEqual(len(self.loop.run_until_complete(self.datasource_customizer.get_datasource()).collections), 1)
+        self.assertEqual(
+            self.loop.run_until_complete(self.datasource_customizer.get_datasource()).get_collection("Category").name,
+            "Category",
+        )
 
     def test_add_datasource_include_should_throw_when_collection_is_unknown(self):
+        self.datasource_customizer.add_datasource(self.datasource, {"include": ["Foo"]})
         self.assertRaisesRegex(
             ForestException,
             r"🌳🌳🌳Collection 'Foo' not found",
-            self.datasource_customizer.add_datasource,
-            self.datasource,
-            {"include": ["Foo"]},
+            self.loop.run_until_complete,
+            self.datasource_customizer.stack.apply_queue_customization(),
         )
 
     def test_add_datasource_should_rename_collection_without_error(self):
         self.datasource_customizer.add_datasource(self.datasource, {"rename": {"Category": "MyCategory"}})
 
         self.assertEqual(
-            set([c.name for c in self.datasource_customizer.stack.datasource.collections]),
+            set(
+                [c.name for c in self.loop.run_until_complete(self.datasource_customizer.get_datasource()).collections]
+            ),
             set(["Person", "MyCategory"]),
         )
 
     def test_add_datasource_rename_should_throw_when_collection_is_unknown(self):
+        self.datasource_customizer.add_datasource(self.datasource, {"rename": {"Foo": "Bar"}})
         self.assertRaisesRegex(
             ForestException,
             r"🌳🌳🌳Collection 'Foo' not found",
-            self.datasource_customizer.add_datasource,
-            self.datasource,
-            {"rename": {"Foo": "Bar"}},
+            self.loop.run_until_complete,
+            self.datasource_customizer.stack.apply_queue_customization(),
         )
 
 
@@ -121,8 +135,14 @@ class TestDatasourceCustomizerCustomizeCollection(BaseTestDatasourceCustomizer):
         collection_customizer = self.datasource_customizer.customize_collection("Category")
         collection_customizer.replace_field_sorting("label", None)
 
-        self.assertEqual(self.datasource_customizer.stack.datasource.get_collection("Person").name, "Person")
-        self.assertEqual(self.datasource_customizer.stack.datasource.get_collection("Category").name, "Category")
+        self.assertEqual(
+            self.loop.run_until_complete(self.datasource_customizer.get_datasource()).get_collection("Person").name,
+            "Person",
+        )
+        self.assertEqual(
+            self.loop.run_until_complete(self.datasource_customizer.get_datasource()).get_collection("Category").name,
+            "Category",
+        )
 
 
 class TestDatasourceCustomizerRemoveCollection(BaseTestDatasourceCustomizer):
@@ -130,4 +150,9 @@ class TestDatasourceCustomizerRemoveCollection(BaseTestDatasourceCustomizer):
         self.datasource_customizer.add_datasource(self.datasource)
 
         self.datasource_customizer.remove_collections("Category")
-        self.assertNotIn("Category", set([c.name for c in self.datasource_customizer.stack.datasource.collections]))
+        self.assertNotIn(
+            "Category",
+            set(
+                [c.name for c in self.loop.run_until_complete(self.datasource_customizer.get_datasource()).collections]
+            ),
+        )
