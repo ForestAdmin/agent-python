@@ -1,3 +1,10 @@
+# [1.0.0-beta.21](https://github.com/ForestAdmin/agent-python/compare/v1.0.0-beta.20...v1.0.0-beta.21) (2023-10-03)
+
+
+### Bug Fixes
+
+* **filters:** use in operator with string type ([#122](https://github.com/ForestAdmin/agent-python/issues/122)) ([f2479e0](https://github.com/ForestAdmin/agent-python/commit/f2479e066e0b4a6449b4839dfa40793ee598bbd9))
+
 # [1.0.0-beta.20](https://github.com/ForestAdmin/agent-python/compare/v1.0.0-beta.19...v1.0.0-beta.20) (2023-09-28)
 
 
