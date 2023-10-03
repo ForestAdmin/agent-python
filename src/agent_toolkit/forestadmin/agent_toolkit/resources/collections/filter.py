@@ -214,14 +214,10 @@ def _parse_value(jsoned_filters, collection):
     if jsoned_filters["operator"] == "in" and isinstance(jsoned_filters["value"], str):
         values = [val.strip() for val in jsoned_filters["value"].split(",")]
 
-        if schema["column_type"] == PrimitiveType.BOOLEAN:
-            new_value = [strtobool(value) for value in values]
-        elif schema["column_type"] == PrimitiveType.NUMBER:
-            new_values = []
-            for value in values:
-                new_val = literal_eval(str(value))
-                new_values.append(new_val)
-            new_value = new_values
+        if schema["column_type"] == PrimitiveType.NUMBER:
+            new_value = [literal_eval(str(value)) for value in values]
+        else:
+            new_value = values
 
     elif schema["column_type"] == PrimitiveType.NUMBER:
         new_value = literal_eval(str(jsoned_filters["value"]))
