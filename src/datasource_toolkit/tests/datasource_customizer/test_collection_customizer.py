@@ -2,7 +2,7 @@ import asyncio
 import sys
 from typing import Union
 from unittest import TestCase
-from unittest.mock import Mock, patch
+from unittest.mock import ANY, Mock, patch
 
 if sys.version_info >= (3, 9):
     import zoneinfo
@@ -20,6 +20,7 @@ from forestadmin.datasource_toolkit.decorators.chart.collection_chart_context im
 from forestadmin.datasource_toolkit.decorators.chart.result_builder import ResultBuilder as ResultBuilderChart
 from forestadmin.datasource_toolkit.decorators.computed.types import ComputedDefinition
 from forestadmin.datasource_toolkit.decorators.hook.types import HookHandler
+from forestadmin.datasource_toolkit.exceptions import ForestException
 from forestadmin.datasource_toolkit.interfaces.actions import ActionResult, ActionsScope
 from forestadmin.datasource_toolkit.interfaces.fields import (
     Column,
@@ -27,6 +28,7 @@ from forestadmin.datasource_toolkit.interfaces.fields import (
     ManyToMany,
     ManyToOne,
     OneToMany,
+    OneToOne,
     Operator,
     PrimitiveType,
 )
@@ -137,6 +139,12 @@ class TestCollectionCustomizer(TestCase):
                     type=FieldType.COLUMN,
                     filter_operators=set([Operator.IN, Operator.EQUAL]),
                 ),
+                "translator": OneToOne(
+                    type=FieldType.ONE_TO_ONE,
+                    foreign_collection="Translator",
+                    origin_key="person_id",
+                    origin_key_target="id",
+                ),
             }
         )
 
@@ -160,10 +168,30 @@ class TestCollectionCustomizer(TestCase):
             }
         )
 
+        cls.collection_translator = Collection("Translator", cls.datasource)
+        cls.collection_translator.add_fields(
+            {
+                "id": Column(column_type=PrimitiveType.NUMBER, is_primary_key=True, type=FieldType.COLUMN),
+                "name": Column(
+                    column_type=PrimitiveType.STRING,
+                    type=FieldType.COLUMN,
+                    filter_operators=set([Operator.EQUAL, Operator.IN]),
+                ),
+                "name_readonly": Column(
+                    column_type=PrimitiveType.STRING,
+                    type=FieldType.COLUMN,
+                    filter_operators=set([Operator.EQUAL, Operator.IN]),
+                    is_read_only=True,
+                ),
+                "person_id": Column(column_type=PrimitiveType.NUMBER, type=FieldType.COLUMN),
+            }
+        )
+
         cls.datasource.add_collection(cls.collection_book)
         cls.datasource.add_collection(cls.collection_book_person)
         cls.datasource.add_collection(cls.collection_person)
         cls.datasource.add_collection(cls.collection_category)
+        cls.datasource.add_collection(cls.collection_translator)
 
         cls.mocked_caller = User(
             rendering_id=1,
@@ -493,3 +521,69 @@ class TestCollectionCustomizer(TestCase):
             self.loop.run_until_complete(self.datasource_customizer.stack.apply_queue_customization())
 
             mocked_replace_field_sorting.assert_called_once_with("name", sort_clause)
+
+    def test_import_field_should_throw_when_name_contain_space(self):
+        self.person_customizer.import_field("first name copy", {"path": "name"})
+
+        self.assertRaisesRegex(
+            FieldValidatorException,
+            r"🌳🌳🌳The name of field 'first name copy' you configured on 'Person' must not contain space. Something"
+            + " like 'firstNameCopy' should work has expected.",
+            self.loop.run_until_complete,
+            self.datasource_customizer.stack.apply_queue_customization(),
+        )
+
+    def test_import_field_should_call_add_field(self):
+        self.person_customizer.import_field("firstNameCopy", {"path": "name"})
+        with patch.object(self.person_customizer, "add_field", wraps=self.person_customizer.add_field) as add_field_fn:
+            self.loop.run_until_complete(self.datasource_customizer.stack.apply_queue_customization())
+            add_field_fn.assert_called_once()
+            self.assertEqual(add_field_fn.call_args.args[0], "firstNameCopy")
+            self.assertEqual(add_field_fn.call_args.args[1]["column_type"], PrimitiveType.STRING)
+            self.assertEqual(add_field_fn.call_args.args[1]["dependencies"], ["name"])
+            values_fn = add_field_fn.call_args.args[1]["get_values"]
+            self.assertEqual(values_fn([{"name": "John"}], None), ["John"])
+
+    def test_import_field_should_call_replace_field_writing_with_correct_path(self):
+        self.person_customizer.import_field("translator_name", {"path": "translator:name"})
+
+        with patch.object(
+            self.person_customizer.stack.write.get_collection("Person"),
+            "replace_field_writing",
+            wraps=self.person_customizer.stack.write.get_collection("Person").replace_field_writing,
+        ) as replace_field_writing_fn:
+            self.loop.run_until_complete(self.datasource_customizer.stack.apply_queue_customization())
+            replace_field_writing_fn.assert_called_once_with("translator_name", ANY)
+            replace_fn = replace_field_writing_fn.call_args.args[1]
+        self.assertEqual(replace_fn("new_name_value", None), {"translator": {"name": "new_name_value"}})
+
+    def test_import_field_should_not_call_replace_field_writing_on_readonly(self):
+        self.person_customizer.import_field("translator_name", {"path": "translator:name_readonly"})
+
+        with patch.object(
+            self.person_customizer.stack.write.get_collection("Person"),
+            "replace_field_writing",
+            wraps=self.person_customizer.stack.write.get_collection("Person").replace_field_writing,
+        ) as replace_field_writing_fn:
+            self.loop.run_until_complete(self.datasource_customizer.stack.apply_queue_customization())
+            replace_field_writing_fn.assert_not_called()
+
+    def test_import_field_should_raise_if_we_try_to_force_writable(self):
+        self.person_customizer.import_field("translator_name", {"path": "translator:name_readonly", "readonly": False})
+
+        self.assertRaisesRegex(
+            ForestException,
+            r'🌳🌳🌳Readonly option should not be false because the field "translator:name_readonly" is not writable',
+            self.loop.run_until_complete,
+            self.datasource_customizer.stack.apply_queue_customization(),
+        )
+
+    def test_import_field_should_raise_when_importing_non_existent_field(self):
+        self.person_customizer.import_field("translator_name", {"path": "does_not_exists"})
+
+        self.assertRaisesRegex(
+            ForestException,
+            r"🌳🌳🌳Field does_not_exists not found in collection Person",
+            self.loop.run_until_complete,
+            self.datasource_customizer.stack.apply_queue_customization(),
+        )
