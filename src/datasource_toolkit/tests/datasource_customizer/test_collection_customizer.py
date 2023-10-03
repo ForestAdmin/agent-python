@@ -607,6 +607,6 @@ class TestCollectionCustomizer(TestCase):
             self.assertEqual(add_field_fn.call_args.args[1]["dependencies"], ["id"])
             get_values_fn = add_field_fn.call_args.args[1]["get_values"]
             self.assertEqual(
-                get_values_fn([{"id": 1}, {id: 2}], None),
+                self.loop.run_until_complete(get_values_fn([{"id": 1}, {id: 2}], None)),
                 [{"fist_name": "John", "last_name": "Doe"}, {"fist_name": "John", "last_name": "Doe"}],
             )

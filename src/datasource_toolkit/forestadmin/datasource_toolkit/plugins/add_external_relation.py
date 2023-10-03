@@ -1,4 +1,4 @@
-from typing import Dict, Optional
+from typing import Awaitable, Dict, Optional
 
 from forestadmin.datasource_toolkit.decorators.computed.types import ComputedDefinition
 from forestadmin.datasource_toolkit.exceptions import ForestException
@@ -20,11 +20,20 @@ class AddExternalRelation(Plugin):
                 "The options parameter must contains the following keys: 'name, schema, list_records'"
             )
 
+        async def get_values_fn(records, context):
+            ret = []
+            for record in records:
+                value = options["list_records"](record, context)
+                if isinstance(value, Awaitable):
+                    value = await value
+                ret.append(value)
+            return ret
+
         collection_customizer.add_field(
             options["name"],
             ComputedDefinition(
                 column_type=[options["schema"]],
                 dependencies=options.get("dependencies", primary_keys),
-                get_values=lambda records, ctx: [options["list_records"](record, ctx) for record in records],
+                get_values=get_values_fn,
             ),
         )
