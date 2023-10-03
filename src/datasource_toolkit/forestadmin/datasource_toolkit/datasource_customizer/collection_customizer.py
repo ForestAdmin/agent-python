@@ -19,6 +19,7 @@ from forestadmin.datasource_toolkit.decorators.write.write_replace.types import 
 from forestadmin.datasource_toolkit.interfaces.fields import FieldType, Operator, PrimitiveType
 from forestadmin.datasource_toolkit.interfaces.models.collections import CollectionSchema
 from forestadmin.datasource_toolkit.interfaces.query.sort import PlainSortClause
+from forestadmin.datasource_toolkit.plugins.add_external_relation import AddExternalRelation
 from forestadmin.datasource_toolkit.plugins.import_field import ImportField
 from forestadmin.datasource_toolkit.utils.collections import CollectionUtils, CollectionUtilsException
 from forestadmin.datasource_toolkit.validations.rules import MAP_ALLOWED_OPERATORS_FOR_COLUMN_TYPE
@@ -236,3 +237,6 @@ class CollectionCustomizer:
 
     def import_field(self, name: str, options: Dict):
         self.use(ImportField, {"name": name, **options})
+
+    def add_external_relation(self, name: str, definition: Dict):
+        self.use(AddExternalRelation, {"name": name, **definition})

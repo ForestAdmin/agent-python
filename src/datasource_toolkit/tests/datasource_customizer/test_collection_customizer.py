@@ -587,3 +587,26 @@ class TestCollectionCustomizer(TestCase):
             self.loop.run_until_complete,
             self.datasource_customizer.stack.apply_queue_customization(),
         )
+
+    def test_add_external_relation_should_call_add_field(self):
+        self.person_customizer.add_external_relation(
+            "first_name_copy",
+            {
+                "schema": {"first_name": PrimitiveType.STRING, "last_name": PrimitiveType.STRING},
+                "list_records": lambda record, ctx: {"fist_name": "John", "last_name": "Doe"},
+            },
+        )
+        with patch.object(self.person_customizer, "add_field", wraps=self.person_customizer.add_field) as add_field_fn:
+            self.loop.run_until_complete(self.datasource_customizer.stack.apply_queue_customization())
+            add_field_fn.assert_called_once()
+            self.assertEqual(add_field_fn.call_args.args[0], "first_name_copy")
+            self.assertEqual(
+                add_field_fn.call_args.args[1]["column_type"],
+                [{"first_name": PrimitiveType.STRING, "last_name": PrimitiveType.STRING}],
+            )
+            self.assertEqual(add_field_fn.call_args.args[1]["dependencies"], ["id"])
+            get_values_fn = add_field_fn.call_args.args[1]["get_values"]
+            self.assertEqual(
+                get_values_fn([{"id": 1}, {id: 2}], None),
+                [{"fist_name": "John", "last_name": "Doe"}, {"fist_name": "John", "last_name": "Doe"}],
+            )
