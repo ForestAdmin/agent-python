@@ -17,7 +17,9 @@ from forestadmin.datasource_toolkit.decorators.search.collections import SearchD
 from forestadmin.datasource_toolkit.decorators.segments.collections import SegmentAlias
 from forestadmin.datasource_toolkit.decorators.write.write_replace.types import WriteDefinition
 from forestadmin.datasource_toolkit.interfaces.fields import FieldType, Operator, PrimitiveType
+from forestadmin.datasource_toolkit.interfaces.models.collections import CollectionSchema
 from forestadmin.datasource_toolkit.interfaces.query.sort import PlainSortClause
+from forestadmin.datasource_toolkit.plugins.import_field import ImportField
 from forestadmin.datasource_toolkit.utils.collections import CollectionUtils, CollectionUtilsException
 from forestadmin.datasource_toolkit.validations.rules import MAP_ALLOWED_OPERATORS_FOR_COLUMN_TYPE
 
@@ -31,8 +33,8 @@ class CollectionCustomizer:
         self.collection_name = collection_name
 
     @property
-    def schema(self):
-        return self.stack.validation.get_collection(self.collection_name)
+    def schema(self) -> CollectionSchema:
+        return self.stack.validation.get_collection(self.collection_name).schema
 
     def add_action(self, name: str, action: ActionDict):
         async def _add_action():
@@ -228,6 +230,9 @@ class CollectionCustomizer:
 
     def use(self, plugin: type, options: Optional[Dict] = {}):
         async def _use():
-            plugin().run(self.datasource_customizer, self, options)
+            await plugin().run(self.datasource_customizer, self, options)
 
         self.stack.queue_customization(_use)
+
+    def import_field(self, name: str, options: Dict):
+        self.use(ImportField, {"name": name, **options})
