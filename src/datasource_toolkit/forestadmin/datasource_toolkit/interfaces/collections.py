@@ -15,6 +15,10 @@ from forestadmin.datasource_toolkit.interfaces.records import RecordsDataAlias
 
 class Collection(CollectionModel, abc.ABC):
     @abc.abstractmethod
+    def get_native_driver(self):
+        """return native driver"""
+
+    @abc.abstractmethod
     async def execute(
         self,
         caller: User,

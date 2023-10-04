@@ -151,3 +151,7 @@ class TestCollectionDecorator(TestCase):
         assert self.loop.run_until_complete(
             self.decorated_collection_product._refine_filter(self.mocked_caller, Filter({}))
         ) == Filter({})
+
+    def test_get_native_driver_should_return_native_driver_from_base_collection(self):
+        with patch.object(self.collection_product, "get_native_driver", return_value="native_driver"):
+            self.assertEqual(self.decorated_collection_product.get_native_driver(), "native_driver")
