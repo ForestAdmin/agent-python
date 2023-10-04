@@ -1,9 +1,18 @@
-from typing import Awaitable, Dict, Optional
+from typing import Any, Awaitable, Callable, Dict, List, Optional, TypedDict
 
 from forestadmin.datasource_toolkit.decorators.computed.types import ComputedDefinition
 from forestadmin.datasource_toolkit.exceptions import ForestException
+from forestadmin.datasource_toolkit.interfaces.fields import PrimitiveType
+from forestadmin.datasource_toolkit.interfaces.records import RecordsDataAlias
 from forestadmin.datasource_toolkit.plugins.plugin import Plugin
 from forestadmin.datasource_toolkit.utils.schema import SchemaUtils
+
+
+class AddExternalRelationOptions(TypedDict):
+    name: str
+    schema: List[Dict[str, PrimitiveType]]
+    list_records: Callable[[List[RecordsDataAlias], Any], Awaitable[Any]]
+    dependencies: Optional[List[str]]
 
 
 class AddExternalRelation(Plugin):

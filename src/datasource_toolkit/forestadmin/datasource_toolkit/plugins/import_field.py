@@ -1,5 +1,5 @@
 from functools import reduce
-from typing import Dict, Optional
+from typing import Dict, Optional, TypedDict
 
 from forestadmin.datasource_toolkit.decorators.computed.types import ComputedDefinition
 from forestadmin.datasource_toolkit.exceptions import ForestException
@@ -8,12 +8,18 @@ from forestadmin.datasource_toolkit.plugins.plugin import Plugin
 from forestadmin.datasource_toolkit.utils.records import RecordUtils
 
 
+class ImportFieldOption(TypedDict):
+    name: str
+    path: str
+    readonly: Optional[bool]
+
+
 class ImportField(Plugin):
     async def run(
         self,
         datasource_customizer: "DatasourceCustomizer",  # noqa: F821
         collection_customizer: Optional["CollectionCustomizer"] = None,  # noqa: F821
-        options: Optional[Dict] = {},
+        options: ImportFieldOption = {},
     ):
         options = self._check_params(options)
         name = options["name"]

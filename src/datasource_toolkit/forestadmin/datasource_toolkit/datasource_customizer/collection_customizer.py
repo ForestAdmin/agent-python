@@ -19,8 +19,8 @@ from forestadmin.datasource_toolkit.decorators.write.write_replace.types import 
 from forestadmin.datasource_toolkit.interfaces.fields import FieldType, Operator, PrimitiveType
 from forestadmin.datasource_toolkit.interfaces.models.collections import CollectionSchema
 from forestadmin.datasource_toolkit.interfaces.query.sort import PlainSortClause
-from forestadmin.datasource_toolkit.plugins.add_external_relation import AddExternalRelation
-from forestadmin.datasource_toolkit.plugins.import_field import ImportField
+from forestadmin.datasource_toolkit.plugins.add_external_relation import AddExternalRelation, AddExternalRelationOptions
+from forestadmin.datasource_toolkit.plugins.import_field import ImportField, ImportFieldOption
 from forestadmin.datasource_toolkit.utils.collections import CollectionUtils, CollectionUtilsException
 from forestadmin.datasource_toolkit.validations.rules import MAP_ALLOWED_OPERATORS_FOR_COLUMN_TYPE
 
@@ -235,8 +235,8 @@ class CollectionCustomizer:
 
         self.stack.queue_customization(_use)
 
-    def import_field(self, name: str, options: Dict):
+    def import_field(self, name: str, options: ImportFieldOption):
         self.use(ImportField, {"name": name, **options})
 
-    def add_external_relation(self, name: str, definition: Dict):
+    def add_external_relation(self, name: str, definition: AddExternalRelationOptions):
         self.use(AddExternalRelation, {"name": name, **definition})
