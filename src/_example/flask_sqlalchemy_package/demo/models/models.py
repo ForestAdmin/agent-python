@@ -18,6 +18,7 @@ class Address(db.Model):
     __tablename__ = "address"
     id = Column(Integer, primary_key=True)
     street = Column(String(254), nullable=False)
+    street_number = Column(String(254), nullable=True)
     city = Column(String(254), nullable=False)
     country = Column(String(254), default="France", nullable=False)
     zip_code = Column(String(5), nullable=False, default="75009")

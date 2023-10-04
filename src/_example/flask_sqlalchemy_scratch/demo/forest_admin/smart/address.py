@@ -1,5 +1,6 @@
 from typing import List, Tuple
 
+from aiohttp import ClientSession
 from forestadmin.datasource_toolkit.context.collection_context import CollectionCustomizationContext
 from forestadmin.datasource_toolkit.decorators.computed.types import ComputedDefinition
 from forestadmin.datasource_toolkit.interfaces.fields import Operator, PrimitiveType
@@ -54,3 +55,14 @@ def computed_full_address_caps():
         dependencies=["full address"],
         get_values=lambda records, context: [record["full address"].upper() for record in records],
     )
+
+
+async def get_postal_code(record: RecordsDataAlias, context: CollectionCustomizationContext):
+    async with ClientSession() as session:
+        async with session.get(
+            f"https://apicarto.ign.fr/api/codes-postaux/communes/{record['zip_code']}", verify_ssl=False
+        ) as response:
+            if response.status == 200:
+                return await response.json()
+            else:
+                return []
