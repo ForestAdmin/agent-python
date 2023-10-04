@@ -1,3 +1,15 @@
+# [1.0.0-beta.22](https://github.com/ForestAdmin/agent-python/compare/v1.0.0-beta.21...v1.0.0-beta.22) (2023-10-04)
+
+
+### Bug Fixes
+
+* **json_api:** add href attribute into relationships ([#120](https://github.com/ForestAdmin/agent-python/issues/120)) ([476b8ad](https://github.com/ForestAdmin/agent-python/commit/476b8ad26759e522a39e54d2d4c3617f6ea67959))
+
+
+### Features
+
+* **native_driver:** add native driver ([#121](https://github.com/ForestAdmin/agent-python/issues/121)) ([c2b7a44](https://github.com/ForestAdmin/agent-python/commit/c2b7a44725f6125356b942a2527868311249b796))
+
 # [1.0.0-beta.21](https://github.com/ForestAdmin/agent-python/compare/v1.0.0-beta.20...v1.0.0-beta.21) (2023-10-03)
 
 
