@@ -63,8 +63,9 @@ class SchemaFieldGenerator:
             column_type = [SchemaFieldGenerator.build_column_type(_column_type[0])]
         else:
             column_type = {
-                "fields": {"field": k, "type": SchemaFieldGenerator.build_column_type(t)}
-                for k, t in _column_type.items()
+                "fields": [
+                    {"field": k, "type": SchemaFieldGenerator.build_column_type(t)} for k, t in _column_type.items()
+                ]
             }
         return column_type
 

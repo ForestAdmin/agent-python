@@ -273,14 +273,12 @@ class TestAgent(TestCase):
                 with patch.object(agent.customizer, "get_datasource", new_callable=AsyncMock):
                     self.loop.run_until_complete(agent.start())
 
+                self.assertEqual(logger.output[0], "DEBUG:forestadmin:Starting agent")
+                self.assertTrue(logger.output[1].startswith("ERROR:forestadmin:Error generating forest schema"))
                 self.assertEqual(
-                    logger.output,
-                    [
-                        "DEBUG:forestadmin:Starting agent",
-                        "ERROR:forestadmin:Error generating forest schema",
-                        "WARNING:forestadmin:Cannot send the apimap to Forest. Are you online?",
-                        "INFO:forestadmin:Agent started",
-                    ],
+                    logger.output[2], "WARNING:forestadmin:Cannot send the apimap to Forest. Are you online?"
                 )
+                self.assertEqual(logger.output[3], "INFO:forestadmin:Agent started")
+                self.assertEqual(len(logger.output), 4)
 
         mocked_forest_http_api__send_schema.assert_not_awaited()

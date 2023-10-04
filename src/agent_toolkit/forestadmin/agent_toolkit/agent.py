@@ -124,7 +124,7 @@ class Agent:
                     self.options, await self.customizer.get_datasource(), self.meta
                 )
             except Exception:
-                ForestLogger.log("error", "Error generating forest schema")
+                ForestLogger.log("exception", "Error generating forest schema")
 
             try:
                 await ForestHttpApi.send_schema(self.options, api_map)

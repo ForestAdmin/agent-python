@@ -66,8 +66,6 @@ def _map_primitive_type(_type: PrimitiveType):
 def _map_attribute_to_marshmallow(column_alias: FieldAlias):
     if isinstance(column_alias["column_type"], PrimitiveType):
         type_ = _map_primitive_type(column_alias["column_type"])
-    elif isinstance(column_alias["column_type"], list):
-        type_ = fields.List
     else:
         type_ = fields.Raw
 
