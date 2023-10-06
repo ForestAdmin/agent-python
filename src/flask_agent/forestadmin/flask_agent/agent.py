@@ -96,63 +96,63 @@ def build_blueprint(agent: Agent):  # noqa: C901
 
     @blueprint.route("/authentication/callback", methods=["GET"])
     async def callback() -> FlaskResponse:  # type: ignore
-        return await _get_collection_response(request, agent.resources["authentication"], "callback")
+        return await _get_collection_response(request, (await agent.get_resources())["authentication"], "callback")
 
     @blueprint.route("/_actions/<collection_name>/<int:action_name>/<slug>/hooks/load", methods=["POST"])
     async def load_hook(**_) -> FlaskResponse:  # type: ignore
-        return await _get_collection_response(request, agent.resources["actions"], "hook")
+        return await _get_collection_response(request, (await agent.get_resources())["actions"], "hook")
 
     @blueprint.route("/_actions/<collection_name>/<int:action_name>/<slug>/hooks/change", methods=["POST"])
     async def change_hook(**_) -> FlaskResponse:  # type: ignore
-        return await _get_collection_response(request, agent.resources["actions"], "hook")
+        return await _get_collection_response(request, (await agent.get_resources())["actions"], "hook")
 
     @blueprint.route("/_actions/<collection_name>/<int:action_name>/<slug>", methods=["POST"])
     async def actions(**_) -> FlaskResponse:  # type: ignore
-        return await _get_collection_response(request, agent.resources["actions"], "execute")
+        return await _get_collection_response(request, (await agent.get_resources())["actions"], "execute")
 
     @blueprint.route("/authentication", methods=["POST"])
     async def authentication() -> FlaskResponse:  # type: ignore
-        return await _get_collection_response(request, agent.resources["authentication"], "authenticate")
+        return await _get_collection_response(request, (await agent.get_resources())["authentication"], "authenticate")
 
     @blueprint.route("/stats/<collection_name>", methods=["POST"])
     async def stats(**_) -> FlaskResponse:  # type: ignore
-        return await _get_collection_response(request, agent.resources["stats"])
+        return await _get_collection_response(request, (await agent.get_resources())["stats"])
 
     @blueprint.route("/_charts/<chart_name>", methods=["POST", "GET"])
     async def charts(**_) -> FlaskResponse:  # type: ignore
-        return await _get_collection_response(request, agent.resources["datasource_charts"])
+        return await _get_collection_response(request, (await agent.get_resources())["datasource_charts"])
 
     @blueprint.route("/_charts/<collection_name>/<chart_name>", methods=["POST", "GET"])
     async def charts_collection(**_) -> FlaskResponse:  # type: ignore
-        return await _get_collection_response(request, agent.resources["collection_charts"])
+        return await _get_collection_response(request, (await agent.get_resources())["collection_charts"])
 
     @blueprint.route("/<collection_name>/count", methods=["GET"])
     async def count(**_) -> FlaskResponse:  # type: ignore
-        return await _get_collection_response(request, agent.resources["crud"], "count")
+        return await _get_collection_response(request, (await agent.get_resources())["crud"], "count")
 
     @blueprint.route("/<collection_name>/<pks>", methods=["GET", "PUT", "DELETE"])
     async def detail(**_) -> FlaskResponse:  # type: ignore
-        return await _get_collection_response(request, agent.resources["crud"], detail=True)
+        return await _get_collection_response(request, (await agent.get_resources())["crud"], detail=True)
 
     @blueprint.route("/<collection_name>", methods=["GET", "POST", "DELETE"])
     async def list_(**_) -> FlaskResponse:  # type: ignore
-        return await _get_collection_response(request, agent.resources["crud"])
+        return await _get_collection_response(request, (await agent.get_resources())["crud"])
 
     @blueprint.route("/<collection_name>.csv", methods=["GET"])
     async def csv(**_) -> FlaskResponse:  # type: ignore
-        return await _get_collection_response(request, agent.resources["crud"], "csv")
+        return await _get_collection_response(request, (await agent.get_resources())["crud"], "csv")
 
     @blueprint.route("/<collection_name>/<pks>/relationships/<relation_name>", methods=["GET", "POST", "DELETE", "PUT"])
     async def list_related(**_) -> FlaskResponse:  # type: ignore
-        return await _get_collection_response(request, agent.resources["crud_related"])
+        return await _get_collection_response(request, (await agent.get_resources())["crud_related"])
 
     @blueprint.route("/<collection_name>/<pks>/relationships/<relation_name>/count", methods=["GET"])
     async def count_related(**_) -> FlaskResponse:  # type: ignore
-        return await _get_collection_response(request, agent.resources["crud_related"], "count")
+        return await _get_collection_response(request, (await agent.get_resources())["crud_related"], "count")
 
     @blueprint.route("/<collection_name>/<pks>/relationships/<relation_name>.csv", methods=["GET"])
     async def csv_related(**_) -> FlaskResponse:  # type: ignore
-        return await _get_collection_response(request, agent.resources["crud_related"], "csv")
+        return await _get_collection_response(request, (await agent.get_resources())["crud_related"], "csv")
 
     @blueprint.route("/scope-cache-invalidation", methods=["POST"])
     async def scope_cache_invalidation(**_) -> FlaskResponse:  # type: ignore

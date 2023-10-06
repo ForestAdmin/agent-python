@@ -21,6 +21,7 @@ from forestadmin.datasource_toolkit.datasources import Datasource
 class TestAgent(TestCase):
     @classmethod
     def setUpClass(cls) -> None:
+        cls.loop = asyncio.new_event_loop()
         cls.fake_options: Options = Options(
             env_secret="fake_env_secret",
             auth_secret="fake_auth_secret",
@@ -82,7 +83,8 @@ class TestAgent(TestCase):
     ):
         agent = Agent(self.fake_options)
         assert agent._resources is None
-        agent.resources
+        with patch.object(agent.customizer, "get_datasource", new_callable=AsyncMock):
+            resources = self.loop.run_until_complete(agent.get_resources())
 
         mocked_authentication_resource.assert_called_once()
         mocked_crud_resource.assert_called_once()
@@ -90,14 +92,14 @@ class TestAgent(TestCase):
         mocked_stats_resource.assert_called_once()
         mocked_action_resource.assert_called_once()
 
-        assert len(agent.resources) == 7
-        assert "authentication" in agent.resources
-        assert "crud" in agent.resources
-        assert "crud_related" in agent.resources
-        assert "stats" in agent.resources
-        assert "actions" in agent.resources
-        assert "collection_charts" in agent.resources
-        assert "datasource_charts" in agent.resources
+        assert len(resources) == 7
+        assert "authentication" in resources
+        assert "crud" in resources
+        assert "crud_related" in resources
+        assert "stats" in resources
+        assert "actions" in resources
+        assert "collection_charts" in resources
+        assert "datasource_charts" in resources
 
     def test_property_meta(
         self,
@@ -214,15 +216,19 @@ class TestAgent(TestCase):
         mocked_datasource_customizer,
         mocked_permission_service,
     ):
-        loop = asyncio.new_event_loop()
-
         agent = Agent({**self.fake_options, "logger_level": logging.DEBUG})
         agent.META = "fake_meta"
 
         agent.customizer.stack.datasource.collections = ["fake_collection"]
 
         with self.assertLogs("forestadmin", level=logging.DEBUG) as logger:
-            loop.run_until_complete(agent.start())
+            with patch.object(
+                agent.customizer,
+                "get_datasource",
+                new_callable=AsyncMock,
+                return_value=agent.customizer.stack.datasource,
+            ):
+                self.loop.run_until_complete(agent.start())
             self.assertEqual(logger.output, ["DEBUG:forestadmin:Starting agent", "INFO:forestadmin:Agent started"])
 
         mocked_create_json_api_schema.assert_called_once_with("fake_collection")
@@ -235,7 +241,7 @@ class TestAgent(TestCase):
         mocked_forest_http_api__send_schema.reset_mock()
 
         with self.assertLogs("forestadmin", level=logging.DEBUG) as logger:
-            loop.run_until_complete(agent.start())
+            self.loop.run_until_complete(agent.start())
             self.assertEqual(logger.output, ["DEBUG:forestadmin:Agent already started."])
 
         mocked_create_json_api_schema.assert_not_called()
@@ -254,8 +260,6 @@ class TestAgent(TestCase):
         mocked_datasource_customizer,
         mocked_permission_service,
     ):
-        loop = asyncio.new_event_loop()
-
         agent = Agent({**self.fake_options, "logger_level": logging.DEBUG, "is_production": True})
         agent.META = "fake_meta"
 
@@ -266,16 +270,15 @@ class TestAgent(TestCase):
         ):
             with self.assertLogs("forestadmin", level=logging.DEBUG) as logger:
                 Agent._Agent__IS_INITIALIZED = False
-                loop.run_until_complete(agent.start())
+                with patch.object(agent.customizer, "get_datasource", new_callable=AsyncMock):
+                    self.loop.run_until_complete(agent.start())
 
+                self.assertEqual(logger.output[0], "DEBUG:forestadmin:Starting agent")
+                self.assertTrue(logger.output[1].startswith("ERROR:forestadmin:Error generating forest schema"))
                 self.assertEqual(
-                    logger.output,
-                    [
-                        "DEBUG:forestadmin:Starting agent",
-                        "ERROR:forestadmin:Error generating forest schema",
-                        "WARNING:forestadmin:Cannot send the apimap to Forest. Are you online?",
-                        "INFO:forestadmin:Agent started",
-                    ],
+                    logger.output[2], "WARNING:forestadmin:Cannot send the apimap to Forest. Are you online?"
                 )
+                self.assertEqual(logger.output[3], "INFO:forestadmin:Agent started")
+                self.assertEqual(len(logger.output), 4)
 
         mocked_forest_http_api__send_schema.assert_not_awaited()

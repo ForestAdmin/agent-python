@@ -42,7 +42,7 @@ class TestFlaskAgent(TestCase):
         agent.loop.run_until_complete.assert_called_once()
 
     @patch("forestadmin.flask_agent.agent.asyncio.get_event_loop", return_value="event_loop")
-    @patch("forestadmin.flask_agent.agent.BaseAgent.resources")
+    @patch("forestadmin.flask_agent.agent.BaseAgent.get_resources")
     @patch("forestadmin.flask_agent.agent.BaseAgent.__init__")
     @patch("forestadmin.flask_agent.agent.Blueprint")
     def test_build_blueprint(self, mocked_blueprint, mock_base_agent, mock_base_agent_resources, mock_get_event_loop):

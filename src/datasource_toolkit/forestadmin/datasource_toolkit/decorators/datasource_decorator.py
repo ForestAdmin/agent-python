@@ -1,7 +1,9 @@
-from typing import Union
+from typing import Dict, Union
 
 from forestadmin.agent_toolkit.utils.context import User
+from forestadmin.datasource_toolkit.collections import Collection
 from forestadmin.datasource_toolkit.datasources import Datasource
+from forestadmin.datasource_toolkit.decorators.collection_decorator import CollectionDecorator
 from forestadmin.datasource_toolkit.interfaces.chart import Chart
 
 
@@ -12,6 +14,7 @@ class DatasourceDecorator(Datasource):
         super().__init__()
         self.child_datasource = child_datasource
         self.class_collection_decorator = class_collection_decorator
+        self._decorators: Dict[Collection, CollectionDecorator] = {}
 
         for collection in self.child_datasource.collections:
             self.add_collection(self.class_collection_decorator(collection, self))
@@ -19,6 +22,12 @@ class DatasourceDecorator(Datasource):
     @property
     def collections(self):
         return [self.get_collection(c.name) for c in self.child_datasource.collections]
+
+    def get_collection(self, name: str) -> Collection:
+        collection = self.child_datasource.get_collection(name)
+        if collection not in self._decorators:
+            self._decorators[collection] = self.class_collection_decorator(collection, self)
+        return self._decorators.get(collection)
 
     def get_charts(self):
         return self.child_datasource.get_charts()

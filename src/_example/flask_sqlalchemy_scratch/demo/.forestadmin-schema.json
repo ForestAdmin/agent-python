@@ -27,7 +27,7 @@
                     "isPrimaryKey": false,
                     "isReadOnly": false,
                     "isRequired": false,
-                    "isSortable": false,
+                    "isSortable": true,
                     "isVirtual": false,
                     "reference": "order.pk",
                     "relationship": "HasMany",
@@ -83,7 +83,7 @@
                     "isPrimaryKey": false,
                     "isReadOnly": false,
                     "isRequired": false,
-                    "isSortable": false,
+                    "isSortable": true,
                     "isVirtual": false,
                     "reference": "customer.pk",
                     "relationship": "BelongsToMany",
@@ -101,7 +101,7 @@
                     "isPrimaryKey": false,
                     "isReadOnly": false,
                     "isRequired": false,
-                    "isSortable": false,
+                    "isSortable": true,
                     "isVirtual": false,
                     "reference": "order.pk",
                     "relationship": "HasMany",
@@ -145,6 +145,43 @@
                 {
                     "defaultValue": null,
                     "enums": null,
+                    "field": "postal_code",
+                    "integration": null,
+                    "inverseOf": null,
+                    "isFilterable": false,
+                    "isPrimaryKey": false,
+                    "isReadOnly": true,
+                    "isRequired": false,
+                    "isSortable": false,
+                    "isVirtual": false,
+                    "reference": null,
+                    "type": [
+                        {
+                            "fields": [
+                                {
+                                    "field": "codePostal",
+                                    "type": "String"
+                                },
+                                {
+                                    "field": "codeCommune",
+                                    "type": "String"
+                                },
+                                {
+                                    "field": "nomCommune",
+                                    "type": "String"
+                                },
+                                {
+                                    "field": "libelleAcheminement",
+                                    "type": "String"
+                                }
+                            ]
+                        }
+                    ],
+                    "validations": []
+                },
+                {
+                    "defaultValue": null,
+                    "enums": null,
                     "field": "street",
                     "integration": null,
                     "inverseOf": null,
@@ -165,9 +202,9 @@
                     ]
                 },
                 {
-                    "defaultValue": null,
+                    "defaultValue": "75009",
                     "enums": null,
-                    "field": "street_number",
+                    "field": "zip_code",
                     "integration": null,
                     "inverseOf": null,
                     "isFilterable": true,
@@ -463,7 +500,7 @@
                     "isPrimaryKey": false,
                     "isReadOnly": false,
                     "isRequired": false,
-                    "isSortable": false,
+                    "isSortable": true,
                     "isVirtual": false,
                     "reference": "address.pk",
                     "relationship": "BelongsToMany",
@@ -595,7 +632,7 @@
                     "isPrimaryKey": false,
                     "isReadOnly": false,
                     "isRequired": false,
-                    "isSortable": false,
+                    "isSortable": true,
                     "isVirtual": false,
                     "reference": "order.pk",
                     "relationship": "HasMany",
@@ -629,7 +666,7 @@
                     "isPrimaryKey": false,
                     "isReadOnly": false,
                     "isRequired": false,
-                    "isSortable": false,
+                    "isSortable": true,
                     "isVirtual": false,
                     "reference": "address.pk",
                     "relationship": "BelongsToMany",
@@ -647,7 +684,7 @@
                     "isPrimaryKey": false,
                     "isReadOnly": false,
                     "isRequired": false,
-                    "isSortable": false,
+                    "isSortable": true,
                     "isVirtual": false,
                     "reference": "cart.pk",
                     "relationship": "HasMany",
@@ -665,7 +702,7 @@
                     "isPrimaryKey": false,
                     "isReadOnly": false,
                     "isRequired": false,
-                    "isSortable": false,
+                    "isSortable": true,
                     "isVirtual": false,
                     "reference": "address.pk",
                     "relationship": "BelongsToMany",
@@ -747,7 +784,7 @@
                         {
                             "field": "dummy field",
                             "value": "",
-                            "defaultValue": null,
+                            "defaultValue": "",
                             "description": "",
                             "enums": null,
                             "hook": null,
@@ -760,7 +797,7 @@
                         {
                             "field": "customer",
                             "value": "",
-                            "defaultValue": null,
+                            "defaultValue": "",
                             "description": "",
                             "enums": null,
                             "hook": null,
@@ -791,7 +828,7 @@
                         {
                             "field": "dummy field",
                             "value": "",
-                            "defaultValue": null,
+                            "defaultValue": "",
                             "description": "",
                             "enums": null,
                             "hook": null,
@@ -804,7 +841,7 @@
                         {
                             "field": "customer",
                             "value": "",
-                            "defaultValue": null,
+                            "defaultValue": "",
                             "description": "",
                             "enums": null,
                             "hook": null,
@@ -835,7 +872,7 @@
                         {
                             "field": "reason",
                             "value": "",
-                            "defaultValue": null,
+                            "defaultValue": "",
                             "description": "",
                             "enums": null,
                             "hook": null,
@@ -866,7 +903,7 @@
                         {
                             "field": "reason",
                             "value": "",
-                            "defaultValue": null,
+                            "defaultValue": "",
                             "description": "",
                             "enums": null,
                             "hook": null,
@@ -968,6 +1005,11 @@
                             "type": "is greater than",
                             "value": 0,
                             "message": null
+                        },
+                        {
+                            "type": "is greater than",
+                            "value": 0,
+                            "message": null
                         }
                     ]
                 },
@@ -1001,6 +1043,22 @@
                     "reference": "customer.pk",
                     "relationship": "BelongsTo",
                     "type": "Number",
+                    "validations": []
+                },
+                {
+                    "defaultValue": null,
+                    "enums": null,
+                    "field": "customer_first_name",
+                    "integration": null,
+                    "inverseOf": null,
+                    "isFilterable": true,
+                    "isPrimaryKey": false,
+                    "isReadOnly": false,
+                    "isRequired": false,
+                    "isSortable": true,
+                    "isVirtual": false,
+                    "reference": null,
+                    "type": "String",
                     "validations": []
                 },
                 {
@@ -1077,11 +1135,11 @@
     ],
     "meta": {
         "liana": "agent-python",
-        "liana_version": "1.0.0-beta.13",
+        "liana_version": "1.0.0-beta.21",
         "stack": {
             "engine": "python",
             "engine_version": "3.10.11"
         },
-        "schemaFileHash": "124a248661068bc2fb399ece165070f1c4336c5a"
+        "schemaFileHash": "e1207a9d150c3c30b7fdcb040a82747051afcd69"
     }
 }

@@ -1,6 +1,6 @@
 from demo.forest_admin.forest_logging_customization import customize_forest_logging
 from demo.forest_admin.settings import SETTINGS
-from demo.forest_admin.smart.address import address_full_name_computed, high_delivery_address_segment
+from demo.forest_admin.smart.address import address_full_name_computed, get_postal_code, high_delivery_address_segment
 from demo.forest_admin.smart.cart import cart_update_name
 from demo.forest_admin.smart.customer import (
     AgeOperation,
@@ -69,9 +69,22 @@ agent.customize_collection("customers_addresses").add_many_to_one_relation("smar
 agent.customize_collection("customers_addresses").add_many_to_one_relation("smart_addresses", "address", "address_id")
 
 # changing visibility
-agent.customize_collection("address").remove_field("zip_code")
+agent.customize_collection("address").remove_field("street_number")
 # deactivate count
 agent.customize_collection("address").disable_count()
+agent.customize_collection("address").add_external_relation(
+    "postal_code",
+    {
+        "schema": {
+            "codePostal": PrimitiveType.STRING,
+            "codeCommune": PrimitiveType.STRING,
+            "nomCommune": PrimitiveType.STRING,
+            "libelleAcheminement": PrimitiveType.STRING,
+        },
+        "list_records": get_postal_code,
+        "dependencies": ["zip_code"],
+    },
+)
 
 # # ## CUSTOMERS
 # # import field ?
@@ -160,6 +173,8 @@ agent.customize_collection("order").add_action("Refund order(s) call to_dict", R
 agent.customize_collection("order").add_validation("amount", {"operator": Operator.GREATER_THAN, "value": 0})
 # # computed
 agent.customize_collection("order").add_field("customer_full_name", get_customer_full_name_field())
+
+agent.customize_collection("order").import_field("customer_first_name", {"path": "customer:first_name"})
 
 # cart
 

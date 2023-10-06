@@ -2,7 +2,7 @@ import enum
 import os
 
 from sqlalchemy import Boolean, Column, DateTime, Enum, ForeignKey, Integer, String, create_engine, func  # type: ignore
-from sqlalchemy.orm import backref, declarative_base, relationship
+from sqlalchemy.orm import declarative_base, relationship
 
 sqlite_path = os.path.abspath(os.path.join(__file__, "..", "..", "..", "db.sql"))
 SQLITE_URI = f"sqlite:///{sqlite_path}"
@@ -38,8 +38,6 @@ class Customer(Base):
     birthday_date = Column(DateTime(timezone=True), default=func.now())
     addresses = relationship("Address", secondary="customers_addresses", back_populates="customers")
     is_vip = Column(Boolean, default=False)
-    # something_else = relationship("SomethingElse", backref="orders")
-    # something_else_id = Column(Integer, ForeignKey("something_else.pk"))
 
 
 class Order(Base):
@@ -73,19 +71,3 @@ class CustomersAddresses(Base):
     __tablename__ = "customers_addresses"
     customer_id = Column(Integer, ForeignKey("customer.pk"), primary_key=True)
     address_id = Column(Integer, ForeignKey("address.pk"), primary_key=True)
-
-
-# class SomethingElse(Base):
-#     __tablename__ = "something_else"
-#     pk = Column(Integer, primary_key=True)
-#     name = Column(String(254), nullable=False)
-#     customer_id = Column(Integer, ForeignKey("customer.pk"))
-#     customer = relationship("Customer", backref="elses")
-
-
-# class SomeOneElse(Base):
-#     __tablename__ = "someone_else"
-#     prim_key = Column(Integer, primary_key=True)
-#     name = Column(String(254), nullable=False)
-#     something_elsse = relationship("SomethingElse", backref="someOne")
-#     something_elsse_pk = Column(Integer, ForeignKey("something_else.pk"))
