@@ -1,3 +1,10 @@
+# [1.0.0-beta.23](https://github.com/ForestAdmin/agent-python/compare/v1.0.0-beta.22...v1.0.0-beta.23) (2023-10-06)
+
+
+### Features
+
+* **customization:** add plugin system ([#123](https://github.com/ForestAdmin/agent-python/issues/123)) ([88a3b13](https://github.com/ForestAdmin/agent-python/commit/88a3b131ddf83f3c989e512478914ad9208b0309))
+
 # [1.0.0-beta.22](https://github.com/ForestAdmin/agent-python/compare/v1.0.0-beta.21...v1.0.0-beta.22) (2023-10-04)
 
 
