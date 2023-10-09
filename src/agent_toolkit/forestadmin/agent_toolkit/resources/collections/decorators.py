@@ -11,6 +11,7 @@ from forestadmin.agent_toolkit.utils.context import (
     Response,
     User,
 )
+from forestadmin.datasource_toolkit.exceptions import ForbiddenError
 from jose import JWTError, jwt
 
 BoundRequest = TypeVar("BoundRequest", bound=Request)
@@ -105,3 +106,18 @@ def check_method(method: RequestMethod):
         return wrapped
 
     return wrapper
+
+
+async def _ip_white_list(decorated_fn, self, request: Request, *args, **kwargs):
+    try:
+        await self.check_ip(request)
+    except ForbiddenError as exc:
+        return HttpResponseBuilder.build_client_error_response([exc])
+    return await decorated_fn(self, request, *args, **kwargs)
+
+
+def ip_white_list(decorated_fn):
+    async def wrapped(self, request: Request, *args, **kwargs):
+        return await _ip_white_list(decorated_fn, self, request, *args, **kwargs)
+
+    return wrapped

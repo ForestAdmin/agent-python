@@ -2,7 +2,7 @@ from typing import Literal
 
 from forestadmin.agent_toolkit.forest_logger import ForestLogger
 from forestadmin.agent_toolkit.resources.collections.base_collection_resource import BaseCollectionResource
-from forestadmin.agent_toolkit.resources.collections.decorators import authenticate, check_method
+from forestadmin.agent_toolkit.resources.collections.decorators import authenticate, check_method, ip_white_list
 from forestadmin.agent_toolkit.resources.collections.requests import RequestCollection, RequestCollectionException
 from forestadmin.agent_toolkit.services.serializers import json_api
 from forestadmin.agent_toolkit.utils.context import HttpResponseBuilder, Request, RequestMethod, Response
@@ -11,6 +11,7 @@ from forestadmin.datasource_toolkit.exceptions import ForestException
 
 
 class ChartsCollectionResource(BaseCollectionResource):
+    @ip_white_list
     async def dispatch(self, request: Request, method_name: Literal["add"]) -> Response:
         try:
             request_collection = RequestCollection.from_request(request, self.datasource)

@@ -11,6 +11,7 @@ from forestadmin.agent_toolkit.resources.collections.crud import CrudResource
 from forestadmin.agent_toolkit.resources.collections.crud_related import CrudRelatedResource
 from forestadmin.agent_toolkit.resources.collections.stats import StatsResource
 from forestadmin.agent_toolkit.resources.security.resources import Authentication
+from forestadmin.agent_toolkit.services.permissions.ip_whitelist_service import IpWhiteListService
 from forestadmin.agent_toolkit.services.permissions.permission_service import PermissionService
 from forestadmin.agent_toolkit.services.permissions.sse_cache_invalidation import SSECacheInvalidation
 from forestadmin.agent_toolkit.services.serializers.json_api import create_json_api_schema
@@ -53,15 +54,17 @@ class Agent:
         if "customize_error_message" in self.options:
             HttpResponseBuilder.setup_error_message_customizer(self.options["customize_error_message"])
 
-        self._permission_service = PermissionService(
-            {
-                "env_secret": self.options["env_secret"],
-                "forest_server_url": self.options["forest_server_url"],
-                "is_production": self.options["is_production"],
-                "permission_cache_duration": self.options["permissions_cache_duration_in_seconds"],
-                "prefix": self.options["prefix"],
-            }
-        )
+        service_options = {
+            "env_secret": self.options["env_secret"],
+            "forest_server_url": self.options["forest_server_url"],
+            "is_production": self.options["is_production"],
+            "permission_cache_duration": self.options["permissions_cache_duration_in_seconds"],
+            "prefix": self.options["prefix"],
+        }
+        self._permission_service = PermissionService(service_options)
+        self._ip_white_list_service = IpWhiteListService(service_options)
+
+        # TODO: add ip_white_list_service to sse cache invalidation thread when server implement it
         self._sse_thread = SSECacheInvalidation(self._permission_service, self.options)
 
     def __del__(self):
@@ -71,17 +74,41 @@ class Agent:
     async def __mk_resources(self):
         self._resources: Resources = {
             "authentication": Authentication(self.options),
-            "crud": CrudResource(await self.customizer.get_datasource(), self._permission_service, self.options),
-            "crud_related": CrudRelatedResource(
-                await self.customizer.get_datasource(), self._permission_service, self.options
+            "crud": CrudResource(
+                await self.customizer.get_datasource(),
+                self._permission_service,
+                self._ip_white_list_service,
+                self.options,
             ),
-            "stats": StatsResource(await self.customizer.get_datasource(), self._permission_service, self.options),
-            "actions": ActionResource(await self.customizer.get_datasource(), self._permission_service, self.options),
+            "crud_related": CrudRelatedResource(
+                await self.customizer.get_datasource(),
+                self._permission_service,
+                self._ip_white_list_service,
+                self.options,
+            ),
+            "stats": StatsResource(
+                await self.customizer.get_datasource(),
+                self._permission_service,
+                self._ip_white_list_service,
+                self.options,
+            ),
+            "actions": ActionResource(
+                await self.customizer.get_datasource(),
+                self._permission_service,
+                self._ip_white_list_service,
+                self.options,
+            ),
             "collection_charts": ChartsCollectionResource(
-                await self.customizer.get_datasource(), self._permission_service, self.options
+                await self.customizer.get_datasource(),
+                self._permission_service,
+                self._ip_white_list_service,
+                self.options,
             ),
             "datasource_charts": ChartsDatasourceResource(
-                await self.customizer.get_datasource(), self._permission_service, self.options
+                await self.customizer.get_datasource(),
+                self._permission_service,
+                self._ip_white_list_service,
+                self.options,
             ),
         }
 

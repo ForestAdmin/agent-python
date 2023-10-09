@@ -8,7 +8,12 @@ else:
 
 from forestadmin.agent_toolkit.forest_logger import ForestLogger
 from forestadmin.agent_toolkit.resources.collections.base_collection_resource import BaseCollectionResource
-from forestadmin.agent_toolkit.resources.collections.decorators import authenticate, authorize, check_method
+from forestadmin.agent_toolkit.resources.collections.decorators import (
+    authenticate,
+    authorize,
+    check_method,
+    ip_white_list,
+)
 from forestadmin.agent_toolkit.resources.collections.exceptions import CollectionResourceException
 from forestadmin.agent_toolkit.resources.collections.filter import (
     build_filter,
@@ -51,6 +56,7 @@ LiteralMethod = Literal["list", "add", "count", "delete_list", "update_list", "c
 
 
 class CrudRelatedResource(BaseCollectionResource):
+    @ip_white_list
     async def dispatch(self, request: Request, method_name: LiteralMethod) -> Response:
         method = getattr(self, method_name)
         try:
