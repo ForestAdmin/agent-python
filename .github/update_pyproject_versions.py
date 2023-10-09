@@ -41,7 +41,7 @@ def main():
         dependencies = pyproject_data["tool"]["poetry"]["dependencies"]
         for package_name in PACKAGE_NAMES:
             if dependencies.get(package_name):
-                dependencies[package_name] = f"^{args.new_version}"
+                dependencies[package_name] = f"{args.new_version}"
 
         # write pyproject
         with open(pyproject_file, "w") as file_out:
