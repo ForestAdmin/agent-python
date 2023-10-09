@@ -17,7 +17,7 @@ class BaseCollectionResource(IpWhitelistResource):
         permission: PermissionService,
         ip_white_list_service: IpWhiteListService,
         options: Options,
-    ):  # noqa: F821
+    ):
         super(BaseCollectionResource, self).__init__(ip_white_list_service, options)
         self.permission = permission
         self.datasource = datasource
