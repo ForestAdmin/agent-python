@@ -58,6 +58,11 @@ class ForestHttpApi:
             },
         )
 
+    @classmethod
+    async def get_ip_white_list_rules(cls, options: HttpOptions):
+        endpoint = cls.build_endpoint(options["forest_server_url"], "/liana/v1/ip-whitelist-rules")
+        return await cls.get(endpoint, {"forest-secret-key": options["env_secret"]})
+
     @staticmethod
     async def get(endpoint: str, headers: Dict[str, str]) -> Dict[str, Any]:
         async with ClientSession() as session:
@@ -116,7 +121,7 @@ class ForestHttpApi:
                     server_message = None
 
             if new_error is None and server_message is not None:
-                new_error = ForestHttpApiException(f"Failed to fetch {endpoint} : {server_message}.")
+                new_error = ForestHttpApiException(f"Failed to fetch {endpoint}: {server_message}.")
 
         if new_error is None:
             new_error = ForestHttpApiException(f"Failed to fetch {endpoint}: {error}")
