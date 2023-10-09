@@ -20,6 +20,7 @@ def convert_request(flask_request: FlaskRequest):
     kwargs: Dict[str, Any] = {"query": query, "headers": flask_request.headers}
     if method in [RequestMethod.POST, RequestMethod.PUT, RequestMethod.DELETE] and flask_request.get_data():
         kwargs["body"] = flask_request.json
+    kwargs["client_ip"] = flask_request.headers.get("X-Forwarded-For", flask_request.remote_addr)
 
     return Request(method, **kwargs)
 
