@@ -15,6 +15,7 @@ import forestadmin.agent_toolkit.resources.collections.stats
 from forestadmin.agent_toolkit.options import Options
 from forestadmin.agent_toolkit.resources.collections.filter import build_filter
 from forestadmin.agent_toolkit.resources.collections.requests import RequestCollection
+from forestadmin.agent_toolkit.services.permissions.ip_whitelist_service import IpWhiteListService
 from forestadmin.agent_toolkit.services.permissions.permission_service import PermissionService
 from forestadmin.agent_toolkit.utils.context import Request, RequestMethod, User
 from forestadmin.datasource_toolkit.collections import Collection
@@ -41,7 +42,15 @@ def authenticate_mock(fn):
     return wrapped2
 
 
+def ip_white_list_mock(decorated_fn):
+    async def wrapped(self, request: Request, *args, **kwargs):
+        return await decorated_fn(self, request, *args, **kwargs)
+
+    return wrapped
+
+
 patch("forestadmin.agent_toolkit.resources.collections.decorators.authenticate", authenticate_mock).start()
+patch("forestadmin.agent_toolkit.resources.collections.decorators.ip_white_list", ip_white_list_mock).start()
 
 
 # how to mock decorators, and why they are not testable :
@@ -55,6 +64,9 @@ class TestStatResource(TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         cls.loop = asyncio.new_event_loop()
+        cls.ip_white_list_service = Mock(IpWhiteListService)
+        cls.ip_white_list_service.is_enable = AsyncMock(return_value=False)
+
         cls.permission_service = Mock(PermissionService)
         cls.permission_service.get_scope = AsyncMock(return_value=None)
         cls.permission_service.can_chart = AsyncMock(return_value=True)
@@ -167,7 +179,9 @@ class TestStatResource(TestCase):
         )
 
     def setUp(self) -> None:
-        self.stat_resource = StatsResource(self.datasource, self.permission_service, self.options)
+        self.stat_resource = StatsResource(
+            self.datasource, self.permission_service, self.ip_white_list_service, self.options
+        )
 
 
 class TestDispatchStatsResource(TestStatResource):

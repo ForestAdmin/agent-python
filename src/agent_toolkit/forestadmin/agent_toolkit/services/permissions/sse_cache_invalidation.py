@@ -14,6 +14,7 @@ class SSECacheInvalidation(Thread):
         "refresh-roles": ["forest.collections"],
         "refresh-renderings": ["forest.collections", "forest.stats", "forest.scopes"],
         # "refresh-customizations": None,  # work with nocode actions
+        # TODO: add one for ip whitelist when server implement it
     }
 
     def __init__(self, permission_service: "PermissionService", options: Options, *args, **kwargs):  # noqa: F821

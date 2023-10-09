@@ -12,6 +12,7 @@ else:
 
 import forestadmin.agent_toolkit.resources.collections.charts_datasource
 from forestadmin.agent_toolkit.options import Options
+from forestadmin.agent_toolkit.services.permissions.ip_whitelist_service import IpWhiteListService
 from forestadmin.agent_toolkit.services.permissions.permission_service import PermissionService
 from forestadmin.agent_toolkit.utils.context import Request, RequestMethod, Response, User
 from forestadmin.datasource_toolkit.collections import Collection
@@ -38,7 +39,15 @@ def authenticate_mock(fn):
     return wrapped2
 
 
+def ip_white_list_mock(fn):
+    async def wrapped(self, request: Request, *args, **kwargs):
+        return await fn(self, request, *args, **kwargs)
+
+    return wrapped
+
+
 patch("forestadmin.agent_toolkit.resources.collections.decorators.authenticate", authenticate_mock).start()
+patch("forestadmin.agent_toolkit.resources.collections.decorators.ip_white_list", ip_white_list_mock).start()
 # how to mock decorators, and why they are not testable :
 # https://dev.to/stack-labs/how-to-mock-a-decorator-in-python-55jc
 
@@ -51,6 +60,8 @@ class TestChartDatasourceResource(TestCase):
     def setUpClass(cls) -> None:
         cls.loop = asyncio.new_event_loop()
         cls.permission_service = Mock(PermissionService)
+        cls.ip_white_list_service = Mock(IpWhiteListService)
+        cls.ip_white_list_service.is_enable = AsyncMock(return_value=False)
         cls.options = Options(
             auth_secret="fake_secret",
             env_secret="fake_secret",
@@ -84,7 +95,7 @@ class TestChartDatasourceResource(TestCase):
     def setUp(self) -> None:
         self.decorated_datasource = ChartDataSourceDecorator(self.datasource)
         self.chart_datasource_resource = ChartsDatasourceResource(
-            self.decorated_datasource, self.permission_service, self.options
+            self.decorated_datasource, self.permission_service, self.ip_white_list_service, self.options
         )
 
     def test_dispatch_should_return_400_on_bad_methods(self):

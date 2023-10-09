@@ -15,6 +15,7 @@ import forestadmin.agent_toolkit.resources.collections.crud
 from forestadmin.agent_toolkit.options import Options
 from forestadmin.agent_toolkit.resources.collections.exceptions import CollectionResourceException
 from forestadmin.agent_toolkit.resources.collections.requests import RequestCollection, RequestCollectionException
+from forestadmin.agent_toolkit.services.permissions.ip_whitelist_service import IpWhiteListService
 from forestadmin.agent_toolkit.services.permissions.permission_service import PermissionService
 from forestadmin.agent_toolkit.services.serializers.json_api import JsonApiException
 from forestadmin.agent_toolkit.utils.context import Request, RequestMethod, User
@@ -45,7 +46,15 @@ def authenticate_mock(fn):
     return wrapped2
 
 
+def ip_white_list_mock(fn):
+    async def wrapped(self, request: Request, *args, **kwargs):
+        return await fn(self, request, *args, **kwargs)
+
+    return wrapped
+
+
 patch("forestadmin.agent_toolkit.resources.collections.decorators.authenticate", authenticate_mock).start()
+patch("forestadmin.agent_toolkit.resources.collections.decorators.ip_white_list", ip_white_list_mock).start()
 # how to mock decorators, and why they are not testable :
 # https://dev.to/stack-labs/how-to-mock-a-decorator-in-python-55jc
 
@@ -150,6 +159,9 @@ class TestCrudResource(TestCase):
         }
 
     def setUp(self):
+        self.ip_white_list_service = Mock(IpWhiteListService)
+        self.ip_white_list_service.is_enable = AsyncMock(return_value=False)
+
         self.permission_service = Mock(PermissionService)
         self.permission_service.get_scope = AsyncMock(return_value=ConditionTreeLeaf("id", Operator.GREATER_THAN, 0))
         self.permission_service.can = AsyncMock(return_value=None)
@@ -162,7 +174,7 @@ class TestCrudResource(TestCase):
                 "collection_name": "order",
             },
         )
-        crud_resource = CrudResource(self.datasource, self.permission_service, self.options)
+        crud_resource = CrudResource(self.datasource, self.permission_service, self.ip_white_list_service, self.options)
         crud_resource.get = AsyncMock()
         crud_resource.list = AsyncMock()
         crud_resource.csv = AsyncMock()
@@ -204,7 +216,7 @@ class TestCrudResource(TestCase):
                 "collection": "order",
             },
         )
-        crud_resource = CrudResource(self.datasource, self.permission_service, self.options)
+        crud_resource = CrudResource(self.datasource, self.permission_service, self.ip_white_list_service, self.options)
         crud_resource.get = AsyncMock()
 
         with patch.object(
@@ -248,7 +260,7 @@ class TestCrudResource(TestCase):
         request = RequestCollection(
             RequestMethod.GET, self.collection_order, None, {"collection_name": "order", "pks": "10"}, {}, None
         )
-        crud_resource = CrudResource(self.datasource, self.permission_service, self.options)
+        crud_resource = CrudResource(self.datasource, self.permission_service, self.ip_white_list_service, self.options)
         mocked_json_serializer_get.return_value.dump = Mock(
             return_value={"data": {"type": "order", "attributes": mock_order}}
         )
@@ -314,7 +326,7 @@ class TestCrudResource(TestCase):
         request = RequestCollection(
             RequestMethod.GET, self.collection_order, None, {"collection_name": "order", "pks": "10"}, {}, None
         )
-        crud_resource = CrudResource(self.datasource, self.permission_service, self.options)
+        crud_resource = CrudResource(self.datasource, self.permission_service, self.ip_white_list_service, self.options)
 
         response = self.loop.run_until_complete(crud_resource.get(request))
         self.permission_service.can.assert_any_await(request.user, request.collection, "read")
@@ -347,7 +359,7 @@ class TestCrudResource(TestCase):
         request = RequestCollection(
             RequestMethod.GET, self.collection_order, None, {"collection_name": "order", "pks": "10"}, {}, None
         )
-        crud_resource = CrudResource(self.datasource, self.permission_service, self.options)
+        crud_resource = CrudResource(self.datasource, self.permission_service, self.ip_white_list_service, self.options)
         mocked_json_serializer_get.return_value.dump = Mock(side_effect=JsonApiException)
 
         response = self.loop.run_until_complete(crud_resource.get(request))
@@ -395,7 +407,7 @@ class TestCrudResource(TestCase):
         request = RequestCollection(
             RequestMethod.POST, self.collection_order, json.dumps(mock_order), {"collection_name": "order"}, {}, None
         )
-        crud_resource = CrudResource(self.datasource, self.permission_service, self.options)
+        crud_resource = CrudResource(self.datasource, self.permission_service, self.ip_white_list_service, self.options)
         mocked_json_serializer_get.return_value.load = Mock(return_value=mock_order)
         mocked_json_serializer_get.return_value.dump = Mock(
             return_value={"data": {"type": "order", "attributes": mock_order}}
@@ -434,7 +446,7 @@ class TestCrudResource(TestCase):
         request = RequestCollection(
             RequestMethod.POST, self.collection_order, json.dumps(mock_order), {"collection_name": "order"}, {}, None
         )
-        crud_resource = CrudResource(self.datasource, self.permission_service, self.options)
+        crud_resource = CrudResource(self.datasource, self.permission_service, self.ip_white_list_service, self.options)
         crud_resource.extract_data = AsyncMock(return_value=(mock_order, []))
 
         # JsonApiException
@@ -529,7 +541,7 @@ class TestCrudResource(TestCase):
             {},
             None,
         )
-        crud_resource = CrudResource(self.datasource, self.permission_service, self.options)
+        crud_resource = CrudResource(self.datasource, self.permission_service, self.ip_white_list_service, self.options)
         mocked_json_serializer_get.return_value.load = Mock(return_value=mock_order)
         mocked_json_serializer_get.return_value.dump = Mock(
             return_value={"data": {"type": "order", "attributes": mock_order}}
@@ -602,7 +614,7 @@ class TestCrudResource(TestCase):
             {},
             None,
         )
-        crud_resource = CrudResource(self.datasource, self.permission_service, self.options)
+        crud_resource = CrudResource(self.datasource, self.permission_service, self.ip_white_list_service, self.options)
         mocked_json_serializer_get.return_value.dump = Mock(
             return_value={
                 "data": [
@@ -648,7 +660,7 @@ class TestCrudResource(TestCase):
             {},
             None,
         )
-        crud_resource = CrudResource(self.datasource, self.permission_service, self.options)
+        crud_resource = CrudResource(self.datasource, self.permission_service, self.ip_white_list_service, self.options)
 
         # FilterException
         response = self.loop.run_until_complete(crud_resource.list(request))
@@ -717,7 +729,7 @@ class TestCrudResource(TestCase):
             None,
         )
         self.collection_order.aggregate = AsyncMock(return_value=[{"value": 1000, "group": {}}])
-        crud_resource = CrudResource(self.datasource, self.permission_service, self.options)
+        crud_resource = CrudResource(self.datasource, self.permission_service, self.ip_white_list_service, self.options)
 
         response = self.loop.run_until_complete(crud_resource.count(request))
         self.permission_service.can.assert_any_await(request.user, request.collection, "browse")
@@ -748,7 +760,7 @@ class TestCrudResource(TestCase):
             {},
             None,
         )
-        crud_resource = CrudResource(self.datasource, self.permission_service, self.options)
+        crud_resource = CrudResource(self.datasource, self.permission_service, self.ip_white_list_service, self.options)
 
         self.collection_order._schema["countable"] = False
         response = self.loop.run_until_complete(crud_resource.count(request))
@@ -792,7 +804,7 @@ class TestCrudResource(TestCase):
             {},
             None,
         )
-        crud_resource = CrudResource(self.datasource, self.permission_service, self.options)
+        crud_resource = CrudResource(self.datasource, self.permission_service, self.ip_white_list_service, self.options)
         self.collection_order.list = AsyncMock(return_value=[mock_order])
         self.collection_order.update = AsyncMock()
         mocked_json_serializer_get.return_value.load = Mock(return_value=mock_order)
@@ -844,7 +856,7 @@ class TestCrudResource(TestCase):
             {},
             None,
         )
-        crud_resource = CrudResource(self.datasource, self.permission_service, self.options)
+        crud_resource = CrudResource(self.datasource, self.permission_service, self.ip_white_list_service, self.options)
 
         # CollectionResourceException
         with patch(
@@ -913,7 +925,7 @@ class TestCrudResource(TestCase):
             None,
         )
         self.collection_order.delete = AsyncMock()
-        crud_resource = CrudResource(self.datasource, self.permission_service, self.options)
+        crud_resource = CrudResource(self.datasource, self.permission_service, self.ip_white_list_service, self.options)
         response = self.loop.run_until_complete(crud_resource.delete(request))
         self.permission_service.can.assert_any_await(request.user, request.collection, "delete")
         self.permission_service.can.reset_mock()
@@ -930,7 +942,7 @@ class TestCrudResource(TestCase):
             {},
             None,
         )
-        crud_resource = CrudResource(self.datasource, self.permission_service, self.options)
+        crud_resource = CrudResource(self.datasource, self.permission_service, self.ip_white_list_service, self.options)
 
         # CollectionResourceException
         with patch(
@@ -960,7 +972,7 @@ class TestCrudResource(TestCase):
             {},
             None,
         )
-        crud_resource = CrudResource(self.datasource, self.permission_service, self.options)
+        crud_resource = CrudResource(self.datasource, self.permission_service, self.ip_white_list_service, self.options)
         self.collection_order.delete = AsyncMock()
 
         response = self.loop.run_until_complete(crud_resource.delete_list(request))
@@ -986,7 +998,7 @@ class TestCrudResource(TestCase):
             {},
             None,
         )
-        crud_resource = CrudResource(self.datasource, self.permission_service, self.options)
+        crud_resource = CrudResource(self.datasource, self.permission_service, self.ip_white_list_service, self.options)
         self.collection_order.list = AsyncMock(return_value=mock_orders)
 
         response = self.loop.run_until_complete(crud_resource.csv(request))
@@ -1018,7 +1030,7 @@ class TestCrudResource(TestCase):
             {},
             None,
         )
-        crud_resource = CrudResource(self.datasource, self.permission_service, self.options)
+        crud_resource = CrudResource(self.datasource, self.permission_service, self.ip_white_list_service, self.options)
 
         # FilterException
         response = self.loop.run_until_complete(crud_resource.csv(request))
