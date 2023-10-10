@@ -15,6 +15,7 @@ class TestRequests(TestCase):
         flask_request_mock.args = {}
         flask_request_mock.view_args = {"collection_name": "customer"}
         flask_request_mock.headers = {"host": "127.0.0.1:5000", "host_url": "http://127.0.0.1:5000/"}
+        flask_request_mock.remote_addr = "127.0.0.1"
         request = convert_request(flask_request_mock)
 
         assert isinstance(request, Request)
@@ -23,6 +24,7 @@ class TestRequests(TestCase):
         assert request.query == flask_request_mock.view_args
         assert request.headers == flask_request_mock.headers
         assert request.user is None
+        assert request.client_ip == "127.0.0.1"
 
     def test_convert_request_post(self):
         flask_request_mock = Mock(FlaskResponse)
@@ -31,6 +33,7 @@ class TestRequests(TestCase):
         flask_request_mock.args = {}
         flask_request_mock.view_args = {}
         flask_request_mock.headers = {"host": "127.0.0.1:5000", "host_url": "http://127.0.0.1:5000/"}
+        flask_request_mock.remote_addr = "127.0.0.1"
 
         flask_request_mock.get_data = Mock(return_value=b'{"renderingId":"9"}')
         flask_request_mock.json = {"renderingId": "9"}
@@ -43,6 +46,23 @@ class TestRequests(TestCase):
         assert request.query == flask_request_mock.view_args
         assert request.headers == flask_request_mock.headers
         assert request.user is None
+        assert request.client_ip == "127.0.0.1"
+
+    def test_client_ip_must_be_the_forwarded_one(self):
+        flask_request_mock = Mock(FlaskRequest)
+        flask_request_mock.method = "GET"
+        flask_request_mock.args = {}
+        flask_request_mock.view_args = {"collection_name": "customer"}
+        flask_request_mock.headers = {
+            "host": "127.0.0.1:5000",
+            "host_url": "http://127.0.0.1:5000/",
+            "X-Forwarded-For": "192.168.1.10",
+        }
+        flask_request_mock.remote_addr = "127.0.0.1"
+        request = convert_request(flask_request_mock)
+
+        assert request.client_ip != flask_request_mock.remote_addr
+        assert request.client_ip == flask_request_mock.headers.get("X-Forwarded-For")
 
 
 class TestResponse(TestCase):

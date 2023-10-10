@@ -1,7 +1,8 @@
 from typing import Union
 
 from forestadmin.agent_toolkit.options import Options
-from forestadmin.agent_toolkit.resources.base import BaseResource
+from forestadmin.agent_toolkit.resources.ip_white_list_resource import IpWhitelistResource
+from forestadmin.agent_toolkit.services.permissions.ip_whitelist_service import IpWhiteListService
 from forestadmin.agent_toolkit.services.permissions.permission_service import PermissionService
 from forestadmin.datasource_toolkit.datasource_customizer.datasource_customizer import DatasourceCustomizer
 from forestadmin.datasource_toolkit.interfaces.models.collections import BoundCollection, Datasource
@@ -9,8 +10,14 @@ from forestadmin.datasource_toolkit.interfaces.models.collections import BoundCo
 DatasourceAlias = Union[Datasource[BoundCollection], DatasourceCustomizer]
 
 
-class BaseCollectionResource(BaseResource):
-    def __init__(self, datasource: DatasourceAlias, permission: PermissionService, options: Options):  # noqa: F821
-        super(BaseCollectionResource, self).__init__(options)
+class BaseCollectionResource(IpWhitelistResource):
+    def __init__(
+        self,
+        datasource: DatasourceAlias,
+        permission: PermissionService,
+        ip_white_list_service: IpWhiteListService,
+        options: Options,
+    ):
+        super(BaseCollectionResource, self).__init__(ip_white_list_service, options)
         self.permission = permission
         self.datasource = datasource

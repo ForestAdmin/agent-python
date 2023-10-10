@@ -7,6 +7,8 @@ from typing import List
 from unittest import TestCase
 from unittest.mock import ANY, AsyncMock, Mock, patch
 
+from forestadmin.agent_toolkit.services.permissions.ip_whitelist_service import IpWhiteListService
+
 if sys.version_info >= (3, 9):
     import zoneinfo
 else:
@@ -52,7 +54,15 @@ def authenticate_mock(fn):
     return wrapped2
 
 
+def ip_white_list_mock(fn):
+    async def wrapped(self, request: Request, *args, **kwargs):
+        return await fn(self, request, *args, **kwargs)
+
+    return wrapped
+
+
 patch("forestadmin.agent_toolkit.resources.collections.decorators.authenticate", authenticate_mock).start()
+patch("forestadmin.agent_toolkit.resources.collections.decorators.ip_white_list", ip_white_list_mock).start()
 
 
 importlib.reload(forestadmin.agent_toolkit.resources.actions.resources)
@@ -66,6 +76,8 @@ class BaseTestActionResource(TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         cls.loop = asyncio.new_event_loop()
+        cls.ip_white_list_service = Mock(IpWhiteListService)
+        cls.ip_white_list_service.is_enable = AsyncMock(return_value=False)
         cls.permission_service = Mock(PermissionService)
         cls.permission_service.get_scope = AsyncMock(return_value=None)
         cls.permission_service.can_smart_action = AsyncMock(return_value=True)
@@ -150,7 +162,9 @@ class BaseTestActionResource(TestCase):
         self.decorated_collection_book = self.datasource_decorator.get_collection("Book")
         self.decorated_collection_category = self.datasource_decorator.get_collection("Category")
 
-        self.action_resource = ActionResource(self.datasource_decorator, self.permission_service, self.options)
+        self.action_resource = ActionResource(
+            self.datasource_decorator, self.permission_service, self.ip_white_list_service, self.options
+        )
 
 
 class TestDispatchActionResource(BaseTestActionResource):

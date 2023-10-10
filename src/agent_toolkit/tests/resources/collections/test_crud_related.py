@@ -18,6 +18,7 @@ from forestadmin.agent_toolkit.resources.collections.requests import (
     RequestCollectionException,
     RequestRelationCollection,
 )
+from forestadmin.agent_toolkit.services.permissions.ip_whitelist_service import IpWhiteListService
 from forestadmin.agent_toolkit.services.permissions.permission_service import PermissionService
 from forestadmin.agent_toolkit.services.serializers.json_api import JsonApiException
 from forestadmin.agent_toolkit.utils.context import Request, RequestMethod, User
@@ -57,7 +58,15 @@ def authenticate_mock(fn):
     return wrapped2
 
 
+def ip_white_list_mock(fn):
+    async def wrapped(self, request: Request, *args, **kwargs):
+        return await fn(self, request, *args, **kwargs)
+
+    return wrapped
+
+
 patch("forestadmin.agent_toolkit.resources.collections.decorators.authenticate", authenticate_mock).start()
+patch("forestadmin.agent_toolkit.resources.collections.decorators.ip_white_list", ip_white_list_mock).start()
 
 # how to mock decorators, and why they are not testable :
 # https://dev.to/stack-labs/how-to-mock-a-decorator-in-python-55jc
@@ -257,7 +266,7 @@ class TestCrudRelatedResource(TestCase):
         cls.options = Options(
             auth_secret="fake_secret",
             env_secret="fake_secret",
-            server_url="http://fake:5000",
+            forest_server_url="http://fake:5000",
             prefix="forest",
             is_production=False,
         )
@@ -275,10 +284,16 @@ class TestCrudRelatedResource(TestCase):
         }
 
     def setUp(self):
+        self.ip_white_list_service = Mock(IpWhiteListService)
+        self.ip_white_list_service.is_enable = AsyncMock(return_value=False)
+
         self.permission_service = Mock(PermissionService)
         self.permission_service.can = AsyncMock(return_value=True)
         self.permission_service.get_scope = AsyncMock(return_value=ConditionTreeLeaf("id", Operator.GREATER_THAN, 0))
-        self.crud_related_resource = CrudRelatedResource(self.datasource, self.permission_service, self.options)
+
+        self.crud_related_resource = CrudRelatedResource(
+            self.datasource, self.permission_service, self.ip_white_list_service, self.options
+        )
 
     def tearDown(self):
         self.permission_service.can = None
@@ -364,7 +379,9 @@ class TestCrudRelatedResource(TestCase):
             {},
             None,
         )
-        crud_related_resource = CrudRelatedResource(self.datasource, self.permission_service, self.options)
+        crud_related_resource = CrudRelatedResource(
+            self.datasource, self.permission_service, self.ip_white_list_service, self.options
+        )
 
         mocked_json_serializer_get.return_value.dump = Mock(
             return_value={
@@ -403,7 +420,9 @@ class TestCrudRelatedResource(TestCase):
     )
     def test_list_errors(self, mocked_json_serializer_get: Mock):
         mock_orders = [{"id": 10, "cost": 200}, {"id": 11, "cost": 201}]
-        crud_related_resource = CrudRelatedResource(self.datasource, self.permission_service, self.options)
+        crud_related_resource = CrudRelatedResource(
+            self.datasource, self.permission_service, self.ip_white_list_service, self.options
+        )
 
         # Relation Type
         request = RequestRelationCollection(
@@ -531,7 +550,9 @@ class TestCrudRelatedResource(TestCase):
 
     def test_csv_errors(self):
         mock_orders = [{"id": 10, "cost": 200}, {"id": 11, "cost": 201}]
-        crud_related_resource = CrudRelatedResource(self.datasource, self.permission_service, self.options)
+        crud_related_resource = CrudRelatedResource(
+            self.datasource, self.permission_service, self.ip_white_list_service, self.options
+        )
 
         # Relation Type
         request = RequestRelationCollection(
@@ -653,7 +674,9 @@ class TestCrudRelatedResource(TestCase):
             {},  # header
             None,  # user
         )
-        crud_related_resource = CrudRelatedResource(self.datasource, self.permission_service, self.options)
+        crud_related_resource = CrudRelatedResource(
+            self.datasource, self.permission_service, self.ip_white_list_service, self.options
+        )
 
         with patch.object(self.collection_order, "update", new_callable=AsyncMock) as mock_collection_update:
             response = self.loop.run_until_complete(crud_related_resource.add(request))
@@ -677,7 +700,9 @@ class TestCrudRelatedResource(TestCase):
             {},  # header
             None,  # user
         )
-        crud_related_resource = CrudRelatedResource(self.datasource, self.permission_service, self.options)
+        crud_related_resource = CrudRelatedResource(
+            self.datasource, self.permission_service, self.ip_white_list_service, self.options
+        )
 
         with patch.object(self.collection_product_order, "create", new_callable=AsyncMock) as mock_collection_create:
             response = self.loop.run_until_complete(crud_related_resource.add(request))
@@ -808,7 +833,9 @@ class TestCrudRelatedResource(TestCase):
         return_value=ConditionTreeLeaf("id", Operator.EQUAL, 201),
     )
     def test_edit(self, mocked_match_id: Mock):
-        crud_related_resource = CrudRelatedResource(self.datasource, self.permission_service, self.options)
+        crud_related_resource = CrudRelatedResource(
+            self.datasource, self.permission_service, self.ip_white_list_service, self.options
+        )
 
         # one to one  (order & cart)
         request = RequestRelationCollection(
@@ -875,7 +902,9 @@ class TestCrudRelatedResource(TestCase):
         self.collection_cart.update.assert_awaited()
 
     def test_edit_error(self):
-        crud_related_resource = CrudRelatedResource(self.datasource, self.permission_service, self.options)
+        crud_related_resource = CrudRelatedResource(
+            self.datasource, self.permission_service, self.ip_white_list_service, self.options
+        )
         query_get_params = {
             "collection_name": "customer",
             "relation_name": "order",
@@ -1198,7 +1227,9 @@ class TestCrudRelatedResource(TestCase):
         return_value=ConditionTreeLeaf("id", Operator.EQUAL, 201),
     )
     def test_delete_list_error(self, mock_mach_id: Mock):
-        crud_related_resource = CrudRelatedResource(self.datasource, self.permission_service, self.options)
+        crud_related_resource = CrudRelatedResource(
+            self.datasource, self.permission_service, self.ip_white_list_service, self.options
+        )
         query_get_params = {
             "collection_name": "customer",
             "relation_name": "order",
@@ -1281,7 +1312,9 @@ class TestCrudRelatedResource(TestCase):
 
     # _associate_one_to_many
     def test_associate_one_to_many(self):
-        crud_related_resource = CrudRelatedResource(self.datasource, self.permission_service, self.options)
+        crud_related_resource = CrudRelatedResource(
+            self.datasource, self.permission_service, self.ip_white_list_service, self.options
+        )
         query_get_params = {
             "collection_name": "customer",
             "relation_name": "order",
@@ -1351,7 +1384,9 @@ class TestCrudRelatedResource(TestCase):
 
     # _associate_many_to_many
     def test_associate_many_to_many(self):
-        crud_related_resource = CrudRelatedResource(self.datasource, self.permission_service, self.options)
+        crud_related_resource = CrudRelatedResource(
+            self.datasource, self.permission_service, self.ip_white_list_service, self.options
+        )
         query_get_params = {
             "collection_name": "order",
             "relation_name": "product",
@@ -1423,7 +1458,9 @@ class TestCrudRelatedResource(TestCase):
             "fields[order]": "id,cost",
             "pks": "2",  # customer id
         }
-        crud_related_resource = CrudRelatedResource(self.datasource, self.permission_service, self.options)
+        crud_related_resource = CrudRelatedResource(
+            self.datasource, self.permission_service, self.ip_white_list_service, self.options
+        )
         request = RequestRelationCollection(
             RequestMethod.DELETE,
             *self.mk_request_customer_order_one_to_many(),
@@ -1487,7 +1524,9 @@ class TestCrudRelatedResource(TestCase):
         return_value=ConditionTreeLeaf("id", Operator.EQUAL, 201),
     )
     def test_delete_one_to_many(self, mocked_match_id: Mock):
-        crud_related_resource = CrudRelatedResource(self.datasource, self.permission_service, self.options)
+        crud_related_resource = CrudRelatedResource(
+            self.datasource, self.permission_service, self.ip_white_list_service, self.options
+        )
 
         # dissociate
         query_get_params = {
@@ -1549,7 +1588,9 @@ class TestCrudRelatedResource(TestCase):
         return_value=ConditionTreeLeaf("id", Operator.EQUAL, 201),
     )
     def test_delete_many_to_many(self, mocked_match_id: Mock):
-        crud_related_resource = CrudRelatedResource(self.datasource, self.permission_service, self.options)
+        crud_related_resource = CrudRelatedResource(
+            self.datasource, self.permission_service, self.ip_white_list_service, self.options
+        )
         # dissociate
         query_get_params = {
             "collection_name": "product",
@@ -1643,7 +1684,9 @@ class TestCrudRelatedResource(TestCase):
         return_value=ConditionTreeLeaf("id", Operator.EQUAL, 201),
     )
     def test_update_one_to_one(self, mock_match_ids: Mock):
-        crud_related_resource = CrudRelatedResource(self.datasource, self.permission_service, self.options)
+        crud_related_resource = CrudRelatedResource(
+            self.datasource, self.permission_service, self.ip_white_list_service, self.options
+        )
 
         query_get_params = {
             "collection_name": "order",
@@ -1736,7 +1779,9 @@ class TestCrudRelatedResource(TestCase):
         return_value=ConditionTreeLeaf("id", Operator.EQUAL, 201),
     )
     def test_update_many_to_one(self, mock_match_ids: Mock):
-        crud_related_resource = CrudRelatedResource(self.datasource, self.permission_service, self.options)
+        crud_related_resource = CrudRelatedResource(
+            self.datasource, self.permission_service, self.ip_white_list_service, self.options
+        )
 
         query_get_params = {
             "collection_name": "order",

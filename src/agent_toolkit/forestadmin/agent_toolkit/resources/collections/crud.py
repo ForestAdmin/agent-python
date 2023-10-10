@@ -3,7 +3,12 @@ from typing import Any, Awaitable, Dict, List, Literal, Tuple, cast
 
 from forestadmin.agent_toolkit.forest_logger import ForestLogger
 from forestadmin.agent_toolkit.resources.collections.base_collection_resource import BaseCollectionResource
-from forestadmin.agent_toolkit.resources.collections.decorators import authenticate, authorize, check_method
+from forestadmin.agent_toolkit.resources.collections.decorators import (
+    authenticate,
+    authorize,
+    check_method,
+    ip_white_list,
+)
 from forestadmin.agent_toolkit.resources.collections.exceptions import CollectionResourceException
 from forestadmin.agent_toolkit.resources.collections.filter import (
     FilterException,
@@ -50,6 +55,7 @@ LiteralMethod = Literal["list", "count", "add", "delete_list", "csv"]
 
 
 class CrudResource(BaseCollectionResource):
+    @ip_white_list
     async def dispatch(self, request: Request, method_name: LiteralMethod) -> Response:
         method = getattr(self, method_name)
         try:

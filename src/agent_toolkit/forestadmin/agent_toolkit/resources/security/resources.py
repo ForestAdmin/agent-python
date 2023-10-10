@@ -1,8 +1,8 @@
 import json
 from typing import Literal
 
-from forestadmin.agent_toolkit.options import Options
-from forestadmin.agent_toolkit.resources.base import BaseResource
+from forestadmin.agent_toolkit.resources.collections.decorators import ip_white_list
+from forestadmin.agent_toolkit.resources.ip_white_list_resource import IpWhitelistResource
 from forestadmin.agent_toolkit.resources.security.exceptions import AuthenticationException
 from forestadmin.agent_toolkit.utils.authentication import ClientFactory, CustomClientOic
 from forestadmin.agent_toolkit.utils.context import Request, Response
@@ -12,10 +12,8 @@ from forestadmin.agent_toolkit.utils.token import build_jwt
 LiteralMethod = Literal["authenticate", "callback"]
 
 
-class Authentication(BaseResource):
-    def __init__(self, options: Options):
-        super(Authentication, self).__init__(options)
-
+class Authentication(IpWhitelistResource):
+    @ip_white_list
     async def dispatch(self, request: Request, method_name: LiteralMethod) -> Response:
         method = getattr(self, method_name)
         return await method(request)

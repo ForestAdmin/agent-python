@@ -3,7 +3,7 @@ from typing import Any, Dict, List, Literal, Optional, Union
 from forestadmin.agent_toolkit.forest_logger import ForestLogger
 from forestadmin.agent_toolkit.resources.actions.requests import ActionRequest, RequestActionException
 from forestadmin.agent_toolkit.resources.collections.base_collection_resource import BaseCollectionResource
-from forestadmin.agent_toolkit.resources.collections.decorators import authenticate, check_method
+from forestadmin.agent_toolkit.resources.collections.decorators import authenticate, check_method, ip_white_list
 from forestadmin.agent_toolkit.resources.collections.filter import (
     build_filter,
     parse_condition_tree,
@@ -28,6 +28,7 @@ LiteralMethod = Literal["execute", "hook"]
 
 
 class ActionResource(BaseCollectionResource):
+    @ip_white_list
     async def dispatch(self, request: Request, method_name: LiteralMethod) -> Response:
         method = getattr(self, method_name)
         try:

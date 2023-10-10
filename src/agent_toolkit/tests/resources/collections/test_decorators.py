@@ -1,10 +1,17 @@
 import asyncio
+import json
 from unittest import TestCase
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock, Mock, patch
 
 from forestadmin.agent_toolkit.resources.collections.base_collection_resource import BaseCollectionResource
-from forestadmin.agent_toolkit.resources.collections.decorators import _authenticate, _authorize, _check_method
+from forestadmin.agent_toolkit.resources.collections.decorators import (
+    _authenticate,
+    _authorize,
+    _check_method,
+    _ip_white_list,
+)
 from forestadmin.agent_toolkit.resources.collections.requests import RequestCollection
+from forestadmin.agent_toolkit.services.permissions.ip_whitelist_service import IpWhiteListService
 from forestadmin.agent_toolkit.services.permissions.permission_service import PermissionService
 from forestadmin.agent_toolkit.utils.context import RequestMethod
 from forestadmin.datasource_toolkit.collections import Collection
@@ -65,14 +72,18 @@ class TestDecorators(TestCase):
                 "permission_cache_duration": 180,
             }
         )
+        cls.ip_white_list_service = Mock(IpWhiteListService)
+        cls.ip_white_list_service.is_enable = AsyncMock(return_value=False)
 
     def setUp(self):
         self.collection_resource = BaseCollectionResource(
             self.datasource,
             self.permission_service,
+            self.ip_white_list_service,
             {
                 "env_secret": "env_secret",
                 "auth_secret": "auth_secret",
+                "forest_server_url": "http://fake.forest.com",
             },
         )
 
@@ -296,3 +307,50 @@ class TestCheckMethodDecorators(TestDecorators):
         )
         decorated_fn.assert_not_awaited()
         self.assertEqual(response.status, 405)
+
+
+class TestIpWhiteList(TestDecorators):
+    def test_should_call_check_ip(self):
+        request = RequestCollection(
+            RequestMethod.POST,
+            self.book_collection,
+            body=None,
+            query={},
+            headers=None,
+        )
+
+        async def _decorated_fn(resource, request):
+            return "OK"
+
+        decorated_fn = AsyncMock(wraps=_decorated_fn)
+        with patch.object(self.collection_resource, "check_ip", new_callable=AsyncMock) as check_ip_mock:
+            response = self.loop.run_until_complete(_ip_white_list(decorated_fn, self.collection_resource, request))
+            check_ip_mock.assert_awaited()
+        decorated_fn.assert_awaited()
+        self.assertEqual(response, "OK")
+
+    def test_should_not_method_when_check_ip_raise(self):
+        request = RequestCollection(
+            RequestMethod.POST,
+            self.book_collection,
+            body=None,
+            query={},
+            headers=None,
+        )
+
+        async def _decorated_fn(resource, request):
+            pass
+
+        decorated_fn = AsyncMock(wraps=_decorated_fn)
+        with patch.object(
+            self.collection_resource,
+            "check_ip",
+            new_callable=AsyncMock,
+            side_effect=ForbiddenError("IP address rejected (127.0.0.1)"),
+        ):
+            response = self.loop.run_until_complete(_ip_white_list(decorated_fn, self.collection_resource, request))
+        decorated_fn.assert_not_awaited()
+        self.assertEqual(response.status, 403)
+        content_body = json.loads(response.body)
+        self.assertEqual(content_body["errors"][0]["name"], "ForbiddenError")
+        self.assertEqual(content_body["errors"][0]["detail"], "IP address rejected (127.0.0.1)")

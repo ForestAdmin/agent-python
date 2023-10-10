@@ -1,8 +1,11 @@
 import asyncio
+import json
 from unittest import TestCase
 from unittest.mock import AsyncMock, Mock, call, patch
 
 import aiohttp
+from aiohttp import client_exceptions
+from aiohttp.web import HTTPException
 from forestadmin.agent_toolkit.utils.http import ForestHttpApi, ForestHttpApiException, HttpOptions
 
 
@@ -92,6 +95,13 @@ class TestForestHttp(TestCase):
                         {"forest-secret-key": "env_secret", "content-type": "application/json"},
                     ),
                 ]
+            )
+
+    def test_get_ip_white_list_rules_should_call_get_with_correct_url(self):
+        with patch.object(ForestHttpApi, "get", new_callable=AsyncMock) as mock_get:
+            self.loop.run_until_complete(ForestHttpApi.get_ip_white_list_rules(self.options))
+            mock_get.assert_awaited_once_with(
+                "http://local.forest.com/liana/v1/ip-whitelist-rules", {"forest-secret-key": "env_secret"}
             )
 
     def test_post_should_make_a_post_request_and_return_json(self):
@@ -221,3 +231,107 @@ class TestForestHttp(TestCase):
                 ForestHttpApi.get("http://addr", {"headers": "headers"}),
             )
         mock_session.get.assert_called_once_with("http://addr", headers={"headers": "headers"})
+
+
+class TestHandleError(TestCase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.loop = asyncio.new_event_loop()
+
+    def test_handle_error_should_wrap_ssl_error(self):
+        self.assertRaisesRegex(
+            ForestHttpApiException,
+            "ForestAdmin server TLS certificate cannot be verified. "
+            + "Please check that your system time is set properly.",
+            self.loop.run_until_complete,
+            ForestHttpApi._handle_server_error(
+                "http://endpoint.fr",
+                client_exceptions.ClientConnectorCertificateError("connection_key", "certificate_error"),
+            ),
+        )
+
+    def test_handle_error_should_wrap_connect_errors(self):
+        error_mock = Mock(HTTPException)
+        for status in [-1, 0, 502]:
+            error_mock.status = status
+            self.assertRaisesRegex(
+                ForestHttpApiException,
+                "Failed to reach ForestAdmin server. Are you online?",
+                self.loop.run_until_complete,
+                ForestHttpApi._handle_server_error(
+                    "http://endpoint.fr",
+                    error_mock,
+                ),
+            )
+
+    def test_handle_error_should_wrap_env_secret_errors(self):
+        error_mock = Mock(HTTPException)
+        error_mock.status = 404
+        self.assertRaisesRegex(
+            ForestHttpApiException,
+            "ForestAdmin server failed to find the project related to the envSecret you configured."
+            + " Can you check that you copied it properly in the Forest initialization?",
+            self.loop.run_until_complete,
+            ForestHttpApi._handle_server_error(
+                "http://endpoint.fr",
+                error_mock,
+            ),
+        )
+
+    def test_handle_error_should_wrap_backend_maintenance_errors(self):
+        error_mock = Mock(HTTPException)
+        error_mock.status = 503
+        self.assertRaisesRegex(
+            ForestHttpApiException,
+            "Forest is in maintenance for a few minutes. We are upgrading your experience in "
+            + "the forest. We just need a few more minutes to get it right.",
+            self.loop.run_until_complete,
+            ForestHttpApi._handle_server_error(
+                "http://endpoint.fr",
+                error_mock,
+            ),
+        )
+
+    def test_handle_error_should_wrap_other_http_errors(self):
+        def str_for_error(*args, **kwargs):
+            return "unknown error"
+
+        error_mock = Mock(HTTPException)
+        error_mock.status = 500
+        error_mock.__str__ = str_for_error
+        self.assertRaisesRegex(
+            ForestHttpApiException,
+            "Failed to fetch http://endpoint.fr: unknown error",
+            self.loop.run_until_complete,
+            ForestHttpApi._handle_server_error(
+                "http://endpoint.fr",
+                error_mock,
+            ),
+        )
+
+    def test_handle_error_should_decode_errors_received_from_server_in_body(self):
+        error_mock = Mock(HTTPException)
+        error_mock.status = 500
+        error_mock.body = json.dumps({"errors": [{"detail": "detail message from server"}]})
+        self.assertRaisesRegex(
+            ForestHttpApiException,
+            "Failed to fetch http://endpoint.fr: detail message from server",
+            self.loop.run_until_complete,
+            ForestHttpApi._handle_server_error(
+                "http://endpoint.fr",
+                error_mock,
+            ),
+        )
+
+    def test_handle_error_should_handle_not_http_errors(self):
+        error_mock = Exception("not HTTP Exception")
+
+        self.assertRaisesRegex(
+            ForestHttpApiException,
+            "Failed to fetch http://endpoint.fr: not HTTP Exception",
+            self.loop.run_until_complete,
+            ForestHttpApi._handle_server_error(
+                "http://endpoint.fr",
+                error_mock,
+            ),
+        )
