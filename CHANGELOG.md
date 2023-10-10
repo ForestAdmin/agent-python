@@ -1,3 +1,10 @@
+# [1.0.0-beta.24](https://github.com/ForestAdmin/agent-python/compare/v1.0.0-beta.23...v1.0.0-beta.24) (2023-10-10)
+
+
+### Features
+
+* **ip_whitelist:** add ip whitelist functionality ([#124](https://github.com/ForestAdmin/agent-python/issues/124)) ([9b06552](https://github.com/ForestAdmin/agent-python/commit/9b065522d0da26b82716fc78624bf45565fb5c52))
+
 # [1.0.0-beta.23](https://github.com/ForestAdmin/agent-python/compare/v1.0.0-beta.22...v1.0.0-beta.23) (2023-10-06)
 
 
