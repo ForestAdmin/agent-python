@@ -74,7 +74,7 @@ class FilterOperator:
         Operator.IN: "_in_operator",
         Operator.NOT_IN: "_not_in_operator",
         Operator.INCLUDES_ALL: "_includes_all",
-        # TODO: add match
+        Operator.MATCH: "_regexp_match",
     }
 
     @staticmethod
@@ -147,6 +147,10 @@ class FilterOperator:
     @staticmethod
     def _includes_all(column: SqlAlchemyColumn):
         return column.__eq__
+
+    @staticmethod
+    def _regexp_match(column: SqlAlchemyColumn):
+        return column.regexp_match
 
     @classmethod
     def get_operator(cls, columns: SqlAlchemyColumn, operator: Operator) -> Callable[[Optional[str]], Any]:
