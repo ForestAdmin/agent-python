@@ -33,6 +33,7 @@ class Converter:
         sqltypes.Time: PrimitiveType.TIME_ONLY,
         sqltypes.Unicode: PrimitiveType.STRING,
         sqltypes.UnicodeText: PrimitiveType.STRING,
+        sqltypes.LargeBinary: PrimitiveType.BINARY,
         UUID: PrimitiveType.UUID,
     }
 
@@ -73,6 +74,7 @@ class FilterOperator:
         Operator.IN: "_in_operator",
         Operator.NOT_IN: "_not_in_operator",
         Operator.INCLUDES_ALL: "_includes_all",
+        # TODO: add match
     }
 
     @staticmethod

@@ -94,7 +94,7 @@ class TypeGetter:
         except TypeGetterException:
             pass
 
-        if type_context in [PrimitiveType.ENUM, PrimitiveType.STRING]:
+        if type_context in [PrimitiveType.ENUM, PrimitiveType.STRING, PrimitiveType.BINARY]:
             return type_context
         elif cls._is_json_type(value):
             return PrimitiveType.JSON
