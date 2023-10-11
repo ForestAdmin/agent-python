@@ -73,7 +73,7 @@ class Agent:
 
     async def __mk_resources(self):
         self._resources: Resources = {
-            "authentication": Authentication(self.options),
+            "authentication": Authentication(self._ip_white_list_service, self.options),
             "crud": CrudResource(
                 await self.customizer.get_datasource(),
                 self._permission_service,

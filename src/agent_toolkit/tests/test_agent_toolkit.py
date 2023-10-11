@@ -83,14 +83,22 @@ class TestAgent(TestCase):
     ):
         agent = Agent(self.fake_options)
         assert agent._resources is None
-        with patch.object(agent.customizer, "get_datasource", new_callable=AsyncMock):
+        with patch.object(agent.customizer, "get_datasource", new_callable=AsyncMock, return_value="fake_datasource"):
             resources = self.loop.run_until_complete(agent.get_resources())
 
-        mocked_authentication_resource.assert_called_once()
-        mocked_crud_resource.assert_called_once()
-        mocked_crud_related_resource.assert_called_once()
-        mocked_stats_resource.assert_called_once()
-        mocked_action_resource.assert_called_once()
+            mocked_authentication_resource.assert_called_once_with(agent._ip_white_list_service, agent.options)
+            mocked_crud_resource.assert_called_once_with(
+                "fake_datasource", agent._permission_service, agent._ip_white_list_service, agent.options
+            )
+            mocked_crud_related_resource.assert_called_once_with(
+                "fake_datasource", agent._permission_service, agent._ip_white_list_service, agent.options
+            )
+            mocked_stats_resource.assert_called_once_with(
+                "fake_datasource", agent._permission_service, agent._ip_white_list_service, agent.options
+            )
+            mocked_action_resource.assert_called_once_with(
+                "fake_datasource", agent._permission_service, agent._ip_white_list_service, agent.options
+            )
 
         assert len(resources) == 7
         assert "authentication" in resources
