@@ -1,3 +1,10 @@
+# [1.0.0-beta.25](https://github.com/ForestAdmin/agent-python/compare/v1.0.0-beta.24...v1.0.0-beta.25) (2023-10-11)
+
+
+### Bug Fixes
+
+* **agent:** fix broken 1.0.0-beta.24 ([#126](https://github.com/ForestAdmin/agent-python/issues/126)) ([14f9d13](https://github.com/ForestAdmin/agent-python/commit/14f9d1305c6a0344f85927d3d9a586f83c7b4fa6))
+
 # [1.0.0-beta.24](https://github.com/ForestAdmin/agent-python/compare/v1.0.0-beta.23...v1.0.0-beta.24) (2023-10-10)
 
 
