@@ -1135,10 +1135,10 @@
     ],
     "meta": {
         "liana": "agent-python",
-        "liana_version": "1.0.0-beta.21",
+        "liana_version": "1.0.0-beta.25",
         "stack": {
             "engine": "python",
-            "engine_version": "3.10.11"
+            "engine_version": "3.8.16"
         },
         "schemaFileHash": "e1207a9d150c3c30b7fdcb040a82747051afcd69"
     }
