@@ -46,7 +46,7 @@ class TestFlaskAgentBlueprint(TestCase):
     def test_index(self):
         response = self.client.get("/forest")
         assert response.status_code == 200
-        assert response.text == ""
+        assert response.json is None
 
     def test_hook_load(self):
         response = self.client.post("/forest/_actions/customer/1/action_name/hooks/load")
