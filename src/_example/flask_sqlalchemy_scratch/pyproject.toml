@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "forestadmin-flask-sqlalchemy-demo"
+name = "forestadmin-flask-sqlalchemy-demo-scratch"
 version = "0.1.0-beta.15"
 description = ""
 authors = [ "Valentin Monté <valentinm@forestadmin.com>", "Julien Barreau <julien.barreau@forestadmin.com>",]
@@ -8,9 +8,9 @@ packages = [{include = "demo"}]
 
 [tool.poetry.dependencies]
 python = ">=3.8,<4.0"
-Flask = "^2.0.0"
 sqlalchemy = "^1.4.44"
-flask-cors = "^3.0.8"
+Flask = ">=2.0.0"
+flask-cors = ">=3.0.0"
 forestadmin-datasource-toolkit = {path = "../../datasource_toolkit", develop = true}
 forestadmin-agent-toolkit = {path = "../../agent_toolkit", develop = true}
 forestadmin-datasource-sqlalchemy = {path = "../../datasource_sqlalchemy", develop = true}
