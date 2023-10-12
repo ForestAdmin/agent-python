@@ -20,6 +20,7 @@ from forestadmin.datasource_toolkit.interfaces.query.filter.paginated import Pag
 from forestadmin.datasource_toolkit.interfaces.query.filter.unpaginated import Filter
 from forestadmin.datasource_toolkit.interfaces.query.projections import Projection
 from forestadmin.datasource_toolkit.interfaces.records import RecordsDataAlias
+from sqlalchemy.sql import text
 
 # segments
 
@@ -27,7 +28,7 @@ from forestadmin.datasource_toolkit.interfaces.records import RecordsDataAlias
 def pending_order_segment(context: CollectionCustomizationContext):
     Session_ = context.collection.get_native_driver()
     with Session_() as connection:
-        rows = connection.execute("select id, status from 'order' where status = 'PENDING'").all()
+        rows = connection.execute(text("select id, status from 'order' where status = 'PENDING'")).all()
 
     return ConditionTreeLeaf(
         field="id",

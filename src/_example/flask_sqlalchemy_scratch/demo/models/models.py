@@ -1,14 +1,27 @@
 import enum
 import os
 
-from sqlalchemy import Boolean, Column, DateTime, Enum, ForeignKey, Integer, String, create_engine, func  # type: ignore
-from sqlalchemy.orm import declarative_base, relationship
+import sqlalchemy  # type: ignore
+from sqlalchemy import Boolean, Column, DateTime, Enum, ForeignKey, Integer, String, func
+from sqlalchemy.orm import relationship
 
 sqlite_path = os.path.abspath(os.path.join(__file__, "..", "..", "..", "db.sql"))
 SQLITE_URI = f"sqlite:///{sqlite_path}"
-engine = create_engine(SQLITE_URI, echo=False)
-Base = declarative_base(engine)
-Base.metadata.bind = engine
+
+
+use_sqlalchemy_2 = sqlalchemy.__version__.split(".")[0] == "2"
+if use_sqlalchemy_2:
+    from sqlalchemy.orm import DeclarativeBase
+
+    class Base(DeclarativeBase):
+        pass
+
+else:
+    from sqlalchemy import create_engine
+    from sqlalchemy.orm import declarative_base
+
+    engine = create_engine(SQLITE_URI, echo=False)
+    Base = declarative_base()
 
 
 class ORDER_STATUS(enum.Enum):

@@ -1135,7 +1135,7 @@
     ],
     "meta": {
         "liana": "agent-python",
-        "liana_version": "1.0.0-beta.25",
+        "liana_version": "1.0.0-beta.24",
         "stack": {
             "engine": "python",
             "engine_version": "3.8.16"

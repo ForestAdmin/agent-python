@@ -38,7 +38,7 @@ from demo.forest_admin.smart.order import (
     suspicious_order_segment,
     total_order_chart,
 )
-from demo.models.models import Base
+from demo.models.models import SQLITE_URI, Base
 from forestadmin.datasource_sqlalchemy.datasource import SqlAlchemyDatasource
 from forestadmin.datasource_toolkit.decorators.computed.types import ComputedDefinition
 from forestadmin.datasource_toolkit.interfaces.fields import Operator, PrimitiveType
@@ -46,7 +46,7 @@ from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.leaf i
 from forestadmin.flask_agent.agent import build_agent
 
 agent = build_agent(SETTINGS)
-agent.add_datasource(SqlAlchemyDatasource(Base))
+agent.add_datasource(SqlAlchemyDatasource(Base, db_uri=SQLITE_URI))
 customize_forest_logging()
 
 # # ## ADDRESS

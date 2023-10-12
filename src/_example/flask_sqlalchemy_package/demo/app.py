@@ -27,6 +27,7 @@ def create_app():
     with app.app_context():
         db.init_app(app)
 
+        # agent.add_datasource(SqlAlchemyDatasource(db, db_uri=app.config["SQLALCHEMY_DATABASE_URI"]))
         agent.add_datasource(SqlAlchemyDatasource(db))
 
     customize_agent(agent)
