@@ -1,6 +1,7 @@
 from typing import Awaitable, List
 
 from forestadmin.datasource_toolkit.decorators.action.collections import ActionCollectionDecorator
+from forestadmin.datasource_toolkit.decorators.binary.collection import BinaryCollectionDecorator
 from forestadmin.datasource_toolkit.decorators.chart.chart_datasource_decorator import ChartDataSourceDecorator
 from forestadmin.datasource_toolkit.decorators.computed.collections import ComputedCollectionDecorator
 from forestadmin.datasource_toolkit.decorators.datasource_decorator import DatasourceDecorator
@@ -53,7 +54,7 @@ class DecoratorStack:
         last = self.write = WriteDataSourceDecorator(last)
         last = self.hook = DatasourceDecorator(last, CollectionHookDecorator)
         last = self.validation = DatasourceDecorator(last, ValidationCollectionDecorator)
-        # last = self.binary = DatasourceDecorator(last, BinaryCollection)
+        last = self.binary = DatasourceDecorator(last, BinaryCollectionDecorator)
 
         # Step 4: Renaming must be either the very first or very last so that naming in customer code is consistent.
         last = self.publication = PublicationDataSourceDecorator(last)
