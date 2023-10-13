@@ -95,7 +95,7 @@ class PrimitiveType(enum.Enum):
     STRING = "String"
     TIME_ONLY = "Timeonly"
     UUID = "Uuid"
-    BINARY = "Binary"  # TODO: check for add
+    BINARY = "Binary"
 
 
 LiteralManyToOne = Literal["ManyToOne"]

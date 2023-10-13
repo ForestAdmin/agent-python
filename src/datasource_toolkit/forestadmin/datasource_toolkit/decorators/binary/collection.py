@@ -94,7 +94,6 @@ class BinaryCollectionDecorator(CollectionDecorator):
         filter_ = await self._refine_filter(caller, _filter)
         rows = await self.child_collection.aggregate(caller, filter_, aggregation, limit)
 
-        # TODO: check here
         return [
             {"value": row["value"], "group": {k: self._convert_value(False, k, v) for k, v in row["group"].items()}}
             for row in rows
@@ -158,7 +157,7 @@ class BinaryCollectionDecorator(CollectionDecorator):
 
     def _convert_value_helper(self, to_backend: bool, path: str, use_hex: bool, value):
         if value and path in self._binary_fields:
-            if isinstance(value, list):  # TODO: recheck here
+            if isinstance(value, list):
                 return [self._convert_value_helper(to_backend, path, use_hex, v) for v in value]
 
             return self._convert_scalar(to_backend, use_hex, value)
@@ -175,20 +174,13 @@ class BinaryCollectionDecorator(CollectionDecorator):
         if use_hex:
             return bytes2hex(value)
 
-        if isinstance(value, bytes):
-            content = value
-        elif isinstance(value, str):
-            content = value.encode("ascii")
-        else:
-            pass
+        if isinstance(value, str):
+            value = value.encode("ascii")
 
-        mime = filetype.guess(content)
+        mime = filetype.guess(value)
         mime = mime.mime if mime is not None else "application/octet-stream"
 
-        data = b64encode(content)
-
-        # return f"data:{mime};base64,".encode("ascii") + data
-        return f"data:{mime};base64," + data.decode("ascii")
+        return f"data:{mime};base64," + b64encode(value).decode("ascii")
 
     def _replace_validation(self, field_name: str, field_schema: Column) -> List[Validation]:
         validations: List[Validation] = []
