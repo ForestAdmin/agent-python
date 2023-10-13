@@ -4,6 +4,7 @@ from unittest.mock import call, patch
 from forestadmin.datasource_toolkit.collections import Collection
 from forestadmin.datasource_toolkit.datasources import Datasource
 from forestadmin.datasource_toolkit.decorators.action.collections import ActionCollectionDecorator
+from forestadmin.datasource_toolkit.decorators.binary.collection import BinaryCollectionDecorator
 from forestadmin.datasource_toolkit.decorators.computed.collections import ComputedCollectionDecorator
 from forestadmin.datasource_toolkit.decorators.decorator_stack import DecoratorStack
 from forestadmin.datasource_toolkit.decorators.empty.collection import EmptyCollectionDecorator
@@ -84,7 +85,7 @@ class TestDecoratorStack(TestCase):
                 # call(self.datasource, WriteDataSourceDecorator),
                 call(self.datasource, CollectionHookDecorator),
                 call(self.datasource, ValidationCollectionDecorator),
-                # call(self.datasource, PublicationCollectionDecorator),
+                call(self.datasource, BinaryCollectionDecorator),
                 call(self.datasource, RenameFieldCollectionDecorator),
             ]
             mocked_datasource_decorator.assert_has_calls(call_list)

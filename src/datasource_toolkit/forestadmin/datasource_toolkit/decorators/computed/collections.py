@@ -80,6 +80,6 @@ class ComputedCollectionDecorator(CollectionDecorator):
                 "is_primary_key": False,
                 "is_read_only": True,
                 "is_sortable": False,
-                "validations": None,
+                "validations": [],
             }
         return {**sub_schema, "fields": computed_fields_schema}
