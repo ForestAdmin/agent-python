@@ -2,11 +2,11 @@
 # set -x
 ARTIFACT_DIR="artifacts_coverages"
 
-PACKAGES="agent_toolkit datasource_sqlalchemy datasource_toolkit flask_agent"
-# PACKAGES="flask_agent"
-PYTHON_VERSIONS="3.8 3.9 3.10 3.11"
-# PYTHON_VERSIONS="3.8 3.11"
-# PYTHON_VERSIONS="3.11"
+PACKAGES=("agent_toolkit datasource_sqlalchemy" "datasource_toolkit" "flask_agent")
+# PACKAGES=("datasource_sqlalchemy")
+PYTHON_VERSIONS=("3.8" "3.9" "3.10" "3.11")
+# PYTHON_VERSIONS=("3.8" "3.11")
+# PYTHON_VERSIONS=("3.11")
 
 # flask related settings
 # https://pypi.org/project/Flask/#history
@@ -21,16 +21,17 @@ FLASK_VERSIONS=(  # flask_version,(werkzeug_version:optional)
 # sqlalchemy related settings
 # https://pypi.org/project/SQLAlchemy/#history
 version_number=0
+SQLALCHEMY_VERSIONS=()
 for sub_version in {0..49}; do
     if [[ ! $sub_version =~ (^33|34$) ]]; then
-        SQLALCHEMY_VERSIONS[$version_number]="1.4.$sub_version"
-        let "version_number += 1"
+        version="1.4.$sub_version"
+        SQLALCHEMY_VERSIONS=(${SQLALCHEMY_VERSIONS[@]} $version)
     fi
 done
 for sub_version in {0..21}; do
     if [[ ! $sub_version =~ (^5$) ]]; then
-        SQLALCHEMY_VERSIONS[$version_number]="2.0.$sub_version"
-        let "version_number += 1"
+        version="2.0.$sub_version"
+        SQLALCHEMY_VERSIONS+=($version)
     fi
 done
 
@@ -55,9 +56,9 @@ mkdir -p $ARTIFACT_DIR
 cd src
 rm -rf tmp_venv
 echo "STARTING SCRIPT"
-for package in $PACKAGES
+for package in ${PACKAGES[@]}
 do
-    for py_version in $PYTHON_VERSIONS
+    for py_version in ${PYTHON_VERSIONS[@]}
     do
         cd $package
 
@@ -70,7 +71,7 @@ do
         rm -f poetry.lock  # theoricaly useless
         poetry install --with=test -q # install requirements (-q quiet)
 
-        if [[ "$package" == "datasource_sqlalchemy" &&  $LAUNCH_ALL_FLASK_VERSIONS == true ]]
+        if [[ "$package" == "flask_agent" &&  $LAUNCH_ALL_FLASK_VERSIONS == true ]]
         then
             for versions in ${FLASK_VERSIONS[*]}
             do
@@ -78,18 +79,23 @@ do
                 IFS=','
                 set -- $versions
 
-                pip install -U flask==$1 werkzeug==${2:-$1}
+                pip install -q -U flask==$1 werkzeug==${2:-$1}
                 echo "#--------- running tests with flask==$1 werkzeug==${2:-$1}"
                 $(which poetry) run coverage run -m pytest  # run tests
 
                 IFS=$OLDIFS
             done
-        elif [[ "$package" == "flask_agent" &&  $LAUNCH_ALL_SQLALCHEMY_VERSIONS == true ]]
+        elif [[ "$package" == "datasource_sqlalchemy" &&  $LAUNCH_ALL_SQLALCHEMY_VERSIONS == true ]]
         then
-            for versions in ${SQLALCHEMY_VERSIONS[*]}
+            # pip install -q -U flask==2.1.3 werkzeug==2.1.2 flask_sqlalchemy sqlalchemy==1.4.0
+            for version in ${SQLALCHEMY_VERSIONS[@]}
             do
-                pip install -U sqlalchemy==$version
-                echo "#--------- running tests with sqlalchemy==${versions}"
+                if [[ ${version:0:1} == 1 ]]; then
+                    pip install -q -U flask==2.1.3 werkzeug==2.1.2 flask_sqlalchemy sqlalchemy==$version
+                elif [[ ${version:0:1} == 2 ]]; then
+                    pip install -q -U flask werkzeug flask_sqlalchemy sqlalchemy==$version
+                fi
+                echo "#--------- running tests with sqlalchemy==$version"
                 $(which poetry) run coverage run -m pytest  # run tests
             done
 
