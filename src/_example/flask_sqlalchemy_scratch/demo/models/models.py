@@ -2,7 +2,7 @@ import enum
 import os
 
 import sqlalchemy  # type: ignore
-from sqlalchemy import Boolean, Column, DateTime, Enum, ForeignKey, Integer, String, func
+from sqlalchemy import Boolean, Column, DateTime, Enum, ForeignKey, Integer, LargeBinary, String, func
 from sqlalchemy.orm import relationship
 
 sqlite_path = os.path.abspath(os.path.join(__file__, "..", "..", "..", "db.sql"))
@@ -44,13 +44,14 @@ class Address(Base):
 
 class Customer(Base):
     __tablename__ = "customer"
-    pk = Column(Integer, primary_key=True)
+    pk = Column(LargeBinary, primary_key=True)
     first_name = Column(String(254), nullable=False)
     last_name = Column(String(254), nullable=False)
     age = Column(Integer, nullable=True)
     birthday_date = Column(DateTime(timezone=True), default=func.now())
     addresses = relationship("Address", secondary="customers_addresses", back_populates="customers")
     is_vip = Column(Boolean, default=False)
+    avatar = Column(LargeBinary, nullable=True)
 
 
 class Order(Base):
@@ -59,7 +60,7 @@ class Order(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     amount = Column(Integer, nullable=False)
     customer = relationship("Customer", backref="orders")
-    customer_id = Column(Integer, ForeignKey("customer.pk"))
+    customer_id = Column(LargeBinary, ForeignKey("customer.pk"))
     billing_address_id = Column(Integer, ForeignKey("address.pk"))
     billing_address = relationship("Address", foreign_keys=[billing_address_id], backref="billing_orders")
     delivering_address_id = Column(Integer, ForeignKey("address.pk"))
@@ -82,5 +83,5 @@ class Cart(Base):
 
 class CustomersAddresses(Base):
     __tablename__ = "customers_addresses"
-    customer_id = Column(Integer, ForeignKey("customer.pk"), primary_key=True)
+    customer_id = Column(LargeBinary, ForeignKey("customer.pk"), primary_key=True)
     address_id = Column(Integer, ForeignKey("address.pk"), primary_key=True)

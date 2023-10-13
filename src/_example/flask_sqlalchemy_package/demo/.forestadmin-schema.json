@@ -88,7 +88,7 @@
                     "reference": "customer.id",
                     "relationship": "BelongsToMany",
                     "type": [
-                        "Number"
+                        "String"
                     ],
                     "validations": []
                 },
@@ -266,7 +266,7 @@
                     "isSortable": false,
                     "isVirtual": false,
                     "reference": null,
-                    "type": "Number",
+                    "type": "String",
                     "validations": []
                 },
                 {
@@ -534,6 +534,22 @@
                 {
                     "defaultValue": null,
                     "enums": null,
+                    "field": "avatar",
+                    "integration": null,
+                    "inverseOf": null,
+                    "isFilterable": false,
+                    "isPrimaryKey": false,
+                    "isReadOnly": false,
+                    "isRequired": false,
+                    "isSortable": true,
+                    "isVirtual": false,
+                    "reference": null,
+                    "type": "String",
+                    "validations": []
+                },
+                {
+                    "defaultValue": null,
+                    "enums": null,
                     "field": "birthday_date",
                     "integration": null,
                     "inverseOf": null,
@@ -591,14 +607,14 @@
                     "field": "id",
                     "integration": null,
                     "inverseOf": null,
-                    "isFilterable": true,
+                    "isFilterable": false,
                     "isPrimaryKey": true,
                     "isReadOnly": true,
                     "isRequired": false,
                     "isSortable": true,
                     "isVirtual": false,
                     "reference": null,
-                    "type": "Number",
+                    "type": "String",
                     "validations": []
                 },
                 {
@@ -653,7 +669,7 @@
                     "reference": "order.id",
                     "relationship": "HasMany",
                     "type": [
-                        "Number"
+                        "String"
                     ],
                     "validations": []
                 },
@@ -689,7 +705,7 @@
                     "reference": "cart.id",
                     "relationship": "HasMany",
                     "type": [
-                        "Number"
+                        "String"
                     ],
                     "validations": []
                 },
@@ -755,7 +771,7 @@
                     "isVirtual": false,
                     "reference": "customer.id",
                     "relationship": "BelongsTo",
-                    "type": "Number",
+                    "type": "String",
                     "validations": []
                 }
             ]
@@ -804,7 +820,7 @@
                             "isReadOnly": false,
                             "isRequired": true,
                             "reference": "customer.id",
-                            "type": "Number",
+                            "type": "String",
                             "widget": null
                         }
                     ],
@@ -848,7 +864,7 @@
                             "isReadOnly": false,
                             "isRequired": true,
                             "reference": "customer.id",
-                            "type": "Number",
+                            "type": "String",
                             "widget": null
                         }
                     ],
@@ -1042,7 +1058,7 @@
                     "isVirtual": false,
                     "reference": "customer.id",
                     "relationship": "BelongsTo",
-                    "type": "Number",
+                    "type": "String",
                     "validations": []
                 },
                 {
@@ -1138,8 +1154,8 @@
         "liana_version": "1.0.0-beta.25",
         "stack": {
             "engine": "python",
-            "engine_version": "3.8.16"
+            "engine_version": "3.11.3"
         },
-        "schemaFileHash": "73400244aabb52443401230f744b5f3b007bebf0"
+        "schemaFileHash": "a70d4ad480cad44c717b703039718b8f83db690f"
     }
 }

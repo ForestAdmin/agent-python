@@ -137,7 +137,7 @@ agent.customize_collection("customer").add_many_to_many_relation(
 agent.customize_collection("cart").add_field(
     "customer_id",
     ComputedDefinition(
-        column_type=PrimitiveType.NUMBER,
+        column_type=PrimitiveType.BINARY,
         dependencies=["order:customer_id"],
         get_values=lambda records, context: [rec["order"]["customer_id"] for rec in records],
     ),
