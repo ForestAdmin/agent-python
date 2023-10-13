@@ -216,5 +216,10 @@ class FilterOperator:
             operators = {*cls.COMMON_OPERATORS, Operator.IN, Operator.NOT_IN}
         elif _type == PrimitiveType.JSON:
             operators = cls.COMMON_OPERATORS
+        elif _type == PrimitiveType.BINARY:
+            operators = {
+                *cls.COMMON_OPERATORS,
+                Operator.IN,
+            }
 
         return operators

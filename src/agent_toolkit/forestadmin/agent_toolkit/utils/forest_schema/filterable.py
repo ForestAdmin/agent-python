@@ -43,6 +43,7 @@ class FrontendFilterableUtils:
         PrimitiveType.DATE: [*BASE_OPERATORS, *DATE_OPERATORS],
         PrimitiveType.DATE_ONLY: [*BASE_OPERATORS, *DATE_OPERATORS],
         PrimitiveType.TIME_ONLY: [*BASE_OPERATORS, *DATE_OPERATORS],
+        PrimitiveType.BINARY: [*BASE_OPERATORS, Operator.IN],
     }
 
     @classmethod
