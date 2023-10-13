@@ -4,7 +4,7 @@ import os
 from datetime import date, datetime
 
 from sqlalchemy import Column, DateTime, Enum, ForeignKey, Integer, String, create_engine, func, types
-from sqlalchemy.orm import declarative_base, relationship, sessionmaker, validates
+from sqlalchemy.orm import Session, declarative_base, relationship, validates
 
 test_db_path = os.path.abspath(os.path.join(__file__, "..", "..", "..", "..", "..", "test_db.sql"))
 engine = create_engine(f"sqlite:///{test_db_path}", echo=False)
@@ -121,8 +121,7 @@ def load_fixtures():
         data = json.load(fin)
         orders = [Order.__import__(d) for d in data]
 
-    Session = sessionmaker(Base.metadata.bind)
-    with Session.begin() as session:
+    with Session(Base.metadata.bind) as session:
         session.bulk_save_objects(addresses)
         session.bulk_save_objects(customers)
         session.bulk_save_objects(customers_addresses)

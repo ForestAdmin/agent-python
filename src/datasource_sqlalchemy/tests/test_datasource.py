@@ -61,31 +61,6 @@ class TestSqlAlchemyDatasource(TestCase):
 
         assert datasource._base == db.Model
 
-    # @patch("forestadmin.datasource_sqlalchemy.datasource.sessionmaker")
-    # def test_build_mapper(self, mocked_sessionmaker):
-    #     base_mock = Mock(DeclarativeMeta)
-    #     base_mock.metadata = Mock()
-    #     base_mock.metadata.bind = "fake_bind"
-    #     mocked_address = {
-    #         "address": Mock(),
-    #         "customer": Mock(),
-    #         "customers_addresses": Mock(),
-    #         "order": Mock(),
-    #     }
-    #     for k, v in mocked_address.items():
-    #         v.persist_selectable.name = k
-    #     base_mock.registry = Mock()
-    #     base_mock.registry.mappers = [v for k, v in mocked_address.items()]
-
-    #     with patch.object(SqlAlchemyDatasource, "_create_collections"):
-    #         datasource = SqlAlchemyDatasource(base_mock)
-    #         mappers = datasource.build_mappers()
-
-    #     assert len(mappers.keys()) == 4
-    #     for name in mocked_address.keys():
-    #         assert name in mappers.keys()
-    #         assert mappers[name] == mocked_address[name]
-
     @patch("forestadmin.datasource_sqlalchemy.datasource.SqlAlchemyCollection")
     def test_create_collection(self, mockSqlalchemyCollection):
         base_mock = Mock(DeclarativeMeta)
