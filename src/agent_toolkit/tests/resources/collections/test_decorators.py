@@ -83,7 +83,7 @@ class TestDecorators(TestCase):
             {
                 "env_secret": "env_secret",
                 "auth_secret": "auth_secret",
-                "forest_server_url": "http://fake.forest.com",
+                "server_url": "http://fake.forest.com",
             },
         )
 

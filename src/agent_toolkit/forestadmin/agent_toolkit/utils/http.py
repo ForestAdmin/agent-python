@@ -58,7 +58,7 @@ class ForestHttpApi:
 
     @classmethod
     async def get_ip_white_list_rules(cls, options: HttpOptions):
-        endpoint = cls.build_endpoint(options["forest_server_url"], "/liana/v1/ip-whitelist-rules")
+        endpoint = cls.build_endpoint(options["server_url"], "/liana/v1/ip-whitelist-rules")
         return await cls.get(endpoint, {"forest-secret-key": options["env_secret"]})
 
     @staticmethod
