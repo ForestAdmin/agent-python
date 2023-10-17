@@ -1,3 +1,10 @@
+# [1.0.0-beta.26](https://github.com/ForestAdmin/agent-python/compare/v1.0.0-beta.25...v1.0.0-beta.26) (2023-10-17)
+
+
+### Features
+
+* **decorator:** add binary decorator ([#129](https://github.com/ForestAdmin/agent-python/issues/129)) ([fb8f38c](https://github.com/ForestAdmin/agent-python/commit/fb8f38c0318f73f51ddb04577e66ee4e256534fa))
+
 # [1.0.0-beta.25](https://github.com/ForestAdmin/agent-python/compare/v1.0.0-beta.24...v1.0.0-beta.25) (2023-10-11)
 
 
