@@ -34,8 +34,6 @@ class ColorizedFormatter(logging.Formatter):
 
 def customize_forest_logging():
     forest_logger = logging.getLogger("forestadmin")
-    if len(forest_logger.handlers) > 0:
-        forest_logger.removeHandler(forest_logger.handlers[0])
 
     handler = logging.StreamHandler()
     handler.setLevel(logging.DEBUG)
