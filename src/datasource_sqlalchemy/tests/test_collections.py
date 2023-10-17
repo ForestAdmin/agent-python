@@ -20,6 +20,7 @@ from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.leaf i
 from forestadmin.datasource_toolkit.interfaces.query.filter.paginated import PaginatedFilter
 from forestadmin.datasource_toolkit.interfaces.query.projections import Projection
 from sqlalchemy.orm.session import Session
+from sqlalchemy.sql import text
 from tests.fixture import models
 
 
@@ -303,7 +304,7 @@ class TestSqlAlchemyCollectionWithModels(TestCase):
             self.assertIsInstance(connection, Session)
             self.assertEqual(str(connection.bind.url), f"sqlite:///{models.test_db_path}")
 
-            rows = connection.execute('select id,amount from "order"  where id =  3').all()
+            rows = connection.execute(text('select id,amount from "order"  where id =  3')).all()
         self.assertEqual(rows, [(3, 5285)])
 
 
