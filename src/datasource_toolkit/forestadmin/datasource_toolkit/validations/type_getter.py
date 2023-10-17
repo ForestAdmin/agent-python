@@ -18,6 +18,8 @@ class TypeGetter:
         if isinstance(value, list):
             value = cast(List[Any], value)
             return cls._get_array_type(value, type_context)
+        elif isinstance(value, bytes):
+            return PrimitiveType.BINARY
         elif isinstance(value, str):
             return cls._get_type_from_string(value, type_context)
         elif isinstance(value, bool):
@@ -94,7 +96,7 @@ class TypeGetter:
         except TypeGetterException:
             pass
 
-        if type_context in [PrimitiveType.ENUM, PrimitiveType.STRING]:
+        if type_context in [PrimitiveType.ENUM, PrimitiveType.STRING, PrimitiveType.BINARY]:
             return type_context
         elif cls._is_json_type(value):
             return PrimitiveType.JSON

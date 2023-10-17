@@ -16,6 +16,7 @@ python = ">=3.8,<4.0"
 typing-extensions = "~=4.2"
 tzdata = "~=2022.6"
 pandas = ">=1.4.0"
+filetype = "^1.0.0"
 
 [tool.poetry.dependencies."backports.zoneinfo"]
 version = "~=0.2.1"

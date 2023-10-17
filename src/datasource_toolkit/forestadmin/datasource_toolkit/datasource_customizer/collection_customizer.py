@@ -1,4 +1,4 @@
-from typing import Dict, List, Optional
+from typing import Dict, List, Literal, Optional, Union
 
 from forestadmin.datasource_toolkit.decorators.action.types.actions import ActionDict
 from forestadmin.datasource_toolkit.decorators.chart.types import CollectionChartDefinition
@@ -228,6 +228,12 @@ class CollectionCustomizer:
             self.stack.sort_emulate.get_collection(self.collection_name).replace_field_sorting(name, equivalent_sort)
 
         self.stack.queue_customization(_replace_field_sorting)
+
+    def replace_field_binary_mode(self, name: str, binary_mode: Union[Literal["datauri"], Literal["hex"]]):
+        async def _replace_field_binary_mode():
+            self.stack.binary.get_collection(self.collection_name).set_binary_mode(name, binary_mode)
+
+        self.stack.queue_customization(_replace_field_binary_mode)
 
     def use(self, plugin: type, options: Optional[Dict] = {}):
         async def _use():

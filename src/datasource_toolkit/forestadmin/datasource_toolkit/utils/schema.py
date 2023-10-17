@@ -36,6 +36,12 @@ class SchemaUtils:
         return is_column(field)
 
     @staticmethod
+    def is_primary_key(schema: CollectionSchema, name: str) -> bool:
+        field = schema["fields"][name]
+
+        return is_column(field) and field.get("is_primary_key", False)
+
+    @staticmethod
     def get_to_many_relation(schema: CollectionSchema, relation_name: str) -> Union[ManyToMany, OneToMany]:
         try:
             relation_field = schema["fields"][relation_name]

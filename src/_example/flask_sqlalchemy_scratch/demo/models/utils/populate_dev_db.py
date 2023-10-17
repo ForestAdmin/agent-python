@@ -2,6 +2,7 @@ import datetime
 import random
 import sys
 from typing import Any, List, Set
+from uuid import uuid4
 
 from demo.models.models import ORDER_STATUS, Address, Base, Cart, Customer, Order
 from faker import Faker
@@ -27,6 +28,7 @@ def _populate_customers(nb: int = 500):
     for _ in range(0, nb):
         customers.append(
             Customer(
+                pk=str(uuid4()).encode("utf-8"),
                 first_name=fake.first_name(),
                 last_name=fake.last_name(),
                 birthday_date=fake.date_of_birth(),

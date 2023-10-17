@@ -3,6 +3,7 @@ import os
 import random
 import sys
 from typing import Any, List, Set
+from uuid import uuid4
 
 if sys.version_info >= (3, 9):
     import zoneinfo
@@ -37,6 +38,7 @@ def _populate_customers(nb: int = 500):
     for _ in range(0, nb):
         customers.append(
             Customer(
+                id=str(uuid4()).encode("utf-8"),
                 first_name=fake.first_name(),
                 last_name=fake.last_name(),
                 birthday_date=fake.date_of_birth(),

@@ -33,6 +33,7 @@ class Converter:
         sqltypes.Time: PrimitiveType.TIME_ONLY,
         sqltypes.Unicode: PrimitiveType.STRING,
         sqltypes.UnicodeText: PrimitiveType.STRING,
+        sqltypes.LargeBinary: PrimitiveType.BINARY,
         UUID: PrimitiveType.UUID,
     }
 
@@ -73,6 +74,7 @@ class FilterOperator:
         Operator.IN: "_in_operator",
         Operator.NOT_IN: "_not_in_operator",
         Operator.INCLUDES_ALL: "_includes_all",
+        Operator.MATCH: "_regexp_match",
     }
 
     @staticmethod
@@ -146,6 +148,10 @@ class FilterOperator:
     def _includes_all(column: SqlAlchemyColumn):
         return column.__eq__
 
+    @staticmethod
+    def _regexp_match(column: SqlAlchemyColumn):
+        return column.regexp_match
+
     @classmethod
     def get_operator(cls, columns: SqlAlchemyColumn, operator: Operator) -> Callable[[Optional[str]], Any]:
         try:
@@ -210,5 +216,10 @@ class FilterOperator:
             operators = {*cls.COMMON_OPERATORS, Operator.IN, Operator.NOT_IN}
         elif _type == PrimitiveType.JSON:
             operators = cls.COMMON_OPERATORS
+        elif _type == PrimitiveType.BINARY:
+            operators = {
+                *cls.COMMON_OPERATORS,
+                Operator.IN,
+            }
 
         return operators

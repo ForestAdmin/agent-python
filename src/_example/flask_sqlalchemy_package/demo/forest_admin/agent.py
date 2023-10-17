@@ -138,7 +138,7 @@ def customize_agent(agent: Agent):
     agent.customize_collection("cart").add_field(
         "customer_id",
         ComputedDefinition(
-            column_type=PrimitiveType.NUMBER,
+            column_type=PrimitiveType.BINARY,
             dependencies=["order:customer_id"],
             get_values=lambda records, context: [rec["order"]["customer_id"] for rec in records],
         ),

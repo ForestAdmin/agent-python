@@ -19,6 +19,7 @@ class Operator(enum.Enum):
     STARTS_WITH = "starts_with"
     ENDS_WITH = "ends_with"
     CONTAINS = "contains"
+    MATCH = "Match"
     # ICONTAINS = "icontains"
     NOT_CONTAINS = "not_contains"
     LONGER_THAN = "longer_than"
@@ -94,6 +95,7 @@ class PrimitiveType(enum.Enum):
     STRING = "String"
     TIME_ONLY = "Timeonly"
     UUID = "Uuid"
+    BINARY = "Binary"
 
 
 LiteralManyToOne = Literal["ManyToOne"]
