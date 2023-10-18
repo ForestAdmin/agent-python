@@ -1,5 +1,5 @@
 from base64 import b64decode, b64encode
-from typing import Dict, List, Optional, Union
+from typing import Dict, List, Literal, Optional, Union
 
 import filetype
 from forestadmin.agent_toolkit.utils.context import User
@@ -47,7 +47,7 @@ class BinaryCollectionDecorator(CollectionDecorator):
         self._binary_fields = []
         self.__use_hex_conversion = {}
 
-    def set_binary_mode(self, name: str, type_: str):
+    def set_binary_mode(self, name: str, type_: Union[Literal["datauri"], Literal["hex"]]):
         field = self.child_collection.schema["fields"][name]
         if type_ not in ["datauri", "hex"]:
             raise ForestException("Invalid binary mode")

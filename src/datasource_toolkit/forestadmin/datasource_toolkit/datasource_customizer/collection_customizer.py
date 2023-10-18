@@ -16,7 +16,7 @@ from forestadmin.datasource_toolkit.decorators.relation.types import (
 from forestadmin.datasource_toolkit.decorators.search.collections import SearchDefinition
 from forestadmin.datasource_toolkit.decorators.segments.collections import SegmentAlias
 from forestadmin.datasource_toolkit.decorators.write.write_replace.types import WriteDefinition
-from forestadmin.datasource_toolkit.interfaces.fields import FieldType, Operator, PrimitiveType
+from forestadmin.datasource_toolkit.interfaces.fields import FieldType, Operator, PrimitiveType, Validation
 from forestadmin.datasource_toolkit.interfaces.models.collections import CollectionSchema
 from forestadmin.datasource_toolkit.interfaces.query.sort import PlainSortClause
 from forestadmin.datasource_toolkit.plugins.add_external_relation import AddExternalRelation, AddExternalRelationOptions
@@ -72,11 +72,11 @@ class CollectionCustomizer:
 
         self.stack.queue_customization(_add_field)
 
-    def add_validation(self, name: str, validation: List):
+    def add_validation(self, name: str, validation: Validation):
         ForestLogger.log("warning", "'add_validation' is deprecated, please use 'add_field_validation' instead")
         self.add_field_validation(name, validation)
 
-    def add_field_validation(self, name: str, validation: List):
+    def add_field_validation(self, name: str, validation: Validation):
         async def _add_validation():
             self.stack.validation.get_collection(self.collection_name).add_validation(name, validation)
 
