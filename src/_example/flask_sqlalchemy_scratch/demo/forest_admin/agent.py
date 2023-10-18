@@ -43,9 +43,9 @@ from forestadmin.datasource_sqlalchemy.datasource import SqlAlchemyDatasource
 from forestadmin.datasource_toolkit.decorators.computed.types import ComputedDefinition
 from forestadmin.datasource_toolkit.interfaces.fields import Operator, PrimitiveType
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.leaf import ConditionTreeLeaf
-from forestadmin.flask_agent.agent import build_agent
+from forestadmin.flask_agent.agent import create_agent
 
-agent = build_agent(SETTINGS)
+agent = create_agent(SETTINGS)
 agent.add_datasource(SqlAlchemyDatasource(Base, db_uri=SQLITE_URI))
 customize_forest_logging()
 

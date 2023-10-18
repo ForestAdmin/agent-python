@@ -53,10 +53,15 @@ class Agent(BaseAgent):
         ForestLogger.log("info", "Flask agent initialized")
 
 
-def build_agent(options: Options) -> Agent:
+def create_agent(options: Options) -> Agent:
     agent = Agent(options)
     agent.blueprint = build_blueprint(agent)
     return agent
+
+
+def build_agent(options: Options) -> Agent:
+    ForestLogger.log("warning", "'build_agent' is deprecated, please use 'create_agent' instead")
+    return create_agent(options)
 
 
 def _after_request(response: FlaskResponse):

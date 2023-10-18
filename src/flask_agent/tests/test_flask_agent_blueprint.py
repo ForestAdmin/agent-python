@@ -4,7 +4,7 @@ from unittest.mock import ANY, AsyncMock, patch
 
 from flask import Flask
 from forestadmin.agent_toolkit.utils.context import Response
-from forestadmin.flask_agent.agent import build_agent
+from forestadmin.flask_agent.agent import create_agent
 
 
 class TestFlaskAgentBlueprint(TestCase):
@@ -32,7 +32,7 @@ class TestFlaskAgentBlueprint(TestCase):
             return_value=cls.mocked_resources,
             new_callable=AsyncMock,
         ).start()
-        cls.agent = build_agent(
+        cls.agent = create_agent(
             {
                 "env_secret": "fake",
                 "auth_secret": "fake",

@@ -6,7 +6,7 @@ from demo.models.models import db
 from flask import Flask
 from flask_cors import CORS
 from forestadmin.datasource_sqlalchemy.datasource import SqlAlchemyDatasource
-from forestadmin.flask_agent.agent import build_agent
+from forestadmin.flask_agent.agent import create_agent
 
 
 def create_app():
@@ -23,7 +23,7 @@ def create_app():
         },
         supports_credentials=True,
     )
-    agent = build_agent(SETTINGS)
+    agent = create_agent(SETTINGS)
     with app.app_context():
         db.init_app(app)
 
