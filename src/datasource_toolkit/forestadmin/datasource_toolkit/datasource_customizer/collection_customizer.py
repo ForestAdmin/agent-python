@@ -78,15 +78,16 @@ class CollectionCustomizer:
         self.stack.queue_customization(_add_field)
         return self
 
-    def add_validation(self, name: str, validation: Validation):
+    def add_validation(self, name: str, validation: Validation) -> Self:
         ForestLogger.log("warning", "'add_validation' is deprecated, please use 'add_field_validation' instead")
-        self.add_field_validation(name, validation)
+        return self.add_field_validation(name, validation)
 
-    def add_field_validation(self, name: str, validation: Validation):
+    def add_field_validation(self, name: str, validation: Validation) -> Self:
         async def _add_validation():
             self.stack.validation.get_collection(self.collection_name).add_validation(name, validation)
 
         self.stack.queue_customization(_add_validation)
+        return self
 
     def disable_count(self) -> Self:
         async def _disable_count():
