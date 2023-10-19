@@ -1,5 +1,5 @@
 import copy
-from typing import List, Optional, TypedDict, Union
+from typing import Dict, List, Optional, TypedDict, Union
 
 from forestadmin.agent_toolkit.exceptions import AgentToolkitException
 from forestadmin.agent_toolkit.forest_logger import ForestLogger
@@ -25,6 +25,7 @@ from forestadmin.datasource_toolkit.datasource_customizer.types import DataSourc
 from forestadmin.datasource_toolkit.datasources import Datasource
 from forestadmin.datasource_toolkit.decorators.chart.types import DataSourceChartDefinition
 from forestadmin.datasource_toolkit.interfaces.models.collections import BoundCollection
+from typing_extensions import Self
 
 
 class Resources(TypedDict):
@@ -122,6 +123,10 @@ class Agent:
             options = {}
         self.customizer.add_datasource(datasource, options)
         self._resources = None
+
+    def use(self, plugin: type, options: Optional[Dict] = {}) -> Self:
+        self.customizer.use(plugin, options)
+        return self
 
     def customize_collection(self, collection_name: str) -> CollectionCustomizer:
         return self.customizer.customize_collection(collection_name)

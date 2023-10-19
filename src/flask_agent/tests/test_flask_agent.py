@@ -1,7 +1,7 @@
 from unittest import TestCase
 from unittest.mock import Mock, call, patch
 
-from forestadmin.flask_agent.agent import Agent, _after_request, build_agent, build_blueprint
+from forestadmin.flask_agent.agent import Agent, _after_request, build_blueprint, create_agent
 
 
 class TestFlaskAgent(TestCase):
@@ -12,8 +12,8 @@ class TestFlaskAgent(TestCase):
     @patch("forestadmin.flask_agent.agent.asyncio.new_event_loop", return_value="event_loop")
     @patch("forestadmin.flask_agent.agent.BaseAgent.__init__")
     @patch("forestadmin.flask_agent.agent.build_blueprint", return_value="blueprint")
-    def test_build_agent(self, mock_build_blueprint, mock_base_agent, mock_new_event_loop):
-        agent = build_agent(self.options)
+    def test_create_agent(self, mock_build_blueprint, mock_base_agent, mock_new_event_loop):
+        agent = create_agent(self.options)
         assert isinstance(agent, Agent)
         assert mock_new_event_loop.called
         assert mock_base_agent.called
@@ -30,7 +30,7 @@ class TestFlaskAgent(TestCase):
         app = Mock()
         app.root_path = "/tmp"
         app.register_blueprint = Mock()
-        agent = build_agent(self.options)
+        agent = create_agent(self.options)
         agent.options = self.options
         agent.blueprint = "fake_blueprint"
         agent.loop = Mock()

@@ -47,25 +47,22 @@ def customize_agent(agent: Agent):
     customize_forest_logging()
 
     # # ## ADDRESS
-    agent.customize_collection("address").add_segment("highOrderDelivery", high_delivery_address_segment)
-
-    agent.customize_collection("address").rename_field("country", "pays")
-    agent.customize_collection("address").add_field("full_address", address_full_name_computed("country"))
-    agent.customize_collection("address").rename_field("full_address", "complete_address")
-    agent.customize_collection("address").replace_field_sorting(
+    agent.customize_collection("address").add_segment("highOrderDelivery", high_delivery_address_segment).rename_field(
+        "country", "pays"
+    ).add_field("full_address", address_full_name_computed("country")).rename_field(
+        "full_address", "complete_address"
+    ).replace_field_sorting(
         "full_address",
         [
             {"field": "country", "ascending": True},
             {"field": "city", "ascending": True},
             {"field": "street", "ascending": True},
         ],
-    )
-
-    # changing visibility
-    agent.customize_collection("address").remove_field("street_number")
-    # deactivate count
-    agent.customize_collection("address").disable_count()
-    agent.customize_collection("address").add_external_relation(
+    ).remove_field(
+        # changing visibility
+        "street_number"
+        # deactivate count
+    ).disable_count().add_external_relation(
         "postal_code",
         {
             "schema": {
@@ -82,56 +79,69 @@ def customize_agent(agent: Agent):
     # customers_addresses
     agent.customize_collection("customers_addresses").add_many_to_one_relation(
         "smart_customers", "customer", "customer_id"
-    )
-    agent.customize_collection("customers_addresses").add_many_to_one_relation(
-        "smart_addresses", "address", "address_id"
-    )
+    ).add_many_to_one_relation("smart_addresses", "address", "address_id")
 
     # # ## CUSTOMERS
     # # import field ?
-    agent.customize_collection("customer").add_segment("with french address", french_address_segment)
-    agent.customize_collection("customer").add_segment(
-        "VIP customers", lambda context: ConditionTreeLeaf("is_vip", Operator.EQUAL, True)
+    agent.customize_collection("customer").add_segment("with french address", french_address_segment).add_segment(
+        "VIP customers",
+        lambda context: ConditionTreeLeaf("is_vip", Operator.EQUAL, True)
+        # add actions
+    ).add_action("Export json class", ExportJson()).add_action("Export json dict", export_json_action_dict).add_action(
+        "Age operation class", AgeOperation()
     )
-    # # action file bulk
-    agent.customize_collection("customer").add_action("Export json class", ExportJson())
-    agent.customize_collection("customer").add_action("Export json dict", export_json_action_dict)
-    # # action single with form
-    agent.customize_collection("customer").add_action("Age operation class", AgeOperation())
     agent.customize_collection("customer").add_action(
         "Age operation manual class reuse", age_operation_action_obj_reuse
-    )
-    agent.customize_collection("customer").add_action("Age operation dict", age_operation_action_dict)
-    # # computed
-    agent.customize_collection("customer").add_field("full_name", customer_full_name())
-    # custom write on computed
-    agent.customize_collection("customer").replace_field_writing("full_name", customer_full_name_write)
-
-    # custom operators for computed fields
-    agent.customize_collection("customer").replace_field_operator("full_name", Operator.EQUAL, full_name_equal)
-    agent.customize_collection("customer").replace_field_operator("full_name", Operator.IN, full_name_in)
-    agent.customize_collection("customer").replace_field_operator("full_name", Operator.NOT_IN, full_name_not_in)
-    agent.customize_collection("customer").replace_field_operator("full_name", Operator.LESS_THAN, full_name_less_than)
-    agent.customize_collection("customer").replace_field_operator(
+    ).add_action("Age operation dict", age_operation_action_dict).add_field(
+        # # computed
+        "full_name",
+        customer_full_name(),
+    ).replace_field_writing(
+        # custom write on computed
+        "full_name",
+        customer_full_name_write,
+    ).replace_field_operator(
+        # custom operators for computed fields
+        "full_name",
+        Operator.EQUAL,
+        full_name_equal,
+    ).replace_field_operator(
+        "full_name", Operator.IN, full_name_in
+    ).replace_field_operator(
+        "full_name", Operator.NOT_IN, full_name_not_in
+    ).replace_field_operator(
+        "full_name", Operator.LESS_THAN, full_name_less_than
+    ).replace_field_operator(
         "full_name", Operator.GREATER_THAN, full_name_greater_than
-    )
-    agent.customize_collection("customer").replace_field_operator("full_name", Operator.LIKE, full_name_like)
-    agent.customize_collection("customer").replace_field_operator("full_name", Operator.CONTAINS, full_name_contains)
-    agent.customize_collection("customer").replace_field_operator(
+    ).replace_field_operator(
+        "full_name", Operator.LIKE, full_name_like
+    ).replace_field_operator(
+        "full_name", Operator.CONTAINS, full_name_contains
+    ).replace_field_operator(
         "full_name", Operator.NOT_CONTAINS, full_name_not_contains
-    )
-    # emulate others operators
-    agent.customize_collection("customer").emulate_field_filtering("full_name")
-
-    agent.customize_collection("customer").add_field("TotalSpending", customer_spending_computed())
-    # # validation
-    agent.customize_collection("customer").add_validation("age", {"operator": Operator.GREATER_THAN, "value": 0})
-    agent.customize_collection("customer").add_chart("total_orders", total_orders_customer_chart)
-    agent.customize_collection("customer").add_chart("orders_table", order_details)
-    agent.customize_collection("customer").add_many_to_many_relation(
-        "smart_billing_addresses", "address", "order", "customer_id", "billing_address_id"
-    )
-    agent.customize_collection("customer").add_many_to_many_relation(
+    ).emulate_field_filtering(
+        # emulate others operators
+        "full_name"
+    ).add_field(
+        "TotalSpending",
+        customer_spending_computed()
+        # validation
+    ).add_field_validation(
+        "age", {"operator": Operator.GREATER_THAN, "value": 0}
+    ).add_chart(
+        # charts
+        "total_orders",
+        total_orders_customer_chart,
+    ).add_chart(
+        "orders_table", order_details
+    ).add_many_to_many_relation(
+        # relations
+        "smart_billing_addresses",
+        "address",
+        "order",
+        "customer_id",
+        "billing_address_id",
+    ).add_many_to_many_relation(
         "smart_delivering_addresses", "address", "order", "customer_id", "delivering_address_id"
     )
 
@@ -142,55 +152,61 @@ def customize_agent(agent: Agent):
             dependencies=["order:customer_id"],
             get_values=lambda records, context: [rec["order"]["customer_id"] for rec in records],
         ),
-    )
-    agent.customize_collection("cart").emulate_field_operator("customer_id", Operator.IN)
-    agent.customize_collection("customer").add_one_to_many_relation("smart_carts", "cart", "customer_id")
+    ).emulate_field_operator("customer_id", Operator.IN)
 
-    # hooks
-    agent.customize_collection("customer").add_hook("Before", "Create", hook_customer_before_create)
-    agent.customize_collection("customer").add_hook("After", "List", hook_customer_after_list)
+    agent.customize_collection("customer").add_one_to_many_relation("smart_carts", "cart", "customer_id").add_hook(
+        # hooks
+        "Before",
+        "Create",
+        hook_customer_before_create,
+    ).add_hook("After", "List", hook_customer_after_list)
 
     # # ## ORDERS
-    # # segment
-    agent.customize_collection("order").add_segment("Pending order", pending_order_segment)
-    agent.customize_collection("order").add_segment("Delivered order", delivered_order_segment)
-    agent.customize_collection("order").add_segment("Rejected order", rejected_order_segment)
-    agent.customize_collection("order").add_segment("Dispatched order", dispatched_order_segment)
-    agent.customize_collection("order").add_segment("Suspicious order", suspicious_order_segment)
-    agent.customize_collection("order").add_segment(
+    agent.customize_collection("order").add_segment("Pending order", pending_order_segment).add_segment(
+        # segment
+        "Delivered order",
+        delivered_order_segment,
+    ).add_segment("Rejected order", rejected_order_segment).add_segment(
+        "Dispatched order", dispatched_order_segment
+    ).add_segment(
+        "Suspicious order", suspicious_order_segment
+    ).add_segment(
         "newly_created", lambda context: ConditionTreeLeaf("created_at", Operator.AFTER, "2023-01-01")
+    ).rename_field(
+        # rename
+        "amount",
+        "cost",
+    ).add_action(
+        # action
+        "Export json class",
+        ExportOrderJson(),
+    ).add_action(
+        "Export json dict", export_orders_json
+    ).add_action(
+        "Refund order(s) class", RefundOrder()
+    ).add_action(
+        "Refund order(s) call to_dict", RefundOrder().to_dict()
+    ).add_field_validation(
+        # validation
+        "amount",
+        {"operator": Operator.GREATER_THAN, "value": 0},
+    ).add_field(
+        # # computed
+        "customer_full_name",
+        get_customer_full_name_field(),
+    ).import_field(
+        "customer_first_name", {"path": "customer:first_name"}
     )
 
-    # # rename
-    agent.customize_collection("order").rename_field("amount", "cost")
-    # # action file global
-    agent.customize_collection("order").add_action("Export json class", ExportOrderJson())
-    agent.customize_collection("order").add_action("Export json dict", export_orders_json)
-
-    agent.customize_collection("order").add_action("Refund order(s) class", RefundOrder())
-    agent.customize_collection("order").add_action("Refund order(s) call to_dict", RefundOrder().to_dict())
-    # # validation
-    agent.customize_collection("order").add_validation("amount", {"operator": Operator.GREATER_THAN, "value": 0})
-    # # computed
-    agent.customize_collection("order").add_field("customer_full_name", get_customer_full_name_field())
-    agent.customize_collection("order").import_field("customer_first_name", {"path": "customer:first_name"})
-
     # cart
-    agent.customize_collection("cart").replace_field_writing("name", cart_update_name)
-    agent.customize_collection("cart").add_segment("No order", ConditionTreeLeaf("order_id", Operator.EQUAL, None))
+    agent.customize_collection("cart").replace_field_writing("name", cart_update_name).add_segment(
+        "No order", ConditionTreeLeaf("order_id", Operator.EQUAL, None)
+    )
 
-    agent.add_chart("total_order", total_order_chart)
-    agent.add_chart(
+    # general
+    agent.add_chart("total_order", total_order_chart).add_chart(
         "mytablechart",
         lambda ctx, result_builder: result_builder.smart(
             [{"username": "Darth Vador", "points": 1500000}, {"username": "Luke Skywalker", "points": 2}]
         ),
-    )
-    agent.add_chart("total_order_week", nb_order_per_week)
-
-    # add relations
-    # # oneToOne
-    # # externalRelation
-
-    # hooks
-    # # before/after, write/read
+    ).add_chart("total_order_week", nb_order_per_week)

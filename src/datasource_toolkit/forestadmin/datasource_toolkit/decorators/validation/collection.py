@@ -1,5 +1,5 @@
 import sys
-from typing import List, Optional
+from typing import Dict, List, Optional
 
 if sys.version_info >= (3, 9):
     from zoneinfo import ZoneInfo
@@ -9,7 +9,7 @@ else:
 from forestadmin.agent_toolkit.utils.context import User
 from forestadmin.datasource_toolkit.decorators.collection_decorator import CollectionDecorator
 from forestadmin.datasource_toolkit.exceptions import ForestException, ValidationError
-from forestadmin.datasource_toolkit.interfaces.fields import Operator
+from forestadmin.datasource_toolkit.interfaces.fields import Operator, Validation
 from forestadmin.datasource_toolkit.interfaces.models.collections import CollectionSchema
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.factory import ConditionTreeFactory
 from forestadmin.datasource_toolkit.interfaces.query.filter.unpaginated import Filter
@@ -20,9 +20,9 @@ from forestadmin.datasource_toolkit.validations.field import FieldValidator
 class ValidationCollectionDecorator(CollectionDecorator):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.validations = {}
+        self.validations: Dict[str, List[Validation]] = {}
 
-    def add_validation(self, name: str, validation: List):
+    def add_validation(self, name: str, validation: Validation):
         FieldValidator.validate(self.child_collection, name)
 
         field = self.child_collection.schema["fields"].get(name)

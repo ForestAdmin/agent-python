@@ -7,6 +7,7 @@ from forestadmin.datasource_toolkit.decorators.chart.types import DataSourceChar
 from forestadmin.datasource_toolkit.decorators.decorator_stack import DecoratorStack
 from forestadmin.datasource_toolkit.decorators.publication.datasource import PublicationDataSourceDecorator
 from forestadmin.datasource_toolkit.decorators.rename_collection.datasource import RenameCollectionDataSourceDecorator
+from typing_extensions import Self
 
 
 class DatasourceCustomizer:
@@ -26,7 +27,7 @@ class DatasourceCustomizer:
     def collections(self):
         return [self.get_collection(c.name) for c in self.stack.validation.collections]
 
-    def add_datasource(self, datasource: Datasource, options: Optional[DataSourceOptions] = None):
+    def add_datasource(self, datasource: Datasource, options: Optional[DataSourceOptions] = None) -> Self:
         if options is None:
             options = {}
 
@@ -46,6 +47,7 @@ class DatasourceCustomizer:
                 self.composite_datasource.add_collection(collection)
 
         self.stack.queue_customization(_add_datasource)
+        return self
 
     def customize_collection(self, collection_name: str) -> CollectionCustomizer:
         return self.get_collection(collection_name)
@@ -53,20 +55,23 @@ class DatasourceCustomizer:
     def get_collection(self, collection_name: str) -> CollectionCustomizer:
         return CollectionCustomizer(self, self.stack, collection_name)
 
-    def add_chart(self, name: str, definition: DataSourceChartDefinition):
+    def add_chart(self, name: str, definition: DataSourceChartDefinition) -> Self:
         async def _add_chart():
             self.stack.chart.add_chart(name, definition)
 
         self.stack.queue_customization(_add_chart)
+        return self
 
-    def remove_collections(self, names: Union[str, List[str]]):
+    def remove_collections(self, names: Union[str, List[str]]) -> Self:
         async def _remove_collections():
             self.stack.publication.keep_collections_matching([], [names] if isinstance(names, str) else names)
 
         self.stack.queue_customization(_remove_collections)
+        return self
 
-    def use(self, plugin: type, options: Optional[Dict] = {}):
+    def use(self, plugin: type, options: Optional[Dict] = {}) -> Self:
         async def _use():
             plugin().run(self, None, options)
 
         self.stack.queue_customization(_use)
+        return self
