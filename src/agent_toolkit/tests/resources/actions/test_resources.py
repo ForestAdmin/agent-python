@@ -85,7 +85,7 @@ class BaseTestActionResource(TestCase):
             auth_secret="fake_secret",
             env_secret="fake_secret",
             server_url="http://fake:5000",
-            prefix="forest",
+            prefix="",
             is_production=False,
         )
 

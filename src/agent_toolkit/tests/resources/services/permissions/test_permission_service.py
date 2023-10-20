@@ -82,7 +82,7 @@ class BaseTestPermissionService(TestCase):
         cls.options: RoleOptions = {
             "forest_server_url": "https://api.developpement.forestadmin.com",
             "env_secret": "env_secret",
-            "prefix": "/forest",
+            "prefix": "",
             "is_production": False,
             "permission_cache_duration": 15,
         }

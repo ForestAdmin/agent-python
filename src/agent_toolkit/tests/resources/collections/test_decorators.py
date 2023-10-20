@@ -68,7 +68,7 @@ class TestDecorators(TestCase):
                 "auth_secret": "auth_secret",
                 # "forest_server_url": "http://fake.forest.com",
                 # "is_production": True,
-                # "prefix": "/forest",
+                # "prefix": "",
                 "permission_cache_duration": 180,
             }
         )

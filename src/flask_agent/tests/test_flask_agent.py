@@ -7,7 +7,7 @@ from forestadmin.flask_agent.agent import Agent, _after_request, build_blueprint
 class TestFlaskAgent(TestCase):
     @classmethod
     def setUpClass(cls) -> None:
-        cls.options = {"env_secret": "fake", "auth_secret": "fake", "agent_url": "fake", "prefix": "forest"}
+        cls.options = {"env_secret": "fake", "auth_secret": "fake", "agent_url": "fake", "prefix": ""}
 
     @patch("forestadmin.flask_agent.agent.asyncio.new_event_loop", return_value="event_loop")
     @patch("forestadmin.flask_agent.agent.BaseAgent.__init__")

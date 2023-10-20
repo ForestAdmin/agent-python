@@ -187,6 +187,7 @@ class PermissionService:
     async def _find_action_from_endpoint(
         self, collection: Collection, get_params: Dict, http_method: str
     ) -> Optional[ForestServerAction]:
+        # TODO: avoid multiple computation of schema
         collections = await SchemaEmitter.generate(self.options["prefix"], collection.datasource)
         actions = [col for col in collections if col["name"] == collection.name][0]["actions"]
         if len(actions) == 0:
