@@ -39,7 +39,7 @@ class CollectionCustomizer:
     def schema(self) -> CollectionSchema:
         return self.stack.validation.get_collection(self.collection_name).schema
 
-    # fields
+    # action
 
     def add_action(self, name: str, action: ActionDict) -> Self:
         """Add a new action on the collection.
@@ -69,6 +69,8 @@ class CollectionCustomizer:
         self.stack.queue_customization(_add_action)
         return self
 
+    # segment
+
     def add_segment(self, name: str, segment: SegmentAlias) -> Self:
         """Add a new segment on the collection.
 
@@ -96,26 +98,9 @@ class CollectionCustomizer:
         self.stack.queue_customization(_add_segment)
         return self
 
-    def rename_field(self, current_name: str, new_name: str) -> Self:
-        """Allow to rename a field of a given collection.
+    # fields
 
-        Args:
-            current_name (str): The current name of the field in a given collection
-            new_name (str): The new name of the field
-
-        ### See documentation:
-            https://docs.forestadmin.com/developer-guide-agents-nodejs/agent-customization/fields/import-rename-delete
-
-        ### Example:
-            .rename_field("current_name", "new_name")
-        """
-
-        async def _rename_field():
-            self.stack.rename_field.get_collection(self.collection_name).rename_field(current_name, new_name)
-
-        self.stack.queue_customization(_rename_field)
-        return self
-
+    # # add rename remove
     def add_field(self, name: str, computed_definition: ComputedDefinition) -> Self:
         """Add a new field on the collection.
 
@@ -161,6 +146,64 @@ class CollectionCustomizer:
         self.stack.queue_customization(_add_field)
         return self
 
+    def import_field(self, name: str, options: ImportFieldOption) -> Self:
+        """Import a field from a many to one or one to one relation.
+
+        Args:
+            name (str): the name of the field that will be created on the collection
+            options (ImportFieldOption): options to import the field
+
+        ### See documentation:
+            https://docs.forestadmin.com/developer-guide-agents-python/agent-customization/fields/import-rename-delete#moving-fields
+
+        ### Example:
+            .import_field('authorName', {"path": "author:fullName"})
+        """
+        self.use(ImportField, {"name": name, **options})
+        return self
+
+    def rename_field(self, current_name: str, new_name: str) -> Self:
+        """Allow to rename a field of a given collection.
+
+        Args:
+            current_name (str): The current name of the field in a given collection
+            new_name (str): The new name of the field
+
+        ### See documentation:
+            https://docs.forestadmin.com/developer-guide-agents-nodejs/agent-customization/fields/import-rename-delete
+
+        ### Example:
+            .rename_field("current_name", "new_name")
+        """
+
+        async def _rename_field():
+            self.stack.rename_field.get_collection(self.collection_name).rename_field(current_name, new_name)
+
+        self.stack.queue_customization(_rename_field)
+        return self
+
+    def remove_field(self, *fields) -> Self:
+        """Remove fields from the exported schema (they will still be usable within the agent).
+
+        Args:
+            fields (list(str)): The name of the fields to remove
+
+        ### See documentation:
+            https://docs.forestadmin.com/developer-guide-agents-python/agent-customization/pagination
+
+        ### Example:
+            .remove_field("field_to_remove", "another_field_to_remove")
+        """
+
+        async def _remove_field():
+            stack_collection = self.stack.publication.get_collection(self.collection_name)
+            for field in fields:
+                stack_collection.change_field_visibility(field, False)
+
+        self.stack.queue_customization(_remove_field)
+        return self
+
+    # # validation
     def add_validation(self, name: str, validation: Validation) -> Self:
         ForestLogger.log("warning", "'add_validation' is deprecated, please use 'add_field_validation' instead")
         return self.add_field_validation(name, validation["operator"], validation["value"])
@@ -188,108 +231,7 @@ class CollectionCustomizer:
         self.stack.queue_customization(_add_field_validation)
         return self
 
-    def disable_count(self) -> Self:
-        """Disable count in list view pagination for improved performance.
-
-        ### See documentation:
-            https://docs.forestadmin.com/developer-guide-agents-python/agent-customization/pagination
-
-        ### Example:
-            .disable_count()
-        """
-
-        async def _disable_count():
-            self.stack.schema.get_collection(self.collection_name).override_schema("countable", False)
-
-        self.stack.queue_customization(_disable_count)
-        return self
-
-    def remove_field(self, *fields) -> Self:
-        """Remove fields from the exported schema (they will still be usable within the agent).
-
-        Args:
-            fields (list(str)): The name of the fields to remove
-
-        ### See documentation:
-            https://docs.forestadmin.com/developer-guide-agents-python/agent-customization/pagination
-
-        ### Example:
-            .remove_field("field_to_remove", "another_field_to_remove")
-        """
-
-        async def _remove_field():
-            stack_collection = self.stack.publication.get_collection(self.collection_name)
-            for field in fields:
-                stack_collection.change_field_visibility(field, False)
-
-        self.stack.queue_customization(_remove_field)
-        return self
-
-    def replace_search(self, definition: SearchDefinition) -> Self:
-        """Replace the behavior of the search bar
-        Args:
-            definition (SearchDefinition): handler to describe the new behavior
-
-        ### See documentation:
-            https://docs.forestadmin.com/developer-guide-agents-python/agent-customization/search
-
-        ### Example:
-            .replace_search(lambda search_string, extended_mode, context: ConditionTreeLeaf(
-                    "name", Operator.CONTAINS, search_string
-                )
-            )
-        """
-
-        async def _replace_search():
-            self.stack.search.get_collection(self.collection_name).replace_search(definition)
-
-        self.stack.queue_customization(_replace_search)
-        return self
-
-    def add_chart(self, name: str, definition: CollectionChartDefinition) -> Self:
-        """Create a new API chart
-
-        Args:
-            name (str): name of the chart
-            definition (CollectionChartDefinition): definition of the chart
-
-        ### See documentation:
-            https://docs.forestadmin.com/developer-guide-agents-python/agent-customization/charts
-
-        ### Example:
-            .replace_search("numCustomers", lambda context, result_builder: result_builder.distribution(
-                {"tomatoes": 10, "potatoes":20, "carrots": 30}
-            ))
-        """
-
-        async def _add_chart():
-            self.stack.chart.get_collection(self.collection_name).add_chart(name, definition)
-
-        self.stack.queue_customization(_add_chart)
-        return self
-
-    def replace_field_writing(self, name: str, definition: WriteDefinition) -> Self:
-        """Replace the write behavior of a field.
-
-        Args:
-            name (str): the name of the field
-            definition (WriteDefinition): the function or a value to represent the write behavior
-
-        ### See documentation:
-            https://docs.forestadmin.com/developer-guide-agents-python/agent-customization/fields/write
-
-        ### Example:
-            .replace_field_writing("fullName", lambda value, context: {
-                "firstName": value.split(' ')[0], "lastName": value.split(' ', 1)[1]
-            })
-        """
-
-        async def _replace_field_writing():
-            self.stack.write.get_collection(self.collection_name).replace_field_writing(name, definition)
-
-        self.stack.queue_customization(_replace_field_writing)
-        return self
-
+    # # operators
     def replace_field_operator(self, name: str, operator: Operator, replacer: OperatorDefinition) -> Self:
         """Replace an implementation for a specific operator on a specific field.
             The operator replacement will be done by the datasource.
@@ -345,6 +287,30 @@ class CollectionCustomizer:
         self.stack.queue_customization(_emulate_field_operator)
         return self
 
+    # # writing
+    def replace_field_writing(self, name: str, definition: WriteDefinition) -> Self:
+        """Replace the write behavior of a field.
+
+        Args:
+            name (str): the name of the field
+            definition (WriteDefinition): the function or a value to represent the write behavior
+
+        ### See documentation:
+            https://docs.forestadmin.com/developer-guide-agents-python/agent-customization/fields/write
+
+        ### Example:
+            .replace_field_writing("fullName", lambda value, context: {
+                "firstName": value.split(' ')[0], "lastName": value.split(' ', 1)[1]
+            })
+        """
+
+        async def _replace_field_writing():
+            self.stack.write.get_collection(self.collection_name).replace_field_writing(name, definition)
+
+        self.stack.queue_customization(_replace_field_writing)
+        return self
+
+    # # filtering
     def emulate_field_filtering(self, name: str) -> Self:
         """Enable filtering on a specific field using emulation.
             As for all the emulation method, the field filtering will be done in-memory.
@@ -370,6 +336,133 @@ class CollectionCustomizer:
                         self.emulate_field_operator(name, operator)
 
         self.stack.queue_customization(_emulate_field_filtering)
+        return self
+
+    # # sorting
+    def emulate_field_sorting(self, name: str) -> Self:
+        """Enable sorting on a specific field using emulation.
+            As for all the emulation method, the field sorting will be done in-memory.
+
+        Args:
+            name (str): the name of the field to enable emulation on
+
+        ### See documentation:
+            https://docs.forestadmin.com/developer-guide-agents-python/agent-customization/fields/sort#emulation
+
+        ### Example:
+            .emulate_field_sorting('fullName')
+        """
+
+        async def _emulate_field_sorting():
+            self.stack.sort_emulate.get_collection(self.collection_name).emulate_field_sorting(name)
+
+        self.stack.queue_customization(_emulate_field_sorting)
+        return self
+
+    def replace_field_sorting(self, name: str, equivalent_sort: List[PlainSortClause]) -> Self:
+        """Replace an implementation for the sorting.
+            The field sorting will be done by the datasource.
+
+        Args:
+            name (str): the name of the field to enable sort
+            equivalent_sort (List[PlainSortClause]): the sort equivalent
+
+        ### See documentation:
+            https://docs.forestadmin.com/developer-guide-agents-python/agent-customization/fields/sort
+
+        ### Example:
+            .replace_field_sorting('fullName', [
+                {"field": "firstName", "ascending": True},
+                {"field": "lastName", "ascending": True},
+            ])
+        """
+
+        async def _replace_field_sorting():
+            self.stack.sort_emulate.get_collection(self.collection_name).replace_field_sorting(name, equivalent_sort)
+
+        self.stack.queue_customization(_replace_field_sorting)
+        return self
+
+    # # binary
+    def replace_field_binary_mode(self, name: str, binary_mode: Union[Literal["datauri"], Literal["hex"]]) -> Self:
+        """Choose how binary data should be transported to the GUI.
+            By default, all fields are transported as 'datauri', with the exception of primary and foreign keys.
+
+        Args:
+            name (str): the name of the field
+            binary_mode (str): binary mode to use (either 'datauri' or 'hex')
+
+        ### See documentation:
+            https://docs.forestadmin.com/developer-guide-agents-python/agent-customization/fields/binary
+
+        ### Example:
+            .replace_field_binary_mode('avatar', 'datauri')
+        """
+
+        async def _replace_field_binary_mode():
+            self.stack.binary.get_collection(self.collection_name).set_binary_mode(name, binary_mode)
+
+        self.stack.queue_customization(_replace_field_binary_mode)
+
+    # collection
+
+    def disable_count(self) -> Self:
+        """Disable count in list view pagination for improved performance.
+
+        ### See documentation:
+            https://docs.forestadmin.com/developer-guide-agents-python/agent-customization/pagination
+
+        ### Example:
+            .disable_count()
+        """
+
+        async def _disable_count():
+            self.stack.schema.get_collection(self.collection_name).override_schema("countable", False)
+
+        self.stack.queue_customization(_disable_count)
+        return self
+
+    def replace_search(self, definition: SearchDefinition) -> Self:
+        """Replace the behavior of the search bar
+        Args:
+            definition (SearchDefinition): handler to describe the new behavior
+
+        ### See documentation:
+            https://docs.forestadmin.com/developer-guide-agents-python/agent-customization/search
+
+        ### Example:
+            .replace_search(lambda search_string, extended_mode, context: ConditionTreeLeaf(
+                    "name", Operator.CONTAINS, search_string
+                )
+            )
+        """
+
+        async def _replace_search():
+            self.stack.search.get_collection(self.collection_name).replace_search(definition)
+
+        self.stack.queue_customization(_replace_search)
+        return self
+
+    def add_chart(self, name: str, definition: CollectionChartDefinition) -> Self:
+        """Create a new API chart
+
+        Args:
+            name (str): name of the chart
+            definition (CollectionChartDefinition): definition of the chart
+
+        ### See documentation:
+            https://docs.forestadmin.com/developer-guide-agents-python/agent-customization/charts
+
+        ### Example:
+            .replace_search("numCustomers", lambda context, result_builder: result_builder.distribution(
+                {"tomatoes": 10, "potatoes":20, "carrots": 30}
+            ))
+        """
+
+        async def _add_chart():
+            self.stack.chart.get_collection(self.collection_name).add_chart(name, definition)
+
+        self.stack.queue_customization(_add_chart)
         return self
 
     # relations
@@ -511,128 +604,6 @@ class CollectionCustomizer:
         self.stack.queue_customization(__add_relation)
         return self
 
-    def add_hook(self, position: Position, type: CrudMethod, handler: HookHandler) -> Self:
-        """Add a new hook handler to an action
-
-        Args:
-            position (Position): Either if the hook is executed before or after the action ({"Before", "After"})
-            type (CrudMethod): Type of action which should be hooked
-                ({"List", "Create", "Update", "Delete", "Aggregate"})
-            handler (HookHandler): Callback that should be executed when the hook is triggered
-
-        ### See documentation:
-            https://docs.forestadmin.com/developer-guide-agents-python/agent-customization/hooks
-
-        ### Example:
-            .add_hook('Before', 'List', lambda context: # do something before list action )
-        """
-
-        async def _add_hook():
-            self.stack.hook.get_collection(self.collection_name).add_hook(position, type, handler)
-
-        self.stack.queue_customization(_add_hook)
-        return self
-
-    def emulate_field_sorting(self, name: str) -> Self:
-        """Enable sorting on a specific field using emulation.
-            As for all the emulation method, the field sorting will be done in-memory.
-
-        Args:
-            name (str): the name of the field to enable emulation on
-
-        ### See documentation:
-            https://docs.forestadmin.com/developer-guide-agents-python/agent-customization/fields/sort#emulation
-
-        ### Example:
-            .emulate_field_sorting('fullName')
-        """
-
-        async def _emulate_field_sorting():
-            self.stack.sort_emulate.get_collection(self.collection_name).emulate_field_sorting(name)
-
-        self.stack.queue_customization(_emulate_field_sorting)
-        return self
-
-    def replace_field_sorting(self, name: str, equivalent_sort: List[PlainSortClause]) -> Self:
-        """Replace an implementation for the sorting.
-            The field sorting will be done by the datasource.
-
-        Args:
-            name (str): the name of the field to enable sort
-            equivalent_sort (List[PlainSortClause]): the sort equivalent
-
-        ### See documentation:
-            https://docs.forestadmin.com/developer-guide-agents-python/agent-customization/fields/sort
-
-        ### Example:
-            .replace_field_sorting('fullName', [
-                {"field": "firstName", "ascending": True},
-                {"field": "lastName", "ascending": True},
-            ])
-        """
-
-        async def _replace_field_sorting():
-            self.stack.sort_emulate.get_collection(self.collection_name).replace_field_sorting(name, equivalent_sort)
-
-        self.stack.queue_customization(_replace_field_sorting)
-        return self
-
-    def replace_field_binary_mode(self, name: str, binary_mode: Union[Literal["datauri"], Literal["hex"]]) -> Self:
-        """Choose how binary data should be transported to the GUI.
-            By default, all fields are transported as 'datauri', with the exception of primary and foreign keys.
-
-        Args:
-            name (str): the name of the field
-            binary_mode (str): binary mode to use (either 'datauri' or 'hex')
-
-        ### See documentation:
-            https://docs.forestadmin.com/developer-guide-agents-python/agent-customization/fields/binary
-
-        ### Example:
-            .replace_field_binary_mode('avatar', 'datauri')
-        """
-
-        async def _replace_field_binary_mode():
-            self.stack.binary.get_collection(self.collection_name).set_binary_mode(name, binary_mode)
-
-        self.stack.queue_customization(_replace_field_binary_mode)
-
-    def use(self, plugin: type, options: Optional[Dict] = {}) -> Self:
-        """Load a plugin on the collection.
-
-        Args:
-            plugin (type): plugin class
-            options (Dict, optional): options to pass to the plugin
-
-        ### See documentation:
-            https://docs.forestadmin.com/developer-guide-agents-python/agent-customization/plugins
-
-        ### Example:
-            .use(CreateFileField, { "fieldname": 'avatar' })
-        """
-
-        async def _use():
-            await plugin().run(self.datasource_customizer, self, options)
-
-        self.stack.queue_customization(_use)
-        return self
-
-    def import_field(self, name: str, options: ImportFieldOption) -> Self:
-        """Import a field from a many to one or one to one relation.
-
-        Args:
-            name (str): the name of the field that will be created on the collection
-            options (ImportFieldOption): options to import the field
-
-        ### See documentation:
-            https://docs.forestadmin.com/developer-guide-agents-python/agent-customization/fields/import-rename-delete#moving-fields
-
-        ### Example:
-            .import_field('authorName', {"path": "author:fullName"})
-        """
-        self.use(ImportField, {"name": name, **options})
-        return self
-
     def add_external_relation(self, name: str, definition: AddExternalRelationOptions) -> Self:
         """Add a virtual collection into the related data of a record.
 
@@ -657,4 +628,50 @@ class CollectionCustomizer:
         )
         """
         self.use(AddExternalRelation, {"name": name, **definition})
+        return self
+
+    # hook
+
+    def add_hook(self, position: Position, type: CrudMethod, handler: HookHandler) -> Self:
+        """Add a new hook handler to an action
+
+        Args:
+            position (Position): Either if the hook is executed before or after the action ({"Before", "After"})
+            type (CrudMethod): Type of action which should be hooked
+                ({"List", "Create", "Update", "Delete", "Aggregate"})
+            handler (HookHandler): Callback that should be executed when the hook is triggered
+
+        ### See documentation:
+            https://docs.forestadmin.com/developer-guide-agents-python/agent-customization/hooks
+
+        ### Example:
+            .add_hook('Before', 'List', lambda context: # do something before list action )
+        """
+
+        async def _add_hook():
+            self.stack.hook.get_collection(self.collection_name).add_hook(position, type, handler)
+
+        self.stack.queue_customization(_add_hook)
+        return self
+
+    # plugin
+
+    def use(self, plugin: type, options: Optional[Dict] = {}) -> Self:
+        """Load a plugin on the collection.
+
+        Args:
+            plugin (type): plugin class
+            options (Dict, optional): options to pass to the plugin
+
+        ### See documentation:
+            https://docs.forestadmin.com/developer-guide-agents-python/agent-customization/plugins
+
+        ### Example:
+            .use(CreateFileField, { "fieldname": 'avatar' })
+        """
+
+        async def _use():
+            await plugin().run(self.datasource_customizer, self, options)
+
+        self.stack.queue_customization(_use)
         return self
