@@ -601,7 +601,7 @@ class CollectionCustomizer:
         """Load a plugin on the collection.
 
         Args:
-            plugin (type): reference to the plugin function
+            plugin (type): plugin class
             options (Dict, optional): options to pass to the plugin
 
         ### See documentation:

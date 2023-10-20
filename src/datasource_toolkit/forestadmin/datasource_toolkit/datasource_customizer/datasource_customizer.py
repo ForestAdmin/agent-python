@@ -1,4 +1,4 @@
-from typing import Dict, List, Optional, Union
+from typing import Dict, List, Optional
 
 from forestadmin.datasource_toolkit.datasource_customizer.collection_customizer import CollectionCustomizer
 from forestadmin.datasource_toolkit.datasource_customizer.types import DataSourceOptions
@@ -17,6 +17,7 @@ class DatasourceCustomizer:
 
     @property
     def schema(self):
+        """Retrieve schema of the agent"""
         return self.stack.validation.schema
 
     async def get_datasource(self):
@@ -25,9 +26,16 @@ class DatasourceCustomizer:
 
     @property
     def collections(self):
+        """Get list of customizable collections"""
         return [self.get_collection(c.name) for c in self.stack.validation.collections]
 
     def add_datasource(self, datasource: Datasource, options: Optional[DataSourceOptions] = None) -> Self:
+        """Add a datasource
+
+        Args:
+            datasource (Datasource): the datasource to add
+            options (DataSourceOptions, optional): the options
+        """
         if options is None:
             options = {}
 
@@ -50,26 +58,83 @@ class DatasourceCustomizer:
         return self
 
     def customize_collection(self, collection_name: str) -> CollectionCustomizer:
+        """Allow to interact with a decorated collection
+
+        Args:
+            collection_name (str): the name of the collection to manipulate
+
+        Returns:
+            CollectionCustomizer: collection builder on the given collection name
+
+        ### Example:
+            .customize_collection('books').rename_field('xx', 'yy')
+        """
         return self.get_collection(collection_name)
 
     def get_collection(self, collection_name: str) -> CollectionCustomizer:
+        """Get given collection by name
+
+        Args:
+            collection_name (str): name of the collection
+
+        Returns:
+            CollectionCustomizer: The corresponding collection
+        """
         return CollectionCustomizer(self, self.stack, collection_name)
 
     def add_chart(self, name: str, definition: DataSourceChartDefinition) -> Self:
+        """Create a new API chart
+
+        Args:
+            name (str): name of the chart
+            definition (DataSourceChartDefinition): definition of the chart
+
+        Returns:
+            Self: _description_
+
+        ### Example:
+            .add_chart('numCustomers', lambda context, builder: builder.value(123))
+        """
+
         async def _add_chart():
             self.stack.chart.add_chart(name, definition)
 
         self.stack.queue_customization(_add_chart)
         return self
 
-    def remove_collections(self, names: Union[str, List[str]]) -> Self:
+    def remove_collections(self, *names: List[str]) -> Self:
+        """Remove collections from the exported schema (they will still be usable within the agent).
+
+        Args:
+            names (str | List[str]): the collections to remove
+
+        ### See documentation:
+            https://docs.forestadmin.com/developer-guide-agents-python/agent-customization/plugins
+
+        ### Example:
+            .remove_collections('aCollectionToRemove', 'anotherCollectionToRemove')
+        """
+
         async def _remove_collections():
-            self.stack.publication.keep_collections_matching([], [names] if isinstance(names, str) else names)
+            self.stack.publication.keep_collections_matching(names)
 
         self.stack.queue_customization(_remove_collections)
         return self
 
     def use(self, plugin: type, options: Optional[Dict] = {}) -> Self:
+        """Load a plugin across all collections
+
+        Args:
+            plugin (type): plugin class
+            options (Dict, optional): options which need to be passed to the plugin
+
+        ### See documentation:
+            https://docs.forestadmin.com/developer-guide-agents-python/agent-customization/plugins
+
+        ### Example:
+            .use(advancedExportPlugin, {'format': 'xlsx'})
+        """
+
         async def _use():
             plugin().run(self, None, options)
 
