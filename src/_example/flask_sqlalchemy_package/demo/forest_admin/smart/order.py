@@ -137,6 +137,7 @@ async def execute_export_json(context: ActionContext, result_builder: ResultBuil
 
 export_orders_json: ActionDict = {
     "scope": ActionsScope.GLOBAL,
+    "generate_file": True,
     "execute": execute_export_json,
     "form": [
         {
