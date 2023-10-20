@@ -116,7 +116,7 @@ class DatasourceCustomizer:
         """
 
         async def _remove_collections():
-            self.stack.publication.keep_collections_matching(names)
+            self.stack.publication.keep_collections_matching(None, [*names])
 
         self.stack.queue_customization(_remove_collections)
         return self

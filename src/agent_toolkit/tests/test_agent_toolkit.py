@@ -187,7 +187,7 @@ class TestAgent(TestCase):
         with patch.object(agent.customizer, "remove_collections") as mock_remove_collections:
             agent.remove_collections("collections")
 
-            mock_remove_collections.assert_called_with("collections")
+            mock_remove_collections.assert_called_with(("collections",))
 
     def test_customize_datasource(
         self,
