@@ -89,8 +89,8 @@ class DatasourceCustomizer:
             name (str): name of the chart
             definition (DataSourceChartDefinition): definition of the chart
 
-        Returns:
-            Self: _description_
+        Documentation:
+            https://docs.forestadmin.com/developer-guide-agents-python/agent-customization/charts
 
         Example:
             .add_chart('numCustomers', lambda context, builder: builder.value(123))
