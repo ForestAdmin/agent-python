@@ -40,7 +40,7 @@ class SchemaActionGenerator:
             name=name,
             type=schema.scope.value.lower(),
             baseUrl=None,
-            endpoint=f"/{prefix}/_actions/{collection.name}/{idx}/{slug}",
+            endpoint=f"/forest/_actions/{collection.name}/{idx}/{slug}",
             httpMethod="POST",
             redirect=None,
             download=bool(schema.generate_file),

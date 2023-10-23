@@ -48,7 +48,7 @@ class Agent(BaseAgent):
 
     def register_blueprint(self, app: Flask):
         self.options["schema_path"] = os.path.join(app.root_path, ".forestadmin-schema.json")
-        app.register_blueprint(self.blueprint, url_prefix=f'/{self.options["prefix"]}')
+        app.register_blueprint(self.blueprint, url_prefix=f'{self.options["prefix"]}/forest')
         self.loop.run_until_complete(self.start())
         ForestLogger.log("info", "Flask agent initialized")
 
@@ -103,6 +103,10 @@ def build_blueprint(agent: Agent):  # noqa: C901
     async def callback() -> FlaskResponse:  # type: ignore
         return await _get_collection_response(request, (await agent.get_resources())["authentication"], "callback")
 
+    @blueprint.route("/authentication", methods=["POST"])
+    async def authentication() -> FlaskResponse:  # type: ignore
+        return await _get_collection_response(request, (await agent.get_resources())["authentication"], "authenticate")
+
     @blueprint.route("/_actions/<collection_name>/<int:action_name>/<slug>/hooks/load", methods=["POST"])
     async def load_hook(**_) -> FlaskResponse:  # type: ignore
         return await _get_collection_response(request, (await agent.get_resources())["actions"], "hook")
@@ -114,10 +118,6 @@ def build_blueprint(agent: Agent):  # noqa: C901
     @blueprint.route("/_actions/<collection_name>/<int:action_name>/<slug>", methods=["POST"])
     async def actions(**_) -> FlaskResponse:  # type: ignore
         return await _get_collection_response(request, (await agent.get_resources())["actions"], "execute")
-
-    @blueprint.route("/authentication", methods=["POST"])
-    async def authentication() -> FlaskResponse:  # type: ignore
-        return await _get_collection_response(request, (await agent.get_resources())["authentication"], "authenticate")
 
     @blueprint.route("/stats/<collection_name>", methods=["POST"])
     async def stats(**_) -> FlaskResponse:  # type: ignore
