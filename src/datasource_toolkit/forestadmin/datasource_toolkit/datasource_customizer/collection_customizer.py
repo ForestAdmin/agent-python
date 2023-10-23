@@ -48,9 +48,10 @@ class CollectionCustomizer:
             name (str): the name of the action
             action (ActionAlias): The definition of the action
 
-        ### See documentation: : https://docs.forestadmin.com/developer-guide-agents-python/agent-customization/actions
+        Documentation:
+            https://docs.forestadmin.com/developer-guide-agents-python/agent-customization/actions
 
-        ### Example:
+        Example:
             async def execute(
                 context: ActionContextBulk, result_builder: ResultBuilder
             ) -> Union[None, ActionResult]:
@@ -78,10 +79,10 @@ class CollectionCustomizer:
             name (str): the name of the segment
             segment (SegmentAlias): a function used to generate a condition tree
 
-        ### See documentation:
+        Documentation:
             https://docs.forestadmin.com/developer-guide-agents-python/agent-customization/segments
 
-        ### Example:
+        Example:
             def more_than_two_books_segment(context: CollectionCustomizationContext):
                 return ConditionTreeLeaf(
                     field="book_count",
@@ -108,10 +109,10 @@ class CollectionCustomizer:
             name (str): The name of the field
             computed_definition (ComputedDefinition): The definition of the field
 
-        ### See documentation:
+        Documentation:
             https://docs.forestadmin.com/developer-guide-agents-python/agent-customization/fields/computed
 
-        ### Example:
+        Example:
             def get_full_name(records: List[RecordsDataAlias], context: CollectionCustomizationContext):
                 return [f"{record['first_name']} - {record['last_name']}" for record in records]
 
@@ -153,10 +154,10 @@ class CollectionCustomizer:
             name (str): the name of the field that will be created on the collection
             options (ImportFieldOption): options to import the field
 
-        ### See documentation:
+        Documentation:
             https://docs.forestadmin.com/developer-guide-agents-python/agent-customization/fields/import-rename-delete#moving-fields
 
-        ### Example:
+        Example:
             .import_field('authorName', {"path": "author:fullName"})
         """
         self.use(ImportField, {"name": name, **options})
@@ -169,10 +170,10 @@ class CollectionCustomizer:
             current_name (str): The current name of the field in a given collection
             new_name (str): The new name of the field
 
-        ### See documentation:
+        Documentation:
             https://docs.forestadmin.com/developer-guide-agents-nodejs/agent-customization/fields/import-rename-delete
 
-        ### Example:
+        Example:
             .rename_field("current_name", "new_name")
         """
 
@@ -188,10 +189,10 @@ class CollectionCustomizer:
         Args:
             fields (list(str)): The name of the fields to remove
 
-        ### See documentation:
+        Documentation:
             https://docs.forestadmin.com/developer-guide-agents-python/agent-customization/pagination
 
-        ### Example:
+        Example:
             .remove_field("field_to_remove", "another_field_to_remove")
         """
 
@@ -216,10 +217,10 @@ class CollectionCustomizer:
             operator (Operator): The validator  that you wish to add
             value (Any): A configuration value that the validator may need
 
-        ### See documentation:
+        Documentation:
             https://docs.forestadmin.com/developer-guide-agents-python/agent-customization/fields/validation
 
-        ### Example:
+        Example:
             .add_field_validation("first_name", Operator.LONGER_THAN, 2)
         """
 
@@ -241,10 +242,10 @@ class CollectionCustomizer:
             operator (Operator): the operator to replace
             replacer (OperatorDefinition): the proposed implementation
 
-        ### See documentation:
+        Documentation:
             https://docs.forestadmin.com/developer-guide-agents-python/agent-customization/fields/filter#substitution
 
-        ### Example:
+        Example:
             .replace_field_operator("fullName", Operator.CONTAINS, lambda value, context: ConditionTreeBranch('or', [
                     ConditionTreeLeaf("firstName", Operator.CONTAINS, value),
                     ConditionTreeLeaf("lastName", Operator.CONTAINS, value),
@@ -270,10 +271,10 @@ class CollectionCustomizer:
             name (str): the name of the field to enable emulation on
             operator (Operator): the operator to emulate
 
-        ### See documentation:
+        Documentation:
             https://docs.forestadmin.com/developer-guide-agents-python/agent-customization/fields/filter
 
-        ### Example:
+        Example:
             .emulate_field_operator("fullName", Operator.CONTAINS)
         """
 
@@ -295,10 +296,10 @@ class CollectionCustomizer:
             name (str): the name of the field
             definition (WriteDefinition): the function or a value to represent the write behavior
 
-        ### See documentation:
+        Documentation:
             https://docs.forestadmin.com/developer-guide-agents-python/agent-customization/fields/write
 
-        ### Example:
+        Example:
             .replace_field_writing("fullName", lambda value, context: {
                 "firstName": value.split(' ')[0], "lastName": value.split(' ', 1)[1]
             })
@@ -318,10 +319,10 @@ class CollectionCustomizer:
         Args:
             name (str): the name of the field to enable emulation on
 
-        ### See documentation:
+        Documentation:
             https://docs.forestadmin.com/developer-guide-agents-python/agent-customization/fields/filter#emulation
 
-        ### Example:
+        Example:
             .emulate_field_filtering("fullName")
         """
 
@@ -346,10 +347,10 @@ class CollectionCustomizer:
         Args:
             name (str): the name of the field to enable emulation on
 
-        ### See documentation:
+        Documentation:
             https://docs.forestadmin.com/developer-guide-agents-python/agent-customization/fields/sort#emulation
 
-        ### Example:
+        Example:
             .emulate_field_sorting('fullName')
         """
 
@@ -367,10 +368,10 @@ class CollectionCustomizer:
             name (str): the name of the field to enable sort
             equivalent_sort (List[PlainSortClause]): the sort equivalent
 
-        ### See documentation:
+        Documentation:
             https://docs.forestadmin.com/developer-guide-agents-python/agent-customization/fields/sort
 
-        ### Example:
+        Example:
             .replace_field_sorting('fullName', [
                 {"field": "firstName", "ascending": True},
                 {"field": "lastName", "ascending": True},
@@ -392,10 +393,10 @@ class CollectionCustomizer:
             name (str): the name of the field
             binary_mode (str): binary mode to use (either 'datauri' or 'hex')
 
-        ### See documentation:
+        Documentation:
             https://docs.forestadmin.com/developer-guide-agents-python/agent-customization/fields/binary
 
-        ### Example:
+        Example:
             .replace_field_binary_mode('avatar', 'datauri')
         """
 
@@ -409,10 +410,10 @@ class CollectionCustomizer:
     def disable_count(self) -> Self:
         """Disable count in list view pagination for improved performance.
 
-        ### See documentation:
+        Documentation:
             https://docs.forestadmin.com/developer-guide-agents-python/agent-customization/pagination
 
-        ### Example:
+        Example:
             .disable_count()
         """
 
@@ -427,10 +428,10 @@ class CollectionCustomizer:
         Args:
             definition (SearchDefinition): handler to describe the new behavior
 
-        ### See documentation:
+        Documentation:
             https://docs.forestadmin.com/developer-guide-agents-python/agent-customization/search
 
-        ### Example:
+        Example:
             .replace_search(lambda search_string, extended_mode, context: ConditionTreeLeaf(
                     "name", Operator.CONTAINS, search_string
                 )
@@ -450,10 +451,10 @@ class CollectionCustomizer:
             name (str): name of the chart
             definition (CollectionChartDefinition): definition of the chart
 
-        ### See documentation:
+        Documentation:
             https://docs.forestadmin.com/developer-guide-agents-python/agent-customization/charts
 
-        ### Example:
+        Example:
             .replace_search("numCustomers", lambda context, result_builder: result_builder.distribution(
                 {"tomatoes": 10, "potatoes":20, "carrots": 30}
             ))
@@ -479,10 +480,10 @@ class CollectionCustomizer:
             foreign_key_target (str, optional): the target name of the foreign key
                 Defaults to the foreign collection primary key
 
-        ### See documentation:
+        Documentation:
             https://docs.forestadmin.com/developer-guide-agents-python/agent-customization/relationships/single-record#many-to-one-relations
 
-        ### Example:
+        Example:
             .add_many_to_one_relation('myAuthor', 'persons', 'authorId')
         """
         self._add_relation(
@@ -508,10 +509,10 @@ class CollectionCustomizer:
             origin_key_target (str, optional): the target name of the origin key
                 Defaults to the origin collection primary key
 
-        ### See documentation:
+        Documentation:
             https://docs.forestadmin.com/developer-guide-agents-python/agent-customization/relationships/multiple-records#one-to-many-relations
 
-        ### Example:
+        Example:
             .add_one_to_many_relation('writtenBooks', 'books', 'authorId')
         """
         self._add_relation(
@@ -537,10 +538,10 @@ class CollectionCustomizer:
             origin_key_target (str, optional): the target name of the origin key
                 Defaults to the origin collection primary key
 
-        ### See documentation:
+        Documentation:
             https://docs.forestadmin.com/developer-guide-agents-python/agent-customization/relationships/single-record#one-to-one-relations
 
-        ### Example:
+        Example:
             .add_one_to_one_relation('bestFriend', 'persons', 'bestFriendId')
         """
         self._add_relation(
@@ -577,10 +578,10 @@ class CollectionCustomizer:
             foreign_key_target (Optional[str], optional): the target name of the origin key
                 Defaults to the origin collection primary key
 
-        ### See documentation:
+        Documentation:
             https://docs.forestadmin.com/developer-guide-agents-python/agent-customization/relationships/multiple-records#many-to-many-relations
 
-        ### Example:
+        Example:
             .add_many_to_many_relation('rentalsOfThisDvd', 'rentals', 'dvdRentals', 'dvdId', 'rentalId')
         """
         self._add_relation(
@@ -611,10 +612,10 @@ class CollectionCustomizer:
             name (str): name of the relation
             definition (AddExternalRelationOptions): the definition of the new relation
 
-        ### See documentation:
+        Documentation:
             https://docs.forestadmin.com/developer-guide-agents-python/agent-customization/relationships/multiple-records#external-relations
 
-        ### Example:
+        Example:
             .add_external_relation("states",
             {
                 "schema": {"code": PrimitiveType.Number, "name": PrimitiveType.STRING},
@@ -641,10 +642,10 @@ class CollectionCustomizer:
                 ({"List", "Create", "Update", "Delete", "Aggregate"})
             handler (HookHandler): Callback that should be executed when the hook is triggered
 
-        ### See documentation:
+        Documentation:
             https://docs.forestadmin.com/developer-guide-agents-python/agent-customization/hooks
 
-        ### Example:
+        Example:
             .add_hook('Before', 'List', lambda context: # do something before list action )
         """
 
@@ -663,10 +664,10 @@ class CollectionCustomizer:
             plugin (type): plugin class
             options (Dict, optional): options to pass to the plugin
 
-        ### See documentation:
+        Documentation:
             https://docs.forestadmin.com/developer-guide-agents-python/agent-customization/plugins
 
-        ### Example:
+        Example:
             .use(CreateFileField, { "fieldname": 'avatar' })
         """
 

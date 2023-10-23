@@ -66,7 +66,7 @@ class DatasourceCustomizer:
         Returns:
             CollectionCustomizer: collection builder on the given collection name
 
-        ### Example:
+        Example:
             .customize_collection('books').rename_field('xx', 'yy')
         """
         return self.get_collection(collection_name)
@@ -92,7 +92,7 @@ class DatasourceCustomizer:
         Returns:
             Self: _description_
 
-        ### Example:
+        Example:
             .add_chart('numCustomers', lambda context, builder: builder.value(123))
         """
 
@@ -108,10 +108,10 @@ class DatasourceCustomizer:
         Args:
             names (str | List[str]): the collections to remove
 
-        ### See documentation:
+        Documentation:
             https://docs.forestadmin.com/developer-guide-agents-python/agent-customization/plugins
 
-        ### Example:
+        Example:
             .remove_collections('aCollectionToRemove', 'anotherCollectionToRemove')
         """
 
@@ -128,10 +128,10 @@ class DatasourceCustomizer:
             plugin (type): plugin class
             options (Dict, optional): options which need to be passed to the plugin
 
-        ### See documentation:
+        Documentation:
             https://docs.forestadmin.com/developer-guide-agents-python/agent-customization/plugins
 
-        ### Example:
+        Example:
             .use(advancedExportPlugin, {'format': 'xlsx'})
         """
 
