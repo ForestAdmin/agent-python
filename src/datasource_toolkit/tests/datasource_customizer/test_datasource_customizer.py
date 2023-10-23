@@ -1,6 +1,8 @@
 import asyncio
 import sys
+from typing import Dict
 from unittest import TestCase
+from unittest.mock import AsyncMock, patch
 
 if sys.version_info >= (3, 9):
     import zoneinfo
@@ -13,6 +15,7 @@ from forestadmin.datasource_toolkit.datasource_customizer.datasource_customizer 
 from forestadmin.datasource_toolkit.datasources import Datasource
 from forestadmin.datasource_toolkit.exceptions import ForestException
 from forestadmin.datasource_toolkit.interfaces.fields import Column, FieldType, Operator, PrimitiveType
+from forestadmin.datasource_toolkit.plugins.plugin import Plugin
 
 
 class BaseTestDatasourceCustomizer(TestCase):
@@ -146,13 +149,50 @@ class TestDatasourceCustomizerCustomizeCollection(BaseTestDatasourceCustomizer):
 
 
 class TestDatasourceCustomizerRemoveCollection(BaseTestDatasourceCustomizer):
-    def test_remove_collection_should_work(self):
+    def setUp(self) -> None:
+        super().setUp()
         self.datasource_customizer.add_datasource(self.datasource)
 
+    def test_remove_collection_should_work(self):
         self.datasource_customizer.remove_collections("Category")
         self.assertNotIn(
             "Category",
-            set(
-                [c.name for c in self.loop.run_until_complete(self.datasource_customizer.get_datasource()).collections]
-            ),
+            set([c.name for c in self.datasource_customizer.collections]),
         )
+
+
+class TestDatasourceCustomizerAddChart(BaseTestDatasourceCustomizer):
+    def setUp(self) -> None:
+        super().setUp()
+        self.datasource_customizer.add_datasource(self.datasource)
+
+    def test_add_chart_should_add_a_chart(self):
+        def chart_fn(context, result_builder):
+            return result_builder.value(1)
+
+        with patch.object(
+            self.datasource_customizer, "add_chart", wraps=self.datasource_customizer.add_chart
+        ) as mocked_add_chart:
+            self.datasource_customizer.add_chart("test_chart", chart_fn)
+            self.loop.run_until_complete(self.datasource_customizer.stack.apply_queue_customization())
+            schema = self.datasource_customizer.schema
+        mocked_add_chart.assert_called_once_with("test_chart", chart_fn)
+
+        assert "test_chart" in schema["charts"]
+        assert schema["charts"]["test_chart"] == chart_fn
+
+
+class TestDatasourceCustomizerUse(BaseTestDatasourceCustomizer):
+    def setUp(self) -> None:
+        super().setUp()
+        self.datasource_customizer.add_datasource(self.datasource)
+
+    def test_use_should_add_a_plugin(self):
+        class TestPlugin(Plugin):
+            async def run(self, datasource_customizer, collection_customizer, options: Dict):
+                pass
+
+        with patch.object(TestPlugin, "run", new_callable=AsyncMock) as plugin_spy:
+            self.datasource_customizer.use(TestPlugin, {"my_option": 1})
+            self.loop.run_until_complete(self.datasource_customizer.stack.apply_queue_customization())
+            plugin_spy.assert_awaited_once_with(self.datasource_customizer, None, {"my_option": 1})

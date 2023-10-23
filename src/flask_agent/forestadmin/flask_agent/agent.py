@@ -60,6 +60,7 @@ def create_agent(options: Options) -> Agent:
 
 
 def build_agent(options: Options) -> Agent:
+    # TODO: remove this deprecation
     ForestLogger.log("warning", "'build_agent' is deprecated, please use 'create_agent' instead")
     return create_agent(options)
 

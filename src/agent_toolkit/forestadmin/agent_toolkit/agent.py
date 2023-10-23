@@ -1,5 +1,5 @@
 import copy
-from typing import Dict, List, Optional, TypedDict, Union
+from typing import Dict, List, Optional, TypedDict
 
 from forestadmin.agent_toolkit.exceptions import AgentToolkitException
 from forestadmin.agent_toolkit.forest_logger import ForestLogger
@@ -119,22 +119,74 @@ class Agent:
         return self._resources
 
     def add_datasource(self, datasource: Datasource[BoundCollection], options: Optional[DataSourceOptions] = None):
+        """Add a datasource
+
+        Args:
+            datasource (Datasource): the datasource to add
+            options (DataSourceOptions, optional): the options
+        """
         if options is None:
             options = {}
         self.customizer.add_datasource(datasource, options)
         self._resources = None
 
     def use(self, plugin: type, options: Optional[Dict] = {}) -> Self:
+        """Load a plugin across all collections
+
+        Args:
+            plugin (type): plugin class
+            options (Dict, optional): options which need to be passed to the plugin
+
+        Documentation:
+            https://docs.forestadmin.com/developer-guide-agents-python/agent-customization/plugins
+
+        Example:
+            .use(advancedExportPlugin, {'format': 'xlsx'})
+        """
         self.customizer.use(plugin, options)
         return self
 
     def customize_collection(self, collection_name: str) -> CollectionCustomizer:
+        """Allow to interact with a decorated collection
+
+        Args:
+            collection_name (str): the name of the collection to manipulate
+
+        Returns:
+            CollectionCustomizer: collection builder on the given collection name
+
+        Example:
+            .customize_collection('books').rename_field('xx', 'yy')
+        """
         return self.customizer.customize_collection(collection_name)
 
-    def remove_collections(self, names: Union[str, List[str]]):
+    def remove_collections(self, *names: List[str]):
+        """Remove collections from the exported schema (they will still be usable within the agent).
+
+        Args:
+            names (str | List[str]): the collections to remove
+
+        Documentation:
+            https://docs.forestadmin.com/developer-guide-agents-python/agent-customization/plugins
+
+        Example:
+            .remove_collections('aCollectionToRemove', 'anotherCollectionToRemove')
+        """
         return self.customizer.remove_collections(names)
 
     def add_chart(self, name: str, definition: DataSourceChartDefinition):
+        """Create a new API chart
+
+        Args:
+            name (str): name of the chart
+            definition (DataSourceChartDefinition): definition of the chart
+
+        Returns:
+            Self: _description_
+
+        Example:
+            .add_chart('numCustomers', lambda context, builder: builder.value(123))
+        """
         return self.customizer.add_chart(name, definition)
 
     @property
