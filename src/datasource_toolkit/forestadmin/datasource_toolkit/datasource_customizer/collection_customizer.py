@@ -206,6 +206,11 @@ class CollectionCustomizer:
 
     # # validation
     def add_validation(self, name: str, validation: Validation) -> Self:
+        """
+        deprecated:: 1.0.0-beta28
+        Use :func:`add_field_validation` instead.
+        """
+        # TODO: remove deprecated method
         ForestLogger.log("warning", "'add_validation' is deprecated, please use 'add_field_validation' instead")
         return self.add_field_validation(name, validation["operator"], validation["value"])
 
@@ -455,7 +460,7 @@ class CollectionCustomizer:
             https://docs.forestadmin.com/developer-guide-agents-python/agent-customization/charts
 
         Example:
-            .replace_search("numCustomers", lambda context, result_builder: result_builder.distribution(
+            .add_chart("numCustomers", lambda context, result_builder: result_builder.distribution(
                 {"tomatoes": 10, "potatoes":20, "carrots": 30}
             ))
         """

@@ -20,6 +20,10 @@ class DatasourceDecorator(Datasource):
             self.add_collection(self.class_collection_decorator(collection, self))
 
     @property
+    def schema(self):
+        return self.child_datasource.schema
+
+    @property
     def collections(self):
         return [self.get_collection(c.name) for c in self.child_datasource.collections]
 

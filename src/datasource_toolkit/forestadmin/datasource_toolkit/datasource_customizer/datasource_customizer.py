@@ -106,7 +106,7 @@ class DatasourceCustomizer:
         """Remove collections from the exported schema (they will still be usable within the agent).
 
         Args:
-            names (str | List[str]): the collections to remove
+            names (List[str]): the collections to remove
 
         Documentation:
             https://docs.forestadmin.com/developer-guide-agents-python/agent-customization/plugins
@@ -136,7 +136,7 @@ class DatasourceCustomizer:
         """
 
         async def _use():
-            plugin().run(self, None, options)
+            await plugin().run(self, None, options)
 
         self.stack.queue_customization(_use)
         return self
