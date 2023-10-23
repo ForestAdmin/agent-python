@@ -1,5 +1,5 @@
 from demo.forest_admin.agent import customize_agent
-from demo.models.models import Base
+from demo.models.models import SQLITE_URI, Base
 from flask import Flask
 from flask_cors import CORS
 from forestadmin.datasource_sqlalchemy.datasource import SqlAlchemyDatasource
@@ -18,7 +18,7 @@ def create_app():
         supports_credentials=True,
     )
     agent = build_agent(app)
-    agent.add_datasource(SqlAlchemyDatasource(Base))
+    agent.add_datasource(SqlAlchemyDatasource(Base, SQLITE_URI))
     customize_agent(agent)
     agent.start()
     return app

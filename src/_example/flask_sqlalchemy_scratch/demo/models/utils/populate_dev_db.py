@@ -4,7 +4,7 @@ import sys
 from typing import Any, List, Set
 from uuid import uuid4
 
-from demo.models.models import ORDER_STATUS, Address, Base, Cart, Customer, Order
+from demo.models.models import ORDER_STATUS, Address, Cart, Customer, Order, engine
 from faker import Faker
 from sqlalchemy.orm import sessionmaker
 
@@ -14,16 +14,16 @@ else:
     from backports import zoneinfo
 
 fake = Faker(["it_IT", "en_US", "ja_JP", "fr_FR"])
-Session = sessionmaker(Base.metadata.bind)
+Session = sessionmaker(engine)
 
 
-def _bulk_insert(items: List[Any]):
-    with Session.begin() as session:  # type: ignore
-        for item in items:
-            session.add(item)
+def _bulk_insert(session, items: List[Any]):
+    # with Session.begin() as session:  # type: ignore
+    for item in items:
+        session.add(item)
 
 
-def _populate_customers(nb: int = 500):
+def _populate_customers(session, nb: int = 500):
     customers: List[Customer] = []
     for _ in range(0, nb):
         customers.append(
@@ -36,11 +36,11 @@ def _populate_customers(nb: int = 500):
                 is_vip=random.choice([True, False]),
             )
         )
-    _bulk_insert(customers)
+    _bulk_insert(session, customers)
     return customers
 
 
-def _populate_addresses(customers: List[Customer]) -> List[Address]:
+def _populate_addresses(session, customers: List[Customer]) -> List[Address]:
     addresses: List[Address] = []
 
     for _ in range(0, 1000):
@@ -54,7 +54,7 @@ def _populate_addresses(customers: List[Customer]) -> List[Address]:
                 known_customer.add(customer)
                 address.customers.append(customer)
         addresses.append(address)
-    _bulk_insert(addresses)
+    _bulk_insert(session, addresses)
     return addresses
 
 
@@ -86,9 +86,10 @@ def _populate_carts(orders: List[Order]) -> List[Order]:
 
 
 def populate():
-    customers = _populate_customers()
-    addresses = _populate_addresses(customers)
     with Session.begin() as session:
+        customers = _populate_customers(session)
+        addresses = _populate_addresses(session, customers)
+
         addresses = session.query(Address).select_from(Customer).join(Customer, Address.customers).all()
         orders = _populate_orders(addresses)
         session.add_all(orders)

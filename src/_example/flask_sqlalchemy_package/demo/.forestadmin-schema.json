@@ -29,7 +29,7 @@
                     "isRequired": false,
                     "isSortable": true,
                     "isVirtual": false,
-                    "reference": "order.id",
+                    "reference": "order.pk",
                     "relationship": "HasMany",
                     "type": [
                         "Number"
@@ -85,7 +85,7 @@
                     "isRequired": false,
                     "isSortable": true,
                     "isVirtual": false,
-                    "reference": "customer.id",
+                    "reference": "customer.pk",
                     "relationship": "BelongsToMany",
                     "type": [
                         "String"
@@ -103,27 +103,11 @@
                     "isRequired": false,
                     "isSortable": true,
                     "isVirtual": false,
-                    "reference": "order.id",
+                    "reference": "order.pk",
                     "relationship": "HasMany",
                     "type": [
                         "Number"
                     ],
-                    "validations": []
-                },
-                {
-                    "defaultValue": null,
-                    "enums": null,
-                    "field": "id",
-                    "integration": null,
-                    "inverseOf": null,
-                    "isFilterable": true,
-                    "isPrimaryKey": true,
-                    "isReadOnly": true,
-                    "isRequired": false,
-                    "isSortable": true,
-                    "isVirtual": false,
-                    "reference": null,
-                    "type": "Number",
                     "validations": []
                 },
                 {
@@ -140,6 +124,22 @@
                     "isVirtual": false,
                     "reference": null,
                     "type": "String",
+                    "validations": []
+                },
+                {
+                    "defaultValue": null,
+                    "enums": null,
+                    "field": "pk",
+                    "integration": null,
+                    "inverseOf": null,
+                    "isFilterable": true,
+                    "isPrimaryKey": true,
+                    "isReadOnly": true,
+                    "isRequired": false,
+                    "isSortable": true,
+                    "isVirtual": false,
+                    "reference": null,
+                    "type": "Number",
                     "validations": []
                 },
                 {
@@ -272,22 +272,6 @@
                 {
                     "defaultValue": null,
                     "enums": null,
-                    "field": "id",
-                    "integration": null,
-                    "inverseOf": null,
-                    "isFilterable": true,
-                    "isPrimaryKey": true,
-                    "isReadOnly": true,
-                    "isRequired": false,
-                    "isSortable": true,
-                    "isVirtual": false,
-                    "reference": null,
-                    "type": "Number",
-                    "validations": []
-                },
-                {
-                    "defaultValue": null,
-                    "enums": null,
                     "field": "name",
                     "integration": null,
                     "inverseOf": null,
@@ -318,8 +302,24 @@
                     "isRequired": false,
                     "isSortable": true,
                     "isVirtual": false,
-                    "reference": "order.id",
+                    "reference": "order.pk",
                     "relationship": "BelongsTo",
+                    "type": "Number",
+                    "validations": []
+                },
+                {
+                    "defaultValue": null,
+                    "enums": null,
+                    "field": "pk",
+                    "integration": null,
+                    "inverseOf": null,
+                    "isFilterable": true,
+                    "isPrimaryKey": true,
+                    "isReadOnly": true,
+                    "isRequired": false,
+                    "isSortable": true,
+                    "isVirtual": false,
+                    "reference": null,
                     "type": "Number",
                     "validations": []
                 }
@@ -502,7 +502,7 @@
                     "isRequired": false,
                     "isSortable": true,
                     "isVirtual": false,
-                    "reference": "address.id",
+                    "reference": "address.pk",
                     "relationship": "BelongsToMany",
                     "type": [
                         "Number"
@@ -602,22 +602,6 @@
                     "validations": []
                 },
                 {
-                    "defaultValue": null,
-                    "enums": null,
-                    "field": "id",
-                    "integration": null,
-                    "inverseOf": null,
-                    "isFilterable": false,
-                    "isPrimaryKey": true,
-                    "isReadOnly": true,
-                    "isRequired": false,
-                    "isSortable": true,
-                    "isVirtual": false,
-                    "reference": null,
-                    "type": "String",
-                    "validations": []
-                },
-                {
                     "defaultValue": false,
                     "enums": null,
                     "field": "is_vip",
@@ -666,11 +650,27 @@
                     "isRequired": false,
                     "isSortable": true,
                     "isVirtual": false,
-                    "reference": "order.id",
+                    "reference": "order.pk",
                     "relationship": "HasMany",
                     "type": [
                         "String"
                     ],
+                    "validations": []
+                },
+                {
+                    "defaultValue": null,
+                    "enums": null,
+                    "field": "pk",
+                    "integration": null,
+                    "inverseOf": null,
+                    "isFilterable": false,
+                    "isPrimaryKey": true,
+                    "isReadOnly": true,
+                    "isRequired": false,
+                    "isSortable": true,
+                    "isVirtual": false,
+                    "reference": null,
+                    "type": "String",
                     "validations": []
                 },
                 {
@@ -684,7 +684,7 @@
                     "isRequired": false,
                     "isSortable": true,
                     "isVirtual": false,
-                    "reference": "address.id",
+                    "reference": "address.pk",
                     "relationship": "BelongsToMany",
                     "type": [
                         "Number"
@@ -702,7 +702,7 @@
                     "isRequired": false,
                     "isSortable": true,
                     "isVirtual": false,
-                    "reference": "cart.id",
+                    "reference": "cart.pk",
                     "relationship": "HasMany",
                     "type": [
                         "String"
@@ -720,7 +720,7 @@
                     "isRequired": false,
                     "isSortable": true,
                     "isVirtual": false,
-                    "reference": "address.id",
+                    "reference": "address.pk",
                     "relationship": "BelongsToMany",
                     "type": [
                         "Number"
@@ -753,7 +753,7 @@
                     "isRequired": false,
                     "isSortable": true,
                     "isVirtual": false,
-                    "reference": "address.id",
+                    "reference": "address.pk",
                     "relationship": "BelongsTo",
                     "type": "Number",
                     "validations": []
@@ -769,7 +769,7 @@
                     "isRequired": false,
                     "isSortable": true,
                     "isVirtual": false,
-                    "reference": "customer.id",
+                    "reference": "customer.pk",
                     "relationship": "BelongsTo",
                     "type": "String",
                     "validations": []
@@ -819,7 +819,7 @@
                             "hook": null,
                             "isReadOnly": false,
                             "isRequired": true,
-                            "reference": "customer.id",
+                            "reference": "customer.pk",
                             "type": "String",
                             "widget": null
                         }
@@ -839,7 +839,7 @@
                     "endpoint": "/forest/_actions/order/1/export json dict",
                     "httpMethod": "POST",
                     "redirect": null,
-                    "download": false,
+                    "download": true,
                     "fields": [
                         {
                             "field": "dummy field",
@@ -863,7 +863,7 @@
                             "hook": null,
                             "isReadOnly": false,
                             "isRequired": true,
-                            "reference": "customer.id",
+                            "reference": "customer.pk",
                             "type": "String",
                             "widget": null
                         }
@@ -976,7 +976,7 @@
                     "isRequired": false,
                     "isSortable": true,
                     "isVirtual": false,
-                    "reference": "address.id",
+                    "reference": "address.pk",
                     "relationship": "BelongsTo",
                     "type": "Number",
                     "validations": []
@@ -992,7 +992,7 @@
                     "isRequired": false,
                     "isSortable": true,
                     "isVirtual": false,
-                    "reference": "cart.id",
+                    "reference": "cart.pk",
                     "relationship": "HasOne",
                     "type": "Number",
                     "validations": []
@@ -1056,7 +1056,7 @@
                     "isRequired": false,
                     "isSortable": true,
                     "isVirtual": false,
-                    "reference": "customer.id",
+                    "reference": "customer.pk",
                     "relationship": "BelongsTo",
                     "type": "String",
                     "validations": []
@@ -1104,7 +1104,7 @@
                     "isRequired": false,
                     "isSortable": true,
                     "isVirtual": false,
-                    "reference": "address.id",
+                    "reference": "address.pk",
                     "relationship": "BelongsTo",
                     "type": "Number",
                     "validations": []
@@ -1112,7 +1112,7 @@
                 {
                     "defaultValue": null,
                     "enums": null,
-                    "field": "id",
+                    "field": "pk",
                     "integration": null,
                     "inverseOf": null,
                     "isFilterable": true,
@@ -1151,11 +1151,11 @@
     ],
     "meta": {
         "liana": "agent-python",
-        "liana_version": "1.0.0-beta.25",
+        "liana_version": "1.0.0-beta.27",
         "stack": {
             "engine": "python",
-            "engine_version": "3.11.3"
+            "engine_version": "3.8.16"
         },
-        "schemaFileHash": "a70d4ad480cad44c717b703039718b8f83db690f"
+        "schemaFileHash": "da795020eeb956139a311b3b60c2de9cb3853113"
     }
 }

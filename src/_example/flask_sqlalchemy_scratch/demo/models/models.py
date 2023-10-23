@@ -11,6 +11,7 @@ SQLITE_URI = f"sqlite:///{sqlite_path}"
 
 use_sqlalchemy_2 = sqlalchemy.__version__.split(".")[0] == "2"
 if use_sqlalchemy_2:
+    from sqlalchemy import create_engine
     from sqlalchemy.orm import DeclarativeBase
 
     class Base(DeclarativeBase):
@@ -20,8 +21,9 @@ else:
     from sqlalchemy import create_engine
     from sqlalchemy.orm import declarative_base
 
-    engine = create_engine(SQLITE_URI, echo=False)
     Base = declarative_base()
+
+engine = create_engine(SQLITE_URI, echo=False)
 
 
 class ORDER_STATUS(enum.Enum):

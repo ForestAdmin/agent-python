@@ -122,7 +122,7 @@ class ExportJson(ActionGlobal):
 async def execute_export_json(context: ActionContext, result_builder: ResultBuilder) -> Union[None, ActionResult]:
     records = await context.get_records(
         Projection(
-            "id",
+            "pk",
             "customer:full_name",
             "billing_address:full_address",
             "delivering_address:full_address",

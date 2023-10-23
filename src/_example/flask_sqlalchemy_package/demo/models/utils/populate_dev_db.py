@@ -38,7 +38,7 @@ def _populate_customers(nb: int = 500):
     for _ in range(0, nb):
         customers.append(
             Customer(
-                id=str(uuid4()).encode("utf-8"),
+                pk=str(uuid4()).encode("utf-8"),
                 first_name=fake.first_name(),
                 last_name=fake.last_name(),
                 birthday_date=fake.date_of_birth(),
@@ -88,7 +88,7 @@ def _populate_orders(addresses: List[Address]) -> List[Order]:
 def _populate_carts(orders: List[Order]) -> List[Order]:
     carts: List[Cart] = []
     for order in orders:
-        c = Cart(name=fake.language_name(), id=order.id, order_id=order.id)
+        c = Cart(name=fake.language_name(), pk=order.pk, order_id=order.pk)
         order.cart = c
         carts.append(c)
 

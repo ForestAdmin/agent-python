@@ -89,10 +89,11 @@ def customize_agent(agent: FlaskAgent):
         # add actions
     ).add_action("Export json class", ExportJson()).add_action("Export json dict", export_json_action_dict).add_action(
         "Age operation class", AgeOperation()
-    )
-    agent.customize_collection("customer").add_action(
+    ).add_action(
         "Age operation manual class reuse", age_operation_action_obj_reuse
-    ).add_action("Age operation dict", age_operation_action_dict).add_field(
+    ).add_action(
+        "Age operation dict", age_operation_action_dict
+    ).add_field(
         # # computed
         "full_name",
         customer_full_name(),
@@ -127,7 +128,7 @@ def customize_agent(agent: FlaskAgent):
         customer_spending_computed()
         # validation
     ).add_field_validation(
-        "age", {"operator": Operator.GREATER_THAN, "value": 0}
+        "age", Operator.GREATER_THAN, 0
     ).add_chart(
         # charts
         "total_orders",
@@ -189,7 +190,8 @@ def customize_agent(agent: FlaskAgent):
     ).add_field_validation(
         # validation
         "amount",
-        {"operator": Operator.GREATER_THAN, "value": 0},
+        Operator.GREATER_THAN,
+        0,
     ).add_field(
         # # computed
         "customer_full_name",
@@ -210,3 +212,4 @@ def customize_agent(agent: FlaskAgent):
             [{"username": "Darth Vador", "points": 1500000}, {"username": "Luke Skywalker", "points": 2}]
         ),
     ).add_chart("total_order_week", nb_order_per_week)
+    return agent
