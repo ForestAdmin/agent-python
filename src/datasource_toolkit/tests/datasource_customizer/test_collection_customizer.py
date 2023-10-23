@@ -1,6 +1,6 @@
 import asyncio
 import sys
-from typing import Union
+from typing import Dict, Union
 from unittest import TestCase
 from unittest.mock import ANY, Mock, patch
 
@@ -33,6 +33,7 @@ from forestadmin.datasource_toolkit.interfaces.fields import (
     PrimitiveType,
 )
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.leaf import ConditionTreeLeaf
+from forestadmin.datasource_toolkit.plugins.plugin import Plugin
 from forestadmin.datasource_toolkit.validations.field import FieldValidatorException
 from forestadmin.datasource_toolkit.validations.rules import MAP_ALLOWED_OPERATORS_FOR_COLUMN_TYPE
 
@@ -610,3 +611,31 @@ class TestCollectionCustomizer(TestCase):
                 self.loop.run_until_complete(get_values_fn([{"id": 1}, {id: 2}], None)),
                 [{"fist_name": "John", "last_name": "Doe"}, {"fist_name": "John", "last_name": "Doe"}],
             )
+
+    def test_replace_field_binary_mode_should_call_set_binary_mode_on_decorator(self):
+        with patch.object(
+            self.datasource_customizer.stack.binary.get_collection("Person"),
+            "set_binary_mode",
+        ) as set_binary_mode_fn:
+            self.person_customizer.replace_field_binary_mode("name", "hex")
+            self.loop.run_until_complete(self.datasource_customizer.stack.apply_queue_customization())
+            set_binary_mode_fn.assert_called_once_with("name", "hex")
+
+    def test_use_should_run_the_provided_code(self):
+        class TestPlugin(Plugin):
+            async def run(
+                self,
+                datasource_customizer: "DatasourceCustomizer",
+                collection_customizer: "CollectionCustomizer" = None,
+                options: Dict = {},
+            ):
+                collection_customizer.disable_count()
+
+        with patch.object(
+            self.datasource_customizer.stack.schema.get_collection("Person"),
+            "override_schema",
+            wraps=self.datasource_customizer.stack.schema.get_collection("Person").override_schema,
+        ) as override_schema_fn:
+            self.person_customizer.use(TestPlugin)
+            self.loop.run_until_complete(self.datasource_customizer.stack.apply_queue_customization())
+            override_schema_fn.assert_called_once_with("countable", False)

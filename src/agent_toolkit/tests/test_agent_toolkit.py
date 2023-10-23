@@ -7,6 +7,7 @@ from forestadmin.agent_toolkit.agent import Agent
 from forestadmin.agent_toolkit.exceptions import AgentToolkitException
 from forestadmin.agent_toolkit.options import DEFAULT_OPTIONS, Options
 from forestadmin.datasource_toolkit.datasources import Datasource
+from forestadmin.datasource_toolkit.plugins.plugin import Plugin
 
 
 @patch("forestadmin.agent_toolkit.agent.PermissionService")
@@ -290,3 +291,25 @@ class TestAgent(TestCase):
                 self.assertEqual(len(logger.output), 4)
 
         mocked_forest_http_api__send_schema.assert_not_awaited()
+
+    def test_use_should_add_a_plugin(
+        self,
+        mocked_schema_emitter__get_serialized_schema,
+        mocked_forest_http_api__send_schema,
+        mocked_action_resource,
+        mocked_stats_resource,
+        mocked_crud_related_resource,
+        mocked_crud_resource,
+        mocked_authentication_resource,
+        mocked_datasource_customizer,
+        mocked_permission_service,
+    ):
+        agent = Agent({**self.fake_options, "logger_level": logging.DEBUG, "is_production": True})
+
+        class TestPlugin(Plugin):
+            async def run(self, datasource_customizer, collection_customizer, options={}):
+                pass
+
+        with patch.object(agent.customizer, "use") as spy_use:
+            agent.use(TestPlugin, {"my_option": 1})
+            spy_use.assert_called_once_with(TestPlugin, {"my_option": 1})
