@@ -1,3 +1,10 @@
+# [1.0.0-beta.27](https://github.com/ForestAdmin/agent-python/compare/v1.0.0-beta.26...v1.0.0-beta.27) (2023-10-23)
+
+
+### Bug Fixes
+
+* **setting:** prefix setting does not include forest suffix anymore ([#131](https://github.com/ForestAdmin/agent-python/issues/131)) ([a1ac3a9](https://github.com/ForestAdmin/agent-python/commit/a1ac3a9daf8479a2a66407a74e70bf743f35ba67))
+
 # [1.0.0-beta.26](https://github.com/ForestAdmin/agent-python/compare/v1.0.0-beta.25...v1.0.0-beta.26) (2023-10-17)
 
 
