@@ -38,7 +38,7 @@ class FlaskAgent(BaseAgent):
         super(FlaskAgent, self).__init__(self.__parse_config(app.config))
 
         self._blueprint: Optional[Blueprint] = build_blueprint(self)
-        self._app.register_blueprint(self.blueprint, url_prefix=f'/{self.options["prefix"]}')
+        self._app.register_blueprint(self.blueprint, url_prefix=f'{self.options["prefix"]}/forest')
 
     def __parse_config(self, flask_settings: Config) -> Options:
         settings: Options = {"schema_path": os.path.join(self._app.root_path, ".forestadmin-schema.json")}
@@ -77,7 +77,6 @@ class FlaskAgent(BaseAgent):
 
 def create_agent(options: Options) -> FlaskAgent:
     agent = FlaskAgent(options)
-    agent.blueprint = build_blueprint(agent)
     return agent
 
 

@@ -19,7 +19,7 @@ class TestFlaskAgent(TestCase):
 
     @patch("forestadmin.flask_agent.agent.asyncio.new_event_loop", return_value="event_loop")
     @patch("forestadmin.flask_agent.agent.build_blueprint", return_value="blueprint")
-    def test_create_agent(self, mock_build_blueprint, mock_base_agent, mock_new_event_loop):
+    def test_create_agent(self, mock_build_blueprint, mock_new_event_loop):
         agent = create_agent(self.flask_app)
         assert isinstance(agent, FlaskAgent)
         mock_new_event_loop.assert_called()
