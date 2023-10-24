@@ -1,11 +1,12 @@
 from typing import Dict, List
 
 from forestadmin.datasource_toolkit.datasources import Datasource, DatasourceException
-from forestadmin.datasource_toolkit.interfaces.actions import Action
 from forestadmin.datasource_toolkit.interfaces.collections import Collection as CollectionInterface
 from forestadmin.datasource_toolkit.interfaces.fields import FieldAlias
 from forestadmin.datasource_toolkit.interfaces.models.collections import CollectionSchema
 from typing_extensions import Self
+
+# from forestadmin.datasource_toolkit.decorators.action.types.actions import ActionDict
 
 
 class CollectionException(DatasourceException):
@@ -41,7 +42,7 @@ class Collection(CollectionInterface):
     def schema(self) -> CollectionSchema:
         return self._schema
 
-    def add_action(self, name: str, action: Action):
+    def add_action(self, name: str, action: "ActionDict"):  # noqa:F821
         if name in self.schema["actions"]:
             raise CollectionException(f'Action "{name}" already defined in collection')
         self.schema["actions"][name] = action

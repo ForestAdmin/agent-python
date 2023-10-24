@@ -15,7 +15,7 @@ from forestadmin.datasource_toolkit.datasources import Datasource
 from forestadmin.datasource_toolkit.decorators.action.collections import ActionCollectionDecorator
 from forestadmin.datasource_toolkit.decorators.action.context.single import ActionContextSingle
 from forestadmin.datasource_toolkit.decorators.action.result_builder import ResultBuilder
-from forestadmin.datasource_toolkit.decorators.action.types.actions import ActionDict, ActionSingle
+from forestadmin.datasource_toolkit.decorators.action.types.actions import ActionDict
 from forestadmin.datasource_toolkit.decorators.datasource_decorator import DatasourceDecorator
 from forestadmin.datasource_toolkit.exceptions import ForestException
 from forestadmin.datasource_toolkit.interfaces.actions import ActionField, ActionFieldType, ActionResult, ActionsScope
@@ -574,79 +574,3 @@ class TestActionCollectionCustomizer(TestCase):
                 "watch_changes": False,
             },
         ]
-
-    def test_action_decorator_works_with_old_style_actions(self):
-        # TODO: remove this one when removing deprecation
-        class ActionTest(ActionSingle):
-            FORM = [
-                {"type": ActionFieldType.NUMBER, "label": "value"},
-                {
-                    "type": ActionFieldType.NUMBER,
-                    "label": "decimal",
-                    "if_": lambda ctx: ctx.form_values.get("value") is not None,
-                },
-            ]
-
-            def execute(self, context: ActionContextSingle, result_builder: ResultBuilder) -> Union[ActionResult, None]:
-                return result_builder.success("cool")
-
-        with self.assertLogs("forestadmin", level=logging.DEBUG) as logger:
-            self.product_collection.add_action("action_test", ActionTest())
-            self.assertEqual(
-                logger.output,
-                [
-                    "WARNING:forestadmin:<class "
-                    + "'test_action_decorator.TestActionCollectionCustomizer."
-                    + "test_action_decorator_works_with_old_style_actions.<locals>.ActionTest'> Using action class is"
-                    + " deprecated (ActionSingle, ActionBulk or ActionGlobal). Please use the dict syntax instead "
-                    + "(doc: https://docs.forestadmin.com/developer-guide-agents-python/agent-customization/actions).",
-                ],
-            )
-
-        result = self.loop.run_until_complete(self.product_collection.get_form(self.mocked_caller, "action_test", {}))
-        assert result == [
-            {
-                "type": ActionFieldType.NUMBER,
-                "label": "value",
-                "description": "",
-                "is_read_only": False,
-                "is_required": False,
-                "value": None,
-                "default_value": None,
-                "collection_name": None,
-                "watch_changes": True,
-                "enum_values": None,
-            },
-        ]
-        result = self.loop.run_until_complete(
-            self.product_collection.get_form(self.mocked_caller, "action_test", {"value": 10})
-        )
-        assert result == [
-            {
-                "label": "value",
-                "type": ActionFieldType.NUMBER,
-                "description": "",
-                "is_read_only": False,
-                "is_required": False,
-                "value": 10,
-                "default_value": None,
-                "collection_name": None,
-                "enum_values": None,
-                "watch_changes": True,
-            },
-            {
-                "label": "decimal",
-                "type": ActionFieldType.NUMBER,
-                "description": "",
-                "is_read_only": False,
-                "is_required": False,
-                "value": None,
-                "default_value": None,
-                "collection_name": None,
-                "enum_values": None,
-                "watch_changes": False,
-            },
-        ]
-
-        result = self.loop.run_until_complete(self.product_collection.execute(self.mocked_caller, "action_test", {}))
-        assert result == {"type": "Success", "invalidated": set(), "format": "text", "message": "cool"}

@@ -1,6 +1,6 @@
 import asyncio
 import sys
-from typing import Dict, Union
+from typing import Dict
 from unittest import TestCase
 from unittest.mock import ANY, Mock, patch
 
@@ -14,14 +14,12 @@ from forestadmin.datasource_toolkit.collections import Collection
 from forestadmin.datasource_toolkit.datasource_customizer.collection_customizer import CollectionCustomizer
 from forestadmin.datasource_toolkit.datasource_customizer.datasource_customizer import DatasourceCustomizer
 from forestadmin.datasource_toolkit.datasources import Datasource
-from forestadmin.datasource_toolkit.decorators.action.result_builder import ResultBuilder
-from forestadmin.datasource_toolkit.decorators.action.types.actions import ActionSingle, Context
 from forestadmin.datasource_toolkit.decorators.chart.collection_chart_context import CollectionChartContext
 from forestadmin.datasource_toolkit.decorators.chart.result_builder import ResultBuilder as ResultBuilderChart
 from forestadmin.datasource_toolkit.decorators.computed.types import ComputedDefinition
 from forestadmin.datasource_toolkit.decorators.hook.types import HookHandler
 from forestadmin.datasource_toolkit.exceptions import ForestException
-from forestadmin.datasource_toolkit.interfaces.actions import ActionResult, ActionsScope
+from forestadmin.datasource_toolkit.interfaces.actions import ActionsScope
 from forestadmin.datasource_toolkit.interfaces.fields import (
     Column,
     FieldType,
@@ -310,17 +308,6 @@ class TestCollectionCustomizer(TestCase):
         schema = self.loop.run_until_complete(self.datasource_customizer.get_datasource()).get_collection("Book").schema
         assert "title" not in schema["fields"]
 
-    def test_add_action_should_add_old_style_action_in_collection(self):
-        # TODO: remove this one when removing deprecation
-        class ActionMan(ActionSingle):
-            async def execute(self, context: Context, result_builder: ResultBuilder) -> Union[None, ActionResult]:
-                return None
-
-        self.book_customizer.add_action("action_man", ActionMan())
-
-        schema = self.loop.run_until_complete(self.datasource_customizer.get_datasource()).get_collection("Book").schema
-        assert "action_man" in schema["actions"]
-
     def test_add_action_should_add_action_in_collection(self):
         self.book_customizer.add_action(
             "action_man", {"scope": ActionsScope.SINGLE, "execute": lambda ctx, result_builder: None}
@@ -330,7 +317,7 @@ class TestCollectionCustomizer(TestCase):
         assert "action_man" in schema["actions"]
 
     def test_add_validation(self):
-        self.person_customizer.add_validation("name", {"operator": Operator.LONGER_THAN, "value": 5})
+        self.person_customizer.add_field_validation("name", Operator.LONGER_THAN, 5)
 
         schema = (
             self.loop.run_until_complete(self.datasource_customizer.get_datasource()).get_collection("Person").schema
