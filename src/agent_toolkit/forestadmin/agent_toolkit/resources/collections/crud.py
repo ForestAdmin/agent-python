@@ -310,7 +310,7 @@ class CrudResource(BaseCollectionResource):
     ):
         foreign_collection = self.datasource.get_collection(relation["foreign_collection"])
         scope = await self.permission.get_scope(request.user, foreign_collection)
-        await self.permission.can(request, f"edit:{request.collection.name}")
+        await self.permission.can(request.user, request.collection, "edit")
         origin_value = record[relation["origin_key_target"]]
 
         # not needed
