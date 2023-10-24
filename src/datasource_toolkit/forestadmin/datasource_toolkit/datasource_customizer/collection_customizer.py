@@ -1,6 +1,5 @@
 from typing import Any, Dict, List, Literal, Optional, Union
 
-from forestadmin.agent_toolkit.forest_logger import ForestLogger
 from forestadmin.datasource_toolkit.decorators.action.types.actions import ActionDict
 from forestadmin.datasource_toolkit.decorators.chart.types import CollectionChartDefinition
 from forestadmin.datasource_toolkit.decorators.computed.types import ComputedDefinition
@@ -17,7 +16,7 @@ from forestadmin.datasource_toolkit.decorators.relation.types import (
 from forestadmin.datasource_toolkit.decorators.search.collections import SearchDefinition
 from forestadmin.datasource_toolkit.decorators.segments.collections import SegmentAlias
 from forestadmin.datasource_toolkit.decorators.write.write_replace.types import WriteDefinition
-from forestadmin.datasource_toolkit.interfaces.fields import FieldType, Operator, PrimitiveType, Validation
+from forestadmin.datasource_toolkit.interfaces.fields import FieldType, Operator, PrimitiveType
 from forestadmin.datasource_toolkit.interfaces.models.collections import CollectionSchema
 from forestadmin.datasource_toolkit.interfaces.query.sort import PlainSortClause
 from forestadmin.datasource_toolkit.plugins.add_external_relation import AddExternalRelation, AddExternalRelationOptions
@@ -205,15 +204,6 @@ class CollectionCustomizer:
         return self
 
     # # validation
-    def add_validation(self, name: str, validation: Validation) -> Self:
-        """
-        deprecated:: 1.0.0-beta28
-        Use :func:`add_field_validation` instead.
-        """
-        # TODO: remove deprecated method
-        ForestLogger.log("warning", "'add_validation' is deprecated, please use 'add_field_validation' instead")
-        return self.add_field_validation(name, validation["operator"], validation["value"])
-
     def add_field_validation(self, name: str, operator: Operator, value: Any) -> Self:
         """Add a new validator to the edition form of a given field
 
