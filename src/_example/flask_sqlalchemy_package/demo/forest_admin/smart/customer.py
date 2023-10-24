@@ -8,8 +8,7 @@ from forestadmin.datasource_toolkit.context.collection_context import Collection
 from forestadmin.datasource_toolkit.decorators.action.context.bulk import ActionContextBulk
 from forestadmin.datasource_toolkit.decorators.action.context.single import ActionContextSingle
 from forestadmin.datasource_toolkit.decorators.action.result_builder import ResultBuilder
-from forestadmin.datasource_toolkit.decorators.action.types.actions import ActionBulk, ActionDict, ActionSingle
-from forestadmin.datasource_toolkit.decorators.action.types.fields import PlainDynamicField
+from forestadmin.datasource_toolkit.decorators.action.types.actions import ActionDict
 from forestadmin.datasource_toolkit.decorators.chart.collection_chart_context import CollectionChartContext
 from forestadmin.datasource_toolkit.decorators.chart.result_builder import ResultBuilder as ResultBuilderChart
 from forestadmin.datasource_toolkit.decorators.computed.types import ComputedDefinition
@@ -199,21 +198,6 @@ async def full_name_contains(value, context: CollectionCustomizationContext):
 
 # actions
 # ######## Export json
-class ExportJson(ActionBulk):
-    GENERATE_FILE: bool = True
-
-    async def execute(self, context: ActionContextBulk, result_builder: ResultBuilder) -> Union[None, ActionResult]:
-        records = await context.get_records(Projection("pk", "full name", "age"))
-        return result_builder.file(
-            io.BytesIO(json.dumps({"data": records}).encode("utf-8")),
-            "dumps.json",
-            "application/json",
-        )
-
-
-# agent.customize_collection("customer").add_action("Export json obj", ExportJson())
-
-
 async def export_customers_json(context: ActionContextBulk, result_builder: ResultBuilder) -> Union[None, ActionResult]:
     records = await context.get_records(Projection("pk", "full name", "age"))
     return result_builder.file(
@@ -232,17 +216,32 @@ export_json_action_dict: ActionDict = {
 
 
 # ######## Age Operation
-# class style
-class AgeOperation(ActionSingle):
-    @staticmethod
-    def get_value_summary(context: ActionContextSingle):
-        if not context.has_field_changed("Kind of operation") and not context.has_field_changed("Value"):
-            return context.form_values.get("summary")
-        sentence = "add " if context.form_values.get("Kind of operation", "") == "+" else "minus "
-        sentence += str(context.form_values.get("Value", ""))
-        return sentence
+# dict style reusing class
+async def execute_age_operation(
+    context: ActionContextSingle, result_builder: ResultBuilder
+) -> Union[None, ActionResult]:
+    operation = add
+    if context.form_values["Kind of operation"] == "-":
+        operation = sub
+    value = context.form_values["Value"]
 
-    FORM: List[PlainDynamicField] = [
+    record = await context.get_record(Projection("age"))
+    await context.collection.update(context.caller, context.filter, {"age": operation(record["age"], value)})
+    return result_builder.success("<h1> Success </h1>", options={"type": "html"})
+
+
+def get_value_summary(context: ActionContextSingle):
+    if not context.has_field_changed("Kind of operation") and not context.has_field_changed("Value"):
+        return context.form_values.get("summary")
+    sentence = "add " if context.form_values.get("Kind of operation", "") == "+" else "minus "
+    sentence += str(context.form_values.get("Value", ""))
+    return sentence
+
+
+age_operation_action_obj_reuse: ActionDict = {
+    "scope": ActionsScope.SINGLE,
+    "execute": execute_age_operation,
+    "form": [
         {
             "type": ActionFieldType.ENUM,
             "label": "Kind of operation",
@@ -279,29 +278,8 @@ class AgeOperation(ActionSingle):
             "if_": lambda context: int(context.form_values.get("Rating", "0") or "0") < 4,
         },
         {"label": "test filelist", "type": ActionFieldType.FILE_LIST, "is_required": False, "default_value": []},
-    ]
-
-    async def execute(self, context: ActionContextSingle, result_builder: ResultBuilder) -> Union[None, ActionResult]:
-        operation = add
-        if context.form_values["Kind of operation"] == "-":
-            operation = sub
-        value = context.form_values["Value"]
-
-        record = await context.get_record(Projection("age"))
-        await context.collection.update(context.caller, context.filter, {"age": operation(record["age"], value)})
-        return result_builder.success("<h1> Success </h1>", options={"type": "html"})
-
-
-# agent.customize_collection("customer").add_action("Age operation 1", AgeOperation())
-
-
-# dict style reusing class
-age_operation_action_obj_reuse: ActionDict = {
-    "scope": ActionsScope.SINGLE,
-    "execute": AgeOperation().execute,
-    "form": AgeOperation.FORM,
+    ],
 }
-# agent.customize_collection("customer").add_action("Age operation 2", age_operation_action_obj_reuse)
 
 
 # dict style

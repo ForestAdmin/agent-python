@@ -2,10 +2,7 @@ from demo.forest_admin.forest_logging_customization import customize_forest_logg
 from demo.forest_admin.smart.address import address_full_name_computed, get_postal_code, high_delivery_address_segment
 from demo.forest_admin.smart.cart import cart_update_name
 from demo.forest_admin.smart.customer import (
-    AgeOperation,
-    ExportJson,
     age_operation_action_dict,
-    age_operation_action_obj_reuse,
     customer_full_name,
     customer_full_name_write,
     customer_spending_computed,
@@ -24,15 +21,14 @@ from demo.forest_admin.smart.customer import (
     order_details,
     total_orders_customer_chart,
 )
-from demo.forest_admin.smart.order import ExportJson as ExportOrderJson
 from demo.forest_admin.smart.order import (
-    RefundOrder,
     delivered_order_segment,
     dispatched_order_segment,
     export_orders_json,
     get_customer_full_name_field,
     nb_order_per_week,
     pending_order_segment,
+    refound_order_action,
     rejected_order_segment,
     suspicious_order_segment,
     total_order_chart,
@@ -93,18 +89,10 @@ def customize_agent(agent: FlaskAgent):
         "VIP customers", lambda context: ConditionTreeLeaf("is_vip", Operator.EQUAL, True)
     ).add_action(
         # actions
-        "Export json class",
-        ExportJson(),
-        # actions
-    ).add_action(
-        "Export json dict", export_json_action_dict
+        "Export json",
+        export_json_action_dict,
     ).add_action(
         # # action single with form
-        "Age operation class",
-        AgeOperation(),
-    ).add_action(
-        "Age operation manual class reuse", age_operation_action_obj_reuse
-    ).add_action(
         "Age operation dict",
         age_operation_action_dict
         # computed field
@@ -139,8 +127,8 @@ def customize_agent(agent: FlaskAgent):
     ).emulate_field_filtering(
         "full_name"
         # validation
-    ).add_validation(
-        "age", {"operator": Operator.GREATER_THAN, "value": 0}
+    ).add_field_validation(
+        "age", Operator.GREATER_THAN, 0
     ).add_chart(
         # chart
         "total_orders",
@@ -185,13 +173,9 @@ def customize_agent(agent: FlaskAgent):
         "cost"
         # # action file global
     ).add_action(
-        "Export json class", ExportOrderJson()
+        "Export json", export_orders_json
     ).add_action(
-        "Export json dict", export_orders_json
-    ).add_action(
-        "Refund order(s) class", RefundOrder()
-    ).add_action(
-        "Refund order(s) call to_dict", RefundOrder().to_dict()
+        "Refund order(s)", refound_order_action
     ).add_field_validation(
         # # validation
         "amount",
