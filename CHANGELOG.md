@@ -1,3 +1,10 @@
+# [1.0.0-beta.28](https://github.com/ForestAdmin/agent-python/compare/v1.0.0-beta.27...v1.0.0-beta.28) (2023-10-24)
+
+
+### Features
+
+* **settings:** agent settings are now integrated to flask settings ([#119](https://github.com/ForestAdmin/agent-python/issues/119)) ([3118669](https://github.com/ForestAdmin/agent-python/commit/31186691060cce623912f4b79f41db1b96f1ad74))
+
 # [1.0.0-beta.27](https://github.com/ForestAdmin/agent-python/compare/v1.0.0-beta.26...v1.0.0-beta.27) (2023-10-23)
 
 
