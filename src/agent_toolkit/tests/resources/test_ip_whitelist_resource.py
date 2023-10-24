@@ -15,7 +15,7 @@ class TestIpWhitelistResource(TestCase):
         cls.loop = asyncio.new_event_loop()
         cls.options = {
             "env_secret": "env_secret",
-            "forest_server_url": "https://api.forest.com",
+            "server_url": "https://api.forest.com",
             "permission_cache_duration": 15,
         }
 

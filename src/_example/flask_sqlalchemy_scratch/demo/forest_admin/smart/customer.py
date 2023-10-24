@@ -215,7 +215,7 @@ class ExportJson(ActionBulk):
 
 
 async def export_customers_json(context: ActionContextBulk, result_builder: ResultBuilder) -> Union[None, ActionResult]:
-    records = await context.get_records(Projection("id", "full name", "age"))
+    records = await context.get_records(Projection("pk", "full name", "age"))
     return result_builder.file(
         io.BytesIO(json.dumps({"data": records}).encode("utf-8")),
         "dumps.json",

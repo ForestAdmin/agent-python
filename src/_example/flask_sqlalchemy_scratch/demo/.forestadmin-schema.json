@@ -839,7 +839,7 @@
                     "endpoint": "/forest/_actions/order/1/export json dict",
                     "httpMethod": "POST",
                     "redirect": null,
-                    "download": false,
+                    "download": true,
                     "fields": [
                         {
                             "field": "dummy field",
@@ -1151,11 +1151,11 @@
     ],
     "meta": {
         "liana": "agent-python",
-        "liana_version": "1.0.0-beta.24",
+        "liana_version": "1.0.0-beta.27",
         "stack": {
             "engine": "python",
-            "engine_version": "3.11.3"
+            "engine_version": "3.8.16"
         },
-        "schemaFileHash": "55a13f4194f562e81559241677ac304becad49e0"
+        "schemaFileHash": "da795020eeb956139a311b3b60c2de9cb3853113"
     }
 }

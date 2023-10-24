@@ -1,9 +1,8 @@
-import copy
 from typing import Dict, List, Optional, TypedDict
 
 from forestadmin.agent_toolkit.exceptions import AgentToolkitException
 from forestadmin.agent_toolkit.forest_logger import ForestLogger
-from forestadmin.agent_toolkit.options import DEFAULT_OPTIONS, Options
+from forestadmin.agent_toolkit.options import Options, OptionValidator
 from forestadmin.agent_toolkit.resources.actions.resources import ActionResource
 from forestadmin.agent_toolkit.resources.collections.charts_collection import ChartsCollectionResource
 from forestadmin.agent_toolkit.resources.collections.charts_datasource import ChartsDatasourceResource
@@ -43,21 +42,17 @@ class Agent:
     META: AgentMeta = None
 
     def __init__(self, options: Options):
-        self.options = copy.copy(DEFAULT_OPTIONS)
-        self.options.update({k: v for k, v in options.items() if v is not None})
-        if self.options["instant_cache_refresh"] is None:
-            self.options["instant_cache_refresh"] = self.options["is_production"]
-        self.customizer: DatasourceCustomizer = DatasourceCustomizer()
         self._resources = None
+        self.customizer: DatasourceCustomizer = DatasourceCustomizer()
+        self.options: Options = OptionValidator.validate_options(OptionValidator.with_defaults(options))
 
         ForestLogger.setup_logger(self.options["logger_level"], self.options["logger"])
-
-        if "customize_error_message" in self.options:
+        if self.options.get("customize_error_message") is not None:
             HttpResponseBuilder.setup_error_message_customizer(self.options["customize_error_message"])
 
         service_options = {
             "env_secret": self.options["env_secret"],
-            "forest_server_url": self.options["forest_server_url"],
+            "server_url": self.options["server_url"],
             "is_production": self.options["is_production"],
             "permission_cache_duration": self.options["permissions_cache_duration_in_seconds"],
             "prefix": self.options["prefix"],
@@ -196,7 +191,7 @@ class Agent:
             raise AgentToolkitException("The agent subclass should set the META attribute")
         return meta
 
-    async def start(self):
+    async def _start(self):
         if Agent.__IS_INITIALIZED is True:
             ForestLogger.log("debug", "Agent already started.")
             return

@@ -6,6 +6,7 @@ from typing import Literal, Optional, Tuple, Union
 import pkg_resources
 from flask import Blueprint, request
 from flask.app import Flask
+from flask.config import Config
 from flask.wrappers import Request as FlaskRequest
 from flask.wrappers import Response as FlaskResponse
 from forestadmin.agent_toolkit.agent import Agent as BaseAgent
@@ -21,7 +22,7 @@ from forestadmin.flask_agent.utils.dispatcher import get_dispatcher_method
 from forestadmin.flask_agent.utils.requests import convert_request, convert_response
 
 
-class Agent(BaseAgent):
+class FlaskAgent(BaseAgent):
     META: AgentMeta = {
         "liana": "agent-python",
         "liana_version": pkg_resources.get_distribution("forestadmin-agent-flask").version.replace("b", "-beta."),
@@ -31,10 +32,37 @@ class Agent(BaseAgent):
         "stack": {"engine": "python", "engine_version": ".".join(map(str, [*sys.version_info[:3]]))},
     }
 
-    def __init__(self, options: Options):
-        super(Agent, self).__init__(options)
-        self._blueprint: Optional[Blueprint] = None
+    def __init__(self, app: Flask):
         self.loop = asyncio.new_event_loop()
+        self._app = app
+        super(FlaskAgent, self).__init__(self.__parse_config(app.config))
+
+        self._blueprint: Optional[Blueprint] = build_blueprint(self)
+        self._app.register_blueprint(self.blueprint, url_prefix=f'{self.options["prefix"]}/forest')
+
+    def __parse_config(self, flask_settings: Config) -> Options:
+        settings: Options = {"schema_path": os.path.join(self._app.root_path, ".forestadmin-schema.json")}
+
+        for key, value in flask_settings.items():
+            if not key.upper().startswith("FOREST_"):
+                continue
+
+            forest_key = key.lower().replace("forest_", "")
+            # Options.__annotations__ is a dict of {key_name:type_class}
+            if forest_key not in Options.__annotations__.keys():
+                ForestLogger.log("debug", f"Skipping unknown setting {key}.")
+                continue
+
+            value_type = Options.__annotations__[forest_key]
+            try:
+                settings[forest_key] = value_type(value)
+            except Exception:
+                settings[forest_key] = value
+
+        if settings.get("is_production") is None:
+            settings["is_production"] = not self._app.config["DEBUG"]
+
+        return settings
 
     @property
     def blueprint(self) -> Blueprint:
@@ -42,24 +70,17 @@ class Agent(BaseAgent):
             raise FlaskAgentException("Flask agent must have the forest blueprint.")
         return self._blueprint
 
-    @blueprint.setter
-    def blueprint(self, blueprint: Blueprint):
-        self._blueprint = blueprint
-
-    def register_blueprint(self, app: Flask):
-        self.options["schema_path"] = os.path.join(app.root_path, ".forestadmin-schema.json")
-        app.register_blueprint(self.blueprint, url_prefix=f'{self.options["prefix"]}/forest')
-        self.loop.run_until_complete(self.start())
+    def start(self):
+        self.loop.run_until_complete(self._start())
         ForestLogger.log("info", "Flask agent initialized")
 
 
-def create_agent(options: Options) -> Agent:
-    agent = Agent(options)
-    agent.blueprint = build_blueprint(agent)
+def create_agent(options: Options) -> FlaskAgent:
+    agent = FlaskAgent(options)
     return agent
 
 
-def build_agent(options: Options) -> Agent:
+def build_agent(options: Options) -> FlaskAgent:
     # TODO: remove this deprecation
     ForestLogger.log("warning", "'build_agent' is deprecated, please use 'create_agent' instead")
     return create_agent(options)
@@ -70,7 +91,7 @@ def _after_request(response: FlaskResponse):
     return response
 
 
-def build_blueprint(agent: Agent):  # noqa: C901
+def build_blueprint(agent: FlaskAgent):  # noqa: C901
     blueprint = Blueprint("flask_forest", __name__)
     blueprint.after_request(_after_request)
 

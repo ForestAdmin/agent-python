@@ -5,7 +5,7 @@ from unittest.mock import AsyncMock, Mock, patch
 
 from forestadmin.agent_toolkit.agent import Agent
 from forestadmin.agent_toolkit.exceptions import AgentToolkitException
-from forestadmin.agent_toolkit.options import DEFAULT_OPTIONS, Options
+from forestadmin.agent_toolkit.options import Options, OptionValidator
 from forestadmin.datasource_toolkit.datasources import Datasource
 from forestadmin.datasource_toolkit.plugins.plugin import Plugin
 
@@ -24,8 +24,9 @@ class TestAgent(TestCase):
     def setUpClass(cls) -> None:
         cls.loop = asyncio.new_event_loop()
         cls.fake_options: Options = Options(
-            env_secret="fake_env_secret",
+            env_secret="da4fc9331a68a18c2262154c74d9acb22f335724c8f2a510f8df187fa808703e",
             auth_secret="fake_auth_secret",
+            schema_path="./.forestadmin-schema.json",
         )
 
     def test_create(
@@ -44,14 +45,18 @@ class TestAgent(TestCase):
             with patch(
                 "forestadmin.agent_toolkit.agent.HttpResponseBuilder.setup_error_message_customizer"
             ) as mock_error_customizer:
-                agent = Agent(self.fake_options)
+                with patch(
+                    "forestadmin.agent_toolkit.agent.OptionValidator.validate_options", side_effect=lambda x: x
+                ) as mock_validate_option:
+                    agent = Agent(self.fake_options)
+                    mock_validate_option.assert_called_once()
                 mock_logger.assert_called_with(logging.INFO, None)
-                mock_error_customizer.assert_called_with(None)
+                mock_error_customizer.assert_not_called()
 
-        assert agent.options["prefix"] == DEFAULT_OPTIONS["prefix"]
-        assert agent.options["is_production"] == DEFAULT_OPTIONS["is_production"]
+        assert agent.options["prefix"] == OptionValidator.DEFAULT_OPTIONS["prefix"]
+        assert agent.options["is_production"] == OptionValidator.DEFAULT_OPTIONS["is_production"]
 
-        assert agent.options["forest_server_url"] == DEFAULT_OPTIONS["forest_server_url"]
+        assert agent.options["server_url"] == OptionValidator.DEFAULT_OPTIONS["server_url"]
         assert agent.options["env_secret"] == self.fake_options["env_secret"]
         assert agent.options["auth_secret"] == self.fake_options["auth_secret"]
 
@@ -237,7 +242,7 @@ class TestAgent(TestCase):
                 new_callable=AsyncMock,
                 return_value=agent.customizer.stack.datasource,
             ):
-                self.loop.run_until_complete(agent.start())
+                self.loop.run_until_complete(agent._start())
             self.assertEqual(logger.output, ["DEBUG:forestadmin:Starting agent", "INFO:forestadmin:Agent started"])
 
         mocked_create_json_api_schema.assert_called_once_with("fake_collection")
@@ -250,7 +255,7 @@ class TestAgent(TestCase):
         mocked_forest_http_api__send_schema.reset_mock()
 
         with self.assertLogs("forestadmin", level=logging.DEBUG) as logger:
-            self.loop.run_until_complete(agent.start())
+            self.loop.run_until_complete(agent._start())
             self.assertEqual(logger.output, ["DEBUG:forestadmin:Agent already started."])
 
         mocked_create_json_api_schema.assert_not_called()
@@ -280,7 +285,7 @@ class TestAgent(TestCase):
             with self.assertLogs("forestadmin", level=logging.DEBUG) as logger:
                 Agent._Agent__IS_INITIALIZED = False
                 with patch.object(agent.customizer, "get_datasource", new_callable=AsyncMock):
-                    self.loop.run_until_complete(agent.start())
+                    self.loop.run_until_complete(agent._start())
 
                 self.assertEqual(logger.output[0], "DEBUG:forestadmin:Starting agent")
                 self.assertTrue(logger.output[1].startswith("ERROR:forestadmin:Error generating forest schema"))

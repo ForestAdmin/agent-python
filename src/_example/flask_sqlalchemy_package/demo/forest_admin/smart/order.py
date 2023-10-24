@@ -28,10 +28,10 @@ from sqlalchemy.sql import text
 def pending_order_segment(context: CollectionCustomizationContext):
     Session_ = context.collection.get_native_driver()
     with Session_() as connection:
-        rows = connection.execute(text("select id, status from 'order' where status = 'PENDING'")).all()
+        rows = connection.execute(text("select pk, status from 'order' where status = 'PENDING'")).all()
 
     return ConditionTreeLeaf(
-        field="id",
+        field="pk",
         operator=Operator.IN,
         value=[r[0] for r in rows],
     )
@@ -105,7 +105,7 @@ class ExportJson(ActionGlobal):
     async def execute(self, context: ActionContext, result_builder: ResultBuilder) -> Union[None, ActionResult]:
         records = await context.get_records(
             Projection(
-                "id",
+                "pk",
                 "customer:full_name",
                 "billing_address:full_address",
                 "delivering_address:full_address",
@@ -122,7 +122,7 @@ class ExportJson(ActionGlobal):
 async def execute_export_json(context: ActionContext, result_builder: ResultBuilder) -> Union[None, ActionResult]:
     records = await context.get_records(
         Projection(
-            "id",
+            "pk",
             "customer:full_name",
             "billing_address:full_address",
             "delivering_address:full_address",
@@ -180,7 +180,7 @@ class RefundOrder(ActionBulk):
 # charts
 async def total_order_chart(context: AgentCustomizationContext, result_builder: ResultBuilderChart):
     records = await context.datasource.get_collection("order").list(
-        context.caller, PaginatedFilter({}), Projection("id")
+        context.caller, PaginatedFilter({}), Projection("pk")
     )
     return result_builder.value(len(records))
 

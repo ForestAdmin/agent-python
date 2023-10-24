@@ -16,7 +16,7 @@ class TestForestHttp(TestCase):
 
         cls.options: HttpOptions = {
             "env_secret": "env_secret",
-            "forest_server_url": "http://local.forest.com",
+            "server_url": "http://local.forest.com",
         }
 
     def test_get_environment_permissions_should_make_correct_call(self):

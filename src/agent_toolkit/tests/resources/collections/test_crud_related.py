@@ -266,8 +266,7 @@ class TestCrudRelatedResource(TestCase):
         cls.options = Options(
             auth_secret="fake_secret",
             env_secret="fake_secret",
-            forest_server_url="http://fake:5000",
-            prefix="",
+            server_url="http://fake:5000",
             is_production=False,
         )
         # cls.datasource = Mock(Datasource)
