@@ -17,7 +17,7 @@ class SqlAlchemyDatasource(BaseSqlAlchemyDatasource):
         if bind is None:
             raise SqlAlchemyDatasourceException(
                 "Cannot find database uri in your SQLAlchemy Base class. "
-                + "You can pass it as a param: SqlAlchemyDatasource(db_uri='sqlite:///path/to/db.sql')."
+                + "You can pass it as a param: SqlAlchemyDatasource(..., db_uri='sqlite:///path/to/db.sql')."
             )
 
         if self.__is_using_flask_sqlalchemy:
