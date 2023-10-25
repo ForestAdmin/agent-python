@@ -65,6 +65,7 @@ class TestSqlAlchemyCollection(TestCase):
         mocked_mapper = Mock()
         mocked_mapper.columns = {"city": "city_column"}
         mocked_mapper.class_ = "model"
+        mocked_mapper.synonyms = []
 
         with patch.object(SqlAlchemyCollection, "add_field"):
             collection = SqlAlchemyCollection("address", self.mocked_datasource, mocked_table, mocked_mapper)
@@ -75,6 +76,7 @@ class TestSqlAlchemyCollection(TestCase):
         self.assertRaises(SqlAlchemyCollectionException, collection.get_column, "unknown_field")
 
         mocked_alias = Mock()
+        del mocked_alias.synonyms
         mocked_alias.columns = {"city": "city_column"}
         column = collection.get_column("city", mocked_alias)
         assert column == "city_column"
@@ -99,6 +101,7 @@ class TestSqlAlchemyCollection(TestCase):
         mocked_table = Mock()
         mocked_mapper = Mock()
         mocked_mapper.columns = {"city": "city_column", "zip_code": "zip_code_column"}
+        mocked_mapper.synonyms = []
         with patch.object(SqlAlchemyCollection, "add_field"):
             collection = SqlAlchemyCollection("address", self.mocked_datasource, mocked_table, mocked_mapper)
 

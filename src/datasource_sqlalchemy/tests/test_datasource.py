@@ -30,7 +30,7 @@ class TestSqlAlchemyDatasource(TestCase):
         self.assertRaisesRegex(
             SqlAlchemyDatasourceException,
             r"Cannot find database uri in your SQLAlchemy Base class. You can pass it as a param:"
-            + r" SqlAlchemyDatasource\(db_uri='sqlite:\/\/\/path\/to\/db.sql'\).",
+            + r" SqlAlchemyDatasource\(..., db_uri='sqlite:\/\/\/path\/to\/db.sql'\).",
             SqlAlchemyDatasource,
             base_mock,
         )
