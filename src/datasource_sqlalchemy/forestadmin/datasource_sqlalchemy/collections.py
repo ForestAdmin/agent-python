@@ -116,6 +116,8 @@ class SqlAlchemyCollection(BaseSqlAlchemyCollection):
         if alias_ is not None:
             mapper = alias_
         try:
+            if hasattr(mapper, "synonyms") and name in mapper.synonyms:
+                return mapper.columns[mapper.synonyms[name].name]
             return mapper.columns[name]  # type: ignore
         except KeyError:
             raise SqlAlchemyCollectionException(f"Unknown field '{name}' for the collection '{self.name}'")
