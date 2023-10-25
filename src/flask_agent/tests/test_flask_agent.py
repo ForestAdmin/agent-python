@@ -17,6 +17,10 @@ class TestFlaskAgent(TestCase):
         cls.flask_app.config.update({"DEBUG": True})
         cls.flask_app.root_path = "/tmp"
 
+        cls.flask_app.app_context.return_value.__enter__ = Mock(return_value=None)
+        cls.flask_app.app_context.return_value.__exit__ = Mock(return_value=None)
+        cls.flask_app.extensions = []
+
     @patch("forestadmin.flask_agent.agent.asyncio.new_event_loop", return_value="event_loop")
     @patch("forestadmin.flask_agent.agent.build_blueprint", return_value="blueprint")
     def test_create_agent(self, mock_build_blueprint, mock_new_event_loop):
