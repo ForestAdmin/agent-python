@@ -40,6 +40,12 @@ class SqlAlchemyDatasource(BaseSqlAlchemyDatasource):
     def _create_collections(self):
         mappers = self.build_mappers()
         for table in self._base.metadata.sorted_tables:
+            if table.name not in mappers:
+                class_ = type(f"SQLAlchemyImpTable_{table.name}", (), {})
+                self._base.registry.map_imperatively(class_, table)
+                mappers = self.build_mappers()
+
+        for table in self._base.metadata.sorted_tables:
             if table.name in mappers:
                 collection = SqlAlchemyCollection(table.name, self, table, mappers[table.name])
                 self.add_collection(collection)
