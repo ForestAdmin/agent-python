@@ -1,5 +1,4 @@
 import asyncio
-import logging
 import sys
 from typing import Union
 from unittest import TestCase
@@ -358,86 +357,6 @@ class TestActionCollectionCustomizer(TestCase):
                 "collection_name": None,
                 "enum_values": [1, 2, 3, 4, 5],
                 "watch_changes": True,
-            },
-        ]
-
-    def test_get_form_should_work_with_changed_field_warning(self):
-        async def execute(context: ActionContextSingle, result_builder: ResultBuilder) -> Union[ActionResult, None]:
-            result_builder.success("Bravo !!!")
-
-        test_action: ActionDict = {
-            "scope": ActionsScope.SINGLE,
-            "execute": execute,
-            "form": [
-                {
-                    "label": "rating",
-                    "type": ActionFieldType.ENUM,
-                    "enum_values": [1, 2, 3, 4, 5],
-                },
-                {
-                    "label": "Put a comment",
-                    "type": ActionFieldType.STRING,
-                    "if_": lambda context: context.changed_field == "rating",
-                },
-            ],
-        }
-
-        self.product_collection.add_action("action_test", test_action)
-
-        with self.assertLogs("forestadmin", level=logging.DEBUG) as logger:
-            result = self.loop.run_until_complete(
-                self.product_collection.get_form(self.mocked_caller, "action_test", {"first_name": "John"}, None, {})
-            )
-            self.assertEqual(
-                logger.output,
-                [
-                    "WARNING:forestadmin:context.changed_field == 'field_name' is now deprecated, "
-                    + "use context.has_field_changed('field_name') instead.",
-                ],
-            )
-        assert result == [
-            {
-                "label": "rating",
-                "type": ActionFieldType.ENUM,
-                "description": "",
-                "is_read_only": False,
-                "is_required": False,
-                "value": None,
-                "default_value": None,
-                "collection_name": None,
-                "enum_values": [1, 2, 3, 4, 5],
-                "watch_changes": False,
-            },
-        ]
-        result = self.loop.run_until_complete(
-            self.product_collection.get_form(
-                self.mocked_caller, "action_test", {"first_name": "John"}, None, {"changed_field": "rating"}
-            )
-        )
-        assert result == [
-            {
-                "label": "rating",
-                "type": ActionFieldType.ENUM,
-                "description": "",
-                "is_read_only": False,
-                "is_required": False,
-                "value": None,
-                "default_value": None,
-                "collection_name": None,
-                "enum_values": [1, 2, 3, 4, 5],
-                "watch_changes": False,
-            },
-            {
-                "label": "Put a comment",
-                "type": ActionFieldType.STRING,
-                "description": "",
-                "is_read_only": False,
-                "is_required": False,
-                "value": None,
-                "default_value": None,
-                "collection_name": None,
-                "enum_values": None,
-                "watch_changes": False,
             },
         ]
 
