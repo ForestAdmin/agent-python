@@ -17,7 +17,7 @@ class SqlAlchemyDatasource(BaseSqlAlchemyDatasource):
         if bind is None:
             raise SqlAlchemyDatasourceException(
                 "Cannot find database uri in your SQLAlchemy Base class. "
-                + "You can pass it as a param: SqlAlchemyDatasource(db_uri='sqlite:///path/to/db.sql')."
+                + "You can pass it as a param: SqlAlchemyDatasource(..., db_uri='sqlite:///path/to/db.sql')."
             )
 
         if self.__is_using_flask_sqlalchemy:
@@ -39,6 +39,12 @@ class SqlAlchemyDatasource(BaseSqlAlchemyDatasource):
 
     def _create_collections(self):
         mappers = self.build_mappers()
+        for table in self._base.metadata.sorted_tables:
+            if table.name not in mappers:
+                class_ = type(f"SQLAlchemyImpTable_{table.name}", (), {})
+                self._base.registry.map_imperatively(class_, table)
+                mappers = self.build_mappers()
+
         for table in self._base.metadata.sorted_tables:
             if table.name in mappers:
                 collection = SqlAlchemyCollection(table.name, self, table, mappers[table.name])

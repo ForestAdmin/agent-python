@@ -34,6 +34,8 @@ class Converter:
         sqltypes.Unicode: PrimitiveType.STRING,
         sqltypes.UnicodeText: PrimitiveType.STRING,
         sqltypes.LargeBinary: PrimitiveType.BINARY,
+        sqltypes.BINARY: PrimitiveType.BINARY,
+        sqltypes.PickleType: PrimitiveType.BINARY,
         UUID: PrimitiveType.UUID,
     }
 
@@ -43,7 +45,12 @@ class Converter:
         if type_class == ARRAY:
             return [cls.convert(_type.item_type)]  # type: ignore
         try:
-            return cls.TYPES[_type.__class__]
+            if type_class in cls.TYPES:
+                return cls.TYPES[type_class]
+            elif isinstance(_type, sqltypes.TypeDecorator):  # custom type
+                return cls.convert(_type.impl)
+            else:
+                raise ConverterException(f'Type "{_type.__class__}" is unknown')
         except KeyError:
             raise ConverterException(f'Type "{_type.__class__}" is unknown')
 
