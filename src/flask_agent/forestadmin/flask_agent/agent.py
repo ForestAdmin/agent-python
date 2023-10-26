@@ -38,6 +38,8 @@ class FlaskAgent(BaseAgent):
         super(FlaskAgent, self).__init__(self.__parse_config(app.config))
 
         self._blueprint: Optional[Blueprint] = build_blueprint(self)
+        if "csrf" in self._app.extensions:
+            self._blueprint = self._app.extensions["csrf"].exempt(self._blueprint)
         self._app.register_blueprint(self.blueprint, url_prefix=f'{self.options["prefix"]}/forest')
 
     def __parse_config(self, flask_settings: Config) -> Options:
@@ -75,15 +77,16 @@ class FlaskAgent(BaseAgent):
         ForestLogger.log("info", "Flask agent initialized")
 
 
-def create_agent(options: Options) -> FlaskAgent:
-    agent = FlaskAgent(options)
+def create_agent(app: Flask) -> FlaskAgent:
+    with app.app_context():
+        agent = FlaskAgent(app)
     return agent
 
 
-def build_agent(options: Options) -> FlaskAgent:
+def build_agent(app: Flask) -> FlaskAgent:
     # TODO: remove this deprecation
     ForestLogger.log("warning", "'build_agent' is deprecated, please use 'create_agent' instead")
-    return create_agent(options)
+    return create_agent(app)
 
 
 def _after_request(response: FlaskResponse):

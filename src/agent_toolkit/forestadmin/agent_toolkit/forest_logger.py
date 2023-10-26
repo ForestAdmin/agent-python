@@ -57,6 +57,11 @@ class ForestLogger:
     @classmethod
     def setup_logger(cls, log_level, custom_fn):
         cls._logger_instance = _ForestLogger(log_level, custom_fn or ForestLogger.default_logger_function)
+        if custom_fn is None and len(logger.handlers) == 0:
+            handler = logging.StreamHandler()
+            handler.setLevel(log_level)
+            logger.addHandler(handler)
+            logger.setLevel(log_level)
 
 
 class _ForestLogger:
