@@ -1,3 +1,10 @@
+# [1.0.0-beta.30](https://github.com/ForestAdmin/agent-python/compare/v1.0.0-beta.29...v1.0.0-beta.30) (2023-10-26)
+
+
+### Bug Fixes
+
+* ci ([#20](https://github.com/ForestAdmin/agent-python/issues/20)) ([65b75ea](https://github.com/ForestAdmin/agent-python/commit/65b75ea8951ce7dd9bc9eeb95990b58d8d615d70))
+
 # [1.0.0-beta.29](https://github.com/ForestAdmin/agent-python/compare/v1.0.0-beta.28...v1.0.0-beta.29) (2023-10-26)
 
 
