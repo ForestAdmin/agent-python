@@ -1,3 +1,10 @@
+# [1.0.0-beta.29](https://github.com/ForestAdmin/agent-python/compare/v1.0.0-beta.28...v1.0.0-beta.29) (2023-10-26)
+
+
+### Bug Fixes
+
+* **sqlalchemy:** support more binary types, user defined types, columns aliases, and imperative model definition ([#135](https://github.com/ForestAdmin/agent-python/issues/135)) ([bb73f3b](https://github.com/ForestAdmin/agent-python/commit/bb73f3b20e2d5305ea5263bb8dfcac9b8ba07f4c))
+
 # [1.0.0-beta.28](https://github.com/ForestAdmin/agent-python/compare/v1.0.0-beta.27...v1.0.0-beta.28) (2023-10-24)
 
 
