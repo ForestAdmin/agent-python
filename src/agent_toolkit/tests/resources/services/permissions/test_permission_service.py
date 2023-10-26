@@ -1,6 +1,6 @@
 import asyncio
 import sys
-from typing import Any, Coroutine, Dict, Literal, Optional, Union
+from typing import Dict, Literal, Union
 from unittest import TestCase
 from unittest.mock import AsyncMock, _patch, patch
 
@@ -19,10 +19,9 @@ from forestadmin.datasource_toolkit.datasources import Datasource
 from forestadmin.datasource_toolkit.decorators.action.collections import ActionCollectionDecorator
 from forestadmin.datasource_toolkit.decorators.action.context.single import ActionContextSingle
 from forestadmin.datasource_toolkit.decorators.action.result_builder import ResultBuilder
-from forestadmin.datasource_toolkit.decorators.action.types.actions import ActionSingle
 from forestadmin.datasource_toolkit.decorators.datasource_decorator import DatasourceDecorator
 from forestadmin.datasource_toolkit.exceptions import ForbiddenError, ForestException
-from forestadmin.datasource_toolkit.interfaces.actions import ActionResult
+from forestadmin.datasource_toolkit.interfaces.actions import ActionsScope
 from forestadmin.datasource_toolkit.interfaces.fields import FieldType, Operator, PrimitiveType
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.base import ConditionTree
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.branch import Aggregator
@@ -497,13 +496,10 @@ class Test05CanSmartActionPermissionService(BaseTestPermissionService):
     def setUp(self) -> None:
         super().setUp()
 
-        class MarkAsLiveAction(ActionSingle):
-            def execute(
-                self, context: ActionContextSingle, result_builder: ResultBuilder
-            ) -> Coroutine[Any, Any, Optional[ActionResult]]:
-                return result_builder.success("success")
+        def execute(context: ActionContextSingle, result_builder: ResultBuilder):
+            return result_builder.success("success")
 
-        self.decorated_collection_booking.add_action("Mark as live", MarkAsLiveAction())
+        self.decorated_collection_booking.add_action("Mark as live", {"scope": ActionsScope.SINGLE, "execute": execute})
 
     def test_can_smart_action_should_return_true_when_user_can_execute_action(self):
         http_patches: PatchHttpApiDict = self.mock_forest_http_api()

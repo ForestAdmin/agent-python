@@ -27,7 +27,7 @@ class DatasourceDecorator(Datasource):
     def collections(self):
         return [self.get_collection(c.name) for c in self.child_datasource.collections]
 
-    def get_collection(self, name: str) -> Collection:
+    def get_collection(self, name: str) -> CollectionDecorator:
         collection = self.child_datasource.get_collection(name)
         if collection not in self._decorators:
             self._decorators[collection] = self.class_collection_decorator(collection, self)

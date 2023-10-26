@@ -26,7 +26,7 @@ class SchemaCollectionGenerator:
             "isReadOnly": all(
                 [f["type"] == FieldType.COLUMN and f["is_read_only"] for f in collection.schema["fields"].values()]
             ),
-            "integration": None,  # TODO: understand what is this
+            "integration": None,
             "isSearchable": collection.schema["searchable"],
             "onlyForRelationships": False,
             "paginationType": "page",

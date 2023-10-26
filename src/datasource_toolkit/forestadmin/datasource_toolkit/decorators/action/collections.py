@@ -1,4 +1,4 @@
-from typing import Any, Awaitable, Dict, List, Optional, Set, Union, cast
+from typing import Any, Awaitable, Dict, List, Optional, Set, cast
 
 from forestadmin.agent_toolkit.utils.context import User
 from forestadmin.datasource_toolkit.collections import Collection
@@ -6,13 +6,7 @@ from forestadmin.datasource_toolkit.decorators.action.context.base import Action
 from forestadmin.datasource_toolkit.decorators.action.context.bulk import ActionContextBulk
 from forestadmin.datasource_toolkit.decorators.action.context.single import ActionContextSingle
 from forestadmin.datasource_toolkit.decorators.action.result_builder import ResultBuilder
-from forestadmin.datasource_toolkit.decorators.action.types.actions import (
-    ActionBulk,
-    ActionDict,
-    ActionGlobal,
-    ActionSingle,
-    BaseAction,
-)
+from forestadmin.datasource_toolkit.decorators.action.types.actions import ActionDict
 from forestadmin.datasource_toolkit.decorators.action.types.fields import BaseDynamicField, DynamicField, FieldFactory
 from forestadmin.datasource_toolkit.decorators.collection_decorator import CollectionDecorator
 from forestadmin.datasource_toolkit.interfaces.actions import Action, ActionField, ActionResult, ActionsScope
@@ -27,16 +21,11 @@ class ActionCollectionDecorator(CollectionDecorator):
         self._actions: Dict[str, ActionDict] = {}
 
     def add_action(self, name: str, action: ActionDict):
-        # TODO: simplify this when removing deprecation of class style actions
-
-        if isinstance(action, BaseAction):
-            self._actions[name] = action.to_dict()
-        else:
-            action["form"] = [
-                FieldFactory.build(field) if not isinstance(field, BaseDynamicField) else field
-                for field in action.get("form", [])
-            ]
-            self._actions[name] = action
+        action["form"] = [
+            FieldFactory.build(field) if not isinstance(field, BaseDynamicField) else field
+            for field in action.get("form", [])
+        ]
+        self._actions[name] = action
         self.mark_schema_as_dirty()
 
     async def execute(
@@ -52,7 +41,6 @@ class ActionCollectionDecorator(CollectionDecorator):
 
         context = self._get_context(caller, action, data, filter_, None)
         response_builder = ResultBuilder()
-        # result = action.execute(context, response_builder)  # type: ignore
         result = action["execute"](context, response_builder)  # type: ignore
         if isinstance(result, Awaitable):
             result = await result
@@ -99,7 +87,7 @@ class ActionCollectionDecorator(CollectionDecorator):
     def _get_context(
         self,
         caller: User,
-        action: Union[ActionSingle, ActionBulk, ActionGlobal],
+        action: ActionDict,
         form_values: RecordsDataAlias,
         filter_: Optional[Filter] = None,
         used: Optional[Set[str]] = None,

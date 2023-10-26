@@ -3,11 +3,8 @@ import importlib
 import json
 import sys
 from io import StringIO
-from typing import List
 from unittest import TestCase
 from unittest.mock import ANY, AsyncMock, Mock, patch
-
-from forestadmin.agent_toolkit.services.permissions.ip_whitelist_service import IpWhiteListService
 
 if sys.version_info >= (3, 9):
     import zoneinfo
@@ -19,6 +16,7 @@ import forestadmin.agent_toolkit.resources.collections.charts_collection
 from forestadmin.agent_toolkit.forest_logger import ForestLogger
 from forestadmin.agent_toolkit.options import Options
 from forestadmin.agent_toolkit.resources.actions.requests import ActionRequest
+from forestadmin.agent_toolkit.services.permissions.ip_whitelist_service import IpWhiteListService
 from forestadmin.agent_toolkit.services.permissions.permission_service import PermissionService
 from forestadmin.agent_toolkit.utils.context import Request, RequestMethod, User
 from forestadmin.datasource_toolkit.collections import Collection
@@ -26,11 +24,10 @@ from forestadmin.datasource_toolkit.datasources import Datasource
 from forestadmin.datasource_toolkit.decorators.action.collections import ActionCollectionDecorator
 from forestadmin.datasource_toolkit.decorators.action.context.single import ActionContextSingle
 from forestadmin.datasource_toolkit.decorators.action.result_builder import ResultBuilder
-from forestadmin.datasource_toolkit.decorators.action.types.actions import ActionBulk, ActionGlobal, ActionSingle
-from forestadmin.datasource_toolkit.decorators.action.types.fields import PlainDynamicField
+from forestadmin.datasource_toolkit.decorators.action.types.actions import ActionDict
 from forestadmin.datasource_toolkit.decorators.datasource_decorator import DatasourceDecorator
 from forestadmin.datasource_toolkit.exceptions import ForbiddenError
-from forestadmin.datasource_toolkit.interfaces.actions import ActionFieldType
+from forestadmin.datasource_toolkit.interfaces.actions import ActionFieldType, ActionsScope
 from forestadmin.datasource_toolkit.interfaces.fields import FieldType, Operator, PrimitiveType
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.leaf import ConditionTreeLeaf
 from jose import jwt
@@ -168,21 +165,23 @@ class BaseTestActionResource(TestCase):
 
 
 class TestDispatchActionResource(BaseTestActionResource):
-    class TestAction(ActionSingle):
-        FORM: List[PlainDynamicField] = [
-            {
-                "type": ActionFieldType.NUMBER,
-                "label": "Value",
-                "default_value": 0,
-            },
-        ]
-
-        async def execute(self, context: ActionContextSingle, result_builder: ResultBuilder):
+    def setUp(self) -> None:
+        async def execute(context: ActionContextSingle, result_builder: ResultBuilder):
             return result_builder.success("Bravo!")
 
-    def setUp(self) -> None:
         super().setUp()
-        self.decorated_collection_book.add_action("test_action", TestDispatchActionResource.TestAction())
+        self.test_action: ActionDict = {
+            "scope": ActionsScope.SINGLE,
+            "execute": execute,
+            "form": [
+                {
+                    "type": ActionFieldType.NUMBER,
+                    "label": "Value",
+                    "default_value": 0,
+                },
+            ],
+        }
+        self.decorated_collection_book.add_action("test_action", self.test_action)
 
     def test_dispatch_should_return_error_if_no_action_name_specified(self):
         request = Request(
@@ -344,47 +343,32 @@ class TestDispatchActionResource(BaseTestActionResource):
 
 
 class TestHookActionResource(BaseTestActionResource):
-    class TestActionSingle(ActionSingle):
-        FORM: List[PlainDynamicField] = [
-            {
-                "type": ActionFieldType.NUMBER,
-                "label": "Value",
-                "default_value": 0,
-            },
-            {
-                "type": ActionFieldType.STRING,
-                "label": "Summary",
-                "default_value": "",
-                "is_read_only": True,
-                "value": lambda ctx: "value is " + str(ctx.form_values.get("Value")),
-            },
-        ]
-
-        async def execute(self, context: ActionContextSingle, result_builder: ResultBuilder):
-            return result_builder.success("Bravo!")
-
-    class TestActionBulk(ActionBulk):
-        FORM: List[PlainDynamicField] = [
-            {
-                "type": ActionFieldType.NUMBER,
-                "label": "Value",
-                "default_value": 0,
-            },
-            {
-                "type": ActionFieldType.STRING,
-                "label": "Summary",
-                "default_value": "",
-                "is_read_only": True,
-                "value": lambda ctx: "value is " + str(ctx.form_values.get("Value")),
-            },
-        ]
-
-        async def execute(self, context: ActionContextSingle, result_builder: ResultBuilder):
-            return result_builder.success("Bravo!")
-
     def setUp(self) -> None:
+        async def execute(context: ActionContextSingle, result_builder: ResultBuilder):
+            return result_builder.success("Bravo!")
+
         super().setUp()
-        self.decorated_collection_book.add_action("test_action_single", TestHookActionResource.TestActionSingle())
+        self.action_form = [
+            {
+                "type": ActionFieldType.NUMBER,
+                "label": "Value",
+                "default_value": 0,
+            },
+            {
+                "type": ActionFieldType.STRING,
+                "label": "Summary",
+                "default_value": "",
+                "is_read_only": True,
+                "value": lambda ctx: "value is " + str(ctx.form_values.get("Value")),
+            },
+        ]
+        self.test_action_single: ActionDict = {
+            "scope": ActionsScope.SINGLE,
+            "execute": execute,
+            "form": self.action_form,
+        }
+
+        self.decorated_collection_book.add_action("test_action_single", self.test_action_single)
 
     def test_hook_should_raise_if_no_request_body(self):
         request = ActionRequest(
@@ -404,7 +388,12 @@ class TestHookActionResource(BaseTestActionResource):
         self.assertRaisesRegex(Exception, "", self.loop.run_until_complete, self.action_resource.hook(request))
 
     def test_hook_should_compute_form_and_return_it_with_all_condition_tree_parsing(self):
-        self.decorated_collection_book.add_action("test_action_bulk", TestHookActionResource.TestActionBulk())
+        async def execute(context: ActionContextSingle, result_builder: ResultBuilder):
+            return result_builder.success("Bravo!")
+
+        self.decorated_collection_book.add_action(
+            "test_action_bulk", {"scope": ActionsScope.BULK, "form": self.action_form, "execute": execute}
+        )
         request = ActionRequest(
             method=RequestMethod.POST,
             action_name="test_action_bulk",
@@ -515,18 +504,6 @@ class TestHookActionResource(BaseTestActionResource):
 
 
 class TestExecuteActionResource(BaseTestActionResource):
-    class TestActionGlobal(ActionGlobal):
-        def __init__(self, return_action, return_action_args, return_action_kwargs):
-            self.return_action = return_action
-            self.return_action_args = return_action_args
-            self.return_action_kwargs = return_action_kwargs
-            super().__init__()
-
-        async def execute(self, context: ActionContextSingle, result_builder: ResultBuilder):
-            if self.return_action is None:
-                return None
-            return getattr(result_builder, self.return_action)(*self.return_action_args, **self.return_action_kwargs)
-
     @classmethod
     def setUpClass(cls) -> None:
         super().setUpClass()
@@ -557,7 +534,7 @@ class TestExecuteActionResource(BaseTestActionResource):
 
     def test_execute_should_raise_if_no_request_body(self):
         self.decorated_collection_book.add_action(
-            "test_action_global", TestExecuteActionResource.TestActionGlobal("success", [], {})
+            "test_action_global", {"scope": ActionsScope.GLOBAL, "execute": lambda ctx, rb: rb.success()}
         )
         request = ActionRequest(
             method=RequestMethod.POST,
@@ -577,7 +554,7 @@ class TestExecuteActionResource(BaseTestActionResource):
 
     def test_execute_should_execute_on_collection(self):
         self.decorated_collection_book.add_action(
-            "test_action_global", TestExecuteActionResource.TestActionGlobal("success", [], {})
+            "test_action_global", {"scope": ActionsScope.GLOBAL, "execute": lambda ctx, rb: rb.success()}
         )
         request = ActionRequest(
             method=RequestMethod.POST,
@@ -612,7 +589,7 @@ class TestExecuteActionResource(BaseTestActionResource):
 
     def test_execute_should_return_correctly_formatted_error_on_error_response(self):
         self.decorated_collection_book.add_action(
-            "test_action_global", TestExecuteActionResource.TestActionGlobal("error", ["error message", None], {})
+            "test_action_global", {"scope": ActionsScope.GLOBAL, "execute": lambda ctx, rb: rb.error("error message")}
         )
         request = ActionRequest(
             method=RequestMethod.POST,
@@ -635,7 +612,10 @@ class TestExecuteActionResource(BaseTestActionResource):
     def test_execute_should_return_correctly_formatted_success_on_success_response(self):
         self.decorated_collection_book.add_action(
             "test_action_global",
-            TestExecuteActionResource.TestActionGlobal("success", ["<h1>success message</h1>", {"type": "html"}], {}),
+            {
+                "scope": ActionsScope.GLOBAL,
+                "execute": lambda ctx, rb: rb.success("<h1>success message</h1>", {"type": "html"}),
+            },
         )
         request = ActionRequest(
             method=RequestMethod.POST,
@@ -658,7 +638,10 @@ class TestExecuteActionResource(BaseTestActionResource):
     def test_execute_should_return_correctly_formatted_webhook_on_webhook_response(self):
         self.decorated_collection_book.add_action(
             "test_action_global",
-            TestExecuteActionResource.TestActionGlobal("webhook", ["http://webhook.com/", {"type": "html"}], {}),
+            {
+                "scope": ActionsScope.GLOBAL,
+                "execute": lambda ctx, rb: rb.webhook("http://webhook.com/"),
+            },
         )
         request = ActionRequest(
             method=RequestMethod.POST,
@@ -678,15 +661,16 @@ class TestExecuteActionResource(BaseTestActionResource):
         self.assertEqual(response.status, 200)
         self.assertEqual(
             response.body,
-            '{"webhook": {"url": "http://webhook.com/", "method": {"type": "html"}, "headers": {}, "body": {}}}',
+            '{"webhook": {"url": "http://webhook.com/", "method": "POST", "headers": {}, "body": {}}}',
         )
 
     def test_execute_should_return_correctly_formatted_file_on_file_response(self):
         self.decorated_collection_book.add_action(
             "test_action_global",
-            TestExecuteActionResource.TestActionGlobal(
-                "file", [StringIO("bla bla"), "testFile.txt", "text/plain;charset=UTF-8"], {}
-            ),
+            {
+                "scope": ActionsScope.GLOBAL,
+                "execute": lambda ctx, rb: rb.file(StringIO("bla bla"), "testFile.txt", "text/plain;charset=UTF-8"),
+            },
         )
         request = ActionRequest(
             method=RequestMethod.POST,
@@ -710,7 +694,7 @@ class TestExecuteActionResource(BaseTestActionResource):
     def test_execute_should_return_correctly_formatted_redirect_on_redirect_response(self):
         self.decorated_collection_book.add_action(
             "test_action_global",
-            TestExecuteActionResource.TestActionGlobal("redirect", ["/path/to/redirect"], {}),
+            {"scope": ActionsScope.GLOBAL, "execute": lambda ctx, rb: rb.redirect("/path/to/redirect")},
         )
         request = ActionRequest(
             method=RequestMethod.POST,
@@ -732,8 +716,7 @@ class TestExecuteActionResource(BaseTestActionResource):
 
     def test_execute_should_return_success_on_none_response(self):
         self.decorated_collection_book.add_action(
-            "test_action_global",
-            TestExecuteActionResource.TestActionGlobal(None, [], {}),
+            "test_action_global", {"scope": ActionsScope.GLOBAL, "execute": lambda ctx, rb: None}
         )
         request = ActionRequest(
             method=RequestMethod.POST,
@@ -755,7 +738,7 @@ class TestExecuteActionResource(BaseTestActionResource):
 
     def test_execute_should_update_body_attributes_on_approval(self):
         self.decorated_collection_book.add_action(
-            "test_action_global", TestExecuteActionResource.TestActionGlobal("success", [], {})
+            "test_action_global", {"scope": ActionsScope.GLOBAL, "execute": lambda ctx, rb: rb.success()}
         )
         request = ActionRequest(
             method=RequestMethod.POST,

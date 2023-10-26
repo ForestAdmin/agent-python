@@ -7,8 +7,7 @@ from forestadmin.datasource_toolkit.context.agent_context import AgentCustomizat
 from forestadmin.datasource_toolkit.context.collection_context import CollectionCustomizationContext
 from forestadmin.datasource_toolkit.decorators.action.context.base import ActionContext
 from forestadmin.datasource_toolkit.decorators.action.result_builder import ResultBuilder
-from forestadmin.datasource_toolkit.decorators.action.types.actions import ActionBulk, ActionDict, ActionGlobal
-from forestadmin.datasource_toolkit.decorators.action.types.fields import PlainDynamicField
+from forestadmin.datasource_toolkit.decorators.action.types.actions import ActionDict
 from forestadmin.datasource_toolkit.decorators.chart.result_builder import ResultBuilder as ResultBuilderChart
 from forestadmin.datasource_toolkit.decorators.computed.types import ComputedDefinition
 from forestadmin.datasource_toolkit.interfaces.actions import ActionFieldType, ActionResult, ActionsScope
@@ -80,45 +79,6 @@ def get_customer_full_name_field():
 
 
 # actions
-class ExportJson(ActionGlobal):
-    GENERATE_FILE: bool = True
-    FORM: List[PlainDynamicField] = [
-        {
-            "type": ActionFieldType.STRING,
-            "label": "dummy field",
-            "is_required": False,
-            "description": "",
-            "default_value": "",
-            "value": "",
-        },
-        {
-            "type": ActionFieldType.COLLECTION,
-            "collection_name": "customer",
-            "label": "customer",
-            "is_required": True,
-            "description": "",
-            "default_value": "",
-            "value": "",
-        },
-    ]
-
-    async def execute(self, context: ActionContext, result_builder: ResultBuilder) -> Union[None, ActionResult]:
-        records = await context.get_records(
-            Projection(
-                "pk",
-                "customer:full_name",
-                "billing_address:full_address",
-                "delivering_address:full_address",
-                "status",
-                "amount",
-                # "cost",
-            )
-        )
-        return result_builder.file(
-            io.BytesIO(json.dumps({"data": records}, default=str).encode("utf-8")), "dumps.json", "application/json"
-        )
-
-
 async def execute_export_json(context: ActionContext, result_builder: ResultBuilder) -> Union[None, ActionResult]:
     records = await context.get_records(
         Projection(
@@ -161,8 +121,14 @@ export_orders_json: ActionDict = {
 }
 
 
-class RefundOrder(ActionBulk):
-    FORM: List[PlainDynamicField] = [
+async def refound_order_execute(context: ActionContext, result_builder: ResultBuilder) -> Union[None, ActionResult]:
+    return result_builder.success("fake refund")
+
+
+refound_order_action: ActionDict = {
+    "scope": ActionsScope.BULK,
+    "execute": refound_order_execute,
+    "form": [
         {
             "type": ActionFieldType.STRING,
             "label": "reason",
@@ -171,10 +137,8 @@ class RefundOrder(ActionBulk):
             "default_value": "",
             "value": "",
         },
-    ]
-
-    async def execute(self, context: ActionContext, result_builder: ResultBuilder) -> Union[None, ActionResult]:
-        return result_builder.success("fake refund")
+    ],
+}
 
 
 # charts
