@@ -1,12 +1,11 @@
 import re
 import sys
+from typing import Any, Callable, List, Optional, Union, cast
 
 if sys.version_info >= (3, 9):
     import zoneinfo
 else:
     from backports import zoneinfo
-
-from typing import Any, Callable, List, Optional, Union, cast
 
 from forestadmin.datasource_toolkit.exceptions import DatasourceToolkitException
 from forestadmin.datasource_toolkit.interfaces.fields import LITERAL_OPERATORS, Operator, is_column
@@ -39,9 +38,7 @@ class LeafComponents(ConditionTreeComponent):
 
 
 def is_leaf_component(tree: Any) -> TypeGuard[LeafComponents]:
-    keys = ["field", "operator"]
-    keys = [keys, [*keys, "value"]]
-    return hasattr(tree, "keys") and sorted(tree.keys()) in keys
+    return isinstance(tree, dict) and "field" in tree.keys() and "operator" in tree.keys()
 
 
 class OverrideLeafComponents(ConditionTreeComponent, total=False):
@@ -219,6 +216,9 @@ class ConditionTreeLeaf(ConditionTree):
                 )
         return False
 
+    def some_leaf(self, handler: Callable[["ConditionTreeLeaf"], bool]) -> bool:  # noqa:F821
+        return handler(self)
+
     def unnest(self) -> "ConditionTreeLeaf":
         splited = self.field.split(":")
         if len(splited) > 1:
@@ -264,3 +264,6 @@ class ConditionTreeLeaf(ConditionTree):
             )
             is not None
         )
+
+    def to_plain_object(self) -> LeafComponents:
+        return LeafComponents(field=self.field, operator=self.operator.value, value=self.value)

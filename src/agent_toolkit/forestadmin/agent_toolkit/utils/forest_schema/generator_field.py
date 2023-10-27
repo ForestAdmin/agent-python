@@ -1,10 +1,10 @@
-from typing import Dict, List, Union, cast
+from typing import Dict, Union, cast
 
 from forestadmin.agent_toolkit.utils.forest_schema.filterable import FrontendFilterableUtils
 from forestadmin.agent_toolkit.utils.forest_schema.type import ForestServerField, RelationServer
 from forestadmin.agent_toolkit.utils.forest_schema.validation import FrontendValidationUtils
 from forestadmin.datasource_toolkit.collections import Collection
-from forestadmin.datasource_toolkit.decorators.collections import CustomizedCollection
+from forestadmin.datasource_toolkit.datasource_customizer.collection_customizer import CollectionCustomizer
 from forestadmin.datasource_toolkit.interfaces.fields import (
     Column,
     ColumnAlias,
@@ -23,23 +23,24 @@ from forestadmin.datasource_toolkit.interfaces.fields import (
     is_one_to_one,
 )
 from forestadmin.datasource_toolkit.utils.collections import CollectionUtils
+from forestadmin.datasource_toolkit.utils.schema import SchemaUtils
 
 
 class SchemaFieldGenerator:
     RELATION_MAPPING: Dict[FieldType, RelationServer] = {
         FieldType.ONE_TO_ONE: "HasOne",
-        FieldType.ONE_TO_MANY: "BelongsToMany",
+        FieldType.ONE_TO_MANY: "HasMany",
         FieldType.MANY_TO_ONE: "BelongsTo",
         FieldType.MANY_TO_MANY: "BelongsToMany",
     }
 
     @classmethod
-    def build(cls, collection: Union[Collection, CustomizedCollection], field_name: str) -> ForestServerField:
+    def build(cls, collection: Union[Collection, CollectionCustomizer], field_name: str) -> ForestServerField:
         schema: ForestServerField = {}
 
         field_schema = collection.get_field(field_name)
         if is_column(field_schema):
-            schema = cls.build_column_schema(field_name, field_schema)
+            schema = cls.build_column_schema(field_name, collection)
         elif (
             is_one_to_one(field_schema)
             or is_one_to_many(field_schema)
@@ -56,32 +57,42 @@ class SchemaFieldGenerator:
         column_type: ColumnAlias
         if isinstance(_column_type, PrimitiveType):
             column_type = _column_type.value
+        elif isinstance(_column_type, str):
+            column_type = _column_type
         elif isinstance(_column_type, list):
-            _type = cast(List[PrimitiveType], _column_type)
-            column_type = [t.value for t in _column_type]
+            column_type = [SchemaFieldGenerator.build_column_type(_column_type[0])]
         else:
-            _type = cast(Dict[str, PrimitiveType], _column_type)
-            column_type = {k: t.value for k, t in _type.items()}
+            column_type = {
+                "fields": [
+                    {"field": k, "type": SchemaFieldGenerator.build_column_type(t)} for k, t in _column_type.items()
+                ]
+            }
         return column_type
 
     @classmethod
-    def build_column_schema(cls, name: str, column: Column) -> ForestServerField:
+    def build_column_schema(cls, name: str, collection: Collection) -> ForestServerField:
+        column = collection.schema["fields"][name]
         validations = []
         if column["validations"]:
             validations = column["validations"]
 
+        is_foreign_key = SchemaUtils.is_foreign_key(collection.schema, name)
+
         res = {
+            "field": name,
             "type": cls.build_column_type(column["column_type"]),
             "validations": FrontendValidationUtils.convert_validation_list(column["validations"]),
             "defaultValue": column["default_value"],
             "enums": column["enum_values"],
-            "field": name,
             "integration": None,
             "inverseOf": None,
             "isFilterable": FrontendFilterableUtils.is_filterable(column["column_type"], column["filter_operators"]),
             "isPrimaryKey": bool(column["is_primary_key"]),
             "isSortable": bool(column["is_sortable"]),
-            "isReadOnly": bool(column["is_read_only"]),
+            # When a column is a foreign key, it is readonly.
+            # This may sound counter-intuitive: it is so that the user don't have two fields which
+            # allow updating the same foreign key in the detail-view form (fk + many to one)
+            "isReadOnly": is_foreign_key or bool(column["is_read_only"]),
             "isRequired": any([v["operator"] == Operator.PRESENT for v in validations]),
             "isVirtual": False,
             "reference": None,
@@ -101,33 +112,38 @@ class SchemaFieldGenerator:
 
     @classmethod
     def build_one_to_one_schema(
-        cls, relation: OneToOne, foreign_collection: Collection, base_schema: ForestServerField
+        cls, relation: OneToOne, collection: Collection, foreign_collection: Collection, base_schema: ForestServerField
     ) -> ForestServerField:
-        key = relation["origin_key_target"]
-        key_schema = cast(Column, foreign_collection.get_field(key))
+        target_field = collection.schema["fields"][relation["origin_key_target"]]
+        key_field = foreign_collection.schema["fields"][relation["origin_key"]]
+
         return {
             **base_schema,
-            "type": cls.build_column_type(key_schema["column_type"]),
+            "type": cls.build_column_type(key_field["column_type"]),
             "defaultValue": None,
             "isFilterable": cls.is_foreign_collection_filterable(foreign_collection),
             "isPrimaryKey": False,
             "isRequired": False,
-            "isSortable": bool(key_schema["is_sortable"]),
+            "isReadOnly": bool(key_field["is_read_only"]),
+            "isSortable": bool(target_field["is_sortable"]),
             "validations": [],
-            "reference": f"{foreign_collection.name}.{key}",
+            "reference": f"{foreign_collection.name}.{relation['origin_key_target']}",
         }
 
     @classmethod
     def build_to_many_relation_schema(
-        cls, relation: Union[OneToMany, ManyToMany], foreign_collection: Collection, base_schema: ForestServerField
+        cls,
+        relation: Union[OneToMany, ManyToMany],
+        collection: Collection,
+        foreign_collection: Collection,
+        base_schema: ForestServerField,
     ) -> ForestServerField:
         if is_one_to_many(relation):
             key = relation["origin_key_target"]
+            key_schema = cast(Column, collection.get_field(key))
         else:
-            relation = cast(ManyToMany, relation)
             key = relation["foreign_key_target"]
-
-        key_schema = cast(Column, foreign_collection.get_field(key))
+            key_schema = cast(Column, foreign_collection.get_field(key))
 
         return {
             **base_schema,
@@ -136,7 +152,7 @@ class SchemaFieldGenerator:
             "isFilterable": False,
             "isPrimaryKey": False,
             "isRequired": False,
-            "isSortable": False,
+            "isSortable": True,
             "validations": [],
             "reference": f"{foreign_collection.name}.{key}",
         }
@@ -145,7 +161,7 @@ class SchemaFieldGenerator:
     def build_many_to_one_schema(
         cls,
         relation: ManyToOne,
-        collection: Union[CustomizedCollection, Collection],
+        collection: Union[CollectionCustomizer, Collection],
         foreign_collection: Collection,
         base_schema: ForestServerField,
     ) -> ForestServerField:
@@ -167,7 +183,7 @@ class SchemaFieldGenerator:
 
     @classmethod
     def build_relation_schema(
-        cls, collection: Union[Collection, CustomizedCollection], field_name: str, field_schema: RelationAlias
+        cls, collection: Union[Collection, CollectionCustomizer], field_name: str, field_schema: RelationAlias
     ) -> ForestServerField:
         foreign_collection = collection.datasource.get_collection(field_schema["foreign_collection"])
         relation_schema: ForestServerField = {
@@ -179,9 +195,9 @@ class SchemaFieldGenerator:
             "relationship": cls.RELATION_MAPPING[field_schema["type"]],
         }
         if is_many_to_many(field_schema) or is_one_to_many(field_schema):
-            res = cls.build_to_many_relation_schema(field_schema, foreign_collection, relation_schema)
+            res = cls.build_to_many_relation_schema(field_schema, collection, foreign_collection, relation_schema)
         elif is_one_to_one(field_schema):
-            res = cls.build_one_to_one_schema(field_schema, foreign_collection, relation_schema)
+            res = cls.build_one_to_one_schema(field_schema, collection, foreign_collection, relation_schema)
         else:
             res = cls.build_many_to_one_schema(
                 cast(ManyToOne, field_schema), collection, foreign_collection, relation_schema

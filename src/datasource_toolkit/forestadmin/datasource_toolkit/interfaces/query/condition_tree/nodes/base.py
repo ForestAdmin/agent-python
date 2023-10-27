@@ -1,17 +1,11 @@
 import abc
 import sys
+from typing import Any, Awaitable, Callable, Dict, List, TypedDict, TypeVar, Union
 
 if sys.version_info >= (3, 9):
     import zoneinfo
 else:
     from backports import zoneinfo
-
-if sys.version_info >= (3, 8):
-    from typing import TypedDict
-else:
-    from typing_extensions import TypedDict
-
-from typing import Awaitable, Callable, List, TypeVar, Union
 
 from forestadmin.datasource_toolkit.exceptions import DatasourceToolkitException
 from forestadmin.datasource_toolkit.interfaces.models.collections import Collection
@@ -27,27 +21,31 @@ class ConditionTree(abc.ABC):
     @property
     @abc.abstractmethod
     def projection(self) -> Projection:
-        pass
+        """return all fields manipulated by conditionTree"""
 
     @abc.abstractmethod
     def inverse(self) -> "ConditionTree":
-        pass
+        """inverse conditionTree"""
 
     @abc.abstractmethod
     def match(self, record: RecordsDataAlias, collection: Collection, timezone: zoneinfo.ZoneInfo) -> bool:
-        pass
+        """return conditionTree matching record"""
+
+    @abc.abstractmethod
+    def some_leaf(self, handler: Callable[["ConditionTreeLeaf"], bool]) -> bool:  # noqa:F821
+        """return bool if handler return True for at least on leaf"""
 
     @abc.abstractmethod
     def replace(self, handler: "ReplacerAlias") -> "ConditionTree":
-        pass
+        """replace in conditionTree applying hander"""
 
     @abc.abstractmethod
     async def replace_async(self, handler: "AsyncReplacerAlias") -> "ConditionTree":
-        pass
+        """like replace but async handler"""
 
     @abc.abstractmethod
     def apply(self, handler: "CallbackAlias") -> None:
-        pass
+        """apply handler to condition tree"""
 
     def filter(
         self, records: List[RecordsDataAlias], collection: Collection, timezone: zoneinfo.ZoneInfo
@@ -56,11 +54,15 @@ class ConditionTree(abc.ABC):
 
     @abc.abstractmethod
     def unnest(self) -> "ConditionTree":
-        pass
+        """un nest conditionTree"""
 
     @abc.abstractmethod
     def nest(self, prefix: str) -> "ConditionTree":
-        pass
+        """nest conditionTree"""
+
+    @abc.abstractmethod
+    def to_plain_object(self) -> Dict[str, Any]:
+        """return a component version of self. Inverse of ConditionTreeFactory.from_plain_object"""
 
 
 class ConditionTreeComponent(TypedDict):

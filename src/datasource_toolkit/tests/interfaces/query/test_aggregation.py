@@ -73,7 +73,6 @@ def test_aggregation_init():
 
 
 def test_projection():
-
     aggregation = Aggregation(
         {
             "operation": "Count",
@@ -111,8 +110,8 @@ def test_projection():
 @mock.patch("forestadmin.datasource_toolkit.interfaces.query.aggregation.Aggregation._format_summaries")
 @mock.patch("forestadmin.datasource_toolkit.interfaces.query.aggregation.Aggregation._create_summaries")
 def test_apply(create_mock: mock.Mock, format_mock: mock.Mock):
-    create_mock.return_value = "create_summary"
-    format_mock.return_value = "format_summary"
+    create_mock.return_value = [{"group": {}, "start_count": 1, "Count": 0, "Sum": 0, "Min": None, "Max": None}]
+    format_mock.return_value = [{"group": {}, "value": 1}]
 
     aggregation = Aggregation(
         {
@@ -122,15 +121,28 @@ def test_apply(create_mock: mock.Mock, format_mock: mock.Mock):
     records = [{"id": 1}]
     tz = "UTC"
 
-    assert aggregation.apply(records, tz) == "format_summary"
-    format_mock.assert_called_once_with("create_summary")
+    assert aggregation.apply(records, tz) == [{"group": {}, "value": 1}]
+    format_mock.assert_called_once_with(
+        [{"group": {}, "start_count": 1, "Count": 0, "Sum": 0, "Min": None, "Max": None}]
+    )
     create_mock.assert_called_once_with(records, tz)
+
+
+def test_apply_no_mock():
+    aggregation = Aggregation(
+        {
+            "operation": "Count",
+        }
+    )
+    records = [{"id": 1}]
+    tz = "UTC"
+
+    assert aggregation.apply(records, tz) == [{"group": {}, "value": 1}]
 
 
 @mock.patch("forestadmin.datasource_toolkit.interfaces.query.aggregation.Aggregation._prefix_handler")
 @mock.patch("forestadmin.datasource_toolkit.interfaces.query.aggregation.Aggregation.replace_fields")
 def test_nest(replace_fields_mock: mock.Mock, prefix_handler_mock: mock.Mock):
-
     aggregation = Aggregation(
         {
             "field": "id",
@@ -240,7 +252,6 @@ def test_to_plain():
 
 
 def test_format_summaries():
-
     aggregation = Aggregation({"field": "price", "operation": "Avg"})
 
     summaries = [
@@ -293,7 +304,6 @@ def test_create_summaries(
     create_summary_mock: mock.Mock,
     create_group_mock: mock.Mock,
 ):
-
     tz = "UTC"
     records = [
         {"id": 1, "created_at": date.fromisoformat("2022-01-02")},
@@ -426,7 +436,6 @@ def test_create_summary(group: RecordsDataAlias):
 
 @mock.patch("forestadmin.datasource_toolkit.interfaces.query.aggregation.RecordUtils.get_field_value")
 def test_update_summary_in_place(get_field_value_mock: mock.Mock):
-
     records = [
         {
             "id": 1,

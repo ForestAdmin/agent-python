@@ -9,6 +9,20 @@ on:
     secrets:
       CC_TEST_REPORTER_ID:
         required: true
+      PYPI_TOKEN:
+        required: true
+      GH_TOKEN:
+        required: true
+      GIT_AUTHOR_EMAIL:
+        required: true
+      GIT_AUTHOR_NAME:
+        required: true
+      GIT_COMMITTER_EMAIL:
+        required: true
+      GIT_COMMITTER_NAME:
+        required: true
+      SLACK_WEBHOOK:
+        required: true
 jobs:
   changes:
     name: changes
@@ -71,7 +85,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [3.7, 3.8, 3.9, '3.10']
+        python-version: [3.8, 3.9, '3.10', 3.11]
         current_package: ${{ fromJson(inputs.packages) }}
     steps:
       - uses: actions/checkout@v3
@@ -90,38 +104,53 @@ jobs:
         python-version: ['3.10']
     steps:
       - uses: actions/checkout@v3
-      -  id: coverage
-         uses: ./.github/actions/coverage
-         with:
+      - id: coverage
+        uses: ./.github/actions/coverage
+        with:
           python-version: ${{ matrix.python-version }}
           current_package: ./src/datasource_toolkit
           CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
+
   semantic_release:
     name: Semantic release
     needs: [coverage]
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' && github.ref == 'refs/heads/beta'
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/beta')
+    outputs:
+      new_release_published: ${{ steps.release.outputs.new_release_published }}
+      new_release_version: ${{ steps.release.outputs.new_release_version }}
     strategy:
       matrix:
         python-version: ['3.10']
     steps:
       - uses: actions/checkout@v3
       - id: release
-        uses: ./.github/actions/release  
+        uses: ./.github/actions/release
         with:
           packages: ${{ inputs.packages }}
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+          GIT_AUTHOR_EMAIL: ${{ secrets.GIT_AUTHOR_EMAIL }}
+          GIT_AUTHOR_NAME: ${{ secrets.GIT_AUTHOR_NAME }}
+          GIT_COMMITTER_EMAIL: ${{ secrets.GIT_COMMITTER_EMAIL }}
+          GIT_COMMITTER_NAME: ${{ secrets.GIT_COMMITTER_NAME }}
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+
+
   pypi:
     name: Push to pypi
-    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/beta') && needs.semantic_release.outputs.new_release_published == 'true'
     needs: [semantic_release]
     runs-on: ubuntu-latest
     strategy:
+      max-parallel: 1
       matrix:
         python-version: ['3.10']
         current_package: ${{ fromJson(inputs.packages) }}
     steps:
       - uses: actions/checkout@v3
-      - id: test
-        shell: bash
-        run: |
-          echo push to ${{ matrix.current_package}}
+      - id: pypi
+        uses: ./.github/actions/pypi
+        with:
+          current_package: ${{ matrix.current_package }}
+          python-version: ${{ matrix.python-version }}
+          pypi_token: ${{ secrets.PYPI_TOKEN }}

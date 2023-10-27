@@ -1,6 +1,8 @@
 from typing import Dict, List
 
+from forestadmin.agent_toolkit.utils.context import User
 from forestadmin.datasource_toolkit.exceptions import DatasourceToolkitException
+from forestadmin.datasource_toolkit.interfaces.chart import Chart
 from forestadmin.datasource_toolkit.interfaces.models.collections import BoundCollection
 from forestadmin.datasource_toolkit.interfaces.models.collections import Datasource as DatasourceInterface
 
@@ -12,6 +14,10 @@ class DatasourceException(DatasourceToolkitException):
 class Datasource(DatasourceInterface[BoundCollection]):
     def __init__(self) -> None:
         self._collections: Dict[str, BoundCollection] = {}
+
+    @property
+    def schema(self):
+        return {"charts": {}}
 
     @property
     def collections(self) -> List[BoundCollection]:
@@ -29,3 +35,6 @@ class Datasource(DatasourceInterface[BoundCollection]):
         if collection.name in self._collections:
             raise DatasourceException(f"Collection '{collection.name}' already defined in datasource")
         self._collections[collection.name] = collection
+
+    async def render_chart(self, caller: User, name: str) -> Chart:
+        raise DatasourceException(f"Chart {name} not exists on this datasource.")

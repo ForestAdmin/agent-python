@@ -1,19 +1,20 @@
+import json
 import sys
+from ast import literal_eval
+from distutils.util import strtobool
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 if sys.version_info >= (3, 9):
     import zoneinfo
 else:
     from backports import zoneinfo
 
-import json
-from typing import Any, Dict, List, Optional, Tuple, Union
-
 from forestadmin.agent_toolkit.exceptions import AgentToolkitException
 from forestadmin.agent_toolkit.resources.collections.requests import RequestCollection, RequestRelationCollection
 from forestadmin.agent_toolkit.utils.context import Request
 from forestadmin.datasource_toolkit.collections import Collection
-from forestadmin.datasource_toolkit.decorators.collections import CustomizedCollection
-from forestadmin.datasource_toolkit.interfaces.fields import is_column, is_many_to_one, is_one_to_one
+from forestadmin.datasource_toolkit.datasource_customizer.collection_customizer import CollectionCustomizer
+from forestadmin.datasource_toolkit.interfaces.fields import PrimitiveType, is_column, is_many_to_one, is_one_to_one
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.factory import (
     ConditionTreeFactory,
     ConditionTreeFactoryException,
@@ -27,6 +28,7 @@ from forestadmin.datasource_toolkit.interfaces.query.projections.factory import 
 from forestadmin.datasource_toolkit.interfaces.query.sort import Sort
 from forestadmin.datasource_toolkit.interfaces.query.sort.factory import SortFactory
 from forestadmin.datasource_toolkit.interfaces.records import CompositeIdAlias
+from forestadmin.datasource_toolkit.utils.collections import CollectionUtils
 from forestadmin.datasource_toolkit.validations.condition_tree import (
     ConditionTreeValidator,
     ConditionTreeValidatorException,
@@ -69,12 +71,15 @@ def parse_selection_ids(request: Request) -> Tuple[List[CompositeIdAlias], bool]
         except AttributeError:
             attributes = {}
         exclude_ids = bool(attributes.get("all_records", False))  # type: ignore
-        if "ids" in attributes:
-            ids = [[id] for id in attributes["ids"]]
-        elif isinstance(request.body.get("data"), list):
-            ids = [[r["id"]] for r in request.body["data"]]
+        if exclude_ids is True:
+            ids = [[id] for id in attributes.get("all_records_ids_excluded", [])]
         else:
-            ids = []
+            if "ids" in attributes:
+                ids = [[id] for id in attributes["ids"]]
+            elif isinstance(request.body.get("data"), list):
+                ids = [[r["id"]] for r in request.body["data"]]
+            else:
+                ids = []
         return ids, exclude_ids
 
     raise Exception()
@@ -82,7 +87,7 @@ def parse_selection_ids(request: Request) -> Tuple[List[CompositeIdAlias], bool]
 
 def _get_collection(
     request: Union[RequestCollection, RequestRelationCollection]
-) -> Union[CustomizedCollection, Collection]:
+) -> Union[CollectionCustomizer, Collection]:
     collection = request.collection
     if isinstance(request, RequestRelationCollection):
         collection = request.foreign_collection
@@ -94,10 +99,10 @@ def parse_sort(request: Union[RequestCollection, RequestRelationCollection]):
     if not sort_string:
         return SortFactory.by_primary_keys(_get_collection(request))
 
-    sort_field = sort_string
+    sort_field = sort_string.replace(".", ":")
     is_descending = sort_string[0] == "-"
     if is_descending:
-        sort_field = sort_string[1:]
+        sort_field = sort_field[1:]
     return Sort([{"field": sort_field, "ascending": not is_descending}])
 
 
@@ -112,11 +117,10 @@ def parse_page(request: Request) -> Page:
             page_to_skip = subset_query["page[number]"]
 
     if not items_per_page and not page_to_skip and request.query:
-        page: Dict[str, Any] = request.query.get("page", {})
-        if "size" in page:
-            items_per_page = page["size"]
-        if "number" in page:
-            page_to_skip = page["number"]
+        if "page[size]" in request.query:
+            items_per_page = int(request.query["page[size]"])
+        if "page[number]" in request.query:
+            page_to_skip = int(request.query["page[number]"])
 
     if not items_per_page:
         items_per_page = DEFAULT_ITEMS_PER_PAGE
@@ -169,12 +173,24 @@ def parse_condition_tree(request: Union[RequestCollection, RequestRelationCollec
     filters: Optional[str] = _subset_or_query(request, "filters")
     if not filters and request.body and "filters" in request.body:
         filters = request.body["filters"]
+    elif filters is None:
+        filters: Optional[str] = _subset_or_query(request, "filter")
+        if not filters and request.body and "filter" in request.body:
+            filters = request.body["filter"]
+
     if not filters:
         return None
 
-    jsoned_filters = json.loads(filters)
+    json_filters = json.loads(filters) if isinstance(filters, str) else filters
     try:
-        condition_tree = ConditionTreeFactory.from_plain_object(jsoned_filters)
+        if isinstance(request, RequestRelationCollection):
+            collection = request.foreign_collection
+        else:
+            collection = request.collection
+
+        json_filters = _parse_value(json_filters, collection)
+
+        condition_tree = ConditionTreeFactory.from_plain_object(json_filters)
     except ConditionTreeFactoryException as e:
         raise FilterException(str(e))
 
@@ -186,9 +202,38 @@ def parse_condition_tree(request: Union[RequestCollection, RequestRelationCollec
     return condition_tree
 
 
+def _parse_value(jsoned_filters, collection):
+    if "conditions" in jsoned_filters:
+        for condition in jsoned_filters["conditions"]:
+            condition = _parse_value(condition, collection)
+        return jsoned_filters
+
+    schema = CollectionUtils.get_field_schema(collection, jsoned_filters["field"])
+
+    new_value = jsoned_filters["value"]
+    if jsoned_filters["operator"] == "in" and isinstance(jsoned_filters["value"], str):
+        values = [val.strip() for val in jsoned_filters["value"].split(",")]
+
+        if schema["column_type"] == PrimitiveType.NUMBER:
+            new_value = [literal_eval(str(value)) for value in values]
+        else:
+            new_value = values
+
+    elif schema["column_type"] == PrimitiveType.NUMBER:
+        new_value = literal_eval(str(jsoned_filters["value"]))
+
+    elif schema["column_type"] == PrimitiveType.BOOLEAN:
+        new_value = (
+            strtobool(jsoned_filters["value"]) if isinstance(jsoned_filters["value"], str) else jsoned_filters["value"]
+        )
+
+    jsoned_filters["value"] = new_value
+    return jsoned_filters
+
+
 def _parse_projection_fields(
     query: Dict[str, Any],
-    collection: Union[CustomizedCollection, Collection],
+    collection: Union[CollectionCustomizer, Collection],
     front_collection_name: str,
     is_related: bool = False,
 ) -> List[str]:

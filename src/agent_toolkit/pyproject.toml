@@ -1,61 +1,70 @@
+[build-system]
+requires = [ "poetry-core",]
+build-backend = "poetry.core.masonry.api"
+
 [tool.poetry]
 name = "forestadmin-agent-toolkit"
-version = "0.0.0"
+version = "1.0.0-beta.30"
 description = ""
-authors = ["Valentin Monté <valentinm@forestadmin.com>"]
+authors = [ "Valentin Monté <valentinm@forestadmin.com>", "Julien Barreau <julien.barreau@forestadmin.com>",]
 readme = "README.md"
-packages = [{include = "forestadmin"}]
+[[tool.poetry.packages]]
+include = "forestadmin"
 
 [tool.poetry.dependencies]
-python = "~=3.7"
+python = ">=3.8,<4.0"
 typing-extensions = ">=4.2.0, <5.0"
 tzdata = "~2022.6"
-"backports.zoneinfo" = {version = "~0.2.1", python = "<3.9", extras=["tzdata"]}
-pandas = [
-    {version = "==1.1.5", python = "<3.7.1"},
-    {version = "==1.3.5", python = ">=3.7.1,<3.8"},
-    {version = "~=1.4.2", python = ">=3.8"}
-]
 aiohttp = "~=3.8"
 oic = "~=1.4"
 python-jose = ">=3.3, <4.0"
 cachetools = "~=5.2"
 marshmallow-jsonapi = ">=0.24.0, <1.0"
+sseclient-py = "^1.5"
+forestadmin-datasource-toolkit = "1.0.0-beta.30"
+[[tool.poetry.dependencies.pandas]]
+version = ">=1.4.0"
+python = ">=3.8"
 
+[tool.poetry.dependencies."backports.zoneinfo"]
+version = "~0.2.1"
+python = "<3.9"
+extras = [ "tzdata",]
 
 [tool.poetry.group.test]
 optional = true
 
-[tool.poetry.group.test.dependencies]
-mock = [
-    {version = "4.0", python = "3.7"}
-]
-pytest = "~=7.1"
-pytest-asyncio = "~=0.18"
-coverage = "~=6.5"
-freezegun = "~=1.2.0"
-
 [tool.poetry.group.linter]
 optional = true
-
-[tool.poetry.group.linter.dependencies]
-flake8 = [
-    {version = "~=5.0", python = "<3.8.1"},
-    {version = "~=6.0", python = ">=3.8.1"}
-]
 
 [tool.poetry.group.formatter]
 optional = true
 
-[tool.poetry.group.formatter.dependencies]
-black = "~=22.10"
-
 [tool.poetry.group.sorter]
 optional = true
+
+[tool.poetry.group.test.dependencies]
+pytest = "~=7.1"
+pytest-asyncio = "~=0.18"
+coverage = "~=6.5"
+freezegun = "~=1.2.0"
+pytest-cov = "^4.0.0"
+
+[tool.poetry.group.linter.dependencies]
+[[tool.poetry.group.linter.dependencies.flake8]]
+version = "~=5.0"
+python = "<3.8.1"
+
+[[tool.poetry.group.linter.dependencies.flake8]]
+version = "~=6.0"
+python = ">=3.8.1"
+
+[tool.poetry.group.formatter.dependencies]
+black = "~=22.10"
 
 [tool.poetry.group.sorter.dependencies]
 isort = "~=3.6"
 
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+[tool.poetry.group.test.dependencies.forestadmin-datasource-toolkit]
+path = "../datasource_toolkit"
+develop = true

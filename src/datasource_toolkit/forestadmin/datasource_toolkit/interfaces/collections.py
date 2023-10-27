@@ -1,7 +1,10 @@
 import abc
-from typing import List, Optional
+from typing import Any, Dict, List, Optional
 
+from forestadmin.agent_toolkit.utils.context import User
+from forestadmin.datasource_toolkit.exceptions import ForestException
 from forestadmin.datasource_toolkit.interfaces.actions import ActionField, ActionResult
+from forestadmin.datasource_toolkit.interfaces.chart import Chart
 from forestadmin.datasource_toolkit.interfaces.models.collections import Collection as CollectionModel
 from forestadmin.datasource_toolkit.interfaces.query.aggregation import AggregateResult, Aggregation
 from forestadmin.datasource_toolkit.interfaces.query.filter.paginated import PaginatedFilter
@@ -12,41 +15,55 @@ from forestadmin.datasource_toolkit.interfaces.records import RecordsDataAlias
 
 class Collection(CollectionModel, abc.ABC):
     @abc.abstractmethod
+    def get_native_driver(self):
+        """return native driver"""
+
+    @abc.abstractmethod
     async def execute(
         self,
+        caller: User,
         name: str,
         data: RecordsDataAlias,
-        filter: Optional[Filter],
+        filter_: Optional[Filter],
     ) -> ActionResult:
-        pass
+        """to execute an action"""
+        raise ForestException(f"Action {name} is not implemented")
 
     @abc.abstractmethod
     async def get_form(
         self,
+        caller: User,
         name: str,
         data: Optional[RecordsDataAlias],
-        filter: Optional[Filter],
+        filter_: Optional[Filter],
+        meta: Optional[Dict[str, Any]],
     ) -> List[ActionField]:
-        pass
+        """to get the form of an action"""
+        return []
 
     @abc.abstractmethod
-    async def create(self, data: List[RecordsDataAlias]) -> List[RecordsDataAlias]:
-        pass
+    async def render_chart(self, caller: User, name: str, record_id: List) -> Chart:
+        """to render a chart"""
+        raise ForestException(f"Chart {name} is not implemented")
 
     @abc.abstractmethod
-    async def list(self, filter: PaginatedFilter, projection: Projection) -> List[RecordsDataAlias]:
-        pass
+    async def create(self, caller: User, data: List[RecordsDataAlias]) -> List[RecordsDataAlias]:
+        """to create records"""
 
     @abc.abstractmethod
-    async def update(self, filter: Optional[Filter], patch: RecordsDataAlias) -> None:
-        pass
+    async def list(self, caller: User, filter_: PaginatedFilter, projection: Projection) -> List[RecordsDataAlias]:
+        """to list records"""
 
     @abc.abstractmethod
-    async def delete(self, filter: Optional[Filter]) -> None:
-        pass
+    async def update(self, caller: User, filter_: Optional[Filter], patch: RecordsDataAlias) -> None:
+        """to update records"""
+
+    @abc.abstractmethod
+    async def delete(self, caller: User, filter_: Optional[Filter]) -> None:
+        """to delete records"""
 
     @abc.abstractmethod
     async def aggregate(
-        self, filter: Optional[Filter], aggregation: Aggregation, limit: Optional[int] = None
+        self, caller: User, filter_: Optional[Filter], aggregation: Aggregation, limit: Optional[int] = None
     ) -> List[AggregateResult]:
-        pass
+        """to make aggregate request"""

@@ -53,7 +53,6 @@ def test_match_records(get_primary_key_mock: mock.Mock, match_ids_mock: mock.Moc
 @mock.patch("forestadmin.datasource_toolkit.interfaces.query.condition_tree.factory.SchemaUtils.get_primary_keys")
 @mock.patch("forestadmin.datasource_toolkit.interfaces.query.condition_tree.factory.ConditionTreeFactory._match_fields")
 def test_match_ids(match_field_mock: mock.Mock, get_pk_mock: mock.Mock):
-
     PRIMARY_KEY_FIELD["is_primary_key"] = False
     schema: CollectionSchema = {
         "actions": {},
@@ -65,7 +64,7 @@ def test_match_ids(match_field_mock: mock.Mock, get_pk_mock: mock.Mock):
     with pytest.raises(ConditionTreeFactoryException) as e:
         ConditionTreeFactory.match_ids(schema, [[1]])
 
-    assert str(e.value) == "Collection must have at least one primary key"
+    assert str(e.value) == "🌳🌳🌳Collection must have at least one primary key"
 
     PRIMARY_KEY_FIELD["is_primary_key"] = True
     schema: CollectionSchema = {
@@ -79,7 +78,7 @@ def test_match_ids(match_field_mock: mock.Mock, get_pk_mock: mock.Mock):
     with pytest.raises(ConditionTreeFactoryException) as e:
         ConditionTreeFactory.match_ids(schema, [[1]])
 
-    assert str(e.value) == "Field id must support opperators: [equal, in]"
+    assert str(e.value) == "🌳🌳🌳Field id must support opperators: [equal, in]"
 
     PRIMARY_KEY_FIELD["is_primary_key"] = True
     PRIMARY_KEY_FIELD["filter_operators"] = {Operator.IN}
@@ -116,7 +115,7 @@ def test_intersect(group_mock: mock.Mock):
     group_mock.return_value = tree
     with pytest.raises(ConditionTreeFactoryException) as e:
         ConditionTreeFactory.intersect(trees)
-    assert str(e.value) == "Empty intersect"
+    assert str(e.value) == "🌳🌳🌳Empty intersect"
 
     tree = ConditionTreeBranch(Aggregator.AND, trees)
     group_mock.return_value = tree
@@ -173,7 +172,7 @@ def test_from_plain_object(
     is_branch_components_mock.return_value = False
     with pytest.raises(ConditionTreeFactoryException) as e:
         ConditionTreeFactory.from_plain_object({})
-    assert str(e.value) == "Failed to instantiate condition tree from json"
+    assert str(e.value) == "🌳🌳🌳Failed to instantiate condition tree from json"
     is_leaf_components_mock.assert_called_once_with({})
     is_branch_components_mock.assert_called_once_with({})
     from_branch_plain_object_mock.assert_not_called()
@@ -182,7 +181,6 @@ def test_from_plain_object(
 
 # Use mock is hard with recursive method
 def test_match_fields():
-
     fields = ["id"]
     values = []
 
@@ -286,7 +284,6 @@ def test_from_branch_plain_object(from_plain_component_mock: mock.Mock):
 
 
 def test_group():
-
     assert ConditionTreeFactory._group(
         Aggregator.OR, [ConditionTreeLeaf("id", Operator.EQUAL, 1)]
     ) == ConditionTreeLeaf("id", Operator.EQUAL, 1)

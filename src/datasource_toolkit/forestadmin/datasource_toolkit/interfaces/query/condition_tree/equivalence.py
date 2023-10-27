@@ -1,11 +1,10 @@
 import sys
+from typing import Callable, Dict, List, Optional, Set, Union, cast
 
 if sys.version_info >= (3, 9):
     import zoneinfo
 else:
     from backports import zoneinfo
-
-from typing import Callable, Dict, List, Optional, Set, Union, cast
 
 from forestadmin.datasource_toolkit.exceptions import DatasourceToolkitException
 from forestadmin.datasource_toolkit.interfaces.fields import ColumnAlias, Operator
@@ -63,7 +62,7 @@ class ConditionTreeEquivalent:
         operator: Operator,
         allowed_operators: Set[Operator],
         column_type: ColumnAlias,
-        visited: Optional[List[Alternative]] = [],
+        visited: Optional[List[Alternative]] = None,
     ) -> Optional[Replacer]:
         if not visited:
             visited = []
@@ -99,11 +98,7 @@ class ConditionTreeEquivalent:
                 **pattern_transforms(),
                 **time_transforms(),
             }
-        try:
-            alternatives = cls._alternatives[operator]
-        except KeyError:
-            raise ConditionTreeEquivalentException(f"Unknown operator {operator.value}")
-        return alternatives
+        return cls._alternatives.get(operator, [])
 
     @staticmethod
     def __apply_replacers(alternative: Alternative, replacers: List[Replacer]):

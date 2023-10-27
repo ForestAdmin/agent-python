@@ -1,0 +1,41 @@
+name: "Pypi"
+description: ""
+inputs:
+  python-version:
+    required: true
+    description: "The python-version used to define the python"
+  current_package:
+    required: true
+    description: "The package to push"
+  pypi_token:
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: Cancel previous running workflows
+      uses: fkirc/skip-duplicate-actions@master
+    - uses: actions/checkout@v3
+    - name: Install poetry
+      shell: bash
+      working-directory: ${{ inputs.current_package }}
+      run: pipx install poetry
+    - name: Set up Python ${{ inputs.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ inputs.python-version }}
+        cache: 'poetry'
+    - name: extract name
+      uses: SebRollen/toml-action@v1.0.1
+      id: read_name
+      with:
+        file: '${{ inputs.current_package }}pyproject.toml'
+        field: 'tool.poetry.name' 
+    - name: publish
+      working-directory: ${{ inputs.current_package }}
+      shell: bash
+      run: |
+        git pull
+        poetry build
+        poetry config pypi-token.pypi ${{ inputs.pypi_token }}
+        poetry publish

@@ -1,13 +1,6 @@
 import enum
-import sys
 from dataclasses import dataclass
-
-if sys.version_info >= (3, 8):
-    from typing import Literal, TypedDict
-else:
-    from typing_extensions import Literal, TypedDict
-
-from typing import Any, Dict, List, Optional, Set, Union
+from typing import Any, Dict, List, Literal, Optional, Set, TypedDict, Union
 
 
 class ActionsScope(enum.Enum):
@@ -21,7 +14,7 @@ class File:
     mime_type: str
     buffer: str
     name: str
-    charset: Optional[str]
+    charset: Optional[str] = None
 
 
 @dataclass
@@ -54,6 +47,7 @@ class ActionField(TypedDict):
     is_required: Optional[bool]
     is_read_only: Optional[bool]
     value: Optional[Any]
+    default_value: Optional[Any]
     watch_changes: bool
     enum_values: Optional[List[str]]
     collection_name: Optional[str]
@@ -69,6 +63,7 @@ class SuccessResult(TypedDict):
 class ErrorResult(TypedDict):
     type: Literal["Error"]
     message: str
+    format: Union[Literal["html"], Literal["text"]]
 
 
 class WebHookResult(TypedDict):

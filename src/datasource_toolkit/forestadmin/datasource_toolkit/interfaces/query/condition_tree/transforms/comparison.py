@@ -1,16 +1,10 @@
 import sys
+from typing import Any, Callable, Dict, List, TypedDict, cast
 
 if sys.version_info >= (3, 9):
     import zoneinfo
 else:
     from backports import zoneinfo
-
-from typing import Any, Callable, Dict, List, cast
-
-if sys.version_info >= (3, 8):
-    from typing import TypedDict
-else:
-    from typing_extensions import TypedDict
 
 from forestadmin.datasource_toolkit.interfaces.fields import Operator, PrimitiveType
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.factory import ConditionTreeFactory
@@ -72,7 +66,7 @@ def _not_equal_to_not_in(leaf: ConditionTreeLeaf, _: zoneinfo.ZoneInfo) -> Condi
 
 def _not_in_to_not_equal(leaf: ConditionTreeLeaf, _: zoneinfo.ZoneInfo) -> ConditionTree:
     values = cast(List[Any], leaf.value)
-    return ConditionTreeFactory.union(
+    return ConditionTreeFactory.intersect(
         [leaf.override({"operator": Operator.NOT_EQUAL, "value": item}) for item in values]
     )
 

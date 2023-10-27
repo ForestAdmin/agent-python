@@ -1,19 +1,12 @@
 import enum
 import sys
 from functools import reduce
-
-from forestadmin.datasource_toolkit.utils import removeprefix
+from typing import Any, Callable, List, Literal, Union
 
 if sys.version_info >= (3, 9):
     import zoneinfo
 else:
     from backports import zoneinfo
-if sys.version_info >= (3, 8):
-    from typing import Literal
-else:
-    from typing_extensions import Literal
-
-from typing import Any, List, Union
 
 from forestadmin.datasource_toolkit.interfaces.models.collections import Collection
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.base import (
@@ -27,6 +20,7 @@ from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.base i
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.leaf import ConditionTreeLeaf, LeafComponents
 from forestadmin.datasource_toolkit.interfaces.query.projections import Projection
 from forestadmin.datasource_toolkit.interfaces.records import RecordsDataAlias
+from forestadmin.datasource_toolkit.utils import removeprefix
 from typing_extensions import Self, TypeGuard
 
 
@@ -44,10 +38,7 @@ class BranchComponents(ConditionTreeComponent):
 
 
 def is_branch_component(tree: Any) -> TypeGuard[BranchComponents]:
-    return hasattr(tree, "keys") and sorted(tree.keys()) == [
-        "aggregator",
-        "conditions",
-    ]
+    return isinstance(tree, dict) and "aggregator" in tree.keys() and "conditions" in tree.keys()
 
 
 class ConditionTreeBranch(ConditionTree):
@@ -82,6 +73,13 @@ class ConditionTreeBranch(ConditionTree):
         if self.aggregator == Aggregator.OR:
             meth = any
         return meth([condition.match(record, collection, timezone) for condition in self.conditions])
+
+    def some_leaf(self, handler: Callable[["ConditionTreeLeaf"], bool]) -> bool:  # noqa:F821
+        for condition in self.conditions:
+            handler_res = handler(condition)
+            if handler_res is True:
+                return True
+        return False
 
     def apply(self, handler: "CallbackAlias") -> None:
         for condition in self.conditions:
@@ -126,3 +124,8 @@ class ConditionTreeBranch(ConditionTree):
     def unnest(self) -> ConditionTree:
         prefix = self._get_prefix()
         return self._remove_prefix(prefix)
+
+    def to_plain_object(self) -> BranchComponents:
+        return BranchComponents(
+            aggregator=self.aggregator.value, conditions=[condition.to_plain_object() for condition in self.conditions]
+        )

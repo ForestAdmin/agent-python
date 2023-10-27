@@ -1,5 +1,7 @@
+import json
 from typing import Any, Dict, List, Optional
 
+from forestadmin.agent_toolkit.forest_logger import ForestLogger
 from forestadmin.datasource_sqlalchemy.utils.type_converter import Converter as TypeConverter
 from forestadmin.datasource_sqlalchemy.utils.type_converter import FilterOperator
 from forestadmin.datasource_toolkit.interfaces.fields import (
@@ -14,7 +16,7 @@ from forestadmin.datasource_toolkit.interfaces.fields import (
     Validation,
 )
 from forestadmin.datasource_toolkit.interfaces.models.collections import CollectionSchema
-from sqlalchemy import Enum, Table
+from sqlalchemy import ColumnDefault, Enum, Table
 from sqlalchemy.orm import Mapper
 from sqlalchemy.sql.schema import Column as SqlAlchemyColumn
 
@@ -50,12 +52,19 @@ class ColumnFactory:
     @classmethod
     def build(cls, column: SqlAlchemyColumn) -> Column:
         column_type = TypeConverter.convert(column.type)  # type: ignore
+
+        default_value = column.default.arg if isinstance(column.default, ColumnDefault) else column.default
+        try:
+            json.dumps(default_value)
+        except TypeError:  # not JSON Serializable
+            default_value = None
+
         return {
             "column_type": column_type,
             "is_primary_key": column.primary_key,  # type: ignore
             "is_read_only": cls._build_is_read_only(column),
-            "default_value": column.default,  # type: ignore
-            "is_sortable": None,
+            "default_value": default_value,
+            "is_sortable": True,
             "validations": cls._build_validations(column),
             "filter_operators": FilterOperator.get_for_type(column_type),
             "enum_values": cls._build_enum_values(column),
@@ -86,7 +95,7 @@ class CollectionFactory:
         return {
             "foreign_collection": relation.target.name,
             "foreign_key": list(relation.local_columns)[0].name,
-            "foreign_key_target": list(relation.remote_side)[0].name,
+            "foreign_key_target": relation.target.primary_key.columns[0].name,
             "type": FieldType.MANY_TO_ONE,
         }
 
@@ -131,23 +140,37 @@ class CollectionFactory:
             fields[column.name] = ColumnFactory.build(column)  # type: ignore
 
         if mapper:
-            for relationship in mapper.relationships:  # type: ignore
+            for name, relationship in mapper.relationships.items():  # type: ignore
                 relation: Optional[RelationAlias] = None
-                if not relationship.back_populates:  # type: ignore
-                    # one to many
-                    relation = cls._build_one_to_many(relationship)
-                else:
-                    if relationship.uselist is False:  # type: ignore
-                        if list(relationship.local_columns)[0].foreign_keys:  # type: ignore
-                            relation = cls._build_many_to_one(relationship)
-                        else:
-                            relation = cls._build_one_to_one(relationship)
-                    elif relationship.secondary is not None:  # type: ignore
-                        relation = cls._build_many_to_many(model, relationship)
-                    else:
-                        relation = cls._build_one_to_many(relationship)
+                if relationship.direction.name == "MANYTOMANY":
+                    relation = cls._build_many_to_many(model, relationship)
 
-                    if relation:
-                        fields[relationship.key] = relation  # type: ignore
+                elif relationship.direction.name == "ONETOMANY":
+                    if relationship.uselist:
+                        relation = cls._build_one_to_many(relationship)
+                    else:
+                        relation = cls._build_one_to_one(relationship)
+
+                elif relationship.direction.name == "MANYTOONE":
+                    relation = cls._build_many_to_one(relationship)
+
+                # if not relationship.back_populates:  # type: ignore
+                #     # one to many
+                #     relation = cls._build_one_to_many(relationship)
+                # else:
+                #     if relationship.uselist is False:  # type: ignore
+                #         if list(relationship.local_columns)[0].foreign_keys:  # type: ignore
+                #             relation = cls._build_many_to_one(relationship)
+                #         else:
+                #             relation = cls._build_one_to_one(relationship)
+                #     elif relationship.secondary is not None:  # type: ignore
+                #         relation = cls._build_many_to_many(model, relationship)
+                #     else:
+                #         relation = cls._build_one_to_many(relationship)
+
+                if relation is not None:
+                    fields[relationship.key] = relation  # type: ignore
+                else:
+                    ForestLogger.log("error", f"A relation is not handled during introspection: {model.name}.{name} ")
 
         return {"actions": {}, "fields": fields, "searchable": False, "segments": []}

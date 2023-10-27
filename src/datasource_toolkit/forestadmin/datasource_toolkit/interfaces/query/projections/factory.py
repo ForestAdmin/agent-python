@@ -15,4 +15,4 @@ class ProjectionFactory:
             elif allow_nested and (is_one_to_one(schema) or is_many_to_one(schema)):
                 relation = collection.datasource.get_collection(schema["foreign_collection"])
                 res.extend(cls.all(relation, f"{column_name}:", False))
-        return Projection(res)
+        return Projection(*res)

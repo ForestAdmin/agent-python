@@ -1,9 +1,10 @@
+import re
 from typing import Any, List, Optional, Union, cast
 
-from forestadmin.datasource_toolkit.decorators.collections import CustomizedCollection
 from forestadmin.datasource_toolkit.exceptions import DatasourceToolkitException
 from forestadmin.datasource_toolkit.interfaces.fields import (
     Column,
+    Operator,
     PrimitiveType,
     is_column,
     is_many_to_one,
@@ -20,9 +21,7 @@ class FieldValidatorException(DatasourceToolkitException):
 
 class FieldValidator:
     @classmethod
-    def validate(
-        cls, collection: Union[CustomizedCollection, Collection], field: str, values: Optional[List[Any]] = None
-    ) -> None:
+    def validate(cls, collection: Collection, field: str, values: Optional[List[Any]] = None) -> None:
         nested_field = None
         if ":" in field:
             field, *nested_field = field.split(":")
@@ -61,15 +60,18 @@ class FieldValidator:
         if not isinstance(column_type, PrimitiveType):
             return
 
-        type = TypeGetter.get(value, column_type)
+        type_ = TypeGetter.get(value, column_type)
 
         if column_type == PrimitiveType.ENUM:
-            cls.check_enum_value(type, schema, value)
+            cls.check_enum_value(type_, schema, value)
+
+        if value is None and {"operator": Operator.PRESENT} not in schema["validations"]:
+            return
 
         if allowed_types:
-            if type not in allowed_types:
+            if type_ not in allowed_types:
                 raise FieldValidatorException(f'Wrong type for "{field}": {value}. Expects [{allowed_types}]')
-        elif type != column_type:
+        elif type_ != column_type:
             raise FieldValidatorException(f'Wrong type for "{field}": {value}. Expects {column_type}')
 
     @staticmethod
@@ -88,4 +90,13 @@ class FieldValidator:
         if not is_enum_allowed:
             raise FieldValidatorException(
                 f'The given enum value(s) [{enum_value}] is not listed in [{column_schema["enum_values"]}]'
+            )
+
+    @staticmethod
+    def validate_name(collection_name: str, name: str):
+        if " " in name:
+            sanitized_name = re.sub(r" (.)", lambda m: m.group(1).upper(), name)
+            raise FieldValidatorException(
+                f"The name of field '{name}' you configured on '{collection_name}' must not contain space. "
+                f"Something like '{sanitized_name}' should work has expected."
             )

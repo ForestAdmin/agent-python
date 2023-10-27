@@ -1,18 +1,14 @@
 import enum
 import json
 import sys
+from datetime import datetime, timedelta
+from numbers import Number
+from typing import Any, Callable, Dict, List, Literal, Optional, TypedDict, Union
 
-if sys.version_info >= (3, 8):
-    from typing import Literal, TypedDict
-else:
-    from typing_extensions import Literal, TypedDict
 if sys.version_info >= (3, 9):
     import zoneinfo
 else:
     from backports import zoneinfo
-
-from datetime import datetime, timedelta
-from typing import Any, Callable, Dict, List, Optional, Union
 
 from forestadmin.datasource_toolkit.interfaces.query.projections import Projection
 from forestadmin.datasource_toolkit.interfaces.records import RecordsDataAlias
@@ -94,8 +90,14 @@ class Aggregation:
         aggregate_fields = [self.field, *[group["field"] for group in self.groups]]
         return Projection(*[field for field in aggregate_fields if field is not None])
 
-    def apply(self, records: List[RecordsDataAlias], timezone: str) -> List[AggregateResult]:
-        return self._format_summaries(self._create_summaries(records, timezone))
+    def apply(
+        self, records: List[RecordsDataAlias], timezone: str, limit: Optional[int] = None
+    ) -> List[AggregateResult]:
+        rows = self._format_summaries(self._create_summaries(records, timezone))
+        rows = sorted(rows, key=lambda r: r["value"])
+        if limit is not None and len(rows) > limit:
+            rows = rows[:limit]
+        return rows
 
     def _prefix_handler(self, prefix: str) -> Callable[[str], str]:
         def __prefix(field: str) -> str:
@@ -176,14 +178,13 @@ class Aggregation:
         summary["start_count"] += 1  #  count(*)
         if self.field:
             value = RecordUtils.get_field_value(record, self.field)
-            is_number = isinstance(value, int)
             if value is not None:
                 summary["Count"] += 1  #  count(field)
-                if is_number and (summary["Min"] is None or value < summary["Min"]):
+                if summary["Min"] is None or value < summary["Min"]:
                     summary["Min"] = value
-                if is_number and (summary["Max"] is None or value > summary["Max"]):
+                if summary["Max"] is None or value > summary["Max"]:
                     summary["Max"] = value
-            if is_number:
+            if isinstance(value, Number):
                 summary["Sum"] += value
         return summary
 

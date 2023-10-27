@@ -55,11 +55,10 @@ class CustomClientOic(OicClient):
 
 
 class ClientFactory:
-
     oic_client: Optional[CustomClientOic] = None
 
     @classmethod
-    async def build(cls, callback_url: str, options: Options) -> CustomClientOic:
+    async def build(cls, options: Options) -> CustomClientOic:
         if cls.oic_client:
             return cls.oic_client
 
@@ -68,7 +67,6 @@ class ClientFactory:
         client = CustomClientOic()
         client.register(  # type: ignore
             issuer_metadata["registration_endpoint"],
-            redirect_uris=[callback_url],
             registration_token=options["env_secret"],
         )
         client.handle_provider_config(

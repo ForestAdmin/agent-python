@@ -15,18 +15,21 @@ class TypeGetterException(DatasourceToolkitException):
 class TypeGetter:
     @classmethod
     def get(cls, value: Any, type_context: Optional[PrimitiveType]) -> Union[PrimitiveType, ValidationType]:
-
         if isinstance(value, list):
             value = cast(List[Any], value)
             return cls._get_array_type(value, type_context)
+        elif isinstance(value, bytes):
+            return PrimitiveType.BINARY
         elif isinstance(value, str):
             return cls._get_type_from_string(value, type_context)
+        elif isinstance(value, bool):
+            return PrimitiveType.BOOLEAN
         elif isinstance(value, float) or isinstance(value, int):
             return PrimitiveType.NUMBER
         elif isinstance(value, datetime):
             return PrimitiveType.DATE
-        elif isinstance(value, bool):
-            return PrimitiveType.BOOLEAN
+        elif isinstance(value, date):
+            return PrimitiveType.DATE_ONLY
         elif isinstance(value, dict) and type_context == PrimitiveType.JSON:
             return PrimitiveType.JSON
 
@@ -93,7 +96,7 @@ class TypeGetter:
         except TypeGetterException:
             pass
 
-        if type_context in [PrimitiveType.ENUM, PrimitiveType.STRING]:
+        if type_context in [PrimitiveType.ENUM, PrimitiveType.STRING, PrimitiveType.BINARY]:
             return type_context
         elif cls._is_json_type(value):
             return PrimitiveType.JSON
@@ -107,7 +110,7 @@ class TypeGetter:
     def _get_array_type(
         cls, value: List[Any], type_context: Optional[PrimitiveType]
     ) -> Union[PrimitiveType, ValidationType]:
-        if len(value):
+        if len(value) == 0:
             return ValidationTypesArray.EMPTY
         mapping = (
             (PrimitiveType.NUMBER, ValidationTypesArray.NUMBER),

@@ -1,17 +1,9 @@
-import sys
-
-from forestadmin.datasource_toolkit.utils import removeprefix
-
-if sys.version_info >= (3, 8):
-    from typing import TypedDict
-else:
-    from typing_extensions import TypedDict
-
-from typing import Callable, List, Union
+from typing import Callable, List, TypedDict, Union
 
 from forestadmin.datasource_toolkit.exceptions import DatasourceToolkitException
 from forestadmin.datasource_toolkit.interfaces.query.projections import Projection
 from forestadmin.datasource_toolkit.interfaces.records import RecordsDataAlias
+from forestadmin.datasource_toolkit.utils import removeprefix
 from forestadmin.datasource_toolkit.utils.records import RecordUtils
 
 
@@ -32,28 +24,25 @@ class Sort(list):  # type: ignore
     def projection(self: List[PlainSortClause]) -> Projection:
         return Projection(*[plain_sort["field"] for plain_sort in self])
 
-    def replace_clauses(self: List[PlainSortClause], callback: "ReplaceCallback"):
+    def replace_clauses(self: List[PlainSortClause], callback: "ReplaceCallback") -> "Sort":
         clauses: List[PlainSortClause] = []
         for plain_sort in self:
             clause = callback(plain_sort)
             if isinstance(clause, list):
-                clauses.append(*clause)  # type: ignore
+                clauses.extend(clause)  # type: ignore
             else:
                 clauses.append(clause)
         return Sort(clauses)
 
-    def nest(self: List[PlainSortClause], prefix: str) -> List[PlainSortClause]:
+    def nest(self: List[PlainSortClause], prefix: str) -> "Sort":
         if prefix:
-            for plain_sort in self:
-                plain_sort["field"] = f'{prefix}:{plain_sort["field"]}'
+            return Sort(map(lambda plain_sort: {**plain_sort, "field": f'{prefix}:{plain_sort["field"]}'}, self))
         return self
 
-    def inverse(self: List[PlainSortClause]) -> List[PlainSortClause]:
-        for plain_sort in self:
-            plain_sort["ascending"] = not plain_sort["ascending"]
-        return self
+    def inverse(self: List[PlainSortClause]) -> "Sort":
+        return Sort(map(lambda clause: {**clause, "ascending": not clause["ascending"]}, self))
 
-    def unnest(self: List[PlainSortClause]) -> List[PlainSortClause]:
+    def unnest(self: List[PlainSortClause]) -> "Sort":
         splited = self[0]["field"].split(":")
         prefix = splited[0]
         plain_sorts: List[PlainSortClause] = []
@@ -67,7 +56,7 @@ class Sort(list):  # type: ignore
     def apply(self: List[PlainSortClause], records: List[RecordsDataAlias]) -> List[RecordsDataAlias]:
         for plain_sort in self[::-1]:
             records.sort(
-                key=lambda record: RecordUtils.get_field_value(record, plain_sort["field"]),
+                key=lambda record: RecordUtils.get_field_value(record, plain_sort["field"]) or 0,
                 reverse=not plain_sort["ascending"],
             )
         return records

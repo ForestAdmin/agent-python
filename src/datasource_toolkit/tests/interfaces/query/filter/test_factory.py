@@ -1,18 +1,14 @@
 import sys
+from typing import cast
+from unittest import mock
 
-if sys.version_info < (3, 8):
-    from mock import AsyncMock
-else:
-    from unittest.mock import AsyncMock
 if sys.version_info >= (3, 9):
     import zoneinfo
 else:
     from backports import zoneinfo
 
-from typing import cast
-from unittest import mock
-
 import pytest
+from forestadmin.agent_toolkit.utils.context import User
 from forestadmin.datasource_toolkit.collections import Collection
 from forestadmin.datasource_toolkit.interfaces.fields import FieldType, ManyToMany, Operator
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.branch import Aggregator, ConditionTreeBranch
@@ -22,10 +18,20 @@ from forestadmin.datasource_toolkit.interfaces.query.filter.paginated import Pag
 from forestadmin.datasource_toolkit.interfaces.query.filter.unpaginated import Filter
 from forestadmin.datasource_toolkit.interfaces.query.projections import Projection
 
+mocked_caller = User(
+    rendering_id=1,
+    user_id=1,
+    tags={},
+    email="dummy@user.fr",
+    first_name="dummy",
+    last_name="user",
+    team="operational",
+    timezone=zoneinfo.ZoneInfo("Europe/Paris"),
+)
+
 
 @mock.patch("forestadmin.datasource_toolkit.interfaces.query.filter.factory.time_transforms")
 def test_shift_period_filter(mock_time_transform: mock.MagicMock):
-
     shift_period_filter_replacer = FilterFactory._shift_period_filter("UTC")  # type: ignore
     leaf = ConditionTreeLeaf(field="test", operator=Operator.PREVIOUS_YEAR)
     mock_replacer = mock.MagicMock(return_value="fake_replacer")
@@ -61,46 +67,15 @@ def test_get_previous_period_filter(mock_shifted_period: mock.MagicMock):
         FilterFactory.get_previous_period_filter(filter)
 
 
-# unable to mock the logic her
-def test_build_for_through_relation():
-    """
-    parent *<->* child_parent *<->* child
-    """
-    filter = PaginatedFilter({"timezone": zoneinfo.ZoneInfo("UTC")})
-    assert FilterFactory._build_for_through_relation(  # type: ignore
-        filter, "parent_id", "child", 1
-    ) == PaginatedFilter(
-        {"timezone": zoneinfo.ZoneInfo("UTC"), "condition_tree": ConditionTreeLeaf("parent_id", Operator.EQUAL, 1)}
-    )
-
-    filter = PaginatedFilter(
-        {"timezone": zoneinfo.ZoneInfo("UTC"), "condition_tree": ConditionTreeLeaf("firstname", Operator.EQUAL, "fake")}
-    )
-    assert FilterFactory._build_for_through_relation(  # type: ignore
-        filter, "parent_id", "child", 1
-    ) == PaginatedFilter(
-        {
-            "timezone": zoneinfo.ZoneInfo("UTC"),
-            "condition_tree": ConditionTreeBranch(
-                Aggregator.AND,
-                [
-                    ConditionTreeLeaf("parent_id", Operator.EQUAL, 1),
-                    ConditionTreeLeaf("child:firstname", Operator.EQUAL, "fake"),
-                ],
-            ),
-        }
-    )
-
-
 @pytest.mark.asyncio
 async def test_make_through_filter():
     with mock.patch(
         "forestadmin.datasource_toolkit.interfaces.query.filter.factory.CollectionUtils.get_value",
-        new_callable=AsyncMock,
+        new_callable=mock.AsyncMock,
     ) as mock_get_value:
         with mock.patch(
             "forestadmin.datasource_toolkit.interfaces.query.filter.factory.FilterFactory.make_foreign_filter",
-            new_callable=AsyncMock,
+            new_callable=mock.AsyncMock,
         ) as mock_make_foreign_filter:
             with mock.patch.object(Collection, "__abstractmethods__", new_callable=set):
                 collection = Collection(name="test", datasource=mock.MagicMock())  # type: ignore
@@ -128,59 +103,54 @@ async def test_make_through_filter():
                     }
                 }
 
-                with mock.patch(
-                    "forestadmin.datasource_toolkit.interfaces.query.filter.factory.FilterFactory._build_for_through_re"
-                    "lation"
-                ) as mock_build_for_through_relation:
-                    mock_build_for_through_relation.return_value = "fake_through"
+                mock_collection = mock.MagicMock()
+                mock_collection.list = mock.AsyncMock(return_value=[{"id": 1}])
+                with mock.patch.object(collection.datasource, "get_collection", return_value=mock_collection):
                     res = await FilterFactory.make_through_filter(
+                        mocked_caller,
                         collection,
                         [1],
-                        cast(ManyToMany, collection.schema["fields"]["parent"]),
-                        PaginatedFilter(
-                            {
-                                "timezone": zoneinfo.ZoneInfo("UTC"),
-                            }
-                        ),
-                    )
-                    assert res == "fake_through"
-                    mock_get_value.assert_called_once_with(collection, [1], "id")
-                    mock_build_for_through_relation.assert_called_once_with(
-                        PaginatedFilter(
-                            {
-                                "timezone": zoneinfo.ZoneInfo("UTC"),
-                            }
-                        ),
-                        "child_id",
                         "parent",
-                        "fake_value",
+                        PaginatedFilter(
+                            {
+                                "timezone": zoneinfo.ZoneInfo("UTC"),
+                            }
+                        ),
                     )
+
+                assert res.condition_tree.aggregator == Aggregator.AND
+                assert ConditionTreeLeaf("child_id", Operator.EQUAL, "fake_value") in res.condition_tree.conditions
+                assert ConditionTreeLeaf("parent_id", Operator.IN, [1]) in res.condition_tree.conditions
+
+                mock_get_value.assert_called_once_with(mocked_caller, collection, [1], "id")
                 mock_get_value.reset_mock()
 
                 # test with unnestable PaginatedFilter
+                fake_collection = mock.Mock(name="fake_collection", spec=Collection)
+                fake_collection.list = mock.AsyncMock(
+                    return_value=[
+                        {"id": "fake_record_1"},
+                        {"id": "fake_record_2"},
+                    ]
+                )
+
+                fake_datasource = mock.MagicMock()
+                fake_datasource.get_collection = mock.MagicMock(return_value=fake_collection)
+                collection._datasource = fake_datasource  # type: ignore
+
+                mock_make_foreign_filter.reset_mock()
+                mock_make_foreign_filter.return_value = "fake_filter"
+                mock_get_value.return_value = "fake_value"
+
                 with mock.patch(
-                    "forestadmin.datasource_toolkit.interfaces.query.filter.factory.FilterFactory._build_for_through_re"
-                    "lation"
-                ) as mock_build_for_through_relation:
-                    fake_collection = mock.Mock(name="fake_collection", spec=Collection)
-                    fake_collection.list = AsyncMock(
-                        return_value=[
-                            {"id": "fake_record_1"},
-                            {"id": "fake_record_2"},
-                        ]
-                    )
-
-                    fake_datasource = mock.MagicMock()
-                    fake_datasource.get_collection = mock.MagicMock(return_value=fake_collection)
-                    collection._datasource = fake_datasource  # type: ignore
-
-                    mock_make_foreign_filter.return_value = "fake_filter"
-                    mock_get_value.return_value = "fake_value"
-
+                    "forestadmin.datasource_toolkit.interfaces.query.filter.factory.CollectionUtils.get_through_target",
+                    return_value="association",
+                ):
                     res = await FilterFactory.make_through_filter(
+                        mocked_caller,
                         collection,
                         [1],
-                        cast(ManyToMany, collection.schema["fields"]["parent"]),
+                        "parent",
                         PaginatedFilter(
                             {
                                 "search": "a",
@@ -188,29 +158,31 @@ async def test_make_through_filter():
                             }
                         ),
                     )
-                    mock_get_value.assert_called_once_with(collection, [1], "id")
-                    fake_datasource.get_collection.assert_called_once_with("parent")  # type: ignore
-                    mock_build_for_through_relation.assert_not_called()
-                    mock_make_foreign_filter.assert_called_once_with(
-                        collection,
-                        [1],
-                        cast(ManyToMany, collection.schema["fields"]["parent"]),
-                        PaginatedFilter(
-                            {
-                                "search": "a",
-                                "timezone": zoneinfo.ZoneInfo("UTC"),
-                            }
-                        ),
-                    )
-                    fake_collection.list.assert_called_once_with("fake_filter", Projection("id"))  # type: ignore
-                    assert res == PaginatedFilter(
+                mock_get_value.assert_called_once_with(mocked_caller, collection, [1], "id")
+                fake_datasource.get_collection.assert_called_once_with("parent")  # type: ignore
+                mock_make_foreign_filter.assert_called_once_with(
+                    mocked_caller,
+                    collection,
+                    [1],
+                    cast(ManyToMany, collection.schema["fields"]["parent"]),
+                    PaginatedFilter(
                         {
-                            "condition_tree": ConditionTreeBranch(
-                                Aggregator.AND,
-                                conditions=[
-                                    ConditionTreeLeaf("child_id", Operator.EQUAL, "fake_value"),
-                                    ConditionTreeLeaf("parent_id", Operator.IN, ["fake_record_1", "fake_record_2"]),
-                                ],
-                            )
+                            "search": "a",
+                            "timezone": zoneinfo.ZoneInfo("UTC"),
                         }
-                    )
+                    ),
+                )
+                fake_collection.list.assert_called_once_with(
+                    mocked_caller, "fake_filter", Projection("id")
+                )  # type: ignore
+                assert res == PaginatedFilter(
+                    {
+                        "condition_tree": ConditionTreeBranch(
+                            Aggregator.AND,
+                            conditions=[
+                                ConditionTreeLeaf("child_id", Operator.EQUAL, "fake_value"),
+                                ConditionTreeLeaf("parent_id", Operator.IN, ["fake_record_1", "fake_record_2"]),
+                            ],
+                        )
+                    }
+                )

@@ -14,7 +14,6 @@ class ConverterException(DatasourceToolkitException):
 
 
 class Converter:
-
     TYPES: Dict[Type[sqltypes.TypeEngine], PrimitiveType] = {
         sqltypes.BigInteger: PrimitiveType.NUMBER,
         sqltypes.Boolean: PrimitiveType.BOOLEAN,
@@ -34,6 +33,9 @@ class Converter:
         sqltypes.Time: PrimitiveType.TIME_ONLY,
         sqltypes.Unicode: PrimitiveType.STRING,
         sqltypes.UnicodeText: PrimitiveType.STRING,
+        sqltypes.LargeBinary: PrimitiveType.BINARY,
+        sqltypes.BINARY: PrimitiveType.BINARY,
+        sqltypes.PickleType: PrimitiveType.BINARY,
         UUID: PrimitiveType.UUID,
     }
 
@@ -43,13 +45,17 @@ class Converter:
         if type_class == ARRAY:
             return [cls.convert(_type.item_type)]  # type: ignore
         try:
-            return cls.TYPES[_type.__class__]
+            if type_class in cls.TYPES:
+                return cls.TYPES[type_class]
+            elif isinstance(_type, sqltypes.TypeDecorator):  # custom type
+                return cls.convert(_type.impl)
+            else:
+                raise ConverterException(f'Type "{_type.__class__}" is unknown')
         except KeyError:
             raise ConverterException(f'Type "{_type.__class__}" is unknown')
 
 
 class FilterOperator:
-
     COMMON_OPERATORS: Set[Operator] = {
         Operator.BLANK,
         Operator.EQUAL,
@@ -67,12 +73,15 @@ class FilterOperator:
         Operator.STARTS_WITH: "_starts_with_operator",
         Operator.ENDS_WITH: "_ends_with_operator",
         Operator.GREATER_THAN: "_greater_than_operator",
+        Operator.AFTER: "_greater_than_operator",
         Operator.LESS_THAN: "_less_than_operator",
+        Operator.BEFORE: "_less_than_operator",
         Operator.MISSING: "_missing_operator",
         Operator.PRESENT: "_present_operator",
         Operator.IN: "_in_operator",
         Operator.NOT_IN: "_not_in_operator",
         Operator.INCLUDES_ALL: "_includes_all",
+        Operator.MATCH: "_regexp_match",
     }
 
     @staticmethod
@@ -146,6 +155,10 @@ class FilterOperator:
     def _includes_all(column: SqlAlchemyColumn):
         return column.__eq__
 
+    @staticmethod
+    def _regexp_match(column: SqlAlchemyColumn):
+        return column.regexp_match
+
     @classmethod
     def get_operator(cls, columns: SqlAlchemyColumn, operator: Operator) -> Callable[[Optional[str]], Any]:
         try:
@@ -156,8 +169,7 @@ class FilterOperator:
             return getattr(cls, meth)(columns[0])
 
     @classmethod
-    def get_for_type(cls, _type: ColumnAlias) -> set[Operator]:
-
+    def get_for_type(cls, _type: ColumnAlias) -> Set[Operator]:
         operators: Set[Operator] = set()
         if isinstance(_type, list):
             operators = {
@@ -211,5 +223,10 @@ class FilterOperator:
             operators = {*cls.COMMON_OPERATORS, Operator.IN, Operator.NOT_IN}
         elif _type == PrimitiveType.JSON:
             operators = cls.COMMON_OPERATORS
+        elif _type == PrimitiveType.BINARY:
+            operators = {
+                *cls.COMMON_OPERATORS,
+                Operator.IN,
+            }
 
         return operators

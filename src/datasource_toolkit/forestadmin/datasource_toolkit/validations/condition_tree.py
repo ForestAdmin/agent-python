@@ -1,6 +1,5 @@
 from typing import Union, cast
 
-from forestadmin.datasource_toolkit.decorators.collections import CustomizedCollection
 from forestadmin.datasource_toolkit.exceptions import DatasourceToolkitException
 from forestadmin.datasource_toolkit.interfaces.fields import Column, PrimitiveType, is_column
 from forestadmin.datasource_toolkit.interfaces.models.collections import Collection
@@ -22,7 +21,13 @@ class ConditionTreeValidatorException(DatasourceToolkitException):
 
 class ConditionTreeValidator:
     @classmethod
-    def _validate_leaf_condition(cls, collection: Union[Collection, CustomizedCollection]):
+    def _validate_leaf_condition(
+        cls,
+        collection: Union[
+            Collection,
+            "CollectionCustomizer",  # noqa:F821
+        ],
+    ):
         def validate_condition_tree(condition: ConditionTree):
             condition = cast(ConditionTreeLeaf, condition)
             schema = CollectionUtils.get_field_schema(collection, condition.field)
@@ -37,7 +42,11 @@ class ConditionTreeValidator:
         return validate_condition_tree
 
     @classmethod
-    def validate(cls, condition_tree: ConditionTree, collection: Union[Collection, CustomizedCollection]):
+    def validate(
+        cls,
+        condition_tree: ConditionTree,
+        collection: Union[Collection, "CollectionCustomizer"],  # noqa:F821
+    ):
         condition_tree.apply(cls._validate_leaf_condition(collection))
 
     @staticmethod
@@ -70,7 +79,7 @@ class ConditionTreeValidator:
             value_type = TypeGetter.get(value, column_schema["column_type"])
 
         error_msg = (
-            f'The given value attribute "{value}" (type: {value_type}) has an unexpected value'
+            f'The given value attribute "{value}" (type: {value_type}) has an unexpected value '
             'for the given operator "{condition_tree.operator}."'
         )
         allowed_types = MAP_ALLOWED_TYPES_FOR_OPERATOR.get(condition_tree.operator, [])

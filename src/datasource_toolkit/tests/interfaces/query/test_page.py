@@ -2,7 +2,6 @@ from forestadmin.datasource_toolkit.interfaces.query.page import Page
 
 
 def test_page_init():
-
     page = Page()
     assert page.skip == 0
     assert page.limit is None
@@ -21,7 +20,6 @@ def test_page_init():
 
 
 def test_page_apply():
-
     page = Page(skip=0)
     records = [
         {

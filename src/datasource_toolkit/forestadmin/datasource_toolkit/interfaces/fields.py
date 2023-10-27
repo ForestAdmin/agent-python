@@ -1,12 +1,6 @@
 import enum
-import sys
-
-if sys.version_info >= (3, 8):
-    from typing import Literal, TypedDict
-else:
-    from typing_extensions import Literal, TypedDict
-
-from typing import Any, Dict, List, Optional, Set, Union
+from typing import Any, Dict, List, Literal, Optional, Set, TypedDict, Union
+from uuid import UUID
 
 from typing_extensions import NotRequired, TypeGuard
 
@@ -25,6 +19,8 @@ class Operator(enum.Enum):
     STARTS_WITH = "starts_with"
     ENDS_WITH = "ends_with"
     CONTAINS = "contains"
+    MATCH = "Match"
+    # ICONTAINS = "icontains"
     NOT_CONTAINS = "not_contains"
     LONGER_THAN = "longer_than"
     SHORTER_THAN = "shorter_than"
@@ -99,6 +95,7 @@ class PrimitiveType(enum.Enum):
     STRING = "String"
     TIME_ONLY = "Timeonly"
     UUID = "Uuid"
+    BINARY = "Binary"
 
 
 LiteralManyToOne = Literal["ManyToOne"]
@@ -191,3 +188,11 @@ def is_many_to_many(field: "FieldAlias") -> TypeGuard[ManyToMany]:
 
 def is_relation(field: "FieldAlias") -> TypeGuard[RelationAlias]:
     return is_many_to_one(field) or is_one_to_many(field) or is_one_to_one(field) or is_many_to_many(field)
+
+
+def is_valid_uuid(uuid: str) -> bool:
+    try:
+        UUID(uuid)
+        return True
+    except ValueError:
+        return False

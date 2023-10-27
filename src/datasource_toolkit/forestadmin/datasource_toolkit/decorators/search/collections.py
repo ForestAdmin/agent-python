@@ -1,14 +1,19 @@
-from typing import Dict, List, Optional, Tuple, Union, cast
+from ast import literal_eval
+from typing import Any, Awaitable, Callable, List, Optional, Tuple, Union
 
+from forestadmin.agent_toolkit.utils.context import User
+from forestadmin.datasource_toolkit.context.collection_context import CollectionCustomizationContext
+from forestadmin.datasource_toolkit.decorators.collection_decorator import CollectionDecorator
+from forestadmin.datasource_toolkit.interfaces.collections import Collection
 from forestadmin.datasource_toolkit.interfaces.fields import (
     Column,
     ColumnAlias,
-    FieldAlias,
     Operator,
     PrimitiveType,
     is_column,
     is_many_to_one,
     is_one_to_one,
+    is_valid_uuid,
 )
 from forestadmin.datasource_toolkit.interfaces.models.collections import BoundCollection, CollectionSchema, Datasource
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.factory import ConditionTreeFactory
@@ -16,107 +21,111 @@ from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.base i
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.leaf import ConditionTreeLeaf
 from forestadmin.datasource_toolkit.interfaces.query.filter.paginated import PaginatedFilter
 from forestadmin.datasource_toolkit.interfaces.query.filter.unpaginated import Filter
-from forestadmin.datasource_toolkit.validations.type_getter import TypeGetter
-from typing_extensions import TypeGuard
+
+SearchDefinition = Callable[[Any, bool, CollectionCustomizationContext], ConditionTree]
 
 
-class SearchMixin:  # type: ignore
+class SearchCollectionDecorator(CollectionDecorator):
+    def __init__(self, collection: Collection, datasource: Datasource[BoundCollection]):
+        super().__init__(collection, datasource)
+        self._replacer: SearchDefinition = None
 
-    datasource: property
+    def replace_search(self, replacer: SearchDefinition):
+        self._replacer = replacer
 
-    TYPE_TO_OPERATOR: Dict[ColumnAlias, Operator] = {
-        PrimitiveType.STRING: Operator.CONTAINS,
-        PrimitiveType.ENUM: Operator.EQUAL,
-        PrimitiveType.NUMBER: Operator.EQUAL,
-        PrimitiveType.UUID: Operator.EQUAL,
-    }
+    def _refine_schema(self, sub_schema: CollectionSchema) -> CollectionSchema:
+        return {**sub_schema, "searchable": True}
 
-    @property
-    def schema(self) -> CollectionSchema:
-        schema: CollectionSchema = super(SearchMixin, self).schema  # type: ignore
-        schema["searchable"] = True
-        return schema
+    def _default_replacer(self, search: str, extended: bool) -> ConditionTree:
+        searchable_fields = self._get_searchable_fields(self.child_collection, extended)
+        conditions = [self._build_condition(name, field, search) for (name, field) in searchable_fields]
+
+        return ConditionTreeFactory.union(conditions)
 
     async def _refine_filter(
-        self, filter: Union[Optional[PaginatedFilter], Optional[Filter]]
+        self, caller: User, _filter: Union[Optional[PaginatedFilter], Optional[Filter]]
     ) -> Optional[Union[PaginatedFilter, Filter]]:
-        filter = cast(PaginatedFilter, await super()._refine_filter(filter))  # type: ignore
-        if not filter or not filter.search:
-            return filter
+        # Search string is not significant
+        if _filter.search is None or _filter.search.strip() == "":
+            return _filter.override({"search": None})
 
-        if self._is_empty_string(filter.search):
-            return filter.override({"search": None})
+        # Implement search ourselves
+        if self._replacer or not self.child_collection.schema["searchable"]:
+            context = CollectionCustomizationContext(self, caller)
+            tree = self._default_replacer(_filter.search, _filter)
 
-        searchable_fields = self._get_searchable_fields(self.schema, filter.search_extended or False)
+            if self._replacer is not None:
+                tree = self._replacer(_filter.search, _filter.search_extended, context)
+                if isinstance(tree, Awaitable):
+                    tree = await tree
 
-        conditions: List[ConditionTree] = []
-        for field, schema in searchable_fields:
-            try:
-                condition = self._build_condition(field, schema, filter.search)
-            except ValueError:
-                condition = None
-            if condition:
-                conditions.append(condition)
-        trees: List[ConditionTree] = []
-        if conditions:
-            trees.append(ConditionTreeFactory.union(conditions))
-        if filter.condition_tree:
-            trees.append(filter.condition_tree)
+                if isinstance(tree, dict):
+                    tree = ConditionTreeFactory.from_plain_object(tree)
 
-        if trees:
-            return filter.override({"condition_tree": ConditionTreeFactory.intersect(trees), "search": None})
+            # Note that if no fields are searchable with the provided searchString, the conditions
+            # array might be empty, which will create a condition returning zero records
+            # (this is the desired behavior).
+            return _filter.override(
+                {"condition_tree": ConditionTreeFactory.intersect([_filter.condition_tree, tree]), "search": None}
+            )
 
-        raise Exception("filter search type not matching any fields's type")
+        # Let sub collection deal with the search
+        return _filter
 
-    def _build_condition(self, field: str, schema: Column, search: str) -> Optional[ConditionTree]:
-        condition: Optional[ConditionTree] = None
-        type_ = cast(PrimitiveType, schema["column_type"])
-        enum_values = schema["enum_values"] or []
-        value: Union[int, float, str] = search
+    def _build_condition(self, field: str, schema: Column, search: str) -> Union[ConditionTree, None]:
+        if (
+            schema["column_type"] == PrimitiveType.NUMBER
+            and search.isnumeric()
+            and Operator.EQUAL in schema.get("filter_operators", [])
+        ):
+            value = literal_eval(str(search))
+            return ConditionTreeLeaf(field, Operator.EQUAL, value)
 
-        if schema["column_type"] == PrimitiveType.NUMBER:
-            try:
-                value = int(search)
-            except ValueError:
-                value = float(search)
+        if schema["column_type"] == PrimitiveType.ENUM and Operator.EQUAL in schema.get("filter_operators", []):
+            search_value = self.lenient_find(schema["enum_values"], search)
+            if search_value is not None:
+                return ConditionTreeLeaf(field, Operator.EQUAL, search_value)
 
-        search_type = TypeGetter.get(value, type_)
+        if schema["column_type"] == PrimitiveType.STRING:
+            support_icontains = False  # Operator.ICONTAINS in schema.get("filter_operators",[])
+            support_contains = Operator.CONTAINS in schema.get("filter_operators", [])
+            support_equal = Operator.EQUAL in schema.get("filter_operators", [])
+            if support_icontains and not support_contains:
+                pass  # operator = Operator.ICONTAINS
+            elif support_contains:
+                operator = Operator.CONTAINS
+            elif support_equal:
+                operator = Operator.EQUAL
+            else:
+                operator = None
 
-        if self._is_valid_enum(enum_values, search, type_) or search_type in [PrimitiveType.NUMBER, PrimitiveType.UUID]:
-            condition = ConditionTreeLeaf(field, Operator.EQUAL, value)
-        elif search_type == PrimitiveType.STRING:
-            condition = ConditionTreeLeaf(field, Operator.CONTAINS, value)
+            if operator:
+                return ConditionTreeLeaf(field, operator, search)
 
-        return condition
+        if (
+            schema["column_type"] == PrimitiveType.UUID
+            and is_valid_uuid(search)
+            and Operator.EQUAL in schema.get("filter_operators", [])
+        ):
+            return ConditionTreeLeaf(field, Operator.EQUAL, search)
 
-    def _is_valid_enum(self, enum_values: List[str], search: str, search_type: PrimitiveType) -> bool:
-        values = [enum_value.lower() for enum_value in enum_values]
-        search = search.lower().strip()
-        return search_type == PrimitiveType.ENUM and search in values
+    def lenient_find(self, haystack: List[str], needle: str) -> Union[str, None]:
+        for item in haystack:
+            if needle.strip() == item or needle.strip().lower() == item.lower():
+                return item
+        return None
 
-    def _get_searchable_fields(self, schema: CollectionSchema, search_extended: bool) -> List[Tuple[str, Column]]:
-        fields = list(schema["fields"].items())
-        if search_extended:
-            fields.extend(self._get_deep_fields(fields))
-        return [(field_name, schema) for field_name, schema in fields if self._is_searchable(schema)]
+    def _get_searchable_fields(self, collection: Collection, extended: bool) -> List[Tuple[str, ColumnAlias]]:
+        fields: List[Tuple[str, ColumnAlias]] = []
 
-    def _is_searchable(self, schema: FieldAlias) -> TypeGuard[Column]:
-        filter_operators = schema.get("filter_operators") or set()
-        if is_column(schema):
-            try:
-                return self.TYPE_TO_OPERATOR[schema["column_type"]] in filter_operators
-            except KeyError:
-                return False
-        return False
+        for name, field in collection.schema["fields"].items():
+            if is_column(field):
+                fields.append((name, field))
 
-    def _get_deep_fields(self, fields: List[Tuple[str, FieldAlias]]):
-        deep_fields: List[Tuple[str, FieldAlias]] = []
-        for name, field in fields:
-            if is_many_to_one(field) or is_one_to_one(field):
-                related = cast(Datasource[BoundCollection], self.datasource).get_collection(field["foreign_collection"])
-                for deep_name, deep_schema in related.schema["fields"].items():
-                    deep_fields.append((f"{name}:{deep_name}", deep_schema))
-        return deep_fields
+            if extended and (is_many_to_one(field) or is_one_to_one(field)):
+                related = collection.datasource.get_collection(field["foreign_collection"])
 
-    def _is_empty_string(self, search: str) -> bool:
-        return len(search.strip()) == 0
+                for sub_name, sub_field in related.schema["fields"].items():
+                    if is_column(sub_field):
+                        fields.append((f"{name}:{sub_name}", sub_field))
+        return fields

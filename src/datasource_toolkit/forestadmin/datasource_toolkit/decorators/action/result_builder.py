@@ -1,12 +1,5 @@
-import sys
-from io import BytesIO
-
-if sys.version_info >= (3, 8):
-    from typing import Literal
-else:
-    from typing_extensions import Literal
-
-from typing import Any, Dict, List, Optional, TypedDict, Union
+from io import IOBase
+from typing import Any, Dict, List, Literal, Optional, TypedDict, Union
 
 from forestadmin.datasource_toolkit.interfaces.actions import ActionResult
 from forestadmin.datasource_toolkit.interfaces.records import RecordsDataAlias
@@ -41,8 +34,14 @@ class ResultBuilder:
         }
 
     @classmethod
-    def error(cls, message: Optional[str] = None) -> ActionResult:
-        return {"type": cls.ERROR, "message": message or cls.ERROR}
+    def error(cls, message: Optional[str] = None, options: Optional[OptionAlias] = None) -> ActionResult:
+        if not options:
+            options = {}
+        return {
+            "type": cls.ERROR,
+            "message": message or cls.ERROR,
+            "format": options.get("type", "text"),
+        }
 
     @classmethod
     def webhook(
@@ -55,7 +54,7 @@ class ResultBuilder:
         return {"type": cls.WEBHOOK, "url": url, "method": method, "headers": headers or {}, "body": body or {}}
 
     @classmethod
-    def file(cls, file: BytesIO, name: str = "file", mime_type: str = "text/plain") -> ActionResult:
+    def file(cls, file: IOBase, name: str = "file", mime_type: str = "text/plain") -> ActionResult:
         return {"type": cls.FILE, "name": name, "mimeType": mime_type, "stream": file}
 
     @classmethod

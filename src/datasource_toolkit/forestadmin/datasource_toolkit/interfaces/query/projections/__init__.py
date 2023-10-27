@@ -1,3 +1,4 @@
+from collections import Counter
 from functools import reduce
 from typing import Any, Callable, DefaultDict, Dict, List, Optional, Union, cast
 
@@ -21,6 +22,9 @@ class Projection(list):  # type: ignore
     def columns(self) -> List[str]:
         return list(filter(lambda x: ":" not in x, self))
 
+    def __eq__(self, other: "Projection") -> bool:
+        return set(self) == set(other)
+
     @property
     def relations(self: List[str]) -> Dict[str, "Projection"]:
         relations: Dict[str, Projection] = DefaultDict(Projection)
@@ -34,7 +38,6 @@ class Projection(list):  # type: ignore
 
     def replace(self, handler: Callable[[str], Union["Projection", str, List[str]]]) -> "Projection":
         def reducer(memo: Projection, paths: Union["Projection", str, List[str]]) -> Projection:
-
             if isinstance(paths, str):
                 new_paths = [paths]
             else:
@@ -47,7 +50,7 @@ class Projection(list):  # type: ignore
 
     def union(self, *projections: Union["Projection", List[str]]) -> "Projection":
         fields: List[str] = reduce(lambda x, y: [*x, *y], [self, *projections], [])  # type: ignore
-        return Projection(*sorted(set(fields)))
+        return Projection(*Counter(fields))
 
     def apply(self, records: List[RecordsDataAlias]) -> List[RecordsDataAlias]:
         results: List[RecordsDataAlias] = []
@@ -78,8 +81,8 @@ class Projection(list):  # type: ignore
         return self
 
     def unnest(self) -> "Projection":
-        splited = self[0].split(":")  # type: ignore
-        prefix = splited[0]  # type: ignore
+        splitted = self[0].split(":")  # type: ignore
+        prefix = splitted[0]  # type: ignore
         if not all([path.startswith(prefix) for path in self]):  # type: ignore
             raise ProjectionException("Cannot unnest projection.")
 
@@ -97,10 +100,7 @@ class Projection(list):  # type: ignore
                     raise ProjectionException(f"the column ‘{column}‘ is missing in your record")
 
             for relation, projection in self.relations.items():
-                try:
-                    result[relation] = projection._reproject(record[relation])
-                except KeyError:
-                    raise ProjectionException(f"the relation ‘{relation}‘ is missing in your record")
+                result[relation] = projection._reproject(record.get(relation))
 
         return result
 

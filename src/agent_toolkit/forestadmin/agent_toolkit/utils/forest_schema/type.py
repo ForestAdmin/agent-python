@@ -1,15 +1,7 @@
 import enum
-import sys
-
-if sys.version_info >= (3, 8):
-    from typing import Literal, TypedDict
-else:
-    from typing_extensions import Literal, TypedDict
-
-from typing import Any, List, Optional, Union
+from typing import Any, List, Literal, Optional, TypedDict, Union
 
 from forestadmin.datasource_toolkit.interfaces.fields import ColumnAlias
-from typing_extensions import NotRequired
 
 
 class ValidationType(enum.Enum):
@@ -38,6 +30,20 @@ LiteralBelongsToMany = Literal["BelongsToMany"]
 RelationServer = Union[LiteralHasOne, LiteralHasMany, LiteralBelongsTo, LiteralBelongsToMany]
 
 
+class AgentStackMeta(TypedDict, total=False):
+    engine: Literal["python"]
+    engine_version: str
+    database_type: str
+    orm_version: str
+
+
+class AgentMeta(TypedDict):
+    liana: str
+    liana_version: str
+    stack: AgentStackMeta
+    schemaFileHash: str
+
+
 class ForestServerField(TypedDict, total=False):
     field: str
     type: ColumnAlias
@@ -57,20 +63,6 @@ class ForestServerField(TypedDict, total=False):
 
 
 LiteralPage = Literal["page"]
-
-
-class ForestServerCollection(TypedDict):
-    name: str
-    icon: None
-    integration: None
-    isReadOnly: bool
-    isSearchable: bool
-    isVirtual: bool
-    onlyForRelationships: bool
-    paginationType: LiteralPage
-    actions: NotRequired[List[Any]]
-    fields: List[ForestServerField]
-    segments: NotRequired[List[Any]]
 
 
 class ForestServerActionHooks(TypedDict):
@@ -105,14 +97,25 @@ class ForestServerAction(TypedDict):
     hooks: ForestServerActionHooks
 
 
-"""
-export type ForestServerSegment = {
-  id: string;
-  name: string;
-};
-"""
-
-
 class ForestServerSegment(TypedDict):
     id: str
     name: str
+
+
+class ForestServerCollection(TypedDict):
+    name: str
+    icon: None
+    integration: None
+    isReadOnly: bool
+    isSearchable: bool
+    isVirtual: bool
+    onlyForRelationships: bool
+    paginationType: LiteralPage
+    actions: Optional[List[ForestServerAction]]
+    fields: List[ForestServerField]
+    segments: Optional[List[ForestServerSegment]]
+
+
+class ForestSchema(TypedDict):
+    data: List[ForestServerCollection]
+    meta: AgentMeta

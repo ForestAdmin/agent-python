@@ -4,15 +4,14 @@ from forestadmin.agent_toolkit.utils.forest_schema.action_values import ForestVa
 from forestadmin.agent_toolkit.utils.forest_schema.generator_field import SchemaFieldGenerator
 from forestadmin.agent_toolkit.utils.forest_schema.type import ForestServerAction, ForestServerActionField
 from forestadmin.datasource_toolkit.collections import Collection
+from forestadmin.datasource_toolkit.datasource_customizer.collection_customizer import CollectionCustomizer
 from forestadmin.datasource_toolkit.datasources import Datasource
-from forestadmin.datasource_toolkit.decorators.collections import CustomizedCollection
 from forestadmin.datasource_toolkit.interfaces.actions import Action, ActionField, ActionFieldType
 from forestadmin.datasource_toolkit.interfaces.fields import Column, PrimitiveType
 from forestadmin.datasource_toolkit.utils.schema import SchemaUtils
 
 
 class SchemaActionGenerator:
-
     DUMMY_FIELDS = [
         ForestServerActionField(
             field="Loading...",
@@ -31,17 +30,17 @@ class SchemaActionGenerator:
 
     @classmethod
     async def build(
-        cls, prefix: str, collection: Union[Collection, CustomizedCollection], name: str
+        cls, prefix: str, collection: Union[Collection, CollectionCustomizer], name: str
     ) -> ForestServerAction:
         schema = collection.schema["actions"][name]
         idx = list(collection.schema["actions"].keys()).index(name)
         slug = name.lower().replace(r"[^a-z0-9-]+", "-")
         return ForestServerAction(
             id=f"{collection.name}-{idx}-{slug}",
-            type=schema.scope.value.lower(),
             name=name,
+            type=schema.scope.value.lower(),
             baseUrl=None,
-            endpoint=f"/{prefix}/_actions/{collection.name}/{idx}/{slug}",
+            endpoint=f"/forest/_actions/{collection.name}/{idx}/{slug}",
             httpMethod="POST",
             redirect=None,
             download=bool(schema.generate_file),
@@ -53,15 +52,18 @@ class SchemaActionGenerator:
     async def build_field_schema(
         cls, datasource: Datasource[Collection], field: ActionField
     ) -> ForestServerActionField:
+        value = ForestValueConverter.value_to_forest(field, field["value"])
         output: ForestServerActionField = {
-            "value": ForestValueConverter.value_to_forest(field, field["value"]),
-            "defaultValue": None,
+            "field": field["label"],
+            "value": value,
+            # When sending to server, we need to rename 'value' into 'defaultValue'
+            # otherwise, it does not gets applied 🤷‍♂️
+            "defaultValue": field["default_value"],
             "description": field["description"],
             "enums": None,
-            "field": field["label"],
             "hook": None,
-            "isReadOnly": field["is_read_only"] or False,
-            "isRequired": field["is_required"] or True,
+            "isReadOnly": field.get("is_read_only", False),
+            "isRequired": field.get("is_required", True),
             "reference": None,
             "type": PrimitiveType.STRING,
             "widget": None,
@@ -72,17 +74,18 @@ class SchemaActionGenerator:
             pk_schema = cast(Column, collection.get_field(pk))
             output["type"] = SchemaFieldGenerator.build_column_type(pk_schema["column_type"])  # type: ignore
             output["reference"] = f"{collection.name}.{pk}"
-        elif field["type"] == ActionFieldType.ENUM_LIST:
-            output["type"] = PrimitiveType.ENUM
-        elif field["type"] == ActionFieldType.NUMBER_LIST:
-            output["type"] = PrimitiveType.NUMBER
-        elif field["type"] == ActionFieldType.FILE:
-            output["type"] = "File"
+
+        elif "File" in field["type"].value:
+            output["type"] = ["File"] if "List" in field["type"].value else "File"
+
+        elif field["type"].value.endswith("List"):
+            output["type"] = [PrimitiveType(field["type"].value[:-4])]
         else:
-            output["type"] = PrimitiveType(field["type"].value)
+            output["type"] = field["type"].value
 
         if field["type"] in [ActionFieldType.ENUM, ActionFieldType.ENUM_LIST]:
             output["enums"] = field["enum_values"]
+
         if not isinstance(output["type"], str):
             output["type"] = SchemaFieldGenerator.build_column_type(output["type"])
 
@@ -93,11 +96,11 @@ class SchemaActionGenerator:
 
     @classmethod
     async def build_fields(
-        cls, collection: Union[Collection, CustomizedCollection], action: Action, name: str
+        cls, collection: Union[Collection, CollectionCustomizer], action: Action, name: str
     ) -> List[ForestServerActionField]:
         if not action.static_form:
             return cls.DUMMY_FIELDS
-        fields = await collection.get_form(name, None, None)
+        fields = await collection.get_form(None, name, None, None)
         new_fields: List[ForestServerActionField] = []
         for field in fields:
             new_fields.append(await cls.build_field_schema(collection.datasource, field))

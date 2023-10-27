@@ -1,12 +1,5 @@
-import sys
 from collections import defaultdict
-
-if sys.version_info >= (3, 8):
-    from typing import TypedDict
-else:
-    from typing_extensions import TypedDict
-
-from typing import Any, Dict, List, Optional, Tuple, cast
+from typing import Any, Dict, List, Optional, Tuple, TypedDict, cast
 
 from forestadmin.datasource_sqlalchemy.interfaces import BaseSqlAlchemyCollection
 from forestadmin.datasource_sqlalchemy.utils.aggregation import AggregationFactory
@@ -34,7 +27,6 @@ class ConditionTreeFactoryException(DatasourceToolkitException):
 
 
 class ConditionTreeFactory:
-
     AGGREGATORS = {Aggregator.AND: and_, Aggregator.OR: or_}
 
     @classmethod
@@ -105,7 +97,10 @@ class PaginatedFilterFactory:
         relationships: Relationships = defaultdict(list)
         order_clauses: List[Any] = []
         for sort in cast(List[PlainSortClause], filter.sort or []):
-            columns, nested_relationships = collection.get_columns(Projection(sort["field"]))
+            field = sort["field"]
+            if "." in field:
+                field = field.replace(".", ":")
+            columns, nested_relationships = collection.get_columns(Projection(field))
             relationships = merge_relationships(relationships, nested_relationships)
             if sort["ascending"]:
                 order_clauses.append(columns[0].asc())  # type: ignore
@@ -143,11 +138,10 @@ class QueryFactory:
     ):
         if not relationships:
             relationships = defaultdict(list)
-        query: Any = select(columns).select_from(collection.mapper)
+        query: Any = select(*columns).select_from(collection.mapper)
         if filter:
             options = PaginatedFilterFactory.build(collection, filter)
             relationships = merge_relationships(relationships, options.get("relationships", {}))
-
             if options.get("clauses") is not None:
                 query = query.where(options["clauses"])
             if options.get("order_by"):
@@ -157,8 +151,8 @@ class QueryFactory:
                 query = query.limit(filter.page.limit).offset(filter.page.skip)
 
         for level in sorted(relationships.keys()):
-            query = query.join(*relationships[level], isouter=True)
-
+            for relationship in relationships[level]:
+                query = query.join(*relationship, isouter=True)
         return query
 
     @classmethod

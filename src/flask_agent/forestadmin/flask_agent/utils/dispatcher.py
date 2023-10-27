@@ -7,7 +7,7 @@ LIST_MAPPER: Dict[str, Dict[str, LiteralMethod]] = {
         "GET": "list",
         "POST": "add",
         "DELETE": "delete_list",
-        "PUT": "update_list",  # usefull for the related resources
+        "PUT": "update_list",  # useful for the related resources
     },
     "DETAIL": {"GET": "get", "PUT": "update", "DELETE": "delete"},
 }

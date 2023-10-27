@@ -1,10 +1,10 @@
 from typing import List, Optional, Union, cast
 
+from forestadmin.agent_toolkit.utils.context import User
 from forestadmin.datasource_toolkit.collections import Collection
-from forestadmin.datasource_toolkit.exceptions import DatasourceToolkitException
+from forestadmin.datasource_toolkit.exceptions import DatasourceToolkitException, ForestException
 from forestadmin.datasource_toolkit.interfaces.fields import (
     FieldAlias,
-    ManyToMany,
     OneToMany,
     RelationAlias,
     is_many_to_many,
@@ -53,11 +53,12 @@ class CollectionUtils:
         return cls.get_field_schema(collection.datasource.get_collection(schema["foreign_collection"]), sub_path)
 
     @staticmethod
-    async def get_value(collection: Collection, id: CompositeIdAlias, field: str) -> Union[int, str]:
+    async def get_value(caller: User, collection: Collection, id: CompositeIdAlias, field: str) -> Union[int, str]:
         try:
             index = SchemaUtils.get_primary_keys(collection.schema).index(field)
         except ValueError:
             records = await collection.list(
+                caller,
                 PaginatedFilter({"condition_tree": ConditionTreeFactory.match_ids(collection.schema, [id])}),
                 Projection(field),
             )
@@ -69,28 +70,35 @@ class CollectionUtils:
 
     @staticmethod
     async def list_relation(
+        caller: User,
         collection: Collection,
         id: CompositeIdAlias,
         foreign_collection: Collection,
-        relation: Union[ManyToMany, OneToMany],
+        relation_name: str,
         foreign_filter: PaginatedFilter,
         projection: Projection,
     ) -> List[RecordsDataAlias]:
         from forestadmin.datasource_toolkit.interfaces.query.filter.factory import FilterFactory
 
-        if is_many_to_many(relation) and relation["foreign_relation"] and foreign_filter.is_nestable:
+        relation = collection.schema["fields"][relation_name]
+
+        if is_many_to_many(relation) and relation.get("foreign_relation") and foreign_filter.is_nestable:
             through = collection.datasource.get_collection(relation["through_collection"])
             records = await through.list(
-                await FilterFactory.make_through_filter(collection, id, relation, foreign_filter),
-                projection.nest(relation["foreign_relation"]),
+                caller,
+                await FilterFactory.make_through_filter(caller, collection, id, relation_name, foreign_filter),
+                projection.nest(relation.get("foreign_relation")),
             )
-            return [record[relation["foreign_relation"]] for record in records]
+            return [record[relation.get("foreign_relation")] for record in records]
         return await foreign_collection.list(
-            await FilterFactory.make_foreign_filter(collection, id, relation, foreign_filter), projection
+            caller,
+            await FilterFactory.make_foreign_filter(caller, collection, id, relation, foreign_filter),
+            projection,
         )
 
     @staticmethod
     async def aggregate_relation(
+        caller: User,
         collection: Collection,
         id: CompositeIdAlias,
         relation_name: str,
@@ -105,10 +113,10 @@ class CollectionUtils:
 
         if is_many_to_many(relation) and relation["foreign_relation"] and foreign_filter.is_nestable:
             through = collection.datasource.get_collection(relation["through_collection"])
-            filter = await FilterFactory.make_through_filter(collection, id, relation, foreign_filter)
+            filter = await FilterFactory.make_through_filter(collection, id, relation_name, foreign_filter)
 
             nested_records = await through.aggregate(
-                filter.to_base_filter(), aggregation.nest(relation["foreign_relation"]), limit
+                caller, filter.to_base_filter(), aggregation.nest(relation["foreign_relation"]), limit
             )
 
             records: List[AggregateResult] = []
@@ -120,8 +128,8 @@ class CollectionUtils:
             return records
 
         relation = cast(OneToMany, relation)
-        filter = await FilterFactory.make_foreign_filter(collection, id, relation, foreign_filter)
-        return await foreign_collection.aggregate(filter.to_base_filter(), aggregation, limit)
+        filter = await FilterFactory.make_foreign_filter(caller, collection, id, relation, foreign_filter)
+        return await foreign_collection.aggregate(caller, filter.to_base_filter(), aggregation, limit)
 
     @staticmethod
     def get_inverse_relation(collection: Collection, relation_name: str) -> Optional[str]:
@@ -129,28 +137,62 @@ class CollectionUtils:
         foreign_collection = collection.datasource.get_collection(relation["foreign_collection"])
         inverse: Optional[str] = None
         for name, field_schema in foreign_collection.schema["fields"].items():
-            is_many_to_many_inverse = (
-                is_many_to_many(field_schema)
-                and is_many_to_many(relation)
-                and field_schema["origin_key"] == relation["foreign_key"]
-                and field_schema["through_collection"] == relation["through_collection"]
-                and field_schema["foreign_key"] == relation["origin_key"]
-            )
-            is_many_to_one_inverse = (
-                is_many_to_one(field_schema)
-                and (is_one_to_many(relation) or is_one_to_one(relation))
-                and field_schema["foreign_key"] == relation["origin_key"]  # type: ignore
-            )
-            is_other_inverse = (
-                (is_one_to_many(field_schema) or is_one_to_one(field_schema))
-                and is_many_to_one(relation)
-                and field_schema["origin_key"] == relation["foreign_key"]
-            )
+            if not is_relation(field_schema) or field_schema["foreign_collection"] != collection.name:
+                continue
+
             if (
-                is_relation(field_schema)
-                and (is_many_to_many_inverse or is_many_to_one_inverse or is_other_inverse)
-                and field_schema["foreign_collection"] == collection.name
+                CollectionUtils.is_many_to_many_inverse(field_schema, relation)
+                or CollectionUtils.is_many_to_one_inverse(field_schema, relation)
+                or CollectionUtils.is_other_inverse(field_schema, relation)
             ):
                 inverse = name
-                break
         return inverse
+
+    @staticmethod
+    def is_many_to_many_inverse(field: RelationAlias, relation_field: RelationAlias) -> bool:
+        if (
+            is_many_to_many(field)
+            and is_many_to_many(relation_field)
+            and field["origin_key"] == relation_field["foreign_key"]
+            and field["through_collection"] == relation_field["through_collection"]
+            and field["foreign_key"] == relation_field["origin_key"]
+        ):
+            return True
+        return False
+
+    @staticmethod
+    def is_many_to_one_inverse(field: RelationAlias, relation_field: RelationAlias) -> bool:
+        if (
+            is_many_to_one(field)
+            and (is_one_to_many(relation_field) or is_one_to_one(relation_field))
+            and field["foreign_key"] == relation_field["origin_key"]
+        ):
+            return True
+        return False
+
+    @staticmethod
+    def is_other_inverse(field: RelationAlias, relation_field: RelationAlias) -> bool:
+        if (
+            (is_one_to_many(field) or is_one_to_one(field))
+            and is_many_to_one(relation_field)
+            and field["origin_key"] == relation_field["foreign_key"]
+        ):
+            return True
+        return False
+
+    @staticmethod
+    def get_through_target(collection: Collection, relation_name: str) -> Optional[str]:
+        relation = collection.schema["fields"].get(relation_name)
+        if not relation or not is_many_to_many(relation):
+            raise ForestException("Relation must be many to many")
+
+        through_collection = collection.datasource.get_collection(relation["through_collection"])
+        for field_name, field in through_collection.schema["fields"].items():
+            if (
+                is_many_to_one(field)
+                and field["foreign_collection"] == relation["foreign_collection"]
+                and field["foreign_key"] == relation["foreign_key"]
+                and field["foreign_key_target"] == relation["foreign_key_target"]
+            ):
+                return field_name
+        return None

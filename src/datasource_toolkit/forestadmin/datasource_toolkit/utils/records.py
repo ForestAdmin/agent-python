@@ -28,5 +28,5 @@ class RecordUtils:
         current_record = record
         for path in field.split(":"):
             if current_record:
-                current_record = current_record[path]
+                current_record = current_record.get(path)
         return current_record

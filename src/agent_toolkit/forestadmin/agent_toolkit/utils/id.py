@@ -1,3 +1,4 @@
+from ast import literal_eval
 from typing import Any, List, cast
 
 from forestadmin.datasource_toolkit.collections import CollectionSchema
@@ -11,19 +12,18 @@ class IdException(BaseException):
     pass
 
 
-def pack_id(schema: CollectionSchema, record: RecordsDataAlias):
+def pack_id(schema: CollectionSchema, record: RecordsDataAlias) -> str:
     schema_pks = SchemaUtils.get_primary_keys(schema)
     if len(schema_pks) == 0:
         raise IdException("")
-    pks = [str(record.get(pk, "")) for pk in schema_pks]
-    if not all(pks):
+    pks = [str(record[pk]) for pk in schema_pks if record.get(pk) is not None]
+    if len(pks) == 0:
         raise IdException("")
 
     return "|".join(pks)  # type: ignore
 
 
 def unpack_id(schema: CollectionSchema, pks: str) -> CompositeIdAlias:
-
     schema_pks = SchemaUtils.get_primary_keys(schema)
     pk_values = pks.split("|")
     if len(pk_values) != len(schema_pks):
@@ -31,15 +31,11 @@ def unpack_id(schema: CollectionSchema, pks: str) -> CompositeIdAlias:
 
     values: List[Any] = []
     for i, field_name in enumerate(schema_pks):
-
         schema_field = cast(Column, schema["fields"][field_name])
         value = pk_values[i]
 
         if schema_field["column_type"] == PrimitiveType.NUMBER:
-            try:
-                value = int(value)
-            except ValueError:
-                value = float(value)
+            value = literal_eval(str(value))
         try:
             FieldValidator.validate_value(field_name, schema_field, value)
         except FieldValidatorException:
