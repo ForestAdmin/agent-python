@@ -5,16 +5,44 @@ from forestadmin.datasource_toolkit.decorators.chart.result_builder import Resul
 from forestadmin.datasource_toolkit.interfaces.query.aggregation import DateOperation
 
 
-class TestResultBuilder(TestCase):
+class TestResultBuilderValue(TestCase):
     def test_value_should_return_correct_format(self):
         ResultBuilder.value(42) == {"countCurrent": 42, "countPrevious": None}
         ResultBuilder.value(42, 34) == {"countCurrent": 42, "countPrevious": 34}
 
+
+class TestResultBuilderDistribution(TestCase):
     def test_distribution_should_return_correct_format(self):
         self.assertEqual(
             ResultBuilder.distribution({"a": 10, "b": 11}), [{"key": "a", "value": 10}, {"key": "b", "value": 11}]
         )
 
+
+class TestResultBuilderPercentage(TestCase):
+    def test_percentage_should_return_correct_format(self):
+        result = ResultBuilder.percentage(42)
+        assert result == 42
+
+
+class TestResultBuilderObjective(TestCase):
+    def test_objective_should_return_correct_format(self):
+        result = ResultBuilder.objective(42, 54)
+        assert result == {"value": 42, "objective": 54}
+
+
+class TestResultBuilderLeaderBoard(TestCase):
+    def test_leaderboard_should_return_correct_format(self):
+        result = ResultBuilder.leaderboard({"a": 10, "b": 30, "c": 20})
+        assert result == [{"key": "a", "value": 10}, {"key": "c", "value": 20}, {"key": "b", "value": 30}]
+
+
+class TestResultBuilderSmart(TestCase):
+    def test_smart_return_expected_format(self):
+        result = ResultBuilder.smart(42)
+        assert result == 42
+
+
+class TestResultBuilderTimeBased(TestCase):
     def test_time_based_should_return_correct_format_day_from_string(self):
         self.assertEqual(
             ResultBuilder.time_based(
@@ -109,18 +137,68 @@ class TestResultBuilder(TestCase):
         )
         assert result == [{"label": "1985", "values": {"value": 1}}, {"label": "1986", "values": {"value": 7}}]
 
-    def test_percentage_should_return_correct_format(self):
-        result = ResultBuilder.percentage(42)
-        assert result == 42
 
-    def test_objective_should_return_correct_format(self):
-        result = ResultBuilder.objective(42, 54)
-        assert result == {"value": 42, "objective": 54}
+class TestResultBuilderMultiTimeBased(TestCase):
+    def test_should_return_labels_and_key_value_for_each_line(self):
+        result = ResultBuilder.multiple_time_based(
+            DateOperation.YEAR,
+            [
+                "1985-10-25",
+                "1986-01-07",
+                "1986-01-08",
+                "1985-10-27",
+            ],
+            [{"label": "firstLine", "values": [1, 2, 3, None]}, {"label": "secondLine", "values": [4, 2, 6, 7]}],
+        )
+        self.assertEqual(
+            result,
+            {
+                "labels": ["1985", "1986"],
+                "values": [
+                    {"key": "firstLine", "values": [1, 5]},
+                    {"key": "secondLine", "values": [11, 8]},
+                ],
+            },
+        )
 
-    def test_leaderboard_should_return_correct_format(self):
-        result = ResultBuilder.leaderboard({"a": 10, "b": 30, "c": 20})
-        assert result == [{"key": "a", "value": 10}, {"key": "c", "value": 20}, {"key": "b", "value": 30}]
+    def test_should_display_zero_values_when_there_are_only_null_values_for_a_time_range(self):
+        result = ResultBuilder.multiple_time_based(
+            DateOperation.YEAR,
+            [
+                "1985-10-25",
+                "1986-01-07",
+                "1986-01-08",
+                "1985-10-27",
+            ],
+            [{"label": "firstLine", "values": [None, 2, 3, None]}],
+        )
+        self.assertEqual(
+            result,
+            {
+                "labels": ["1985", "1986"],
+                "values": [
+                    {"key": "firstLine", "values": [0, 5]},
+                ],
+            },
+        )
 
-    def test_smart_return_expected_format(self):
-        result = ResultBuilder.smart(42)
-        assert result == 42
+    def test_should_display_number_when_there_is_number_and_none_values_for_a_time_range(self):
+        result = ResultBuilder.multiple_time_based(
+            DateOperation.YEAR,
+            [
+                "1985-10-25",
+                "1986-01-07",
+                "1986-01-08",
+                "1985-10-27",
+            ],
+            [{"label": "firstLine", "values": [100, 1, 2, None]}],
+        )
+        self.assertEqual(
+            result,
+            {
+                "labels": ["1985", "1986"],
+                "values": [
+                    {"key": "firstLine", "values": [100, 3]},
+                ],
+            },
+        )
