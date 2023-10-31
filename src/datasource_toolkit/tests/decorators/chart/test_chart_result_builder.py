@@ -191,14 +191,14 @@ class TestResultBuilderMultiTimeBased(TestCase):
                 "1986-01-08",
                 "1985-10-27",
             ],
-            [{"label": "firstLine", "values": [100, 1, 2, None]}],
+            [{"label": "firstLine", "values": [100, 1.3, 2.5, None]}],
         )
         self.assertEqual(
             result,
             {
                 "labels": ["1985", "1986"],
                 "values": [
-                    {"key": "firstLine", "values": [100, 3]},
+                    {"key": "firstLine", "values": [100, 3.8]},
                 ],
             },
         )
