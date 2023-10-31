@@ -1,3 +1,10 @@
+# [1.1.0](https://github.com/ForestAdmin/agent-python/compare/v1.0.0...v1.1.0) (2023-10-31)
+
+
+### Features
+
+* **chart:** add multi line time based chart ([#139](https://github.com/ForestAdmin/agent-python/issues/139)) ([e918ade](https://github.com/ForestAdmin/agent-python/commit/e918adee9df3a0c1ffe90181de6bbdae663e1abc))
+
 # 1.0.0 (2023-10-27)
 
 
