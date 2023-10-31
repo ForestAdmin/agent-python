@@ -202,3 +202,18 @@ class TestResultBuilderMultiTimeBased(TestCase):
                 ],
             },
         )
+
+    def test_should_raise_exception_when_giving_a_not_iso_string_date_format(self):
+        self.assertRaisesRegex(
+            ValueError,
+            r"Invalid isoformat string: '08-01-1986'",
+            ResultBuilder.multiple_time_based,
+            DateOperation.YEAR,
+            [
+                "1985-10-25",
+                "1986-01-07",
+                "08-01-1986",
+                "1985-10-27",
+            ],
+            [{"label": "firstLine", "values": [100, 1, 2, None]}],
+        )
