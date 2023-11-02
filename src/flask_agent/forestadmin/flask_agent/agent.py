@@ -83,12 +83,6 @@ def create_agent(app: Flask) -> FlaskAgent:
     return agent
 
 
-def build_agent(app: Flask) -> FlaskAgent:
-    # TODO: remove this deprecation
-    ForestLogger.log("warning", "'build_agent' is deprecated, please use 'create_agent' instead")
-    return create_agent(app)
-
-
 def _after_request(response: FlaskResponse):
     response.headers["Access-Control-Allow-Private-Network"] = "true"
     return response
