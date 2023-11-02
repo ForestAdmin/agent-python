@@ -87,6 +87,23 @@ class ForestHttpApi:
                 await ForestHttpApi._handle_server_error(endpoint, exc)
 
     @staticmethod
+    def _parse_forest_response(error: HTTPException):
+        status = error.status
+        server_message = None
+        response_content = {}
+        if error.text is not None and len(error.text) > 0:
+            try:
+                response_content = json.loads(error.text)
+                errors = response_content.get("errors", [])
+                if len(errors) > 0:
+                    status = errors[0].get("status", status)
+                    server_message = errors[0].get("detail")
+            except Exception:
+                pass
+
+        return status, response_content, server_message
+
+    @staticmethod
     async def _handle_server_error(endpoint: str, error: Exception) -> Exception:
         new_error = None
         if isinstance(error, client_exceptions.ClientConnectorCertificateError):
@@ -96,27 +113,19 @@ class ForestHttpApi:
             )
 
         elif isinstance(error, HTTPException):
-            server_message = None
-            if error.status in [-1, 0, 502]:
+            status, response_content, server_message = ForestHttpApi._parse_forest_response(error)
+            if status in [-1, 0, 502]:
                 new_error = ForestHttpApiException("Failed to reach ForestAdmin server. Are you online?")
-            elif error.status == 404:
+            elif status == 404:
                 new_error = ForestHttpApiException(
                     "ForestAdmin server failed to find the project related to the envSecret you configured."
                     + " Can you check that you copied it properly in the Forest initialization?"
                 )
-            elif error.status == 503:
+            elif status == 503:
                 new_error = ForestHttpApiException(
                     "Forest is in maintenance for a few minutes. We are upgrading your experience in "
                     + "the forest. We just need a few more minutes to get it right."
                 )
-            elif error.body:
-                try:
-                    err_body = json.loads(error.body)
-                    err_body = err_body.get("errors", [])
-                    if len(err_body) > 0:
-                        server_message = err_body[0].get("detail")
-                except Exception:
-                    server_message = None
 
             if new_error is None and server_message is not None:
                 new_error = ForestHttpApiException(f"Failed to fetch {endpoint}: {server_message}.")
