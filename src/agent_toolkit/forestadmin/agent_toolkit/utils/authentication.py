@@ -3,6 +3,7 @@ from typing import Any, Dict, Optional
 from urllib.parse import urljoin
 
 from forestadmin.agent_toolkit.options import Options
+from forestadmin.agent_toolkit.resources.security.exceptions import OpenIdException
 from forestadmin.agent_toolkit.utils.http import ForestHttpApi
 from oic.oauth2.message import Message
 from oic.oic import Client as OicClient
@@ -39,6 +40,10 @@ class CustomClientOic(OicClient):
         return auth_req.request(self.authorization_endpoint)  # type: ignore
 
     def get_parsed_response(self, info: Dict[str, Any]) -> Message:
+        if "error" in info:
+            raise OpenIdException(
+                "error given in the query GET params", info["error"], info["error_description"], info["state"]
+            )
         return self.parse_response(  # type: ignore
             AuthorizationResponse, info=json.dumps(info), state=info["state"], scope=self.SCOPE
         )
