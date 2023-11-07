@@ -1,3 +1,10 @@
+## [1.1.1](https://github.com/ForestAdmin/agent-python/compare/v1.1.0...v1.1.1) (2023-11-07)
+
+
+### Bug Fixes
+
+* **authentication:** return errors detail instead of generic error 500 ([#140](https://github.com/ForestAdmin/agent-python/issues/140)) ([0ac0510](https://github.com/ForestAdmin/agent-python/commit/0ac0510269925836f9a3f150db915b077570ec38))
+
 # [1.1.0](https://github.com/ForestAdmin/agent-python/compare/v1.0.0...v1.1.0) (2023-10-31)
 
 
