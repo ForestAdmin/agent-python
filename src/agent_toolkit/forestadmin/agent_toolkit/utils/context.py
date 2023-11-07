@@ -19,7 +19,7 @@ class RequestMethod(enum.Enum):
     POST = "POST"
     PUT = "PUT"
     DELETE = "DELETE"
-    OPTION = "OPTION"
+    OPTIONS = "OPTIONS"
 
 
 @dataclass
