@@ -61,6 +61,9 @@ class TypeConverter:
         if field.choices is not None:
             return PrimitiveType.ENUM
 
+        if isinstance(field, models.ForeignKey):
+            return cls.convert(field.target_field)
+
         if field.__class__ in cls.TYPES:
             return cls.TYPES[field.__class__]
 

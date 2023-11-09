@@ -132,18 +132,18 @@ class TestDjangoCollectionFactory(TestCase):
             restaurant_schema["fields"]["place"],
             {
                 "foreign_collection": "Place",
-                "origin_key": "place_id",
-                "origin_key_target": "id",
-                "type": FieldType.ONE_TO_ONE,
+                "foreign_key": "place_id",
+                "foreign_key_target": "id",
+                "type": FieldType.MANY_TO_ONE,
             },
         )
         self.assertEqual(
             places_schema["fields"]["restaurant"],
             {
                 "foreign_collection": "Restaurant",
-                "foreign_key": "place_id",
-                "foreign_key_target": "id",
-                "type": FieldType.MANY_TO_ONE,
+                "origin_key": "place_id",
+                "origin_key_target": "id",
+                "type": FieldType.ONE_TO_ONE,
             },
         )
 
@@ -207,3 +207,10 @@ class TestDjangoCollectionFactory(TestCase):
                 "type": FieldType.ONE_TO_MANY,
             },
         )
+
+    def test_build_should_handle_also_generate_foreign_key_fields_next_to_relations(self):
+        movie_schema = DjangoCollectionFactory.build(self.movie_model)
+
+        self.assertEqual(movie_schema["fields"]["author_id"]["validations"], [{"operator": Operator.PRESENT}])
+        self.assertEqual(movie_schema["fields"]["author_id"]["column_type"], PrimitiveType.NUMBER)
+        self.assertEqual(movie_schema["fields"]["author_id"]["type"], FieldType.COLUMN)
