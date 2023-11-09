@@ -1,4 +1,4 @@
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
 from django.db.models import Model
 from forestadmin.agent_toolkit.utils.context import User
@@ -21,12 +21,14 @@ class DjangoCollection(BaseDjangoCollection):
         schema = DjangoCollectionFactory.build(model)
         self.add_fields(schema["fields"])
 
+    @property
+    def model(self) -> Model:
+        return self._model
+
+    # below this line, this is not implemented yet
+
     def get_column(self, name: str):
         return super().get_column(name)
-
-    @property
-    def model(self) -> Optional[Callable[[Any], Any]]:
-        return self._model
 
     async def list(self, caller: User, filter_: PaginatedFilter, projection: Projection) -> List[RecordsDataAlias]:
         return await super().list(caller, filter_, projection)
