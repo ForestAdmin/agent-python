@@ -99,7 +99,7 @@ class TestChartCollectionResource(TestCase):
         )
 
     def test_dispatch_should_return_400_on_bad_methods(self):
-        for method in [RequestMethod.DELETE, RequestMethod.OPTION, RequestMethod.PUT]:
+        for method in [RequestMethod.DELETE, RequestMethod.OPTIONS, RequestMethod.PUT]:
             request = Request(
                 method=method,
                 query={

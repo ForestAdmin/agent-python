@@ -13,7 +13,7 @@ python-dotenv = ">= 1.0.0"
 str2bool = ">= 1.0"
 forestadmin-datasource-toolkit = {path = "../../datasource_toolkit", develop = true}
 forestadmin-agent-toolkit = {path = "../../agent_toolkit", develop = true}
-# forestadmin-django-agent = {path = "../../django-agent", develop = true}
+forestadmin-agent-django = {path = "../../django_agent", develop = true}
 # forestadmin-datasource-django = {path = "../../datasource-django", develop = true}
 
 [tool.poetry.group.linter.dependencies]

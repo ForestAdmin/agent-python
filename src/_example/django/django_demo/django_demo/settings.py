@@ -32,7 +32,17 @@ DEBUG = str2bool(os.environ.get("DJANGO_DEBUG", "True"))
 
 ALLOWED_HOSTS = os.environ.get("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1,[::1]").split(",")
 
+# FOREST SETTINGS HERE
+FOREST_AUTH_SECRET = os.environ.get("FOREST_AUTH_SECRET")
+FOREST_ENV_SECRET = os.environ.get("FOREST_ENV_SECRET")
+FOREST_SERVER_URL = os.environ.get("FOREST_SERVER_URL")
+FOREST_IS_PRODUCTION = str2bool(os.environ.get("FOREST_IS_PRODUCTION", "False"))
 
+# CORS for forest
+CORS_ALLOWED_ORIGIN_REGEXES = [
+    r".*\.forestadmin\.com.*",
+]
+CORS_ALLOW_CREDENTIALS = True
 # Application definition
 
 INSTALLED_APPS = [
@@ -43,11 +53,14 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "forestadmin.django_agent",
+    "corsheaders",
 ]
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
+    "corsheaders.middleware.CorsMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
