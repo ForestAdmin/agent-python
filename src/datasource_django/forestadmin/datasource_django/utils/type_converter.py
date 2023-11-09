@@ -74,6 +74,7 @@ class TypeConverter:
         raise ConverterException(f'Type "{field.__class__}" is unknown')
 
 
+# TODO: test this file when operators is fully supported
 class FilterOperator:
     COMMON_OPERATORS: Set[Operator] = {  # duplicated
         Operator.BLANK,

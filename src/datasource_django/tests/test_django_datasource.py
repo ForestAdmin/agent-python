@@ -34,6 +34,20 @@ class TestDjangoDatasource(TestCase):
         )
         self.assertEqual(set(django_datasource.collections), set([mock_collection1, mock_collection2]))
 
-    def test_datasource_should_find_all_models(self):
+    def test_django_datasource_should_find_all_models(self):
         datasource = DjangoDatasource()
-        self.assertEqual([c.name for c in datasource.collections], ["Book"])
+        self.assertEqual(
+            set([c.name for c in datasource.collections]),
+            set(
+                [
+                    "Book",
+                    "Permission",
+                    "Group_permissions",
+                    "Group",
+                    "User_groups",
+                    "User_user_permissions",
+                    "User",
+                    "ContentType",
+                ]
+            ),
+        )

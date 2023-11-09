@@ -13,7 +13,7 @@ from django.db.models import (
     OneToOneRel,
     TimeField,
 )
-from django.db.models.fields import NOT_PROVIDED, AutoFieldMixin
+from django.db.models.fields import AutoFieldMixin
 from forestadmin.datasource_django.utils.type_converter import FilterOperator, TypeConverter
 from forestadmin.datasource_toolkit.interfaces.fields import (
     Column,
@@ -61,13 +61,13 @@ class FieldFactory:
     def build(cls, field: Field) -> Column:
         column_type = TypeConverter.convert(field)  # type: ignore
 
-        default_value = None
-        if field.default and field.default != NOT_PROVIDED:
-            try:
-                # here try field.get_default()
-                default_value = json.dumps(field.default)
-            except TypeError:  # not JSON Serializable
-                default_value = None
+        default_value = field.default
+        try:
+            # field.get_default() evaluate a function if default is a function
+            # we prefer don't have a default value rather than a false one
+            json.dumps(default_value)
+        except TypeError:  # not JSON Serializable
+            default_value = None
 
         return {
             "column_type": column_type,
