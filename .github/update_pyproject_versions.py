@@ -4,15 +4,19 @@ import toml
 
 PYPROJECT_FILES = [
     "src/agent_toolkit/pyproject.toml",
+    "src/datasource_django/pyproject.toml",
     "src/datasource_sqlalchemy/pyproject.toml",
     "src/datasource_toolkit/pyproject.toml",
+    "src/django_agent/pyproject.toml",
     "src/flask_agent/pyproject.toml",
 ]
 
 PACKAGE_NAMES = [
     "forestadmin-agent-toolkit",
+    "forestadmin-datasource-django",
     "forestadmin-datasource-sqlalchemy",
     "forestadmin-datasource-toolkit",
+    "forestadmin-django-agent",
     "forestadmin-flask-agent",
 ]
 
