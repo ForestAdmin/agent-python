@@ -6,7 +6,8 @@ from flask_sqlalchemy import SQLAlchemy
 from forestadmin.datasource_sqlalchemy.datasource import SqlAlchemyDatasource
 from forestadmin.datasource_sqlalchemy.exceptions import SqlAlchemyDatasourceException
 from sqlalchemy.orm import DeclarativeMeta
-from tests.fixture import models
+
+from .fixture import models
 
 
 class TestSqlAlchemyDatasource(TestCase):

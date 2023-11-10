@@ -682,6 +682,27 @@ type = "directory"
 url = "../../agent_toolkit"
 
 [[package]]
+name = "forestadmin-datasource-django"
+version = "1.1.0"
+description = ""
+category = "main"
+optional = false
+python-versions = ">=3.8,<4.0"
+files = []
+develop = true
+
+[package.dependencies]
+"backports.zoneinfo" = {version = "~=0.2.1", extras = ["tzdata"], markers = "python_version < \"3.9\""}
+forestadmin-agent-toolkit = "1.1.0"
+forestadmin-datasource-toolkit = "1.1.0"
+typing-extensions = "~=4.2"
+tzdata = "~=2022.6"
+
+[package.source]
+type = "directory"
+url = "../../datasource_django"
+
+[[package]]
 name = "forestadmin-datasource-toolkit"
 version = "1.1.0"
 description = ""
@@ -1905,4 +1926,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.8,<4.0"
-content-hash = "d85d360fd10c93cae5270fe2d3a42209396a7cb0174c41f4987bb3dbf1af6fa0"
+content-hash = "2baca3f619f70c83ec591c76484cd32c30fc41a3407aaaef16879367308d5c49"

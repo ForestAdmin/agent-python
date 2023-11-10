@@ -21,7 +21,8 @@ from forestadmin.datasource_toolkit.interfaces.query.filter.paginated import Pag
 from forestadmin.datasource_toolkit.interfaces.query.projections import Projection
 from sqlalchemy.orm.session import Session
 from sqlalchemy.sql import text
-from tests.fixture import models
+
+from .fixture import models
 
 
 class TestSqlAlchemyCollection(TestCase):

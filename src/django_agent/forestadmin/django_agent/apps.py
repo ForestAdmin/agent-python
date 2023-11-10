@@ -1,11 +1,7 @@
-from corsheaders.signals import check_request_enabled
 from django.apps import AppConfig
 
-from .agent import DjangoAgent
-
-
-def cors_allow_api_to_everyone(sender, request, **kwargs):
-    return True
+# from forestadmin.datasource_django.datasource import DjangoDatasource
+from forestadmin.django_agent.agent import DjangoAgent
 
 
 class DjangoAgentApp(AppConfig):
@@ -18,4 +14,4 @@ class DjangoAgentApp(AppConfig):
 
     def ready(self):
         DjangoAgentApp._DJANGO_AGENT = DjangoAgent()
-        check_request_enabled.connect(cors_allow_api_to_everyone)
+        # DjangoAgentApp._DJANGO_AGENT.add_datasource(DjangoDatasource())

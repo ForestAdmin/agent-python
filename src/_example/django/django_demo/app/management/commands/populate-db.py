@@ -53,7 +53,11 @@ def create_addresses(customers, nb_addresses=500):
     addresses = []
     for i in range(nb_addresses):
         a = Address(
-            street=fake.street_name(), number=fake.building_number(), city=fake.city(), zip_code=fake.postcode()
+            street=fake.street_name(),
+            number=fake.building_number(),
+            city=fake.city(),
+            country=fake.country(),
+            zip_code=fake.postcode(),
         )
         a.save()
         a.refresh_from_db()
@@ -78,7 +82,7 @@ def create_orders_cart(customers, addresses, nb_order=1000):
         o.refresh_from_db()
         orders.append(o)
 
-        c = Cart(name=fake.city(), customer=customers[i % (len(customers) - 1)], order=o)
+        c = Cart(name=fake.city(), order=o)
         c.save()
         c.refresh_from_db()
         carts.append(c)
