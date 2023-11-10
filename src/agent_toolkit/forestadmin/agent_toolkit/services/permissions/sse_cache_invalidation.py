@@ -18,7 +18,7 @@ class SSECacheInvalidation(Thread):
     }
 
     def __init__(self, permission_service: "PermissionService", options: Options, *args, **kwargs):  # noqa: F821
-        super().__init__(name="SSECacheInvalidationThread", daemon=False, *args, **kwargs)
+        super().__init__(name="SSECacheInvalidationThread", daemon=True, *args, **kwargs)
         self.permission_service = permission_service
         self.options: Options = options
         self.sse_client: SSEClient = None
@@ -38,6 +38,8 @@ class SSECacheInvalidation(Thread):
                 self.sse_client = SSEClient(http.request("GET", url, preload_content=False, headers=headers))
 
                 for msg in self.sse_client.events():
+                    if self._exit_thread:
+                        return
                     if msg.event == "heartbeat":
                         continue
 
