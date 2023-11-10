@@ -56,17 +56,18 @@ class Address(models.Model):
     # pk = models.BigAutoField(primary_key=True)
     street = models.CharField(max_length=254)
     number = models.CharField(max_length=254, db_column="street_number")
-    city = models.CharField(max_length=254, default="France")
-    zip_code = models.CharField(max_length=5, default=75009)
+    city = models.CharField(max_length=254)
+    country = models.CharField(max_length=254, default="France")
+    zip_code = models.CharField(max_length=5, default="75009")
 
     customers = models.ManyToManyField(
-        "Customer", related_name="addresses", through="AddressCustomer", through_fields=("address_id", "customer_id")
+        "Customer", related_name="addresses", through="CustomerAddress", through_fields=("address", "customer")
     )
 
 
-class AddressCustomer(models.Model):
-    address_id = models.ForeignKey(Address, on_delete=models.CASCADE)
-    customer_id = models.ForeignKey("Customer", on_delete=models.CASCADE)
+class CustomerAddress(models.Model):
+    address = models.ForeignKey(Address, on_delete=models.CASCADE)
+    customer = models.ForeignKey("Customer", on_delete=models.CASCADE)
 
 
 class Customer(AutoUpdatedCreatedAt):
@@ -89,7 +90,7 @@ class Order(AutoUpdatedCreatedAt):
 
     # pk = models.BigAutoField(primary_key=True)
     amount = models.DecimalField(decimal_places=2, max_digits=15)
-    customer = models.ForeignKey(Customer, related_name="orders", on_delete=models.CASCADE)
+    customer = models.ForeignKey(Customer, related_name="orders", on_delete=models.CASCADE, null=True)
     billing_address = models.ForeignKey(Address, related_name="billing_orders", on_delete=models.CASCADE)
     delivering_address = models.ForeignKey(Address, related_name="delivering_orders", on_delete=models.CASCADE)
     status = models.CharField(max_length=10, choices=OrderStatus.choices)
@@ -100,6 +101,5 @@ class Cart(models.Model):
     # pk = models.BigAutoField(primary_key=True)
     name = models.CharField(max_length=254)
     created_at = models.DateTimeField(auto_now_add=True)
-    customer = models.ForeignKey(Customer, related_name="cart", on_delete=models.CASCADE)
 
-    order = models.OneToOneField(Order, on_delete=models.CASCADE)
+    order = models.OneToOneField(Order, on_delete=models.CASCADE, null=True)
