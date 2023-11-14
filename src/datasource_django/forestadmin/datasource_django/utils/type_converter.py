@@ -1,4 +1,4 @@
-from typing import Dict, Set
+from typing import Dict, Set, Tuple
 
 from django.contrib.postgres import fields as postgres_fields
 from django.db import models
@@ -77,7 +77,6 @@ class TypeConverter:
         raise ConverterException(f'Type "{field.__class__}" is unknown')
 
 
-# TODO: test this file when operators is fully supported
 class FilterOperator:
     COMMON_OPERATORS: Set[Operator] = {  # duplicated
         Operator.BLANK,
@@ -87,109 +86,35 @@ class FilterOperator:
         Operator.PRESENT,
     }
 
-    # OPERATORS = {
-    #     Operator.EQUAL: "_equal_operator",
-    #     Operator.NOT_EQUAL: "_not_equal_operator",
-    #     Operator.BLANK: "_blank_operator",
-    #     Operator.CONTAINS: "_contains_operator",
-    #     Operator.NOT_CONTAINS: "_not_contains_operator",
-    #     Operator.STARTS_WITH: "_starts_with_operator",
-    #     Operator.ENDS_WITH: "_ends_with_operator",
-    #     Operator.GREATER_THAN: "_greater_than_operator",
-    #     Operator.AFTER: "_greater_than_operator",
-    #     Operator.LESS_THAN: "_less_than_operator",
-    #     Operator.BEFORE: "_less_than_operator",
-    #     Operator.MISSING: "_missing_operator",
-    #     Operator.PRESENT: "_present_operator",
-    #     Operator.IN: "_in_operator",
-    #     Operator.NOT_IN: "_not_in_operator",
-    #     Operator.INCLUDES_ALL: "_includes_all",
-    #     Operator.MATCH: "_regexp_match",
-    # }
+    OPERATORS = {
+        # TODO: add sensitive / insensitive case operators
+        # operator:  (lookup_expr, negate needed)
+        Operator.EQUAL: ("", False),
+        Operator.NOT_EQUAL: ("", True),
+        Operator.BLANK: ("__isnull", False),
+        Operator.CONTAINS: ("__contains", False),
+        Operator.NOT_CONTAINS: ("__contains", True),
+        Operator.STARTS_WITH: ("__startswith", False),
+        Operator.ENDS_WITH: ("__endswith", False),
+        Operator.GREATER_THAN: ("__gt", False),
+        Operator.AFTER: ("__gt", False),
+        Operator.LESS_THAN: ("__lt", False),
+        Operator.BEFORE: ("__lt", False),
+        Operator.MISSING: ("__isnull", False),
+        Operator.PRESENT: ("__isnull", True),
+        Operator.IN: ("__in", False),
+        Operator.NOT_IN: ("__in", True),
+        Operator.INCLUDES_ALL: ("__contains", False),
+        Operator.MATCH: ("regex", False),
+    }
 
-    #     @staticmethod
-    #     def _equal_operator(column: SqlAlchemyColumn):
-    #         return column.__eq__
-
-    #     @staticmethod
-    #     def _not_equal_operator(column: SqlAlchemyColumn):
-    #         return column.__ne__
-
-    #     @staticmethod
-    #     def _blank_operator(column: SqlAlchemyColumn):
-    #         def wrapped(_: str):
-    #             return or_([column.is_(None), column.__eq__("")])
-
-    #         return wrapped
-
-    #     @staticmethod
-    #     def _contains_operator(column: SqlAlchemyColumn):
-    #         def wrapped(value: str):
-    #             return func.lower(column).contains(value.lower())
-
-    #         return wrapped
-
-    #     @classmethod
-    #     def _not_contains_operator(cls, column: SqlAlchemyColumn):
-    #         def wrapped(value: str) -> Any:
-    #             return not_(cls._contains_operator(column)(value))  # type: ignore
-
-    #         return wrapped
-
-    #     @staticmethod
-    #     def _starts_with_operator(column: SqlAlchemyColumn):
-    #         return column.startswith
-
-    #     @staticmethod
-    #     def _ends_with_operator(column: SqlAlchemyColumn):
-    #         return column.endswith
-
-    #     @staticmethod
-    #     def _greater_than_operator(column: SqlAlchemyColumn):
-    #         return column.__gt__
-
-    #     @staticmethod
-    #     def _less_than_operator(column: SqlAlchemyColumn):
-    #         return column.__lt__
-
-    #     @staticmethod
-    #     def _in_operator(column: SqlAlchemyColumn):
-    #         return column.in_
-
-    #     @staticmethod
-    #     def _not_in_operator(column: SqlAlchemyColumn):
-    #         return column.not_in
-
-    #     @staticmethod
-    #     def _missing_operator(column: SqlAlchemyColumn):
-    #         def wrapped(_: str):
-    #             return column.is_(None)
-
-    #         return wrapped
-
-    #     @staticmethod
-    #     def _present_operator(column: SqlAlchemyColumn):
-    #         def wrapped(_: str):
-    #             return column.is_not(None)
-
-    #         return wrapped
-
-    #     @staticmethod
-    #     def _includes_all(column: SqlAlchemyColumn):
-    #         return column.__eq__
-
-    #     @staticmethod
-    #     def _regexp_match(column: SqlAlchemyColumn):
-    #         return column.regexp_match
-
-    #     @classmethod
-    #     def get_operator(cls, columns: SqlAlchemyColumn, operator: Operator) -> Callable[[Optional[str]], Any]:
-    #         try:
-    #             meth = cls.OPERATORS[operator]
-    #         except KeyError:
-    #             raise ConverterException(f"Unable to handle the operator {operator}")
-    #         else:
-    #             return getattr(cls, meth)(columns[0])
+    @classmethod
+    def get_operator(cls, operator: Operator) -> Tuple[str, bool]:
+        """return (expression_lookup, negate)"""
+        try:
+            return cls.OPERATORS[operator]
+        except KeyError:
+            raise ConverterException(f"Unable to handle the operator {operator}")
 
     @classmethod
     def get_for_type(cls, _type: ColumnAlias) -> Set[Operator]:  # duplicated
