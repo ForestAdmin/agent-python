@@ -46,7 +46,7 @@ class FieldFactory:
     @classmethod
     def _build_validations(cls, field: Field) -> List[Validation]:
         validations: List[Validation] = []
-        if not field.null and not cls._build_is_read_only(field) and not field.has_default():
+        if not (field.null or field.blank) and not cls._build_is_read_only(field) and not field.has_default():
             validations.append(
                 {
                     "operator": Operator.PRESENT,
@@ -138,7 +138,7 @@ class DjangoCollectionFactory:
                 kwargs["foreign_key"] = field.column
                 kwargs["foreign_key_target"] = field.target_field.name
 
-        return ManyToMany(type=FieldType.MANY_TO_MANY, **kwargs)
+        return ManyToMany(type=FieldType.MANY_TO_MANY, foreign_relation=None, **kwargs)
 
     @staticmethod
     def build(model: Model) -> CollectionSchema:
