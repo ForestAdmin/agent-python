@@ -163,7 +163,7 @@ class PermissionService:
             del self.cache["forest.collections"]
 
         if "forest.collections" not in self.cache:
-            ForestLogger.log("Debug", "Fetching environment permissions")
+            ForestLogger.log("debug", "Fetching environment permissions")
             response = await ForestHttpApi.get_environment_permissions(self.options)
             collections = {}
             for name, collection in response["collections"].items():

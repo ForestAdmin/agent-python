@@ -2,11 +2,11 @@ from typing import Dict, Set, Tuple
 
 from django.contrib.postgres import fields as postgres_fields
 from django.db import models
-from forestadmin.datasource_toolkit.exceptions import DatasourceToolkitException
+from forestadmin.datasource_django.exception import DjangoDatasourceException
 from forestadmin.datasource_toolkit.interfaces.fields import ColumnAlias, Operator, PrimitiveType
 
 
-class ConverterException(DatasourceToolkitException):
+class ConverterException(DjangoDatasourceException):
     pass
 
 
@@ -93,9 +93,9 @@ class FilterOperator:
         Operator.NOT_EQUAL: ("", True),
         Operator.BLANK: ("__isnull", False),
         Operator.CONTAINS: ("__contains", False),
-        Operator.NOT_CONTAINS: ("__contains", True),
-        Operator.STARTS_WITH: ("__startswith", False),
-        Operator.ENDS_WITH: ("__endswith", False),
+        Operator.NOT_CONTAINS: ("__icontains", True),
+        Operator.STARTS_WITH: ("__istartswith", False),
+        Operator.ENDS_WITH: ("__iendswith", False),
         Operator.GREATER_THAN: ("__gt", False),
         Operator.AFTER: ("__gt", False),
         Operator.LESS_THAN: ("__lt", False),

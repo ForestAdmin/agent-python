@@ -3,7 +3,7 @@ from typing import Any, Dict, List, Optional
 from django.db.models import Model
 from forestadmin.agent_toolkit.utils.context import User
 from forestadmin.datasource_django.interface import BaseDjangoCollection
-from forestadmin.datasource_django.utils.model_converter import DjangoCollectionFactory
+from forestadmin.datasource_django.utils.model_introspection import DjangoCollectionFactory
 from forestadmin.datasource_django.utils.query_factory import DjangoQueryBuilder
 from forestadmin.datasource_django.utils.record_serializer import instance_to_record_data
 from forestadmin.datasource_toolkit.datasources import Datasource
@@ -35,6 +35,7 @@ class DjangoCollection(BaseDjangoCollection):
             normalized_projection.extend(self._normalize_projection(child_fields, f"{prefix}{parent_field}:"))
         return Projection(*normalized_projection)
 
+    # ?????
     def get_column(self, name: str):
         return super().get_column(name)
 
