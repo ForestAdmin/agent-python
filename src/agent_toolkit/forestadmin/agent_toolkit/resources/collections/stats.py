@@ -1,3 +1,4 @@
+import enum
 import json
 from datetime import date, datetime
 from typing import Any, Dict, List, Literal, Optional, Union, cast
@@ -127,7 +128,8 @@ class StatsResource(BaseCollectionResource):
             if ":" not in request.body["groupByFieldName"]:
                 field = request.collection.get_field(request.body["groupByFieldName"])
                 if cast(Column, field)["column_type"] == PrimitiveType.ENUM:
-                    key = key.value
+                    if isinstance(key, enum.Enum):
+                        key = key.value
             results.append({"key": key, "value": row["value"]})
         return self._build_success_response(results)
 
