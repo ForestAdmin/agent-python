@@ -1,4 +1,5 @@
 import random
+from datetime import datetime, timezone
 
 from app.models import Address, Cart, Customer, Order
 from django.contrib.auth.models import Group, User
@@ -72,6 +73,7 @@ def create_orders_cart(customers, addresses, nb_order=1000):
 
     for i in range(nb_order):
         o = Order(
+            ordered_at=fake.date_time_between(start_date=datetime(2015, 1, 1), tzinfo=timezone.utc),
             amount=random.randint(0, 100000) / 100,
             customer=customers[i % (len(customers) - 1)],
             billing_address=addresses[i % (len(addresses) - 1)],
