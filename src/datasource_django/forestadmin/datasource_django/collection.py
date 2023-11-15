@@ -35,10 +35,6 @@ class DjangoCollection(BaseDjangoCollection):
             normalized_projection.extend(self._normalize_projection(child_fields, f"{prefix}{parent_field}:"))
         return Projection(*normalized_projection)
 
-    # ?????
-    def get_column(self, name: str):
-        return super().get_column(name)
-
     async def list(self, caller: User, filter_: PaginatedFilter, projection: Projection) -> List[RecordsDataAlias]:
         normalized_projection = self._normalize_projection(projection)
 
@@ -67,7 +63,7 @@ class DjangoCollection(BaseDjangoCollection):
 
     async def execute(
         self, caller: User, name: str, data: RecordsDataAlias, filter_: Optional[Filter]
-    ) -> ActionResult:  # duplicate
+    ) -> ActionResult:  # TODO: duplicate
         return await super().execute(caller, name, data, filter_)
 
     async def get_form(
@@ -77,11 +73,12 @@ class DjangoCollection(BaseDjangoCollection):
         data: Optional[RecordsDataAlias],
         filter_: Optional[Filter],
         meta: Optional[Dict[str, Any]],
-    ) -> List[ActionField]:  # duplicate
+    ) -> List[ActionField]:  # TODO: duplicate
         return await super().get_form(caller, name, data, filter_, meta)
 
     async def render_chart(self, caller: User, name: str, record_id: List) -> Chart:  # duplicate
         return await super().render_chart(caller, name, record_id)
 
     def get_native_driver(self):
+        # TODO
         return super().get_native_driver()

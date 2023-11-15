@@ -78,7 +78,7 @@ class TypeConverter:
 
 
 class FilterOperator:
-    COMMON_OPERATORS: Set[Operator] = {  # duplicated
+    COMMON_OPERATORS: Set[Operator] = {  # TODO:  duplicated
         Operator.BLANK,
         Operator.EQUAL,
         Operator.MISSING,
@@ -87,12 +87,11 @@ class FilterOperator:
     }
 
     OPERATORS = {
-        # TODO: add sensitive / insensitive case operators
         # operator:  (lookup_expr, negate needed)
         Operator.EQUAL: ("", False),
         Operator.NOT_EQUAL: ("", True),
         Operator.BLANK: ("__isnull", False),
-        Operator.CONTAINS: ("__contains", False),
+        Operator.CONTAINS: ("__icontains", False),
         Operator.NOT_CONTAINS: ("__icontains", True),
         Operator.STARTS_WITH: ("__istartswith", False),
         Operator.ENDS_WITH: ("__iendswith", False),
@@ -117,7 +116,7 @@ class FilterOperator:
             raise ConverterException(f"Unable to handle the operator {operator}")
 
     @classmethod
-    def get_for_type(cls, _type: ColumnAlias) -> Set[Operator]:  # duplicated
+    def get_for_type(cls, _type: ColumnAlias) -> Set[Operator]:  # TODO:  duplicated
         operators: Set[Operator] = set()
         if isinstance(_type, list):
             operators = {
