@@ -34,12 +34,12 @@ urlpatterns = [
     ),
     path(
         "forest/<str:collection_name>/<str:pks>/relationships/<str:relation_name>",
-        crud_related.list,
+        crud_related.list_,
         name="crud_related_list",
     ),
     # crud
     path("forest/<str:collection_name>.csv", crud.csv, name="crud_csv"),
     path("forest/<str:collection_name>/count", crud.count, name="crud_count"),
     path("forest/<str:collection_name>/<str:pks>", crud.detail, name="crud_detail"),
-    path("forest/<str:collection_name>", crud.list, name="crud_list"),
+    path("forest/<str:collection_name>", crud.list_, name="crud_list"),
 ]

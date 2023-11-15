@@ -36,10 +36,13 @@ class DjangoQueryBuilder:
     }
 
     @classmethod
-    async def _mk_base_queryset(
-        cls, collection: BaseDjangoCollection, largest_projection: Projection, filter_: BaseFilter
+    def _mk_base_queryset(
+        cls,
+        collection: BaseDjangoCollection,
+        largest_projection: Projection,
+        filter_: BaseFilter,
     ) -> models.QuerySet:
-        qs = await sync_to_async(collection.model.objects.all)()
+        qs: models.QuerySet = collection.model.objects.all()
 
         select_related, prefetch_related = DjangoQueryBuilder._find_related_in_projection(
             collection, largest_projection
@@ -62,7 +65,7 @@ class DjangoQueryBuilder:
         prefetch_related = set()
         break_select_related = False
 
-        # TODO: review for prefetch related
+        # TODO: Simplify this code, I think we never use a prefetch related with forest
         for relation_name, subfields in projection.relations.items():
             field_schema = collection.schema["fields"][relation_name]
             if not break_select_related and (is_many_to_one(field_schema) or is_one_to_one(field_schema)):
@@ -94,12 +97,12 @@ class DjangoQueryBuilder:
             full_projection = full_projection.union(filter_.condition_tree.projection)
         if filter_.sort:
             full_projection = full_projection.union(filter_.sort.projection)
-        qs = await cls._mk_base_queryset(collection, full_projection, filter_)
+        qs = cls._mk_base_queryset(collection, full_projection, filter_)
 
         qs = qs.only(*[p.replace(":", "__") for p in projection])
         qs = DjangoQueryPaginationBuilder.paginate_queryset(qs, filter_)
-        async for item in qs:
-            yield item
+
+        return await sync_to_async(list)(qs)
 
     @classmethod
     async def mk_aggregate(
@@ -112,7 +115,7 @@ class DjangoQueryBuilder:
         full_projection = aggregation.projection
         if filter_.condition_tree:
             full_projection = full_projection.union(filter_.condition_tree.projection)
-        qs = await cls._mk_base_queryset(collection, full_projection, filter_)
+        qs = cls._mk_base_queryset(collection, full_projection, filter_)
 
         if aggregation.field:
             qs = qs.order_by(f'-{aggregation.field.replace(":", "__")}')
@@ -150,7 +153,7 @@ class DjangoQueryBuilder:
 
             return [
                 DjangoQueryGroupByHelper.parse_groupby_row(row, aggregation.groups, aggregated_field)
-                async for row in qs
+                for row in await sync_to_async(list)(qs)
             ]
 
     @staticmethod

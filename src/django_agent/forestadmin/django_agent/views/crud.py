@@ -23,7 +23,7 @@ async def csv(request: HttpRequest, **kwargs):
     return convert_response(response)
 
 
-async def list(request: HttpRequest, **kwargs):
+async def list_(request: HttpRequest, **kwargs):
     resource = (await DjangoAgentApp.get_agent().get_resources())["crud"]
     action = get_dispatcher_method(request.method, False)
     response = await resource.dispatch(convert_request(request, kwargs), action)
@@ -31,5 +31,5 @@ async def list(request: HttpRequest, **kwargs):
 
 
 # This is so ugly... But django.views.decorators.csrf.csrf_exempt is not asyncio ready
-list.csrf_exempt = True
+list_.csrf_exempt = True
 detail.csrf_exempt = True

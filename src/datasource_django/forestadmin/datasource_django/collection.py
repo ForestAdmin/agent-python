@@ -38,10 +38,11 @@ class DjangoCollection(BaseDjangoCollection):
     async def list(self, caller: User, filter_: PaginatedFilter, projection: Projection) -> List[RecordsDataAlias]:
         normalized_projection = self._normalize_projection(projection)
 
-        return [
+        ret = [
             instance_to_record_data(item, normalized_projection)
-            async for item in DjangoQueryBuilder.mk_list(self, filter_, normalized_projection)
+            for item in await DjangoQueryBuilder.mk_list(self, filter_, normalized_projection)
         ]
+        return ret
 
     async def aggregate(
         self, caller: User, filter_: Optional[Filter], aggregation: Aggregation, limit: Optional[int] = None
