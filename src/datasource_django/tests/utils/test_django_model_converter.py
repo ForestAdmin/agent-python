@@ -3,7 +3,7 @@ from unittest.mock import patch
 
 from django.apps import apps
 from django.db import models
-from forestadmin.datasource_django.utils.model_converter import DjangoCollectionFactory, FieldFactory
+from forestadmin.datasource_django.utils.model_introspection import DjangoCollectionFactory, FieldFactory
 from forestadmin.datasource_toolkit.interfaces.fields import FieldType, Operator, PrimitiveType
 
 
@@ -114,7 +114,7 @@ class TestDjangoCollectionFactory(TestCase):
 
     def test_build_should_call_field_factory_for_non_relational_fields(self):
         with patch(
-            "forestadmin.datasource_django.utils.model_converter.FieldFactory.build", wraps=FieldFactory.build
+            "forestadmin.datasource_django.utils.model_introspection.FieldFactory.build", wraps=FieldFactory.build
         ) as spy_field_factory_build:
             schema = DjangoCollectionFactory.build(self.field_only_model)
             for name, field_schema in schema["fields"].items():
@@ -159,6 +159,7 @@ class TestDjangoCollectionFactory(TestCase):
             {
                 "type": FieldType.MANY_TO_MANY,
                 "foreign_collection": "Group",
+                "foreign_relation": None,
                 "through_collection": "User_groups",
                 "origin_key": "user_id",
                 "origin_key_target": "id",
@@ -173,6 +174,7 @@ class TestDjangoCollectionFactory(TestCase):
                 "type": FieldType.MANY_TO_MANY,
                 "foreign_collection": "User",
                 "through_collection": "User_groups",
+                "foreign_relation": None,
                 "foreign_key": "user_id",
                 "foreign_key_target": "id",
                 "origin_key": "group_id",
