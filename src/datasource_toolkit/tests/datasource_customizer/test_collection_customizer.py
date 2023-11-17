@@ -356,11 +356,16 @@ class TestCollectionCustomizer(TestCase):
             self.datasource_customizer.stack.early_op_emulate.get_collection("Person"),
             "emulate_field_operator",
         ) as mock_emulate_field_operator:
-            self.person_customizer.emulate_field_filtering("name")
+            self.person_customizer.emulate_field_filtering("name").emulate_field_filtering("author_id")
             self.loop.run_until_complete(self.datasource_customizer.stack.apply_queue_customization())
 
             for operator in MAP_ALLOWED_OPERATORS_FOR_COLUMN_TYPE[PrimitiveType.STRING]:
                 mock_emulate_field_operator.assert_any_call("name", operator)
+
+            author_operators = self.person_customizer.schema["fields"]["author_id"]["filter_operators"]
+            for operator in MAP_ALLOWED_OPERATORS_FOR_COLUMN_TYPE[PrimitiveType.NUMBER]:
+                if operator not in author_operators:
+                    mock_emulate_field_operator.assert_any_call("author_id", operator)
 
     def test_emulate_field_operator(self):
         with patch.object(

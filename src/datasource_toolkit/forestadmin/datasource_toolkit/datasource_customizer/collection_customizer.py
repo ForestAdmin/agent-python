@@ -326,9 +326,9 @@ class CollectionCustomizer:
             field = collection.schema["fields"][name]
             operators = MAP_ALLOWED_OPERATORS_FOR_COLUMN_TYPE[field["column_type"]]
 
-            if field["column_type"] == PrimitiveType.STRING:
+            if isinstance(field["column_type"], PrimitiveType):
                 for operator in operators:
-                    if operator not in field.get("filter_operators", {}):
+                    if operator not in field.get("filter_operators", set()):
                         self.emulate_field_operator(name, operator)
 
         self.stack.queue_customization(_emulate_field_filtering)
