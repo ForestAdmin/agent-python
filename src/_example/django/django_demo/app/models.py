@@ -94,6 +94,7 @@ class Order(AutoUpdatedCreatedAt):
     billing_address = models.ForeignKey(Address, related_name="billing_orders", on_delete=models.CASCADE)
     delivering_address = models.ForeignKey(Address, related_name="delivering_orders", on_delete=models.CASCADE)
     status = models.CharField(max_length=10, choices=OrderStatus.choices)
+    ordered_at = models.DateTimeField(null=True)
     # cart
 
 

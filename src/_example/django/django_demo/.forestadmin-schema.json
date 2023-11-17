@@ -260,6 +260,22 @@
                 {
                     "defaultValue": null,
                     "enums": null,
+                    "field": "customer_id",
+                    "integration": null,
+                    "inverseOf": null,
+                    "isFilterable": true,
+                    "isPrimaryKey": false,
+                    "isReadOnly": true,
+                    "isRequired": false,
+                    "isSortable": false,
+                    "isVirtual": false,
+                    "reference": null,
+                    "type": "Number",
+                    "validations": []
+                },
+                {
+                    "defaultValue": null,
+                    "enums": null,
                     "field": "id",
                     "integration": null,
                     "inverseOf": null,
@@ -643,6 +659,58 @@
                 {
                     "defaultValue": null,
                     "enums": null,
+                    "field": "smart_billing_addresses",
+                    "inverseOf": null,
+                    "isFilterable": false,
+                    "isPrimaryKey": false,
+                    "isReadOnly": false,
+                    "isRequired": false,
+                    "isSortable": true,
+                    "isVirtual": false,
+                    "reference": "Address.id",
+                    "relationship": "BelongsToMany",
+                    "type": [
+                        "Number"
+                    ],
+                    "validations": []
+                },
+                {
+                    "defaultValue": null,
+                    "enums": null,
+                    "field": "smart_carts",
+                    "inverseOf": null,
+                    "isFilterable": false,
+                    "isPrimaryKey": false,
+                    "isReadOnly": false,
+                    "isRequired": false,
+                    "isSortable": true,
+                    "isVirtual": false,
+                    "reference": "Cart.id",
+                    "relationship": "HasMany",
+                    "type": [
+                        "Number"
+                    ],
+                    "validations": []
+                },
+                {
+                    "defaultValue": null,
+                    "enums": null,
+                    "field": "total_spending",
+                    "integration": null,
+                    "inverseOf": null,
+                    "isFilterable": false,
+                    "isPrimaryKey": false,
+                    "isReadOnly": true,
+                    "isRequired": false,
+                    "isSortable": false,
+                    "isVirtual": false,
+                    "reference": null,
+                    "type": "Number",
+                    "validations": []
+                },
+                {
+                    "defaultValue": null,
+                    "enums": null,
                     "field": "updated_at",
                     "integration": null,
                     "inverseOf": null,
@@ -1002,18 +1070,12 @@
                     "isFilterable": true,
                     "isPrimaryKey": false,
                     "isReadOnly": false,
-                    "isRequired": true,
+                    "isRequired": false,
                     "isSortable": true,
                     "isVirtual": false,
                     "reference": null,
                     "type": "String",
-                    "validations": [
-                        {
-                            "type": "is present",
-                            "value": null,
-                            "message": null
-                        }
-                    ]
+                    "validations": []
                 },
                 {
                     "defaultValue": null,
@@ -1255,6 +1317,22 @@
                     "isVirtual": false,
                     "reference": null,
                     "type": "Number",
+                    "validations": []
+                },
+                {
+                    "defaultValue": null,
+                    "enums": null,
+                    "field": "ordered_at",
+                    "integration": null,
+                    "inverseOf": null,
+                    "isFilterable": true,
+                    "isPrimaryKey": false,
+                    "isReadOnly": false,
+                    "isRequired": false,
+                    "isSortable": true,
+                    "isVirtual": false,
+                    "reference": null,
+                    "type": "Date",
                     "validations": []
                 },
                 {
@@ -1646,17 +1724,12 @@
                     "isFilterable": true,
                     "isPrimaryKey": false,
                     "isReadOnly": false,
-                    "isRequired": true,
+                    "isRequired": false,
                     "isSortable": true,
                     "isVirtual": false,
                     "reference": null,
                     "type": "String",
                     "validations": [
-                        {
-                            "type": "is present",
-                            "value": null,
-                            "message": null
-                        },
                         {
                             "type": "is shorter than",
                             "value": 254,
@@ -1673,17 +1746,12 @@
                     "isFilterable": true,
                     "isPrimaryKey": false,
                     "isReadOnly": false,
-                    "isRequired": true,
+                    "isRequired": false,
                     "isSortable": true,
                     "isVirtual": false,
                     "reference": null,
                     "type": "String",
                     "validations": [
-                        {
-                            "type": "is present",
-                            "value": null,
-                            "message": null
-                        },
                         {
                             "type": "is shorter than",
                             "value": 150,
@@ -1798,17 +1866,12 @@
                     "isFilterable": true,
                     "isPrimaryKey": false,
                     "isReadOnly": false,
-                    "isRequired": true,
+                    "isRequired": false,
                     "isSortable": true,
                     "isVirtual": false,
                     "reference": null,
                     "type": "String",
                     "validations": [
-                        {
-                            "type": "is present",
-                            "value": null,
-                            "message": null
-                        },
                         {
                             "type": "is shorter than",
                             "value": 150,
@@ -2066,6 +2129,6 @@
             "engine": "python",
             "engine_version": "3.10.11"
         },
-        "schemaFileHash": "54ffd6489cfa2209d94d1a5bcb6b517e52c4d84e"
+        "schemaFileHash": "7918f978695f6bd166bbca20ca9de57f53a49a08"
     }
 }
