@@ -36,6 +36,14 @@ class DjangoQueryBuilder:
     }
 
     @classmethod
+    def _normalize_projection(cls, projection: Projection, prefix: str = "") -> Projection:
+        # needed to be compliant with the orm result orm
+        normalized_projection = [f"{prefix}{col}" for col in projection.columns]
+        for parent_field, child_fields in projection.relations.items():
+            normalized_projection.extend(cls._normalize_projection(child_fields, f"{prefix}{parent_field}__"))
+        return Projection(*normalized_projection)
+
+    @classmethod
     def _mk_base_queryset(
         cls,
         collection: BaseDjangoCollection,
@@ -99,7 +107,7 @@ class DjangoQueryBuilder:
             full_projection = full_projection.union(filter_.sort.projection)
         qs = cls._mk_base_queryset(collection, full_projection, filter_)
 
-        qs = qs.only(*[p.replace(":", "__") for p in projection])
+        qs = qs.only(*cls._normalize_projection(full_projection))
         qs = DjangoQueryPaginationBuilder.paginate_queryset(qs, filter_)
 
         return await sync_to_async(list)(qs)
@@ -169,7 +177,12 @@ class DjangoQueryBuilder:
 
     @staticmethod
     async def mk_create(collection: BaseDjangoCollection, data: List[RecordsDataAlias]) -> models.Model:
-        return await sync_to_async(collection.model.objects.bulk_create)([collection.model(**d) for d in data])
+        instances: List[models.Model] = [collection.model(**d) for d in data]
+        for i in instances:
+            await sync_to_async(i.save)()
+            await sync_to_async(i.refresh_from_db)()
+
+        return instances
 
     @staticmethod
     async def mk_delete(collection: BaseDjangoCollection, filter_: Optional[Filter]):

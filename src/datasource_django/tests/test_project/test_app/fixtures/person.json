@@ -1,0 +1,20 @@
+[
+  {
+    "model": "test_app.person",
+    "pk": 1,
+    "fields": {
+      "first_name": "Isaac",
+      "last_name": "Asimov",
+      "birth_date": "1920-02-01"
+    }
+  },
+  {
+    "model": "test_app.person",
+    "pk": 2,
+    "fields": {
+      "first_name": "J.K.",
+      "last_name": "Rowling",
+      "birth_date": "1965-07-31"
+    }
+  }
+]

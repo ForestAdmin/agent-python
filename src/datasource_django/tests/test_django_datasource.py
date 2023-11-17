@@ -41,6 +41,8 @@ class TestDjangoDatasource(TestCase):
             set(
                 [
                     "Book",
+                    "Person",
+                    "Rating",
                     "Permission",
                     "Group_permissions",
                     "Group",

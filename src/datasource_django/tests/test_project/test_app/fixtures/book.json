@@ -1,0 +1,12 @@
+[
+  {
+    "model": "test_app.book",
+    "pk": 1,
+    "fields": { "name": "Foundation", "author": 1 }
+  },
+  {
+    "model": "test_app.book",
+    "pk": 2,
+    "fields": { "name": "Harry Potter", "author": 2 }
+  }
+]

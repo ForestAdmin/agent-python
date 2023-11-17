@@ -28,21 +28,11 @@ class DjangoCollection(BaseDjangoCollection):
     def model(self) -> Model:
         return self._model
 
-    def _normalize_projection(self, projection: Projection, prefix: str = "") -> Projection:
-        # needed to be compliant with the orm result orm
-        normalized_projection = [f"{prefix}{col}" for col in projection.columns]
-        for parent_field, child_fields in projection.relations.items():
-            normalized_projection.extend(self._normalize_projection(child_fields, f"{prefix}{parent_field}:"))
-        return Projection(*normalized_projection)
-
     async def list(self, caller: User, filter_: PaginatedFilter, projection: Projection) -> List[RecordsDataAlias]:
-        normalized_projection = self._normalize_projection(projection)
-
-        ret = [
-            instance_to_record_data(item, normalized_projection)
-            for item in await DjangoQueryBuilder.mk_list(self, filter_, normalized_projection)
+        return [
+            instance_to_record_data(item, projection)
+            for item in await DjangoQueryBuilder.mk_list(self, filter_, projection)
         ]
-        return ret
 
     async def aggregate(
         self, caller: User, filter_: Optional[Filter], aggregation: Aggregation, limit: Optional[int] = None
@@ -51,9 +41,7 @@ class DjangoCollection(BaseDjangoCollection):
 
     async def create(self, caller: User, data: List[RecordsDataAlias]) -> List[RecordsDataAlias]:
         instances = await DjangoQueryBuilder.mk_create(self, data)
-        projection = self._normalize_projection(
-            Projection(*[k for k in self.schema["fields"].keys() if is_column(self.schema["fields"][k])])
-        )
+        projection = Projection(*[k for k in self.schema["fields"].keys() if is_column(self.schema["fields"][k])])
         return [instance_to_record_data(item, projection) for item in instances]
 
     async def update(self, caller: User, filter_: Optional[Filter], patch: RecordsDataAlias) -> None:

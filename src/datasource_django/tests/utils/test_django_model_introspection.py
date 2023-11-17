@@ -5,6 +5,7 @@ from django.apps import apps
 from django.db import models
 from forestadmin.datasource_django.utils.model_introspection import DjangoCollectionFactory, FieldFactory
 from forestadmin.datasource_toolkit.interfaces.fields import FieldType, Operator, PrimitiveType
+from test_app.models import Book, Person
 
 
 class TestDjangoFieldFactory(TestCase):
@@ -89,7 +90,7 @@ class TestDjangoCollectionFactory(TestCase):
         return type(
             name,
             (models.Model,),
-            {"__module__": "tests.test_project.test_app.models", **attrs},
+            {"__module__": "test_app", **attrs},
         )
 
     @classmethod
@@ -106,10 +107,6 @@ class TestDjangoCollectionFactory(TestCase):
         )
         cls.field_only_model = TestDjangoCollectionFactory.build_model_class(
             "FieldOnly", {"name": models.CharField(max_length=254)}
-        )
-        cls.author_model = TestDjangoCollectionFactory.build_model_class("author", {})
-        cls.movie_model = TestDjangoCollectionFactory.build_model_class(
-            "movie", {"author": models.ForeignKey("author", on_delete=models.CASCADE, related_name="movies")}
         )
 
     def test_build_should_call_field_factory_for_non_relational_fields(self):
@@ -198,12 +195,12 @@ class TestDjangoCollectionFactory(TestCase):
         )
 
     def test_build_should_handle_one_to_many_relations(self):
-        author_schema = DjangoCollectionFactory.build(self.author_model)
+        person_schema = DjangoCollectionFactory.build(Person)
 
         self.assertEqual(
-            author_schema["fields"]["movies"],
+            person_schema["fields"]["books"],
             {
-                "foreign_collection": "movie",
+                "foreign_collection": "Book",
                 "origin_key": "author_id",
                 "origin_key_target": "id",
                 "type": FieldType.ONE_TO_MANY,
@@ -211,8 +208,8 @@ class TestDjangoCollectionFactory(TestCase):
         )
 
     def test_build_should_handle_also_generate_foreign_key_fields_next_to_relations(self):
-        movie_schema = DjangoCollectionFactory.build(self.movie_model)
+        book_schema = DjangoCollectionFactory.build(Book)
 
-        self.assertEqual(movie_schema["fields"]["author_id"]["validations"], [{"operator": Operator.PRESENT}])
-        self.assertEqual(movie_schema["fields"]["author_id"]["column_type"], PrimitiveType.NUMBER)
-        self.assertEqual(movie_schema["fields"]["author_id"]["type"], FieldType.COLUMN)
+        self.assertEqual(book_schema["fields"]["author_id"]["validations"], [{"operator": Operator.PRESENT}])
+        self.assertEqual(book_schema["fields"]["author_id"]["column_type"], PrimitiveType.NUMBER)
+        self.assertEqual(book_schema["fields"]["author_id"]["type"], FieldType.COLUMN)
