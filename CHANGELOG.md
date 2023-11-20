@@ -1,3 +1,10 @@
+# [1.2.0-beta.1](https://github.com/ForestAdmin/agent-python/compare/v1.1.0...v1.2.0-beta.1) (2023-11-20)
+
+
+### Features
+
+* **django:** add database operations and routes ([#145](https://github.com/ForestAdmin/agent-python/issues/145)) ([95f3a94](https://github.com/ForestAdmin/agent-python/commit/95f3a94fc393ed1ea2d49849132717167c0961a7))
+
 # [1.1.0](https://github.com/ForestAdmin/agent-python/compare/v1.0.0...v1.1.0) (2023-10-31)
 
 
