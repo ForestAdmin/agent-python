@@ -1,3 +1,10 @@
+## [1.1.2](https://github.com/ForestAdmin/agent-python/compare/v1.1.1...v1.1.2) (2023-11-20)
+
+
+### Bug Fixes
+
+* **filter_emulation:** operator emulation now work on all primitive type ([#146](https://github.com/ForestAdmin/agent-python/issues/146)) ([aebc9df](https://github.com/ForestAdmin/agent-python/commit/aebc9df873817c8ea9af4738080db2f73d6a782a))
+
 ## [1.1.1](https://github.com/ForestAdmin/agent-python/compare/v1.1.0...v1.1.1) (2023-11-07)
 
 
