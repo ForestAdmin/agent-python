@@ -73,6 +73,13 @@ class FlaskAgent(BaseAgent):
         return self._blueprint
 
     def start(self):
+        print("FLASK_RUN_FROM_CLI: ", os.environ.get("FLASK_RUN_FROM_CLI"))
+        print("WERKZEUG_RUN_MAIN: ", os.environ.get("WERKZEUG_RUN_MAIN"))
+        print("self._app.debug: ", self._app.debug)
+
+        # if not os.environ.get("FLASK_RUN_FROM_CLI") == "true" or (  # run from wsgi process
+        #     self._app.debug is not True and os.environ.get("WERKZEUG_RUN_MAIN") == "true"
+        # ):
         self.loop.run_until_complete(self._start())
         ForestLogger.log("info", "Flask agent initialized")
 

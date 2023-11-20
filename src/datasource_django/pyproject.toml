@@ -70,3 +70,4 @@ develop = true
 
 [tool.pytest.ini_options]
 DJANGO_SETTINGS_MODULE = "tests.test_project.test_project.settings"
+pythonpath = "tests/test_project"

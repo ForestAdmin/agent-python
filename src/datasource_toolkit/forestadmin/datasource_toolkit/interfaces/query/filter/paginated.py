@@ -24,8 +24,8 @@ class PlainPaginatedFilter(PlainFilter):
 class PaginatedFilter(BaseFilter[PaginatedFilterComponent]):
     def __init__(self, filter: PaginatedFilterComponent):
         super().__init__(filter)
-        self.sort = filter.get("sort")
-        self.page = filter.get("page")
+        self.sort: Sort = filter.get("sort")
+        self.page: Page = filter.get("page")
 
     def __eq__(self, object: Self):
         return super(PaginatedFilter, self).__eq__(object) and self.sort == object.sort and self.page == object.page

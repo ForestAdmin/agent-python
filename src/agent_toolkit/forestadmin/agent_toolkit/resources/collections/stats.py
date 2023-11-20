@@ -18,7 +18,6 @@ from forestadmin.agent_toolkit.utils.context import FileResponse, HttpResponseBu
 from forestadmin.agent_toolkit.utils.context_variable_injector import ContextVariableInjector
 from forestadmin.agent_toolkit.utils.context_variable_instantiator import ContextVariablesInstantiator
 from forestadmin.datasource_toolkit.exceptions import ForestException
-from forestadmin.datasource_toolkit.interfaces.fields import Column, PrimitiveType
 from forestadmin.datasource_toolkit.interfaces.query.aggregation import Aggregation
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.factory import ConditionTreeFactory
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.base import ConditionTree
@@ -124,10 +123,6 @@ class StatsResource(BaseCollectionResource):
         results: List[Dict[str, Union[str, int]]] = []
         for row in rows:
             key = row["group"][request.body["groupByFieldName"]]
-            if ":" not in request.body["groupByFieldName"]:
-                field = request.collection.get_field(request.body["groupByFieldName"])
-                if cast(Column, field)["column_type"] == PrimitiveType.ENUM:
-                    key = key.value
             results.append({"key": key, "value": row["value"]})
         return self._build_success_response(results)
 
