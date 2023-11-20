@@ -16,7 +16,7 @@ python = ">=3.8,<4.0"
 typing-extensions = "~=4.2"
 tzdata = "~=2022.6"
 forestadmin-agent-toolkit = "1.1.0"
-forestadmin-datasource-toolkit = "1.1.0"
+forestadmin-datasource-django = "1.1.0"
 django = ">=3.2"
 
 [tool.poetry.dependencies."backports.zoneinfo"]
@@ -58,13 +58,9 @@ black = "~=22.10"
 [tool.poetry.group.sorter.dependencies]
 isort = "~=3.6"
 
-[tool.poetry.group.test.dependencies.forestadmin-datasource-toolkit]
-path = "../datasource_toolkit"
+[tool.poetry.group.test.dependencies.forestadmin-datasource-django]
+path = "../datasource_django"
 develop = true
-
-# [tool.poetry.group.test.dependencies.forestadmin-datasource-django]
-# path = "../datasource_django"
-# develop = true
 
 [tool.poetry.group.test.dependencies.forestadmin-agent-toolkit]
 path = "../agent_toolkit"

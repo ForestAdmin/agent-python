@@ -1,8 +1,11 @@
 import asyncio
+import importlib
 import os
 import sys
+from typing import Optional
 
 import pkg_resources
+from django.conf import ENVIRONMENT_VARIABLE as DJANGO_SETTING_MODULE_ENV_VAR_NAME
 from django.conf import settings
 from forestadmin.agent_toolkit.agent import Agent as BaseAgent
 from forestadmin.agent_toolkit.forest_logger import ForestLogger
@@ -20,12 +23,19 @@ class DjangoAgent(BaseAgent):
         "stack": {"engine": "python", "engine_version": ".".join(map(str, [*sys.version_info[:3]]))},
     }
 
-    def __init__(self):
+    def __init__(self, config: Optional[Options] = None):
         self.loop = asyncio.new_event_loop()
-        super(DjangoAgent, self).__init__(self.__parse_config())
+        config = config if config is not None else self.__parse_config()
+        super(DjangoAgent, self).__init__(config)
 
     def __parse_config(self):
-        options: Options = {"schema_path": os.path.join(settings.BASE_DIR, ".forestadmin-schema.json")}
+        if hasattr(settings, "BASE_DIR"):
+            base_dir = settings.BASE_DIR
+        else:
+            setting_file = importlib.import_module(os.environ[DJANGO_SETTING_MODULE_ENV_VAR_NAME]).__file__
+            base_dir = os.path.abspath(os.path.join(setting_file, "..", ".."))
+
+        options: Options = {"schema_path": os.path.join(base_dir, ".forestadmin-schema.json")}
         for setting_name in dir(settings):
             if not setting_name.upper().startswith("FOREST_"):
                 continue
@@ -51,3 +61,8 @@ class DjangoAgent(BaseAgent):
     def start(self):
         self.loop.run_until_complete(self._start())
         ForestLogger.log("info", "Django agent initialized")
+
+
+def create_agent(config: Optional[Options] = None):
+    agent = DjangoAgent(config)
+    return agent
