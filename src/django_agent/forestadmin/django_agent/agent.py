@@ -28,8 +28,8 @@ class DjangoAgent(BaseAgent):
         config = config if config is not None else self.__parse_config()
         super(DjangoAgent, self).__init__(config)
 
-    def __parse_config(self):
-        if hasattr(settings, "BASE_DIR"):
+    def __parse_config(self) -> Options:
+        if getattr(settings, "BASE_DIR", None) is not None:
             base_dir = settings.BASE_DIR
         else:
             setting_file = importlib.import_module(os.environ[DJANGO_SETTING_MODULE_ENV_VAR_NAME]).__file__
