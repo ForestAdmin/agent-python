@@ -9,6 +9,8 @@ app_name = "django_agent"
 prefix = getattr(settings, "FOREST_PREFIX", "")
 if len(prefix) > 0 and prefix[-1] != "/":
     prefix = f"{prefix}/"
+if len(prefix) > 0 and prefix[0] == "/":
+    prefix = f"{prefix[1:]}"
 
 urlpatterns = [
     # generic
@@ -18,9 +20,21 @@ urlpatterns = [
     path(f"{prefix}forest/authentication", authentication.authentication, name="authentication"),
     path(f"{prefix}forest/authentication/callback", authentication.callback, name="authentication_callback"),
     # actions
-    path(f"{prefix}forest/_actions/<int:action_name>/<slug>/hooks/load", actions.hook, name="action_hook_load"),
-    path(f"{prefix}forest/_actions/<int:action_name>/<slug>/hooks/change", actions.hook, name="action_hook_change"),
-    path(f"{prefix}forest/_actions/<int:action_name>/<slug>", actions.execute, name="action_execute"),
+    path(
+        f"{prefix}forest/_actions/<str:collection_name>/<int:action_name>/<slug>/hooks/load",
+        actions.hook,
+        name="action_hook_load",
+    ),
+    path(
+        f"{prefix}forest/_actions/<str:collection_name>/<int:action_name>/<slug>/hooks/change",
+        actions.hook,
+        name="action_hook_change",
+    ),
+    path(
+        f"{prefix}forest/_actions/<str:collection_name>/<int:action_name>/<slug>",
+        actions.execute,
+        name="action_execute",
+    ),
     # charts
     path(f"{prefix}forest/_charts/<str:chart_name>", charts.chart_datasource, name="datasource_chart"),
     path(
