@@ -1,0 +1,57 @@
+[
+  {
+    "model": "test_app.rating",
+    "pk": 1,
+    "fields": {
+      "comment": "",
+      "commenter": 1,
+      "book": 1,
+      "rating": 1,
+      "rated_at": "2022-12-25"
+    }
+  },
+  {
+    "model": "test_app.rating",
+    "pk": 2,
+    "fields": {
+      "comment": null,
+      "commenter": 1,
+      "book": 1,
+      "rating": 1,
+      "rated_at": "2023-01-12"
+    }
+  },
+  {
+    "model": "test_app.rating",
+    "pk": 3,
+    "fields": {
+      "comment": "Best book ever",
+      "commenter": 1,
+      "book": 1,
+      "rating": 5,
+      "rated_at": "2023-02-02"
+    }
+  },
+  {
+    "model": "test_app.rating",
+    "pk": 4,
+    "fields": {
+      "comment": "incredible",
+      "commenter": 1,
+      "book": 1,
+      "rating": 5,
+      "rated_at": "2023-02-25"
+    }
+  },
+  {
+    "model": "test_app.rating",
+    "pk": 5,
+    "fields": {
+      "comment": "awesome",
+      "commenter": 2,
+      "book": 2,
+      "rating": 5,
+      "rated_at": "2023-03-02"
+    }
+  }
+]

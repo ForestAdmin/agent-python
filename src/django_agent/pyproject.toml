@@ -65,3 +65,7 @@ develop = true
 [tool.poetry.group.test.dependencies.forestadmin-agent-toolkit]
 path = "../agent_toolkit"
 develop = true
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "test_project_agent.settings"
+pythonpath = "tests/test_project_agent"
