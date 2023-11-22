@@ -18,7 +18,7 @@ def is_launch_as_server() -> bool:
 
 def init_app_agent() -> Optional[DjangoAgent]:
     agent = create_agent()
-    if not getattr(settings, "FOREST_DONT_AUTO_ADD_DJANGO_DATASOURCE", None):
+    if not hasattr(settings, "FOREST_AUTO_ADD_DJANGO_DATASOURCE") or settings.FOREST_AUTO_ADD_DJANGO_DATASOURCE:
         agent.add_datasource(DjangoDatasource())
 
     customize_fn = getattr(settings, "FOREST_CUSTOMIZE_FUNCTION", None)

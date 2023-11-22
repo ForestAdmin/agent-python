@@ -122,7 +122,7 @@ class TestDjangoAgentInitAppAgent(DjangoTestCase):
                     mock_django_datasource.assert_called_once()
 
     def test_should_add_datasource_not_called_when_no_auto_added_asked(self):
-        with override_settings(**self.dj_options, FOREST_DONT_AUTO_ADD_DJANGO_DATASOURCE=True):
+        with override_settings(**self.dj_options, FOREST_AUTO_ADD_DJANGO_DATASOURCE=False):
             with patch("forestadmin.django_agent.apps.DjangoDatasource") as mock_django_datasource:
                 with patch.object(DjangoAgent, "add_datasource") as mock_add_datasource:
                     init_app_agent()

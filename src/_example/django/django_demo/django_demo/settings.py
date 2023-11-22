@@ -39,7 +39,7 @@ FOREST_SERVER_URL = os.environ.get("FOREST_SERVER_URL")
 FOREST_IS_PRODUCTION = str2bool(os.environ.get("FOREST_IS_PRODUCTION", "False"))
 # if you want to manually add datasource with option you can set this var to True and
 # add a datasource in the 'FOREST_CUSTOMIZE_FUNCTION'
-# FOREST_DONT_AUTO_ADD_DJANGO_DATASOURCE = False
+# FOREST_AUTO_ADD_DJANGO_DATASOURCE = True
 
 FOREST_CUSTOMIZE_FUNCTION = "app.forest_admin.customize_forest"
 # from app.forest_admin import customize_forest
