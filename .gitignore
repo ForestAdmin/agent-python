@@ -174,3 +174,5 @@ src/agent_toolkit/poetry.lock
 src/datasource_sqlalchemy/poetry.lock
 src/datasource_toolkit/poetry.lock
 src/flask_agent/poetry.lock
+src/django_agent/poetry.lock
+src/datasource_django/poetry.lock
