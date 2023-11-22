@@ -7,8 +7,6 @@ from forestadmin.datasource_django.utils.model_introspection import DjangoCollec
 from forestadmin.datasource_django.utils.query_factory import DjangoQueryBuilder
 from forestadmin.datasource_django.utils.record_serializer import instance_to_record_data
 from forestadmin.datasource_toolkit.datasources import Datasource
-from forestadmin.datasource_toolkit.interfaces.actions import ActionField, ActionResult
-from forestadmin.datasource_toolkit.interfaces.chart import Chart
 from forestadmin.datasource_toolkit.interfaces.fields import is_column
 from forestadmin.datasource_toolkit.interfaces.query.aggregation import AggregateResult, Aggregation
 from forestadmin.datasource_toolkit.interfaces.query.filter.paginated import PaginatedFilter
@@ -49,24 +47,6 @@ class DjangoCollection(BaseDjangoCollection):
 
     async def delete(self, caller: User, filter_: Optional[Filter]) -> None:
         await DjangoQueryBuilder.mk_delete(self, filter_)
-
-    async def execute(
-        self, caller: User, name: str, data: RecordsDataAlias, filter_: Optional[Filter]
-    ) -> ActionResult:  # TODO: duplicate
-        return await super().execute(caller, name, data, filter_)
-
-    async def get_form(
-        self,
-        caller: User,
-        name: str,
-        data: Optional[RecordsDataAlias],
-        filter_: Optional[Filter],
-        meta: Optional[Dict[str, Any]],
-    ) -> List[ActionField]:  # TODO: duplicate
-        return await super().get_form(caller, name, data, filter_, meta)
-
-    async def render_chart(self, caller: User, name: str, record_id: List) -> Chart:  # duplicate
-        return await super().render_chart(caller, name, record_id)
 
     def get_native_driver(self):
         # TODO
