@@ -9,8 +9,7 @@ jobs:
   GenericPackage:
     uses: ./.github/workflows/generic.yml
     with:
-      packages: '["./src/datasource_toolkit/", "./src/datasource_django/", "./src/datasource_sqlalchemy/", "./src/agent_toolkit/", "./src/flask_agent/"]'
-      # packages: '["./src/datasource_toolkit/", "./src/datasource_django/", "./src/datasource_sqlalchemy/", "./src/agent_toolkit/", "./src/flask_agent/", "./src/django_agent/"]'
+      packages: '["./src/datasource_toolkit/", "./src/datasource_django/", "./src/datasource_sqlalchemy/", "./src/agent_toolkit/", "./src/flask_agent/", "./src/django_agent/"]'
     secrets:
       CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
       PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
