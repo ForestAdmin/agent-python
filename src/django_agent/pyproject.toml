@@ -67,6 +67,10 @@ isort = "~=3.6"
 path = "../datasource_django"
 develop = true
 
+[tool.poetry.group.test.dependencies.forestadmin-datasource-toolkit]
+path = "../datasource_toolkit"
+develop = true
+
 [tool.poetry.group.test.dependencies.forestadmin-agent-toolkit]
 path = "../agent_toolkit"
 develop = true
