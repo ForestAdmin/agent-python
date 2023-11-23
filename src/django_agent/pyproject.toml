@@ -18,6 +18,7 @@ tzdata = "~=2022.6"
 forestadmin-agent-toolkit = "1.2.0-beta.1"
 forestadmin-datasource-django = "1.2.0-beta.1"
 django = ">=3.2"
+django-cors-headers = ">=3.8"
 
 [tool.pytest.ini_options]
 DJANGO_SETTINGS_MODULE = "test_project_agent.settings"
