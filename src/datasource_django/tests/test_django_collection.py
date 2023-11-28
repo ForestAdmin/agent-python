@@ -2,9 +2,6 @@ import datetime
 import sys
 from unittest.mock import Mock, patch
 
-from forestadmin.datasource_toolkit.interfaces.query.aggregation import Aggregation, DateOperation
-from forestadmin.datasource_toolkit.interfaces.query.filter.unpaginated import Filter
-
 if sys.version_info >= (3, 9):
     import zoneinfo
 else:
@@ -15,6 +12,7 @@ from forestadmin.agent_toolkit.utils.context import User
 from forestadmin.datasource_django.collection import DjangoCollection
 from forestadmin.datasource_django.datasource import DjangoDatasource
 from forestadmin.datasource_toolkit.interfaces.fields import Operator
+from forestadmin.datasource_toolkit.interfaces.query.aggregation import Aggregation, DateOperation
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.branch import (
     Aggregator as ConditionTreeAggregator,
 )
@@ -23,6 +21,7 @@ from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.branch
     ConditionTreeLeaf,
 )
 from forestadmin.datasource_toolkit.interfaces.query.filter.paginated import PaginatedFilter
+from forestadmin.datasource_toolkit.interfaces.query.filter.unpaginated import Filter
 from forestadmin.datasource_toolkit.interfaces.query.page import Page
 from forestadmin.datasource_toolkit.interfaces.query.projections import Projection
 from forestadmin.datasource_toolkit.interfaces.query.sort import Sort

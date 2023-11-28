@@ -37,6 +37,13 @@ FOREST_AUTH_SECRET = os.environ.get("FOREST_AUTH_SECRET")
 FOREST_ENV_SECRET = os.environ.get("FOREST_ENV_SECRET")
 FOREST_SERVER_URL = os.environ.get("FOREST_SERVER_URL")
 FOREST_IS_PRODUCTION = str2bool(os.environ.get("FOREST_IS_PRODUCTION", "False"))
+# if you want to manually add datasource with option you can set this var to True and
+# add a datasource in the 'FOREST_CUSTOMIZE_FUNCTION'
+# FOREST_AUTO_ADD_DJANGO_DATASOURCE = True
+
+FOREST_CUSTOMIZE_FUNCTION = "app.forest_admin.customize_forest"
+# from app.forest_admin import customize_forest
+# FOREST_CUSTOMIZE_FUNCTION = app.forest_admin.customize_forest
 
 # CORS for forest
 CORS_ALLOWED_ORIGIN_REGEXES = [
@@ -95,7 +102,7 @@ WSGI_APPLICATION = "django_demo.wsgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+        "NAME": os.path.join(BASE_DIR, "db.sqlite3"),
     }
 }
 
@@ -140,10 +147,3 @@ STATIC_URL = "static/"
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
-
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": os.path.join(BASE_DIR, "db.sqlite3"),
-    }
-}

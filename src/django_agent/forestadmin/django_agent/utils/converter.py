@@ -23,7 +23,13 @@ def convert_request(django_request: DjangoRequest, path_params: Dict[str, str] =
 
 def convert_response(response: Response) -> DjangoResponse:
     if isinstance(response, FileResponse):
-        pass
+        return DjangoResponse(
+            response.file,
+            headers={
+                "Content-Type": response.mimetype,
+                "Content-Disposition": f"attachment; filename={response.name}",
+            },
+        )
     else:
         return DjangoResponse(
             response.body,

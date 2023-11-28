@@ -243,7 +243,7 @@ class TestAgent(TestCase):
                 return_value=agent.customizer.stack.datasource,
             ):
                 self.loop.run_until_complete(agent._start())
-            self.assertEqual(logger.output, ["DEBUG:forestadmin:Starting agent", "INFO:forestadmin:Agent started"])
+            self.assertEqual(logger.output, ["DEBUG:forestadmin:Starting agent", "DEBUG:forestadmin:Agent started"])
 
         mocked_create_json_api_schema.assert_called_once_with("fake_collection")
         mocked_schema_emitter__get_serialized_schema.assert_called_once()
@@ -292,7 +292,7 @@ class TestAgent(TestCase):
                 self.assertEqual(
                     logger.output[2], "WARNING:forestadmin:Cannot send the apimap to Forest. Are you online?"
                 )
-                self.assertEqual(logger.output[3], "INFO:forestadmin:Agent started")
+                self.assertEqual(logger.output[3], "DEBUG:forestadmin:Agent started")
                 self.assertEqual(len(logger.output), 4)
 
         mocked_forest_http_api__send_schema.assert_not_awaited()

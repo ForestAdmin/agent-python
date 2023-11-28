@@ -218,5 +218,5 @@ class Agent:
         if self.options["instant_cache_refresh"]:
             self._sse_thread.start()
 
-        ForestLogger.log("info", "Agent started")
+        ForestLogger.log("debug", "Agent started")
         Agent.__IS_INITIALIZED = True

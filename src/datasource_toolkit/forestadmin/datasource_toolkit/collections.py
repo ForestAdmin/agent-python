@@ -1,9 +1,15 @@
-from typing import Dict, List
+from typing import Any, Dict, List, Optional
 
+from forestadmin.agent_toolkit.utils.context import User
 from forestadmin.datasource_toolkit.datasources import Datasource, DatasourceException
+from forestadmin.datasource_toolkit.exceptions import ForestException
+from forestadmin.datasource_toolkit.interfaces.actions import ActionField, ActionResult
+from forestadmin.datasource_toolkit.interfaces.chart import Chart
 from forestadmin.datasource_toolkit.interfaces.collections import Collection as CollectionInterface
 from forestadmin.datasource_toolkit.interfaces.fields import FieldAlias
 from forestadmin.datasource_toolkit.interfaces.models.collections import CollectionSchema
+from forestadmin.datasource_toolkit.interfaces.query.filter.unpaginated import Filter
+from forestadmin.datasource_toolkit.interfaces.records import RecordsDataAlias
 from typing_extensions import Self
 
 # from forestadmin.datasource_toolkit.decorators.action.types.actions import ActionDict
@@ -67,3 +73,28 @@ class Collection(CollectionInterface):
 
     def enable_search(self):
         self.schema["searchable"] = False
+
+    async def execute(
+        self,
+        caller: User,
+        name: str,
+        data: RecordsDataAlias,
+        filter_: Optional[Filter],
+    ) -> ActionResult:
+        """to execute an action"""
+        raise ForestException(f"Action {name} is not implemented")
+
+    async def get_form(
+        self,
+        caller: User,
+        name: str,
+        data: Optional[RecordsDataAlias],
+        filter_: Optional[Filter],
+        meta: Optional[Dict[str, Any]],
+    ) -> List[ActionField]:
+        """to get the form of an action"""
+        return []
+
+    async def render_chart(self, caller: User, name: str, record_id: List) -> Chart:
+        """to render a chart"""
+        raise ForestException(f"Chart {name} is not implemented")

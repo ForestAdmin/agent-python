@@ -1,3 +1,4 @@
+from collections import defaultdict
 from datetime import date, datetime
 from typing import Any, Dict, List, Optional, Set, Tuple
 
@@ -55,7 +56,11 @@ class DjangoQueryBuilder:
         select_related, prefetch_related = DjangoQueryBuilder._find_related_in_projection(
             collection, largest_projection
         )
-        qs = qs.select_related(*select_related).prefetch_related(*prefetch_related)
+        qs = qs.select_related(
+            *cls._normalize_projection(Projection(*select_related)),
+        ).prefetch_related(
+            *cls._normalize_projection(Projection(*prefetch_related)),
+        )
 
         qs = qs.filter(DjangoQueryConditionTreeBuilder.build(filter_.condition_tree))
 
@@ -71,25 +76,26 @@ class DjangoQueryBuilder:
     ) -> Tuple[Set[str], Set[str]]:
         select_related = set()
         prefetch_related = set()
-        break_select_related = False
+        break_select_related: Dict[str, bool] = defaultdict(lambda: False)
 
-        # TODO: Simplify this code, I think we never use a prefetch related with forest
         for relation_name, subfields in projection.relations.items():
             field_schema = collection.schema["fields"][relation_name]
-            if not break_select_related and (is_many_to_one(field_schema) or is_one_to_one(field_schema)):
+            if not break_select_related[relation_name] and (
+                is_many_to_one(field_schema) or is_one_to_one(field_schema)
+            ):
                 select_related.add(relation_name)
             else:
-                break_select_related = True
+                break_select_related[relation_name] = True
                 prefetch_related.add(relation_name)
 
             sub_select, sub_prefetch = cls._find_related_in_projection(
                 collection.datasource.get_collection(field_schema["foreign_collection"]), subfields
             )
-            if not break_select_related:
-                sub_select.union(Projection(*sub_select).nest(relation_name))
+            if not break_select_related[relation_name]:
+                select_related = select_related.union(Projection(*sub_select).nest(relation_name))
             else:
-                sub_prefetch.union(Projection(*sub_select).nest(relation_name))
-            sub_prefetch.union(Projection(*sub_prefetch).nest(relation_name))
+                prefetch_related = prefetch_related.union(Projection(*sub_select).nest(relation_name))
+            prefetch_related = prefetch_related.union(Projection(*sub_prefetch).nest(relation_name))
 
         return select_related, prefetch_related
 
@@ -107,7 +113,11 @@ class DjangoQueryBuilder:
             full_projection = full_projection.union(filter_.sort.projection)
         qs = cls._mk_base_queryset(collection, full_projection, filter_)
 
-        qs = qs.only(*cls._normalize_projection(full_projection))
+        # only raise errors when trying to get a field by a to_many relation
+        # or in other words if we have something to pass to prefetch_related
+        _, prefetch = cls._find_related_in_projection(collection, full_projection)
+        if len(prefetch) == 0:
+            qs = qs.only(*cls._normalize_projection(full_projection))
         qs = DjangoQueryPaginationBuilder.paginate_queryset(qs, filter_)
 
         return await sync_to_async(list)(qs)
