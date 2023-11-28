@@ -1,9 +1,11 @@
 from typing import List, Optional
 
+from django.db import DEFAULT_DB_ALIAS, connections
 from django.db.models import Model
 from forestadmin.agent_toolkit.utils.context import User
 from forestadmin.datasource_django.interface import BaseDjangoCollection
 from forestadmin.datasource_django.utils.model_introspection import DjangoCollectionFactory
+from forestadmin.datasource_django.utils.native_driver_wrapper import NativeDriverWrapper
 from forestadmin.datasource_django.utils.query_factory import DjangoQueryBuilder
 from forestadmin.datasource_django.utils.record_serializer import instance_to_record_data
 from forestadmin.datasource_toolkit.datasources import Datasource
@@ -48,6 +50,8 @@ class DjangoCollection(BaseDjangoCollection):
     async def delete(self, caller: User, filter_: Optional[Filter]) -> None:
         await DjangoQueryBuilder.mk_delete(self, filter_)
 
-    def get_native_driver(self):
-        # TODO
-        return super().get_native_driver()
+    def get_native_driver(self, db_name: Optional[str] = None) -> NativeDriverWrapper:
+        if db_name is None:
+            db_name = DEFAULT_DB_ALIAS
+
+        return NativeDriverWrapper(connections[db_name])

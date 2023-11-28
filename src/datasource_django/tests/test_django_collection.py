@@ -1,4 +1,5 @@
 import datetime
+import os
 import sys
 from unittest.mock import Mock, patch
 
@@ -419,3 +420,29 @@ class TestDjangoCollectionCRUDCreateUpdateDelete(TestDjangoCollectionCRUDAggrega
         )
 
         self.assertEqual(len(tolkiens), 4)
+
+
+class TestDjangoCollectionNativeDriver(TestDjangoCollectionCRUDAggregateBase):
+    def test_native_driver_should_work(self):
+        with self.book_collection.get_native_driver() as cursor:
+            cursor.execute("select id, name, author_id from test_app_book where id=1")
+            row = cursor.fetchone()
+
+        self.assertEqual(row, (1, "Foundation", 1))
+
+    def test_native_driver_should_work_with_specified_database(self):
+        with self.book_collection.get_native_driver("default") as cursor:
+            cursor.execute("select id, name, author_id from test_app_book where id=1")
+            row = cursor.fetchone()
+
+        self.assertEqual(row, (1, "Foundation", 1))
+
+    def test_native_driver_should_work_and_restore_django_async_safe_variable(self):
+        os.environ["DJANGO_ALLOW_ASYNC_UNSAFE"] = "false"
+        with self.book_collection.get_native_driver() as cursor:
+            cursor.execute("select id, name, author_id from test_app_book where id=1")
+            row = cursor.fetchone()
+            self.assertEqual(os.environ["DJANGO_ALLOW_ASYNC_UNSAFE"], "true")
+
+        self.assertEqual(row, (1, "Foundation", 1))
+        self.assertEqual(os.environ["DJANGO_ALLOW_ASYNC_UNSAFE"], "false")
