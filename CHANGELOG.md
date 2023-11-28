@@ -1,3 +1,10 @@
+# [1.2.0-beta.2](https://github.com/ForestAdmin/agent-python/compare/v1.2.0-beta.1...v1.2.0-beta.2) (2023-11-28)
+
+
+### Features
+
+* **django_agent:** agent is ready to onboard on django project ([#147](https://github.com/ForestAdmin/agent-python/issues/147)) ([ac6135d](https://github.com/ForestAdmin/agent-python/commit/ac6135d905fd0cf1ed335d6a0c9eeba802ed2b43))
+
 # [1.2.0-beta.1](https://github.com/ForestAdmin/agent-python/compare/v1.1.0...v1.2.0-beta.1) (2023-11-20)
 
 
