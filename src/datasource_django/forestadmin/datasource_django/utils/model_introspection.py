@@ -88,7 +88,7 @@ class DjangoCollectionFactory:
         return {
             "foreign_collection": relation.target_field.model.__name__,
             "origin_key": relation.field.column,
-            "origin_key_target": relation.field.target_field.column,
+            "origin_key_target": relation.field.target_field.attname,
             "type": FieldType.ONE_TO_MANY,
         }
 
@@ -101,7 +101,7 @@ class DjangoCollectionFactory:
         return {
             "foreign_collection": relation.target_field.model.__name__,
             "foreign_key": foreign_key,
-            "foreign_key_target": relation.target_field.name,
+            "foreign_key_target": relation.target_field.attname,
             "type": FieldType.MANY_TO_ONE,
         }
 
@@ -110,7 +110,7 @@ class DjangoCollectionFactory:
         return {
             "foreign_collection": relation.target_field.model.__name__,
             "origin_key": relation.field.column,
-            "origin_key_target": relation.field.target_field.name,
+            "origin_key_target": relation.field.target_field.attname,
             "type": FieldType.ONE_TO_ONE,
         }
 
@@ -132,11 +132,11 @@ class DjangoCollectionFactory:
             if field.related_model == relation.model:
                 # origin
                 kwargs["origin_key"] = field.column
-                kwargs["origin_key_target"] = field.target_field.name
+                kwargs["origin_key_target"] = field.target_field.attname
             elif field.related_model == relation.target_field.model:
                 # foreign
                 kwargs["foreign_key"] = field.column
-                kwargs["foreign_key_target"] = field.target_field.name
+                kwargs["foreign_key_target"] = field.target_field.attname
 
         return ManyToMany(type=FieldType.MANY_TO_MANY, foreign_relation=None, **kwargs)
 
