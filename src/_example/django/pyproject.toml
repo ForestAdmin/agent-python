@@ -36,7 +36,7 @@ type = "simple"
 
 [tool.poe.tasks]
 init-db  = { shell = "cd django_demo && python manage.py migrate" }
-populate-db  = { shell = "cd django_demo && python manage.py populate-db" }
+populate-db  = { shell = "cd django_demo && python manage.py populate-db && python manage.py migrate --database=other" }
 runserver = { shell = "cd django_demo && python manage.py runserver" }
 
 [tool.poetry.group.dev.dependencies]

@@ -30,7 +30,9 @@ module.exports = {
           'src/agent_toolkit/pyproject.toml',
           'src/datasource_sqlalchemy/pyproject.toml',
           'src/datasource_toolkit/pyproject.toml',
-          'src/flask_agent/pyproject.toml'
+          'src/flask_agent/pyproject.toml',
+          'src/django_agent/pyproject.toml',
+          'src/datasource_django/pyproject.toml',
         ],
         message: 'chore(release): ${nextRelease.gitTag} [skip ci]\n\n${nextRelease.notes}',
       },

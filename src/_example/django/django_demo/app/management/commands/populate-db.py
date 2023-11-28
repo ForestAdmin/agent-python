@@ -1,6 +1,8 @@
 import random
 from datetime import datetime, timezone
+from uuid import uuid4
 
+from app.flask_models import FlaskAddress, FlaskCart, FlaskCustomer, FlaskCustomersAddresses, FlaskOrder
 from app.models import Address, Cart, Customer, CustomerAddress, Order
 from django.contrib.auth.models import Group, User
 from django.core.management.base import BaseCommand
@@ -17,6 +19,17 @@ class Command(BaseCommand):
             "-b",
             "--big-data",
             help=f"create a lot of data, can take a while(~=5min)). Open this file ({__file__}) to edit the values",
+            action="store_true",
+        )
+        parser.add_argument(
+            "-o",
+            "--only-other-database",
+            help="only populate 'other' database",
+            action="store_true",
+        )
+        parser.add_argument(
+            "--only-default-database",
+            help="don't populate 'other' database",
             action="store_true",
         )
 
@@ -37,21 +50,30 @@ class Command(BaseCommand):
                 "orders_carts": 3000000,
             }
 
-        users, groups = create_users_groups(numbers["groups"], numbers["users"])
-        if options["verbosity"] != 0:
-            print(f"users({numbers['users']}) and groups({numbers['groups']}) created ")
+        if options["only_default_database"] or not options["only_other_database"]:
+            users, groups = create_users_groups(numbers["groups"], numbers["users"])
+            if options["verbosity"] != 0:
+                print(f"users({numbers['users']}) and groups({numbers['groups']}) created ")
 
-        customers = create_customers(numbers["customers"])
-        if options["verbosity"] != 0:
-            print(f"customers({numbers['customers']}) created")
+            customers = create_customers(numbers["customers"])
+            if options["verbosity"] != 0:
+                print(f"customers({numbers['customers']}) created")
 
-        addresses = create_addresses(customers, numbers["addresses"])
-        if options["verbosity"] != 0:
-            print(f"addresses({numbers['addresses']}) created")
+            addresses = create_addresses(customers, numbers["addresses"])
+            if options["verbosity"] != 0:
+                print(f"addresses({numbers['addresses']}) created")
 
-        orders, carts = create_orders_cart(customers, addresses, numbers["orders_carts"])
-        if options["verbosity"] != 0:
-            print(f"orders and carts ({numbers['orders_carts']}) created")
+            orders, carts = create_orders_cart(customers, addresses, numbers["orders_carts"])
+            if options["verbosity"] != 0:
+                print(f"orders and carts ({numbers['orders_carts']}) created")
+
+        if not options["only_default_database"] or options["only_other_database"]:
+            customers = populate_flask_customers(numbers["customers"])
+            addresses = populate_flask_addresses(customers)
+            populate_orders(addresses)
+
+
+# main db
 
 
 def create_users_groups(nb_group=4, nb_users=10):
@@ -85,7 +107,11 @@ def create_users_groups(nb_group=4, nb_users=10):
 def create_customers(nb_customers=500):
     customers = []
     for i in range(nb_customers):
-        c = Customer(first_name=fake.first_name(), last_name=fake.last_name(), birthday_date=fake.date_of_birth())
+        c = Customer(
+            first_name=fake.first_name(),
+            last_name=fake.last_name(),
+            birthday_date=fake.date_of_birth(tzinfo=timezone.utc),
+        )
         customers.append(c)
     Customer.objects.bulk_create(customers)
     customers = Customer.objects.all()
@@ -139,3 +165,64 @@ def create_orders_cart(customers, addresses, nb_order=1000):
     Cart.objects.bulk_create(carts)
     carts = Cart.objects.all()
     return orders, carts
+
+
+# other db
+
+
+def populate_flask_customers(nb: int = 500):
+    FlaskCustomer.objects.bulk_create(
+        [
+            FlaskCustomer(
+                id=str(uuid4()).encode("utf-8"),
+                first_name=fake.first_name(),
+                last_name=fake.last_name(),
+                birthday_date=datetime.fromordinal(fake.date_of_birth().toordinal()).replace(tzinfo=timezone.utc),
+                age=random.choices([None, random.randint(16, 120)])[0],
+                is_vip=random.choice([True, False]),
+            )
+            for i in range(nb)
+        ],
+    )
+    return FlaskCustomer.objects.all()
+
+
+def populate_flask_addresses(customers):
+    addresses = []
+    for _ in range(0, customers.count() * 2):
+        address = FlaskAddress(
+            street=fake.street_address(), city=fake.city(), country=fake.country(), zip_code=fake.postcode()
+        )
+        addresses.append(address)
+    FlaskAddress.objects.bulk_create(addresses)
+    addresses = FlaskAddress.objects.all()
+
+    customers_addresses = []
+    for address in addresses:
+        known_customer = set()
+        for _ in range(1, random.randint(2, 4)):
+            customer = random.choices(customers)[0]
+            if customer not in known_customer:
+                known_customer.add(customer)
+                customers_addresses.append(FlaskCustomersAddresses(address=address, customer=customer))
+    FlaskCustomersAddresses.objects.bulk_create(customers_addresses)
+    return addresses
+
+
+def populate_orders(addresses):
+    orders = []
+    for address in addresses:
+        o = FlaskOrder(
+            amount=random.randint(10, 10000),
+            created_at=fake.date_time_between_dates(datetime(2021, 1, 1), datetime.utcnow(), tzinfo=timezone.utc),
+            customer=address.customers.all()[0],
+            billing_address=address,
+            delivering_address=address,
+            status=random.choice(list(FlaskOrder.OrderStatus)),
+        )
+        orders.append(o)
+    FlaskOrder.objects.bulk_create(orders)
+    FlaskCart.objects.bulk_create(
+        [FlaskCart(name=fake.language_name(), order_id=order.pk) for order in FlaskOrder.objects.all()]
+    )
+    return orders

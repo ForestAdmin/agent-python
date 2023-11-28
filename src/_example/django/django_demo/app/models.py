@@ -1,5 +1,6 @@
 from datetime import date
 
+from app.flask_models import *  # noqa:F401,F403
 from django.db import models
 
 """
