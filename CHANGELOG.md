@@ -1,3 +1,15 @@
+# [1.2.0-beta.3](https://github.com/ForestAdmin/agent-python/compare/v1.2.0-beta.2...v1.2.0-beta.3) (2023-12-01)
+
+
+### Bug Fixes
+
+* **django_datasource:** django datasource now works when model fields use db_column ([#148](https://github.com/ForestAdmin/agent-python/issues/148)) ([4a99e8f](https://github.com/ForestAdmin/agent-python/commit/4a99e8f2cdb999041054a9215cff0ebbf23b9937))
+
+
+### Features
+
+* **django_datasource:** add native driver ([#149](https://github.com/ForestAdmin/agent-python/issues/149)) ([5055031](https://github.com/ForestAdmin/agent-python/commit/5055031124d65f36bfd23d4adcdef72d40764eb8))
+
 # [1.2.0-beta.2](https://github.com/ForestAdmin/agent-python/compare/v1.2.0-beta.1...v1.2.0-beta.2) (2023-11-28)
 
 
