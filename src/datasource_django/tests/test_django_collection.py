@@ -1,13 +1,16 @@
 import datetime
+import os
 import sys
 from unittest.mock import Mock, patch
+
+from forestadmin.datasource_django.exception import DjangoNativeDriver
 
 if sys.version_info >= (3, 9):
     import zoneinfo
 else:
     from backports import zoneinfo
 
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from forestadmin.agent_toolkit.utils.context import User
 from forestadmin.datasource_django.collection import DjangoCollection
 from forestadmin.datasource_django.datasource import DjangoDatasource
@@ -26,6 +29,7 @@ from forestadmin.datasource_toolkit.interfaces.query.page import Page
 from forestadmin.datasource_toolkit.interfaces.query.projections import Projection
 from forestadmin.datasource_toolkit.interfaces.query.sort import Sort
 from test_app.models import Book, Person, Rating
+from test_project_datasource.db_router import DbRouter
 
 
 class TestDjangoCollectionCreation(TestCase):
@@ -419,3 +423,69 @@ class TestDjangoCollectionCRUDCreateUpdateDelete(TestDjangoCollectionCRUDAggrega
         )
 
         self.assertEqual(len(tolkiens), 4)
+
+
+class TestDjangoCollectionNativeDriver(TestDjangoCollectionCRUDAggregateBase):
+    databases = "__all__"
+
+    def test_native_driver_should_work(self):
+        with self.book_collection.get_native_driver() as cursor:
+            cursor.execute("select id, name, author_id from test_app_book where id=1")
+            row = cursor.fetchone()
+
+        self.assertEqual(row, (1, "Foundation", 1))
+
+    def test_native_driver_should_work_and_restore_django_async_safe_variable(self):
+        os.environ["DJANGO_ALLOW_ASYNC_UNSAFE"] = "false"
+        with self.book_collection.get_native_driver() as cursor:
+            cursor.execute("select id, name, author_id from test_app_book where id=1")
+            row = cursor.fetchone()
+            self.assertEqual(os.environ["DJANGO_ALLOW_ASYNC_UNSAFE"], "true")
+
+        self.assertEqual(row, (1, "Foundation", 1))
+        self.assertEqual(os.environ["DJANGO_ALLOW_ASYNC_UNSAFE"], "false")
+
+    def test_native_driver_should_use_db_router(self):
+        def mock_db_for_read(model, **hint):
+            return None
+
+        def mock_db_for_write(model, **hint):
+            return None
+
+        with override_settings(DATABASE_ROUTERS=["test_project_datasource.db_router.DbRouter"]):
+            with patch.object(DbRouter, "db_for_read", wraps=mock_db_for_read) as spy_mock_db_read:
+                with patch.object(DbRouter, "db_for_write", wraps=mock_db_for_write) as spy_mock_db_write:
+                    with self.book_collection.get_native_driver():
+                        pass
+                    spy_mock_db_read.assert_called_with(self.book_collection.model, forest_native_driver=True)
+                    spy_mock_db_write.assert_called_with(self.book_collection.model, forest_native_driver=True)
+
+    def test_native_driver_should_return_correct_mapper_according_to_use_db_router(self):
+        def mock_db_for_read(model, **hint):
+            return "other"
+
+        def mock_db_for_write(model, **hint):
+            return "other"
+
+        with override_settings(DATABASE_ROUTERS=["test_project_datasource.db_router.DbRouter"]):
+            with patch.object(DbRouter, "db_for_read", wraps=mock_db_for_read):
+                with patch.object(DbRouter, "db_for_write", wraps=mock_db_for_write):
+                    with self.book_collection.get_native_driver() as cursor:
+                        self.assertEqual(cursor.db.alias, "other")
+
+    def test_native_driver_should_raise_if_db_router_return_different_db_for_read_and_write(self):
+        def mock_db_for_read(model, **hint):
+            return "default"
+
+        def mock_db_for_write(model, **hint):
+            return "other"
+
+        with override_settings(DATABASE_ROUTERS=["test_project_datasource.db_router.DbRouter"]):
+            with patch.object(DbRouter, "db_for_read", wraps=mock_db_for_read):
+                with patch.object(DbRouter, "db_for_write", wraps=mock_db_for_write):
+                    self.assertRaisesRegex(
+                        DjangoNativeDriver,
+                        "Cannot choose database between return db router. "
+                        "Read database is 'default', and write database is 'other'.",
+                        self.book_collection.get_native_driver,
+                    )

@@ -19,20 +19,20 @@ from forestadmin.datasource_toolkit.interfaces.query.filter.paginated import Pag
 from forestadmin.datasource_toolkit.interfaces.query.filter.unpaginated import Filter
 from forestadmin.datasource_toolkit.interfaces.query.projections import Projection
 from forestadmin.datasource_toolkit.interfaces.records import RecordsDataAlias
-from sqlalchemy.sql import text
 
 # segments
 
 
 def pending_order_segment(context: CollectionCustomizationContext):
-    Session_ = context.collection.get_native_driver()
-    with Session_() as connection:
-        rows = connection.execute(text("select id, status from 'app_order' where status = 'PENDING'")).all()
+    with context.collection.get_native_driver() as cursor:
+        cursor.execute("select id, status from 'app_order' where status = 'PENDING'")
+        rows = cursor.fetchall()
 
     return ConditionTreeLeaf(
         field="id",
         operator=Operator.IN,
         value=[r[0] for r in rows],
+        # value=[r[0] for r in rows[0 : min(len(rows), 32766)]],  # https://www.sqlite.org/c3ref/bind_blob.html
     )
 
 
