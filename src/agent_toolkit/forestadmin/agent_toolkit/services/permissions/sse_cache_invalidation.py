@@ -1,10 +1,10 @@
 import time
-from ssl import Options
 from threading import Thread
 from typing import Dict
 
 import urllib3
 from forestadmin.agent_toolkit.forest_logger import ForestLogger
+from forestadmin.agent_toolkit.options import Options
 from sseclient import SSEClient
 
 
