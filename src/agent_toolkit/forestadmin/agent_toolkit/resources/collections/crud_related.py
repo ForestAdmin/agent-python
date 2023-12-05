@@ -123,6 +123,7 @@ class CrudRelatedResource(BaseCollectionResource):
             return HttpResponseBuilder.build_client_error_response([e])
         scope_tree = await self.permission.get_scope(request.user, request.foreign_collection)
         paginated_filter = build_paginated_filter(request, scope_tree)
+        paginated_filter.page = None
         try:
             projection = parse_projection_with_pks(request)
         except DatasourceException as e:
