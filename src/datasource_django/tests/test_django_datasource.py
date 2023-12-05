@@ -40,16 +40,16 @@ class TestDjangoDatasource(TestCase):
             set([c.name for c in datasource.collections]),
             set(
                 [
-                    "Book",
-                    "Person",
-                    "Rating",
-                    "Permission",
-                    "Group_permissions",
-                    "Group",
-                    "User_groups",
-                    "User_user_permissions",
-                    "User",
-                    "ContentType",
+                    "test_app_book",
+                    "test_app_person",
+                    "test_app_rating",
+                    "auth_permission",
+                    "auth_group_permissions",
+                    "auth_group",
+                    "auth_user_groups",
+                    "auth_user_user_permissions",
+                    "auth_user",
+                    "django_content_type",
                 ]
             ),
         )

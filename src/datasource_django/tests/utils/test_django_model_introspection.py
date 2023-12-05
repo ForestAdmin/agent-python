@@ -128,7 +128,7 @@ class TestDjangoCollectionFactory(TestCase):
         self.assertEqual(
             restaurant_schema["fields"]["place"],
             {
-                "foreign_collection": "Place",
+                "foreign_collection": "test_app_place",
                 "foreign_key": "place_id",
                 "foreign_key_target": "id",
                 "type": FieldType.MANY_TO_ONE,
@@ -137,7 +137,7 @@ class TestDjangoCollectionFactory(TestCase):
         self.assertEqual(
             places_schema["fields"]["restaurant"],
             {
-                "foreign_collection": "Restaurant",
+                "foreign_collection": "test_app_restaurant",
                 "origin_key": "place_id",
                 "origin_key_target": "id",
                 "type": FieldType.ONE_TO_ONE,
@@ -155,9 +155,9 @@ class TestDjangoCollectionFactory(TestCase):
             user_schema["fields"]["groups"],
             {
                 "type": FieldType.MANY_TO_MANY,
-                "foreign_collection": "Group",
+                "foreign_collection": "auth_group",
                 "foreign_relation": None,
-                "through_collection": "User_groups",
+                "through_collection": "auth_user_groups",
                 "origin_key": "user_id",
                 "origin_key_target": "id",
                 "foreign_key": "group_id",
@@ -169,8 +169,8 @@ class TestDjangoCollectionFactory(TestCase):
             group_schema["fields"]["user"],
             {
                 "type": FieldType.MANY_TO_MANY,
-                "foreign_collection": "User",
-                "through_collection": "User_groups",
+                "foreign_collection": "auth_user",
+                "through_collection": "auth_user_groups",
                 "foreign_relation": None,
                 "foreign_key": "user_id",
                 "foreign_key_target": "id",
@@ -187,7 +187,7 @@ class TestDjangoCollectionFactory(TestCase):
         self.assertEqual(
             user_groups_schema["fields"]["group"],
             {
-                "foreign_collection": "Group",
+                "foreign_collection": "auth_group",
                 "foreign_key": "group_id",
                 "foreign_key_target": "id",
                 "type": FieldType.MANY_TO_ONE,
@@ -200,7 +200,7 @@ class TestDjangoCollectionFactory(TestCase):
         self.assertEqual(
             person_schema["fields"]["books"],
             {
-                "foreign_collection": "Book",
+                "foreign_collection": "test_app_book",
                 "origin_key": "author_id",
                 "origin_key_target": "id",
                 "type": FieldType.ONE_TO_MANY,
