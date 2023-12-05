@@ -110,7 +110,7 @@ export_orders_json: ActionDict = {
         },
         {
             "type": ActionFieldType.COLLECTION,
-            "collection_name": "Customer",
+            "collection_name": "app_customer",
             "label": "customer",
             "is_required": True,
             "description": "",

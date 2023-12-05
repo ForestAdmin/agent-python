@@ -44,9 +44,9 @@ def customize_forest(agent: DjangoAgent):
     # customize_forest_logging()
 
     # # ## ADDRESS
-    agent.customize_collection("Address").add_segment("highOrderDelivery", high_delivery_address_segment).rename_field(
-        "country", "pays"
-    ).add_field("full_address", address_full_name_computed("country")).rename_field(
+    agent.customize_collection("app_address").add_segment(
+        "highOrderDelivery", high_delivery_address_segment
+    ).rename_field("country", "pays").add_field("full_address", address_full_name_computed("country")).rename_field(
         "full_address", "complete_address"
     ).replace_field_sorting(
         "full_address",
@@ -74,7 +74,7 @@ def customize_forest(agent: DjangoAgent):
     )
 
     # cart
-    agent.customize_collection("Cart").add_field(
+    agent.customize_collection("app_cart").add_field(
         "customer_id",
         ComputedDefinition(
             column_type=PrimitiveType.NUMBER,
@@ -98,7 +98,7 @@ def customize_forest(agent: DjangoAgent):
 
     # # ## CUSTOMERS
     # # import field ?
-    agent.customize_collection("Customer").add_field(
+    agent.customize_collection("app_customer").add_field(
         "age",
         {
             "column_type": PrimitiveType.NUMBER,
@@ -160,14 +160,14 @@ def customize_forest(agent: DjangoAgent):
     ).add_many_to_many_relation(
         # relations
         "smart_billing_addresses",
-        "Address",
-        "Order",
+        "app_address",
+        "app_order",
         "customer_id",
         "billing_address_id",
     ).add_many_to_many_relation(
-        "smart_delivering_addresses", "Address", "Order", "customer_id", "delivering_address_id"
+        "smart_delivering_addresses", "app_address", "app_order", "customer_id", "delivering_address_id"
     ).add_one_to_many_relation(
-        "smart_carts", "Cart", "customer_id"
+        "smart_carts", "app_cart", "customer_id"
     ).add_hook(
         # hooks
         "Before",
@@ -178,7 +178,7 @@ def customize_forest(agent: DjangoAgent):
     )
 
     # # ## ORDERS
-    agent.customize_collection("Order").add_segment("Pending order", pending_order_segment).add_segment(
+    agent.customize_collection("app_order").add_segment("Pending order", pending_order_segment).add_segment(
         # segment
         "Delivered order",
         delivered_order_segment,

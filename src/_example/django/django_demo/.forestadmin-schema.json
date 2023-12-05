@@ -1,7 +1,240 @@
 {
     "collections": [
         {
-            "name": "Address",
+            "name": "address",
+            "isVirtual": false,
+            "icon": null,
+            "isReadOnly": false,
+            "integration": null,
+            "isSearchable": true,
+            "onlyForRelationships": false,
+            "paginationType": "page",
+            "searchField": null,
+            "actions": [],
+            "segments": [],
+            "fields": [
+                {
+                    "defaultValue": null,
+                    "enums": null,
+                    "field": "city",
+                    "integration": null,
+                    "inverseOf": null,
+                    "isFilterable": true,
+                    "isPrimaryKey": false,
+                    "isReadOnly": false,
+                    "isRequired": true,
+                    "isSortable": true,
+                    "isVirtual": false,
+                    "reference": null,
+                    "type": "String",
+                    "validations": [
+                        {
+                            "type": "is present",
+                            "value": null,
+                            "message": null
+                        },
+                        {
+                            "type": "is shorter than",
+                            "value": 255,
+                            "message": null
+                        }
+                    ]
+                },
+                {
+                    "defaultValue": null,
+                    "enums": null,
+                    "field": "country",
+                    "integration": null,
+                    "inverseOf": null,
+                    "isFilterable": true,
+                    "isPrimaryKey": false,
+                    "isReadOnly": false,
+                    "isRequired": true,
+                    "isSortable": true,
+                    "isVirtual": false,
+                    "reference": null,
+                    "type": "String",
+                    "validations": [
+                        {
+                            "type": "is present",
+                            "value": null,
+                            "message": null
+                        },
+                        {
+                            "type": "is shorter than",
+                            "value": 255,
+                            "message": null
+                        }
+                    ]
+                },
+                {
+                    "defaultValue": null,
+                    "enums": null,
+                    "field": "customers",
+                    "inverseOf": "addresses",
+                    "isFilterable": false,
+                    "isPrimaryKey": false,
+                    "isReadOnly": false,
+                    "isRequired": false,
+                    "isSortable": true,
+                    "isVirtual": false,
+                    "reference": "customer.id",
+                    "relationship": "BelongsToMany",
+                    "type": [
+                        "String"
+                    ],
+                    "validations": []
+                },
+                {
+                    "defaultValue": null,
+                    "enums": null,
+                    "field": "flaskcustomersaddresses",
+                    "inverseOf": "address",
+                    "isFilterable": false,
+                    "isPrimaryKey": false,
+                    "isReadOnly": false,
+                    "isRequired": false,
+                    "isSortable": true,
+                    "isVirtual": false,
+                    "reference": "customers_addresses.id",
+                    "relationship": "HasMany",
+                    "type": [
+                        "Number"
+                    ],
+                    "validations": []
+                },
+                {
+                    "defaultValue": null,
+                    "enums": null,
+                    "field": "flaskorder",
+                    "inverseOf": "billing_address",
+                    "isFilterable": false,
+                    "isPrimaryKey": false,
+                    "isReadOnly": false,
+                    "isRequired": false,
+                    "isSortable": true,
+                    "isVirtual": false,
+                    "reference": "order.id",
+                    "relationship": "HasMany",
+                    "type": [
+                        "Number"
+                    ],
+                    "validations": []
+                },
+                {
+                    "defaultValue": null,
+                    "enums": null,
+                    "field": "id",
+                    "integration": null,
+                    "inverseOf": null,
+                    "isFilterable": true,
+                    "isPrimaryKey": true,
+                    "isReadOnly": true,
+                    "isRequired": false,
+                    "isSortable": true,
+                    "isVirtual": false,
+                    "reference": null,
+                    "type": "Number",
+                    "validations": []
+                },
+                {
+                    "defaultValue": null,
+                    "enums": null,
+                    "field": "order_delivering_address_set",
+                    "inverseOf": "delivering_address",
+                    "isFilterable": false,
+                    "isPrimaryKey": false,
+                    "isReadOnly": false,
+                    "isRequired": false,
+                    "isSortable": true,
+                    "isVirtual": false,
+                    "reference": "order.id",
+                    "relationship": "HasMany",
+                    "type": [
+                        "Number"
+                    ],
+                    "validations": []
+                },
+                {
+                    "defaultValue": null,
+                    "enums": null,
+                    "field": "street",
+                    "integration": null,
+                    "inverseOf": null,
+                    "isFilterable": true,
+                    "isPrimaryKey": false,
+                    "isReadOnly": false,
+                    "isRequired": true,
+                    "isSortable": true,
+                    "isVirtual": false,
+                    "reference": null,
+                    "type": "String",
+                    "validations": [
+                        {
+                            "type": "is present",
+                            "value": null,
+                            "message": null
+                        },
+                        {
+                            "type": "is shorter than",
+                            "value": 255,
+                            "message": null
+                        }
+                    ]
+                },
+                {
+                    "defaultValue": null,
+                    "enums": null,
+                    "field": "street_number",
+                    "integration": null,
+                    "inverseOf": null,
+                    "isFilterable": true,
+                    "isPrimaryKey": false,
+                    "isReadOnly": false,
+                    "isRequired": false,
+                    "isSortable": true,
+                    "isVirtual": false,
+                    "reference": null,
+                    "type": "String",
+                    "validations": [
+                        {
+                            "type": "is shorter than",
+                            "value": 2,
+                            "message": null
+                        }
+                    ]
+                },
+                {
+                    "defaultValue": null,
+                    "enums": null,
+                    "field": "zip_code",
+                    "integration": null,
+                    "inverseOf": null,
+                    "isFilterable": true,
+                    "isPrimaryKey": false,
+                    "isReadOnly": false,
+                    "isRequired": true,
+                    "isSortable": true,
+                    "isVirtual": false,
+                    "reference": null,
+                    "type": "String",
+                    "validations": [
+                        {
+                            "type": "is present",
+                            "value": null,
+                            "message": null
+                        },
+                        {
+                            "type": "is shorter than",
+                            "value": 5,
+                            "message": null
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "app_address",
             "isVirtual": false,
             "icon": null,
             "isReadOnly": false,
@@ -13,7 +246,7 @@
             "actions": [],
             "segments": [
                 {
-                    "id": "Address.highOrderDelivery",
+                    "id": "app_address.highOrderDelivery",
                     "name": "highOrderDelivery"
                 }
             ],
@@ -29,7 +262,7 @@
                     "isRequired": false,
                     "isSortable": true,
                     "isVirtual": false,
-                    "reference": "Order.id",
+                    "reference": "app_order.id",
                     "relationship": "HasMany",
                     "type": [
                         "Number"
@@ -90,7 +323,7 @@
                     "isRequired": false,
                     "isSortable": true,
                     "isVirtual": false,
-                    "reference": "CustomerAddress.id",
+                    "reference": "app_customeraddress.id",
                     "relationship": "HasMany",
                     "type": [
                         "Number"
@@ -108,7 +341,7 @@
                     "isRequired": false,
                     "isSortable": true,
                     "isVirtual": false,
-                    "reference": "Customer.id",
+                    "reference": "app_customer.id",
                     "relationship": "BelongsToMany",
                     "type": [
                         "Number"
@@ -126,7 +359,7 @@
                     "isRequired": false,
                     "isSortable": true,
                     "isVirtual": false,
-                    "reference": "Order.id",
+                    "reference": "app_order.id",
                     "relationship": "HasMany",
                     "type": [
                         "Number"
@@ -260,7 +493,7 @@
             ]
         },
         {
-            "name": "Cart",
+            "name": "app_cart",
             "isVirtual": false,
             "icon": null,
             "isReadOnly": false,
@@ -272,7 +505,7 @@
             "actions": [],
             "segments": [
                 {
-                    "id": "Cart.No order",
+                    "id": "app_cart.No order",
                     "name": "No order"
                 }
             ],
@@ -363,7 +596,7 @@
                     "isRequired": false,
                     "isSortable": true,
                     "isVirtual": false,
-                    "reference": "Order.id",
+                    "reference": "app_order.id",
                     "relationship": "BelongsTo",
                     "type": "Number",
                     "validations": []
@@ -371,128 +604,7 @@
             ]
         },
         {
-            "name": "ContentType",
-            "isVirtual": false,
-            "icon": null,
-            "isReadOnly": false,
-            "integration": null,
-            "isSearchable": true,
-            "onlyForRelationships": false,
-            "paginationType": "page",
-            "searchField": null,
-            "actions": [],
-            "segments": [],
-            "fields": [
-                {
-                    "defaultValue": null,
-                    "enums": null,
-                    "field": "app_label",
-                    "integration": null,
-                    "inverseOf": null,
-                    "isFilterable": true,
-                    "isPrimaryKey": false,
-                    "isReadOnly": false,
-                    "isRequired": true,
-                    "isSortable": true,
-                    "isVirtual": false,
-                    "reference": null,
-                    "type": "String",
-                    "validations": [
-                        {
-                            "type": "is present",
-                            "value": null,
-                            "message": null
-                        },
-                        {
-                            "type": "is shorter than",
-                            "value": 100,
-                            "message": null
-                        }
-                    ]
-                },
-                {
-                    "defaultValue": null,
-                    "enums": null,
-                    "field": "id",
-                    "integration": null,
-                    "inverseOf": null,
-                    "isFilterable": true,
-                    "isPrimaryKey": true,
-                    "isReadOnly": true,
-                    "isRequired": false,
-                    "isSortable": true,
-                    "isVirtual": false,
-                    "reference": null,
-                    "type": "Number",
-                    "validations": []
-                },
-                {
-                    "defaultValue": null,
-                    "enums": null,
-                    "field": "logentry",
-                    "inverseOf": "content_type",
-                    "isFilterable": false,
-                    "isPrimaryKey": false,
-                    "isReadOnly": false,
-                    "isRequired": false,
-                    "isSortable": true,
-                    "isVirtual": false,
-                    "reference": "LogEntry.id",
-                    "relationship": "HasMany",
-                    "type": [
-                        "Number"
-                    ],
-                    "validations": []
-                },
-                {
-                    "defaultValue": null,
-                    "enums": null,
-                    "field": "model",
-                    "integration": null,
-                    "inverseOf": null,
-                    "isFilterable": true,
-                    "isPrimaryKey": false,
-                    "isReadOnly": false,
-                    "isRequired": true,
-                    "isSortable": true,
-                    "isVirtual": false,
-                    "reference": null,
-                    "type": "String",
-                    "validations": [
-                        {
-                            "type": "is present",
-                            "value": null,
-                            "message": null
-                        },
-                        {
-                            "type": "is shorter than",
-                            "value": 100,
-                            "message": null
-                        }
-                    ]
-                },
-                {
-                    "defaultValue": null,
-                    "enums": null,
-                    "field": "permission",
-                    "inverseOf": "content_type",
-                    "isFilterable": false,
-                    "isPrimaryKey": false,
-                    "isReadOnly": false,
-                    "isRequired": false,
-                    "isSortable": true,
-                    "isVirtual": false,
-                    "reference": "Permission.id",
-                    "relationship": "HasMany",
-                    "type": [
-                        "Number"
-                    ],
-                    "validations": []
-                }
-            ]
-        },
-        {
-            "name": "Customer",
+            "name": "app_customer",
             "isVirtual": false,
             "icon": null,
             "isReadOnly": false,
@@ -503,11 +615,11 @@
             "searchField": null,
             "actions": [
                 {
-                    "id": "Customer-0-export json",
+                    "id": "app_customer-0-export json",
                     "name": "Export json",
                     "type": "bulk",
                     "baseUrl": null,
-                    "endpoint": "/forest/_actions/Customer/0/export json",
+                    "endpoint": "/forest/_actions/app_customer/0/export json",
                     "httpMethod": "POST",
                     "redirect": null,
                     "download": true,
@@ -520,11 +632,11 @@
                     }
                 },
                 {
-                    "id": "Customer-1-age operation",
+                    "id": "app_customer-1-age operation",
                     "name": "Age operation",
                     "type": "single",
                     "baseUrl": null,
-                    "endpoint": "/forest/_actions/Customer/1/age operation",
+                    "endpoint": "/forest/_actions/app_customer/1/age operation",
                     "httpMethod": "POST",
                     "redirect": null,
                     "download": false,
@@ -553,11 +665,11 @@
             ],
             "segments": [
                 {
-                    "id": "Customer.VIP customers",
+                    "id": "app_customer.VIP customers",
                     "name": "VIP customers"
                 },
                 {
-                    "id": "Customer.with french address",
+                    "id": "app_customer.with french address",
                     "name": "with french address"
                 }
             ],
@@ -589,7 +701,7 @@
                     "isRequired": false,
                     "isSortable": true,
                     "isVirtual": false,
-                    "reference": "Address.id",
+                    "reference": "app_address.id",
                     "relationship": "BelongsToMany",
                     "type": [
                         "Number"
@@ -671,7 +783,7 @@
                     "isRequired": false,
                     "isSortable": true,
                     "isVirtual": false,
-                    "reference": "CustomerAddress.id",
+                    "reference": "app_customeraddress.id",
                     "relationship": "HasMany",
                     "type": [
                         "Number"
@@ -791,7 +903,7 @@
                     "isRequired": false,
                     "isSortable": true,
                     "isVirtual": false,
-                    "reference": "Order.id",
+                    "reference": "app_order.id",
                     "relationship": "HasMany",
                     "type": [
                         "Number"
@@ -809,7 +921,7 @@
                     "isRequired": false,
                     "isSortable": true,
                     "isVirtual": false,
-                    "reference": "Address.id",
+                    "reference": "app_address.id",
                     "relationship": "BelongsToMany",
                     "type": [
                         "Number"
@@ -827,7 +939,7 @@
                     "isRequired": false,
                     "isSortable": true,
                     "isVirtual": false,
-                    "reference": "Cart.id",
+                    "reference": "app_cart.id",
                     "relationship": "HasMany",
                     "type": [
                         "Number"
@@ -845,7 +957,7 @@
                     "isRequired": false,
                     "isSortable": true,
                     "isVirtual": false,
-                    "reference": "Address.id",
+                    "reference": "app_address.id",
                     "relationship": "BelongsToMany",
                     "type": [
                         "Number"
@@ -871,7 +983,7 @@
             ]
         },
         {
-            "name": "CustomerAddress",
+            "name": "app_customeraddress",
             "isVirtual": false,
             "icon": null,
             "isReadOnly": false,
@@ -894,7 +1006,7 @@
                     "isRequired": true,
                     "isSortable": true,
                     "isVirtual": false,
-                    "reference": "Address.id",
+                    "reference": "app_address.id",
                     "relationship": "BelongsTo",
                     "type": "Number",
                     "validations": [
@@ -916,7 +1028,7 @@
                     "isRequired": true,
                     "isSortable": true,
                     "isVirtual": false,
-                    "reference": "Customer.id",
+                    "reference": "app_customer.id",
                     "relationship": "BelongsTo",
                     "type": "Number",
                     "validations": [
@@ -946,1144 +1058,7 @@
             ]
         },
         {
-            "name": "FlaskAddress",
-            "isVirtual": false,
-            "icon": null,
-            "isReadOnly": false,
-            "integration": null,
-            "isSearchable": true,
-            "onlyForRelationships": false,
-            "paginationType": "page",
-            "searchField": null,
-            "actions": [],
-            "segments": [],
-            "fields": [
-                {
-                    "defaultValue": null,
-                    "enums": null,
-                    "field": "city",
-                    "integration": null,
-                    "inverseOf": null,
-                    "isFilterable": true,
-                    "isPrimaryKey": false,
-                    "isReadOnly": false,
-                    "isRequired": true,
-                    "isSortable": true,
-                    "isVirtual": false,
-                    "reference": null,
-                    "type": "String",
-                    "validations": [
-                        {
-                            "type": "is present",
-                            "value": null,
-                            "message": null
-                        },
-                        {
-                            "type": "is shorter than",
-                            "value": 255,
-                            "message": null
-                        }
-                    ]
-                },
-                {
-                    "defaultValue": null,
-                    "enums": null,
-                    "field": "country",
-                    "integration": null,
-                    "inverseOf": null,
-                    "isFilterable": true,
-                    "isPrimaryKey": false,
-                    "isReadOnly": false,
-                    "isRequired": true,
-                    "isSortable": true,
-                    "isVirtual": false,
-                    "reference": null,
-                    "type": "String",
-                    "validations": [
-                        {
-                            "type": "is present",
-                            "value": null,
-                            "message": null
-                        },
-                        {
-                            "type": "is shorter than",
-                            "value": 255,
-                            "message": null
-                        }
-                    ]
-                },
-                {
-                    "defaultValue": null,
-                    "enums": null,
-                    "field": "customers",
-                    "inverseOf": "addresses",
-                    "isFilterable": false,
-                    "isPrimaryKey": false,
-                    "isReadOnly": false,
-                    "isRequired": false,
-                    "isSortable": true,
-                    "isVirtual": false,
-                    "reference": "FlaskCustomer.id",
-                    "relationship": "BelongsToMany",
-                    "type": [
-                        "String"
-                    ],
-                    "validations": []
-                },
-                {
-                    "defaultValue": null,
-                    "enums": null,
-                    "field": "flaskcustomersaddresses",
-                    "inverseOf": "address",
-                    "isFilterable": false,
-                    "isPrimaryKey": false,
-                    "isReadOnly": false,
-                    "isRequired": false,
-                    "isSortable": true,
-                    "isVirtual": false,
-                    "reference": "FlaskCustomersAddresses.id",
-                    "relationship": "HasMany",
-                    "type": [
-                        "Number"
-                    ],
-                    "validations": []
-                },
-                {
-                    "defaultValue": null,
-                    "enums": null,
-                    "field": "flaskorder",
-                    "inverseOf": "billing_address",
-                    "isFilterable": false,
-                    "isPrimaryKey": false,
-                    "isReadOnly": false,
-                    "isRequired": false,
-                    "isSortable": true,
-                    "isVirtual": false,
-                    "reference": "FlaskOrder.id",
-                    "relationship": "HasMany",
-                    "type": [
-                        "Number"
-                    ],
-                    "validations": []
-                },
-                {
-                    "defaultValue": null,
-                    "enums": null,
-                    "field": "id",
-                    "integration": null,
-                    "inverseOf": null,
-                    "isFilterable": true,
-                    "isPrimaryKey": true,
-                    "isReadOnly": true,
-                    "isRequired": false,
-                    "isSortable": true,
-                    "isVirtual": false,
-                    "reference": null,
-                    "type": "Number",
-                    "validations": []
-                },
-                {
-                    "defaultValue": null,
-                    "enums": null,
-                    "field": "order_delivering_address_set",
-                    "inverseOf": "delivering_address",
-                    "isFilterable": false,
-                    "isPrimaryKey": false,
-                    "isReadOnly": false,
-                    "isRequired": false,
-                    "isSortable": true,
-                    "isVirtual": false,
-                    "reference": "FlaskOrder.id",
-                    "relationship": "HasMany",
-                    "type": [
-                        "Number"
-                    ],
-                    "validations": []
-                },
-                {
-                    "defaultValue": null,
-                    "enums": null,
-                    "field": "street",
-                    "integration": null,
-                    "inverseOf": null,
-                    "isFilterable": true,
-                    "isPrimaryKey": false,
-                    "isReadOnly": false,
-                    "isRequired": true,
-                    "isSortable": true,
-                    "isVirtual": false,
-                    "reference": null,
-                    "type": "String",
-                    "validations": [
-                        {
-                            "type": "is present",
-                            "value": null,
-                            "message": null
-                        },
-                        {
-                            "type": "is shorter than",
-                            "value": 255,
-                            "message": null
-                        }
-                    ]
-                },
-                {
-                    "defaultValue": null,
-                    "enums": null,
-                    "field": "street_number",
-                    "integration": null,
-                    "inverseOf": null,
-                    "isFilterable": true,
-                    "isPrimaryKey": false,
-                    "isReadOnly": false,
-                    "isRequired": false,
-                    "isSortable": true,
-                    "isVirtual": false,
-                    "reference": null,
-                    "type": "String",
-                    "validations": [
-                        {
-                            "type": "is shorter than",
-                            "value": 2,
-                            "message": null
-                        }
-                    ]
-                },
-                {
-                    "defaultValue": null,
-                    "enums": null,
-                    "field": "zip_code",
-                    "integration": null,
-                    "inverseOf": null,
-                    "isFilterable": true,
-                    "isPrimaryKey": false,
-                    "isReadOnly": false,
-                    "isRequired": true,
-                    "isSortable": true,
-                    "isVirtual": false,
-                    "reference": null,
-                    "type": "String",
-                    "validations": [
-                        {
-                            "type": "is present",
-                            "value": null,
-                            "message": null
-                        },
-                        {
-                            "type": "is shorter than",
-                            "value": 5,
-                            "message": null
-                        }
-                    ]
-                }
-            ]
-        },
-        {
-            "name": "FlaskCart",
-            "isVirtual": false,
-            "icon": null,
-            "isReadOnly": false,
-            "integration": null,
-            "isSearchable": true,
-            "onlyForRelationships": false,
-            "paginationType": "page",
-            "searchField": null,
-            "actions": [],
-            "segments": [],
-            "fields": [
-                {
-                    "defaultValue": null,
-                    "enums": null,
-                    "field": "created_at",
-                    "integration": null,
-                    "inverseOf": null,
-                    "isFilterable": true,
-                    "isPrimaryKey": false,
-                    "isReadOnly": false,
-                    "isRequired": false,
-                    "isSortable": true,
-                    "isVirtual": false,
-                    "reference": null,
-                    "type": "Date",
-                    "validations": []
-                },
-                {
-                    "defaultValue": null,
-                    "enums": null,
-                    "field": "id",
-                    "integration": null,
-                    "inverseOf": null,
-                    "isFilterable": true,
-                    "isPrimaryKey": true,
-                    "isReadOnly": true,
-                    "isRequired": false,
-                    "isSortable": true,
-                    "isVirtual": false,
-                    "reference": null,
-                    "type": "Number",
-                    "validations": []
-                },
-                {
-                    "defaultValue": null,
-                    "enums": null,
-                    "field": "name",
-                    "integration": null,
-                    "inverseOf": null,
-                    "isFilterable": true,
-                    "isPrimaryKey": false,
-                    "isReadOnly": false,
-                    "isRequired": true,
-                    "isSortable": true,
-                    "isVirtual": false,
-                    "reference": null,
-                    "type": "String",
-                    "validations": [
-                        {
-                            "type": "is present",
-                            "value": null,
-                            "message": null
-                        },
-                        {
-                            "type": "is shorter than",
-                            "value": 255,
-                            "message": null
-                        }
-                    ]
-                },
-                {
-                    "defaultValue": null,
-                    "enums": null,
-                    "field": "order",
-                    "inverseOf": "flaskcart",
-                    "isFilterable": true,
-                    "isPrimaryKey": false,
-                    "isReadOnly": false,
-                    "isRequired": false,
-                    "isSortable": true,
-                    "isVirtual": false,
-                    "reference": "FlaskOrder.id",
-                    "relationship": "BelongsTo",
-                    "type": "Number",
-                    "validations": []
-                }
-            ]
-        },
-        {
-            "name": "FlaskCustomer",
-            "isVirtual": false,
-            "icon": null,
-            "isReadOnly": false,
-            "integration": null,
-            "isSearchable": true,
-            "onlyForRelationships": false,
-            "paginationType": "page",
-            "searchField": null,
-            "actions": [],
-            "segments": [],
-            "fields": [
-                {
-                    "defaultValue": null,
-                    "enums": null,
-                    "field": "addresses",
-                    "inverseOf": "customers",
-                    "isFilterable": false,
-                    "isPrimaryKey": false,
-                    "isReadOnly": false,
-                    "isRequired": false,
-                    "isSortable": true,
-                    "isVirtual": false,
-                    "reference": "FlaskAddress.id",
-                    "relationship": "BelongsToMany",
-                    "type": [
-                        "Number"
-                    ],
-                    "validations": []
-                },
-                {
-                    "defaultValue": null,
-                    "enums": null,
-                    "field": "age",
-                    "integration": null,
-                    "inverseOf": null,
-                    "isFilterable": true,
-                    "isPrimaryKey": false,
-                    "isReadOnly": false,
-                    "isRequired": false,
-                    "isSortable": true,
-                    "isVirtual": false,
-                    "reference": null,
-                    "type": "Number",
-                    "validations": []
-                },
-                {
-                    "defaultValue": null,
-                    "enums": null,
-                    "field": "avatar",
-                    "integration": null,
-                    "inverseOf": null,
-                    "isFilterable": false,
-                    "isPrimaryKey": false,
-                    "isReadOnly": false,
-                    "isRequired": false,
-                    "isSortable": true,
-                    "isVirtual": false,
-                    "reference": null,
-                    "type": "String",
-                    "validations": []
-                },
-                {
-                    "defaultValue": null,
-                    "enums": null,
-                    "field": "birthday_date",
-                    "integration": null,
-                    "inverseOf": null,
-                    "isFilterable": true,
-                    "isPrimaryKey": false,
-                    "isReadOnly": false,
-                    "isRequired": false,
-                    "isSortable": true,
-                    "isVirtual": false,
-                    "reference": null,
-                    "type": "Date",
-                    "validations": []
-                },
-                {
-                    "defaultValue": null,
-                    "enums": null,
-                    "field": "first_name",
-                    "integration": null,
-                    "inverseOf": null,
-                    "isFilterable": true,
-                    "isPrimaryKey": false,
-                    "isReadOnly": false,
-                    "isRequired": true,
-                    "isSortable": true,
-                    "isVirtual": false,
-                    "reference": null,
-                    "type": "String",
-                    "validations": [
-                        {
-                            "type": "is present",
-                            "value": null,
-                            "message": null
-                        },
-                        {
-                            "type": "is shorter than",
-                            "value": 255,
-                            "message": null
-                        }
-                    ]
-                },
-                {
-                    "defaultValue": null,
-                    "enums": null,
-                    "field": "flaskcustomersaddresses",
-                    "inverseOf": "customer",
-                    "isFilterable": false,
-                    "isPrimaryKey": false,
-                    "isReadOnly": false,
-                    "isRequired": false,
-                    "isSortable": true,
-                    "isVirtual": false,
-                    "reference": "FlaskCustomersAddresses.id",
-                    "relationship": "HasMany",
-                    "type": [
-                        "String"
-                    ],
-                    "validations": []
-                },
-                {
-                    "defaultValue": null,
-                    "enums": null,
-                    "field": "flaskorder",
-                    "inverseOf": "customer",
-                    "isFilterable": false,
-                    "isPrimaryKey": false,
-                    "isReadOnly": false,
-                    "isRequired": false,
-                    "isSortable": true,
-                    "isVirtual": false,
-                    "reference": "FlaskOrder.id",
-                    "relationship": "HasMany",
-                    "type": [
-                        "String"
-                    ],
-                    "validations": []
-                },
-                {
-                    "defaultValue": null,
-                    "enums": null,
-                    "field": "id",
-                    "integration": null,
-                    "inverseOf": null,
-                    "isFilterable": false,
-                    "isPrimaryKey": true,
-                    "isReadOnly": false,
-                    "isRequired": false,
-                    "isSortable": true,
-                    "isVirtual": false,
-                    "reference": null,
-                    "type": "String",
-                    "validations": []
-                },
-                {
-                    "defaultValue": null,
-                    "enums": null,
-                    "field": "is_vip",
-                    "integration": null,
-                    "inverseOf": null,
-                    "isFilterable": true,
-                    "isPrimaryKey": false,
-                    "isReadOnly": false,
-                    "isRequired": false,
-                    "isSortable": true,
-                    "isVirtual": false,
-                    "reference": null,
-                    "type": "Boolean",
-                    "validations": []
-                },
-                {
-                    "defaultValue": null,
-                    "enums": null,
-                    "field": "last_name",
-                    "integration": null,
-                    "inverseOf": null,
-                    "isFilterable": true,
-                    "isPrimaryKey": false,
-                    "isReadOnly": false,
-                    "isRequired": true,
-                    "isSortable": true,
-                    "isVirtual": false,
-                    "reference": null,
-                    "type": "String",
-                    "validations": [
-                        {
-                            "type": "is present",
-                            "value": null,
-                            "message": null
-                        },
-                        {
-                            "type": "is shorter than",
-                            "value": 255,
-                            "message": null
-                        }
-                    ]
-                }
-            ]
-        },
-        {
-            "name": "FlaskCustomersAddresses",
-            "isVirtual": false,
-            "icon": null,
-            "isReadOnly": false,
-            "integration": null,
-            "isSearchable": true,
-            "onlyForRelationships": false,
-            "paginationType": "page",
-            "searchField": null,
-            "actions": [],
-            "segments": [],
-            "fields": [
-                {
-                    "defaultValue": null,
-                    "enums": null,
-                    "field": "address",
-                    "inverseOf": "flaskcustomersaddresses",
-                    "isFilterable": true,
-                    "isPrimaryKey": false,
-                    "isReadOnly": false,
-                    "isRequired": true,
-                    "isSortable": true,
-                    "isVirtual": false,
-                    "reference": "FlaskAddress.id",
-                    "relationship": "BelongsTo",
-                    "type": "Number",
-                    "validations": [
-                        {
-                            "type": "is present",
-                            "value": null,
-                            "message": null
-                        }
-                    ]
-                },
-                {
-                    "defaultValue": null,
-                    "enums": null,
-                    "field": "customer",
-                    "inverseOf": "flaskcustomersaddresses",
-                    "isFilterable": true,
-                    "isPrimaryKey": false,
-                    "isReadOnly": false,
-                    "isRequired": false,
-                    "isSortable": true,
-                    "isVirtual": false,
-                    "reference": "FlaskCustomer.id",
-                    "relationship": "BelongsTo",
-                    "type": "String",
-                    "validations": []
-                },
-                {
-                    "defaultValue": null,
-                    "enums": null,
-                    "field": "id",
-                    "integration": null,
-                    "inverseOf": null,
-                    "isFilterable": true,
-                    "isPrimaryKey": true,
-                    "isReadOnly": true,
-                    "isRequired": false,
-                    "isSortable": true,
-                    "isVirtual": false,
-                    "reference": null,
-                    "type": "Number",
-                    "validations": []
-                }
-            ]
-        },
-        {
-            "name": "FlaskOrder",
-            "isVirtual": false,
-            "icon": null,
-            "isReadOnly": false,
-            "integration": null,
-            "isSearchable": true,
-            "onlyForRelationships": false,
-            "paginationType": "page",
-            "searchField": null,
-            "actions": [],
-            "segments": [],
-            "fields": [
-                {
-                    "defaultValue": null,
-                    "enums": null,
-                    "field": "amount",
-                    "integration": null,
-                    "inverseOf": null,
-                    "isFilterable": true,
-                    "isPrimaryKey": false,
-                    "isReadOnly": false,
-                    "isRequired": true,
-                    "isSortable": true,
-                    "isVirtual": false,
-                    "reference": null,
-                    "type": "Number",
-                    "validations": [
-                        {
-                            "type": "is present",
-                            "value": null,
-                            "message": null
-                        }
-                    ]
-                },
-                {
-                    "defaultValue": null,
-                    "enums": null,
-                    "field": "billing_address",
-                    "inverseOf": "flaskorder",
-                    "isFilterable": true,
-                    "isPrimaryKey": false,
-                    "isReadOnly": false,
-                    "isRequired": false,
-                    "isSortable": true,
-                    "isVirtual": false,
-                    "reference": "FlaskAddress.id",
-                    "relationship": "BelongsTo",
-                    "type": "Number",
-                    "validations": []
-                },
-                {
-                    "defaultValue": null,
-                    "enums": null,
-                    "field": "created_at",
-                    "integration": null,
-                    "inverseOf": null,
-                    "isFilterable": true,
-                    "isPrimaryKey": false,
-                    "isReadOnly": false,
-                    "isRequired": false,
-                    "isSortable": true,
-                    "isVirtual": false,
-                    "reference": null,
-                    "type": "Date",
-                    "validations": []
-                },
-                {
-                    "defaultValue": null,
-                    "enums": null,
-                    "field": "customer",
-                    "inverseOf": "flaskorder",
-                    "isFilterable": true,
-                    "isPrimaryKey": false,
-                    "isReadOnly": false,
-                    "isRequired": false,
-                    "isSortable": true,
-                    "isVirtual": false,
-                    "reference": "FlaskCustomer.id",
-                    "relationship": "BelongsTo",
-                    "type": "String",
-                    "validations": []
-                },
-                {
-                    "defaultValue": null,
-                    "enums": null,
-                    "field": "delivering_address",
-                    "inverseOf": "order_delivering_address_set",
-                    "isFilterable": true,
-                    "isPrimaryKey": false,
-                    "isReadOnly": false,
-                    "isRequired": false,
-                    "isSortable": true,
-                    "isVirtual": false,
-                    "reference": "FlaskAddress.id",
-                    "relationship": "BelongsTo",
-                    "type": "Number",
-                    "validations": []
-                },
-                {
-                    "defaultValue": null,
-                    "enums": null,
-                    "field": "flaskcart",
-                    "inverseOf": "order",
-                    "isFilterable": false,
-                    "isPrimaryKey": false,
-                    "isReadOnly": false,
-                    "isRequired": false,
-                    "isSortable": true,
-                    "isVirtual": false,
-                    "reference": "FlaskCart.id",
-                    "relationship": "HasMany",
-                    "type": [
-                        "Number"
-                    ],
-                    "validations": []
-                },
-                {
-                    "defaultValue": null,
-                    "enums": null,
-                    "field": "id",
-                    "integration": null,
-                    "inverseOf": null,
-                    "isFilterable": true,
-                    "isPrimaryKey": true,
-                    "isReadOnly": true,
-                    "isRequired": false,
-                    "isSortable": true,
-                    "isVirtual": false,
-                    "reference": null,
-                    "type": "Number",
-                    "validations": []
-                },
-                {
-                    "defaultValue": null,
-                    "enums": [
-                        "PENDING",
-                        "DISPATCHED",
-                        "DELIVERED",
-                        "REJECTED"
-                    ],
-                    "field": "status",
-                    "integration": null,
-                    "inverseOf": null,
-                    "isFilterable": true,
-                    "isPrimaryKey": false,
-                    "isReadOnly": false,
-                    "isRequired": true,
-                    "isSortable": true,
-                    "isVirtual": false,
-                    "reference": null,
-                    "type": "Enum",
-                    "validations": [
-                        {
-                            "type": "is present",
-                            "value": null,
-                            "message": null
-                        },
-                        {
-                            "type": "is shorter than",
-                            "value": 10,
-                            "message": null
-                        }
-                    ]
-                }
-            ]
-        },
-        {
-            "name": "Group",
-            "isVirtual": false,
-            "icon": null,
-            "isReadOnly": false,
-            "integration": null,
-            "isSearchable": true,
-            "onlyForRelationships": false,
-            "paginationType": "page",
-            "searchField": null,
-            "actions": [],
-            "segments": [],
-            "fields": [
-                {
-                    "defaultValue": null,
-                    "enums": null,
-                    "field": "Group_permissions+",
-                    "inverseOf": "group",
-                    "isFilterable": false,
-                    "isPrimaryKey": false,
-                    "isReadOnly": false,
-                    "isRequired": false,
-                    "isSortable": true,
-                    "isVirtual": false,
-                    "reference": "Group_permissions.id",
-                    "relationship": "HasMany",
-                    "type": [
-                        "Number"
-                    ],
-                    "validations": []
-                },
-                {
-                    "defaultValue": null,
-                    "enums": null,
-                    "field": "User_groups+",
-                    "inverseOf": "group",
-                    "isFilterable": false,
-                    "isPrimaryKey": false,
-                    "isReadOnly": false,
-                    "isRequired": false,
-                    "isSortable": true,
-                    "isVirtual": false,
-                    "reference": "User_groups.id",
-                    "relationship": "HasMany",
-                    "type": [
-                        "Number"
-                    ],
-                    "validations": []
-                },
-                {
-                    "defaultValue": null,
-                    "enums": null,
-                    "field": "id",
-                    "integration": null,
-                    "inverseOf": null,
-                    "isFilterable": true,
-                    "isPrimaryKey": true,
-                    "isReadOnly": true,
-                    "isRequired": false,
-                    "isSortable": true,
-                    "isVirtual": false,
-                    "reference": null,
-                    "type": "Number",
-                    "validations": []
-                },
-                {
-                    "defaultValue": null,
-                    "enums": null,
-                    "field": "name",
-                    "integration": null,
-                    "inverseOf": null,
-                    "isFilterable": true,
-                    "isPrimaryKey": false,
-                    "isReadOnly": false,
-                    "isRequired": true,
-                    "isSortable": true,
-                    "isVirtual": false,
-                    "reference": null,
-                    "type": "String",
-                    "validations": [
-                        {
-                            "type": "is present",
-                            "value": null,
-                            "message": null
-                        },
-                        {
-                            "type": "is shorter than",
-                            "value": 150,
-                            "message": null
-                        }
-                    ]
-                },
-                {
-                    "defaultValue": null,
-                    "enums": null,
-                    "field": "permissions",
-                    "inverseOf": "group",
-                    "isFilterable": false,
-                    "isPrimaryKey": false,
-                    "isReadOnly": false,
-                    "isRequired": false,
-                    "isSortable": true,
-                    "isVirtual": false,
-                    "reference": "Permission.id",
-                    "relationship": "BelongsToMany",
-                    "type": [
-                        "Number"
-                    ],
-                    "validations": []
-                },
-                {
-                    "defaultValue": null,
-                    "enums": null,
-                    "field": "user",
-                    "inverseOf": "groups",
-                    "isFilterable": false,
-                    "isPrimaryKey": false,
-                    "isReadOnly": false,
-                    "isRequired": false,
-                    "isSortable": true,
-                    "isVirtual": false,
-                    "reference": "User.id",
-                    "relationship": "BelongsToMany",
-                    "type": [
-                        "Number"
-                    ],
-                    "validations": []
-                }
-            ]
-        },
-        {
-            "name": "Group_permissions",
-            "isVirtual": false,
-            "icon": null,
-            "isReadOnly": false,
-            "integration": null,
-            "isSearchable": true,
-            "onlyForRelationships": false,
-            "paginationType": "page",
-            "searchField": null,
-            "actions": [],
-            "segments": [],
-            "fields": [
-                {
-                    "defaultValue": null,
-                    "enums": null,
-                    "field": "group",
-                    "inverseOf": "Group_permissions+",
-                    "isFilterable": true,
-                    "isPrimaryKey": false,
-                    "isReadOnly": false,
-                    "isRequired": true,
-                    "isSortable": true,
-                    "isVirtual": false,
-                    "reference": "Group.id",
-                    "relationship": "BelongsTo",
-                    "type": "Number",
-                    "validations": [
-                        {
-                            "type": "is present",
-                            "value": null,
-                            "message": null
-                        }
-                    ]
-                },
-                {
-                    "defaultValue": null,
-                    "enums": null,
-                    "field": "id",
-                    "integration": null,
-                    "inverseOf": null,
-                    "isFilterable": true,
-                    "isPrimaryKey": true,
-                    "isReadOnly": true,
-                    "isRequired": false,
-                    "isSortable": true,
-                    "isVirtual": false,
-                    "reference": null,
-                    "type": "Number",
-                    "validations": []
-                },
-                {
-                    "defaultValue": null,
-                    "enums": null,
-                    "field": "permission",
-                    "inverseOf": "Group_permissions+",
-                    "isFilterable": true,
-                    "isPrimaryKey": false,
-                    "isReadOnly": false,
-                    "isRequired": true,
-                    "isSortable": true,
-                    "isVirtual": false,
-                    "reference": "Permission.id",
-                    "relationship": "BelongsTo",
-                    "type": "Number",
-                    "validations": [
-                        {
-                            "type": "is present",
-                            "value": null,
-                            "message": null
-                        }
-                    ]
-                }
-            ]
-        },
-        {
-            "name": "LogEntry",
-            "isVirtual": false,
-            "icon": null,
-            "isReadOnly": false,
-            "integration": null,
-            "isSearchable": true,
-            "onlyForRelationships": false,
-            "paginationType": "page",
-            "searchField": null,
-            "actions": [],
-            "segments": [],
-            "fields": [
-                {
-                    "defaultValue": null,
-                    "enums": [
-                        1,
-                        2,
-                        3
-                    ],
-                    "field": "action_flag",
-                    "integration": null,
-                    "inverseOf": null,
-                    "isFilterable": true,
-                    "isPrimaryKey": false,
-                    "isReadOnly": false,
-                    "isRequired": true,
-                    "isSortable": true,
-                    "isVirtual": false,
-                    "reference": null,
-                    "type": "Enum",
-                    "validations": [
-                        {
-                            "type": "is present",
-                            "value": null,
-                            "message": null
-                        }
-                    ]
-                },
-                {
-                    "defaultValue": null,
-                    "enums": null,
-                    "field": "action_time",
-                    "integration": null,
-                    "inverseOf": null,
-                    "isFilterable": true,
-                    "isPrimaryKey": false,
-                    "isReadOnly": false,
-                    "isRequired": false,
-                    "isSortable": true,
-                    "isVirtual": false,
-                    "reference": null,
-                    "type": "Date",
-                    "validations": []
-                },
-                {
-                    "defaultValue": null,
-                    "enums": null,
-                    "field": "change_message",
-                    "integration": null,
-                    "inverseOf": null,
-                    "isFilterable": true,
-                    "isPrimaryKey": false,
-                    "isReadOnly": false,
-                    "isRequired": false,
-                    "isSortable": true,
-                    "isVirtual": false,
-                    "reference": null,
-                    "type": "String",
-                    "validations": []
-                },
-                {
-                    "defaultValue": null,
-                    "enums": null,
-                    "field": "content_type",
-                    "inverseOf": "logentry",
-                    "isFilterable": true,
-                    "isPrimaryKey": false,
-                    "isReadOnly": false,
-                    "isRequired": false,
-                    "isSortable": true,
-                    "isVirtual": false,
-                    "reference": "ContentType.id",
-                    "relationship": "BelongsTo",
-                    "type": "Number",
-                    "validations": []
-                },
-                {
-                    "defaultValue": null,
-                    "enums": null,
-                    "field": "id",
-                    "integration": null,
-                    "inverseOf": null,
-                    "isFilterable": true,
-                    "isPrimaryKey": true,
-                    "isReadOnly": true,
-                    "isRequired": false,
-                    "isSortable": true,
-                    "isVirtual": false,
-                    "reference": null,
-                    "type": "Number",
-                    "validations": []
-                },
-                {
-                    "defaultValue": null,
-                    "enums": null,
-                    "field": "object_id",
-                    "integration": null,
-                    "inverseOf": null,
-                    "isFilterable": true,
-                    "isPrimaryKey": false,
-                    "isReadOnly": false,
-                    "isRequired": false,
-                    "isSortable": true,
-                    "isVirtual": false,
-                    "reference": null,
-                    "type": "String",
-                    "validations": []
-                },
-                {
-                    "defaultValue": null,
-                    "enums": null,
-                    "field": "object_repr",
-                    "integration": null,
-                    "inverseOf": null,
-                    "isFilterable": true,
-                    "isPrimaryKey": false,
-                    "isReadOnly": false,
-                    "isRequired": true,
-                    "isSortable": true,
-                    "isVirtual": false,
-                    "reference": null,
-                    "type": "String",
-                    "validations": [
-                        {
-                            "type": "is present",
-                            "value": null,
-                            "message": null
-                        },
-                        {
-                            "type": "is shorter than",
-                            "value": 200,
-                            "message": null
-                        }
-                    ]
-                },
-                {
-                    "defaultValue": null,
-                    "enums": null,
-                    "field": "user",
-                    "inverseOf": "logentry",
-                    "isFilterable": true,
-                    "isPrimaryKey": false,
-                    "isReadOnly": false,
-                    "isRequired": true,
-                    "isSortable": true,
-                    "isVirtual": false,
-                    "reference": "User.id",
-                    "relationship": "BelongsTo",
-                    "type": "Number",
-                    "validations": [
-                        {
-                            "type": "is present",
-                            "value": null,
-                            "message": null
-                        }
-                    ]
-                }
-            ]
-        },
-        {
-            "name": "Order",
+            "name": "app_order",
             "isVirtual": false,
             "icon": null,
             "isReadOnly": false,
@@ -2094,11 +1069,11 @@
             "searchField": null,
             "actions": [
                 {
-                    "id": "Order-0-export json",
+                    "id": "app_order-0-export json",
                     "name": "Export json",
                     "type": "global",
                     "baseUrl": null,
-                    "endpoint": "/forest/_actions/Order/0/export json",
+                    "endpoint": "/forest/_actions/app_order/0/export json",
                     "httpMethod": "POST",
                     "redirect": null,
                     "download": true,
@@ -2125,7 +1100,7 @@
                             "hook": null,
                             "isReadOnly": false,
                             "isRequired": true,
-                            "reference": "Customer.id",
+                            "reference": "app_customer.id",
                             "type": "Number",
                             "widget": null
                         }
@@ -2138,11 +1113,11 @@
                     }
                 },
                 {
-                    "id": "Order-1-refund order(s)",
+                    "id": "app_order-1-refund order(s)",
                     "name": "Refund order(s)",
                     "type": "bulk",
                     "baseUrl": null,
-                    "endpoint": "/forest/_actions/Order/1/refund order(s)",
+                    "endpoint": "/forest/_actions/app_order/1/refund order(s)",
                     "httpMethod": "POST",
                     "redirect": null,
                     "download": false,
@@ -2171,27 +1146,27 @@
             ],
             "segments": [
                 {
-                    "id": "Order.Delivered order",
+                    "id": "app_order.Delivered order",
                     "name": "Delivered order"
                 },
                 {
-                    "id": "Order.Dispatched order",
+                    "id": "app_order.Dispatched order",
                     "name": "Dispatched order"
                 },
                 {
-                    "id": "Order.Pending order",
+                    "id": "app_order.Pending order",
                     "name": "Pending order"
                 },
                 {
-                    "id": "Order.Rejected order",
+                    "id": "app_order.Rejected order",
                     "name": "Rejected order"
                 },
                 {
-                    "id": "Order.Suspicious order",
+                    "id": "app_order.Suspicious order",
                     "name": "Suspicious order"
                 },
                 {
-                    "id": "Order.newly_created",
+                    "id": "app_order.newly_created",
                     "name": "newly_created"
                 }
             ],
@@ -2207,7 +1182,7 @@
                     "isRequired": true,
                     "isSortable": true,
                     "isVirtual": false,
-                    "reference": "Address.id",
+                    "reference": "app_address.id",
                     "relationship": "BelongsTo",
                     "type": "Number",
                     "validations": [
@@ -2229,7 +1204,7 @@
                     "isRequired": false,
                     "isSortable": true,
                     "isVirtual": false,
-                    "reference": "Cart.id",
+                    "reference": "app_cart.id",
                     "relationship": "HasOne",
                     "type": "Number",
                     "validations": []
@@ -2293,7 +1268,7 @@
                     "isRequired": false,
                     "isSortable": true,
                     "isVirtual": false,
-                    "reference": "Customer.id",
+                    "reference": "app_customer.id",
                     "relationship": "BelongsTo",
                     "type": "Number",
                     "validations": []
@@ -2341,7 +1316,7 @@
                     "isRequired": true,
                     "isSortable": true,
                     "isVirtual": false,
-                    "reference": "Address.id",
+                    "reference": "app_address.id",
                     "relationship": "BelongsTo",
                     "type": "Number",
                     "validations": [
@@ -2435,7 +1410,212 @@
             ]
         },
         {
-            "name": "Permission",
+            "name": "auth_group",
+            "isVirtual": false,
+            "icon": null,
+            "isReadOnly": false,
+            "integration": null,
+            "isSearchable": true,
+            "onlyForRelationships": false,
+            "paginationType": "page",
+            "searchField": null,
+            "actions": [],
+            "segments": [],
+            "fields": [
+                {
+                    "defaultValue": null,
+                    "enums": null,
+                    "field": "Group_permissions+",
+                    "inverseOf": "group",
+                    "isFilterable": false,
+                    "isPrimaryKey": false,
+                    "isReadOnly": false,
+                    "isRequired": false,
+                    "isSortable": true,
+                    "isVirtual": false,
+                    "reference": "auth_group_permissions.id",
+                    "relationship": "HasMany",
+                    "type": [
+                        "Number"
+                    ],
+                    "validations": []
+                },
+                {
+                    "defaultValue": null,
+                    "enums": null,
+                    "field": "User_groups+",
+                    "inverseOf": "group",
+                    "isFilterable": false,
+                    "isPrimaryKey": false,
+                    "isReadOnly": false,
+                    "isRequired": false,
+                    "isSortable": true,
+                    "isVirtual": false,
+                    "reference": "auth_user_groups.id",
+                    "relationship": "HasMany",
+                    "type": [
+                        "Number"
+                    ],
+                    "validations": []
+                },
+                {
+                    "defaultValue": null,
+                    "enums": null,
+                    "field": "id",
+                    "integration": null,
+                    "inverseOf": null,
+                    "isFilterable": true,
+                    "isPrimaryKey": true,
+                    "isReadOnly": true,
+                    "isRequired": false,
+                    "isSortable": true,
+                    "isVirtual": false,
+                    "reference": null,
+                    "type": "Number",
+                    "validations": []
+                },
+                {
+                    "defaultValue": null,
+                    "enums": null,
+                    "field": "name",
+                    "integration": null,
+                    "inverseOf": null,
+                    "isFilterable": true,
+                    "isPrimaryKey": false,
+                    "isReadOnly": false,
+                    "isRequired": true,
+                    "isSortable": true,
+                    "isVirtual": false,
+                    "reference": null,
+                    "type": "String",
+                    "validations": [
+                        {
+                            "type": "is present",
+                            "value": null,
+                            "message": null
+                        },
+                        {
+                            "type": "is shorter than",
+                            "value": 150,
+                            "message": null
+                        }
+                    ]
+                },
+                {
+                    "defaultValue": null,
+                    "enums": null,
+                    "field": "permissions",
+                    "inverseOf": "group",
+                    "isFilterable": false,
+                    "isPrimaryKey": false,
+                    "isReadOnly": false,
+                    "isRequired": false,
+                    "isSortable": true,
+                    "isVirtual": false,
+                    "reference": "auth_permission.id",
+                    "relationship": "BelongsToMany",
+                    "type": [
+                        "Number"
+                    ],
+                    "validations": []
+                },
+                {
+                    "defaultValue": null,
+                    "enums": null,
+                    "field": "user",
+                    "inverseOf": "groups",
+                    "isFilterable": false,
+                    "isPrimaryKey": false,
+                    "isReadOnly": false,
+                    "isRequired": false,
+                    "isSortable": true,
+                    "isVirtual": false,
+                    "reference": "auth_user.id",
+                    "relationship": "BelongsToMany",
+                    "type": [
+                        "Number"
+                    ],
+                    "validations": []
+                }
+            ]
+        },
+        {
+            "name": "auth_group_permissions",
+            "isVirtual": false,
+            "icon": null,
+            "isReadOnly": false,
+            "integration": null,
+            "isSearchable": true,
+            "onlyForRelationships": false,
+            "paginationType": "page",
+            "searchField": null,
+            "actions": [],
+            "segments": [],
+            "fields": [
+                {
+                    "defaultValue": null,
+                    "enums": null,
+                    "field": "group",
+                    "inverseOf": "Group_permissions+",
+                    "isFilterable": true,
+                    "isPrimaryKey": false,
+                    "isReadOnly": false,
+                    "isRequired": true,
+                    "isSortable": true,
+                    "isVirtual": false,
+                    "reference": "auth_group.id",
+                    "relationship": "BelongsTo",
+                    "type": "Number",
+                    "validations": [
+                        {
+                            "type": "is present",
+                            "value": null,
+                            "message": null
+                        }
+                    ]
+                },
+                {
+                    "defaultValue": null,
+                    "enums": null,
+                    "field": "id",
+                    "integration": null,
+                    "inverseOf": null,
+                    "isFilterable": true,
+                    "isPrimaryKey": true,
+                    "isReadOnly": true,
+                    "isRequired": false,
+                    "isSortable": true,
+                    "isVirtual": false,
+                    "reference": null,
+                    "type": "Number",
+                    "validations": []
+                },
+                {
+                    "defaultValue": null,
+                    "enums": null,
+                    "field": "permission",
+                    "inverseOf": "Group_permissions+",
+                    "isFilterable": true,
+                    "isPrimaryKey": false,
+                    "isReadOnly": false,
+                    "isRequired": true,
+                    "isSortable": true,
+                    "isVirtual": false,
+                    "reference": "auth_permission.id",
+                    "relationship": "BelongsTo",
+                    "type": "Number",
+                    "validations": [
+                        {
+                            "type": "is present",
+                            "value": null,
+                            "message": null
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "auth_permission",
             "isVirtual": false,
             "icon": null,
             "isReadOnly": false,
@@ -2458,7 +1638,7 @@
                     "isRequired": false,
                     "isSortable": true,
                     "isVirtual": false,
-                    "reference": "Group_permissions.id",
+                    "reference": "auth_group_permissions.id",
                     "relationship": "HasMany",
                     "type": [
                         "Number"
@@ -2476,7 +1656,7 @@
                     "isRequired": false,
                     "isSortable": true,
                     "isVirtual": false,
-                    "reference": "User_user_permissions.id",
+                    "reference": "auth_user_user_permissions.id",
                     "relationship": "HasMany",
                     "type": [
                         "Number"
@@ -2521,7 +1701,7 @@
                     "isRequired": true,
                     "isSortable": true,
                     "isVirtual": false,
-                    "reference": "ContentType.id",
+                    "reference": "django_content_type.id",
                     "relationship": "BelongsTo",
                     "type": "Number",
                     "validations": [
@@ -2543,7 +1723,7 @@
                     "isRequired": false,
                     "isSortable": true,
                     "isVirtual": false,
-                    "reference": "Group.id",
+                    "reference": "auth_group.id",
                     "relationship": "BelongsToMany",
                     "type": [
                         "Number"
@@ -2604,7 +1784,7 @@
                     "isRequired": false,
                     "isSortable": true,
                     "isVirtual": false,
-                    "reference": "User.id",
+                    "reference": "auth_user.id",
                     "relationship": "BelongsToMany",
                     "type": [
                         "Number"
@@ -2614,93 +1794,7 @@
             ]
         },
         {
-            "name": "Session",
-            "isVirtual": false,
-            "icon": null,
-            "isReadOnly": false,
-            "integration": null,
-            "isSearchable": true,
-            "onlyForRelationships": false,
-            "paginationType": "page",
-            "searchField": null,
-            "actions": [],
-            "segments": [],
-            "fields": [
-                {
-                    "defaultValue": null,
-                    "enums": null,
-                    "field": "expire_date",
-                    "integration": null,
-                    "inverseOf": null,
-                    "isFilterable": true,
-                    "isPrimaryKey": false,
-                    "isReadOnly": false,
-                    "isRequired": true,
-                    "isSortable": true,
-                    "isVirtual": false,
-                    "reference": null,
-                    "type": "Date",
-                    "validations": [
-                        {
-                            "type": "is present",
-                            "value": null,
-                            "message": null
-                        }
-                    ]
-                },
-                {
-                    "defaultValue": null,
-                    "enums": null,
-                    "field": "session_data",
-                    "integration": null,
-                    "inverseOf": null,
-                    "isFilterable": true,
-                    "isPrimaryKey": false,
-                    "isReadOnly": false,
-                    "isRequired": true,
-                    "isSortable": true,
-                    "isVirtual": false,
-                    "reference": null,
-                    "type": "String",
-                    "validations": [
-                        {
-                            "type": "is present",
-                            "value": null,
-                            "message": null
-                        }
-                    ]
-                },
-                {
-                    "defaultValue": null,
-                    "enums": null,
-                    "field": "session_key",
-                    "integration": null,
-                    "inverseOf": null,
-                    "isFilterable": true,
-                    "isPrimaryKey": true,
-                    "isReadOnly": false,
-                    "isRequired": true,
-                    "isSortable": true,
-                    "isVirtual": false,
-                    "reference": null,
-                    "type": "String",
-                    "validations": [
-                        {
-                            "type": "is present",
-                            "value": null,
-                            "message": null
-                        },
-                        {
-                            "type": "is shorter than",
-                            "value": 40,
-                            "message": null
-                        }
-                    ]
-                }
-            ]
-        },
-        {
-            "name": "User",
+            "name": "auth_user",
             "isVirtual": false,
             "icon": null,
             "isReadOnly": false,
@@ -2723,7 +1817,7 @@
                     "isRequired": false,
                     "isSortable": true,
                     "isVirtual": false,
-                    "reference": "User_groups.id",
+                    "reference": "auth_user_groups.id",
                     "relationship": "HasMany",
                     "type": [
                         "Number"
@@ -2741,7 +1835,7 @@
                     "isRequired": false,
                     "isSortable": true,
                     "isVirtual": false,
-                    "reference": "User_user_permissions.id",
+                    "reference": "auth_user_user_permissions.id",
                     "relationship": "HasMany",
                     "type": [
                         "Number"
@@ -2819,7 +1913,7 @@
                     "isRequired": false,
                     "isSortable": true,
                     "isVirtual": false,
-                    "reference": "Group.id",
+                    "reference": "auth_group.id",
                     "relationship": "BelongsToMany",
                     "type": [
                         "Number"
@@ -2939,7 +2033,7 @@
                     "isRequired": false,
                     "isSortable": true,
                     "isVirtual": false,
-                    "reference": "LogEntry.id",
+                    "reference": "django_admin_log.id",
                     "relationship": "HasMany",
                     "type": [
                         "Number"
@@ -2984,7 +2078,7 @@
                     "isRequired": false,
                     "isSortable": true,
                     "isVirtual": false,
-                    "reference": "Permission.id",
+                    "reference": "auth_permission.id",
                     "relationship": "BelongsToMany",
                     "type": [
                         "Number"
@@ -3021,7 +2115,7 @@
             ]
         },
         {
-            "name": "User_groups",
+            "name": "auth_user_groups",
             "isVirtual": false,
             "icon": null,
             "isReadOnly": false,
@@ -3044,7 +2138,7 @@
                     "isRequired": true,
                     "isSortable": true,
                     "isVirtual": false,
-                    "reference": "Group.id",
+                    "reference": "auth_group.id",
                     "relationship": "BelongsTo",
                     "type": "Number",
                     "validations": [
@@ -3082,7 +2176,7 @@
                     "isRequired": true,
                     "isSortable": true,
                     "isVirtual": false,
-                    "reference": "User.id",
+                    "reference": "auth_user.id",
                     "relationship": "BelongsTo",
                     "type": "Number",
                     "validations": [
@@ -3096,7 +2190,7 @@
             ]
         },
         {
-            "name": "User_user_permissions",
+            "name": "auth_user_user_permissions",
             "isVirtual": false,
             "icon": null,
             "isReadOnly": false,
@@ -3135,7 +2229,7 @@
                     "isRequired": true,
                     "isSortable": true,
                     "isVirtual": false,
-                    "reference": "Permission.id",
+                    "reference": "auth_permission.id",
                     "relationship": "BelongsTo",
                     "type": "Number",
                     "validations": [
@@ -3157,7 +2251,7 @@
                     "isRequired": true,
                     "isSortable": true,
                     "isVirtual": false,
-                    "reference": "User.id",
+                    "reference": "auth_user.id",
                     "relationship": "BelongsTo",
                     "type": "Number",
                     "validations": [
@@ -3169,15 +2263,921 @@
                     ]
                 }
             ]
+        },
+        {
+            "name": "cart",
+            "isVirtual": false,
+            "icon": null,
+            "isReadOnly": false,
+            "integration": null,
+            "isSearchable": true,
+            "onlyForRelationships": false,
+            "paginationType": "page",
+            "searchField": null,
+            "actions": [],
+            "segments": [],
+            "fields": [
+                {
+                    "defaultValue": null,
+                    "enums": null,
+                    "field": "created_at",
+                    "integration": null,
+                    "inverseOf": null,
+                    "isFilterable": true,
+                    "isPrimaryKey": false,
+                    "isReadOnly": false,
+                    "isRequired": false,
+                    "isSortable": true,
+                    "isVirtual": false,
+                    "reference": null,
+                    "type": "Date",
+                    "validations": []
+                },
+                {
+                    "defaultValue": null,
+                    "enums": null,
+                    "field": "id",
+                    "integration": null,
+                    "inverseOf": null,
+                    "isFilterable": true,
+                    "isPrimaryKey": true,
+                    "isReadOnly": true,
+                    "isRequired": false,
+                    "isSortable": true,
+                    "isVirtual": false,
+                    "reference": null,
+                    "type": "Number",
+                    "validations": []
+                },
+                {
+                    "defaultValue": null,
+                    "enums": null,
+                    "field": "name",
+                    "integration": null,
+                    "inverseOf": null,
+                    "isFilterable": true,
+                    "isPrimaryKey": false,
+                    "isReadOnly": false,
+                    "isRequired": true,
+                    "isSortable": true,
+                    "isVirtual": false,
+                    "reference": null,
+                    "type": "String",
+                    "validations": [
+                        {
+                            "type": "is present",
+                            "value": null,
+                            "message": null
+                        },
+                        {
+                            "type": "is shorter than",
+                            "value": 255,
+                            "message": null
+                        }
+                    ]
+                },
+                {
+                    "defaultValue": null,
+                    "enums": null,
+                    "field": "order",
+                    "inverseOf": "flaskcart",
+                    "isFilterable": true,
+                    "isPrimaryKey": false,
+                    "isReadOnly": false,
+                    "isRequired": false,
+                    "isSortable": true,
+                    "isVirtual": false,
+                    "reference": "order.id",
+                    "relationship": "BelongsTo",
+                    "type": "Number",
+                    "validations": []
+                }
+            ]
+        },
+        {
+            "name": "customer",
+            "isVirtual": false,
+            "icon": null,
+            "isReadOnly": false,
+            "integration": null,
+            "isSearchable": true,
+            "onlyForRelationships": false,
+            "paginationType": "page",
+            "searchField": null,
+            "actions": [],
+            "segments": [],
+            "fields": [
+                {
+                    "defaultValue": null,
+                    "enums": null,
+                    "field": "addresses",
+                    "inverseOf": "customers",
+                    "isFilterable": false,
+                    "isPrimaryKey": false,
+                    "isReadOnly": false,
+                    "isRequired": false,
+                    "isSortable": true,
+                    "isVirtual": false,
+                    "reference": "address.id",
+                    "relationship": "BelongsToMany",
+                    "type": [
+                        "Number"
+                    ],
+                    "validations": []
+                },
+                {
+                    "defaultValue": null,
+                    "enums": null,
+                    "field": "age",
+                    "integration": null,
+                    "inverseOf": null,
+                    "isFilterable": true,
+                    "isPrimaryKey": false,
+                    "isReadOnly": false,
+                    "isRequired": false,
+                    "isSortable": true,
+                    "isVirtual": false,
+                    "reference": null,
+                    "type": "Number",
+                    "validations": []
+                },
+                {
+                    "defaultValue": null,
+                    "enums": null,
+                    "field": "avatar",
+                    "integration": null,
+                    "inverseOf": null,
+                    "isFilterable": false,
+                    "isPrimaryKey": false,
+                    "isReadOnly": false,
+                    "isRequired": false,
+                    "isSortable": true,
+                    "isVirtual": false,
+                    "reference": null,
+                    "type": "String",
+                    "validations": []
+                },
+                {
+                    "defaultValue": null,
+                    "enums": null,
+                    "field": "birthday_date",
+                    "integration": null,
+                    "inverseOf": null,
+                    "isFilterable": true,
+                    "isPrimaryKey": false,
+                    "isReadOnly": false,
+                    "isRequired": false,
+                    "isSortable": true,
+                    "isVirtual": false,
+                    "reference": null,
+                    "type": "Date",
+                    "validations": []
+                },
+                {
+                    "defaultValue": null,
+                    "enums": null,
+                    "field": "first_name",
+                    "integration": null,
+                    "inverseOf": null,
+                    "isFilterable": true,
+                    "isPrimaryKey": false,
+                    "isReadOnly": false,
+                    "isRequired": true,
+                    "isSortable": true,
+                    "isVirtual": false,
+                    "reference": null,
+                    "type": "String",
+                    "validations": [
+                        {
+                            "type": "is present",
+                            "value": null,
+                            "message": null
+                        },
+                        {
+                            "type": "is shorter than",
+                            "value": 255,
+                            "message": null
+                        }
+                    ]
+                },
+                {
+                    "defaultValue": null,
+                    "enums": null,
+                    "field": "flaskcustomersaddresses",
+                    "inverseOf": "customer",
+                    "isFilterable": false,
+                    "isPrimaryKey": false,
+                    "isReadOnly": false,
+                    "isRequired": false,
+                    "isSortable": true,
+                    "isVirtual": false,
+                    "reference": "customers_addresses.id",
+                    "relationship": "HasMany",
+                    "type": [
+                        "String"
+                    ],
+                    "validations": []
+                },
+                {
+                    "defaultValue": null,
+                    "enums": null,
+                    "field": "flaskorder",
+                    "inverseOf": "customer",
+                    "isFilterable": false,
+                    "isPrimaryKey": false,
+                    "isReadOnly": false,
+                    "isRequired": false,
+                    "isSortable": true,
+                    "isVirtual": false,
+                    "reference": "order.id",
+                    "relationship": "HasMany",
+                    "type": [
+                        "String"
+                    ],
+                    "validations": []
+                },
+                {
+                    "defaultValue": null,
+                    "enums": null,
+                    "field": "id",
+                    "integration": null,
+                    "inverseOf": null,
+                    "isFilterable": false,
+                    "isPrimaryKey": true,
+                    "isReadOnly": false,
+                    "isRequired": false,
+                    "isSortable": true,
+                    "isVirtual": false,
+                    "reference": null,
+                    "type": "String",
+                    "validations": []
+                },
+                {
+                    "defaultValue": null,
+                    "enums": null,
+                    "field": "is_vip",
+                    "integration": null,
+                    "inverseOf": null,
+                    "isFilterable": true,
+                    "isPrimaryKey": false,
+                    "isReadOnly": false,
+                    "isRequired": false,
+                    "isSortable": true,
+                    "isVirtual": false,
+                    "reference": null,
+                    "type": "Boolean",
+                    "validations": []
+                },
+                {
+                    "defaultValue": null,
+                    "enums": null,
+                    "field": "last_name",
+                    "integration": null,
+                    "inverseOf": null,
+                    "isFilterable": true,
+                    "isPrimaryKey": false,
+                    "isReadOnly": false,
+                    "isRequired": true,
+                    "isSortable": true,
+                    "isVirtual": false,
+                    "reference": null,
+                    "type": "String",
+                    "validations": [
+                        {
+                            "type": "is present",
+                            "value": null,
+                            "message": null
+                        },
+                        {
+                            "type": "is shorter than",
+                            "value": 255,
+                            "message": null
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "customers_addresses",
+            "isVirtual": false,
+            "icon": null,
+            "isReadOnly": false,
+            "integration": null,
+            "isSearchable": true,
+            "onlyForRelationships": false,
+            "paginationType": "page",
+            "searchField": null,
+            "actions": [],
+            "segments": [],
+            "fields": [
+                {
+                    "defaultValue": null,
+                    "enums": null,
+                    "field": "address",
+                    "inverseOf": "flaskcustomersaddresses",
+                    "isFilterable": true,
+                    "isPrimaryKey": false,
+                    "isReadOnly": false,
+                    "isRequired": true,
+                    "isSortable": true,
+                    "isVirtual": false,
+                    "reference": "address.id",
+                    "relationship": "BelongsTo",
+                    "type": "Number",
+                    "validations": [
+                        {
+                            "type": "is present",
+                            "value": null,
+                            "message": null
+                        }
+                    ]
+                },
+                {
+                    "defaultValue": null,
+                    "enums": null,
+                    "field": "customer",
+                    "inverseOf": "flaskcustomersaddresses",
+                    "isFilterable": true,
+                    "isPrimaryKey": false,
+                    "isReadOnly": false,
+                    "isRequired": false,
+                    "isSortable": true,
+                    "isVirtual": false,
+                    "reference": "customer.id",
+                    "relationship": "BelongsTo",
+                    "type": "String",
+                    "validations": []
+                },
+                {
+                    "defaultValue": null,
+                    "enums": null,
+                    "field": "id",
+                    "integration": null,
+                    "inverseOf": null,
+                    "isFilterable": true,
+                    "isPrimaryKey": true,
+                    "isReadOnly": true,
+                    "isRequired": false,
+                    "isSortable": true,
+                    "isVirtual": false,
+                    "reference": null,
+                    "type": "Number",
+                    "validations": []
+                }
+            ]
+        },
+        {
+            "name": "django_admin_log",
+            "isVirtual": false,
+            "icon": null,
+            "isReadOnly": false,
+            "integration": null,
+            "isSearchable": true,
+            "onlyForRelationships": false,
+            "paginationType": "page",
+            "searchField": null,
+            "actions": [],
+            "segments": [],
+            "fields": [
+                {
+                    "defaultValue": null,
+                    "enums": [
+                        1,
+                        2,
+                        3
+                    ],
+                    "field": "action_flag",
+                    "integration": null,
+                    "inverseOf": null,
+                    "isFilterable": true,
+                    "isPrimaryKey": false,
+                    "isReadOnly": false,
+                    "isRequired": true,
+                    "isSortable": true,
+                    "isVirtual": false,
+                    "reference": null,
+                    "type": "Enum",
+                    "validations": [
+                        {
+                            "type": "is present",
+                            "value": null,
+                            "message": null
+                        }
+                    ]
+                },
+                {
+                    "defaultValue": null,
+                    "enums": null,
+                    "field": "action_time",
+                    "integration": null,
+                    "inverseOf": null,
+                    "isFilterable": true,
+                    "isPrimaryKey": false,
+                    "isReadOnly": false,
+                    "isRequired": false,
+                    "isSortable": true,
+                    "isVirtual": false,
+                    "reference": null,
+                    "type": "Date",
+                    "validations": []
+                },
+                {
+                    "defaultValue": null,
+                    "enums": null,
+                    "field": "change_message",
+                    "integration": null,
+                    "inverseOf": null,
+                    "isFilterable": true,
+                    "isPrimaryKey": false,
+                    "isReadOnly": false,
+                    "isRequired": false,
+                    "isSortable": true,
+                    "isVirtual": false,
+                    "reference": null,
+                    "type": "String",
+                    "validations": []
+                },
+                {
+                    "defaultValue": null,
+                    "enums": null,
+                    "field": "content_type",
+                    "inverseOf": "logentry",
+                    "isFilterable": true,
+                    "isPrimaryKey": false,
+                    "isReadOnly": false,
+                    "isRequired": false,
+                    "isSortable": true,
+                    "isVirtual": false,
+                    "reference": "django_content_type.id",
+                    "relationship": "BelongsTo",
+                    "type": "Number",
+                    "validations": []
+                },
+                {
+                    "defaultValue": null,
+                    "enums": null,
+                    "field": "id",
+                    "integration": null,
+                    "inverseOf": null,
+                    "isFilterable": true,
+                    "isPrimaryKey": true,
+                    "isReadOnly": true,
+                    "isRequired": false,
+                    "isSortable": true,
+                    "isVirtual": false,
+                    "reference": null,
+                    "type": "Number",
+                    "validations": []
+                },
+                {
+                    "defaultValue": null,
+                    "enums": null,
+                    "field": "object_id",
+                    "integration": null,
+                    "inverseOf": null,
+                    "isFilterable": true,
+                    "isPrimaryKey": false,
+                    "isReadOnly": false,
+                    "isRequired": false,
+                    "isSortable": true,
+                    "isVirtual": false,
+                    "reference": null,
+                    "type": "String",
+                    "validations": []
+                },
+                {
+                    "defaultValue": null,
+                    "enums": null,
+                    "field": "object_repr",
+                    "integration": null,
+                    "inverseOf": null,
+                    "isFilterable": true,
+                    "isPrimaryKey": false,
+                    "isReadOnly": false,
+                    "isRequired": true,
+                    "isSortable": true,
+                    "isVirtual": false,
+                    "reference": null,
+                    "type": "String",
+                    "validations": [
+                        {
+                            "type": "is present",
+                            "value": null,
+                            "message": null
+                        },
+                        {
+                            "type": "is shorter than",
+                            "value": 200,
+                            "message": null
+                        }
+                    ]
+                },
+                {
+                    "defaultValue": null,
+                    "enums": null,
+                    "field": "user",
+                    "inverseOf": "logentry",
+                    "isFilterable": true,
+                    "isPrimaryKey": false,
+                    "isReadOnly": false,
+                    "isRequired": true,
+                    "isSortable": true,
+                    "isVirtual": false,
+                    "reference": "auth_user.id",
+                    "relationship": "BelongsTo",
+                    "type": "Number",
+                    "validations": [
+                        {
+                            "type": "is present",
+                            "value": null,
+                            "message": null
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "django_content_type",
+            "isVirtual": false,
+            "icon": null,
+            "isReadOnly": false,
+            "integration": null,
+            "isSearchable": true,
+            "onlyForRelationships": false,
+            "paginationType": "page",
+            "searchField": null,
+            "actions": [],
+            "segments": [],
+            "fields": [
+                {
+                    "defaultValue": null,
+                    "enums": null,
+                    "field": "app_label",
+                    "integration": null,
+                    "inverseOf": null,
+                    "isFilterable": true,
+                    "isPrimaryKey": false,
+                    "isReadOnly": false,
+                    "isRequired": true,
+                    "isSortable": true,
+                    "isVirtual": false,
+                    "reference": null,
+                    "type": "String",
+                    "validations": [
+                        {
+                            "type": "is present",
+                            "value": null,
+                            "message": null
+                        },
+                        {
+                            "type": "is shorter than",
+                            "value": 100,
+                            "message": null
+                        }
+                    ]
+                },
+                {
+                    "defaultValue": null,
+                    "enums": null,
+                    "field": "id",
+                    "integration": null,
+                    "inverseOf": null,
+                    "isFilterable": true,
+                    "isPrimaryKey": true,
+                    "isReadOnly": true,
+                    "isRequired": false,
+                    "isSortable": true,
+                    "isVirtual": false,
+                    "reference": null,
+                    "type": "Number",
+                    "validations": []
+                },
+                {
+                    "defaultValue": null,
+                    "enums": null,
+                    "field": "logentry",
+                    "inverseOf": "content_type",
+                    "isFilterable": false,
+                    "isPrimaryKey": false,
+                    "isReadOnly": false,
+                    "isRequired": false,
+                    "isSortable": true,
+                    "isVirtual": false,
+                    "reference": "django_admin_log.id",
+                    "relationship": "HasMany",
+                    "type": [
+                        "Number"
+                    ],
+                    "validations": []
+                },
+                {
+                    "defaultValue": null,
+                    "enums": null,
+                    "field": "model",
+                    "integration": null,
+                    "inverseOf": null,
+                    "isFilterable": true,
+                    "isPrimaryKey": false,
+                    "isReadOnly": false,
+                    "isRequired": true,
+                    "isSortable": true,
+                    "isVirtual": false,
+                    "reference": null,
+                    "type": "String",
+                    "validations": [
+                        {
+                            "type": "is present",
+                            "value": null,
+                            "message": null
+                        },
+                        {
+                            "type": "is shorter than",
+                            "value": 100,
+                            "message": null
+                        }
+                    ]
+                },
+                {
+                    "defaultValue": null,
+                    "enums": null,
+                    "field": "permission",
+                    "inverseOf": "content_type",
+                    "isFilterable": false,
+                    "isPrimaryKey": false,
+                    "isReadOnly": false,
+                    "isRequired": false,
+                    "isSortable": true,
+                    "isVirtual": false,
+                    "reference": "auth_permission.id",
+                    "relationship": "HasMany",
+                    "type": [
+                        "Number"
+                    ],
+                    "validations": []
+                }
+            ]
+        },
+        {
+            "name": "django_session",
+            "isVirtual": false,
+            "icon": null,
+            "isReadOnly": false,
+            "integration": null,
+            "isSearchable": true,
+            "onlyForRelationships": false,
+            "paginationType": "page",
+            "searchField": null,
+            "actions": [],
+            "segments": [],
+            "fields": [
+                {
+                    "defaultValue": null,
+                    "enums": null,
+                    "field": "expire_date",
+                    "integration": null,
+                    "inverseOf": null,
+                    "isFilterable": true,
+                    "isPrimaryKey": false,
+                    "isReadOnly": false,
+                    "isRequired": true,
+                    "isSortable": true,
+                    "isVirtual": false,
+                    "reference": null,
+                    "type": "Date",
+                    "validations": [
+                        {
+                            "type": "is present",
+                            "value": null,
+                            "message": null
+                        }
+                    ]
+                },
+                {
+                    "defaultValue": null,
+                    "enums": null,
+                    "field": "session_data",
+                    "integration": null,
+                    "inverseOf": null,
+                    "isFilterable": true,
+                    "isPrimaryKey": false,
+                    "isReadOnly": false,
+                    "isRequired": true,
+                    "isSortable": true,
+                    "isVirtual": false,
+                    "reference": null,
+                    "type": "String",
+                    "validations": [
+                        {
+                            "type": "is present",
+                            "value": null,
+                            "message": null
+                        }
+                    ]
+                },
+                {
+                    "defaultValue": null,
+                    "enums": null,
+                    "field": "session_key",
+                    "integration": null,
+                    "inverseOf": null,
+                    "isFilterable": true,
+                    "isPrimaryKey": true,
+                    "isReadOnly": false,
+                    "isRequired": true,
+                    "isSortable": true,
+                    "isVirtual": false,
+                    "reference": null,
+                    "type": "String",
+                    "validations": [
+                        {
+                            "type": "is present",
+                            "value": null,
+                            "message": null
+                        },
+                        {
+                            "type": "is shorter than",
+                            "value": 40,
+                            "message": null
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "order",
+            "isVirtual": false,
+            "icon": null,
+            "isReadOnly": false,
+            "integration": null,
+            "isSearchable": true,
+            "onlyForRelationships": false,
+            "paginationType": "page",
+            "searchField": null,
+            "actions": [],
+            "segments": [],
+            "fields": [
+                {
+                    "defaultValue": null,
+                    "enums": null,
+                    "field": "amount",
+                    "integration": null,
+                    "inverseOf": null,
+                    "isFilterable": true,
+                    "isPrimaryKey": false,
+                    "isReadOnly": false,
+                    "isRequired": true,
+                    "isSortable": true,
+                    "isVirtual": false,
+                    "reference": null,
+                    "type": "Number",
+                    "validations": [
+                        {
+                            "type": "is present",
+                            "value": null,
+                            "message": null
+                        }
+                    ]
+                },
+                {
+                    "defaultValue": null,
+                    "enums": null,
+                    "field": "billing_address",
+                    "inverseOf": "flaskorder",
+                    "isFilterable": true,
+                    "isPrimaryKey": false,
+                    "isReadOnly": false,
+                    "isRequired": false,
+                    "isSortable": true,
+                    "isVirtual": false,
+                    "reference": "address.id",
+                    "relationship": "BelongsTo",
+                    "type": "Number",
+                    "validations": []
+                },
+                {
+                    "defaultValue": null,
+                    "enums": null,
+                    "field": "created_at",
+                    "integration": null,
+                    "inverseOf": null,
+                    "isFilterable": true,
+                    "isPrimaryKey": false,
+                    "isReadOnly": false,
+                    "isRequired": false,
+                    "isSortable": true,
+                    "isVirtual": false,
+                    "reference": null,
+                    "type": "Date",
+                    "validations": []
+                },
+                {
+                    "defaultValue": null,
+                    "enums": null,
+                    "field": "customer",
+                    "inverseOf": "flaskorder",
+                    "isFilterable": true,
+                    "isPrimaryKey": false,
+                    "isReadOnly": false,
+                    "isRequired": false,
+                    "isSortable": true,
+                    "isVirtual": false,
+                    "reference": "customer.id",
+                    "relationship": "BelongsTo",
+                    "type": "String",
+                    "validations": []
+                },
+                {
+                    "defaultValue": null,
+                    "enums": null,
+                    "field": "delivering_address",
+                    "inverseOf": "order_delivering_address_set",
+                    "isFilterable": true,
+                    "isPrimaryKey": false,
+                    "isReadOnly": false,
+                    "isRequired": false,
+                    "isSortable": true,
+                    "isVirtual": false,
+                    "reference": "address.id",
+                    "relationship": "BelongsTo",
+                    "type": "Number",
+                    "validations": []
+                },
+                {
+                    "defaultValue": null,
+                    "enums": null,
+                    "field": "flaskcart",
+                    "inverseOf": "order",
+                    "isFilterable": false,
+                    "isPrimaryKey": false,
+                    "isReadOnly": false,
+                    "isRequired": false,
+                    "isSortable": true,
+                    "isVirtual": false,
+                    "reference": "cart.id",
+                    "relationship": "HasMany",
+                    "type": [
+                        "Number"
+                    ],
+                    "validations": []
+                },
+                {
+                    "defaultValue": null,
+                    "enums": null,
+                    "field": "id",
+                    "integration": null,
+                    "inverseOf": null,
+                    "isFilterable": true,
+                    "isPrimaryKey": true,
+                    "isReadOnly": true,
+                    "isRequired": false,
+                    "isSortable": true,
+                    "isVirtual": false,
+                    "reference": null,
+                    "type": "Number",
+                    "validations": []
+                },
+                {
+                    "defaultValue": null,
+                    "enums": [
+                        "PENDING",
+                        "DISPATCHED",
+                        "DELIVERED",
+                        "REJECTED"
+                    ],
+                    "field": "status",
+                    "integration": null,
+                    "inverseOf": null,
+                    "isFilterable": true,
+                    "isPrimaryKey": false,
+                    "isReadOnly": false,
+                    "isRequired": true,
+                    "isSortable": true,
+                    "isVirtual": false,
+                    "reference": null,
+                    "type": "Enum",
+                    "validations": [
+                        {
+                            "type": "is present",
+                            "value": null,
+                            "message": null
+                        },
+                        {
+                            "type": "is shorter than",
+                            "value": 10,
+                            "message": null
+                        }
+                    ]
+                }
+            ]
         }
     ],
     "meta": {
         "liana": "agent-python",
-        "liana_version": "1.1.0",
+        "liana_version": "1.2.0-beta.2",
         "stack": {
             "engine": "python",
             "engine_version": "3.10.11"
         },
-        "schemaFileHash": "a3bc8d0cbc9a4339c6b2fe0f9ca20c3df7d80f0d"
+        "schemaFileHash": "cb7254f309cce45b89e83eebc3302e86b1e42ead"
     }
 }
