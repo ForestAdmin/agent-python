@@ -17,7 +17,7 @@ from forestadmin.datasource_toolkit.interfaces.records import RecordsDataAlias
 
 class DjangoCollection(BaseDjangoCollection):
     def __init__(self, datasource: Datasource, model: Model):
-        super().__init__(model.__name__, datasource)
+        super().__init__(model._meta.db_table, datasource)
         self._model = model
         schema = DjangoCollectionFactory.build(model)
         self.add_fields(schema["fields"])
