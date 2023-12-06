@@ -9,7 +9,7 @@ from sseclient import SSEClient
 
 
 class SSECacheInvalidation(Thread):
-    _MESSAGE__CACHE_KEY: Dict[str, str] = {
+    _MESSAGE__CACHE_KEYS: Dict[str, str] = {
         "refresh-users": ["forest.users"],
         "refresh-roles": ["forest.collections"],
         "refresh-renderings": ["forest.collections", "forest.stats", "forest.scopes"],
@@ -43,11 +43,11 @@ class SSECacheInvalidation(Thread):
                     if msg.event == "heartbeat":
                         continue
 
-                    if self._MESSAGE__CACHE_KEY.get(msg.event) is not None:
-                        for cache_key in self._MESSAGE__CACHE_KEY[msg.event]:
+                    if self._MESSAGE__CACHE_KEYS.get(msg.event) is not None:
+                        for cache_key in self._MESSAGE__CACHE_KEYS[msg.event]:
                             self.permission_service.invalidate_cache(cache_key)
                         ForestLogger.log(
-                            "info", f"invalidate cache {self._MESSAGE__CACHE_KEY[msg.event]} for event {msg.event}"
+                            "info", f"invalidate cache {self._MESSAGE__CACHE_KEYS[msg.event]} for event {msg.event}"
                         )
                     else:
                         ForestLogger.log("info", f"SSECacheInvalidationThread: unhandled message from server: {msg}")
