@@ -1,3 +1,10 @@
+## [1.1.4](https://github.com/ForestAdmin/agent-python/compare/v1.1.3...v1.1.4) (2023-12-06)
+
+
+### Bug Fixes
+
+* **csv_export:** csv export now exports data without applying pagination ([#152](https://github.com/ForestAdmin/agent-python/issues/152)) ([78f192c](https://github.com/ForestAdmin/agent-python/commit/78f192c1dd60ccd8c80dff3e333d1ca4f2abbc9f))
+
 ## [1.1.3](https://github.com/ForestAdmin/agent-python/compare/v1.1.2...v1.1.3) (2023-12-06)
 
 
