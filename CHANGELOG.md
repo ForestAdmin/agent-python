@@ -1,3 +1,10 @@
+# [1.2.0-beta.4](https://github.com/ForestAdmin/agent-python/compare/v1.2.0-beta.3...v1.2.0-beta.4) (2023-12-06)
+
+
+### Bug Fixes
+
+* **django_introspection:** collection name is now the db table name ([#150](https://github.com/ForestAdmin/agent-python/issues/150)) ([8378c96](https://github.com/ForestAdmin/agent-python/commit/8378c96ff0a7e7eb1ecb2f3d37a74c1413fc9f85))
+
 # [1.2.0-beta.3](https://github.com/ForestAdmin/agent-python/compare/v1.2.0-beta.2...v1.2.0-beta.3) (2023-12-01)
 
 
