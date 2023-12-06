@@ -1,3 +1,10 @@
+## [1.1.3](https://github.com/ForestAdmin/agent-python/compare/v1.1.2...v1.1.3) (2023-12-06)
+
+
+### Bug Fixes
+
+* **sse_thread:** framework autoreload now work when instant cache refresh is enabled ([#151](https://github.com/ForestAdmin/agent-python/issues/151)) ([1e980e8](https://github.com/ForestAdmin/agent-python/commit/1e980e8d16cec700d02c200bb3b290e9e1f0282a))
+
 ## [1.1.2](https://github.com/ForestAdmin/agent-python/compare/v1.1.1...v1.1.2) (2023-11-20)
 
 
