@@ -86,7 +86,7 @@ class DjangoCollectionFactory:
     @staticmethod
     def _build_one_to_many(relation: ManyToOneRel) -> Optional[OneToMany]:
         return {
-            "foreign_collection": relation.target_field.model.__name__,
+            "foreign_collection": relation.target_field.model._meta.db_table,
             "origin_key": relation.field.attname,
             "origin_key_target": relation.field.target_field.attname,
             "type": FieldType.ONE_TO_MANY,
@@ -99,7 +99,7 @@ class DjangoCollectionFactory:
         elif isinstance(relation, ForeignKey) or isinstance(relation, OneToOneField):
             foreign_key = relation.attname
         return {
-            "foreign_collection": relation.target_field.model.__name__,
+            "foreign_collection": relation.target_field.model._meta.db_table,
             "foreign_key": foreign_key,
             "foreign_key_target": relation.target_field.attname,
             "type": FieldType.MANY_TO_ONE,
@@ -108,7 +108,7 @@ class DjangoCollectionFactory:
     @staticmethod
     def _build_one_to_one(relation: OneToOneRel) -> OneToOne:
         return {
-            "foreign_collection": relation.target_field.model.__name__,
+            "foreign_collection": relation.target_field.model._meta.db_table,
             "origin_key": relation.field.attname,
             "origin_key_target": relation.field.target_field.attname,
             "type": FieldType.ONE_TO_ONE,
@@ -117,14 +117,14 @@ class DjangoCollectionFactory:
     @staticmethod
     def _build_many_to_many(relation: Union[ManyToManyField, ManyToManyRel]) -> ManyToMany:
         kwargs: Dict[str, str] = {}
-        kwargs["foreign_collection"] = relation.target_field.model.__name__
+        kwargs["foreign_collection"] = relation.target_field.model._meta.db_table
 
         if isinstance(relation, ManyToManyField):
             remote_field = relation.remote_field
         elif isinstance(relation, ManyToManyRel):  # reverse relation
             remote_field = relation.field.remote_field
 
-        kwargs["through_collection"] = remote_field.through.__name__
+        kwargs["through_collection"] = remote_field.through._meta.db_table
 
         for field in remote_field.through._meta.get_fields():
             if field.is_relation is False:
