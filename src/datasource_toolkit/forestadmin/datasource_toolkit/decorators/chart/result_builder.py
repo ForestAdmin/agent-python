@@ -2,7 +2,7 @@ import enum
 from datetime import date, datetime
 from typing import Dict, List, Optional, TypedDict, Union
 
-from dateutil.relativedelta import relativedelta
+import pandas as pd
 from forestadmin.datasource_toolkit.interfaces.chart import (
     DistributionChart,
     LeaderboardChart,
@@ -44,7 +44,7 @@ def _make_formatted_date_range(
     while current <= last:
         yield current.strftime(format_)
         used.add(current.strftime(format_))
-        current = current + relativedelta(**{frequency.value: 1})
+        current = (current + pd.DateOffset(**{frequency.value: 1})).date()
 
     if last.strftime(format_) not in used:
         yield last.strftime(format_)
