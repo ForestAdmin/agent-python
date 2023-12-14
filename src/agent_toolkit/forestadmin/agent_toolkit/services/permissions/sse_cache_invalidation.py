@@ -1,15 +1,15 @@
 import time
-from ssl import Options
 from threading import Thread
 from typing import Dict
 
 import urllib3
 from forestadmin.agent_toolkit.forest_logger import ForestLogger
+from forestadmin.agent_toolkit.options import Options
 from sseclient import SSEClient
 
 
 class SSECacheInvalidation(Thread):
-    _MESSAGE__CACHE_KEY: Dict[str, str] = {
+    _MESSAGE__CACHE_KEYS: Dict[str, str] = {
         "refresh-users": ["forest.users"],
         "refresh-roles": ["forest.collections"],
         "refresh-renderings": ["forest.collections", "forest.stats", "forest.scopes"],
@@ -18,7 +18,7 @@ class SSECacheInvalidation(Thread):
     }
 
     def __init__(self, permission_service: "PermissionService", options: Options, *args, **kwargs):  # noqa: F821
-        super().__init__(name="SSECacheInvalidationThread", daemon=False, *args, **kwargs)
+        super().__init__(name="SSECacheInvalidationThread", daemon=True, *args, **kwargs)
         self.permission_service = permission_service
         self.options: Options = options
         self.sse_client: SSEClient = None
@@ -38,14 +38,16 @@ class SSECacheInvalidation(Thread):
                 self.sse_client = SSEClient(http.request("GET", url, preload_content=False, headers=headers))
 
                 for msg in self.sse_client.events():
+                    if self._exit_thread:
+                        return
                     if msg.event == "heartbeat":
                         continue
 
-                    if self._MESSAGE__CACHE_KEY.get(msg.event) is not None:
-                        for cache_key in self._MESSAGE__CACHE_KEY[msg.event]:
+                    if self._MESSAGE__CACHE_KEYS.get(msg.event) is not None:
+                        for cache_key in self._MESSAGE__CACHE_KEYS[msg.event]:
                             self.permission_service.invalidate_cache(cache_key)
                         ForestLogger.log(
-                            "info", f"invalidate cache {self._MESSAGE__CACHE_KEY[msg.event]} for event {msg.event}"
+                            "info", f"invalidate cache {self._MESSAGE__CACHE_KEYS[msg.event]} for event {msg.event}"
                         )
                     else:
                         ForestLogger.log("info", f"SSECacheInvalidationThread: unhandled message from server: {msg}")

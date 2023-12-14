@@ -1,9 +1,30 @@
+# [1.2.0](https://github.com/ForestAdmin/agent-python/compare/v1.1.4...v1.2.0) (2023-12-14)
+
+
+### Features
+
+* **python:** support of python 3.12 ([#153](https://github.com/ForestAdmin/agent-python/issues/153)) ([68e3b8d](https://github.com/ForestAdmin/agent-python/commit/68e3b8d19d40890b155637e12f4e08a25a2290d0))
+
 # [1.2.0-beta.4](https://github.com/ForestAdmin/agent-python/compare/v1.2.0-beta.3...v1.2.0-beta.4) (2023-12-06)
 
 
 ### Bug Fixes
 
 * **django_introspection:** collection name is now the db table name ([#150](https://github.com/ForestAdmin/agent-python/issues/150)) ([8378c96](https://github.com/ForestAdmin/agent-python/commit/8378c96ff0a7e7eb1ecb2f3d37a74c1413fc9f85))
+
+## [1.1.4](https://github.com/ForestAdmin/agent-python/compare/v1.1.3...v1.1.4) (2023-12-06)
+
+
+### Bug Fixes
+
+* **csv_export:** csv export now exports data without applying pagination ([#152](https://github.com/ForestAdmin/agent-python/issues/152)) ([78f192c](https://github.com/ForestAdmin/agent-python/commit/78f192c1dd60ccd8c80dff3e333d1ca4f2abbc9f))
+
+## [1.1.3](https://github.com/ForestAdmin/agent-python/compare/v1.1.2...v1.1.3) (2023-12-06)
+
+
+### Bug Fixes
+
+* **sse_thread:** framework autoreload now work when instant cache refresh is enabled ([#151](https://github.com/ForestAdmin/agent-python/issues/151)) ([1e980e8](https://github.com/ForestAdmin/agent-python/commit/1e980e8d16cec700d02c200bb3b290e9e1f0282a))
 
 # [1.2.0-beta.3](https://github.com/ForestAdmin/agent-python/compare/v1.2.0-beta.2...v1.2.0-beta.3) (2023-12-01)
 
@@ -30,6 +51,20 @@
 ### Features
 
 * **django:** add database operations and routes ([#145](https://github.com/ForestAdmin/agent-python/issues/145)) ([95f3a94](https://github.com/ForestAdmin/agent-python/commit/95f3a94fc393ed1ea2d49849132717167c0961a7))
+
+## [1.1.2](https://github.com/ForestAdmin/agent-python/compare/v1.1.1...v1.1.2) (2023-11-20)
+
+
+### Bug Fixes
+
+* **filter_emulation:** operator emulation now work on all primitive type ([#146](https://github.com/ForestAdmin/agent-python/issues/146)) ([aebc9df](https://github.com/ForestAdmin/agent-python/commit/aebc9df873817c8ea9af4738080db2f73d6a782a))
+
+## [1.1.1](https://github.com/ForestAdmin/agent-python/compare/v1.1.0...v1.1.1) (2023-11-07)
+
+
+### Bug Fixes
+
+* **authentication:** return errors detail instead of generic error 500 ([#140](https://github.com/ForestAdmin/agent-python/issues/140)) ([0ac0510](https://github.com/ForestAdmin/agent-python/commit/0ac0510269925836f9a3f150db915b077570ec38))
 
 # [1.1.0](https://github.com/ForestAdmin/agent-python/compare/v1.0.0...v1.1.0) (2023-10-31)
 

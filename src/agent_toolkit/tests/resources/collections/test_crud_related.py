@@ -657,6 +657,34 @@ class TestCrudRelatedResource(TestCase):
             "status": 500,
         }
 
+    def test_csv_should_not_apply_pagination(self):
+        mock_orders = [{"id": 10, "cost": 200}, {"id": 11, "cost": 201}]
+
+        request = RequestRelationCollection(
+            RequestMethod.GET,
+            *self.mk_request_customer_order_one_to_many(),
+            None,
+            {
+                "collection_name": "customer",
+                "relation_name": "order",
+                "timezone": "Europe/Paris",
+                "fields[order]": "id,cost",
+                "pks": "2",  # customer id
+                "search_extended": 0,
+                "search": "20",
+            },
+            {},
+            None,
+        )
+        with patch.object(
+            self.collection_order, "list", new_callable=AsyncMock, return_value=mock_orders
+        ) as mocked_collection_list:
+            self.loop.run_until_complete(self.crud_related_resource.csv(request))
+            mocked_collection_list.assert_awaited()
+            self.assertIsNone(mocked_collection_list.await_args[0][1].page)
+
+        self.permission_service.can.reset_mock()
+
     # add
     def test_add(self):
         # One to Many
