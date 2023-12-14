@@ -1,9 +1,9 @@
 import asyncio
 import os
 import sys
+from importlib.metadata import version
 from typing import Literal, Optional, Tuple, Union
 
-import pkg_resources
 from flask import Blueprint, request
 from flask.app import Flask
 from flask.config import Config
@@ -25,7 +25,7 @@ from forestadmin.flask_agent.utils.requests import convert_request, convert_resp
 class FlaskAgent(BaseAgent):
     META: AgentMeta = {
         "liana": "agent-python",
-        "liana_version": pkg_resources.get_distribution("forestadmin-agent-flask").version.replace("b", "-beta."),
+        "liana_version": version("forestadmin-agent-flask").replace("b", "-beta."),
         # .replace because poetry force 0.0.1b25 instead of 0.0.1-beta.25
         # for more details:
         # https://python-poetry.org/docs/master/faq/ : "Why does Poetry not adhere to semantic versioning?"

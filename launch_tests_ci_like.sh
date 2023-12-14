@@ -2,9 +2,9 @@
 # set -x
 ARTIFACT_DIR="artifacts_coverages"
 
-PACKAGES=("agent_toolkit datasource_sqlalchemy" "datasource_toolkit" "flask_agent")
+PACKAGES=("agent_toolkit" "datasource_sqlalchemy" "datasource_toolkit" "flask_agent")
 # PACKAGES=("datasource_sqlalchemy")
-PYTHON_VERSIONS=("3.8" "3.9" "3.10" "3.11")
+PYTHON_VERSIONS=("3.8" "3.9" "3.10" "3.11" "3.12")
 # PYTHON_VERSIONS=("3.8" "3.11")
 # PYTHON_VERSIONS=("3.11")
 
@@ -43,6 +43,8 @@ else
     LAUNCH_ALL_FLASK_VERSIONS=false
     LAUNCH_ALL_SQLALCHEMY_VERSIONS=false
 fi
+LAUNCH_ALL_FLASK_VERSIONS=false
+LAUNCH_ALL_SQLALCHEMY_VERSIONS=false
 # LAUNCH_ALL_FLASK_VERSIONS=true
 # LAUNCH_ALL_SQLALCHEMY_VERSIONS=true
 
