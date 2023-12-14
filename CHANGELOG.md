@@ -1,3 +1,10 @@
+# [1.2.0](https://github.com/ForestAdmin/agent-python/compare/v1.1.4...v1.2.0) (2023-12-14)
+
+
+### Features
+
+* **python:** support of python 3.12 ([#153](https://github.com/ForestAdmin/agent-python/issues/153)) ([68e3b8d](https://github.com/ForestAdmin/agent-python/commit/68e3b8d19d40890b155637e12f4e08a25a2290d0))
+
 ## [1.1.4](https://github.com/ForestAdmin/agent-python/compare/v1.1.3...v1.1.4) (2023-12-06)
 
 
