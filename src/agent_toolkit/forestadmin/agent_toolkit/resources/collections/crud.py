@@ -183,6 +183,7 @@ class CrudResource(BaseCollectionResource):
         scope_tree = await self.permission.get_scope(request.user, request.collection)
         try:
             paginated_filter = build_paginated_filter(request, scope_tree)
+            paginated_filter.page = None
         except FilterException as e:
             ForestLogger.log("exception", e)
             return HttpResponseBuilder.build_client_error_response([e])

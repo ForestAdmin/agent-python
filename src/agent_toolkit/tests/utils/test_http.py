@@ -252,6 +252,7 @@ class TestHandleError(TestCase):
 
     def test_handle_error_should_wrap_connect_errors(self):
         error_mock = Mock(HTTPException)
+        error_mock.text = ""
         for status in [-1, 0, 502]:
             error_mock.status = status
             self.assertRaisesRegex(
@@ -266,7 +267,7 @@ class TestHandleError(TestCase):
 
     def test_handle_error_should_wrap_env_secret_errors(self):
         error_mock = Mock(HTTPException)
-        error_mock.status = 404
+        error_mock.text = '{"errors":[{"status":404}]}'
         self.assertRaisesRegex(
             ForestHttpApiException,
             "ForestAdmin server failed to find the project related to the envSecret you configured."
@@ -281,6 +282,7 @@ class TestHandleError(TestCase):
     def test_handle_error_should_wrap_backend_maintenance_errors(self):
         error_mock = Mock(HTTPException)
         error_mock.status = 503
+        error_mock.text = "Bad Gateway"
         self.assertRaisesRegex(
             ForestHttpApiException,
             "Forest is in maintenance for a few minutes. We are upgrading your experience in "
@@ -298,6 +300,7 @@ class TestHandleError(TestCase):
 
         error_mock = Mock(HTTPException)
         error_mock.status = 500
+        error_mock.text = "unknow error"
         error_mock.__str__ = str_for_error
         self.assertRaisesRegex(
             ForestHttpApiException,
@@ -311,8 +314,7 @@ class TestHandleError(TestCase):
 
     def test_handle_error_should_decode_errors_received_from_server_in_body(self):
         error_mock = Mock(HTTPException)
-        error_mock.status = 500
-        error_mock.body = json.dumps({"errors": [{"detail": "detail message from server"}]})
+        error_mock.text = json.dumps({"errors": [{"status": 500, "detail": "detail message from server"}]})
         self.assertRaisesRegex(
             ForestHttpApiException,
             "Failed to fetch http://endpoint.fr: detail message from server",

@@ -1086,3 +1086,28 @@ class TestCrudResource(TestCase):
         assert response.status == 500
         response_content = json.loads(response.body)
         assert response_content["errors"][0] == {"detail": "🌳🌳🌳cannot make csv", "name": "CsvException", "status": 500}
+
+    def test_csv_should_not_apply_pagination(self):
+        mock_orders = [{"id": 10, "cost": 200}, {"id": 11, "cost": 201}]
+
+        request = RequestCollection(
+            RequestMethod.GET,
+            self.collection_order,
+            None,
+            {
+                "collection_name": "order",
+                "timezone": "Europe/Paris",
+                "fields[order]": "id,cost",
+            },
+            {},
+            None,
+        )
+        crud_resource = CrudResource(self.datasource, self.permission_service, self.ip_white_list_service, self.options)
+        self.collection_order.list = AsyncMock(return_value=mock_orders)
+
+        response = self.loop.run_until_complete(crud_resource.csv(request))
+        self.permission_service.can.reset_mock()
+
+        assert response.status == 200
+        self.collection_order.list.assert_awaited()
+        self.assertIsNone(self.collection_order.list.await_args[0][1].page)

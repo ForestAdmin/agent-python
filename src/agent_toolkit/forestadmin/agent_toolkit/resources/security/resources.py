@@ -3,7 +3,7 @@ from typing import Literal
 
 from forestadmin.agent_toolkit.resources.collections.decorators import ip_white_list
 from forestadmin.agent_toolkit.resources.ip_white_list_resource import IpWhitelistResource
-from forestadmin.agent_toolkit.resources.security.exceptions import AuthenticationException
+from forestadmin.agent_toolkit.resources.security.exceptions import AuthenticationException, OpenIdException
 from forestadmin.agent_toolkit.utils.authentication import ClientFactory, CustomClientOic
 from forestadmin.agent_toolkit.utils.context import Request, Response
 from forestadmin.agent_toolkit.utils.http import ForestHttpApi
@@ -16,7 +16,10 @@ class Authentication(IpWhitelistResource):
     @ip_white_list
     async def dispatch(self, request: Request, method_name: LiteralMethod) -> Response:
         method = getattr(self, method_name)
-        return await method(request)
+        try:
+            return await method(request)
+        except Exception as exc:
+            return self._handle_error(method_name, request, exc)
 
     async def authenticate(self, request: Request) -> Response:
         if not request.body:
@@ -80,5 +83,31 @@ class Authentication(IpWhitelistResource):
             headers={"content_type": "application/json"},
         )
 
+    # This method is never called, and not serve by an url route. Is it normal ?
     async def logout(self, request: Request) -> Response:
         return Response(status=204, body="", headers={})
+
+    def _handle_error(self, method_name: LiteralMethod, request: Request, exc: Exception):
+        if isinstance(exc, OpenIdException):
+            return Response(
+                status=exc.STATUS,
+                body=json.dumps(
+                    {
+                        "error": exc.error,
+                        "error_description": exc.error_description,
+                        "state": exc.state,
+                    }
+                ),
+            )
+        elif isinstance(exc, AuthenticationException):
+            return Response(
+                status=exc.STATUS,
+                body=json.dumps(
+                    {
+                        "error": exc.__class__.__name__,
+                        "error_description": exc.args[0],
+                    }
+                ),
+            )
+
+        raise exc
