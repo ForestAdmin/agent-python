@@ -2,9 +2,9 @@ import asyncio
 import importlib
 import os
 import sys
+from importlib.metadata import version
 from typing import Optional
 
-import pkg_resources
 from django.conf import ENVIRONMENT_VARIABLE as DJANGO_SETTING_MODULE_ENV_VAR_NAME
 from django.conf import settings
 from forestadmin.agent_toolkit.agent import Agent as BaseAgent
@@ -16,7 +16,7 @@ from forestadmin.agent_toolkit.utils.forest_schema.type import AgentMeta
 class DjangoAgent(BaseAgent):
     META: AgentMeta = {
         "liana": "agent-python",
-        "liana_version": pkg_resources.get_distribution("forestadmin-agent-django").version.replace("b", "-beta."),
+        "liana_version": version("forestadmin-agent-django").replace("b", "-beta."),
         # .replace because poetry force 0.0.1b25 instead of 0.0.1-beta.25
         # for more details:
         # https://python-poetry.org/docs/master/faq/ : "Why does Poetry not adhere to semantic versioning?"

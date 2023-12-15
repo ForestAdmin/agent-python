@@ -1,208 +1,7 @@
 {
     "collections": [
         {
-            "name": "Book",
-            "isVirtual": false,
-            "icon": null,
-            "isReadOnly": false,
-            "integration": null,
-            "isSearchable": true,
-            "onlyForRelationships": false,
-            "paginationType": "page",
-            "searchField": null,
-            "actions": [],
-            "segments": [],
-            "fields": [
-                {
-                    "defaultValue": null,
-                    "enums": null,
-                    "field": "author",
-                    "inverseOf": "books",
-                    "isFilterable": true,
-                    "isPrimaryKey": false,
-                    "isReadOnly": false,
-                    "isRequired": true,
-                    "isSortable": true,
-                    "isVirtual": false,
-                    "reference": "Person.id",
-                    "relationship": "BelongsTo",
-                    "type": "Number",
-                    "validations": [
-                        {
-                            "type": "is present",
-                            "value": null,
-                            "message": null
-                        }
-                    ]
-                },
-                {
-                    "defaultValue": null,
-                    "enums": null,
-                    "field": "id",
-                    "integration": null,
-                    "inverseOf": null,
-                    "isFilterable": true,
-                    "isPrimaryKey": true,
-                    "isReadOnly": true,
-                    "isRequired": false,
-                    "isSortable": true,
-                    "isVirtual": false,
-                    "reference": null,
-                    "type": "Number",
-                    "validations": []
-                },
-                {
-                    "defaultValue": null,
-                    "enums": null,
-                    "field": "name",
-                    "integration": null,
-                    "inverseOf": null,
-                    "isFilterable": true,
-                    "isPrimaryKey": false,
-                    "isReadOnly": false,
-                    "isRequired": true,
-                    "isSortable": true,
-                    "isVirtual": false,
-                    "reference": null,
-                    "type": "String",
-                    "validations": [
-                        {
-                            "type": "is present",
-                            "value": null,
-                            "message": null
-                        },
-                        {
-                            "type": "is shorter than",
-                            "value": 254,
-                            "message": null
-                        }
-                    ]
-                },
-                {
-                    "defaultValue": null,
-                    "enums": null,
-                    "field": "rating",
-                    "inverseOf": "book",
-                    "isFilterable": false,
-                    "isPrimaryKey": false,
-                    "isReadOnly": false,
-                    "isRequired": false,
-                    "isSortable": true,
-                    "isVirtual": false,
-                    "reference": "Rating.id",
-                    "relationship": "HasMany",
-                    "type": [
-                        "Number"
-                    ],
-                    "validations": []
-                }
-            ]
-        },
-        {
-            "name": "ContentType",
-            "isVirtual": false,
-            "icon": null,
-            "isReadOnly": false,
-            "integration": null,
-            "isSearchable": true,
-            "onlyForRelationships": false,
-            "paginationType": "page",
-            "searchField": null,
-            "actions": [],
-            "segments": [],
-            "fields": [
-                {
-                    "defaultValue": null,
-                    "enums": null,
-                    "field": "app_label",
-                    "integration": null,
-                    "inverseOf": null,
-                    "isFilterable": true,
-                    "isPrimaryKey": false,
-                    "isReadOnly": false,
-                    "isRequired": true,
-                    "isSortable": true,
-                    "isVirtual": false,
-                    "reference": null,
-                    "type": "String",
-                    "validations": [
-                        {
-                            "type": "is present",
-                            "value": null,
-                            "message": null
-                        },
-                        {
-                            "type": "is shorter than",
-                            "value": 100,
-                            "message": null
-                        }
-                    ]
-                },
-                {
-                    "defaultValue": null,
-                    "enums": null,
-                    "field": "id",
-                    "integration": null,
-                    "inverseOf": null,
-                    "isFilterable": true,
-                    "isPrimaryKey": true,
-                    "isReadOnly": true,
-                    "isRequired": false,
-                    "isSortable": true,
-                    "isVirtual": false,
-                    "reference": null,
-                    "type": "Number",
-                    "validations": []
-                },
-                {
-                    "defaultValue": null,
-                    "enums": null,
-                    "field": "model",
-                    "integration": null,
-                    "inverseOf": null,
-                    "isFilterable": true,
-                    "isPrimaryKey": false,
-                    "isReadOnly": false,
-                    "isRequired": true,
-                    "isSortable": true,
-                    "isVirtual": false,
-                    "reference": null,
-                    "type": "String",
-                    "validations": [
-                        {
-                            "type": "is present",
-                            "value": null,
-                            "message": null
-                        },
-                        {
-                            "type": "is shorter than",
-                            "value": 100,
-                            "message": null
-                        }
-                    ]
-                },
-                {
-                    "defaultValue": null,
-                    "enums": null,
-                    "field": "permission",
-                    "inverseOf": "content_type",
-                    "isFilterable": false,
-                    "isPrimaryKey": false,
-                    "isReadOnly": false,
-                    "isRequired": false,
-                    "isSortable": true,
-                    "isVirtual": false,
-                    "reference": "Permission.id",
-                    "relationship": "HasMany",
-                    "type": [
-                        "Number"
-                    ],
-                    "validations": []
-                }
-            ]
-        },
-        {
-            "name": "Group",
+            "name": "auth_group",
             "isVirtual": false,
             "icon": null,
             "isReadOnly": false,
@@ -225,7 +24,7 @@
                     "isRequired": false,
                     "isSortable": true,
                     "isVirtual": false,
-                    "reference": "Group_permissions.id",
+                    "reference": "auth_group_permissions.id",
                     "relationship": "HasMany",
                     "type": [
                         "Number"
@@ -243,7 +42,7 @@
                     "isRequired": false,
                     "isSortable": true,
                     "isVirtual": false,
-                    "reference": "User_groups.id",
+                    "reference": "auth_user_groups.id",
                     "relationship": "HasMany",
                     "type": [
                         "Number"
@@ -304,7 +103,7 @@
                     "isRequired": false,
                     "isSortable": true,
                     "isVirtual": false,
-                    "reference": "Permission.id",
+                    "reference": "auth_permission.id",
                     "relationship": "BelongsToMany",
                     "type": [
                         "Number"
@@ -322,7 +121,7 @@
                     "isRequired": false,
                     "isSortable": true,
                     "isVirtual": false,
-                    "reference": "User.id",
+                    "reference": "auth_user.id",
                     "relationship": "BelongsToMany",
                     "type": [
                         "Number"
@@ -332,7 +131,7 @@
             ]
         },
         {
-            "name": "Group_permissions",
+            "name": "auth_group_permissions",
             "isVirtual": false,
             "icon": null,
             "isReadOnly": false,
@@ -355,7 +154,7 @@
                     "isRequired": true,
                     "isSortable": true,
                     "isVirtual": false,
-                    "reference": "Group.id",
+                    "reference": "auth_group.id",
                     "relationship": "BelongsTo",
                     "type": "Number",
                     "validations": [
@@ -393,7 +192,7 @@
                     "isRequired": true,
                     "isSortable": true,
                     "isVirtual": false,
-                    "reference": "Permission.id",
+                    "reference": "auth_permission.id",
                     "relationship": "BelongsTo",
                     "type": "Number",
                     "validations": [
@@ -407,7 +206,7 @@
             ]
         },
         {
-            "name": "Permission",
+            "name": "auth_permission",
             "isVirtual": false,
             "icon": null,
             "isReadOnly": false,
@@ -430,7 +229,7 @@
                     "isRequired": false,
                     "isSortable": true,
                     "isVirtual": false,
-                    "reference": "Group_permissions.id",
+                    "reference": "auth_group_permissions.id",
                     "relationship": "HasMany",
                     "type": [
                         "Number"
@@ -448,7 +247,7 @@
                     "isRequired": false,
                     "isSortable": true,
                     "isVirtual": false,
-                    "reference": "User_user_permissions.id",
+                    "reference": "auth_user_user_permissions.id",
                     "relationship": "HasMany",
                     "type": [
                         "Number"
@@ -493,7 +292,7 @@
                     "isRequired": true,
                     "isSortable": true,
                     "isVirtual": false,
-                    "reference": "ContentType.id",
+                    "reference": "django_content_type.id",
                     "relationship": "BelongsTo",
                     "type": "Number",
                     "validations": [
@@ -515,7 +314,7 @@
                     "isRequired": false,
                     "isSortable": true,
                     "isVirtual": false,
-                    "reference": "Group.id",
+                    "reference": "auth_group.id",
                     "relationship": "BelongsToMany",
                     "type": [
                         "Number"
@@ -576,7 +375,7 @@
                     "isRequired": false,
                     "isSortable": true,
                     "isVirtual": false,
-                    "reference": "User.id",
+                    "reference": "auth_user.id",
                     "relationship": "BelongsToMany",
                     "type": [
                         "Number"
@@ -586,291 +385,7 @@
             ]
         },
         {
-            "name": "Person",
-            "isVirtual": false,
-            "icon": null,
-            "isReadOnly": false,
-            "integration": null,
-            "isSearchable": true,
-            "onlyForRelationships": false,
-            "paginationType": "page",
-            "searchField": null,
-            "actions": [],
-            "segments": [],
-            "fields": [
-                {
-                    "defaultValue": null,
-                    "enums": null,
-                    "field": "birth_date",
-                    "integration": null,
-                    "inverseOf": null,
-                    "isFilterable": true,
-                    "isPrimaryKey": false,
-                    "isReadOnly": false,
-                    "isRequired": true,
-                    "isSortable": true,
-                    "isVirtual": false,
-                    "reference": null,
-                    "type": "Dateonly",
-                    "validations": [
-                        {
-                            "type": "is present",
-                            "value": null,
-                            "message": null
-                        }
-                    ]
-                },
-                {
-                    "defaultValue": null,
-                    "enums": null,
-                    "field": "books",
-                    "inverseOf": "author",
-                    "isFilterable": false,
-                    "isPrimaryKey": false,
-                    "isReadOnly": false,
-                    "isRequired": false,
-                    "isSortable": true,
-                    "isVirtual": false,
-                    "reference": "Book.id",
-                    "relationship": "HasMany",
-                    "type": [
-                        "Number"
-                    ],
-                    "validations": []
-                },
-                {
-                    "defaultValue": null,
-                    "enums": null,
-                    "field": "first_name",
-                    "integration": null,
-                    "inverseOf": null,
-                    "isFilterable": true,
-                    "isPrimaryKey": false,
-                    "isReadOnly": false,
-                    "isRequired": true,
-                    "isSortable": true,
-                    "isVirtual": false,
-                    "reference": null,
-                    "type": "String",
-                    "validations": [
-                        {
-                            "type": "is present",
-                            "value": null,
-                            "message": null
-                        },
-                        {
-                            "type": "is shorter than",
-                            "value": 254,
-                            "message": null
-                        }
-                    ]
-                },
-                {
-                    "defaultValue": null,
-                    "enums": null,
-                    "field": "id",
-                    "integration": null,
-                    "inverseOf": null,
-                    "isFilterable": true,
-                    "isPrimaryKey": true,
-                    "isReadOnly": true,
-                    "isRequired": false,
-                    "isSortable": true,
-                    "isVirtual": false,
-                    "reference": null,
-                    "type": "Number",
-                    "validations": []
-                },
-                {
-                    "defaultValue": null,
-                    "enums": null,
-                    "field": "last_name",
-                    "integration": null,
-                    "inverseOf": null,
-                    "isFilterable": true,
-                    "isPrimaryKey": false,
-                    "isReadOnly": false,
-                    "isRequired": true,
-                    "isSortable": true,
-                    "isVirtual": false,
-                    "reference": null,
-                    "type": "String",
-                    "validations": [
-                        {
-                            "type": "is present",
-                            "value": null,
-                            "message": null
-                        },
-                        {
-                            "type": "is shorter than",
-                            "value": 254,
-                            "message": null
-                        }
-                    ]
-                },
-                {
-                    "defaultValue": null,
-                    "enums": null,
-                    "field": "rating",
-                    "inverseOf": "commenter",
-                    "isFilterable": false,
-                    "isPrimaryKey": false,
-                    "isReadOnly": false,
-                    "isRequired": false,
-                    "isSortable": true,
-                    "isVirtual": false,
-                    "reference": "Rating.id",
-                    "relationship": "HasMany",
-                    "type": [
-                        "Number"
-                    ],
-                    "validations": []
-                }
-            ]
-        },
-        {
-            "name": "Rating",
-            "isVirtual": false,
-            "icon": null,
-            "isReadOnly": false,
-            "integration": null,
-            "isSearchable": true,
-            "onlyForRelationships": false,
-            "paginationType": "page",
-            "searchField": null,
-            "actions": [],
-            "segments": [],
-            "fields": [
-                {
-                    "defaultValue": null,
-                    "enums": null,
-                    "field": "book",
-                    "inverseOf": "rating",
-                    "isFilterable": true,
-                    "isPrimaryKey": false,
-                    "isReadOnly": false,
-                    "isRequired": true,
-                    "isSortable": true,
-                    "isVirtual": false,
-                    "reference": "Book.id",
-                    "relationship": "BelongsTo",
-                    "type": "Number",
-                    "validations": [
-                        {
-                            "type": "is present",
-                            "value": null,
-                            "message": null
-                        }
-                    ]
-                },
-                {
-                    "defaultValue": null,
-                    "enums": null,
-                    "field": "comment",
-                    "integration": null,
-                    "inverseOf": null,
-                    "isFilterable": true,
-                    "isPrimaryKey": false,
-                    "isReadOnly": false,
-                    "isRequired": false,
-                    "isSortable": true,
-                    "isVirtual": false,
-                    "reference": null,
-                    "type": "String",
-                    "validations": []
-                },
-                {
-                    "defaultValue": null,
-                    "enums": null,
-                    "field": "commenter",
-                    "inverseOf": "rating",
-                    "isFilterable": true,
-                    "isPrimaryKey": false,
-                    "isReadOnly": false,
-                    "isRequired": true,
-                    "isSortable": true,
-                    "isVirtual": false,
-                    "reference": "Person.id",
-                    "relationship": "BelongsTo",
-                    "type": "Number",
-                    "validations": [
-                        {
-                            "type": "is present",
-                            "value": null,
-                            "message": null
-                        }
-                    ]
-                },
-                {
-                    "defaultValue": null,
-                    "enums": null,
-                    "field": "id",
-                    "integration": null,
-                    "inverseOf": null,
-                    "isFilterable": true,
-                    "isPrimaryKey": true,
-                    "isReadOnly": true,
-                    "isRequired": false,
-                    "isSortable": true,
-                    "isVirtual": false,
-                    "reference": null,
-                    "type": "Number",
-                    "validations": []
-                },
-                {
-                    "defaultValue": null,
-                    "enums": null,
-                    "field": "rated_at",
-                    "integration": null,
-                    "inverseOf": null,
-                    "isFilterable": true,
-                    "isPrimaryKey": false,
-                    "isReadOnly": false,
-                    "isRequired": true,
-                    "isSortable": true,
-                    "isVirtual": false,
-                    "reference": null,
-                    "type": "Dateonly",
-                    "validations": [
-                        {
-                            "type": "is present",
-                            "value": null,
-                            "message": null
-                        }
-                    ]
-                },
-                {
-                    "defaultValue": null,
-                    "enums": [
-                        1,
-                        2,
-                        3,
-                        4,
-                        5
-                    ],
-                    "field": "rating",
-                    "integration": null,
-                    "inverseOf": null,
-                    "isFilterable": true,
-                    "isPrimaryKey": false,
-                    "isReadOnly": false,
-                    "isRequired": true,
-                    "isSortable": true,
-                    "isVirtual": false,
-                    "reference": null,
-                    "type": "Enum",
-                    "validations": [
-                        {
-                            "type": "is present",
-                            "value": null,
-                            "message": null
-                        }
-                    ]
-                }
-            ]
-        },
-        {
-            "name": "User",
+            "name": "auth_user",
             "isVirtual": false,
             "icon": null,
             "isReadOnly": false,
@@ -893,7 +408,7 @@
                     "isRequired": false,
                     "isSortable": true,
                     "isVirtual": false,
-                    "reference": "User_groups.id",
+                    "reference": "auth_user_groups.id",
                     "relationship": "HasMany",
                     "type": [
                         "Number"
@@ -911,7 +426,7 @@
                     "isRequired": false,
                     "isSortable": true,
                     "isVirtual": false,
-                    "reference": "User_user_permissions.id",
+                    "reference": "auth_user_user_permissions.id",
                     "relationship": "HasMany",
                     "type": [
                         "Number"
@@ -989,7 +504,7 @@
                     "isRequired": false,
                     "isSortable": true,
                     "isVirtual": false,
-                    "reference": "Group.id",
+                    "reference": "auth_group.id",
                     "relationship": "BelongsToMany",
                     "type": [
                         "Number"
@@ -1136,7 +651,7 @@
                     "isRequired": false,
                     "isSortable": true,
                     "isVirtual": false,
-                    "reference": "Permission.id",
+                    "reference": "auth_permission.id",
                     "relationship": "BelongsToMany",
                     "type": [
                         "Number"
@@ -1173,7 +688,7 @@
             ]
         },
         {
-            "name": "User_groups",
+            "name": "auth_user_groups",
             "isVirtual": false,
             "icon": null,
             "isReadOnly": false,
@@ -1196,7 +711,7 @@
                     "isRequired": true,
                     "isSortable": true,
                     "isVirtual": false,
-                    "reference": "Group.id",
+                    "reference": "auth_group.id",
                     "relationship": "BelongsTo",
                     "type": "Number",
                     "validations": [
@@ -1234,7 +749,7 @@
                     "isRequired": true,
                     "isSortable": true,
                     "isVirtual": false,
-                    "reference": "User.id",
+                    "reference": "auth_user.id",
                     "relationship": "BelongsTo",
                     "type": "Number",
                     "validations": [
@@ -1248,7 +763,7 @@
             ]
         },
         {
-            "name": "User_user_permissions",
+            "name": "auth_user_user_permissions",
             "isVirtual": false,
             "icon": null,
             "isReadOnly": false,
@@ -1287,7 +802,7 @@
                     "isRequired": true,
                     "isSortable": true,
                     "isVirtual": false,
-                    "reference": "Permission.id",
+                    "reference": "auth_permission.id",
                     "relationship": "BelongsTo",
                     "type": "Number",
                     "validations": [
@@ -1309,9 +824,494 @@
                     "isRequired": true,
                     "isSortable": true,
                     "isVirtual": false,
-                    "reference": "User.id",
+                    "reference": "auth_user.id",
                     "relationship": "BelongsTo",
                     "type": "Number",
+                    "validations": [
+                        {
+                            "type": "is present",
+                            "value": null,
+                            "message": null
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "django_content_type",
+            "isVirtual": false,
+            "icon": null,
+            "isReadOnly": false,
+            "integration": null,
+            "isSearchable": true,
+            "onlyForRelationships": false,
+            "paginationType": "page",
+            "searchField": null,
+            "actions": [],
+            "segments": [],
+            "fields": [
+                {
+                    "defaultValue": null,
+                    "enums": null,
+                    "field": "app_label",
+                    "integration": null,
+                    "inverseOf": null,
+                    "isFilterable": true,
+                    "isPrimaryKey": false,
+                    "isReadOnly": false,
+                    "isRequired": true,
+                    "isSortable": true,
+                    "isVirtual": false,
+                    "reference": null,
+                    "type": "String",
+                    "validations": [
+                        {
+                            "type": "is present",
+                            "value": null,
+                            "message": null
+                        },
+                        {
+                            "type": "is shorter than",
+                            "value": 100,
+                            "message": null
+                        }
+                    ]
+                },
+                {
+                    "defaultValue": null,
+                    "enums": null,
+                    "field": "id",
+                    "integration": null,
+                    "inverseOf": null,
+                    "isFilterable": true,
+                    "isPrimaryKey": true,
+                    "isReadOnly": true,
+                    "isRequired": false,
+                    "isSortable": true,
+                    "isVirtual": false,
+                    "reference": null,
+                    "type": "Number",
+                    "validations": []
+                },
+                {
+                    "defaultValue": null,
+                    "enums": null,
+                    "field": "model",
+                    "integration": null,
+                    "inverseOf": null,
+                    "isFilterable": true,
+                    "isPrimaryKey": false,
+                    "isReadOnly": false,
+                    "isRequired": true,
+                    "isSortable": true,
+                    "isVirtual": false,
+                    "reference": null,
+                    "type": "String",
+                    "validations": [
+                        {
+                            "type": "is present",
+                            "value": null,
+                            "message": null
+                        },
+                        {
+                            "type": "is shorter than",
+                            "value": 100,
+                            "message": null
+                        }
+                    ]
+                },
+                {
+                    "defaultValue": null,
+                    "enums": null,
+                    "field": "permission",
+                    "inverseOf": "content_type",
+                    "isFilterable": false,
+                    "isPrimaryKey": false,
+                    "isReadOnly": false,
+                    "isRequired": false,
+                    "isSortable": true,
+                    "isVirtual": false,
+                    "reference": "auth_permission.id",
+                    "relationship": "HasMany",
+                    "type": [
+                        "Number"
+                    ],
+                    "validations": []
+                }
+            ]
+        },
+        {
+            "name": "test_app_book",
+            "isVirtual": false,
+            "icon": null,
+            "isReadOnly": false,
+            "integration": null,
+            "isSearchable": true,
+            "onlyForRelationships": false,
+            "paginationType": "page",
+            "searchField": null,
+            "actions": [],
+            "segments": [],
+            "fields": [
+                {
+                    "defaultValue": null,
+                    "enums": null,
+                    "field": "author",
+                    "inverseOf": "books",
+                    "isFilterable": true,
+                    "isPrimaryKey": false,
+                    "isReadOnly": false,
+                    "isRequired": true,
+                    "isSortable": true,
+                    "isVirtual": false,
+                    "reference": "test_app_person.id",
+                    "relationship": "BelongsTo",
+                    "type": "Number",
+                    "validations": [
+                        {
+                            "type": "is present",
+                            "value": null,
+                            "message": null
+                        }
+                    ]
+                },
+                {
+                    "defaultValue": null,
+                    "enums": null,
+                    "field": "id",
+                    "integration": null,
+                    "inverseOf": null,
+                    "isFilterable": true,
+                    "isPrimaryKey": true,
+                    "isReadOnly": true,
+                    "isRequired": false,
+                    "isSortable": true,
+                    "isVirtual": false,
+                    "reference": null,
+                    "type": "Number",
+                    "validations": []
+                },
+                {
+                    "defaultValue": null,
+                    "enums": null,
+                    "field": "name",
+                    "integration": null,
+                    "inverseOf": null,
+                    "isFilterable": true,
+                    "isPrimaryKey": false,
+                    "isReadOnly": false,
+                    "isRequired": true,
+                    "isSortable": true,
+                    "isVirtual": false,
+                    "reference": null,
+                    "type": "String",
+                    "validations": [
+                        {
+                            "type": "is present",
+                            "value": null,
+                            "message": null
+                        },
+                        {
+                            "type": "is shorter than",
+                            "value": 254,
+                            "message": null
+                        }
+                    ]
+                },
+                {
+                    "defaultValue": null,
+                    "enums": null,
+                    "field": "rating",
+                    "inverseOf": "book",
+                    "isFilterable": false,
+                    "isPrimaryKey": false,
+                    "isReadOnly": false,
+                    "isRequired": false,
+                    "isSortable": true,
+                    "isVirtual": false,
+                    "reference": "test_app_rating.id",
+                    "relationship": "HasMany",
+                    "type": [
+                        "Number"
+                    ],
+                    "validations": []
+                }
+            ]
+        },
+        {
+            "name": "test_app_person",
+            "isVirtual": false,
+            "icon": null,
+            "isReadOnly": false,
+            "integration": null,
+            "isSearchable": true,
+            "onlyForRelationships": false,
+            "paginationType": "page",
+            "searchField": null,
+            "actions": [],
+            "segments": [],
+            "fields": [
+                {
+                    "defaultValue": null,
+                    "enums": null,
+                    "field": "birth_date",
+                    "integration": null,
+                    "inverseOf": null,
+                    "isFilterable": true,
+                    "isPrimaryKey": false,
+                    "isReadOnly": false,
+                    "isRequired": true,
+                    "isSortable": true,
+                    "isVirtual": false,
+                    "reference": null,
+                    "type": "Dateonly",
+                    "validations": [
+                        {
+                            "type": "is present",
+                            "value": null,
+                            "message": null
+                        }
+                    ]
+                },
+                {
+                    "defaultValue": null,
+                    "enums": null,
+                    "field": "books",
+                    "inverseOf": "author",
+                    "isFilterable": false,
+                    "isPrimaryKey": false,
+                    "isReadOnly": false,
+                    "isRequired": false,
+                    "isSortable": true,
+                    "isVirtual": false,
+                    "reference": "test_app_book.id",
+                    "relationship": "HasMany",
+                    "type": [
+                        "Number"
+                    ],
+                    "validations": []
+                },
+                {
+                    "defaultValue": null,
+                    "enums": null,
+                    "field": "first_name",
+                    "integration": null,
+                    "inverseOf": null,
+                    "isFilterable": true,
+                    "isPrimaryKey": false,
+                    "isReadOnly": false,
+                    "isRequired": true,
+                    "isSortable": true,
+                    "isVirtual": false,
+                    "reference": null,
+                    "type": "String",
+                    "validations": [
+                        {
+                            "type": "is present",
+                            "value": null,
+                            "message": null
+                        },
+                        {
+                            "type": "is shorter than",
+                            "value": 254,
+                            "message": null
+                        }
+                    ]
+                },
+                {
+                    "defaultValue": null,
+                    "enums": null,
+                    "field": "id",
+                    "integration": null,
+                    "inverseOf": null,
+                    "isFilterable": true,
+                    "isPrimaryKey": true,
+                    "isReadOnly": true,
+                    "isRequired": false,
+                    "isSortable": true,
+                    "isVirtual": false,
+                    "reference": null,
+                    "type": "Number",
+                    "validations": []
+                },
+                {
+                    "defaultValue": null,
+                    "enums": null,
+                    "field": "last_name",
+                    "integration": null,
+                    "inverseOf": null,
+                    "isFilterable": true,
+                    "isPrimaryKey": false,
+                    "isReadOnly": false,
+                    "isRequired": true,
+                    "isSortable": true,
+                    "isVirtual": false,
+                    "reference": null,
+                    "type": "String",
+                    "validations": [
+                        {
+                            "type": "is present",
+                            "value": null,
+                            "message": null
+                        },
+                        {
+                            "type": "is shorter than",
+                            "value": 254,
+                            "message": null
+                        }
+                    ]
+                },
+                {
+                    "defaultValue": null,
+                    "enums": null,
+                    "field": "rating",
+                    "inverseOf": "commenter",
+                    "isFilterable": false,
+                    "isPrimaryKey": false,
+                    "isReadOnly": false,
+                    "isRequired": false,
+                    "isSortable": true,
+                    "isVirtual": false,
+                    "reference": "test_app_rating.id",
+                    "relationship": "HasMany",
+                    "type": [
+                        "Number"
+                    ],
+                    "validations": []
+                }
+            ]
+        },
+        {
+            "name": "test_app_rating",
+            "isVirtual": false,
+            "icon": null,
+            "isReadOnly": false,
+            "integration": null,
+            "isSearchable": true,
+            "onlyForRelationships": false,
+            "paginationType": "page",
+            "searchField": null,
+            "actions": [],
+            "segments": [],
+            "fields": [
+                {
+                    "defaultValue": null,
+                    "enums": null,
+                    "field": "book",
+                    "inverseOf": "rating",
+                    "isFilterable": true,
+                    "isPrimaryKey": false,
+                    "isReadOnly": false,
+                    "isRequired": true,
+                    "isSortable": true,
+                    "isVirtual": false,
+                    "reference": "test_app_book.id",
+                    "relationship": "BelongsTo",
+                    "type": "Number",
+                    "validations": [
+                        {
+                            "type": "is present",
+                            "value": null,
+                            "message": null
+                        }
+                    ]
+                },
+                {
+                    "defaultValue": null,
+                    "enums": null,
+                    "field": "comment",
+                    "integration": null,
+                    "inverseOf": null,
+                    "isFilterable": true,
+                    "isPrimaryKey": false,
+                    "isReadOnly": false,
+                    "isRequired": false,
+                    "isSortable": true,
+                    "isVirtual": false,
+                    "reference": null,
+                    "type": "String",
+                    "validations": []
+                },
+                {
+                    "defaultValue": null,
+                    "enums": null,
+                    "field": "commenter",
+                    "inverseOf": "rating",
+                    "isFilterable": true,
+                    "isPrimaryKey": false,
+                    "isReadOnly": false,
+                    "isRequired": true,
+                    "isSortable": true,
+                    "isVirtual": false,
+                    "reference": "test_app_person.id",
+                    "relationship": "BelongsTo",
+                    "type": "Number",
+                    "validations": [
+                        {
+                            "type": "is present",
+                            "value": null,
+                            "message": null
+                        }
+                    ]
+                },
+                {
+                    "defaultValue": null,
+                    "enums": null,
+                    "field": "id",
+                    "integration": null,
+                    "inverseOf": null,
+                    "isFilterable": true,
+                    "isPrimaryKey": true,
+                    "isReadOnly": true,
+                    "isRequired": false,
+                    "isSortable": true,
+                    "isVirtual": false,
+                    "reference": null,
+                    "type": "Number",
+                    "validations": []
+                },
+                {
+                    "defaultValue": null,
+                    "enums": null,
+                    "field": "rated_at",
+                    "integration": null,
+                    "inverseOf": null,
+                    "isFilterable": true,
+                    "isPrimaryKey": false,
+                    "isReadOnly": false,
+                    "isRequired": true,
+                    "isSortable": true,
+                    "isVirtual": false,
+                    "reference": null,
+                    "type": "Dateonly",
+                    "validations": [
+                        {
+                            "type": "is present",
+                            "value": null,
+                            "message": null
+                        }
+                    ]
+                },
+                {
+                    "defaultValue": null,
+                    "enums": [
+                        1,
+                        2,
+                        3,
+                        4,
+                        5
+                    ],
+                    "field": "rating",
+                    "integration": null,
+                    "inverseOf": null,
+                    "isFilterable": true,
+                    "isPrimaryKey": false,
+                    "isReadOnly": false,
+                    "isRequired": true,
+                    "isSortable": true,
+                    "isVirtual": false,
+                    "reference": null,
+                    "type": "Enum",
                     "validations": [
                         {
                             "type": "is present",
@@ -1325,11 +1325,11 @@
     ],
     "meta": {
         "liana": "agent-python",
-        "liana_version": "1.1.0",
+        "liana_version": "1.2.0-beta.4",
         "stack": {
             "engine": "python",
-            "engine_version": "3.10.11"
+            "engine_version": "3.12.0"
         },
-        "schemaFileHash": "bd40c659f8e01ef0aa63ae48c48d5d02250cde66"
+        "schemaFileHash": "27cdd10fef48f9556919439dac18f770d69d0be3"
     }
 }

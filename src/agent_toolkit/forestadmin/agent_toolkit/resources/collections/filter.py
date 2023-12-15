@@ -1,7 +1,6 @@
 import json
 import sys
 from ast import literal_eval
-from distutils.util import strtobool
 from typing import Any, Dict, List, Optional, Tuple, Union
 
 if sys.version_info >= (3, 9):
@@ -223,9 +222,7 @@ def _parse_value(jsoned_filters, collection):
         new_value = literal_eval(str(jsoned_filters["value"]))
 
     elif schema["column_type"] == PrimitiveType.BOOLEAN:
-        new_value = (
-            strtobool(jsoned_filters["value"]) if isinstance(jsoned_filters["value"], str) else jsoned_filters["value"]
-        )
+        new_value = jsoned_filters["value"]
 
     jsoned_filters["value"] = new_value
     return jsoned_filters
