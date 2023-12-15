@@ -1,3 +1,10 @@
+# [1.2.0-beta.5](https://github.com/ForestAdmin/agent-python/compare/v1.2.0-beta.4...v1.2.0-beta.5) (2023-12-15)
+
+
+### Features
+
+* support python 3.12 ([#155](https://github.com/ForestAdmin/agent-python/issues/155)) ([93f8374](https://github.com/ForestAdmin/agent-python/commit/93f8374c204feda06bb7c3a78278caa138684fa5))
+
 # [1.2.0-beta.4](https://github.com/ForestAdmin/agent-python/compare/v1.2.0-beta.3...v1.2.0-beta.4) (2023-12-06)
 
 
