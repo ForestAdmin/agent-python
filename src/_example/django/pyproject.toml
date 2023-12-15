@@ -7,7 +7,7 @@ readme = "README.md"
 packages = [{include = "django_demo"}]
 
 [tool.poetry.dependencies]
-python = ">=3.8,<4.0"
+python = ">=3.8,<3.13"
 django = ">=4.2.0"
 python-dotenv = ">= 1.0.0"
 str2bool = ">= 1.0"

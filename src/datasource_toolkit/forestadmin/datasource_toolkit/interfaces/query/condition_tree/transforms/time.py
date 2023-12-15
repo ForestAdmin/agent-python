@@ -38,7 +38,7 @@ class Interval(NamedTuple):
 
 
 def _get_now() -> datetime:
-    return datetime.utcnow().replace(tzinfo=zoneinfo.ZoneInfo("UTC"))
+    return datetime.now(tz=zoneinfo.ZoneInfo("UTC"))
 
 
 def _start_of(dt: datetime, hour: bool = True) -> datetime:

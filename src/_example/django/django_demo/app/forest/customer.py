@@ -53,7 +53,7 @@ def customer_spending_computed():
                 groups=[PlainAggregationGroup(field="customer_id")],
             ),
         )
-        rows = await context.datasource.get_collection("Order").aggregate(context.caller, condition, aggregation)
+        rows = await context.datasource.get_collection("app_order").aggregate(context.caller, condition, aggregation)
         ret = []
         for record in records:
             filtered = [*filter(lambda r: r["group"]["customer_id"] == record["id"], rows)]
