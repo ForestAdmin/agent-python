@@ -19,7 +19,7 @@ class TestFlaskAgent(TestCase):
 
         cls.flask_app.app_context.return_value.__enter__ = Mock(return_value=None)
         cls.flask_app.app_context.return_value.__exit__ = Mock(return_value=None)
-        cls.flask_app.extensions = []
+        cls.flask_app.extensions = {}
 
     @patch("forestadmin.flask_agent.agent.asyncio.new_event_loop", return_value="event_loop")
     @patch("forestadmin.flask_agent.agent.build_blueprint", return_value="blueprint")
@@ -86,3 +86,10 @@ class TestFlaskAgent(TestCase):
         ]
         blueprint.route.assert_has_calls(calls, any_order=True)
         assert blueprint.route.call_count == len(calls)
+
+    def test_FlaskAgent_should_call_csrf_exempt_when_csrf_is_in_flask_extensions(self):
+        csrf_extension_mock = Mock()
+        csrf_extension_mock.exempt = Mock(side_effect=lambda view: view)
+        with patch.dict(self.flask_app.extensions, {"csrf": csrf_extension_mock}):
+            agent = FlaskAgent(self.flask_app)
+            csrf_extension_mock.exempt.assert_called_once_with(agent._blueprint)
