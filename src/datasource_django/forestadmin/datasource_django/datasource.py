@@ -11,5 +11,6 @@ class DjangoDatasource(BaseDjangoDatasource):
     def _create_collections(self):
         models = apps.get_models(include_auto_created=True)
         for model in models:
-            collection = DjangoCollection(self, model)
-            self.add_collection(collection)
+            if model._meta.proxy is False:
+                collection = DjangoCollection(self, model)
+                self.add_collection(collection)
