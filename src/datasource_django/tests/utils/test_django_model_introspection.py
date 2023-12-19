@@ -210,7 +210,7 @@ class TestDjangoCollectionFactory(TestCase):
     def test_build_should_handle_also_generate_foreign_key_fields_next_to_relations(self):
         book_schema = DjangoCollectionFactory.build(Book)
 
-        self.assertEqual(book_schema["fields"]["author_id"]["validations"], [{"operator": Operator.PRESENT}])
+        self.assertEqual(book_schema["fields"]["author_id"]["validations"], [])
         self.assertEqual(book_schema["fields"]["author_id"]["column_type"], PrimitiveType.NUMBER)
         self.assertEqual(book_schema["fields"]["author_id"]["type"], FieldType.COLUMN)
 
