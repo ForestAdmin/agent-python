@@ -1,3 +1,19 @@
+# [1.3.0-beta.1](https://github.com/ForestAdmin/agent-python/compare/v1.2.0...v1.3.0-beta.1) (2023-12-19)
+
+
+### Bug Fixes
+
+* **django_datasource:** django datasource now works when model fields use db_column ([#148](https://github.com/ForestAdmin/agent-python/issues/148)) ([4a99e8f](https://github.com/ForestAdmin/agent-python/commit/4a99e8f2cdb999041054a9215cff0ebbf23b9937))
+* **django_introspection:** collection name is now the db table name ([#150](https://github.com/ForestAdmin/agent-python/issues/150)) ([8378c96](https://github.com/ForestAdmin/agent-python/commit/8378c96ff0a7e7eb1ecb2f3d37a74c1413fc9f85))
+
+
+### Features
+
+* support python 3.12 ([#155](https://github.com/ForestAdmin/agent-python/issues/155)) ([93f8374](https://github.com/ForestAdmin/agent-python/commit/93f8374c204feda06bb7c3a78278caa138684fa5))
+* **django:** add database operations and routes ([#145](https://github.com/ForestAdmin/agent-python/issues/145)) ([95f3a94](https://github.com/ForestAdmin/agent-python/commit/95f3a94fc393ed1ea2d49849132717167c0961a7))
+* **django_agent:** agent is ready to onboard on django project ([#147](https://github.com/ForestAdmin/agent-python/issues/147)) ([ac6135d](https://github.com/ForestAdmin/agent-python/commit/ac6135d905fd0cf1ed335d6a0c9eeba802ed2b43))
+* **django_datasource:** add native driver ([#149](https://github.com/ForestAdmin/agent-python/issues/149)) ([5055031](https://github.com/ForestAdmin/agent-python/commit/5055031124d65f36bfd23d4adcdef72d40764eb8))
+
 # [1.2.0-beta.5](https://github.com/ForestAdmin/agent-python/compare/v1.2.0-beta.4...v1.2.0-beta.5) (2023-12-15)
 
 
