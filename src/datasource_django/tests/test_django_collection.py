@@ -123,6 +123,20 @@ class TestDjangoCollectionCRUDList(TestCase):
 
         self.assertEqual(ret, [{"id": 2, "name": "Harry Potter"}])
 
+    async def test_list_should_work_with_null_relations(self):
+        ret = await self.book_collection.list(
+            self.mocked_caller,
+            PaginatedFilter({"condition_tree": ConditionTreeLeaf("name", Operator.EQUAL, "Unknown Book")}),
+            Projection("id", "name", "author:first_name"),
+        )
+
+        self.assertEqual(
+            ret,
+            [
+                {"id": 3, "name": "Unknown Book", "author": {}},
+            ],
+        )
+
 
 class TestDjangoCollectionCRUDAggregateBase(TestCase):
     fixtures = ["person.json", "book.json", "rating.json"]
