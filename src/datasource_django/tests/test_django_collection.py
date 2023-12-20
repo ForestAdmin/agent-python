@@ -360,6 +360,7 @@ class TestDjangoCollectionCRUDCreateUpdateDelete(TestDjangoCollectionCRUDAggrega
                     "last_name": "Tolkien",
                     "birth_date": datetime.date(1892, 1, 3),
                     "id": ret[0]["id"],
+                    "auth_user_id": None,
                 }
             ],
         )
@@ -367,7 +368,7 @@ class TestDjangoCollectionCRUDCreateUpdateDelete(TestDjangoCollectionCRUDAggrega
         retrieved = await self.person_collection.list(
             self.mocked_caller,
             PaginatedFilter({"condition_tree": ConditionTreeLeaf("id", Operator.EQUAL, ret[0]["id"])}),
-            Projection("id", "first_name", "last_name", "birth_date"),
+            Projection("id", "first_name", "last_name", "birth_date", "auth_user_id"),
         )
         self.assertEqual(retrieved, ret)
 

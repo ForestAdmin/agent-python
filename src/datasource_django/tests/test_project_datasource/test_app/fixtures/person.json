@@ -5,7 +5,8 @@
     "fields": {
       "first_name": "Isaac",
       "last_name": "Asimov",
-      "birth_date": "1920-02-01"
+      "birth_date": "1920-02-01",
+      "auth_user": null
     }
   },
   {
@@ -14,7 +15,8 @@
     "fields": {
       "first_name": "J.K.",
       "last_name": "Rowling",
-      "birth_date": "1965-07-31"
+      "birth_date": "1965-07-31",
+      "auth_user": null
     }
   }
 ]

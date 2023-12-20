@@ -6,8 +6,12 @@ from forestadmin.datasource_django.datasource import DjangoDatasource
 
 mock_collection1 = Mock(DjangoCollection)
 mock_collection1.name = "first"
+mock_collection1._meta = Mock()
+mock_collection1._meta.proxy = False
 mock_collection2 = Mock(DjangoCollection)
 mock_collection2.name = "second"
+mock_collection2._meta = Mock()
+mock_collection2._meta.proxy = False
 
 
 class TestDjangoDatasource(TestCase):
@@ -37,8 +41,8 @@ class TestDjangoDatasource(TestCase):
     def test_django_datasource_should_find_all_models(self):
         datasource = DjangoDatasource()
         self.assertEqual(
-            set([c.name for c in datasource.collections]),
-            set(
+            sorted([c.name for c in datasource.collections]),
+            sorted(
                 [
                     "test_app_book",
                     "test_app_person",
@@ -53,3 +57,8 @@ class TestDjangoDatasource(TestCase):
                 ]
             ),
         )
+
+    def test_django_datasource_should_ignore_proxy_models(self):
+        """ignoring proxy models means no collections added twice or more"""
+        datasource = DjangoDatasource()
+        self.assertEqual(len([c.name for c in datasource.collections if c.name == "auth_user"]), 1)
