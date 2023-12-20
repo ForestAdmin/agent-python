@@ -1,4 +1,6 @@
 from django.contrib.auth.models import User
+from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.models import ContentType
 from django.db import models
 
 
@@ -9,7 +11,7 @@ class DjangoAuthUser(User):
 
 class Book(models.Model):
     name = models.CharField(max_length=254)
-    author = models.ForeignKey("Person", on_delete=models.CASCADE, related_name="books")
+    author = models.ForeignKey("Person", on_delete=models.CASCADE, related_name="books", null=True)
 
 
 class Person(models.Model):
@@ -33,3 +35,7 @@ class Rating(models.Model):
     book = models.ForeignKey(Book, on_delete=models.CASCADE)
     rating = models.IntegerField(choices=RATE_CHOICES)
     rated_at = models.DateField()
+    # polymorphic relation
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, null=True)
+    object_id = models.PositiveIntegerField(null=True)
+    content_object = GenericForeignKey("content_type", "object_id")

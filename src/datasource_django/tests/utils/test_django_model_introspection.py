@@ -5,7 +5,7 @@ from django.apps import apps
 from django.db import models
 from forestadmin.datasource_django.utils.model_introspection import DjangoCollectionFactory, FieldFactory
 from forestadmin.datasource_toolkit.interfaces.fields import FieldType, Operator, PrimitiveType
-from test_app.models import Book, Person
+from test_app.models import Book, Person, Rating
 
 
 class TestDjangoFieldFactory(TestCase):
@@ -210,6 +210,73 @@ class TestDjangoCollectionFactory(TestCase):
     def test_build_should_handle_also_generate_foreign_key_fields_next_to_relations(self):
         book_schema = DjangoCollectionFactory.build(Book)
 
-        self.assertEqual(book_schema["fields"]["author_id"]["validations"], [{"operator": Operator.PRESENT}])
+        self.assertEqual(book_schema["fields"]["author_id"]["validations"], [])
         self.assertEqual(book_schema["fields"]["author_id"]["column_type"], PrimitiveType.NUMBER)
         self.assertEqual(book_schema["fields"]["author_id"]["type"], FieldType.COLUMN)
+
+    def test_polymorphic_relation_should_be_ignored_with_warning(self):
+        with self.assertLogs("forestadmin", level="WARNING") as cm:
+            rating_schema = DjangoCollectionFactory.build(Rating)
+            self.assertIn(
+                "WARNING:forestadmin:Ignoring test_app_rating.content_object "
+                "because polymorphic relation is not supported.",
+                cm.output,
+            )
+        self.assertNotIn("content_object", rating_schema["fields"].keys())
+        self.assertEqual(
+            rating_schema["fields"]["content_type"],
+            {
+                "foreign_collection": "django_content_type",
+                "foreign_key": "content_type_id",
+                "foreign_key_target": "id",
+                "type": FieldType.MANY_TO_ONE,
+            },
+        )
+        self.assertEqual(
+            rating_schema["fields"]["content_type_id"],
+            {
+                "column_type": PrimitiveType.NUMBER,
+                "is_primary_key": False,
+                "is_read_only": False,
+                "default_value": None,
+                "is_sortable": True,
+                "validations": [],
+                "filter_operators": {
+                    Operator.MISSING,
+                    Operator.PRESENT,
+                    Operator.GREATER_THAN,
+                    Operator.BLANK,
+                    Operator.NOT_IN,
+                    Operator.EQUAL,
+                    Operator.LESS_THAN,
+                    Operator.NOT_EQUAL,
+                    Operator.IN,
+                },
+                "enum_values": None,
+                "type": FieldType.COLUMN,
+            },
+        )
+        self.assertEqual(
+            rating_schema["fields"]["object_id"],
+            {
+                "column_type": PrimitiveType.NUMBER,
+                "is_primary_key": False,
+                "is_read_only": False,
+                "default_value": None,
+                "is_sortable": True,
+                "validations": [],
+                "filter_operators": {
+                    Operator.MISSING,
+                    Operator.PRESENT,
+                    Operator.GREATER_THAN,
+                    Operator.BLANK,
+                    Operator.NOT_IN,
+                    Operator.EQUAL,
+                    Operator.LESS_THAN,
+                    Operator.NOT_EQUAL,
+                    Operator.IN,
+                },
+                "enum_values": None,
+                "type": FieldType.COLUMN,
+            },
+        )

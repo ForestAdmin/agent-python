@@ -74,7 +74,9 @@ class TestDjangoCollectionCRUDList(TestCase):
     async def test_list_should_list_all_records_of_a_collection(self):
         ret = await self.book_collection.list(self.mocked_caller, PaginatedFilter({}), Projection("id", "name"))
 
-        self.assertEqual(ret, [{"id": 1, "name": "Foundation"}, {"id": 2, "name": "Harry Potter"}])
+        self.assertEqual(
+            ret, [{"id": 1, "name": "Foundation"}, {"id": 2, "name": "Harry Potter"}, {"id": 3, "name": "Unknown Book"}]
+        )
 
     async def test_list_should_work_with_relation(self):
         ret = await self.book_collection.list(
@@ -86,6 +88,7 @@ class TestDjangoCollectionCRUDList(TestCase):
             [
                 {"id": 1, "name": "Foundation", "author": {"first_name": "Isaac"}},
                 {"id": 2, "name": "Harry Potter", "author": {"first_name": "J.K."}},
+                {"id": 3, "name": "Unknown Book", "author": {}},
             ],
         )
 
@@ -121,7 +124,21 @@ class TestDjangoCollectionCRUDList(TestCase):
             Projection("id", "name"),
         )
 
-        self.assertEqual(ret, [{"id": 2, "name": "Harry Potter"}])
+        self.assertEqual(ret, [{"id": 3, "name": "Unknown Book"}])
+
+    async def test_list_should_work_with_null_relations(self):
+        ret = await self.book_collection.list(
+            self.mocked_caller,
+            PaginatedFilter({"condition_tree": ConditionTreeLeaf("name", Operator.EQUAL, "Unknown Book")}),
+            Projection("id", "name", "author:first_name"),
+        )
+
+        self.assertEqual(
+            ret,
+            [
+                {"id": 3, "name": "Unknown Book", "author": {}},
+            ],
+        )
 
 
 class TestDjangoCollectionCRUDAggregateBase(TestCase):
@@ -153,7 +170,7 @@ class TestDjangoCollectionCRUDAggregateNoGroupNoAggregateField(TestDjangoCollect
     async def test_aggregate_should_work(self):
         """typically the count http request"""
         ret = await self.book_collection.aggregate(self.mocked_caller, Filter({}), Aggregation({"operation": "Count"}))
-        self.assertEqual(ret, [{"value": 2, "group": {}}])
+        self.assertEqual(ret, [{"value": 3, "group": {}}])
 
     async def test_aggregate_should_work_with_condition_tree(self):
         """typically the count http request"""

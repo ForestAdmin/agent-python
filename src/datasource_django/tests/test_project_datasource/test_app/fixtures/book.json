@@ -8,5 +8,10 @@
     "model": "test_app.book",
     "pk": 2,
     "fields": { "name": "Harry Potter", "author": 2 }
+  },
+  {
+    "model": "test_app.book",
+    "pk": 3,
+    "fields": { "name": "Unknown Book", "author": null }
   }
 ]
