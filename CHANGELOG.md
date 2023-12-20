@@ -1,3 +1,11 @@
+# [1.3.0-beta.2](https://github.com/ForestAdmin/agent-python/compare/v1.3.0-beta.1...v1.3.0-beta.2) (2023-12-20)
+
+
+### Bug Fixes
+
+* **datasource_django:** proxy models are not added to datasource ([#158](https://github.com/ForestAdmin/agent-python/issues/158)) ([157e424](https://github.com/ForestAdmin/agent-python/commit/157e424b20587cf9805729c2b3ba6e4f6c83961f))
+* **relations:** gracefully ignore polymorphic relationships ([#157](https://github.com/ForestAdmin/agent-python/issues/157)) ([f1c2d6d](https://github.com/ForestAdmin/agent-python/commit/f1c2d6d06ea8e754059557d0c7640a142d6643b8))
+
 # [1.3.0-beta.1](https://github.com/ForestAdmin/agent-python/compare/v1.2.0...v1.3.0-beta.1) (2023-12-19)
 
 
