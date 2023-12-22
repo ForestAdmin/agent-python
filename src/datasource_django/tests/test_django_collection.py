@@ -88,7 +88,7 @@ class TestDjangoCollectionCRUDList(TestCase):
             [
                 {"id": 1, "name": "Foundation", "author": {"first_name": "Isaac"}},
                 {"id": 2, "name": "Harry Potter", "author": {"first_name": "J.K."}},
-                {"id": 3, "name": "Unknown Book", "author": {}},
+                {"id": 3, "name": "Unknown Book", "author": None},
             ],
         )
 
@@ -136,7 +136,7 @@ class TestDjangoCollectionCRUDList(TestCase):
         self.assertEqual(
             ret,
             [
-                {"id": 3, "name": "Unknown Book", "author": {}},
+                {"id": 3, "name": "Unknown Book", "author": None},
             ],
         )
 

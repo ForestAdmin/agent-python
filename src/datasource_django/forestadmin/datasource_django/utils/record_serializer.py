@@ -13,6 +13,6 @@ def instance_to_record_data(instance: Model, projection: Projection) -> RecordsD
         if relation:
             record_data[relation_name] = instance_to_record_data(relation, subfields)
         else:
-            record_data[relation_name] = {}
+            record_data[relation_name] = None
 
     return record_data
