@@ -174,7 +174,7 @@ class SchemaFieldGenerator:
             "type": cls.build_column_type(key_schema["column_type"]),
             "defaultValue": key_schema["default_value"],
             "isFilterable": cls.is_foreign_collection_filterable(foreign_collection),
-            "isPrimaryKey": bool(key_schema["is_primary_key"]),
+            "isPrimaryKey": False,
             "isRequired": any([v["operator"] == Operator.PRESENT for v in validations]),
             "isSortable": bool(key_schema["is_sortable"]),
             "validations": FrontendValidationUtils.convert_validation_list(validations),
