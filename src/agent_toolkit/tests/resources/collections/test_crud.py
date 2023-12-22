@@ -25,6 +25,7 @@ from forestadmin.datasource_toolkit.datasources import Datasource, DatasourceExc
 from forestadmin.datasource_toolkit.exceptions import ValidationError
 from forestadmin.datasource_toolkit.interfaces.fields import FieldType, Operator, PrimitiveType
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.leaf import ConditionTreeLeaf
+from forestadmin.datasource_toolkit.interfaces.query.projections import Projection
 from forestadmin.datasource_toolkit.validations.records import RecordValidatorException
 
 
@@ -243,7 +244,10 @@ class TestCrudResource(TestCase):
         "forestadmin.agent_toolkit.resources.collections.crud.ConditionTreeFactory.match_ids",
         return_value=ConditionTreeLeaf("id", Operator.EQUAL, 10),
     )
-    @patch("forestadmin.agent_toolkit.resources.collections.crud.ProjectionFactory.all", return_value=["id", "cost"])
+    @patch(
+        "forestadmin.agent_toolkit.resources.collections.crud.ProjectionFactory.all",
+        return_value=Projection("id", "cost"),
+    )
     @patch(
         "forestadmin.agent_toolkit.resources.collections.crud.JsonApiSerializer.get",
         return_value=Mock,
@@ -310,7 +314,10 @@ class TestCrudResource(TestCase):
         "forestadmin.agent_toolkit.resources.collections.crud.ConditionTreeFactory.match_ids",
         return_value=ConditionTreeLeaf("id", Operator.EQUAL, 10),
     )
-    @patch("forestadmin.agent_toolkit.resources.collections.crud.ProjectionFactory.all", return_value=["id", "cost"])
+    @patch(
+        "forestadmin.agent_toolkit.resources.collections.crud.ProjectionFactory.all",
+        return_value=Projection("id", "cost"),
+    )
     @patch(
         "forestadmin.agent_toolkit.resources.collections.crud.JsonApiSerializer.get",
         return_value=Mock,
@@ -342,7 +349,10 @@ class TestCrudResource(TestCase):
         "forestadmin.agent_toolkit.resources.collections.crud.ConditionTreeFactory.match_ids",
         return_value=ConditionTreeLeaf("id", Operator.EQUAL, 10),
     )
-    @patch("forestadmin.agent_toolkit.resources.collections.crud.ProjectionFactory.all", return_value=["id", "cost"])
+    @patch(
+        "forestadmin.agent_toolkit.resources.collections.crud.ProjectionFactory.all",
+        return_value=Projection("id", "cost"),
+    )
     @patch(
         "forestadmin.agent_toolkit.resources.collections.crud.JsonApiSerializer.get",
         return_value=Mock,
