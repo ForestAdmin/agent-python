@@ -127,7 +127,7 @@ class SchemaFieldGenerator:
             "isReadOnly": bool(key_field["is_read_only"]),
             "isSortable": bool(target_field["is_sortable"]),
             "validations": [],
-            "reference": f"{foreign_collection.name}.{relation['origin_key_target']}",
+            "reference": f"{foreign_collection.name}.{relation['origin_key']}",
         }
 
     @classmethod
