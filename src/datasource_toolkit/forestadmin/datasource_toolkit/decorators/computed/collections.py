@@ -31,7 +31,7 @@ class ComputedCollectionDecorator(CollectionDecorator):
             except KeyError:
                 return None
 
-        related_field, path = path.split(":")
+        related_field, path = path.split(":", 1)
         field = cast(RelationAlias, self.get_field(related_field))
         foreign_collection: Self = self.datasource.get_collection(field["foreign_collection"])
         return foreign_collection.get_computed(path)

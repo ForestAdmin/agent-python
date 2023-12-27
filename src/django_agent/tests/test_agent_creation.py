@@ -183,19 +183,21 @@ class TestDjangoAgentInitAppAgent(DjangoTestCase):
 
     def test_should_call_agent_start_when_everything_work_well_and_launch_as_server(self):
         with override_settings(**self.dj_options):
-            with patch("forestadmin.django_agent.agent.DjangoAgent.start") as mock_start:
-                with patch("forestadmin.django_agent.apps.is_launch_as_server", return_value=True):
-                    agent = init_app_agent()
-                    mock_start.assert_called_once()
-                    self.assertIsNotNone(agent)
+            with patch("forestadmin.django_agent.apps.is_launch_as_server", return_value=True):
+                with patch("forestadmin.django_agent.apps.create_agent", wraps=create_agent) as spy_create_agent:
+                    with patch("forestadmin.django_agent.agent.DjangoAgent.start") as mock_start:
+                        agent = init_app_agent()
+                        spy_create_agent.assert_called_once()
+                        mock_start.assert_called_once()
+                        self.assertIsNotNone(agent)
 
-    def test_should_not_call_agent_start_when_everything_work_well_but_not_launch_as_server(self):
+    def test_should_not_initialize_agent_when_not_launch_as_server(self):
         with override_settings(**self.dj_options):
-            with patch("forestadmin.django_agent.agent.DjangoAgent.start") as mock_start:
+            with patch("forestadmin.django_agent.apps.create_agent") as mock_create_agent:
                 with patch("forestadmin.django_agent.apps.is_launch_as_server", return_value=False):
                     agent = init_app_agent()
-                    mock_start.assert_not_called()
-                    self.assertIsNotNone(agent)
+                    mock_create_agent.assert_not_called()
+                    self.assertIsNone(agent)
 
     def test_should_not_call_agent_start_when_error_during_customize_fn(self):
         with override_settings(

@@ -17,6 +17,8 @@ def is_launch_as_server() -> bool:
 
 
 def init_app_agent() -> Optional[DjangoAgent]:
+    if not is_launch_as_server():
+        return None
     agent = create_agent()
     if not hasattr(settings, "FOREST_AUTO_ADD_DJANGO_DATASOURCE") or settings.FOREST_AUTO_ADD_DJANGO_DATASOURCE:
         agent.add_datasource(DjangoDatasource())
@@ -25,7 +27,7 @@ def init_app_agent() -> Optional[DjangoAgent]:
     if customize_fn:
         agent = _call_user_customize_function(customize_fn, agent)
 
-    if agent and is_launch_as_server():
+    if agent:
         agent.start()
     return agent
 
@@ -72,18 +74,3 @@ class DjangoAgentApp(AppConfig):
 
     def ready(self):
         DjangoAgentApp._DJANGO_AGENT = init_app_agent()
-
-
-# from django.utils.autoreload import DJANGO_AUTORELOAD_ENV
-# import os
-# no_autoreload = any(arg.casefold() == "noreload" for arg in sys.argv)
-# django.utils.autoreload.DJANGO_AUTORELOAD_ENV == "RUN_MAIN"
-# print(
-#     "--run main: ", os.environ.get(DJANGO_AUTORELOAD_ENV)
-# )  # to know in which process we are when autoreload is enabled
-# print("--launch_as_server: ", launch_as_server)
-# print("--no_autoreload: ", no_autoreload)
-
-# prevent launching for manage command
-# prevent launching in reloader parent process
-# if not is_manage_py or no_autoreload or os.environ.get(DJANGO_AUTORELOAD_ENV) == "true":

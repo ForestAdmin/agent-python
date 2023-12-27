@@ -15,8 +15,12 @@ class SchemaCollectionGenerator:
     async def build(prefix: str, collection: Union[Collection, CollectionCustomizer]) -> ForestServerCollection:
         fields: List[ForestServerField] = []
         for field_name in collection.schema["fields"].keys():
-            if not SchemaUtils.is_foreign_key(collection.schema, field_name):
-                fields.append(SchemaFieldGenerator.build(collection, field_name))
+            if SchemaUtils.is_foreign_key(collection.schema, field_name) and not SchemaUtils.is_primary_key(
+                collection.schema, field_name
+            ):
+                # ignore foreign key because we have relationships, except when the fk is pk
+                continue
+            fields.append(SchemaFieldGenerator.build(collection, field_name))
         fields = sorted(fields, key=lambda field: field["field"])
 
         return {

@@ -105,3 +105,15 @@ class Cart(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     order = models.OneToOneField(Order, on_delete=models.CASCADE, null=True)
+
+
+class ExtendedCart(models.Model):
+    cart = models.OneToOneField(Cart, primary_key=True, on_delete=models.CASCADE)
+
+    color = models.CharField(max_length=20)
+
+    discount = models.OneToOneField("DiscountCart", on_delete=models.CASCADE, null=True)
+
+
+class DiscountCart(models.Model):
+    discount = models.FloatField()

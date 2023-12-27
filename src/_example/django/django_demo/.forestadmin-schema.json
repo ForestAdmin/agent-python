@@ -545,6 +545,22 @@
                 {
                     "defaultValue": null,
                     "enums": null,
+                    "field": "extendedcart",
+                    "inverseOf": "cart",
+                    "isFilterable": true,
+                    "isPrimaryKey": false,
+                    "isReadOnly": false,
+                    "isRequired": false,
+                    "isSortable": true,
+                    "isVirtual": false,
+                    "reference": "app_extendedcart.cart_id",
+                    "relationship": "HasOne",
+                    "type": "Number",
+                    "validations": []
+                },
+                {
+                    "defaultValue": null,
+                    "enums": null,
                     "field": "id",
                     "integration": null,
                     "inverseOf": null,
@@ -1058,6 +1074,177 @@
             ]
         },
         {
+            "name": "app_discountcart",
+            "isVirtual": false,
+            "icon": null,
+            "isReadOnly": false,
+            "integration": null,
+            "isSearchable": true,
+            "onlyForRelationships": false,
+            "paginationType": "page",
+            "searchField": null,
+            "actions": [],
+            "segments": [],
+            "fields": [
+                {
+                    "defaultValue": null,
+                    "enums": null,
+                    "field": "discount",
+                    "integration": null,
+                    "inverseOf": null,
+                    "isFilterable": true,
+                    "isPrimaryKey": false,
+                    "isReadOnly": false,
+                    "isRequired": true,
+                    "isSortable": true,
+                    "isVirtual": false,
+                    "reference": null,
+                    "type": "Number",
+                    "validations": [
+                        {
+                            "type": "is present",
+                            "value": null,
+                            "message": null
+                        }
+                    ]
+                },
+                {
+                    "defaultValue": null,
+                    "enums": null,
+                    "field": "extendedcart",
+                    "inverseOf": "discount",
+                    "isFilterable": true,
+                    "isPrimaryKey": false,
+                    "isReadOnly": false,
+                    "isRequired": false,
+                    "isSortable": true,
+                    "isVirtual": false,
+                    "reference": "app_extendedcart.discount_id",
+                    "relationship": "HasOne",
+                    "type": "Number",
+                    "validations": []
+                },
+                {
+                    "defaultValue": null,
+                    "enums": null,
+                    "field": "id",
+                    "integration": null,
+                    "inverseOf": null,
+                    "isFilterable": true,
+                    "isPrimaryKey": true,
+                    "isReadOnly": true,
+                    "isRequired": false,
+                    "isSortable": true,
+                    "isVirtual": false,
+                    "reference": null,
+                    "type": "Number",
+                    "validations": []
+                }
+            ]
+        },
+        {
+            "name": "app_extendedcart",
+            "isVirtual": false,
+            "icon": null,
+            "isReadOnly": false,
+            "integration": null,
+            "isSearchable": true,
+            "onlyForRelationships": false,
+            "paginationType": "page",
+            "searchField": null,
+            "actions": [],
+            "segments": [],
+            "fields": [
+                {
+                    "defaultValue": null,
+                    "enums": null,
+                    "field": "cart",
+                    "inverseOf": "extendedcart",
+                    "isFilterable": true,
+                    "isPrimaryKey": false,
+                    "isReadOnly": false,
+                    "isRequired": true,
+                    "isSortable": true,
+                    "isVirtual": false,
+                    "reference": "app_cart.id",
+                    "relationship": "BelongsTo",
+                    "type": "Number",
+                    "validations": [
+                        {
+                            "type": "is present",
+                            "value": null,
+                            "message": null
+                        }
+                    ]
+                },
+                {
+                    "defaultValue": null,
+                    "enums": null,
+                    "field": "cart_id",
+                    "integration": null,
+                    "inverseOf": null,
+                    "isFilterable": true,
+                    "isPrimaryKey": true,
+                    "isReadOnly": true,
+                    "isRequired": true,
+                    "isSortable": true,
+                    "isVirtual": false,
+                    "reference": null,
+                    "type": "Number",
+                    "validations": [
+                        {
+                            "type": "is present",
+                            "value": null,
+                            "message": null
+                        }
+                    ]
+                },
+                {
+                    "defaultValue": null,
+                    "enums": null,
+                    "field": "color",
+                    "integration": null,
+                    "inverseOf": null,
+                    "isFilterable": true,
+                    "isPrimaryKey": false,
+                    "isReadOnly": false,
+                    "isRequired": true,
+                    "isSortable": true,
+                    "isVirtual": false,
+                    "reference": null,
+                    "type": "String",
+                    "validations": [
+                        {
+                            "type": "is present",
+                            "value": null,
+                            "message": null
+                        },
+                        {
+                            "type": "is shorter than",
+                            "value": 20,
+                            "message": null
+                        }
+                    ]
+                },
+                {
+                    "defaultValue": null,
+                    "enums": null,
+                    "field": "discount",
+                    "inverseOf": "extendedcart",
+                    "isFilterable": true,
+                    "isPrimaryKey": false,
+                    "isReadOnly": false,
+                    "isRequired": false,
+                    "isSortable": true,
+                    "isVirtual": false,
+                    "reference": "app_discountcart.id",
+                    "relationship": "BelongsTo",
+                    "type": "Number",
+                    "validations": []
+                }
+            ]
+        },
+        {
             "name": "app_order",
             "isVirtual": false,
             "icon": null,
@@ -1204,7 +1391,7 @@
                     "isRequired": false,
                     "isSortable": true,
                     "isVirtual": false,
-                    "reference": "app_cart.id",
+                    "reference": "app_cart.order_id",
                     "relationship": "HasOne",
                     "type": "Number",
                     "validations": []
@@ -3173,11 +3360,11 @@
     ],
     "meta": {
         "liana": "agent-python",
-        "liana_version": "1.2.0-beta.2",
+        "liana_version": "1.3.0-beta.2",
         "stack": {
             "engine": "python",
             "engine_version": "3.10.11"
         },
-        "schemaFileHash": "cb7254f309cce45b89e83eebc3302e86b1e42ead"
+        "schemaFileHash": "19bcf807929df4cb8ff109f803dea0789a658df1"
     }
 }

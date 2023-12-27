@@ -1,11 +1,13 @@
 from unittest import TestCase
+from unittest.mock import patch
 
-from forestadmin.agent_toolkit.resources.collections.filter import parse_condition_tree
+from forestadmin.agent_toolkit.resources.collections.filter import parse_condition_tree, parse_projection
 from forestadmin.agent_toolkit.resources.collections.requests import RequestCollection
 from forestadmin.agent_toolkit.utils.context import RequestMethod
-from forestadmin.datasource_toolkit.collections import Collection
+from forestadmin.datasource_toolkit.collections import Collection, CollectionException
 from forestadmin.datasource_toolkit.datasources import Datasource
-from forestadmin.datasource_toolkit.interfaces.fields import Column, FieldType, Operator, PrimitiveType
+from forestadmin.datasource_toolkit.interfaces.fields import Column, FieldType, ManyToOne, Operator, PrimitiveType
+from forestadmin.datasource_toolkit.validations.projection import ProjectionValidator
 
 
 class TestFilter(TestCase):
@@ -28,10 +30,43 @@ class TestFilter(TestCase):
                     filter_operators=[Operator.IN, Operator.EQUAL],
                     type=FieldType.COLUMN,
                 ),
+                "author": ManyToOne(
+                    type=FieldType.MANY_TO_ONE,
+                    foreign_collection="Person",
+                    foreign_key="auhtor_id",
+                    foreign_key_targe="id",
+                ),
+                "author_id": Column(
+                    column_type=PrimitiveType.NUMBER,
+                    type=FieldType.COLUMN,
+                    filter_operators=set([Operator.IN, Operator.EQUAL]),
+                ),
             }
         )
 
+        cls.collection_person = Collection("Person", cls.datasource)
+        cls.collection_person.add_fields(
+            {
+                "id": Column(
+                    column_type=PrimitiveType.NUMBER,
+                    is_primary_key=True,
+                    type=FieldType.COLUMN,
+                    filter_operators=set([Operator.IN, Operator.EQUAL]),
+                ),
+                "firstname": Column(
+                    column_type=PrimitiveType.STRING,
+                    filter_operators=[Operator.IN, Operator.EQUAL],
+                    type=FieldType.COLUMN,
+                ),
+                "lastname": Column(
+                    column_type=PrimitiveType.STRING,
+                    filter_operators=[Operator.IN, Operator.EQUAL],
+                    type=FieldType.COLUMN,
+                ),
+            }
+        )
         cls.datasource.add_collection(cls.collection_book)
+        cls.datasource.add_collection(cls.collection_person)
 
     def test_parse_condition_tree_should_parse_array_when_IN_operator_str(self):
         request = RequestCollection(
@@ -58,3 +93,51 @@ class TestFilter(TestCase):
         )
         condition_tree = parse_condition_tree(request)
         self.assertEqual(condition_tree.value, [1, 2])
+
+    def test_parse_projection_should_parse_in_query_projection(self):
+        request = RequestCollection(
+            method=RequestMethod.GET,
+            body=None,
+            query={
+                "collection_name": "Book",
+                "fields[Book]": "id,title,author",
+                "fields[author]": "id",
+            },
+            collection=self.collection_book,
+        )
+        expected_projection = ["id", "title", "author:id"]
+
+        with patch(
+            "forestadmin.agent_toolkit.resources.collections.filter.ProjectionValidator.validate",
+            wraps=ProjectionValidator.validate,
+        ) as spy_validate:
+            projection = parse_projection(request)
+            spy_validate.assert_called_once_with(self.collection_book, expected_projection)
+        self.assertEqual(sorted(projection), sorted(expected_projection))
+
+    def test_parse_projection_should_return_all_collections_field_as_projection_when_nothing_specified_in_request(self):
+        request = RequestCollection(
+            method=RequestMethod.GET,
+            body=None,
+            query={
+                "collection_name": "Book",
+            },
+            collection=self.collection_book,
+        )
+        expected_projection = ["author:firstname", "author:id", "author:lastname", "author_id", "id", "title"]
+
+        projection = parse_projection(request)
+        self.assertEqual(sorted(projection), sorted(expected_projection))
+
+    def test_parse_projection_should_raise_when_query_want_an_unexisting_field(self):
+        request = RequestCollection(
+            method=RequestMethod.GET,
+            body=None,
+            query={
+                "collection_name": "Book",
+                "fields[Book]": "id,title,blabedoubla",
+            },
+            collection=self.collection_book,
+        )
+
+        self.assertRaisesRegex(CollectionException, r"Field not found 'Book.blabedoubla'", parse_projection, request)
