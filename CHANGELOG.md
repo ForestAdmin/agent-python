@@ -1,3 +1,10 @@
+# [1.3.0-beta.3](https://github.com/ForestAdmin/agent-python/compare/v1.3.0-beta.2...v1.3.0-beta.3) (2023-12-27)
+
+
+### Bug Fixes
+
+* foreign keys can be used as primary key ([#159](https://github.com/ForestAdmin/agent-python/issues/159)) ([5f18f73](https://github.com/ForestAdmin/agent-python/commit/5f18f73d1ab555dcd768a707fc88d432d0c43bd3))
+
 # [1.3.0-beta.2](https://github.com/ForestAdmin/agent-python/compare/v1.3.0-beta.1...v1.3.0-beta.2) (2023-12-20)
 
 
