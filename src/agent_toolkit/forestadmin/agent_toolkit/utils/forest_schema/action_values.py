@@ -93,7 +93,7 @@ class ForestValueConverter:
                     raise ForestValueConverterException(f"{v} is not in {field['enum_values']}")
             return value
 
-        elif field["type"] == ActionFieldType.COLLECTION:
+        elif field["type"] == ActionFieldType.COLLECTION and value:
             value = cast(CompositeIdAlias, value)
             return "|".join(value)
 
