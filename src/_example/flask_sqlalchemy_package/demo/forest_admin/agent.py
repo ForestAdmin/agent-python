@@ -1,6 +1,6 @@
 from demo.forest_admin.forest_logging_customization import customize_forest_logging
 from demo.forest_admin.smart.address import address_full_name_computed, get_postal_code, high_delivery_address_segment
-from demo.forest_admin.smart.cart import cart_update_name
+from demo.forest_admin.smart.cart import cart_update_name, widget_action_form
 from demo.forest_admin.smart.customer import (
     age_operation_action_dict,
     customer_full_name,
@@ -145,7 +145,7 @@ def customize_agent(agent: FlaskAgent):
             dependencies=["order:customer_id"],
             get_values=lambda records, context: [rec["order"]["customer_id"] for rec in records],
         ),
-    ).emulate_field_operator("customer_id", Operator.IN)
+    ).emulate_field_operator("customer_id", Operator.IN).add_action("test_widget", widget_action_form)
 
     agent.customize_collection("customer").add_one_to_many_relation("smart_carts", "cart", "customer_id").add_hook(
         # hooks

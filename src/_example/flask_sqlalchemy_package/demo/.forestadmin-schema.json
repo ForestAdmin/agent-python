@@ -229,7 +229,50 @@
             "onlyForRelationships": false,
             "paginationType": "page",
             "searchField": null,
-            "actions": [],
+            "actions": [
+                {
+                    "id": "cart-0-test_widget",
+                    "name": "test_widget",
+                    "type": "global",
+                    "baseUrl": null,
+                    "endpoint": "/forest/_actions/cart/0/test_widget",
+                    "httpMethod": "POST",
+                    "redirect": null,
+                    "download": false,
+                    "fields": [
+                        {
+                            "field": "color",
+                            "value": null,
+                            "defaultValue": null,
+                            "description": "",
+                            "enums": null,
+                            "hook": null,
+                            "isReadOnly": false,
+                            "isRequired": false,
+                            "reference": null,
+                            "type": "String",
+                            "widget": null,
+                            "widgetEdit": {
+                                "name": "color editor",
+                                "parameters": {
+                                    "enableOpacity": false,
+                                    "placeholder": "color",
+                                    "quickPalette": [
+                                        "#F7B13C",
+                                        "#47B575"
+                                    ]
+                                }
+                            }
+                        }
+                    ],
+                    "hooks": {
+                        "load": false,
+                        "change": [
+                            "changeHook"
+                        ]
+                    }
+                }
+            ],
             "segments": [
                 {
                     "id": "cart.No order",
@@ -729,7 +772,8 @@
                             "isRequired": false,
                             "reference": null,
                             "type": "String",
-                            "widget": null
+                            "widget": null,
+                            "widgetEdit": null
                         },
                         {
                             "field": "customer",
@@ -742,7 +786,8 @@
                             "isRequired": true,
                             "reference": "customer.pk",
                             "type": "String",
-                            "widget": null
+                            "widget": null,
+                            "widgetEdit": null
                         }
                     ],
                     "hooks": {
@@ -773,7 +818,8 @@
                             "isRequired": false,
                             "reference": null,
                             "type": "String",
-                            "widget": null
+                            "widget": null,
+                            "widgetEdit": null
                         }
                     ],
                     "hooks": {
@@ -997,11 +1043,11 @@
     ],
     "meta": {
         "liana": "agent-python",
-        "liana_version": "1.0.0-beta.27",
+        "liana_version": "1.2.0",
         "stack": {
             "engine": "python",
-            "engine_version": "3.8.16"
+            "engine_version": "3.11.3"
         },
-        "schemaFileHash": "2b6e2ba65624a52a990006493f6faf3839f88a2a"
+        "schemaFileHash": "0bb7118cab13fc34845ce3a52e3b9e258e7b208b"
     }
 }
