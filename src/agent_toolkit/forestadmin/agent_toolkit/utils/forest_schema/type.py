@@ -1,5 +1,5 @@
 import enum
-from typing import Any, List, Literal, Optional, TypedDict, Union
+from typing import Any, Dict, List, Literal, Optional, TypedDict, Union
 
 from forestadmin.datasource_toolkit.interfaces.fields import ColumnAlias
 
@@ -70,6 +70,22 @@ class ForestServerActionHooks(TypedDict):
     change: List[Any]
 
 
+class WidgetEditConfiguration(TypedDict):
+    name: str
+    parameters: Dict[str, Any]
+
+
+class ForestServerActionFieldColorPickerOptionsParameters(TypedDict):
+    placeholder: Optional[str]
+    enableOpacity: Optional[bool]
+    quickPalette: Optional[List[str]]
+
+
+class ForestServerActionFieldColorPickerOptions(WidgetEditConfiguration):
+    name: Literal["color editor"]
+    parameters: ForestServerActionFieldColorPickerOptionsParameters
+
+
 class ForestServerActionField(TypedDict):
     value: Any
     defaultValue: Any
@@ -82,6 +98,7 @@ class ForestServerActionField(TypedDict):
     reference: Optional[str]
     type: Union[ColumnAlias, Literal["File"]]
     widget: Optional[Literal["belongsto select", "file picker"]]
+    widgetEdit: Optional[WidgetEditConfiguration]
 
 
 class ForestServerAction(TypedDict):

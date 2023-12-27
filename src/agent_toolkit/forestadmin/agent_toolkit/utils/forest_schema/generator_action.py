@@ -1,6 +1,7 @@
 from typing import List, Union, cast
 
 from forestadmin.agent_toolkit.utils.forest_schema.action_values import ForestValueConverter
+from forestadmin.agent_toolkit.utils.forest_schema.generator_action_field_widget import GeneratorActionFieldWidget
 from forestadmin.agent_toolkit.utils.forest_schema.generator_field import SchemaFieldGenerator
 from forestadmin.agent_toolkit.utils.forest_schema.type import ForestServerAction, ForestServerActionField
 from forestadmin.datasource_toolkit.collections import Collection
@@ -67,6 +68,7 @@ class SchemaActionGenerator:
             "reference": None,
             "type": PrimitiveType.STRING,
             "widget": None,
+            "widgetEdit": GeneratorActionFieldWidget.build_widget_options(field),
         }
         if field["type"] == ActionFieldType.COLLECTION:
             collection: Collection = datasource.get_collection(field["collection_name"])  # type: ignore
