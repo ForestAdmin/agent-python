@@ -40,6 +40,9 @@ class ActionFieldType(enum.Enum):
     STRING_LIST = "StringList"
 
 
+WidgetTypes = Literal["ColorPicker"]
+
+
 class ActionField(TypedDict):
     type: ActionFieldType
     label: str
@@ -51,6 +54,7 @@ class ActionField(TypedDict):
     watch_changes: bool
     enum_values: Optional[List[str]]
     collection_name: Optional[str]
+    widget: Optional[WidgetTypes]
 
 
 class SuccessResult(TypedDict):

@@ -1,6 +1,10 @@
 from typing import Any, Awaitable, Callable, Generic, List, Optional, TypedDict, TypeVar, Union
 
 from forestadmin.datasource_toolkit.decorators.action.context.base import ActionContext
+from forestadmin.datasource_toolkit.decorators.action.types.widgets import (
+    WIDGET_ATTRIBUTES,
+    ColorPickerFieldConfiguration,
+)
 from forestadmin.datasource_toolkit.exceptions import DatasourceToolkitException
 from forestadmin.datasource_toolkit.interfaces.actions import ActionField, ActionFieldType, File
 from forestadmin.datasource_toolkit.interfaces.records import CompositeIdAlias
@@ -36,6 +40,7 @@ class BaseDynamicField(Generic[Context, Result]):
         if_: Optional[ValueOrHandler[Context, Any]] = None,
         value: Optional[ValueOrHandler[Context, Result]] = None,
         default_value: Optional[ValueOrHandler[Context, Result]] = None,
+        **kwargs,
     ):
         self.label = label
         self.description = description
@@ -44,6 +49,13 @@ class BaseDynamicField(Generic[Context, Result]):
         self._if_ = if_
         self._value = value
         self._default_value = default_value
+
+        unknown_keyword_args = [k for k in kwargs.keys() if k not in WIDGET_ATTRIBUTES]
+        if any(unknown_keyword_args):
+            raise TypeError(
+                f"BaseDynamicField.__init__() got an unexpected keyword argument '{unknown_keyword_args[0]}'"
+            )
+        self._widget_fields = kwargs
 
     @property
     def dynamic_fields(self):
@@ -65,6 +77,7 @@ class BaseDynamicField(Generic[Context, Result]):
             collection_name=None,
             enum_values=None,
             watch_changes=False,
+            **self._widget_fields,
         )
 
     async def default_value(self, context: Context) -> Result:
@@ -97,10 +110,6 @@ class BaseDynamicField(Generic[Context, Result]):
             return res
         else:
             return attribute
-
-    # @classmethod
-    # def from_plain_field(cls, plain_field: PlainBaseDynamicField) -> Self:
-    #     return cls(**plain_field)
 
 
 class PlainCollectionDynamicField(PlainField):
@@ -338,6 +347,12 @@ DynamicField = Union[
     FileDynamicField[Context],
 ]
 
+
+# declare widget for field types
+class PlainStringDynamicFieldColorWidget(PlainStringDynamicField, ColorPickerFieldConfiguration):
+    pass
+
+
 PlainDynamicField = Union[
     PlainBooleanDynamicField,
     PlainCollectionDynamicField,
@@ -345,6 +360,7 @@ PlainDynamicField = Union[
     PlainListEnumDynamicField,
     PlainNumberDynamicField,
     PlainStringDynamicField,
+    PlainStringDynamicFieldColorWidget,
     PlainListNumberDynamicField,
     PlainJsonDynamicField,
     PlainFileDynamicField,
