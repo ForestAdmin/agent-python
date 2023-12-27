@@ -46,6 +46,7 @@ class SchemaActionGenerator:
             redirect=None,
             download=bool(schema.generate_file),
             fields=await cls.build_fields(collection, schema, name),
+            # Always registering the change hook has no consequences, even if we don't use it.
             hooks={"load": not schema.static_form, "change": ["changeHook"]},
         )
 

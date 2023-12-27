@@ -485,6 +485,7 @@ class TestHookActionResource(BaseTestActionResource):
                     "reference": None,
                     "type": "Number",
                     "widget": None,
+                    "widgetEdit": None,
                 },
                 {
                     "field": "Summary",
@@ -498,6 +499,7 @@ class TestHookActionResource(BaseTestActionResource):
                     "reference": None,
                     "type": "String",
                     "widget": None,
+                    "widgetEdit": None,
                 },
             ],
         )
