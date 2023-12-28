@@ -81,3 +81,31 @@ class TestIsTextField(TestCase):
     def test_should_return_false_when_field_is_none(self):
         result = ActionFields.is_text_input_field(None)
         self.assertFalse(result)
+
+
+class TestIsTextAreaField(TestCase):
+    def test_should_return_true_when_its_text_input(self):
+        result = ActionFields.is_text_area_field(
+            {
+                "type": ActionFieldType.STRING,
+                "label": "Label",
+                "watch_changes": False,
+                "widget": "TextArea",
+            }
+        )
+        self.assertTrue(result)
+
+    def test_should_return_false_when_its_not_text_area(self):
+        result = ActionFields.is_text_area_field(
+            {
+                "type": ActionFieldType.STRING,
+                "label": "Label",
+                "watch_changes": False,
+                "widget": "Dropdown",
+            }
+        )
+        self.assertFalse(result)
+
+    def test_should_return_false_when_field_is_none(self):
+        result = ActionFields.is_text_area_field(None)
+        self.assertFalse(result)

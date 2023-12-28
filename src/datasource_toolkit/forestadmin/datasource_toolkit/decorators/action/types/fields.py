@@ -4,6 +4,7 @@ from forestadmin.datasource_toolkit.decorators.action.context.base import Action
 from forestadmin.datasource_toolkit.decorators.action.types.widgets import (
     WIDGET_ATTRIBUTES,
     ColorPickerFieldConfiguration,
+    TextAreaFieldConfiguration,
     TextInputFieldConfiguration,
 )
 from forestadmin.datasource_toolkit.exceptions import DatasourceToolkitException
@@ -358,6 +359,10 @@ class PlainStringDynamicFieldTextInputWidget(PlainStringDynamicField, TextInputF
     pass
 
 
+class PlainStringDynamicFieldTextAreaWidget(PlainStringDynamicField, TextAreaFieldConfiguration):
+    pass
+
+
 PlainDynamicField = Union[
     PlainBooleanDynamicField,
     PlainCollectionDynamicField,
@@ -367,6 +372,7 @@ PlainDynamicField = Union[
     PlainStringDynamicField,
     PlainStringDynamicFieldColorWidget,
     PlainStringDynamicFieldTextInputWidget,
+    PlainStringDynamicFieldTextAreaWidget,
     PlainListNumberDynamicField,
     PlainJsonDynamicField,
     PlainFileDynamicField,

@@ -282,6 +282,26 @@
                                     "placeholder": "new_name"
                                 }
                             }
+                        },
+                        {
+                            "field": "comment",
+                            "value": null,
+                            "defaultValue": null,
+                            "description": "",
+                            "enums": null,
+                            "hook": null,
+                            "isReadOnly": false,
+                            "isRequired": false,
+                            "reference": null,
+                            "type": "String",
+                            "widget": null,
+                            "widgetEdit": {
+                                "name": "text area editor",
+                                "parameters": {
+                                    "placeholder": "long comment",
+                                    "rows": 5
+                                }
+                            }
                         }
                     ],
                     "hooks": {
@@ -1067,6 +1087,6 @@
             "engine": "python",
             "engine_version": "3.11.3"
         },
-        "schemaFileHash": "94c9ea9eca21cfc39afece7e7a4a5dea20ca566a"
+        "schemaFileHash": "7c1db9ab9b45bd9e7c009229a14d1b2f70073556"
     }
 }

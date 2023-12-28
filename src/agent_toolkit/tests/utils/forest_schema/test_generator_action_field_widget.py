@@ -88,3 +88,22 @@ class TestGeneratorActionFieldWidgetTextInput(TestCase):
                 },
             },
         )
+
+
+class TestGeneratorActionFieldWidgetTextArea(TestCase):
+    def test_build_widget_option_should_return_valid_widget_edit_with_default_values(self):
+        result = GeneratorActionFieldWidget.build_widget_options(
+            {
+                "type": ActionFieldType.STRING,
+                "label": "Label",
+                "watch_changes": False,
+                "widget": "TextArea",
+            }
+        )
+        self.assertEqual(
+            result,
+            {
+                "name": "text area editor",
+                "parameters": {"placeholder": None, "rows": None},
+            },
+        )

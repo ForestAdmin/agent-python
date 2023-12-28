@@ -44,5 +44,12 @@ widget_action_form: ActionDict = {
             "widget": "TextInput",
             "placeholder": "new_name",
         },
+        {
+            "label": "comment",
+            "type": ActionFieldType.STRING,
+            "widget": "TextArea",
+            "placeholder": "long comment",
+            "rows": 5,
+        },
     ],
 }

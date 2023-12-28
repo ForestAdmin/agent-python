@@ -3,11 +3,13 @@ from typing import Union
 from forestadmin.agent_toolkit.utils.forest_schema.action_fields import ActionFields
 from forestadmin.agent_toolkit.utils.forest_schema.type import (
     ForestServerActionFieldColorPickerOptions,
+    ForestServerActionFieldTextAreaEditorOptions,
     ForestServerActionFieldTextEditorOptions,
     WidgetEditConfiguration,
 )
 from forestadmin.datasource_toolkit.decorators.action.types.fields import (
     PlainStringDynamicFieldColorWidget,
+    PlainStringDynamicFieldTextAreaWidget,
     PlainStringDynamicFieldTextInputWidget,
 )
 from forestadmin.datasource_toolkit.interfaces.actions import ActionField, ActionFieldType
@@ -26,6 +28,9 @@ class GeneratorActionFieldWidget:
 
         if ActionFields.is_text_input_field(field):
             return GeneratorActionFieldWidget.build_text_input_widget_edit(field)
+
+        if ActionFields.is_text_area_field(field):
+            return GeneratorActionFieldWidget.build_text_area_widget_edit(field)
 
     @staticmethod
     def build_color_picker_widget_edit(
@@ -48,5 +53,17 @@ class GeneratorActionFieldWidget:
             "name": "text editor",
             "parameters": {
                 "placeholder": field.get("placeholder"),
+            },
+        }
+
+    @staticmethod
+    def build_text_area_widget_edit(
+        field: PlainStringDynamicFieldTextAreaWidget,
+    ) -> ForestServerActionFieldTextAreaEditorOptions:
+        return {
+            "name": "text area editor",
+            "parameters": {
+                "placeholder": field.get("placeholder"),
+                "rows": int(field["rows"]) if field.get("rows") else None,
             },
         }

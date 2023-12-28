@@ -15,6 +15,12 @@ class TextInputFieldConfiguration(TypedDict):
     placeholder: NotRequired[str]
 
 
+class TextAreaFieldConfiguration(TypedDict):
+    widget: Literal["TextArea"]
+    placeholder: NotRequired[Optional[str]]
+    rows: NotRequired[int]
+
+
 WIDGET_ATTRIBUTES: Set[str] = set()
-for WidgetType in [ColorPickerFieldConfiguration, TextInputFieldConfiguration]:
+for WidgetType in [ColorPickerFieldConfiguration, TextInputFieldConfiguration, TextAreaFieldConfiguration]:
     WIDGET_ATTRIBUTES = WIDGET_ATTRIBUTES.union(WidgetType.__annotations__.keys())

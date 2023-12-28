@@ -77,9 +77,9 @@ class WidgetEditConfiguration(TypedDict):
 
 
 class ForestServerActionFieldColorPickerOptionsParameters(TypedDict):
-    placeholder: NotRequired[Optional[str]]
-    enableOpacity: NotRequired[bool]
-    quickPalette: NotRequired[List[str]]
+    placeholder: Optional[str]
+    enableOpacity: Optional[bool]
+    quickPalette: Optional[List[str]]
 
 
 class ForestServerActionFieldColorPickerOptions(TypedDict):
@@ -88,12 +88,22 @@ class ForestServerActionFieldColorPickerOptions(TypedDict):
 
 
 class ForestServerActionFieldTextEditorOptionsParameters(TypedDict):
-    placeholder: NotRequired[str]
+    placeholder: Optional[str]
 
 
 class ForestServerActionFieldTextEditorOptions(TypedDict):
     name: Literal["text editor"]
     parameters: ForestServerActionFieldTextEditorOptionsParameters
+
+
+class ForestServerActionFieldTextAreaEditorOptionsParameters(TypedDict):
+    placeholder: Optional[str]
+    rows: NotRequired[str]
+
+
+class ForestServerActionFieldTextAreaEditorOptions(TypedDict):
+    name: Literal["text editor"]
+    parameters: ForestServerActionFieldTextAreaEditorOptionsParameters
 
 
 class ForestServerActionField(TypedDict):
