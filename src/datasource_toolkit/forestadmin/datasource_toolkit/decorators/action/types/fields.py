@@ -3,6 +3,7 @@ from typing import Any, Awaitable, Callable, Generic, List, Optional, TypedDict,
 from forestadmin.datasource_toolkit.decorators.action.context.base import ActionContext
 from forestadmin.datasource_toolkit.decorators.action.types.widgets import (
     WIDGET_ATTRIBUTES,
+    AddressAutocompleteFieldConfiguration,
     ColorPickerFieldConfiguration,
     RichTextFieldConfiguration,
     TextAreaFieldConfiguration,
@@ -368,6 +369,10 @@ class PlainStringDynamicFieldRichTextWidget(PlainStringDynamicField, RichTextFie
     pass
 
 
+class PlainStringDynamicAddressAutocompleteWidget(PlainStringDynamicField, AddressAutocompleteFieldConfiguration):
+    pass
+
+
 PlainDynamicField = Union[
     PlainBooleanDynamicField,
     PlainCollectionDynamicField,
@@ -379,6 +384,7 @@ PlainDynamicField = Union[
     PlainStringDynamicFieldTextInputWidget,
     PlainStringDynamicFieldTextAreaWidget,
     PlainStringDynamicFieldRichTextWidget,
+    PlainStringDynamicAddressAutocompleteWidget,
     PlainListNumberDynamicField,
     PlainJsonDynamicField,
     PlainFileDynamicField,

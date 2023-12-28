@@ -26,11 +26,17 @@ class RichTextFieldConfiguration(TypedDict):
     placeholder: NotRequired[Optional[str]]
 
 
+class AddressAutocompleteFieldConfiguration(TypedDict):
+    widget: Literal["AddressAutocomplete"]
+    placeholder: NotRequired[Optional[str]]
+
+
 WIDGET_ATTRIBUTES: Set[str] = set()
 for WidgetType in [
     ColorPickerFieldConfiguration,
     TextInputFieldConfiguration,
     TextAreaFieldConfiguration,
     RichTextFieldConfiguration,
+    AddressAutocompleteFieldConfiguration,
 ]:
     WIDGET_ATTRIBUTES = WIDGET_ATTRIBUTES.union(WidgetType.__annotations__.keys())

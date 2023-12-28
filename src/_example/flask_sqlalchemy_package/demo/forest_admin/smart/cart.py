@@ -57,5 +57,11 @@ widget_action_form: ActionDict = {
             "widget": "RichText",
             "placeholder": "style comment",
         },
+        {
+            "label": "address",
+            "type": ActionFieldType.STRING,
+            "widget": "AddressAutocomplete",
+            "placeholder": "where are you living ?",
+        },
     ],
 }

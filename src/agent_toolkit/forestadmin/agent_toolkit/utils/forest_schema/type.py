@@ -76,6 +76,7 @@ class WidgetEditConfiguration(TypedDict):
     parameters: Dict[str, Any]
 
 
+# color
 class ForestServerActionFieldColorPickerOptionsParameters(TypedDict):
     placeholder: Optional[str]
     enableOpacity: Optional[bool]
@@ -87,6 +88,7 @@ class ForestServerActionFieldColorPickerOptions(TypedDict):
     parameters: ForestServerActionFieldColorPickerOptionsParameters
 
 
+# text
 class ForestServerActionFieldTextEditorOptionsParameters(TypedDict):
     placeholder: Optional[str]
 
@@ -96,24 +98,35 @@ class ForestServerActionFieldTextEditorOptions(TypedDict):
     parameters: ForestServerActionFieldTextEditorOptionsParameters
 
 
+# text area
 class ForestServerActionFieldTextAreaEditorOptionsParameters(TypedDict):
     placeholder: Optional[str]
     rows: NotRequired[str]
 
 
 class ForestServerActionFieldTextAreaEditorOptions(TypedDict):
-    name: Literal["text editor"]
+    name: Literal["text area editor"]
     parameters: ForestServerActionFieldTextAreaEditorOptionsParameters
 
 
+# rich text
 class ForestServerActionFieldRichTextEditorOptionsParameters(TypedDict):
     placeholder: Optional[str]
-    rows: NotRequired[str]
 
 
 class ForestServerActionFieldRichTextEditorOptions(TypedDict):
-    name: Literal["text editor"]
+    name: Literal["rich text"]
     parameters: ForestServerActionFieldRichTextEditorOptionsParameters
+
+
+# address
+class ForestServerActionFieldAddressAutocompleteEditorOptionsParameters(TypedDict):
+    placeholder: Optional[str]
+
+
+class ForestServerActionFieldAddressAutocompleteEditorOptions(TypedDict):
+    name: Literal["address editor"]
+    parameters: ForestServerActionFieldAddressAutocompleteEditorOptionsParameters
 
 
 class ForestServerActionField(TypedDict):

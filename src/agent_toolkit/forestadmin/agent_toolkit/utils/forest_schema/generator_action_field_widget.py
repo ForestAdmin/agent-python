@@ -9,6 +9,7 @@ from forestadmin.agent_toolkit.utils.forest_schema.type import (
     WidgetEditConfiguration,
 )
 from forestadmin.datasource_toolkit.decorators.action.types.fields import (
+    PlainStringDynamicAddressAutocompleteWidget,
     PlainStringDynamicFieldColorWidget,
     PlainStringDynamicFieldRichTextWidget,
     PlainStringDynamicFieldTextAreaWidget,
@@ -36,6 +37,9 @@ class GeneratorActionFieldWidget:
 
         if ActionFields.is_rich_text_field(field):
             return GeneratorActionFieldWidget.build_rich_text_widget_edit(field)
+
+        if ActionFields.is_address_autocomplete_field(field):
+            return GeneratorActionFieldWidget.build_address_autocomplete_widget_edit(field)
 
     @staticmethod
     def build_color_picker_widget_edit(
@@ -79,6 +83,17 @@ class GeneratorActionFieldWidget:
     ) -> ForestServerActionFieldRichTextEditorOptions:
         return {
             "name": "rich text",
+            "parameters": {
+                "placeholder": field.get("placeholder"),
+            },
+        }
+
+    @staticmethod
+    def build_address_autocomplete_widget_edit(
+        field: PlainStringDynamicAddressAutocompleteWidget,
+    ) -> ForestServerActionFieldRichTextEditorOptions:
+        return {
+            "name": "address editor",
             "parameters": {
                 "placeholder": field.get("placeholder"),
             },

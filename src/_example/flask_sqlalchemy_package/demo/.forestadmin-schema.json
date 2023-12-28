@@ -321,6 +321,25 @@
                                     "placeholder": "style comment"
                                 }
                             }
+                        },
+                        {
+                            "field": "address",
+                            "value": null,
+                            "defaultValue": null,
+                            "description": "",
+                            "enums": null,
+                            "hook": null,
+                            "isReadOnly": false,
+                            "isRequired": false,
+                            "reference": null,
+                            "type": "String",
+                            "widget": null,
+                            "widgetEdit": {
+                                "name": "address editor",
+                                "parameters": {
+                                    "placeholder": "where are you living ?"
+                                }
+                            }
                         }
                     ],
                     "hooks": {
@@ -1106,6 +1125,6 @@
             "engine": "python",
             "engine_version": "3.11.3"
         },
-        "schemaFileHash": "05bad8e5d822af4eef9baf8e372aeb2ed67bad8d"
+        "schemaFileHash": "0705f132c9b9593be36893e943911d90fac419ec"
     }
 }
