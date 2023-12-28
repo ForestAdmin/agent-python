@@ -106,6 +106,16 @@ class ForestServerActionFieldTextAreaEditorOptions(TypedDict):
     parameters: ForestServerActionFieldTextAreaEditorOptionsParameters
 
 
+class ForestServerActionFieldRichTextEditorOptionsParameters(TypedDict):
+    placeholder: Optional[str]
+    rows: NotRequired[str]
+
+
+class ForestServerActionFieldRichTextEditorOptions(TypedDict):
+    name: Literal["text editor"]
+    parameters: ForestServerActionFieldRichTextEditorOptionsParameters
+
+
 class ForestServerActionField(TypedDict):
     value: Any
     defaultValue: Any

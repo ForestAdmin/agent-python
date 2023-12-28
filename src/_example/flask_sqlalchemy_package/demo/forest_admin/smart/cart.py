@@ -51,5 +51,11 @@ widget_action_form: ActionDict = {
             "placeholder": "long comment",
             "rows": 5,
         },
+        {
+            "label": "comment with style",
+            "type": ActionFieldType.STRING,
+            "widget": "RichText",
+            "placeholder": "style comment",
+        },
     ],
 }

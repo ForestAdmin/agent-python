@@ -17,3 +17,7 @@ class ActionFields:
     @staticmethod
     def is_text_area_field(field: ActionField) -> bool:
         return field is not None and field.get("widget", "") == "TextArea"
+
+    @staticmethod
+    def is_rich_text_field(field: ActionField) -> bool:
+        return field is not None and field.get("widget", "") == "RichText"

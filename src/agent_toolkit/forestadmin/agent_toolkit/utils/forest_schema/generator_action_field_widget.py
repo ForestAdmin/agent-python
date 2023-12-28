@@ -3,12 +3,14 @@ from typing import Union
 from forestadmin.agent_toolkit.utils.forest_schema.action_fields import ActionFields
 from forestadmin.agent_toolkit.utils.forest_schema.type import (
     ForestServerActionFieldColorPickerOptions,
+    ForestServerActionFieldRichTextEditorOptions,
     ForestServerActionFieldTextAreaEditorOptions,
     ForestServerActionFieldTextEditorOptions,
     WidgetEditConfiguration,
 )
 from forestadmin.datasource_toolkit.decorators.action.types.fields import (
     PlainStringDynamicFieldColorWidget,
+    PlainStringDynamicFieldRichTextWidget,
     PlainStringDynamicFieldTextAreaWidget,
     PlainStringDynamicFieldTextInputWidget,
 )
@@ -31,6 +33,9 @@ class GeneratorActionFieldWidget:
 
         if ActionFields.is_text_area_field(field):
             return GeneratorActionFieldWidget.build_text_area_widget_edit(field)
+
+        if ActionFields.is_rich_text_field(field):
+            return GeneratorActionFieldWidget.build_rich_text_widget_edit(field)
 
     @staticmethod
     def build_color_picker_widget_edit(
@@ -65,5 +70,16 @@ class GeneratorActionFieldWidget:
             "parameters": {
                 "placeholder": field.get("placeholder"),
                 "rows": int(field["rows"]) if field.get("rows") else None,
+            },
+        }
+
+    @staticmethod
+    def build_rich_text_widget_edit(
+        field: PlainStringDynamicFieldRichTextWidget,
+    ) -> ForestServerActionFieldRichTextEditorOptions:
+        return {
+            "name": "rich text",
+            "parameters": {
+                "placeholder": field.get("placeholder"),
             },
         }

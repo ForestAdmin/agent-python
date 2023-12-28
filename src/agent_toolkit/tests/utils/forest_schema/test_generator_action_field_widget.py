@@ -107,3 +107,22 @@ class TestGeneratorActionFieldWidgetTextArea(TestCase):
                 "parameters": {"placeholder": None, "rows": None},
             },
         )
+
+
+class TestGeneratorActionFieldWidgetRichText(TestCase):
+    def test_build_widget_option_should_return_valid_widget_edit_with_default_values(self):
+        result = GeneratorActionFieldWidget.build_widget_options(
+            {
+                "type": ActionFieldType.STRING,
+                "label": "Label",
+                "watch_changes": False,
+                "widget": "RichText",
+            }
+        )
+        self.assertEqual(
+            result,
+            {
+                "name": "rich text",
+                "parameters": {"placeholder": None},
+            },
+        )

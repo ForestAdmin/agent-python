@@ -302,6 +302,25 @@
                                     "rows": 5
                                 }
                             }
+                        },
+                        {
+                            "field": "comment with style",
+                            "value": null,
+                            "defaultValue": null,
+                            "description": "",
+                            "enums": null,
+                            "hook": null,
+                            "isReadOnly": false,
+                            "isRequired": false,
+                            "reference": null,
+                            "type": "String",
+                            "widget": null,
+                            "widgetEdit": {
+                                "name": "rich text",
+                                "parameters": {
+                                    "placeholder": "style comment"
+                                }
+                            }
                         }
                     ],
                     "hooks": {
@@ -1087,6 +1106,6 @@
             "engine": "python",
             "engine_version": "3.11.3"
         },
-        "schemaFileHash": "7c1db9ab9b45bd9e7c009229a14d1b2f70073556"
+        "schemaFileHash": "05bad8e5d822af4eef9baf8e372aeb2ed67bad8d"
     }
 }
