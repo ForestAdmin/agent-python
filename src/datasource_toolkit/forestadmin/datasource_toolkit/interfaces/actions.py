@@ -2,6 +2,8 @@ import enum
 from dataclasses import dataclass
 from typing import Any, Dict, List, Literal, Optional, Set, TypedDict, Union
 
+from typing_extensions import NotRequired
+
 
 class ActionsScope(enum.Enum):
     SINGLE = "single"
@@ -40,21 +42,21 @@ class ActionFieldType(enum.Enum):
     STRING_LIST = "StringList"
 
 
-WidgetTypes = Literal["ColorPicker"]
+WidgetTypes = Literal["ColorPicker", "TextInput"]
 
 
 class ActionField(TypedDict):
     type: ActionFieldType
     label: str
-    description: Optional[str]
-    is_required: Optional[bool]
-    is_read_only: Optional[bool]
-    value: Optional[Any]
-    default_value: Optional[Any]
+    description: NotRequired[Optional[str]]
+    is_required: NotRequired[Optional[bool]]
+    is_read_only: NotRequired[Optional[bool]]
+    value: NotRequired[Optional[Any]]
+    default_value: NotRequired[Optional[Any]]
     watch_changes: bool
-    enum_values: Optional[List[str]]
-    collection_name: Optional[str]
-    widget: Optional[WidgetTypes]
+    enum_values: NotRequired[Optional[List[str]]]
+    collection_name: NotRequired[Optional[str]]
+    widget: NotRequired[WidgetTypes]
 
 
 class SuccessResult(TypedDict):

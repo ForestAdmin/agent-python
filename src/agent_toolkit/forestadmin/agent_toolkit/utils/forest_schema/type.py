@@ -2,6 +2,7 @@ import enum
 from typing import Any, Dict, List, Literal, Optional, TypedDict, Union
 
 from forestadmin.datasource_toolkit.interfaces.fields import ColumnAlias
+from typing_extensions import NotRequired
 
 
 class ValidationType(enum.Enum):
@@ -76,14 +77,23 @@ class WidgetEditConfiguration(TypedDict):
 
 
 class ForestServerActionFieldColorPickerOptionsParameters(TypedDict):
-    placeholder: Optional[str]
-    enableOpacity: Optional[bool]
-    quickPalette: Optional[List[str]]
+    placeholder: NotRequired[Optional[str]]
+    enableOpacity: NotRequired[bool]
+    quickPalette: NotRequired[List[str]]
 
 
-class ForestServerActionFieldColorPickerOptions(WidgetEditConfiguration):
+class ForestServerActionFieldColorPickerOptions(TypedDict):
     name: Literal["color editor"]
     parameters: ForestServerActionFieldColorPickerOptionsParameters
+
+
+class ForestServerActionFieldTextEditorOptionsParameters(TypedDict):
+    placeholder: NotRequired[str]
+
+
+class ForestServerActionFieldTextEditorOptions(TypedDict):
+    name: Literal["text editor"]
+    parameters: ForestServerActionFieldTextEditorOptionsParameters
 
 
 class ForestServerActionField(TypedDict):

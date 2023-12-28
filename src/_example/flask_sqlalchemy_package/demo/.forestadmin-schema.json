@@ -263,6 +263,25 @@
                                     ]
                                 }
                             }
+                        },
+                        {
+                            "field": "name",
+                            "value": null,
+                            "defaultValue": null,
+                            "description": "",
+                            "enums": null,
+                            "hook": null,
+                            "isReadOnly": false,
+                            "isRequired": false,
+                            "reference": null,
+                            "type": "String",
+                            "widget": null,
+                            "widgetEdit": {
+                                "name": "text editor",
+                                "parameters": {
+                                    "placeholder": "new_name"
+                                }
+                            }
                         }
                     ],
                     "hooks": {
@@ -1048,6 +1067,6 @@
             "engine": "python",
             "engine_version": "3.11.3"
         },
-        "schemaFileHash": "0bb7118cab13fc34845ce3a52e3b9e258e7b208b"
+        "schemaFileHash": "94c9ea9eca21cfc39afece7e7a4a5dea20ca566a"
     }
 }

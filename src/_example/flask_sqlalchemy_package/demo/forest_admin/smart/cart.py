@@ -37,6 +37,12 @@ widget_action_form: ActionDict = {
                 "#F7B13C",
                 "#47B575",
             ],
-        }
+        },
+        {
+            "label": "name",
+            "type": ActionFieldType.STRING,
+            "widget": "TextInput",
+            "placeholder": "new_name",
+        },
     ],
 }

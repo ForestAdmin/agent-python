@@ -4,6 +4,7 @@ from forestadmin.datasource_toolkit.decorators.action.context.base import Action
 from forestadmin.datasource_toolkit.decorators.action.types.widgets import (
     WIDGET_ATTRIBUTES,
     ColorPickerFieldConfiguration,
+    TextInputFieldConfiguration,
 )
 from forestadmin.datasource_toolkit.exceptions import DatasourceToolkitException
 from forestadmin.datasource_toolkit.interfaces.actions import ActionField, ActionFieldType, File
@@ -237,7 +238,7 @@ class EnumListDynamicField(Generic[Context], BaseDynamicField[Context, List[str]
     async def to_action_field(self, context: Context, default_value: List[str]) -> ActionField:
         res = await super(EnumListDynamicField, self).to_action_field(context, default_value)
         res["enum_values"] = await self.enum_values(context)
-        if res["value"] is None:
+        if res.get("value") is None:
             res["value"] = []
         return res
 
@@ -353,6 +354,10 @@ class PlainStringDynamicFieldColorWidget(PlainStringDynamicField, ColorPickerFie
     pass
 
 
+class PlainStringDynamicFieldTextInputWidget(PlainStringDynamicField, TextInputFieldConfiguration):
+    pass
+
+
 PlainDynamicField = Union[
     PlainBooleanDynamicField,
     PlainCollectionDynamicField,
@@ -361,6 +366,7 @@ PlainDynamicField = Union[
     PlainNumberDynamicField,
     PlainStringDynamicField,
     PlainStringDynamicFieldColorWidget,
+    PlainStringDynamicFieldTextInputWidget,
     PlainListNumberDynamicField,
     PlainJsonDynamicField,
     PlainFileDynamicField,
