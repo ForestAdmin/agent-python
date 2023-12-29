@@ -4,6 +4,8 @@ from typing import Any, Dict, List, Literal, Optional, TypedDict, Union
 from forestadmin.datasource_toolkit.interfaces.fields import ColumnAlias
 from typing_extensions import NotRequired
 
+Number = Union[int, float]
+
 
 class ValidationType(enum.Enum):
     PRESENT = "is present"
@@ -140,6 +142,34 @@ class ForestServerActionFieldAddressAutocompleteEditorOptionsParameters(TypedDic
 class ForestServerActionFieldAddressAutocompleteEditorOptions(TypedDict):
     name: Literal["address editor"]
     parameters: ForestServerActionFieldAddressAutocompleteEditorOptionsParameters
+
+
+# number
+class ForestServerActionFieldNumberInputEditorOptionsParameters(TypedDict):
+    min: Optional[Number]
+    max: Optional[Number]
+    step: Optional[Number]
+
+
+class ForestServerActionFieldNumberInputEditorOptions(TypedDict):
+    name: Literal["address editor"]
+    parameters: ForestServerActionFieldNumberInputEditorOptionsParameters
+
+
+# number list
+class ForestServerActionFieldNumberInputListEditorOptionsParameters(TypedDict):
+    min: Optional[Number]
+    max: Optional[Number]
+    step: Optional[Number]
+    placeholder: Optional[str]
+    allowDuplicate: bool
+    allowEmptyValue: bool
+    enableReorder: bool
+
+
+class ForestServerActionFieldNumberInputListEditorOptions(TypedDict):
+    name: Literal["address editor"]
+    parameters: ForestServerActionFieldNumberInputListEditorOptionsParameters
 
 
 class ForestServerActionField(TypedDict):

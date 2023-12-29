@@ -6,6 +6,8 @@ from forestadmin.datasource_toolkit.decorators.action.types.widgets import (
     AddressAutocompleteFieldConfiguration,
     ArrayTextInputFieldConfiguration,
     ColorPickerFieldConfiguration,
+    NumberInputFieldConfiguration,
+    NumberInputListFieldConfiguration,
     RichTextFieldConfiguration,
     TextAreaFieldConfiguration,
     TextInputFieldConfiguration,
@@ -370,11 +372,19 @@ class PlainStringDynamicFieldRichTextWidget(PlainStringDynamicField, RichTextFie
     pass
 
 
-class PlainStringDynamicAddressAutocompleteWidget(PlainStringDynamicField, AddressAutocompleteFieldConfiguration):
+class PlainStringDynamicFieldAddressAutocompleteWidget(PlainStringDynamicField, AddressAutocompleteFieldConfiguration):
     pass
 
 
-class PlainStringDynamicFieldTextInputListWidget(PlainStringListDynamicField, ArrayTextInputFieldConfiguration):
+class PlainStringListDynamicFieldTextInputListWidget(PlainStringListDynamicField, ArrayTextInputFieldConfiguration):
+    pass
+
+
+class PlainNumberDynamicFieldNumberInputWidget(PlainNumberDynamicField, NumberInputFieldConfiguration):
+    pass
+
+
+class PlainListNumberDynamicFieldNumberInputListWidget(PlainListNumberDynamicField, NumberInputListFieldConfiguration):
     pass
 
 
@@ -383,16 +393,22 @@ PlainDynamicField = Union[
     PlainCollectionDynamicField,
     PlainEnumDynamicField,
     PlainListEnumDynamicField,
+    # number & widgets
     PlainNumberDynamicField,
+    PlainNumberDynamicFieldNumberInputWidget,
+    # number list & widgets
+    PlainListNumberDynamicField,
+    PlainListNumberDynamicFieldNumberInputListWidget,
+    # string & widgets
     PlainStringDynamicField,
     PlainStringDynamicFieldColorWidget,
     PlainStringDynamicFieldTextInputWidget,
     PlainStringDynamicFieldTextAreaWidget,
     PlainStringDynamicFieldRichTextWidget,
-    PlainStringDynamicAddressAutocompleteWidget,
+    PlainStringDynamicFieldAddressAutocompleteWidget,
+    # string list & widgets
     PlainStringListDynamicField,
-    PlainStringDynamicFieldTextInputListWidget,
-    PlainListNumberDynamicField,
+    PlainStringListDynamicFieldTextInputListWidget,
     PlainJsonDynamicField,
     PlainFileDynamicField,
 ]

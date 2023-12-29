@@ -3,6 +3,8 @@ from typing import Union
 from forestadmin.agent_toolkit.utils.forest_schema.action_fields import ActionFields
 from forestadmin.agent_toolkit.utils.forest_schema.type import (
     ForestServerActionFieldColorPickerOptions,
+    ForestServerActionFieldNumberInputEditorOptions,
+    ForestServerActionFieldNumberInputListEditorOptions,
     ForestServerActionFieldRichTextEditorOptions,
     ForestServerActionFieldTextAreaEditorOptions,
     ForestServerActionFieldTextEditorOptions,
@@ -10,12 +12,14 @@ from forestadmin.agent_toolkit.utils.forest_schema.type import (
     WidgetEditConfiguration,
 )
 from forestadmin.datasource_toolkit.decorators.action.types.fields import (
-    PlainStringDynamicAddressAutocompleteWidget,
+    PlainListNumberDynamicFieldNumberInputListWidget,
+    PlainNumberDynamicFieldNumberInputWidget,
+    PlainStringDynamicFieldAddressAutocompleteWidget,
     PlainStringDynamicFieldColorWidget,
     PlainStringDynamicFieldRichTextWidget,
     PlainStringDynamicFieldTextAreaWidget,
-    PlainStringDynamicFieldTextInputListWidget,
     PlainStringDynamicFieldTextInputWidget,
+    PlainStringListDynamicFieldTextInputListWidget,
 )
 from forestadmin.datasource_toolkit.interfaces.actions import ActionField, ActionFieldType
 
@@ -46,6 +50,12 @@ class GeneratorActionFieldWidget:
         if ActionFields.is_address_autocomplete_field(field):
             return GeneratorActionFieldWidget.build_address_autocomplete_widget_edit(field)
 
+        if ActionFields.is_number_input_field(field):
+            return GeneratorActionFieldWidget.build_number_input_widget_edit(field)
+
+        if ActionFields.is_number_input_list_field(field):
+            return GeneratorActionFieldWidget.build_number_input_list_widget_edit(field)
+
     @staticmethod
     def build_color_picker_widget_edit(
         field: PlainStringDynamicFieldColorWidget,
@@ -72,7 +82,7 @@ class GeneratorActionFieldWidget:
 
     @staticmethod
     def build_text_input_list_widget_edit(
-        field: PlainStringDynamicFieldTextInputListWidget,
+        field: PlainStringListDynamicFieldTextInputListWidget,
     ) -> ForestServerActionFieldTextListEditorOptions:
         return {
             "name": "input array",
@@ -109,11 +119,42 @@ class GeneratorActionFieldWidget:
 
     @staticmethod
     def build_address_autocomplete_widget_edit(
-        field: PlainStringDynamicAddressAutocompleteWidget,
+        field: PlainStringDynamicFieldAddressAutocompleteWidget,
     ) -> ForestServerActionFieldRichTextEditorOptions:
         return {
             "name": "address editor",
             "parameters": {
                 "placeholder": field.get("placeholder"),
+            },
+        }
+
+    @staticmethod
+    def build_number_input_widget_edit(
+        field: PlainNumberDynamicFieldNumberInputWidget,
+    ) -> ForestServerActionFieldNumberInputEditorOptions:
+        return {
+            "name": "number input",
+            "parameters": {
+                "placeholder": field.get("placeholder"),
+                "min": field.get("min"),
+                "max": field.get("max"),
+                "step": field.get("step"),
+            },
+        }
+
+    @staticmethod
+    def build_number_input_list_widget_edit(
+        field: PlainListNumberDynamicFieldNumberInputListWidget,
+    ) -> ForestServerActionFieldNumberInputListEditorOptions:
+        return {
+            "name": "input array",
+            "parameters": {
+                "placeholder": field.get("placeholder"),
+                "min": field.get("min"),
+                "max": field.get("max"),
+                "step": field.get("step"),
+                "allowDuplicate": field.get("allow_duplicates", False),
+                "allowEmptyValue": field.get("allow_empty_values", False),
+                "enableReorder": field.get("enable_reorder", True),
             },
         }

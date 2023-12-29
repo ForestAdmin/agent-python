@@ -169,3 +169,54 @@ class TestGeneratorActionFieldWidgetTextInputList(TestCase):
                 },
             },
         )
+
+
+class TestGeneratorActionFieldWidgetNumberInput(TestCase):
+    def test_build_widget_option_should_return_valid_widget_edit_with_default_values(self):
+        result = GeneratorActionFieldWidget.build_widget_options(
+            {
+                "type": ActionFieldType.NUMBER,
+                "label": "Label",
+                "watch_changes": False,
+                "widget": "NumberInput",
+            }
+        )
+        self.assertEqual(
+            result,
+            {
+                "name": "number input",
+                "parameters": {
+                    "placeholder": None,
+                    "min": None,
+                    "max": None,
+                    "step": None,
+                },
+            },
+        )
+
+
+class TestGeneratorActionFieldWidgetNumberInputList(TestCase):
+    def test_build_widget_option_should_return_valid_widget_edit_with_default_values(self):
+        result = GeneratorActionFieldWidget.build_widget_options(
+            {
+                "type": ActionFieldType.NUMBER_LIST,
+                "label": "Label",
+                "watch_changes": False,
+                "widget": "NumberInputList",
+            }
+        )
+        self.assertEqual(
+            result,
+            {
+                "name": "input array",
+                "parameters": {
+                    "placeholder": None,
+                    "min": None,
+                    "max": None,
+                    "step": None,
+                    "allowDuplicate": False,
+                    "allowEmptyValue": False,
+                    "enableReorder": True,
+                },
+            },
+        )

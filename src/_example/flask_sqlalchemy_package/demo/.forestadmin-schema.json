@@ -359,7 +359,56 @@
                                 "name": "input array",
                                 "parameters": {
                                     "placeholder": "how many ??",
-                                    "allowDuplicate": false,
+                                    "allowDuplicate": true,
+                                    "allowEmptyValue": false,
+                                    "enableReorder": false
+                                }
+                            }
+                        },
+                        {
+                            "field": "number",
+                            "value": null,
+                            "defaultValue": null,
+                            "description": "",
+                            "enums": null,
+                            "hook": null,
+                            "isReadOnly": false,
+                            "isRequired": false,
+                            "reference": null,
+                            "type": "Number",
+                            "widget": null,
+                            "widgetEdit": {
+                                "name": "number input",
+                                "parameters": {
+                                    "placeholder": "???",
+                                    "min": null,
+                                    "max": null,
+                                    "step": null
+                                }
+                            }
+                        },
+                        {
+                            "field": "numbers",
+                            "value": null,
+                            "defaultValue": null,
+                            "description": "",
+                            "enums": null,
+                            "hook": null,
+                            "isReadOnly": false,
+                            "isRequired": false,
+                            "reference": null,
+                            "type": [
+                                "Number"
+                            ],
+                            "widget": null,
+                            "widgetEdit": {
+                                "name": "input array",
+                                "parameters": {
+                                    "placeholder": "???",
+                                    "min": -1,
+                                    "max": 10,
+                                    "step": 0.5,
+                                    "allowDuplicate": true,
                                     "allowEmptyValue": false,
                                     "enableReorder": true
                                 }
@@ -1149,6 +1198,6 @@
             "engine": "python",
             "engine_version": "3.11.3"
         },
-        "schemaFileHash": "ac3fc598178722c35cfefd59e669e057365ec10b"
+        "schemaFileHash": "fcabd32a38108f8dfc731ad0044385b2bcb469c4"
     }
 }

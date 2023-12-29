@@ -1,6 +1,8 @@
-from typing import List, Literal, Optional, Set, TypedDict
+from typing import List, Literal, Optional, Set, TypedDict, Union
 
 from typing_extensions import NotRequired
+
+Number = Union[int, float]
 
 
 class ColorPickerFieldConfiguration(TypedDict):
@@ -39,6 +41,24 @@ class ArrayTextInputFieldConfiguration(TypedDict):
     allow_duplicates: NotRequired[Optional[bool]]
 
 
+class NumberInputFieldConfiguration(TypedDict):
+    widget: Literal["NumberInput"]
+    min: NotRequired[Optional[Number]]
+    max: NotRequired[Optional[Number]]
+    step: NotRequired[Optional[Number]]
+
+
+class NumberInputListFieldConfiguration(TypedDict):
+    widget: Literal["NumberInputList"]
+    min: NotRequired[Optional[Number]]
+    max: NotRequired[Optional[Number]]
+    step: NotRequired[Optional[Number]]
+    placeholder: NotRequired[Optional[str]]
+    enable_reorder: NotRequired[Optional[bool]]
+    allow_empty_values: NotRequired[Optional[bool]]
+    allow_duplicates: NotRequired[Optional[bool]]
+
+
 WIDGET_ATTRIBUTES: Set[str] = set()
 for WidgetType in [
     ColorPickerFieldConfiguration,
@@ -47,5 +67,7 @@ for WidgetType in [
     RichTextFieldConfiguration,
     AddressAutocompleteFieldConfiguration,
     ArrayTextInputFieldConfiguration,
+    NumberInputFieldConfiguration,
+    NumberInputListFieldConfiguration,
 ]:
     WIDGET_ATTRIBUTES = WIDGET_ATTRIBUTES.union(WidgetType.__annotations__.keys())

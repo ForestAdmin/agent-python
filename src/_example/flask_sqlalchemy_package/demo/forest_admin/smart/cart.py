@@ -71,5 +71,21 @@ widget_action_form: ActionDict = {
             "enable_reorder": False,
             "allow_duplicates": True,
         },
+        {
+            "label": "number",
+            "type": ActionFieldType.NUMBER,
+            "widget": "NumberInput",
+            "placeholder": "???",
+        },
+        {
+            "label": "numbers",
+            "type": ActionFieldType.NUMBER_LIST,
+            "widget": "NumberInputList",
+            "placeholder": "???",
+            "min": -1,
+            "max": 10,
+            "step": 0.5,
+            "allow_duplicates": True,
+        },
     ],
 }

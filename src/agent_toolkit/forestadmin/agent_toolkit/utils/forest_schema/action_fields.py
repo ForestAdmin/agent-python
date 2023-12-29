@@ -29,3 +29,11 @@ class ActionFields:
     @staticmethod
     def is_address_autocomplete_field(field: ActionField) -> bool:
         return field is not None and field.get("widget", "") == "AddressAutocomplete"
+
+    @staticmethod
+    def is_number_input_field(field: ActionField) -> bool:
+        return field is not None and field.get("widget", "") == "NumberInput"
+
+    @staticmethod
+    def is_number_input_list_field(field: ActionField) -> bool:
+        return field is not None and field.get("widget", "") == "NumberInputList"
