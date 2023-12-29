@@ -6,6 +6,7 @@ from forestadmin.datasource_toolkit.decorators.action.types.widgets import (
     AddressAutocompleteFieldConfiguration,
     ArrayTextInputFieldConfiguration,
     ColorPickerFieldConfiguration,
+    JsonEditorFieldConfiguration,
     NumberInputFieldConfiguration,
     NumberInputListFieldConfiguration,
     RichTextFieldConfiguration,
@@ -388,6 +389,10 @@ class PlainListNumberDynamicFieldNumberInputListWidget(PlainListNumberDynamicFie
     pass
 
 
+class PlainJsonDynamicFieldJsonEditorWidget(PlainJsonDynamicField, JsonEditorFieldConfiguration):
+    pass
+
+
 PlainDynamicField = Union[
     PlainBooleanDynamicField,
     PlainCollectionDynamicField,
@@ -409,7 +414,9 @@ PlainDynamicField = Union[
     # string list & widgets
     PlainStringListDynamicField,
     PlainStringListDynamicFieldTextInputListWidget,
+    # json
     PlainJsonDynamicField,
+    PlainJsonDynamicFieldJsonEditorWidget,
     PlainFileDynamicField,
 ]
 

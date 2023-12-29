@@ -172,6 +172,12 @@ class ForestServerActionFieldNumberInputListEditorOptions(TypedDict):
     parameters: ForestServerActionFieldNumberInputListEditorOptionsParameters
 
 
+# json
+class ForestServerActionFieldJsonEditorEditorOptions(TypedDict):
+    name: Literal["json code editor"]
+    parameters: Dict[str, Any]
+
+
 class ForestServerActionField(TypedDict):
     value: Any
     defaultValue: Any

@@ -87,5 +87,10 @@ widget_action_form: ActionDict = {
             "step": 0.5,
             "allow_duplicates": True,
         },
+        {
+            "label": "json ",
+            "type": ActionFieldType.JSON,
+            "widget": "JsonEditor",
+        },
     ],
 }

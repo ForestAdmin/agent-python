@@ -3,6 +3,7 @@ from typing import Union
 from forestadmin.agent_toolkit.utils.forest_schema.action_fields import ActionFields
 from forestadmin.agent_toolkit.utils.forest_schema.type import (
     ForestServerActionFieldColorPickerOptions,
+    ForestServerActionFieldJsonEditorEditorOptions,
     ForestServerActionFieldNumberInputEditorOptions,
     ForestServerActionFieldNumberInputListEditorOptions,
     ForestServerActionFieldRichTextEditorOptions,
@@ -12,6 +13,7 @@ from forestadmin.agent_toolkit.utils.forest_schema.type import (
     WidgetEditConfiguration,
 )
 from forestadmin.datasource_toolkit.decorators.action.types.fields import (
+    PlainJsonDynamicFieldJsonEditorWidget,
     PlainListNumberDynamicFieldNumberInputListWidget,
     PlainNumberDynamicFieldNumberInputWidget,
     PlainStringDynamicFieldAddressAutocompleteWidget,
@@ -55,6 +57,9 @@ class GeneratorActionFieldWidget:
 
         if ActionFields.is_number_input_list_field(field):
             return GeneratorActionFieldWidget.build_number_input_list_widget_edit(field)
+
+        if ActionFields.is_json_editor_field(field):
+            return GeneratorActionFieldWidget.build_json_editor_widget_edit(field)
 
     @staticmethod
     def build_color_picker_widget_edit(
@@ -158,3 +163,9 @@ class GeneratorActionFieldWidget:
                 "enableReorder": field.get("enable_reorder", True),
             },
         }
+
+    @staticmethod
+    def build_json_editor_widget_edit(
+        field: PlainJsonDynamicFieldJsonEditorWidget,
+    ) -> ForestServerActionFieldJsonEditorEditorOptions:
+        return {"name": "json code editor", "parameters": {}}

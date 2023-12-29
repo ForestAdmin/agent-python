@@ -37,3 +37,7 @@ class ActionFields:
     @staticmethod
     def is_number_input_list_field(field: ActionField) -> bool:
         return field is not None and field.get("widget", "") == "NumberInputList"
+
+    @staticmethod
+    def is_json_editor_field(field: ActionField) -> bool:
+        return field is not None and field.get("widget", "") == "JsonEditor"

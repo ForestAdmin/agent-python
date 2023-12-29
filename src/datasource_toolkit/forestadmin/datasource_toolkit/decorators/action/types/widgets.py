@@ -59,6 +59,10 @@ class NumberInputListFieldConfiguration(TypedDict):
     allow_duplicates: NotRequired[Optional[bool]]
 
 
+class JsonEditorFieldConfiguration(TypedDict):
+    widget: Literal["JsonEditor"]
+
+
 WIDGET_ATTRIBUTES: Set[str] = set()
 for WidgetType in [
     ColorPickerFieldConfiguration,
@@ -69,5 +73,6 @@ for WidgetType in [
     ArrayTextInputFieldConfiguration,
     NumberInputFieldConfiguration,
     NumberInputListFieldConfiguration,
+    JsonEditorFieldConfiguration,
 ]:
     WIDGET_ATTRIBUTES = WIDGET_ATTRIBUTES.union(WidgetType.__annotations__.keys())

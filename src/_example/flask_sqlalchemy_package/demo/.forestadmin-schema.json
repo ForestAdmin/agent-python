@@ -413,6 +413,23 @@
                                     "enableReorder": true
                                 }
                             }
+                        },
+                        {
+                            "field": "json ",
+                            "value": null,
+                            "defaultValue": null,
+                            "description": "",
+                            "enums": null,
+                            "hook": null,
+                            "isReadOnly": false,
+                            "isRequired": false,
+                            "reference": null,
+                            "type": "Json",
+                            "widget": null,
+                            "widgetEdit": {
+                                "name": "json code editor",
+                                "parameters": {}
+                            }
                         }
                     ],
                     "hooks": {
@@ -1198,6 +1215,6 @@
             "engine": "python",
             "engine_version": "3.11.3"
         },
-        "schemaFileHash": "fcabd32a38108f8dfc731ad0044385b2bcb469c4"
+        "schemaFileHash": "0d0a383f82a5e5596795e93530c99bfcfc7460fd"
     }
 }
