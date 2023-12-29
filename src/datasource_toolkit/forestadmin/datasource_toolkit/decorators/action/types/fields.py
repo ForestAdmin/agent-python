@@ -6,6 +6,7 @@ from forestadmin.datasource_toolkit.decorators.action.types.widgets import (
     AddressAutocompleteFieldConfiguration,
     ArrayTextInputFieldConfiguration,
     ColorPickerFieldConfiguration,
+    CurrencyInputFieldConfiguration,
     JsonEditorFieldConfiguration,
     NumberInputFieldConfiguration,
     NumberInputListFieldConfiguration,
@@ -37,6 +38,7 @@ class PlainField(PlainBaseDynamicField):
 
 class BaseDynamicField(Generic[Context, Result]):
     ATTR_TO_EVALUATE = ("is_required", "is_read_only", "if_", "value", "default_value")
+    WIDGET_ATTR_TO_EVALUATE = ("min", "max", "step", "base")
     TYPE: ActionFieldType
 
     def __init__(
@@ -67,7 +69,10 @@ class BaseDynamicField(Generic[Context, Result]):
 
     @property
     def dynamic_fields(self):
-        return [self._is_required, self._is_read_only, self._if_, self._value, self._default_value]
+        ret = [getattr(self, f"_{field}") for field in BaseDynamicField.ATTR_TO_EVALUATE]
+        if len(self._widget_fields) > 0:
+            ret.extend(self._widget_fields.get(widget_attr) for widget_attr in BaseDynamicField.WIDGET_ATTR_TO_EVALUATE)
+        return ret
 
     @property
     def is_dynamic(self):
@@ -85,7 +90,7 @@ class BaseDynamicField(Generic[Context, Result]):
             collection_name=None,
             enum_values=None,
             watch_changes=False,
-            **self._widget_fields,
+            **{k: await self._evaluate(context, v) for k, v in self._widget_fields.items()},
         )
 
     async def default_value(self, context: Context) -> Result:
@@ -385,6 +390,10 @@ class PlainNumberDynamicFieldNumberInputWidget(PlainNumberDynamicField, NumberIn
     pass
 
 
+class PlainNumberDynamicFieldCurrencyInputWidget(PlainNumberDynamicField, CurrencyInputFieldConfiguration):
+    pass
+
+
 class PlainListNumberDynamicFieldNumberInputListWidget(PlainListNumberDynamicField, NumberInputListFieldConfiguration):
     pass
 
@@ -401,6 +410,7 @@ PlainDynamicField = Union[
     # number & widgets
     PlainNumberDynamicField,
     PlainNumberDynamicFieldNumberInputWidget,
+    PlainNumberDynamicFieldCurrencyInputWidget,
     # number list & widgets
     PlainListNumberDynamicField,
     PlainListNumberDynamicFieldNumberInputListWidget,

@@ -172,6 +172,21 @@ class ForestServerActionFieldNumberInputListEditorOptions(TypedDict):
     parameters: ForestServerActionFieldNumberInputListEditorOptionsParameters
 
 
+# currency
+class ForestServerActionFieldCurrencyInputEditorOptionsParameters(TypedDict):
+    placeholder: Optional[str]
+    min: Optional[Number]
+    max: Optional[Number]
+    step: Optional[Number]
+    currency: str
+    base: Literal["Unit", "Cent"]
+
+
+class ForestServerActionFieldCurrencyInputEditorOptions(TypedDict):
+    name: Literal["price editor"]
+    parameters: ForestServerActionFieldCurrencyInputEditorOptionsParameters
+
+
 # json
 class ForestServerActionFieldJsonEditorEditorOptions(TypedDict):
     name: Literal["json code editor"]

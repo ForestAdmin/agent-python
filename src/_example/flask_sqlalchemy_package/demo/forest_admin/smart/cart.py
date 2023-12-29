@@ -92,5 +92,13 @@ widget_action_form: ActionDict = {
             "type": ActionFieldType.JSON,
             "widget": "JsonEditor",
         },
+        {
+            "label": "Price",
+            "type": ActionFieldType.NUMBER,
+            "widget": "CurrencyInput",
+            "min": 0,
+            "max": 100,
+            "currency": "usd",
+        },
     ],
 }

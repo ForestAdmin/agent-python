@@ -222,6 +222,33 @@ class TestGeneratorActionFieldWidgetNumberInputList(TestCase):
         )
 
 
+class TestGeneratorActionFieldWidgetCurrencyInput(TestCase):
+    def test_build_widget_option_should_return_valid_widget_edit_with_default_values(self):
+        result = GeneratorActionFieldWidget.build_widget_options(
+            {
+                "type": ActionFieldType.NUMBER_LIST,
+                "label": "Label",
+                "watch_changes": False,
+                "widget": "CurrencyInput",
+                "currency": "usd",
+            }
+        )
+        self.assertEqual(
+            result,
+            {
+                "name": "price editor",
+                "parameters": {
+                    "min": None,
+                    "max": None,
+                    "step": None,
+                    "placeholder": None,
+                    "currency": "usd",
+                    "base": "Unit",
+                },
+            },
+        )
+
+
 class TestGeneratorActionFieldWidgetJsonEditor(TestCase):
     def test_build_widget_option_should_return_valid_widget_edit_with_default_values(self):
         result = GeneratorActionFieldWidget.build_widget_options(

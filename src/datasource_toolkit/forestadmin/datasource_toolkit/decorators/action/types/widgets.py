@@ -1,8 +1,14 @@
-from typing import List, Literal, Optional, Set, TypedDict, Union
+from typing import Awaitable, Callable, List, Literal, Optional, Set, TypedDict, TypeVar, Union
 
+from forestadmin.datasource_toolkit.decorators.action.context.base import ActionContext
 from typing_extensions import NotRequired
 
 Number = Union[int, float]
+
+Context = TypeVar("Context", bound=ActionContext)
+Result = TypeVar("Result")
+
+ValueOrHandler = Union[Callable[[Context], Awaitable[Result]], Callable[[Context], Result], Result]
 
 
 class ColorPickerFieldConfiguration(TypedDict):
@@ -43,20 +49,30 @@ class ArrayTextInputFieldConfiguration(TypedDict):
 
 class NumberInputFieldConfiguration(TypedDict):
     widget: Literal["NumberInput"]
-    min: NotRequired[Optional[Number]]
-    max: NotRequired[Optional[Number]]
-    step: NotRequired[Optional[Number]]
+    min: NotRequired[Optional[ValueOrHandler[Context, Number]]]
+    max: NotRequired[Optional[ValueOrHandler[Context, Number]]]
+    step: NotRequired[Optional[ValueOrHandler[Context, Number]]]
 
 
 class NumberInputListFieldConfiguration(TypedDict):
     widget: Literal["NumberInputList"]
-    min: NotRequired[Optional[Number]]
-    max: NotRequired[Optional[Number]]
-    step: NotRequired[Optional[Number]]
+    min: NotRequired[Optional[ValueOrHandler[Context, Number]]]
+    max: NotRequired[Optional[ValueOrHandler[Context, Number]]]
+    step: NotRequired[Optional[ValueOrHandler[Context, Number]]]
     placeholder: NotRequired[Optional[str]]
     enable_reorder: NotRequired[Optional[bool]]
     allow_empty_values: NotRequired[Optional[bool]]
     allow_duplicates: NotRequired[Optional[bool]]
+
+
+class CurrencyInputFieldConfiguration(TypedDict):
+    widget: Literal["CurrencyInput"]
+    placeholder: NotRequired[Optional[str]]
+    currency: NotRequired[Optional[str]]
+    base: NotRequired[Optional[ValueOrHandler[Context, Literal["Unit", "Cent"]]]]
+    min: NotRequired[Optional[ValueOrHandler[Context, Number]]]
+    max: NotRequired[Optional[ValueOrHandler[Context, Number]]]
+    step: NotRequired[Optional[ValueOrHandler[Context, Number]]]
 
 
 class JsonEditorFieldConfiguration(TypedDict):
@@ -73,6 +89,7 @@ for WidgetType in [
     ArrayTextInputFieldConfiguration,
     NumberInputFieldConfiguration,
     NumberInputListFieldConfiguration,
+    CurrencyInputFieldConfiguration,
     JsonEditorFieldConfiguration,
 ]:
     WIDGET_ATTRIBUTES = WIDGET_ATTRIBUTES.union(WidgetType.__annotations__.keys())

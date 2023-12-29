@@ -35,6 +35,10 @@ class ActionFields:
         return field is not None and field.get("widget", "") == "NumberInput"
 
     @staticmethod
+    def is_currency_input_field(field: ActionField) -> bool:
+        return field is not None and field.get("widget", "") == "CurrencyInput"
+
+    @staticmethod
     def is_number_input_list_field(field: ActionField) -> bool:
         return field is not None and field.get("widget", "") == "NumberInputList"
 

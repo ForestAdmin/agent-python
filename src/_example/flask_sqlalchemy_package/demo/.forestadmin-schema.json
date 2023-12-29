@@ -430,6 +430,30 @@
                                 "name": "json code editor",
                                 "parameters": {}
                             }
+                        },
+                        {
+                            "field": "Price",
+                            "value": null,
+                            "defaultValue": null,
+                            "description": "",
+                            "enums": null,
+                            "hook": null,
+                            "isReadOnly": false,
+                            "isRequired": false,
+                            "reference": null,
+                            "type": "Number",
+                            "widget": null,
+                            "widgetEdit": {
+                                "name": "price editor",
+                                "parameters": {
+                                    "placeholder": null,
+                                    "min": 0,
+                                    "max": 100,
+                                    "step": null,
+                                    "currency": "eur",
+                                    "base": "Unit"
+                                }
+                            }
                         }
                     ],
                     "hooks": {
@@ -1215,6 +1239,6 @@
             "engine": "python",
             "engine_version": "3.11.3"
         },
-        "schemaFileHash": "0d0a383f82a5e5596795e93530c99bfcfc7460fd"
+        "schemaFileHash": "0ed1f461de1e5ec422224afc8bd514010c3bd402"
     }
 }

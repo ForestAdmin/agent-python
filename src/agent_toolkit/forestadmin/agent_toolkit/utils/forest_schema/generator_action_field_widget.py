@@ -1,8 +1,9 @@
-from typing import Union
+from typing import Literal, Union
 
 from forestadmin.agent_toolkit.utils.forest_schema.action_fields import ActionFields
 from forestadmin.agent_toolkit.utils.forest_schema.type import (
     ForestServerActionFieldColorPickerOptions,
+    ForestServerActionFieldCurrencyInputEditorOptions,
     ForestServerActionFieldJsonEditorEditorOptions,
     ForestServerActionFieldNumberInputEditorOptions,
     ForestServerActionFieldNumberInputListEditorOptions,
@@ -15,6 +16,7 @@ from forestadmin.agent_toolkit.utils.forest_schema.type import (
 from forestadmin.datasource_toolkit.decorators.action.types.fields import (
     PlainJsonDynamicFieldJsonEditorWidget,
     PlainListNumberDynamicFieldNumberInputListWidget,
+    PlainNumberDynamicFieldCurrencyInputWidget,
     PlainNumberDynamicFieldNumberInputWidget,
     PlainStringDynamicFieldAddressAutocompleteWidget,
     PlainStringDynamicFieldColorWidget,
@@ -54,6 +56,9 @@ class GeneratorActionFieldWidget:
 
         if ActionFields.is_number_input_field(field):
             return GeneratorActionFieldWidget.build_number_input_widget_edit(field)
+
+        if ActionFields.is_currency_input_field(field):
+            return GeneratorActionFieldWidget.build_currency_input_widget_edit(field)
 
         if ActionFields.is_number_input_list_field(field):
             return GeneratorActionFieldWidget.build_number_input_list_widget_edit(field)
@@ -146,6 +151,36 @@ class GeneratorActionFieldWidget:
                 "step": field.get("step"),
             },
         }
+
+    @staticmethod
+    def build_currency_input_widget_edit(
+        field: PlainNumberDynamicFieldCurrencyInputWidget,
+    ) -> ForestServerActionFieldCurrencyInputEditorOptions:
+        return {
+            "name": "price editor",
+            "parameters": {
+                "placeholder": field.get("placeholder"),
+                "min": field.get("min"),
+                "max": field.get("max"),
+                "step": field.get("step"),
+                "currency": field["currency"]
+                if isinstance(field.get("currency"), str) and len(field["currency"]) == 3
+                else None,
+                "base": GeneratorActionFieldWidget._map_currency_base(field.get("base")),
+            },
+        }
+
+    @staticmethod
+    def _map_currency_base(base: str) -> Literal["Unit", "Cent"]:
+        try:
+            if base.lower() in ["cent", "cents"]:
+                return "Cent"
+            elif base.lower() in ["unit", "units"]:
+                return "Unit"
+        except Exception:
+            pass
+            # return "Unit" as default value
+        return "Unit"
 
     @staticmethod
     def build_number_input_list_widget_edit(
