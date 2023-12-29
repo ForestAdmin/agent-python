@@ -163,5 +163,33 @@ class TestIsAddressAutocompleteField(TestCase):
         self.assertFalse(result)
 
     def test_should_return_false_when_field_is_none(self):
-        result = ActionFields.is_rich_text_field(None)
+        result = ActionFields.is_address_autocomplete_field(None)
+        self.assertFalse(result)
+
+
+class TestIsTextInputListField(TestCase):
+    def test_should_return_true_when_its_text_input(self):
+        result = ActionFields.is_text_input_list_field(
+            {
+                "type": ActionFieldType.STRING_LIST,
+                "label": "Label",
+                "watch_changes": False,
+                "widget": "TextInputList",
+            }
+        )
+        self.assertTrue(result)
+
+    def test_should_return_false_when_its_not_rich_text(self):
+        result = ActionFields.is_text_input_list_field(
+            {
+                "type": ActionFieldType.STRING,
+                "label": "Label",
+                "watch_changes": False,
+                "widget": "Dropdown",
+            }
+        )
+        self.assertFalse(result)
+
+    def test_should_return_false_when_field_is_none(self):
+        result = ActionFields.is_text_input_list_field(None)
         self.assertFalse(result)

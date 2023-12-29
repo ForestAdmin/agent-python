@@ -63,5 +63,13 @@ widget_action_form: ActionDict = {
             "widget": "AddressAutocomplete",
             "placeholder": "where are you living ?",
         },
+        {
+            "label": "text list",
+            "type": ActionFieldType.STRING_LIST,
+            "widget": "TextInputList",
+            "placeholder": "how many ??",
+            "enable_reorder": False,
+            "allow_duplicates": True,
+        },
     ],
 }

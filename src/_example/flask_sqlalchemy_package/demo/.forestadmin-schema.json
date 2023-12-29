@@ -340,6 +340,30 @@
                                     "placeholder": "where are you living ?"
                                 }
                             }
+                        },
+                        {
+                            "field": "text list",
+                            "value": null,
+                            "defaultValue": null,
+                            "description": "",
+                            "enums": null,
+                            "hook": null,
+                            "isReadOnly": false,
+                            "isRequired": false,
+                            "reference": null,
+                            "type": [
+                                "String"
+                            ],
+                            "widget": null,
+                            "widgetEdit": {
+                                "name": "input array",
+                                "parameters": {
+                                    "placeholder": "how many ??",
+                                    "allowDuplicate": false,
+                                    "allowEmptyValue": false,
+                                    "enableReorder": true
+                                }
+                            }
                         }
                     ],
                     "hooks": {
@@ -1125,6 +1149,6 @@
             "engine": "python",
             "engine_version": "3.11.3"
         },
-        "schemaFileHash": "0705f132c9b9593be36893e943911d90fac419ec"
+        "schemaFileHash": "ac3fc598178722c35cfefd59e669e057365ec10b"
     }
 }

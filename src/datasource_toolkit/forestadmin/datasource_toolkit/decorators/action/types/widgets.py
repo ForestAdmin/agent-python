@@ -31,6 +31,14 @@ class AddressAutocompleteFieldConfiguration(TypedDict):
     placeholder: NotRequired[Optional[str]]
 
 
+class ArrayTextInputFieldConfiguration(TypedDict):
+    widget: Literal["TextInputList"]
+    placeholder: NotRequired[Optional[str]]
+    enable_reorder: NotRequired[Optional[bool]]
+    allow_empty_values: NotRequired[Optional[bool]]
+    allow_duplicates: NotRequired[Optional[bool]]
+
+
 WIDGET_ATTRIBUTES: Set[str] = set()
 for WidgetType in [
     ColorPickerFieldConfiguration,
@@ -38,5 +46,6 @@ for WidgetType in [
     TextAreaFieldConfiguration,
     RichTextFieldConfiguration,
     AddressAutocompleteFieldConfiguration,
+    ArrayTextInputFieldConfiguration,
 ]:
     WIDGET_ATTRIBUTES = WIDGET_ATTRIBUTES.union(WidgetType.__annotations__.keys())

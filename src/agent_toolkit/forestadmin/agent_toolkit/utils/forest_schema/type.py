@@ -98,6 +98,19 @@ class ForestServerActionFieldTextEditorOptions(TypedDict):
     parameters: ForestServerActionFieldTextEditorOptionsParameters
 
 
+# text list
+class ForestServerActionFieldTextListEditorOptionsParameters(TypedDict):
+    placeholder: Optional[str]
+    allowDuplicate: bool
+    allowEmptyValue: bool
+    enableReorder: bool
+
+
+class ForestServerActionFieldTextListEditorOptions(TypedDict):
+    name: Literal["input array"]
+    parameters: ForestServerActionFieldTextListEditorOptionsParameters
+
+
 # text area
 class ForestServerActionFieldTextAreaEditorOptionsParameters(TypedDict):
     placeholder: Optional[str]

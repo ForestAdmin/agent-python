@@ -15,6 +15,10 @@ class ActionFields:
         return field is not None and field.get("widget", "") == "TextInput"
 
     @staticmethod
+    def is_text_input_list_field(field: ActionField) -> bool:
+        return field is not None and field.get("widget", "") == "TextInputList"
+
+    @staticmethod
     def is_text_area_field(field: ActionField) -> bool:
         return field is not None and field.get("widget", "") == "TextArea"
 

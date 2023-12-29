@@ -4,6 +4,7 @@ from forestadmin.datasource_toolkit.decorators.action.context.base import Action
 from forestadmin.datasource_toolkit.decorators.action.types.widgets import (
     WIDGET_ATTRIBUTES,
     AddressAutocompleteFieldConfiguration,
+    ArrayTextInputFieldConfiguration,
     ColorPickerFieldConfiguration,
     RichTextFieldConfiguration,
     TextAreaFieldConfiguration,
@@ -373,6 +374,10 @@ class PlainStringDynamicAddressAutocompleteWidget(PlainStringDynamicField, Addre
     pass
 
 
+class PlainStringDynamicFieldTextInputListWidget(PlainStringListDynamicField, ArrayTextInputFieldConfiguration):
+    pass
+
+
 PlainDynamicField = Union[
     PlainBooleanDynamicField,
     PlainCollectionDynamicField,
@@ -385,6 +390,8 @@ PlainDynamicField = Union[
     PlainStringDynamicFieldTextAreaWidget,
     PlainStringDynamicFieldRichTextWidget,
     PlainStringDynamicAddressAutocompleteWidget,
+    PlainStringListDynamicField,
+    PlainStringDynamicFieldTextInputListWidget,
     PlainListNumberDynamicField,
     PlainJsonDynamicField,
     PlainFileDynamicField,

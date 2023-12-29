@@ -6,6 +6,7 @@ from forestadmin.agent_toolkit.utils.forest_schema.type import (
     ForestServerActionFieldRichTextEditorOptions,
     ForestServerActionFieldTextAreaEditorOptions,
     ForestServerActionFieldTextEditorOptions,
+    ForestServerActionFieldTextListEditorOptions,
     WidgetEditConfiguration,
 )
 from forestadmin.datasource_toolkit.decorators.action.types.fields import (
@@ -13,6 +14,7 @@ from forestadmin.datasource_toolkit.decorators.action.types.fields import (
     PlainStringDynamicFieldColorWidget,
     PlainStringDynamicFieldRichTextWidget,
     PlainStringDynamicFieldTextAreaWidget,
+    PlainStringDynamicFieldTextInputListWidget,
     PlainStringDynamicFieldTextInputWidget,
 )
 from forestadmin.datasource_toolkit.interfaces.actions import ActionField, ActionFieldType
@@ -31,6 +33,9 @@ class GeneratorActionFieldWidget:
 
         if ActionFields.is_text_input_field(field):
             return GeneratorActionFieldWidget.build_text_input_widget_edit(field)
+
+        if ActionFields.is_text_input_list_field(field):
+            return GeneratorActionFieldWidget.build_text_input_list_widget_edit(field)
 
         if ActionFields.is_text_area_field(field):
             return GeneratorActionFieldWidget.build_text_area_widget_edit(field)
@@ -62,6 +67,20 @@ class GeneratorActionFieldWidget:
             "name": "text editor",
             "parameters": {
                 "placeholder": field.get("placeholder"),
+            },
+        }
+
+    @staticmethod
+    def build_text_input_list_widget_edit(
+        field: PlainStringDynamicFieldTextInputListWidget,
+    ) -> ForestServerActionFieldTextListEditorOptions:
+        return {
+            "name": "input array",
+            "parameters": {
+                "placeholder": field.get("placeholder"),
+                "allowDuplicate": field.get("allow_duplicates", False),
+                "allowEmptyValue": field.get("allow_empty_values", False),
+                "enableReorder": field.get("enable_reorder", True),
             },
         }
 

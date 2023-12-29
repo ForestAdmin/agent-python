@@ -145,3 +145,27 @@ class TestGeneratorActionFieldWidgetAddressAutocomplete(TestCase):
                 "parameters": {"placeholder": None},
             },
         )
+
+
+class TestGeneratorActionFieldWidgetTextInputList(TestCase):
+    def test_build_widget_option_should_return_valid_widget_edit_with_default_values(self):
+        result = GeneratorActionFieldWidget.build_widget_options(
+            {
+                "type": ActionFieldType.STRING_LIST,
+                "label": "Label",
+                "watch_changes": False,
+                "widget": "TextInputList",
+            }
+        )
+        self.assertEqual(
+            result,
+            {
+                "name": "input array",
+                "parameters": {
+                    "placeholder": None,
+                    "allowDuplicate": False,
+                    "allowEmptyValue": False,
+                    "enableReorder": True,
+                },
+            },
+        )
