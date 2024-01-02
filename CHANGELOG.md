@@ -1,3 +1,10 @@
+# [1.3.0-beta.4](https://github.com/ForestAdmin/agent-python/compare/v1.3.0-beta.3...v1.3.0-beta.4) (2024-01-02)
+
+
+### Bug Fixes
+
+* **datasource_django:** inexistant related object does not crash anymore ([#161](https://github.com/ForestAdmin/agent-python/issues/161)) ([53acaad](https://github.com/ForestAdmin/agent-python/commit/53acaad74a185e558c16480f455265588f3f9b78))
+
 # [1.3.0-beta.3](https://github.com/ForestAdmin/agent-python/compare/v1.3.0-beta.2...v1.3.0-beta.3) (2023-12-27)
 
 
