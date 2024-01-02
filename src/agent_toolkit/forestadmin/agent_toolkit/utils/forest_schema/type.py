@@ -193,6 +193,19 @@ class ForestServerActionFieldJsonEditorEditorOptions(TypedDict):
     parameters: Dict[str, Any]
 
 
+# file
+class ForestServerActionFieldFilePickerEditorOptionsParameters(TypedDict):
+    prefix: None
+    filesExtensions: Optional[List[str]]
+    filesSizeLimit: Optional[Number]
+    filesCountLimit: Optional[Number]
+
+
+class ForestServerActionFieldFilePickerEditorOptions(TypedDict):
+    name: Literal["file picker"]
+    parameters: ForestServerActionFieldFilePickerEditorOptionsParameters
+
+
 class ForestServerActionField(TypedDict):
     value: Any
     defaultValue: Any

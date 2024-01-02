@@ -4,6 +4,7 @@ from forestadmin.agent_toolkit.utils.forest_schema.action_fields import ActionFi
 from forestadmin.agent_toolkit.utils.forest_schema.type import (
     ForestServerActionFieldColorPickerOptions,
     ForestServerActionFieldCurrencyInputEditorOptions,
+    ForestServerActionFieldFilePickerEditorOptions,
     ForestServerActionFieldJsonEditorEditorOptions,
     ForestServerActionFieldNumberInputEditorOptions,
     ForestServerActionFieldNumberInputListEditorOptions,
@@ -14,6 +15,8 @@ from forestadmin.agent_toolkit.utils.forest_schema.type import (
     WidgetEditConfiguration,
 )
 from forestadmin.datasource_toolkit.decorators.action.types.fields import (
+    PlainFileDynamicFieldFilePickerWidget,
+    PlainFileListDynamicFieldFilePickerWidget,
     PlainJsonDynamicFieldJsonEditorWidget,
     PlainListNumberDynamicFieldNumberInputListWidget,
     PlainNumberDynamicFieldCurrencyInputWidget,
@@ -32,7 +35,7 @@ class GeneratorActionFieldWidget:
     NO_WIDGET_FOR_FIELD_TYPES = (ActionFieldType.COLLECTION, ActionFieldType.ENUM, ActionFieldType.ENUM_LIST)
 
     @staticmethod
-    def build_widget_options(field: ActionField) -> Union[WidgetEditConfiguration, None]:
+    def build_widget_options(field: ActionField) -> Union[WidgetEditConfiguration, None]:  # noqa: C901
         if not ActionFields.has_widget(field) or field["type"] in GeneratorActionFieldWidget.NO_WIDGET_FOR_FIELD_TYPES:
             return None
 
@@ -65,6 +68,9 @@ class GeneratorActionFieldWidget:
 
         if ActionFields.is_json_editor_field(field):
             return GeneratorActionFieldWidget.build_json_editor_widget_edit(field)
+
+        if ActionFields.is_file_picker_field(field):
+            return GeneratorActionFieldWidget.build_file_picker_widget_edit(field)
 
     @staticmethod
     def build_color_picker_widget_edit(
@@ -204,3 +210,17 @@ class GeneratorActionFieldWidget:
         field: PlainJsonDynamicFieldJsonEditorWidget,
     ) -> ForestServerActionFieldJsonEditorEditorOptions:
         return {"name": "json code editor", "parameters": {}}
+
+    @staticmethod
+    def build_file_picker_widget_edit(
+        field: Union[PlainFileDynamicFieldFilePickerWidget, PlainFileListDynamicFieldFilePickerWidget],
+    ) -> ForestServerActionFieldFilePickerEditorOptions:
+        return {
+            "name": "file picker",
+            "parameters": {
+                "prefix": None,
+                "filesExtensions": field.get("extensions", None),
+                "filesCountLimit": field.get("max_count"),
+                "filesSizeLimit": field.get("max_size_mb"),
+            },
+        }

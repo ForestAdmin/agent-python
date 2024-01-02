@@ -266,3 +266,27 @@ class TestGeneratorActionFieldWidgetJsonEditor(TestCase):
                 "parameters": {},
             },
         )
+
+
+class TestGeneratorActionFieldWidgetFilePicjer(TestCase):
+    def test_build_widget_option_should_return_valid_widget_edit_with_default_values(self):
+        result = GeneratorActionFieldWidget.build_widget_options(
+            {
+                "type": ActionFieldType.FILE,
+                "label": "Label",
+                "watch_changes": False,
+                "widget": "FilePicker",
+            }
+        )
+        self.assertEqual(
+            result,
+            {
+                "name": "file picker",
+                "parameters": {
+                    "prefix": None,
+                    "filesExtensions": None,
+                    "filesCountLimit": None,
+                    "filesSizeLimit": None,
+                },
+            },
+        )

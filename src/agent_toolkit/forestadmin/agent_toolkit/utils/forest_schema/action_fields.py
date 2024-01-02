@@ -43,5 +43,9 @@ class ActionFields:
         return field is not None and field.get("widget", "") == "NumberInputList"
 
     @staticmethod
+    def is_file_picker_field(field: ActionField) -> bool:
+        return field is not None and field.get("widget", "") == "FilePicker"
+
+    @staticmethod
     def is_json_editor_field(field: ActionField) -> bool:
         return field is not None and field.get("widget", "") == "JsonEditor"

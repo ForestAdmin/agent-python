@@ -7,6 +7,8 @@ from forestadmin.datasource_toolkit.decorators.action.types.widgets import (
     ArrayTextInputFieldConfiguration,
     ColorPickerFieldConfiguration,
     CurrencyInputFieldConfiguration,
+    FileListPickerFieldConfiguration,
+    FilePickerFieldConfiguration,
     JsonEditorFieldConfiguration,
     NumberInputFieldConfiguration,
     NumberInputListFieldConfiguration,
@@ -38,7 +40,7 @@ class PlainField(PlainBaseDynamicField):
 
 class BaseDynamicField(Generic[Context, Result]):
     ATTR_TO_EVALUATE = ("is_required", "is_read_only", "if_", "value", "default_value")
-    WIDGET_ATTR_TO_EVALUATE = ("min", "max", "step", "base")
+    WIDGET_ATTR_TO_EVALUATE = ("min", "max", "step", "base", "extensions", "max_size_mb", "max_count")
     TYPE: ActionFieldType
 
     def __init__(
@@ -402,6 +404,14 @@ class PlainJsonDynamicFieldJsonEditorWidget(PlainJsonDynamicField, JsonEditorFie
     pass
 
 
+class PlainFileDynamicFieldFilePickerWidget(PlainFileDynamicField, FilePickerFieldConfiguration):
+    pass
+
+
+class PlainFileListDynamicFieldFilePickerWidget(PlainFileListDynamicField, FileListPickerFieldConfiguration):
+    pass
+
+
 PlainDynamicField = Union[
     PlainBooleanDynamicField,
     PlainCollectionDynamicField,
@@ -427,7 +437,12 @@ PlainDynamicField = Union[
     # json
     PlainJsonDynamicField,
     PlainJsonDynamicFieldJsonEditorWidget,
+    # file
     PlainFileDynamicField,
+    PlainFileDynamicFieldFilePickerWidget,
+    # file list
+    PlainFileListDynamicField,
+    PlainFileListDynamicFieldFilePickerWidget,
 ]
 
 

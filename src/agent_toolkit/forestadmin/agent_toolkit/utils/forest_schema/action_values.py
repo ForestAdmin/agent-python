@@ -100,7 +100,7 @@ class ForestValueConverter:
         elif field["type"] == ActionFieldType.FILE:
             return ForestValueConverter._make_data_uri(value)
         elif field["type"] == ActionFieldType.FILE_LIST:
-            return [ForestValueConverter._make_data_uri(v) for v in value]
+            return [ForestValueConverter._make_data_uri(v) for v in value] if isinstance(value, list) else []
 
         return value
 

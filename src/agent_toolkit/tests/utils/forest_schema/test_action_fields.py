@@ -305,3 +305,31 @@ class TestIsJsonEditorField(TestCase):
     def test_should_return_false_when_field_is_none(self):
         result = ActionFields.is_json_editor_field(None)
         self.assertFalse(result)
+
+
+class TestIsFilePickerField(TestCase):
+    def test_should_return_true_when_its_text_input(self):
+        result = ActionFields.is_file_picker_field(
+            {
+                "type": ActionFieldType.NUMBER_LIST,
+                "label": "Label",
+                "watch_changes": False,
+                "widget": "FilePicker",
+            }
+        )
+        self.assertTrue(result)
+
+    def test_should_return_false_when_its_not_rich_text(self):
+        result = ActionFields.is_file_picker_field(
+            {
+                "type": ActionFieldType.STRING,
+                "label": "Label",
+                "watch_changes": False,
+                "widget": "Dropdown",
+            }
+        )
+        self.assertFalse(result)
+
+    def test_should_return_false_when_field_is_none(self):
+        result = ActionFields.is_file_picker_field(None)
+        self.assertFalse(result)

@@ -100,5 +100,13 @@ widget_action_form: ActionDict = {
             "max": 100,
             "currency": "usd",
         },
+        {
+            "label": "file list",
+            "type": ActionFieldType.FILE_LIST,
+            "widget": "FilePicker",
+            "max_size_mb": 10,
+            "max_count": 1,
+            "extensions": ["png"],
+        },
     ],
 }

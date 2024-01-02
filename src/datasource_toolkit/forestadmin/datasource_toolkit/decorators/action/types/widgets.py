@@ -79,6 +79,19 @@ class JsonEditorFieldConfiguration(TypedDict):
     widget: Literal["JsonEditor"]
 
 
+class FilePickerFieldConfiguration(TypedDict):
+    widget: Literal["FilePicker"]
+    extensions: NotRequired[Optional[ValueOrHandler[Context, List[str]]]]
+    max_size_mb: NotRequired[Optional[ValueOrHandler[Context, Number]]]
+
+
+class FileListPickerFieldConfiguration(TypedDict):
+    widget: Literal["FilePicker"]
+    extensions: NotRequired[Optional[ValueOrHandler[Context, List[str]]]]
+    max_size_mb: NotRequired[Optional[ValueOrHandler[Context, Number]]]
+    max_count: NotRequired[Optional[ValueOrHandler[Context, Number]]]
+
+
 WIDGET_ATTRIBUTES: Set[str] = set()
 for WidgetType in [
     ColorPickerFieldConfiguration,
@@ -91,5 +104,7 @@ for WidgetType in [
     NumberInputListFieldConfiguration,
     CurrencyInputFieldConfiguration,
     JsonEditorFieldConfiguration,
+    FilePickerFieldConfiguration,
+    FileListPickerFieldConfiguration,
 ]:
     WIDGET_ATTRIBUTES = WIDGET_ATTRIBUTES.union(WidgetType.__annotations__.keys())

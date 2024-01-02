@@ -450,8 +450,32 @@
                                     "min": 0,
                                     "max": 100,
                                     "step": null,
-                                    "currency": "eur",
+                                    "currency": "usd",
                                     "base": "Unit"
+                                }
+                            }
+                        },
+                        {
+                            "field": "file list",
+                            "value": null,
+                            "defaultValue": null,
+                            "description": "",
+                            "enums": null,
+                            "hook": null,
+                            "isReadOnly": false,
+                            "isRequired": false,
+                            "reference": null,
+                            "type": "File",
+                            "widget": null,
+                            "widgetEdit": {
+                                "name": "file picker",
+                                "parameters": {
+                                    "prefix": null,
+                                    "filesExtensions": [
+                                        "png"
+                                    ],
+                                    "filesCountLimit": null,
+                                    "filesSizeLimit": 10
                                 }
                             }
                         }
@@ -1239,6 +1263,6 @@
             "engine": "python",
             "engine_version": "3.11.3"
         },
-        "schemaFileHash": "0ed1f461de1e5ec422224afc8bd514010c3bd402"
+        "schemaFileHash": "719d02d5cb97490b536961effc4988c96b2e67b2"
     }
 }
