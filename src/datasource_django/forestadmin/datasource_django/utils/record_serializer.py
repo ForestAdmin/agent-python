@@ -9,7 +9,7 @@ def instance_to_record_data(instance: Model, projection: Projection) -> RecordsD
         record_data[field_name] = getattr(instance, field_name)
 
     for relation_name, subfields in projection.relations.items():
-        relation = getattr(instance, relation_name)
+        relation = getattr(instance, relation_name, None)
         if relation:
             record_data[relation_name] = instance_to_record_data(relation, subfields)
         else:
