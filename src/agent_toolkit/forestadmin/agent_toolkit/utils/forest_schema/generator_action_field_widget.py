@@ -3,6 +3,7 @@ from typing import Literal, Union
 
 from forestadmin.agent_toolkit.utils.forest_schema.action_fields import ActionFields
 from forestadmin.agent_toolkit.utils.forest_schema.type import (
+    ForestServerActionFieldCheckboxOptions,
     ForestServerActionFieldColorPickerOptions,
     ForestServerActionFieldCurrencyInputEditorOptions,
     ForestServerActionFieldDatePickerOptions,
@@ -18,6 +19,7 @@ from forestadmin.agent_toolkit.utils.forest_schema.type import (
     WidgetEditConfiguration,
 )
 from forestadmin.datasource_toolkit.decorators.action.types.fields import (
+    PlainBooleanDynamicFieldCheckboxWidget,
     PlainDateDynamicFieldDatePickerWidget,
     PlainDateOnlyDynamicFieldDatePickerWidget,
     PlainFileDynamicFieldFilePickerWidget,
@@ -83,6 +85,9 @@ class GeneratorActionFieldWidget:
 
         if ActionFields.is_time_picker_field(field):
             return GeneratorActionFieldWidget.build_time_picker_widget_edit(field)
+
+        if ActionFields.is_checkbox_field(field):
+            return GeneratorActionFieldWidget.build_checkbox_widget_edit(field)
 
     @staticmethod
     def build_color_picker_widget_edit(
@@ -257,5 +262,14 @@ class GeneratorActionFieldWidget:
     ) -> ForestServerActionFieldTimePickerOptions:
         return {
             "name": "time editor",
+            "parameters": {},
+        }
+
+    @staticmethod
+    def build_checkbox_widget_edit(
+        field: PlainBooleanDynamicFieldCheckboxWidget,
+    ) -> ForestServerActionFieldCheckboxOptions:
+        return {
+            "name": "boolean editor",
             "parameters": {},
         }

@@ -225,6 +225,12 @@ class ForestServerActionFieldDatePickerOptions(TypedDict):
     parameters: ForestServerActionFieldDatePickerEditorOptionsParameters
 
 
+# checkbox
+class ForestServerActionFieldCheckboxOptions(TypedDict):
+    name: Literal["boolean editor"]
+    parameters: Dict[str, Any]
+
+
 class ForestServerActionField(TypedDict):
     value: Any
     defaultValue: Any

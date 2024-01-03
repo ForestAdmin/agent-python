@@ -57,3 +57,7 @@ class ActionFields:
     @staticmethod
     def is_time_picker_field(field: ActionField) -> bool:
         return field is not None and field.get("widget", "") == "TimePicker"
+
+    @staticmethod
+    def is_checkbox_field(field: ActionField) -> bool:
+        return field is not None and field.get("widget", "") == "Checkbox"

@@ -6,6 +6,7 @@ from forestadmin.datasource_toolkit.decorators.action.types.widgets import (
     WIDGET_ATTRIBUTES,
     AddressAutocompleteFieldConfiguration,
     ArrayTextInputFieldConfiguration,
+    CheckboxFieldConfiguration,
     ColorPickerFieldConfiguration,
     CurrencyInputFieldConfiguration,
     DatePickerFieldConfiguration,
@@ -20,7 +21,13 @@ from forestadmin.datasource_toolkit.decorators.action.types.widgets import (
     TimePickerFieldConfiguration,
 )
 from forestadmin.datasource_toolkit.exceptions import DatasourceToolkitException
-from forestadmin.datasource_toolkit.interfaces.actions import ActionField, ActionFieldType, File
+from forestadmin.datasource_toolkit.interfaces.actions import (
+    ActionField,
+    ActionFieldType,
+    ActionFieldTypeLiteral,
+    File,
+    WidgetTypes,
+)
 from forestadmin.datasource_toolkit.interfaces.records import CompositeIdAlias
 from typing_extensions import NotRequired
 
@@ -461,9 +468,22 @@ class PlainTimeDynamicFieldTimePickerWidget(PlainTimeDynamicField, TimePickerFie
     pass
 
 
+class PlainBooleanDynamicFieldCheckboxWidget(PlainBooleanDynamicField, CheckboxFieldConfiguration):
+    pass
+
+
+class ZZZ(TypedDict):
+    type: Union[ActionFieldType, ActionFieldTypeLiteral]
+    widget: WidgetTypes
+
+
 PlainDynamicField = Union[
+    # boolean
     PlainBooleanDynamicField,
+    PlainBooleanDynamicFieldCheckboxWidget,
+    # collection
     PlainCollectionDynamicField,
+    # enum
     PlainEnumDynamicField,
     PlainListEnumDynamicField,
     # number & widgets
@@ -501,6 +521,8 @@ PlainDynamicField = Union[
     # time
     PlainTimeDynamicField,
     PlainTimeDynamicFieldTimePickerWidget,
+    # for autocompletion
+    ZZZ,
 ]
 
 
@@ -529,7 +551,7 @@ class FieldFactory(Generic[Context]):
     @classmethod
     def build(cls, plain_field: PlainDynamicField) -> DynamicField[Context]:
         try:
-            cls_field = cls.FIELD_FOR_TYPE[plain_field["type"]]
+            cls_field = cls.FIELD_FOR_TYPE[ActionFieldType(plain_field["type"])]
         except KeyError:
             raise FieldFactoryException(f"Unknown field type: '{plain_field['type']}'")
 

@@ -29,7 +29,7 @@ async def cart_update_name(value, context: WriteCustomizationContext):
 widget_action_form: ActionDict = {
     "scope": ActionsScope.GLOBAL,
     "execute": lambda context, result_builder: print(
-        "date_only: ", context.form_values.get("date_only"), type(context.form_values.get("date_only"))
+        "bool: ", context.form_values.get("bool"), type(context.form_values.get("bool"))
     ),
     "form": [
         {
@@ -124,7 +124,7 @@ widget_action_form: ActionDict = {
         {
             "label": "date_only",
             "type": ActionFieldType.DATE_ONLY,
-            "widget": "DatePicker",
+            "widget": "",
             "min": date(2023, 10, 1),
             "max": date.today(),
             # "max": lambda ctx: date.today(),
@@ -134,6 +134,12 @@ widget_action_form: ActionDict = {
             "label": "Time only",
             "type": ActionFieldType.TIME,
             # "widget": "TimePicker", # this one is not necessary.
+        },
+        {
+            "label": "bool",
+            "type": "Boolean",
+            "widget": "Checkbox",
+            # "is_required": True,
         },
     ],
 }

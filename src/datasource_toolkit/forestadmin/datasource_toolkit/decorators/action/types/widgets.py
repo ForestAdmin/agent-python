@@ -31,7 +31,7 @@ class TextAreaFieldConfiguration(TypedDict):
 
 
 class RichTextFieldConfiguration(TypedDict):
-    widget: Literal["TextArea"]
+    widget: Literal["RichText"]
     placeholder: NotRequired[Optional[str]]
 
 
@@ -105,6 +105,10 @@ class DatePickerFieldConfiguration(TypedDict):
     max: NotRequired[Optional[ValueOrHandler[Context, date]]]
 
 
+class CheckboxFieldConfiguration(TypedDict):
+    widget: Literal["Checkbox"]
+
+
 WIDGET_ATTRIBUTES: Set[str] = set()
 for WidgetType in [
     ColorPickerFieldConfiguration,
@@ -121,5 +125,6 @@ for WidgetType in [
     FileListPickerFieldConfiguration,
     DatePickerFieldConfiguration,
     TimePickerFieldConfiguration,
+    CheckboxFieldConfiguration,
 ]:
     WIDGET_ATTRIBUTES = WIDGET_ATTRIBUTES.union(WidgetType.__annotations__.keys())

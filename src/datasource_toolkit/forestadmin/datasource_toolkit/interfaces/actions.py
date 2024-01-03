@@ -43,7 +43,40 @@ class ActionFieldType(enum.Enum):
     STRING_LIST = "StringList"
 
 
-WidgetTypes = Literal["ColorPicker", "TextInput"]
+ActionFieldTypeLiteral = Literal[
+    "Boolean",
+    "Collection",
+    "Date",
+    "Dateonly",
+    "Time",
+    "Enum",
+    "File",
+    "Json",
+    "Number",
+    "String",
+    "EnumList",
+    "FileList",
+    "NumberList",
+    "StringList",
+]
+
+
+WidgetTypes = Literal[
+    "TimePicker",
+    "TextInputList",
+    "TextInput",
+    "TextArea",
+    "RichText",
+    "NumberInputList",
+    "NumberInput",
+    "JsonEditor",
+    "FilePicker",
+    "DatePicker",
+    "CurrencyInput",
+    "Checkbox",
+    "ColorPicker",
+    "AddressAutocomplete",
+]
 
 
 class ActionField(TypedDict):
