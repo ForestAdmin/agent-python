@@ -1,3 +1,6 @@
+from datetime import date, datetime
+
+import pytz
 from forestadmin.datasource_toolkit.decorators.action.types.actions import ActionDict
 from forestadmin.datasource_toolkit.decorators.write.write_replace.write_customization_context import (
     WriteCustomizationContext,
@@ -25,7 +28,9 @@ async def cart_update_name(value, context: WriteCustomizationContext):
 
 widget_action_form: ActionDict = {
     "scope": ActionsScope.GLOBAL,
-    "execute": lambda context, result_builder: print("color: ", context.form_values.get("color")),
+    "execute": lambda context, result_builder: print(
+        "date_only: ", context.form_values.get("date_only"), type(context.form_values.get("date_only"))
+    ),
     "form": [
         {
             "label": "color",
@@ -107,6 +112,28 @@ widget_action_form: ActionDict = {
             "max_size_mb": 10,
             "max_count": 1,
             "extensions": ["png"],
+        },
+        {
+            "label": "date",
+            "type": ActionFieldType.DATE,
+            "widget": "DatePicker",
+            "min": datetime(2023, 10, 1, 0, 0, 0, 0, pytz.UTC),
+            "max": datetime.now(pytz.UTC),
+            "format": "YYYY-MM-DD HH:mm",
+        },
+        {
+            "label": "date_only",
+            "type": ActionFieldType.DATE_ONLY,
+            "widget": "DatePicker",
+            "min": date(2023, 10, 1),
+            "max": date.today(),
+            # "max": lambda ctx: date.today(),
+            "format": "YYYY/MM/DD",
+        },
+        {
+            "label": "Time only",
+            "type": ActionFieldType.TIME,
+            # "widget": "TimePicker", # this one is not necessary.
         },
     ],
 }

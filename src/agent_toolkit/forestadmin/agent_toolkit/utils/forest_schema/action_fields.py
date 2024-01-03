@@ -49,3 +49,11 @@ class ActionFields:
     @staticmethod
     def is_json_editor_field(field: ActionField) -> bool:
         return field is not None and field.get("widget", "") == "JsonEditor"
+
+    @staticmethod
+    def is_date_picker_field(field: ActionField) -> bool:
+        return field is not None and field.get("widget", "") == "DatePicker"
+
+    @staticmethod
+    def is_time_picker_field(field: ActionField) -> bool:
+        return field is not None and field.get("widget", "") == "TimePicker"

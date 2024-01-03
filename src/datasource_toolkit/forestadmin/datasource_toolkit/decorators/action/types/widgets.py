@@ -1,3 +1,4 @@
+from datetime import date
 from typing import Awaitable, Callable, List, Literal, Optional, Set, TypedDict, TypeVar, Union
 
 from forestadmin.datasource_toolkit.decorators.action.context.base import ActionContext
@@ -92,6 +93,18 @@ class FileListPickerFieldConfiguration(TypedDict):
     max_count: NotRequired[Optional[ValueOrHandler[Context, Number]]]
 
 
+class TimePickerFieldConfiguration(TypedDict):
+    widget: Literal["TimePicker"]
+
+
+class DatePickerFieldConfiguration(TypedDict):
+    widget: Literal["DatePicker"]
+    placeholder: NotRequired[Optional[str]]
+    format: NotRequired[Optional[ValueOrHandler[Context, str]]]
+    min: NotRequired[Optional[ValueOrHandler[Context, date]]]
+    max: NotRequired[Optional[ValueOrHandler[Context, date]]]
+
+
 WIDGET_ATTRIBUTES: Set[str] = set()
 for WidgetType in [
     ColorPickerFieldConfiguration,
@@ -106,5 +119,7 @@ for WidgetType in [
     JsonEditorFieldConfiguration,
     FilePickerFieldConfiguration,
     FileListPickerFieldConfiguration,
+    DatePickerFieldConfiguration,
+    TimePickerFieldConfiguration,
 ]:
     WIDGET_ATTRIBUTES = WIDGET_ATTRIBUTES.union(WidgetType.__annotations__.keys())

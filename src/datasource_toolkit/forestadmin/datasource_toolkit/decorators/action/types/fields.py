@@ -1,3 +1,4 @@
+from datetime import date, datetime
 from typing import Any, Awaitable, Callable, Generic, List, Optional, TypedDict, TypeVar, Union
 
 from forestadmin.datasource_toolkit.decorators.action.context.base import ActionContext
@@ -7,6 +8,7 @@ from forestadmin.datasource_toolkit.decorators.action.types.widgets import (
     ArrayTextInputFieldConfiguration,
     ColorPickerFieldConfiguration,
     CurrencyInputFieldConfiguration,
+    DatePickerFieldConfiguration,
     FileListPickerFieldConfiguration,
     FilePickerFieldConfiguration,
     JsonEditorFieldConfiguration,
@@ -15,12 +17,14 @@ from forestadmin.datasource_toolkit.decorators.action.types.widgets import (
     RichTextFieldConfiguration,
     TextAreaFieldConfiguration,
     TextInputFieldConfiguration,
+    TimePickerFieldConfiguration,
 )
 from forestadmin.datasource_toolkit.exceptions import DatasourceToolkitException
 from forestadmin.datasource_toolkit.interfaces.actions import ActionField, ActionFieldType, File
 from forestadmin.datasource_toolkit.interfaces.records import CompositeIdAlias
 from typing_extensions import NotRequired
 
+Number = Union[int, float]
 Context = TypeVar("Context", bound=ActionContext)
 Result = TypeVar("Result")
 
@@ -273,6 +277,39 @@ class BooleanDynamicField(Generic[Context], BaseDynamicField[Context, bool]):
     TYPE = ActionFieldType.BOOLEAN
 
 
+# date only
+class PlainDateOnlyDynamicField(PlainField):
+    if_: NotRequired[ValueOrHandler[ActionContext, Any]]
+    value: NotRequired[ValueOrHandler[ActionContext, date]]
+    default_value: NotRequired[ValueOrHandler[ActionContext, date]]
+
+
+class DateOnlyDynamicField(Generic[Context], BaseDynamicField[Context, date]):
+    TYPE = ActionFieldType.DATE_ONLY
+
+
+# datetime
+class PlainDateTimeDynamicField(PlainField):
+    if_: NotRequired[ValueOrHandler[ActionContext, Any]]
+    value: NotRequired[ValueOrHandler[ActionContext, datetime]]
+    default_value: NotRequired[ValueOrHandler[ActionContext, datetime]]
+
+
+class DateTimeDynamicField(Generic[Context], BaseDynamicField[Context, datetime]):
+    TYPE = ActionFieldType.DATE
+
+
+# time
+class PlainTimeDynamicField(PlainField):
+    if_: NotRequired[ValueOrHandler[ActionContext, Any]]
+    value: NotRequired[ValueOrHandler[ActionContext, str]]
+    default_value: NotRequired[ValueOrHandler[ActionContext, str]]
+
+
+class TimeDynamicField(Generic[Context], BaseDynamicField[Context, str]):
+    TYPE = ActionFieldType.TIME
+
+
 # number
 class PlainNumberDynamicField(PlainField):
     if_: NotRequired[ValueOrHandler[ActionContext, Any]]
@@ -412,6 +449,18 @@ class PlainFileListDynamicFieldFilePickerWidget(PlainFileListDynamicField, FileL
     pass
 
 
+class PlainDateDynamicFieldDatePickerWidget(PlainDateTimeDynamicField, DatePickerFieldConfiguration):
+    pass
+
+
+class PlainDateOnlyDynamicFieldDatePickerWidget(PlainDateOnlyDynamicField, DatePickerFieldConfiguration):
+    pass
+
+
+class PlainTimeDynamicFieldTimePickerWidget(PlainTimeDynamicField, TimePickerFieldConfiguration):
+    pass
+
+
 PlainDynamicField = Union[
     PlainBooleanDynamicField,
     PlainCollectionDynamicField,
@@ -443,6 +492,15 @@ PlainDynamicField = Union[
     # file list
     PlainFileListDynamicField,
     PlainFileListDynamicFieldFilePickerWidget,
+    # date
+    PlainDateTimeDynamicField,
+    PlainDateDynamicFieldDatePickerWidget,
+    # date only
+    PlainDateOnlyDynamicField,
+    PlainDateDynamicFieldDatePickerWidget,
+    # time
+    PlainTimeDynamicField,
+    PlainTimeDynamicFieldTimePickerWidget,
 ]
 
 
@@ -463,6 +521,9 @@ class FieldFactory(Generic[Context]):
         ActionFieldType.JSON: JsonDynamicField,
         ActionFieldType.FILE: FileDynamicField,
         ActionFieldType.FILE_LIST: FileListDynamicField,
+        ActionFieldType.TIME: TimeDynamicField,
+        ActionFieldType.DATE: DateTimeDynamicField,
+        ActionFieldType.DATE_ONLY: DateOnlyDynamicField,
     }
 
     @classmethod

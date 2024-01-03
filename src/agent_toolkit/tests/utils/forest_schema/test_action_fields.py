@@ -333,3 +333,59 @@ class TestIsFilePickerField(TestCase):
     def test_should_return_false_when_field_is_none(self):
         result = ActionFields.is_file_picker_field(None)
         self.assertFalse(result)
+
+
+class TestIsDatePickerField(TestCase):
+    def test_should_return_true_when_its_text_input(self):
+        result = ActionFields.is_date_picker_field(
+            {
+                "type": ActionFieldType.DATE,
+                "label": "Label",
+                "watch_changes": False,
+                "widget": "DatePicker",
+            }
+        )
+        self.assertTrue(result)
+
+    def test_should_return_false_when_its_not_rich_text(self):
+        result = ActionFields.is_date_picker_field(
+            {
+                "type": ActionFieldType.STRING,
+                "label": "Label",
+                "watch_changes": False,
+                "widget": "Dropdown",
+            }
+        )
+        self.assertFalse(result)
+
+    def test_should_return_false_when_field_is_none(self):
+        result = ActionFields.is_date_picker_field(None)
+        self.assertFalse(result)
+
+
+class TestIsTimePickerField(TestCase):
+    def test_should_return_true_when_its_text_input(self):
+        result = ActionFields.is_time_picker_field(
+            {
+                "type": ActionFieldType.TIME,
+                "label": "Label",
+                "watch_changes": False,
+                "widget": "TimePicker",
+            }
+        )
+        self.assertTrue(result)
+
+    def test_should_return_false_when_its_not_rich_text(self):
+        result = ActionFields.is_time_picker_field(
+            {
+                "type": ActionFieldType.STRING,
+                "label": "Label",
+                "watch_changes": False,
+                "widget": "Dropdown",
+            }
+        )
+        self.assertFalse(result)
+
+    def test_should_return_false_when_field_is_none(self):
+        result = ActionFields.is_time_picker_field(None)
+        self.assertFalse(result)

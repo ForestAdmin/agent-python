@@ -31,6 +31,7 @@ class ActionFieldType(enum.Enum):
     COLLECTION = "Collection"
     DATE = "Date"
     DATE_ONLY = "Dateonly"
+    TIME = "Time"
     ENUM = "Enum"
     FILE = "File"
     JSON = "Json"

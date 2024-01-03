@@ -457,7 +457,7 @@
                         },
                         {
                             "field": "file list",
-                            "value": null,
+                            "value": [],
                             "defaultValue": null,
                             "description": "",
                             "enums": null,
@@ -465,7 +465,9 @@
                             "isReadOnly": false,
                             "isRequired": false,
                             "reference": null,
-                            "type": "File",
+                            "type": [
+                                "File"
+                            ],
                             "widget": null,
                             "widgetEdit": {
                                 "name": "file picker",
@@ -474,10 +476,68 @@
                                     "filesExtensions": [
                                         "png"
                                     ],
-                                    "filesCountLimit": null,
+                                    "filesCountLimit": 1,
                                     "filesSizeLimit": 10
                                 }
                             }
+                        },
+                        {
+                            "field": "date",
+                            "value": null,
+                            "defaultValue": null,
+                            "description": "",
+                            "enums": null,
+                            "hook": null,
+                            "isReadOnly": false,
+                            "isRequired": false,
+                            "reference": null,
+                            "type": "Date",
+                            "widget": null,
+                            "widgetEdit": {
+                                "name": "date editor",
+                                "parameters": {
+                                    "format": "YYYY-MM-DD HH:mm",
+                                    "placeholder": null,
+                                    "minDate": "2023-10-01T00:00:00+00:00",
+                                    "maxDate": "2024-01-03T10:33:22.068598+00:00"
+                                }
+                            }
+                        },
+                        {
+                            "field": "date_only",
+                            "value": null,
+                            "defaultValue": null,
+                            "description": "",
+                            "enums": null,
+                            "hook": null,
+                            "isReadOnly": false,
+                            "isRequired": false,
+                            "reference": null,
+                            "type": "Dateonly",
+                            "widget": null,
+                            "widgetEdit": {
+                                "name": "date editor",
+                                "parameters": {
+                                    "format": "YYYY/MM/DD",
+                                    "placeholder": null,
+                                    "minDate": "2023-10-01",
+                                    "maxDate": "2024-01-03"
+                                }
+                            }
+                        },
+                        {
+                            "field": "Time only",
+                            "value": null,
+                            "defaultValue": null,
+                            "description": "",
+                            "enums": null,
+                            "hook": null,
+                            "isReadOnly": false,
+                            "isRequired": false,
+                            "reference": null,
+                            "type": "Time",
+                            "widget": null,
+                            "widgetEdit": null
                         }
                     ],
                     "hooks": {
@@ -1263,6 +1323,6 @@
             "engine": "python",
             "engine_version": "3.11.3"
         },
-        "schemaFileHash": "719d02d5cb97490b536961effc4988c96b2e67b2"
+        "schemaFileHash": "2086976aa86d0e11a84f23ad1ce486e1229bc171"
     }
 }

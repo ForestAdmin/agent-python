@@ -268,7 +268,7 @@ class TestGeneratorActionFieldWidgetJsonEditor(TestCase):
         )
 
 
-class TestGeneratorActionFieldWidgetFilePicjer(TestCase):
+class TestGeneratorActionFieldWidgetFilePicker(TestCase):
     def test_build_widget_option_should_return_valid_widget_edit_with_default_values(self):
         result = GeneratorActionFieldWidget.build_widget_options(
             {
@@ -288,5 +288,48 @@ class TestGeneratorActionFieldWidgetFilePicjer(TestCase):
                     "filesCountLimit": None,
                     "filesSizeLimit": None,
                 },
+            },
+        )
+
+
+class TestGeneratorActionFieldWidgetDatePicker(TestCase):
+    def test_build_widget_option_should_return_valid_widget_edit_with_default_values(self):
+        result = GeneratorActionFieldWidget.build_widget_options(
+            {
+                "type": ActionFieldType.DATE,
+                "label": "Label",
+                "watch_changes": False,
+                "widget": "DatePicker",
+            }
+        )
+        self.assertEqual(
+            result,
+            {
+                "name": "date editor",
+                "parameters": {
+                    "placeholder": None,
+                    "format": None,
+                    "minDate": None,
+                    "maxDate": None,
+                },
+            },
+        )
+
+
+class TestGeneratorActionFieldWidgetTimePicker(TestCase):
+    def test_build_widget_option_should_return_valid_widget_edit_with_default_values(self):
+        result = GeneratorActionFieldWidget.build_widget_options(
+            {
+                "type": ActionFieldType.TIME,
+                "label": "Label",
+                "watch_changes": False,
+                "widget": "TimePicker",
+            }
+        )
+        self.assertEqual(
+            result,
+            {
+                "name": "time editor",
+                "parameters": {},
             },
         )

@@ -1,9 +1,11 @@
+from datetime import date
 from typing import Literal, Union
 
 from forestadmin.agent_toolkit.utils.forest_schema.action_fields import ActionFields
 from forestadmin.agent_toolkit.utils.forest_schema.type import (
     ForestServerActionFieldColorPickerOptions,
     ForestServerActionFieldCurrencyInputEditorOptions,
+    ForestServerActionFieldDatePickerOptions,
     ForestServerActionFieldFilePickerEditorOptions,
     ForestServerActionFieldJsonEditorEditorOptions,
     ForestServerActionFieldNumberInputEditorOptions,
@@ -12,9 +14,12 @@ from forestadmin.agent_toolkit.utils.forest_schema.type import (
     ForestServerActionFieldTextAreaEditorOptions,
     ForestServerActionFieldTextEditorOptions,
     ForestServerActionFieldTextListEditorOptions,
+    ForestServerActionFieldTimePickerOptions,
     WidgetEditConfiguration,
 )
 from forestadmin.datasource_toolkit.decorators.action.types.fields import (
+    PlainDateDynamicFieldDatePickerWidget,
+    PlainDateOnlyDynamicFieldDatePickerWidget,
     PlainFileDynamicFieldFilePickerWidget,
     PlainFileListDynamicFieldFilePickerWidget,
     PlainJsonDynamicFieldJsonEditorWidget,
@@ -27,6 +32,7 @@ from forestadmin.datasource_toolkit.decorators.action.types.fields import (
     PlainStringDynamicFieldTextAreaWidget,
     PlainStringDynamicFieldTextInputWidget,
     PlainStringListDynamicFieldTextInputListWidget,
+    PlainTimeDynamicFieldTimePickerWidget,
 )
 from forestadmin.datasource_toolkit.interfaces.actions import ActionField, ActionFieldType
 
@@ -71,6 +77,12 @@ class GeneratorActionFieldWidget:
 
         if ActionFields.is_file_picker_field(field):
             return GeneratorActionFieldWidget.build_file_picker_widget_edit(field)
+
+        if ActionFields.is_date_picker_field(field):
+            return GeneratorActionFieldWidget.build_date_picker_widget_edit(field)
+
+        if ActionFields.is_time_picker_field(field):
+            return GeneratorActionFieldWidget.build_time_picker_widget_edit(field)
 
     @staticmethod
     def build_color_picker_widget_edit(
@@ -223,4 +235,27 @@ class GeneratorActionFieldWidget:
                 "filesCountLimit": field.get("max_count"),
                 "filesSizeLimit": field.get("max_size_mb"),
             },
+        }
+
+    @staticmethod
+    def build_date_picker_widget_edit(
+        field: Union[PlainDateDynamicFieldDatePickerWidget, PlainDateOnlyDynamicFieldDatePickerWidget],
+    ) -> ForestServerActionFieldDatePickerOptions:
+        return {
+            "name": "date editor",
+            "parameters": {
+                "format": field.get("format"),
+                "placeholder": field.get("placeholder"),
+                "minDate": field["min"].isoformat() if isinstance(field.get("min"), date) else None,
+                "maxDate": field["max"].isoformat() if isinstance(field.get("max"), date) else None,
+            },
+        }
+
+    @staticmethod
+    def build_time_picker_widget_edit(
+        field: PlainTimeDynamicFieldTimePickerWidget,
+    ) -> ForestServerActionFieldTimePickerOptions:
+        return {
+            "name": "time editor",
+            "parameters": {},
         }

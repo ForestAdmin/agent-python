@@ -206,6 +206,25 @@ class ForestServerActionFieldFilePickerEditorOptions(TypedDict):
     parameters: ForestServerActionFieldFilePickerEditorOptionsParameters
 
 
+# time
+class ForestServerActionFieldTimePickerOptions(TypedDict):
+    name: Literal["time editor"]
+    parameters: Dict[str, Any]
+
+
+# date
+class ForestServerActionFieldDatePickerEditorOptionsParameters(TypedDict):
+    placeholder: Optional[str]
+    format: Optional[str]
+    minDate: Optional[str]
+    maxDate: Optional[str]
+
+
+class ForestServerActionFieldDatePickerOptions(TypedDict):
+    name: Literal["date editor"]
+    parameters: ForestServerActionFieldDatePickerEditorOptionsParameters
+
+
 class ForestServerActionField(TypedDict):
     value: Any
     defaultValue: Any
