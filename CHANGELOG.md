@@ -1,3 +1,11 @@
+# [1.3.0-beta.5](https://github.com/ForestAdmin/agent-python/compare/v1.3.0-beta.4...v1.3.0-beta.5) (2024-01-04)
+
+
+### Bug Fixes
+
+* **json_api:** correctly find id before retrieving related_url ([#162](https://github.com/ForestAdmin/agent-python/issues/162)) ([fa5738a](https://github.com/ForestAdmin/agent-python/commit/fa5738ae016c2bc12bfdc86d85b101466a643eb9))
+* **time_only:** timeonly type was never validated ([#163](https://github.com/ForestAdmin/agent-python/issues/163)) ([4597bac](https://github.com/ForestAdmin/agent-python/commit/4597bac41016b8cab05a660d279ad34bcc174e24))
+
 # [1.3.0-beta.4](https://github.com/ForestAdmin/agent-python/compare/v1.3.0-beta.3...v1.3.0-beta.4) (2024-01-02)
 
 
