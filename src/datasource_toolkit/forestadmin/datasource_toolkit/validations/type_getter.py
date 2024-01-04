@@ -28,6 +28,8 @@ class TypeGetter:
             return PrimitiveType.NUMBER
         elif isinstance(value, datetime):
             return PrimitiveType.DATE
+        elif isinstance(value, time):
+            return PrimitiveType.TIME_ONLY
         elif isinstance(value, date):
             return PrimitiveType.DATE_ONLY
         elif isinstance(value, dict) and type_context == PrimitiveType.JSON:
