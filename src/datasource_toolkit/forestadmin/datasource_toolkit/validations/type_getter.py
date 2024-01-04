@@ -15,23 +15,22 @@ class TypeGetterException(DatasourceToolkitException):
 class TypeGetter:
     @classmethod
     def get(cls, value: Any, type_context: Optional[PrimitiveType]) -> Union[PrimitiveType, ValidationType]:
-        if isinstance(value, list):
-            value = cast(List[Any], value)
-            return cls._get_array_type(value, type_context)
-        elif isinstance(value, bytes):
-            return PrimitiveType.BINARY
-        elif isinstance(value, str):
-            return cls._get_type_from_string(value, type_context)
-        elif isinstance(value, bool):
-            return PrimitiveType.BOOLEAN
-        elif isinstance(value, float) or isinstance(value, int):
-            return PrimitiveType.NUMBER
-        elif isinstance(value, datetime):
-            return PrimitiveType.DATE
-        elif isinstance(value, date):
-            return PrimitiveType.DATE_ONLY
-        elif isinstance(value, dict) and type_context == PrimitiveType.JSON:
-            return PrimitiveType.JSON
+        return_mapper = {
+            # datetime is also instance of date
+            date: lambda: PrimitiveType.DATE_ONLY if not isinstance(value, datetime) else PrimitiveType.DATE,
+            datetime: lambda: PrimitiveType.DATE,
+            time: lambda: PrimitiveType.TIME_ONLY,
+            bytes: lambda: PrimitiveType.BINARY,
+            bool: lambda: PrimitiveType.BOOLEAN,
+            list: lambda: cls._get_array_type(cast(List[Any], value), type_context),
+            str: lambda: cls._get_type_from_string(value, type_context),
+            float: lambda: PrimitiveType.NUMBER,
+            int: lambda: PrimitiveType.NUMBER,
+            dict: lambda: PrimitiveType.JSON if type_context == PrimitiveType.JSON else ValidationPrimaryType.NULL,
+        }
+        for type_, ret_lambda in return_mapper.items():
+            if isinstance(value, type_):
+                return ret_lambda()
 
         return ValidationPrimaryType.NULL
 
