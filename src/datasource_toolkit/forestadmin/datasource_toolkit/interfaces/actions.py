@@ -76,6 +76,8 @@ WidgetTypes = Literal[
     "Checkbox",
     "ColorPicker",
     "AddressAutocomplete",
+    "RadioGroup",
+    "CheckboxGroup",
 ]
 
 

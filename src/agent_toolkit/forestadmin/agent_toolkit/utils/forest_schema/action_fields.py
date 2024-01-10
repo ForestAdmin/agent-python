@@ -61,3 +61,11 @@ class ActionFields:
     @staticmethod
     def is_checkbox_field(field: ActionField) -> bool:
         return field is not None and field.get("widget", "") == "Checkbox"
+
+    @staticmethod
+    def is_radio_group_field(field: ActionField) -> bool:
+        return field is not None and field.get("widget", "") == "RadioGroup"
+
+    @staticmethod
+    def is_checkbox_group_field(field: ActionField) -> bool:
+        return field is not None and field.get("widget", "") == "CheckboxGroup"

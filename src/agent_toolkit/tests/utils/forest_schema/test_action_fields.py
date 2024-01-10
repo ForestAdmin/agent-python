@@ -84,7 +84,7 @@ class TestIsTextField(TestCase):
 
 
 class TestIsTextAreaField(TestCase):
-    def test_should_return_true_when_its_text_input(self):
+    def test_should_return_true_when_its_text_area(self):
         result = ActionFields.is_text_area_field(
             {
                 "type": ActionFieldType.STRING,
@@ -112,7 +112,7 @@ class TestIsTextAreaField(TestCase):
 
 
 class TestIsRichTextField(TestCase):
-    def test_should_return_true_when_its_text_input(self):
+    def test_should_return_true_when_its_rich_text(self):
         result = ActionFields.is_rich_text_field(
             {
                 "type": ActionFieldType.STRING,
@@ -140,7 +140,7 @@ class TestIsRichTextField(TestCase):
 
 
 class TestIsAddressAutocompleteField(TestCase):
-    def test_should_return_true_when_its_text_input(self):
+    def test_should_return_true_when_its_address_autocomplete(self):
         result = ActionFields.is_address_autocomplete_field(
             {
                 "type": ActionFieldType.STRING,
@@ -151,7 +151,7 @@ class TestIsAddressAutocompleteField(TestCase):
         )
         self.assertTrue(result)
 
-    def test_should_return_false_when_its_not_rich_text(self):
+    def test_should_return_false_when_its_not_address_autocomplete(self):
         result = ActionFields.is_address_autocomplete_field(
             {
                 "type": ActionFieldType.STRING,
@@ -168,7 +168,7 @@ class TestIsAddressAutocompleteField(TestCase):
 
 
 class TestIsTextInputListField(TestCase):
-    def test_should_return_true_when_its_text_input(self):
+    def test_should_return_true_when_its_text_input_list(self):
         result = ActionFields.is_text_input_list_field(
             {
                 "type": ActionFieldType.STRING_LIST,
@@ -179,7 +179,7 @@ class TestIsTextInputListField(TestCase):
         )
         self.assertTrue(result)
 
-    def test_should_return_false_when_its_not_rich_text(self):
+    def test_should_return_false_when_its_not_text_input_list(self):
         result = ActionFields.is_text_input_list_field(
             {
                 "type": ActionFieldType.STRING,
@@ -196,7 +196,7 @@ class TestIsTextInputListField(TestCase):
 
 
 class TestIsNumberInputField(TestCase):
-    def test_should_return_true_when_its_text_input(self):
+    def test_should_return_true_when_its_number_input(self):
         result = ActionFields.is_number_input_field(
             {
                 "type": ActionFieldType.NUMBER,
@@ -207,7 +207,7 @@ class TestIsNumberInputField(TestCase):
         )
         self.assertTrue(result)
 
-    def test_should_return_false_when_its_not_rich_text(self):
+    def test_should_return_false_when_its_not_number_input(self):
         result = ActionFields.is_number_input_field(
             {
                 "type": ActionFieldType.STRING,
@@ -224,7 +224,7 @@ class TestIsNumberInputField(TestCase):
 
 
 class TestIsNumberInputListField(TestCase):
-    def test_should_return_true_when_its_text_input(self):
+    def test_should_return_true_when_its_number_input_list(self):
         result = ActionFields.is_number_input_list_field(
             {
                 "type": ActionFieldType.NUMBER_LIST,
@@ -235,7 +235,7 @@ class TestIsNumberInputListField(TestCase):
         )
         self.assertTrue(result)
 
-    def test_should_return_false_when_its_not_rich_text(self):
+    def test_should_return_false_when_its_not_number_input_list(self):
         result = ActionFields.is_number_input_list_field(
             {
                 "type": ActionFieldType.STRING,
@@ -252,7 +252,7 @@ class TestIsNumberInputListField(TestCase):
 
 
 class TestIsCurrencyInputField(TestCase):
-    def test_should_return_true_when_its_text_input(self):
+    def test_should_return_true_when_its_currency_input(self):
         result = ActionFields.is_currency_input_field(
             {
                 "type": ActionFieldType.NUMBER,
@@ -263,7 +263,7 @@ class TestIsCurrencyInputField(TestCase):
         )
         self.assertTrue(result)
 
-    def test_should_return_false_when_its_not_rich_text(self):
+    def test_should_return_false_when_its_not_currency_input(self):
         result = ActionFields.is_currency_input_field(
             {
                 "type": ActionFieldType.STRING,
@@ -280,7 +280,7 @@ class TestIsCurrencyInputField(TestCase):
 
 
 class TestIsJsonEditorField(TestCase):
-    def test_should_return_true_when_its_text_input(self):
+    def test_should_return_true_when_its_json_editor(self):
         result = ActionFields.is_json_editor_field(
             {
                 "type": ActionFieldType.NUMBER_LIST,
@@ -291,7 +291,7 @@ class TestIsJsonEditorField(TestCase):
         )
         self.assertTrue(result)
 
-    def test_should_return_false_when_its_not_rich_text(self):
+    def test_should_return_false_when_its_not_json_editor(self):
         result = ActionFields.is_json_editor_field(
             {
                 "type": ActionFieldType.STRING,
@@ -308,7 +308,7 @@ class TestIsJsonEditorField(TestCase):
 
 
 class TestIsFilePickerField(TestCase):
-    def test_should_return_true_when_its_text_input(self):
+    def test_should_return_true_when_its_file_picker(self):
         result = ActionFields.is_file_picker_field(
             {
                 "type": ActionFieldType.NUMBER_LIST,
@@ -319,7 +319,7 @@ class TestIsFilePickerField(TestCase):
         )
         self.assertTrue(result)
 
-    def test_should_return_false_when_its_not_rich_text(self):
+    def test_should_return_false_when_its_not_file_picker(self):
         result = ActionFields.is_file_picker_field(
             {
                 "type": ActionFieldType.STRING,
@@ -336,7 +336,7 @@ class TestIsFilePickerField(TestCase):
 
 
 class TestIsDatePickerField(TestCase):
-    def test_should_return_true_when_its_text_input(self):
+    def test_should_return_true_when_its_date_picker(self):
         result = ActionFields.is_date_picker_field(
             {
                 "type": ActionFieldType.DATE,
@@ -347,7 +347,7 @@ class TestIsDatePickerField(TestCase):
         )
         self.assertTrue(result)
 
-    def test_should_return_false_when_its_not_rich_text(self):
+    def test_should_return_false_when_its_not_date_picker(self):
         result = ActionFields.is_date_picker_field(
             {
                 "type": ActionFieldType.STRING,
@@ -364,7 +364,7 @@ class TestIsDatePickerField(TestCase):
 
 
 class TestIsTimePickerField(TestCase):
-    def test_should_return_true_when_its_text_input(self):
+    def test_should_return_true_when_its_time_picker(self):
         result = ActionFields.is_time_picker_field(
             {
                 "type": ActionFieldType.TIME,
@@ -375,7 +375,7 @@ class TestIsTimePickerField(TestCase):
         )
         self.assertTrue(result)
 
-    def test_should_return_false_when_its_not_rich_text(self):
+    def test_should_return_false_when_its_not_time_picker(self):
         result = ActionFields.is_time_picker_field(
             {
                 "type": ActionFieldType.STRING,
@@ -392,7 +392,7 @@ class TestIsTimePickerField(TestCase):
 
 
 class TestIsCheckboxField(TestCase):
-    def test_should_return_true_when_its_text_input(self):
+    def test_should_return_true_when_its_checkbox(self):
         result = ActionFields.is_checkbox_field(
             {
                 "type": ActionFieldType.BOOLEAN,
@@ -403,7 +403,7 @@ class TestIsCheckboxField(TestCase):
         )
         self.assertTrue(result)
 
-    def test_should_return_false_when_its_not_rich_text(self):
+    def test_should_return_false_when_its_not_checkbox(self):
         result = ActionFields.is_checkbox_field(
             {
                 "type": ActionFieldType.STRING,
@@ -416,4 +416,60 @@ class TestIsCheckboxField(TestCase):
 
     def test_should_return_false_when_field_is_none(self):
         result = ActionFields.is_checkbox_field(None)
+        self.assertFalse(result)
+
+
+class TestIsRadioGroupField(TestCase):
+    def test_should_return_true_when_its_radio_group(self):
+        result = ActionFields.is_radio_group_field(
+            {
+                "type": ActionFieldType.STRING_LIST,
+                "label": "Label",
+                "watch_changes": False,
+                "widget": "RadioGroup",
+            }
+        )
+        self.assertTrue(result)
+
+    def test_should_return_false_when_its_not_radio_group(self):
+        result = ActionFields.is_radio_group_field(
+            {
+                "type": ActionFieldType.STRING,
+                "label": "Label",
+                "watch_changes": False,
+                "widget": "Dropdown",
+            }
+        )
+        self.assertFalse(result)
+
+    def test_should_return_false_when_field_is_none(self):
+        result = ActionFields.is_radio_group_field(None)
+        self.assertFalse(result)
+
+
+class TestIsCheckboxGroupField(TestCase):
+    def test_should_return_true_when_its_checkbox_group(self):
+        result = ActionFields.is_checkbox_group_field(
+            {
+                "type": ActionFieldType.STRING_LIST,
+                "label": "Label",
+                "watch_changes": False,
+                "widget": "CheckboxGroup",
+            }
+        )
+        self.assertTrue(result)
+
+    def test_should_return_false_when_its_not_checkbox_group(self):
+        result = ActionFields.is_checkbox_group_field(
+            {
+                "type": ActionFieldType.STRING,
+                "label": "Label",
+                "watch_changes": False,
+                "widget": "Dropdown",
+            }
+        )
+        self.assertFalse(result)
+
+    def test_should_return_false_when_field_is_none(self):
+        result = ActionFields.is_checkbox_group_field(None)
         self.assertFalse(result)

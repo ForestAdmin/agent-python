@@ -6,6 +6,7 @@ from forestadmin.datasource_toolkit.decorators.action.types.widgets import (
     WIDGET_ATTRIBUTES,
     AddressAutocompleteFieldConfiguration,
     ArrayTextInputFieldConfiguration,
+    CheckboxesFieldConfiguration,
     CheckboxFieldConfiguration,
     ColorPickerFieldConfiguration,
     CurrencyInputFieldConfiguration,
@@ -15,6 +16,7 @@ from forestadmin.datasource_toolkit.decorators.action.types.widgets import (
     JsonEditorFieldConfiguration,
     NumberInputFieldConfiguration,
     NumberInputListFieldConfiguration,
+    RadioButtonFieldConfiguration,
     RichTextFieldConfiguration,
     TextAreaFieldConfiguration,
     TextInputFieldConfiguration,
@@ -51,7 +53,7 @@ class PlainField(PlainBaseDynamicField):
 
 class BaseDynamicField(Generic[Context, Result]):
     ATTR_TO_EVALUATE = ("is_required", "is_read_only", "if_", "value", "default_value")
-    WIDGET_ATTR_TO_EVALUATE = ("min", "max", "step", "base", "extensions", "max_size_mb", "max_count")
+    WIDGET_ATTR_TO_EVALUATE = ("min", "max", "step", "base", "extensions", "max_size_mb", "max_count", "options")
     TYPE: ActionFieldType
 
     def __init__(
@@ -472,7 +474,23 @@ class PlainBooleanDynamicFieldCheckboxWidget(PlainBooleanDynamicField, CheckboxF
     pass
 
 
-class ZZZ(TypedDict):
+class PlainStringDynamicFieldRadioButtonWidget(PlainStringDynamicField, RadioButtonFieldConfiguration[str]):
+    pass
+
+
+class PlainNumberDynamicFieldRadioButtonWidget(PlainNumberDynamicField, RadioButtonFieldConfiguration[Number]):
+    pass
+
+
+class PlainStringListDynamicFieldRadioButtonWidget(PlainStringListDynamicField, CheckboxesFieldConfiguration[str]):
+    pass
+
+
+class PlainListNumberDynamicFieldRadioButtonWidget(PlainListNumberDynamicField, CheckboxesFieldConfiguration[Number]):
+    pass
+
+
+class WidgetTyping(TypedDict):
     type: Union[ActionFieldType, ActionFieldTypeLiteral]
     widget: WidgetTypes
 
@@ -490,9 +508,11 @@ PlainDynamicField = Union[
     PlainNumberDynamicField,
     PlainNumberDynamicFieldNumberInputWidget,
     PlainNumberDynamicFieldCurrencyInputWidget,
+    PlainNumberDynamicFieldRadioButtonWidget,
     # number list & widgets
     PlainListNumberDynamicField,
     PlainListNumberDynamicFieldNumberInputListWidget,
+    PlainListNumberDynamicFieldRadioButtonWidget,
     # string & widgets
     PlainStringDynamicField,
     PlainStringDynamicFieldColorWidget,
@@ -500,9 +520,11 @@ PlainDynamicField = Union[
     PlainStringDynamicFieldTextAreaWidget,
     PlainStringDynamicFieldRichTextWidget,
     PlainStringDynamicFieldAddressAutocompleteWidget,
+    PlainStringDynamicFieldRadioButtonWidget,
     # string list & widgets
     PlainStringListDynamicField,
     PlainStringListDynamicFieldTextInputListWidget,
+    PlainStringListDynamicFieldRadioButtonWidget,
     # json
     PlainJsonDynamicField,
     PlainJsonDynamicFieldJsonEditorWidget,
@@ -522,7 +544,7 @@ PlainDynamicField = Union[
     PlainTimeDynamicField,
     PlainTimeDynamicFieldTimePickerWidget,
     # for autocompletion
-    ZZZ,
+    WidgetTyping,
 ]
 
 
@@ -552,7 +574,7 @@ class FieldFactory(Generic[Context]):
     def build(cls, plain_field: PlainDynamicField) -> DynamicField[Context]:
         try:
             cls_field = cls.FIELD_FOR_TYPE[ActionFieldType(plain_field["type"])]
-        except KeyError:
+        except (KeyError, ValueError):
             raise FieldFactoryException(f"Unknown field type: '{plain_field['type']}'")
 
         _plain_field = {**plain_field}

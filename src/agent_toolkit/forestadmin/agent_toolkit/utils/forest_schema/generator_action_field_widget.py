@@ -3,6 +3,7 @@ from typing import Literal, Union
 
 from forestadmin.agent_toolkit.utils.forest_schema.action_fields import ActionFields
 from forestadmin.agent_toolkit.utils.forest_schema.type import (
+    ForestServerActionFieldCheckboxGroupOptionsParameters,
     ForestServerActionFieldCheckboxOptions,
     ForestServerActionFieldColorPickerOptions,
     ForestServerActionFieldCurrencyInputEditorOptions,
@@ -11,6 +12,7 @@ from forestadmin.agent_toolkit.utils.forest_schema.type import (
     ForestServerActionFieldJsonEditorEditorOptions,
     ForestServerActionFieldNumberInputEditorOptions,
     ForestServerActionFieldNumberInputListEditorOptions,
+    ForestServerActionFieldRadioGroupOptionsParameters,
     ForestServerActionFieldRichTextEditorOptions,
     ForestServerActionFieldTextAreaEditorOptions,
     ForestServerActionFieldTextEditorOptions,
@@ -35,6 +37,10 @@ from forestadmin.datasource_toolkit.decorators.action.types.fields import (
     PlainStringDynamicFieldTextInputWidget,
     PlainStringListDynamicFieldTextInputListWidget,
     PlainTimeDynamicFieldTimePickerWidget,
+)
+from forestadmin.datasource_toolkit.decorators.action.types.widgets import (
+    CheckboxesFieldConfiguration,
+    RadioButtonFieldConfiguration,
 )
 from forestadmin.datasource_toolkit.interfaces.actions import ActionField, ActionFieldType
 
@@ -88,6 +94,12 @@ class GeneratorActionFieldWidget:
 
         if ActionFields.is_checkbox_field(field):
             return GeneratorActionFieldWidget.build_checkbox_widget_edit(field)
+
+        if ActionFields.is_radio_group_field(field):
+            return GeneratorActionFieldWidget.build_radio_group_widget_edit(field)
+
+        if ActionFields.is_checkbox_group_field(field):
+            return GeneratorActionFieldWidget.build_checkbox_group_widget_edit(field)
 
     @staticmethod
     def build_color_picker_widget_edit(
@@ -272,4 +284,42 @@ class GeneratorActionFieldWidget:
         return {
             "name": "boolean editor",
             "parameters": {},
+        }
+
+    @staticmethod
+    def build_radio_group_widget_edit(
+        field: Union[
+            RadioButtonFieldConfiguration[str], RadioButtonFieldConfiguration[int], RadioButtonFieldConfiguration[float]
+        ],
+    ) -> Union[
+        ForestServerActionFieldRadioGroupOptionsParameters[int],
+        ForestServerActionFieldRadioGroupOptionsParameters[float],
+        ForestServerActionFieldRadioGroupOptionsParameters[str],
+    ]:
+        return {
+            "name": "radio button",
+            "parameters": {
+                "static": {
+                    "options": field.get("options", []),
+                },
+            },
+        }
+
+    @staticmethod
+    def build_checkbox_group_widget_edit(
+        field: Union[
+            CheckboxesFieldConfiguration[str], CheckboxesFieldConfiguration[int], CheckboxesFieldConfiguration[float]
+        ],
+    ) -> Union[
+        ForestServerActionFieldCheckboxGroupOptionsParameters[int],
+        ForestServerActionFieldCheckboxGroupOptionsParameters[float],
+        ForestServerActionFieldCheckboxGroupOptionsParameters[str],
+    ]:
+        return {
+            "name": "checkboxes",
+            "parameters": {
+                "static": {
+                    "options": field.get("options", []),
+                },
+            },
         }

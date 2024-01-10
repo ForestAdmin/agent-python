@@ -1,10 +1,12 @@
 import enum
-from typing import Any, Dict, List, Literal, Optional, TypedDict, Union
+from typing import Any, Dict, Generic, List, Literal, Optional, TypedDict, TypeVar, Union
 
 from forestadmin.datasource_toolkit.interfaces.fields import ColumnAlias
 from typing_extensions import NotRequired
 
 Number = Union[int, float]
+TValue = TypeVar("TValue")
+TName = TypeVar("TName")
 
 
 class ValidationType(enum.Enum):
@@ -229,6 +231,36 @@ class ForestServerActionFieldDatePickerOptions(TypedDict):
 class ForestServerActionFieldCheckboxOptions(TypedDict):
     name: Literal["boolean editor"]
     parameters: Dict[str, Any]
+
+
+# base group value
+class OptionWithLabel(TypedDict, Generic[TValue]):
+    label: str
+    value: Optional[TValue]
+
+
+class ForestServerActionFieldLimitedValueOptionsParameterStatic(TypedDict, Generic[TValue]):
+    options: Union[List[OptionWithLabel[TValue]], List[TValue]]
+
+
+class ForestServerActionFieldLimitedValueOptionsParameters(TypedDict, Generic[TValue]):
+    static: ForestServerActionFieldLimitedValueOptionsParameterStatic[TValue]
+
+
+class ForestServerActionFieldLimitedValueOptions(TypedDict, Generic[TName, TValue]):
+    name: TName
+    parameters: ForestServerActionFieldLimitedValueOptionsParameters[TValue]
+
+
+# radio group
+ForestServerActionFieldRadioGroupOptionsParameters = ForestServerActionFieldLimitedValueOptions[
+    Literal["radio button"], TValue
+]
+
+# checkbox group
+ForestServerActionFieldCheckboxGroupOptionsParameters = ForestServerActionFieldLimitedValueOptions[
+    Literal["checkboxes"], TValue
+]
 
 
 class ForestServerActionField(TypedDict):

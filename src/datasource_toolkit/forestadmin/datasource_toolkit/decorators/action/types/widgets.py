@@ -1,5 +1,5 @@
 from datetime import date
-from typing import Awaitable, Callable, List, Literal, Optional, Set, TypedDict, TypeVar, Union
+from typing import Awaitable, Callable, Generic, List, Literal, Optional, Set, TypedDict, TypeVar, Union
 
 from forestadmin.datasource_toolkit.decorators.action.context.base import ActionContext
 from typing_extensions import NotRequired
@@ -9,7 +9,10 @@ Number = Union[int, float]
 Context = TypeVar("Context", bound=ActionContext)
 Result = TypeVar("Result")
 
-ValueOrHandler = Union[Callable[[Context], Awaitable[Result]], Callable[[Context], Result], Result]
+TWidget = TypeVar("TWidget")
+TValue = TypeVar("TValue")
+
+ValueOrHandler = Union[Callable[[Context], Union[Awaitable[Result], Result]], Result]
 
 
 class ColorPickerFieldConfiguration(TypedDict):
@@ -109,6 +112,31 @@ class CheckboxFieldConfiguration(TypedDict):
     widget: Literal["Checkbox"]
 
 
+class DropdownOptionWithLabel(TypedDict, Generic[TValue]):
+    label: str
+    value: Optional[TValue]
+
+
+DropdownOption = Union[TValue, DropdownOptionWithLabel[TValue]]
+
+SearchOptionHandler = Callable[
+    [Context, str], Union[List[DropdownOption[TValue]], Awaitable[List[DropdownOption[TValue]]]]
+]
+
+
+class LimitedValueDynamicFieldConfiguration(TypedDict, Generic[TWidget, TValue]):
+    widget: TWidget
+    options: Union[List[DropdownOption], Callable[[Context], List[DropdownOption]], Awaitable[List[DropdownOption]]]
+
+
+class RadioButtonFieldConfiguration(LimitedValueDynamicFieldConfiguration[Literal["RadioGroup"], TValue]):
+    pass
+
+
+class CheckboxesFieldConfiguration(LimitedValueDynamicFieldConfiguration[Literal["CheckboxGroup"], TValue]):
+    pass
+
+
 WIDGET_ATTRIBUTES: Set[str] = set()
 for WidgetType in [
     ColorPickerFieldConfiguration,
@@ -126,5 +154,7 @@ for WidgetType in [
     DatePickerFieldConfiguration,
     TimePickerFieldConfiguration,
     CheckboxFieldConfiguration,
+    CheckboxesFieldConfiguration,
+    RadioButtonFieldConfiguration,
 ]:
     WIDGET_ATTRIBUTES = WIDGET_ATTRIBUTES.union(WidgetType.__annotations__.keys())
