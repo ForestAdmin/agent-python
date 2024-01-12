@@ -28,6 +28,12 @@ from forestadmin.datasource_toolkit.interfaces.fields import (
 )
 from forestadmin.datasource_toolkit.interfaces.models.collections import CollectionSchema
 
+try:
+    # GeneratedField is available since django 5
+    from django.db.models import GeneratedField
+except ImportError:
+    GeneratedField = None
+
 
 class FieldFactory:
     @staticmethod
@@ -42,6 +48,8 @@ class FieldFactory:
             return isinstance(field, AutoFieldMixin)
         elif isinstance(field, DateField) or isinstance(field, TimeField):
             return field.auto_now is True or field.auto_now_add is True
+        if GeneratedField is not None and isinstance(field, GeneratedField):
+            return True
         return False
 
     @classmethod
