@@ -3,6 +3,8 @@ from datetime import date
 from app.flask_models import *  # noqa:F401,F403
 from django.db import models
 
+# from django.db.models.functions import Concat
+
 """
 checklist:
 * data types:
@@ -60,6 +62,23 @@ class Address(models.Model):
     city = models.CharField(max_length=254)
     country = models.CharField(max_length=254, default="France")
     zip_code = models.CharField(max_length=5, default="75009")
+
+    # test with django 5 ; if enable, don't forget to make migration and migrate
+    # full_text_address = models.GeneratedField(
+    #     expression=Concat(
+    #         models.F("number"),
+    #         models.Value(" "),
+    #         models.F("street"),
+    #         models.Value(" "),
+    #         models.F("zip_code"),
+    #         models.Value(" "),
+    #         models.F("city"),
+    #         models.Value(" "),
+    #         models.F("country"),
+    #     ),
+    #     output_field=models.TextField(),
+    #     db_persist=False,
+    # )
 
     customers = models.ManyToManyField(
         "Customer", related_name="addresses", through="CustomerAddress", through_fields=("address", "customer")

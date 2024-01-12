@@ -6,6 +6,12 @@ from forestadmin.datasource_django.exception import DjangoDatasourceException
 from forestadmin.datasource_toolkit.interfaces.fields import ColumnAlias, Operator, PrimitiveType
 from forestadmin.datasource_toolkit.utils.operators import BaseFilterOperator
 
+try:
+    # GeneratedField is available since django 5
+    from django.db.models import GeneratedField
+except Exception:
+    GeneratedField = None
+
 
 class ConverterException(DjangoDatasourceException):
     pass
@@ -64,6 +70,9 @@ class TypeConverter:
 
         if isinstance(field, models.ForeignKey):
             return cls.convert(field.target_field)
+
+        if GeneratedField is not None and isinstance(field, GeneratedField):
+            return cls.convert(field.output_field)
 
         if field.__class__ in cls.TYPES:
             return cls.TYPES[field.__class__]
