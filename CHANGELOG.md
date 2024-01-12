@@ -1,3 +1,10 @@
+# [1.3.0-beta.6](https://github.com/ForestAdmin/agent-python/compare/v1.3.0-beta.5...v1.3.0-beta.6) (2024-01-12)
+
+
+### Features
+
+* **django_5:** support django 5 ([#164](https://github.com/ForestAdmin/agent-python/issues/164)) ([817db77](https://github.com/ForestAdmin/agent-python/commit/817db77e86f9aaab6e73a7352c586fdd032a86ba))
+
 # [1.3.0-beta.5](https://github.com/ForestAdmin/agent-python/compare/v1.3.0-beta.4...v1.3.0-beta.5) (2024-01-04)
 
 
