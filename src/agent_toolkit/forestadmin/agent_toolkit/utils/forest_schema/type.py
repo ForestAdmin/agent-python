@@ -1,8 +1,8 @@
 import enum
-from typing import Any, Dict, Generic, List, Literal, Optional, TypedDict, TypeVar, Union
+from typing import Any, Dict, Generic, List, Literal, Optional, TypeVar, Union
 
 from forestadmin.datasource_toolkit.interfaces.fields import ColumnAlias
-from typing_extensions import NotRequired
+from typing_extensions import NotRequired, TypedDict
 
 Number = Union[int, float]
 TValue = TypeVar("TValue")
@@ -73,11 +73,6 @@ LiteralPage = Literal["page"]
 class ForestServerActionHooks(TypedDict):
     load: bool
     change: List[Any]
-
-
-class WidgetEditConfiguration(TypedDict):
-    name: str
-    parameters: Dict[str, Any]
 
 
 # color
@@ -253,13 +248,43 @@ class ForestServerActionFieldLimitedValueOptions(TypedDict, Generic[TName, TValu
 
 
 # radio group
-ForestServerActionFieldRadioGroupOptionsParameters = ForestServerActionFieldLimitedValueOptions[
-    Literal["radio button"], TValue
-]
+ForestServerActionFieldRadioGroupOptions = ForestServerActionFieldLimitedValueOptions[Literal["radio button"], TValue]
 
 # checkbox group
-ForestServerActionFieldCheckboxGroupOptionsParameters = ForestServerActionFieldLimitedValueOptions[
-    Literal["checkboxes"], TValue
+ForestServerActionFieldCheckboxGroupOptions = ForestServerActionFieldLimitedValueOptions[Literal["checkboxes"], TValue]
+
+
+# dropdown
+class ForestServerActionFieldDropdownOptionsParameters(TypedDict, Generic[TValue]):
+    placeholder: Optional[str]
+    isSearchable: Optional[bool]
+    searchType: Optional[Literal["dynamic"]]
+    static: ForestServerActionFieldLimitedValueOptionsParameterStatic[TValue]
+
+
+class ForestServerActionFieldDropdownOptions(TypedDict, Generic[TValue]):
+    name: Literal["dropdown"]
+    parameters: ForestServerActionFieldDropdownOptionsParameters[TValue]
+
+
+WidgetEditConfiguration = Union[
+    ForestServerActionFieldColorPickerOptions,
+    ForestServerActionFieldTextEditorOptions,
+    ForestServerActionFieldTextListEditorOptions,
+    ForestServerActionFieldTextAreaEditorOptions,
+    ForestServerActionFieldRichTextEditorOptions,
+    ForestServerActionFieldAddressAutocompleteEditorOptions,
+    ForestServerActionFieldNumberInputEditorOptions,
+    ForestServerActionFieldNumberInputListEditorOptions,
+    ForestServerActionFieldCurrencyInputEditorOptions,
+    ForestServerActionFieldJsonEditorEditorOptions,
+    ForestServerActionFieldFilePickerEditorOptions,
+    ForestServerActionFieldTimePickerOptions,
+    ForestServerActionFieldDatePickerOptions,
+    ForestServerActionFieldCheckboxOptions,
+    ForestServerActionFieldRadioGroupOptions,
+    ForestServerActionFieldCheckboxGroupOptions,
+    ForestServerActionFieldDropdownOptions,
 ]
 
 
@@ -276,6 +301,7 @@ class ForestServerActionField(TypedDict):
     type: Union[ColumnAlias, Literal["File"]]
     widget: Optional[Literal["belongsto select", "file picker"]]
     widgetEdit: Optional[WidgetEditConfiguration]
+    searchValue: Optional[str]
 
 
 class ForestServerAction(TypedDict):
@@ -289,6 +315,7 @@ class ForestServerAction(TypedDict):
     download: bool
     fields: List[ForestServerActionField]
     hooks: ForestServerActionHooks
+    searchField: Optional[str]
 
 
 class ForestServerSegment(TypedDict):

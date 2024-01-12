@@ -26,14 +26,6 @@ async def cart_update_name(value, context: WriteCustomizationContext):
     return ret
 
 
-def debugger_fn(return_param):
-    def search_fn(*args, **kwargs):
-        print(args, kwargs)
-        return return_param
-
-    return search_fn
-
-
 widget_action_form: ActionDict = {
     "scope": ActionsScope.GLOBAL,
     "execute": lambda context, result_builder: print(
@@ -162,16 +154,28 @@ widget_action_form: ActionDict = {
             "label": "checkbox group",
             "type": "NumberList",
             "widget": "CheckboxGroup",
-            "options": debugger_fn(
-                [
-                    {"label": "a", "value": 1},
-                    {"label": "b", "value": 2},
-                ]
-            ),
-            # "options": [
+            # "options": lambda ctx: [
             #     {"label": "a", "value": 1},
             #     {"label": "b", "value": 2},
             # ],
+            "options": [
+                {"label": "a", "value": 1},
+                {"label": "b", "value": 2},
+            ],
+        },
+        {
+            "label": "Dropdown",
+            "type": "NumberList",
+            "widget": "Dropdown",
+            # "options": lambda ctx, search_value: [
+            #     {"label": "a", "value": 1},
+            #     {"label": "b", "value": 2},
+            # ],
+            # "search": "dynamic",
+            "options": [
+                {"label": "a", "value": 1},
+                {"label": "b", "value": 2},
+            ],
         },
     ],
 }

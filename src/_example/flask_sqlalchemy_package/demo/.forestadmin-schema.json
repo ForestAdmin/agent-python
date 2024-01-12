@@ -241,21 +241,412 @@
                     "download": false,
                     "fields": [
                         {
-                            "field": "Loading...",
-                            "type": "String",
-                            "isReadOnly": true,
-                            "defaultValue": "Form is loading",
+                            "field": "color",
                             "value": null,
+                            "defaultValue": null,
                             "description": "",
                             "enums": null,
                             "hook": null,
+                            "isReadOnly": false,
                             "isRequired": false,
                             "reference": null,
-                            "widget": null
+                            "type": "String",
+                            "widget": null,
+                            "widgetEdit": {
+                                "name": "color editor",
+                                "parameters": {
+                                    "enableOpacity": false,
+                                    "placeholder": "color",
+                                    "quickPalette": [
+                                        "#F7B13C",
+                                        "#47B575"
+                                    ]
+                                }
+                            }
+                        },
+                        {
+                            "field": "name",
+                            "value": null,
+                            "defaultValue": null,
+                            "description": "",
+                            "enums": null,
+                            "hook": null,
+                            "isReadOnly": false,
+                            "isRequired": false,
+                            "reference": null,
+                            "type": "String",
+                            "widget": null,
+                            "widgetEdit": {
+                                "name": "text editor",
+                                "parameters": {
+                                    "placeholder": "new_name"
+                                }
+                            }
+                        },
+                        {
+                            "field": "comment",
+                            "value": null,
+                            "defaultValue": null,
+                            "description": "",
+                            "enums": null,
+                            "hook": null,
+                            "isReadOnly": false,
+                            "isRequired": false,
+                            "reference": null,
+                            "type": "String",
+                            "widget": null,
+                            "widgetEdit": {
+                                "name": "text area editor",
+                                "parameters": {
+                                    "placeholder": "long comment",
+                                    "rows": 5
+                                }
+                            }
+                        },
+                        {
+                            "field": "comment with style",
+                            "value": null,
+                            "defaultValue": null,
+                            "description": "",
+                            "enums": null,
+                            "hook": null,
+                            "isReadOnly": false,
+                            "isRequired": false,
+                            "reference": null,
+                            "type": "String",
+                            "widget": null,
+                            "widgetEdit": {
+                                "name": "rich text",
+                                "parameters": {
+                                    "placeholder": "style comment"
+                                }
+                            }
+                        },
+                        {
+                            "field": "address",
+                            "value": null,
+                            "defaultValue": null,
+                            "description": "",
+                            "enums": null,
+                            "hook": null,
+                            "isReadOnly": false,
+                            "isRequired": false,
+                            "reference": null,
+                            "type": "String",
+                            "widget": null,
+                            "widgetEdit": {
+                                "name": "address editor",
+                                "parameters": {
+                                    "placeholder": "where are you living ?"
+                                }
+                            }
+                        },
+                        {
+                            "field": "text list",
+                            "value": null,
+                            "defaultValue": null,
+                            "description": "",
+                            "enums": null,
+                            "hook": null,
+                            "isReadOnly": false,
+                            "isRequired": false,
+                            "reference": null,
+                            "type": [
+                                "String"
+                            ],
+                            "widget": null,
+                            "widgetEdit": {
+                                "name": "input array",
+                                "parameters": {
+                                    "placeholder": "how many ??",
+                                    "allowDuplicate": true,
+                                    "allowEmptyValue": false,
+                                    "enableReorder": false
+                                }
+                            }
+                        },
+                        {
+                            "field": "number",
+                            "value": null,
+                            "defaultValue": null,
+                            "description": "",
+                            "enums": null,
+                            "hook": null,
+                            "isReadOnly": false,
+                            "isRequired": false,
+                            "reference": null,
+                            "type": "Number",
+                            "widget": null,
+                            "widgetEdit": {
+                                "name": "number input",
+                                "parameters": {
+                                    "placeholder": "???",
+                                    "min": null,
+                                    "max": null,
+                                    "step": null
+                                }
+                            }
+                        },
+                        {
+                            "field": "numbers",
+                            "value": null,
+                            "defaultValue": null,
+                            "description": "",
+                            "enums": null,
+                            "hook": null,
+                            "isReadOnly": false,
+                            "isRequired": false,
+                            "reference": null,
+                            "type": [
+                                "Number"
+                            ],
+                            "widget": null,
+                            "widgetEdit": {
+                                "name": "input array",
+                                "parameters": {
+                                    "placeholder": "???",
+                                    "min": -1,
+                                    "max": 10,
+                                    "step": 0.5,
+                                    "allowDuplicate": true,
+                                    "enableReorder": true
+                                }
+                            }
+                        },
+                        {
+                            "field": "json ",
+                            "value": null,
+                            "defaultValue": null,
+                            "description": "",
+                            "enums": null,
+                            "hook": null,
+                            "isReadOnly": false,
+                            "isRequired": false,
+                            "reference": null,
+                            "type": "Json",
+                            "widget": null,
+                            "widgetEdit": {
+                                "name": "json code editor",
+                                "parameters": {}
+                            }
+                        },
+                        {
+                            "field": "Price",
+                            "value": null,
+                            "defaultValue": null,
+                            "description": "",
+                            "enums": null,
+                            "hook": null,
+                            "isReadOnly": false,
+                            "isRequired": false,
+                            "reference": null,
+                            "type": "Number",
+                            "widget": null,
+                            "widgetEdit": {
+                                "name": "price editor",
+                                "parameters": {
+                                    "placeholder": null,
+                                    "min": 0,
+                                    "max": 100,
+                                    "step": null,
+                                    "currency": "usd",
+                                    "base": "Unit"
+                                }
+                            }
+                        },
+                        {
+                            "field": "file list",
+                            "value": [],
+                            "defaultValue": null,
+                            "description": "",
+                            "enums": null,
+                            "hook": null,
+                            "isReadOnly": false,
+                            "isRequired": false,
+                            "reference": null,
+                            "type": [
+                                "File"
+                            ],
+                            "widget": null,
+                            "widgetEdit": {
+                                "name": "file picker",
+                                "parameters": {
+                                    "prefix": null,
+                                    "filesExtensions": [
+                                        "png"
+                                    ],
+                                    "filesCountLimit": 1,
+                                    "filesSizeLimit": 10
+                                }
+                            }
+                        },
+                        {
+                            "field": "date",
+                            "value": null,
+                            "defaultValue": null,
+                            "description": "",
+                            "enums": null,
+                            "hook": null,
+                            "isReadOnly": false,
+                            "isRequired": false,
+                            "reference": null,
+                            "type": "Date",
+                            "widget": null,
+                            "widgetEdit": {
+                                "name": "date editor",
+                                "parameters": {
+                                    "format": "YYYY-MM-DD HH:mm",
+                                    "placeholder": null,
+                                    "minDate": "2023-10-01T00:00:00+00:00",
+                                    "maxDate": "2024-01-11T09:47:36.290637+00:00"
+                                }
+                            }
+                        },
+                        {
+                            "field": "date_only",
+                            "value": null,
+                            "defaultValue": null,
+                            "description": "",
+                            "enums": null,
+                            "hook": null,
+                            "isReadOnly": false,
+                            "isRequired": false,
+                            "reference": null,
+                            "type": "Dateonly",
+                            "widget": null,
+                            "widgetEdit": null
+                        },
+                        {
+                            "field": "Time only",
+                            "value": null,
+                            "defaultValue": null,
+                            "description": "",
+                            "enums": null,
+                            "hook": null,
+                            "isReadOnly": false,
+                            "isRequired": false,
+                            "reference": null,
+                            "type": "Time",
+                            "widget": null,
+                            "widgetEdit": null
+                        },
+                        {
+                            "field": "bool",
+                            "value": null,
+                            "defaultValue": null,
+                            "description": "",
+                            "enums": null,
+                            "hook": null,
+                            "isReadOnly": false,
+                            "isRequired": false,
+                            "reference": null,
+                            "type": "Boolean",
+                            "widget": null,
+                            "widgetEdit": {
+                                "name": "boolean editor",
+                                "parameters": {}
+                            }
+                        },
+                        {
+                            "field": "radio group",
+                            "value": null,
+                            "defaultValue": null,
+                            "description": "",
+                            "enums": null,
+                            "hook": null,
+                            "isReadOnly": false,
+                            "isRequired": false,
+                            "reference": null,
+                            "type": "Number",
+                            "widget": null,
+                            "widgetEdit": {
+                                "name": "radio button",
+                                "parameters": {
+                                    "static": {
+                                        "options": [
+                                            {
+                                                "label": "a",
+                                                "value": 1
+                                            },
+                                            {
+                                                "label": "b",
+                                                "value": 2
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        },
+                        {
+                            "field": "checkbox group",
+                            "value": null,
+                            "defaultValue": null,
+                            "description": "",
+                            "enums": null,
+                            "hook": null,
+                            "isReadOnly": false,
+                            "isRequired": false,
+                            "reference": null,
+                            "type": [
+                                "Number"
+                            ],
+                            "widget": null,
+                            "widgetEdit": {
+                                "name": "checkboxes",
+                                "parameters": {
+                                    "static": {
+                                        "options": [
+                                            {
+                                                "label": "a",
+                                                "value": 1
+                                            },
+                                            {
+                                                "label": "b",
+                                                "value": 2
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        },
+                        {
+                            "field": "Dropdown",
+                            "value": null,
+                            "defaultValue": null,
+                            "description": "",
+                            "enums": null,
+                            "hook": null,
+                            "isReadOnly": false,
+                            "isRequired": false,
+                            "reference": null,
+                            "type": [
+                                "Number"
+                            ],
+                            "widget": null,
+                            "widgetEdit": {
+                                "name": "dropdown",
+                                "parameters": {
+                                    "searchType": null,
+                                    "isSearchable": false,
+                                    "placeholder": null,
+                                    "static": {
+                                        "options": [
+                                            {
+                                                "label": "a",
+                                                "value": 1
+                                            },
+                                            {
+                                                "label": "b",
+                                                "value": 2
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
                         }
                     ],
                     "hooks": {
-                        "load": true,
+                        "load": false,
                         "change": [
                             "changeHook"
                         ]
@@ -1037,6 +1428,6 @@
             "engine": "python",
             "engine_version": "3.11.3"
         },
-        "schemaFileHash": "36ed28a3e09d44257f59a0fbf5697e3190eeb7f9"
+        "schemaFileHash": "d419100610d7f767444f152cd281fb1be1260a6b"
     }
 }

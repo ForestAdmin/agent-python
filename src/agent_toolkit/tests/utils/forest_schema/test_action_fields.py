@@ -473,3 +473,31 @@ class TestIsCheckboxGroupField(TestCase):
     def test_should_return_false_when_field_is_none(self):
         result = ActionFields.is_checkbox_group_field(None)
         self.assertFalse(result)
+
+
+class TestIsDropdownField(TestCase):
+    def test_should_return_true_when_its_dropdown(self):
+        result = ActionFields.is_dropdown_field(
+            {
+                "type": ActionFieldType.STRING_LIST,
+                "label": "Label",
+                "watch_changes": False,
+                "widget": "Dropdown",
+            }
+        )
+        self.assertTrue(result)
+
+    def test_should_return_false_when_its_not_dropdown(self):
+        result = ActionFields.is_dropdown_field(
+            {
+                "type": ActionFieldType.STRING,
+                "label": "Label",
+                "watch_changes": False,
+                "widget": "ColorPicker",
+            }
+        )
+        self.assertFalse(result)
+
+    def test_should_return_false_when_field_is_none(self):
+        result = ActionFields.is_dropdown_field(None)
+        self.assertFalse(result)

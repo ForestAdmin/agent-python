@@ -1,8 +1,8 @@
 from datetime import date
-from typing import Awaitable, Callable, Generic, List, Literal, Optional, Set, TypedDict, TypeVar, Union
+from typing import Awaitable, Callable, Generic, List, Literal, Optional, Set, TypeVar, Union
 
 from forestadmin.datasource_toolkit.decorators.action.context.base import ActionContext
-from typing_extensions import NotRequired
+from typing_extensions import NotRequired, TypedDict
 
 Number = Union[int, float]
 
@@ -65,7 +65,6 @@ class NumberInputListFieldConfiguration(TypedDict):
     step: NotRequired[Optional[ValueOrHandler[Context, Number]]]
     placeholder: NotRequired[Optional[str]]
     enable_reorder: NotRequired[Optional[bool]]
-    allow_empty_values: NotRequired[Optional[bool]]
     allow_duplicates: NotRequired[Optional[bool]]
 
 
@@ -126,7 +125,9 @@ SearchOptionHandler = Callable[
 
 class LimitedValueDynamicFieldConfiguration(TypedDict, Generic[TWidget, TValue]):
     widget: TWidget
-    options: Union[List[DropdownOption], Callable[[Context], List[DropdownOption]], Awaitable[List[DropdownOption]]]
+    options: Union[
+        List[DropdownOption], Callable[[Context], Union[List[DropdownOption], Awaitable[List[DropdownOption]]]]
+    ]
 
 
 class RadioButtonFieldConfiguration(LimitedValueDynamicFieldConfiguration[Literal["RadioGroup"], TValue]):
@@ -135,6 +136,17 @@ class RadioButtonFieldConfiguration(LimitedValueDynamicFieldConfiguration[Litera
 
 class CheckboxesFieldConfiguration(LimitedValueDynamicFieldConfiguration[Literal["CheckboxGroup"], TValue]):
     pass
+
+
+class DropdownDynamicFieldConfiguration(LimitedValueDynamicFieldConfiguration[Literal["Dropdown"], TValue]):
+    placeholder: NotRequired[Optional[str]]
+    search: NotRequired[Optional[Literal["static", "disabled"]]]
+
+
+class DropdownDynamicSearchFieldConfiguration(LimitedValueDynamicFieldConfiguration[Literal["Dropdown"], TValue]):
+    placeholder: NotRequired[Optional[str]]
+    search: Literal["dynamic"]
+    options: SearchOptionHandler[Context, TValue]
 
 
 WIDGET_ATTRIBUTES: Set[str] = set()
@@ -156,5 +168,7 @@ for WidgetType in [
     CheckboxFieldConfiguration,
     CheckboxesFieldConfiguration,
     RadioButtonFieldConfiguration,
+    DropdownDynamicFieldConfiguration,
+    DropdownDynamicSearchFieldConfiguration,
 ]:
     WIDGET_ATTRIBUTES = WIDGET_ATTRIBUTES.union(WidgetType.__annotations__.keys())

@@ -3,16 +3,17 @@ from typing import Literal, Union
 
 from forestadmin.agent_toolkit.utils.forest_schema.action_fields import ActionFields
 from forestadmin.agent_toolkit.utils.forest_schema.type import (
-    ForestServerActionFieldCheckboxGroupOptionsParameters,
+    ForestServerActionFieldCheckboxGroupOptions,
     ForestServerActionFieldCheckboxOptions,
     ForestServerActionFieldColorPickerOptions,
     ForestServerActionFieldCurrencyInputEditorOptions,
     ForestServerActionFieldDatePickerOptions,
+    ForestServerActionFieldDropdownOptions,
     ForestServerActionFieldFilePickerEditorOptions,
     ForestServerActionFieldJsonEditorEditorOptions,
     ForestServerActionFieldNumberInputEditorOptions,
     ForestServerActionFieldNumberInputListEditorOptions,
-    ForestServerActionFieldRadioGroupOptionsParameters,
+    ForestServerActionFieldRadioGroupOptions,
     ForestServerActionFieldRichTextEditorOptions,
     ForestServerActionFieldTextAreaEditorOptions,
     ForestServerActionFieldTextEditorOptions,
@@ -40,6 +41,7 @@ from forestadmin.datasource_toolkit.decorators.action.types.fields import (
 )
 from forestadmin.datasource_toolkit.decorators.action.types.widgets import (
     CheckboxesFieldConfiguration,
+    DropdownDynamicSearchFieldConfiguration,
     RadioButtonFieldConfiguration,
 )
 from forestadmin.datasource_toolkit.interfaces.actions import ActionField, ActionFieldType
@@ -100,6 +102,9 @@ class GeneratorActionFieldWidget:
 
         if ActionFields.is_checkbox_group_field(field):
             return GeneratorActionFieldWidget.build_checkbox_group_widget_edit(field)
+
+        if ActionFields.is_dropdown_field(field):
+            return GeneratorActionFieldWidget.build_dropdown_widget_edit(field)
 
     @staticmethod
     def build_color_picker_widget_edit(
@@ -229,7 +234,6 @@ class GeneratorActionFieldWidget:
                 "max": field.get("max"),
                 "step": field.get("step"),
                 "allowDuplicate": field.get("allow_duplicates", False),
-                "allowEmptyValue": field.get("allow_empty_values", False),
                 "enableReorder": field.get("enable_reorder", True),
             },
         }
@@ -292,9 +296,9 @@ class GeneratorActionFieldWidget:
             RadioButtonFieldConfiguration[str], RadioButtonFieldConfiguration[int], RadioButtonFieldConfiguration[float]
         ],
     ) -> Union[
-        ForestServerActionFieldRadioGroupOptionsParameters[int],
-        ForestServerActionFieldRadioGroupOptionsParameters[float],
-        ForestServerActionFieldRadioGroupOptionsParameters[str],
+        ForestServerActionFieldRadioGroupOptions[int],
+        ForestServerActionFieldRadioGroupOptions[float],
+        ForestServerActionFieldRadioGroupOptions[str],
     ]:
         return {
             "name": "radio button",
@@ -311,9 +315,9 @@ class GeneratorActionFieldWidget:
             CheckboxesFieldConfiguration[str], CheckboxesFieldConfiguration[int], CheckboxesFieldConfiguration[float]
         ],
     ) -> Union[
-        ForestServerActionFieldCheckboxGroupOptionsParameters[int],
-        ForestServerActionFieldCheckboxGroupOptionsParameters[float],
-        ForestServerActionFieldCheckboxGroupOptionsParameters[str],
+        ForestServerActionFieldCheckboxGroupOptions[int],
+        ForestServerActionFieldCheckboxGroupOptions[float],
+        ForestServerActionFieldCheckboxGroupOptions[str],
     ]:
         return {
             "name": "checkboxes",
@@ -321,5 +325,27 @@ class GeneratorActionFieldWidget:
                 "static": {
                     "options": field.get("options", []),
                 },
+            },
+        }
+
+    @staticmethod
+    def build_dropdown_widget_edit(
+        field: Union[
+            DropdownDynamicSearchFieldConfiguration[str],
+            DropdownDynamicSearchFieldConfiguration[int],
+            DropdownDynamicSearchFieldConfiguration[float],
+        ],
+    ) -> Union[
+        ForestServerActionFieldDropdownOptions[int],
+        ForestServerActionFieldDropdownOptions[float],
+        ForestServerActionFieldDropdownOptions[str],
+    ]:
+        return {
+            "name": "dropdown",
+            "parameters": {
+                "searchType": "dynamic" if field.get("search", "") == "dynamic" else None,
+                "isSearchable": field.get("search") in ["static", "dynamic"],
+                "placeholder": field.get("placeholder"),
+                "static": {"options": field.get("options", [])},
             },
         }

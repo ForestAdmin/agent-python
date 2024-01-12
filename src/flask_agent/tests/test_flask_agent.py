@@ -70,6 +70,7 @@ class TestFlaskAgent(TestCase):
             call("/authentication/callback", methods=["GET"]),
             call("/_actions/<collection_name>/<int:action_name>/<slug>/hooks/load", methods=["POST"]),
             call("/_actions/<collection_name>/<int:action_name>/<slug>/hooks/change", methods=["POST"]),
+            call("/_actions/<collection_name>/<int:action_name>/<slug>/hooks/search", methods=["POST"]),
             call("/_actions/<collection_name>/<int:action_name>/<slug>", methods=["POST"]),
             call("/authentication", methods=["POST"]),
             call("/stats/<collection_name>", methods=["POST"]),

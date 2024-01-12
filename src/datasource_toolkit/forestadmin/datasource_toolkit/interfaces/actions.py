@@ -2,7 +2,10 @@ import enum
 from dataclasses import dataclass
 from typing import Any, Dict, List, Literal, Optional, Set, TypedDict, Union
 
+# from forestadmin.datasource_toolkit.decorators.action.types.fields import Context, ValueOrHandler
 from typing_extensions import NotRequired
+
+Number = Union[int, float]
 
 
 class ActionsScope(enum.Enum):
@@ -78,6 +81,7 @@ WidgetTypes = Literal[
     "AddressAutocomplete",
     "RadioGroup",
     "CheckboxGroup",
+    "Dropdown",
 ]
 
 
@@ -93,6 +97,28 @@ class ActionField(TypedDict):
     enum_values: NotRequired[Optional[List[str]]]
     collection_name: NotRequired[Optional[str]]
     widget: NotRequired[WidgetTypes]
+    # TODO: add all attributes ??
+    # {
+    #     "base",
+    #     "allow_duplicates",
+    #     "quick_palette",
+    #     "min",
+    #     "format",
+    #     "extensions",
+    #     "enable_reorder",
+    #     "options",
+    #     "max_size_mb",
+    #     "currency",
+    #     "enable_opacity",
+    #     "widget",
+    #     "rows",
+    #     "max",
+    #     "placeholder",
+    #     "max_count",
+    #     "search",
+    #     "allow_empty_values",
+    #     "step",
+    # }
 
 
 class SuccessResult(TypedDict):

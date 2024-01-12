@@ -215,7 +215,6 @@ class TestGeneratorActionFieldWidgetNumberInputList(TestCase):
                     "max": None,
                     "step": None,
                     "allowDuplicate": False,
-                    "allowEmptyValue": False,
                     "enableReorder": True,
                 },
             },
@@ -385,8 +384,29 @@ class TestGeneratorActionFieldWidgetCheckboxGroup(TestCase):
         )
         self.assertEqual(
             result,
+            {"name": "checkboxes", "parameters": {"static": {"options": []}}},
+        )
+
+
+class TestGeneratorActionFieldWidgetDropdown(TestCase):
+    def test_build_widget_option_should_return_valid_widget_edit_with_default_values(self):
+        result = GeneratorActionFieldWidget.build_widget_options(
             {
-                "name": "checkboxes",
-                "parameters": {"static": {"options": []}},
+                "type": ActionFieldType.STRING_LIST,
+                "label": "Label",
+                "watch_changes": False,
+                "widget": "Dropdown",
+            }
+        )
+        self.assertEqual(
+            result,
+            {
+                "name": "dropdown",
+                "parameters": {
+                    "placeholder": None,
+                    "static": {"options": []},
+                    "searchType": None,
+                    "isSearchable": False,
+                },
             },
         )
