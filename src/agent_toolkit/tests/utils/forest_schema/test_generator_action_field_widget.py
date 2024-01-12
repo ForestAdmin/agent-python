@@ -410,3 +410,24 @@ class TestGeneratorActionFieldWidgetDropdown(TestCase):
                 },
             },
         )
+
+
+class TestGeneratorActionFieldWidgetUserDropdown(TestCase):
+    def test_build_widget_option_should_return_valid_widget_edit_with_default_values(self):
+        result = GeneratorActionFieldWidget.build_widget_options(
+            {
+                "type": ActionFieldType.STRING_LIST,
+                "label": "Label",
+                "watch_changes": False,
+                "widget": "UserDropdown",
+            }
+        )
+        self.assertEqual(
+            result,
+            {
+                "name": "assignee editor",
+                "parameters": {
+                    "placeholder": None,
+                },
+            },
+        )

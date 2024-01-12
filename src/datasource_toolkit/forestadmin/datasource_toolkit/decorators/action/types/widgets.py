@@ -149,6 +149,11 @@ class DropdownDynamicSearchFieldConfiguration(LimitedValueDynamicFieldConfigurat
     options: SearchOptionHandler[Context, TValue]
 
 
+class UserDropdownFieldConfiguration(TypedDict):
+    widget: Literal["UserDropdown"]
+    placeholder: NotRequired[Optional[str]]
+
+
 WIDGET_ATTRIBUTES: Set[str] = set()
 for WidgetType in [
     ColorPickerFieldConfiguration,
@@ -170,5 +175,6 @@ for WidgetType in [
     RadioButtonFieldConfiguration,
     DropdownDynamicFieldConfiguration,
     DropdownDynamicSearchFieldConfiguration,
+    UserDropdownFieldConfiguration,
 ]:
     WIDGET_ATTRIBUTES = WIDGET_ATTRIBUTES.union(WidgetType.__annotations__.keys())

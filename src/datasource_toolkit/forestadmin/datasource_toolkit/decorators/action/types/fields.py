@@ -23,6 +23,7 @@ from forestadmin.datasource_toolkit.decorators.action.types.widgets import (
     TextAreaFieldConfiguration,
     TextInputFieldConfiguration,
     TimePickerFieldConfiguration,
+    UserDropdownFieldConfiguration,
 )
 from forestadmin.datasource_toolkit.exceptions import DatasourceToolkitException
 from forestadmin.datasource_toolkit.interfaces.actions import (
@@ -553,6 +554,17 @@ class PlainStringListDynamicFieldDropdownSearchWidget(
     pass
 
 
+# user dropdown
+class PlainStringListDynamicFieldUserDropdownFieldConfiguration(
+    PlainStringListDynamicField, UserDropdownFieldConfiguration
+):
+    pass
+
+
+class PlainStringDynamicFieldUserDropdownFieldConfiguration(PlainStringDynamicField, UserDropdownFieldConfiguration):
+    pass
+
+
 class WidgetTyping(TypedDict):
     type: Union[ActionFieldType, ActionFieldTypeLiteral]
     widget: WidgetTypes
@@ -591,12 +603,14 @@ PlainDynamicField = Union[
     PlainStringDynamicFieldRadioButtonWidget,
     PlainStringDynamicFieldDropdownWidget,
     PlainStringDynamicFieldDropdownSearchWidget,
+    PlainStringDynamicFieldUserDropdownFieldConfiguration,
     # string list & widgets
     PlainStringListDynamicField,
     PlainStringListDynamicFieldTextInputListWidget,
     PlainStringListDynamicFieldRadioButtonWidget,
     PlainStringListDynamicFieldDropdownWidget,
     PlainStringListDynamicFieldDropdownSearchWidget,
+    PlainStringListDynamicFieldUserDropdownFieldConfiguration,
     # json
     PlainJsonDynamicField,
     PlainJsonDynamicFieldJsonEditorWidget,

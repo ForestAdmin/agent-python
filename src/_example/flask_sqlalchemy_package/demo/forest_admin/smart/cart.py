@@ -29,7 +29,7 @@ async def cart_update_name(value, context: WriteCustomizationContext):
 widget_action_form: ActionDict = {
     "scope": ActionsScope.GLOBAL,
     "execute": lambda context, result_builder: print(
-        "checkbox group: ", context.form_values.get("checkbox group"), type(context.form_values.get("checkbox group"))
+        "User chooser: ", context.form_values.get("User chooser"), type(context.form_values.get("User chooser"))
     ),
     "form": [
         {
@@ -176,6 +176,11 @@ widget_action_form: ActionDict = {
                 {"label": "a", "value": 1},
                 {"label": "b", "value": 2},
             ],
+        },
+        {
+            "label": "User chooser",
+            "type": "StringList",
+            "widget": "UserDropdown",
         },
     ],
 }

@@ -73,3 +73,7 @@ class ActionFields:
     @staticmethod
     def is_dropdown_field(field: ActionField) -> bool:
         return field is not None and field.get("widget", "") == "Dropdown"
+
+    @staticmethod
+    def is_user_dropdown_field(field: ActionField) -> bool:
+        return field is not None and field.get("widget", "") == "UserDropdown"

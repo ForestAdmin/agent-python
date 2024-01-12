@@ -267,6 +267,16 @@ class ForestServerActionFieldDropdownOptions(TypedDict, Generic[TValue]):
     parameters: ForestServerActionFieldDropdownOptionsParameters[TValue]
 
 
+# user dropdown
+class ForestServerActionFieldUserDropdownOptionsParameters(TypedDict):
+    placeholder: Optional[str]
+
+
+class ForestServerActionFieldUserDropdownOptions(TypedDict):
+    name: Literal["assignee editor"]
+    parameters: ForestServerActionFieldUserDropdownOptionsParameters
+
+
 WidgetEditConfiguration = Union[
     ForestServerActionFieldColorPickerOptions,
     ForestServerActionFieldTextEditorOptions,
@@ -285,6 +295,7 @@ WidgetEditConfiguration = Union[
     ForestServerActionFieldRadioGroupOptions,
     ForestServerActionFieldCheckboxGroupOptions,
     ForestServerActionFieldDropdownOptions,
+    ForestServerActionFieldUserDropdownOptions,
 ]
 
 

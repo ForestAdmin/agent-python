@@ -19,6 +19,7 @@ from forestadmin.agent_toolkit.utils.forest_schema.type import (
     ForestServerActionFieldTextEditorOptions,
     ForestServerActionFieldTextListEditorOptions,
     ForestServerActionFieldTimePickerOptions,
+    ForestServerActionFieldUserDropdownOptions,
     WidgetEditConfiguration,
 )
 from forestadmin.datasource_toolkit.decorators.action.types.fields import (
@@ -36,7 +37,9 @@ from forestadmin.datasource_toolkit.decorators.action.types.fields import (
     PlainStringDynamicFieldRichTextWidget,
     PlainStringDynamicFieldTextAreaWidget,
     PlainStringDynamicFieldTextInputWidget,
+    PlainStringDynamicFieldUserDropdownFieldConfiguration,
     PlainStringListDynamicFieldTextInputListWidget,
+    PlainStringListDynamicFieldUserDropdownFieldConfiguration,
     PlainTimeDynamicFieldTimePickerWidget,
 )
 from forestadmin.datasource_toolkit.decorators.action.types.widgets import (
@@ -105,6 +108,9 @@ class GeneratorActionFieldWidget:
 
         if ActionFields.is_dropdown_field(field):
             return GeneratorActionFieldWidget.build_dropdown_widget_edit(field)
+
+        if ActionFields.is_user_dropdown_field(field):
+            return GeneratorActionFieldWidget.build_user_dropdown_widget_edit(field)
 
     @staticmethod
     def build_color_picker_widget_edit(
@@ -347,5 +353,19 @@ class GeneratorActionFieldWidget:
                 "isSearchable": field.get("search") in ["static", "dynamic"],
                 "placeholder": field.get("placeholder"),
                 "static": {"options": field.get("options", [])},
+            },
+        }
+
+    @staticmethod
+    def build_user_dropdown_widget_edit(
+        field: Union[
+            PlainStringListDynamicFieldUserDropdownFieldConfiguration,
+            PlainStringDynamicFieldUserDropdownFieldConfiguration,
+        ],
+    ) -> ForestServerActionFieldUserDropdownOptions:
+        return {
+            "name": "assignee editor",
+            "parameters": {
+                "placeholder": field.get("placeholder"),
             },
         }

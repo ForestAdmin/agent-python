@@ -82,6 +82,7 @@ WidgetTypes = Literal[
     "RadioGroup",
     "CheckboxGroup",
     "Dropdown",
+    "UserDropdown",
 ]
 
 

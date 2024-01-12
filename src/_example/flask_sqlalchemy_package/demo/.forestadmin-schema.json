@@ -498,7 +498,7 @@
                                     "format": "YYYY-MM-DD HH:mm",
                                     "placeholder": null,
                                     "minDate": "2023-10-01T00:00:00+00:00",
-                                    "maxDate": "2024-01-11T09:47:36.290637+00:00"
+                                    "maxDate": "2024-01-12T14:32:00.117383+00:00"
                                 }
                             }
                         },
@@ -641,6 +641,27 @@
                                             }
                                         ]
                                     }
+                                }
+                            }
+                        },
+                        {
+                            "field": "User chooser",
+                            "value": null,
+                            "defaultValue": null,
+                            "description": "",
+                            "enums": null,
+                            "hook": null,
+                            "isReadOnly": false,
+                            "isRequired": false,
+                            "reference": null,
+                            "type": [
+                                "String"
+                            ],
+                            "widget": null,
+                            "widgetEdit": {
+                                "name": "assignee editor",
+                                "parameters": {
+                                    "placeholder": null
                                 }
                             }
                         }
@@ -1426,8 +1447,8 @@
         "liana_version": "1.2.0",
         "stack": {
             "engine": "python",
-            "engine_version": "3.11.3"
+            "engine_version": "3.8.16"
         },
-        "schemaFileHash": "d419100610d7f767444f152cd281fb1be1260a6b"
+        "schemaFileHash": "375d7a8126f487911d66e7e344da3b39e09fc747"
     }
 }
