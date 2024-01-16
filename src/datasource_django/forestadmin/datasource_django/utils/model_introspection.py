@@ -50,7 +50,7 @@ class FieldFactory:
             return field.auto_now is True or field.auto_now_add is True
         if GeneratedField is not None and isinstance(field, GeneratedField):
             return True
-        return False
+        return not field.editable
 
     @classmethod
     def _build_validations(cls, field: Field) -> List[Validation]:
