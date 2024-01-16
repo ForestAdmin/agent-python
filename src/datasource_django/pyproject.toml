@@ -1,13 +1,17 @@
 [build-system]
-requires = [ "poetry-core",]
+requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 name = "forestadmin-datasource-django"
 version = "1.3.0-beta.6"
-description = ""
-authors = [ "Julien Barreau <julien.barreau@forestadmin.com>",]
+description = "django datasource for forestadmin python agent"
+authors = ["Julien Barreau <julien.barreau@forestadmin.com>"]
 readme = "README.md"
+repository = "https://github.com/ForestAdmin/agent-python"
+documentation = "https://docs.forestadmin.com/developer-guide-agents-python/"
+homepage = "https://www.forestadmin.com"
+
 [[tool.poetry.packages]]
 include = "forestadmin"
 
@@ -27,7 +31,7 @@ pythonpath = "tests/test_project_datasource"
 [tool.poetry.dependencies."backports.zoneinfo"]
 version = "~=0.2.1"
 python = "<3.9"
-extras = [ "tzdata",]
+extras = ["tzdata"]
 
 [tool.poetry.group.test]
 optional = true
