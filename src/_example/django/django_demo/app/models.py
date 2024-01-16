@@ -98,7 +98,7 @@ class Customer(AutoUpdatedCreatedAt):
     # age = should_be computed
     # addresses = models.ManyToManyField(Address, related_name="customers")
     is_vip = models.BooleanField(default=False)
-    avatar = models.BinaryField(null=True, blank=True)
+    avatar = models.BinaryField(null=True, blank=True, editable=True)
 
 
 class Order(AutoUpdatedCreatedAt):
