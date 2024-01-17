@@ -1,3 +1,10 @@
+# [1.3.0-beta.8](https://github.com/ForestAdmin/agent-python/compare/v1.3.0-beta.7...v1.3.0-beta.8) (2024-01-17)
+
+
+### Bug Fixes
+
+* **django_setup:** wait for all apps to be initialized before creating agent ([#169](https://github.com/ForestAdmin/agent-python/issues/169)) ([99bfaf1](https://github.com/ForestAdmin/agent-python/commit/99bfaf142f3fe2f3eb2bb3b4ae091e2034564efe))
+
 # [1.3.0-beta.7](https://github.com/ForestAdmin/agent-python/compare/v1.3.0-beta.6...v1.3.0-beta.7) (2024-01-17)
 
 
