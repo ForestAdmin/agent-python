@@ -1,3 +1,10 @@
+# [1.3.0-beta.7](https://github.com/ForestAdmin/agent-python/compare/v1.3.0-beta.6...v1.3.0-beta.7) (2024-01-17)
+
+
+### Bug Fixes
+
+* **introspection:** editable attribute now determine is_readonly ([#168](https://github.com/ForestAdmin/agent-python/issues/168)) ([09db661](https://github.com/ForestAdmin/agent-python/commit/09db6619e5e53e9074479b10d5d758447f0158fd))
+
 # [1.3.0-beta.6](https://github.com/ForestAdmin/agent-python/compare/v1.3.0-beta.5...v1.3.0-beta.6) (2024-01-12)
 
 
