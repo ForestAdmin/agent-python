@@ -66,6 +66,20 @@ class TestDjangoFieldFactory(TestCase):
 
         self.assertEqual(field_schema["is_read_only"], True)
 
+    def test_build_should_handle_read_only_field_is_editable(self):
+        """readonly"""
+        field = models.CharField(max_length=254, editable=False)
+        field_schema = FieldFactory.build(field)
+
+        self.assertEqual(field_schema["is_read_only"], True)
+
+    def test_build_should_handle_read_only_field_is_not_editable(self):
+        """readonly"""
+        field = models.CharField(max_length=254, editable=True)
+        field_schema = FieldFactory.build(field)
+
+        self.assertEqual(field_schema["is_read_only"], False)
+
     def test_build_should_handle_present_validator(self):
         """validator"""
         field = models.DateField()

@@ -29,7 +29,7 @@ class FlaskCustomer(models.Model):
     birthday_date = models.DateTimeField(blank=True, null=True)
     age = models.IntegerField(blank=True, null=True)
     is_vip = models.BooleanField(blank=True, null=True)
-    avatar = models.BinaryField(blank=True, null=True)
+    avatar = models.BinaryField(blank=True, null=True, editable=True)
     addresses = models.ManyToManyField("FlaskAddress", through="FlaskCustomersAddresses", related_name="customers")
 
     class Meta:
