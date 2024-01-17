@@ -26,7 +26,7 @@ This project has been designed with scalability in mind to fit requirements from
 
 ## Documentation
 
-[https://docs.forestadmin.com/documentation/](https://docs.forestadmin.com/documentation/)
+[https://docs.forestadmin.com/developer-guide-agents-python](https://docs.forestadmin.com/developer-guide-agents-python)
 
 ## How it works
 
