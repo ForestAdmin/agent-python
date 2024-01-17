@@ -1,7 +1,10 @@
 import os
+import threading
+import time
 from unittest import TestCase
-from unittest.mock import AsyncMock, Mock, patch
+from unittest.mock import ANY, AsyncMock, Mock, patch
 
+from django.apps import apps
 from django.test import TestCase as DjangoTestCase
 from django.test import override_settings
 from forestadmin.django_agent.agent import DjangoAgent, create_agent
@@ -208,3 +211,50 @@ class TestDjangoAgentInitAppAgent(DjangoTestCase):
                     agent = init_app_agent()
                     mock_start.assert_not_called()
                     self.assertIsNone(agent)
+
+
+class TestDjangoAgentCreationWaiterThread(DjangoTestCase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        super().setUpClass()
+        cls.dj_options = {
+            "FOREST_ENV_SECRET": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+            "FOREST_AUTH_SECRET": "de1s5LAbFFAPRvCJQTLb",
+        }
+
+    def test_app_ready_should_launch_wait_and_launch_thread(self):
+        with override_settings(**self.dj_options):
+            with patch("forestadmin.django_agent.apps.is_launch_as_server", return_value=True):
+                with patch("forestadmin.django_agent.apps.threading.Thread") as mock_thread:
+                    app = apps.get_app_config("django_agent")
+                    app.ready()
+                    mock_thread.assert_called_once_with(name=ANY, target=app._wait_for_all_apps_ready_and_launch_agent)
+                    mock_thread.return_value.start.assert_called_once()
+
+    def test_app_ready_should_wait_signal_to_launch_agent(self):
+        with override_settings(**self.dj_options):
+            with patch("forestadmin.django_agent.apps.init_app_agent", wraps=init_app_agent) as mock_init_app_agent:
+                apps.ready_event = threading.Event()
+                app = apps.get_app_config("django_agent")
+                threading.Timer(0.1, lambda: apps.ready_event.set()).start()
+                app.ready()
+                apps.ready_event.wait()
+                time.sleep(0.1)
+                mock_init_app_agent.assert_called()
+
+    def test_waiter_fn_should_warn_when_waiting_time_too_long(self):
+        with override_settings(**self.dj_options):
+            with patch("forestadmin.django_agent.apps.init_app_agent", wraps=init_app_agent) as mock_init_app_agent:
+                with patch("forestadmin.django_agent.apps.ForestLogger") as mock_logger:
+                    apps.ready_event = threading.Event()
+                    app = apps.get_app_config("django_agent")
+                    threading.Timer(0.8, lambda: apps.ready_event.set()).start()
+                    with patch.object(app, "_waiter_timeout", 0.4):
+                        app._wait_for_all_apps_ready_and_launch_agent()
+                    apps.ready_event.wait()
+                    time.sleep(0.1)
+                    mock_init_app_agent.assert_called()
+                    mock_logger.log.assert_called_with(
+                        "warning",
+                        "Django 'apps.ready_event' never set after 0.40 seconds. Trying to launch agent anyway.",
+                    )
