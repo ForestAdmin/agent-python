@@ -212,6 +212,16 @@ class TestDjangoAgentInitAppAgent(DjangoTestCase):
                     mock_start.assert_not_called()
                     self.assertIsNone(agent)
 
+
+class TestDjangoAgentCreationWaiterThread(DjangoTestCase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        super().setUpClass()
+        cls.dj_options = {
+            "FOREST_ENV_SECRET": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+            "FOREST_AUTH_SECRET": "de1s5LAbFFAPRvCJQTLb",
+        }
+
     def test_app_ready_should_launch_wait_and_launch_thread(self):
         with override_settings(**self.dj_options):
             with patch("forestadmin.django_agent.apps.is_launch_as_server", return_value=True):
@@ -223,7 +233,7 @@ class TestDjangoAgentInitAppAgent(DjangoTestCase):
 
     def test_app_ready_should_wait_signal_to_launch_agent(self):
         with override_settings(**self.dj_options):
-            with patch("forestadmin.django_agent.apps.init_app_agent") as mock_init_app_agent:
+            with patch("forestadmin.django_agent.apps.init_app_agent", wraps=init_app_agent) as mock_init_app_agent:
                 apps.ready_event = threading.Event()
                 app = apps.get_app_config("django_agent")
                 threading.Timer(0.1, lambda: apps.ready_event.set()).start()
@@ -234,7 +244,7 @@ class TestDjangoAgentInitAppAgent(DjangoTestCase):
 
     def test_waiter_fn_should_warn_when_waiting_time_too_long(self):
         with override_settings(**self.dj_options):
-            with patch("forestadmin.django_agent.apps.init_app_agent") as mock_init_app_agent:
+            with patch("forestadmin.django_agent.apps.init_app_agent", wraps=init_app_agent) as mock_init_app_agent:
                 with patch("forestadmin.django_agent.apps.ForestLogger") as mock_logger:
                     apps.ready_event = threading.Event()
                     app = apps.get_app_config("django_agent")

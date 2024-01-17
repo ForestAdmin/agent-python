@@ -355,7 +355,7 @@ class TestDjangoAgentCollectionChartRoutes(TestDjangoAgentRoutes):
             "collection_charts"
         ]
 
-    def test_delete_list(self):
+    def test_collection_chart(self):
         self.client.post(
             f"/{self.conf_prefix}forest/_charts/customer/first_chart",
             json.dumps({"post_attr": "post_value"}),
@@ -377,7 +377,7 @@ class TestDjangoAgentDatasourceChartRoutes(TestDjangoAgentRoutes):
             "datasource_charts"
         ]
 
-    def test_delete_list(self):
+    def test_datasource_chart(self):
         self.client.post(
             f"/{self.conf_prefix}forest/_charts/first_chart",
             json.dumps({"post_attr": "post_value"}),
@@ -396,7 +396,7 @@ class TestDjangoAgentStatRoutes(TestDjangoAgentRoutes):
         super().setUpClass()
         cls.stats_resource = cls.loop.run_until_complete(cls.django_agent.get_resources())["stats"]
 
-    def test_delete_list(self):
+    def test_stat_list(self):
         self.client.post(
             f"/{self.conf_prefix}forest/stats/customer",
             json.dumps({"post_attr": "post_value"}),
