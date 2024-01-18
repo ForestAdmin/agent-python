@@ -100,6 +100,8 @@ class Customer(AutoUpdatedCreatedAt):
     is_vip = models.BooleanField(default=False)
     avatar = models.BinaryField(null=True, blank=True, editable=True)
 
+    blocked_customer = models.ManyToManyField("self", blank=True, related_name="block_by_users", symmetrical=False)
+
 
 class Order(AutoUpdatedCreatedAt):
     class OrderStatus(models.TextChoices):
