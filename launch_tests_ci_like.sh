@@ -34,7 +34,7 @@ for sub_version in {0..21}; do
         SQLALCHEMY_VERSIONS+=($version)
     fi
 done
-DJANGO_VERSIONS=("3.2" "4.0" "4.1" "4.2")
+DJANGO_VERSIONS=("3.2" "4.0" "4.1" "4.2" "5.0")
 
 # launch test on all versions only if we test 1 package
 if [[ ${#PACKAGES[@]} == 1 ]]; then

@@ -125,27 +125,25 @@ class DjangoCollectionFactory:
 
     @staticmethod
     def _build_many_to_many(relation: Union[ManyToManyField, ManyToManyRel]) -> ManyToMany:
-        kwargs: Dict[str, str] = {}
-        kwargs["foreign_collection"] = relation.target_field.model._meta.db_table
+        kwargs: Dict[str, str] = {"foreign_collection": relation.target_field.model._meta.db_table}
 
         if isinstance(relation, ManyToManyField):
-            remote_field = relation.remote_field
-        elif isinstance(relation, ManyToManyRel):  # reverse relation
-            remote_field = relation.field.remote_field
+            kwargs["through_collection"] = relation.remote_field.through._meta.db_table
 
-        kwargs["through_collection"] = remote_field.through._meta.db_table
+            kwargs["origin_key"] = relation.m2m_column_name()
+            kwargs["origin_key_target"] = relation.m2m_target_field_name()
 
-        for field in remote_field.through._meta.get_fields():
-            if field.is_relation is False:
-                continue
-            if field.related_model == relation.model:
-                # origin
-                kwargs["origin_key"] = field.attname
-                kwargs["origin_key_target"] = field.target_field.attname
-            elif field.related_model == relation.target_field.model:
-                # foreign
-                kwargs["foreign_key"] = field.attname
-                kwargs["foreign_key_target"] = field.target_field.attname
+            kwargs["foreign_key"] = relation.m2m_reverse_name()
+            kwargs["foreign_key_target"] = relation.m2m_reverse_target_field_name()
+
+        elif isinstance(relation, ManyToManyRel):
+            kwargs["through_collection"] = relation.through._meta.db_table
+
+            kwargs["origin_key"] = relation.field.m2m_reverse_name()
+            kwargs["origin_key_target"] = relation.field.m2m_reverse_target_field_name()
+
+            kwargs["foreign_key"] = relation.field.m2m_column_name()
+            kwargs["foreign_key_target"] = relation.field.m2m_target_field_name()
 
         return ManyToMany(type=FieldType.MANY_TO_MANY, foreign_relation=None, **kwargs)
 
