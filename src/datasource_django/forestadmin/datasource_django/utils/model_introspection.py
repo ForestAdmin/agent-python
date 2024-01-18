@@ -172,7 +172,9 @@ class DjangoCollectionFactory:
                         fields[field.name] = DjangoCollectionFactory._build_one_to_one(field)
 
                 elif field.one_to_many is True:
-                    fields[field.name] = DjangoCollectionFactory._build_one_to_many(field)
+                    fields[f"{field.name}_{field.remote_field.name}"] = DjangoCollectionFactory._build_one_to_many(
+                        field
+                    )
 
                 elif field.many_to_one is True:
                     fields[field.name] = DjangoCollectionFactory._build_many_to_one(field)

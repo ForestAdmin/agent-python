@@ -212,7 +212,7 @@ class TestDjangoCollectionFactory(TestCase):
         person_schema = DjangoCollectionFactory.build(Person)
 
         self.assertEqual(
-            person_schema["fields"]["books"],
+            person_schema["fields"]["books_author"],
             {
                 "foreign_collection": "test_app_book",
                 "origin_key": "author_id",
