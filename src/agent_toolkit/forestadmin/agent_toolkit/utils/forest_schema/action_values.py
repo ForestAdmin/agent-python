@@ -137,5 +137,5 @@ class ForestValueConverter:
         return (
             f"data:{file.mime_type};{media_types};base64,{buffer}"
             if media_types != ""
-            else "data:{file.mime_type};base64,{buffer}"
+            else f"data:{file.mime_type};base64,{buffer}"
         )

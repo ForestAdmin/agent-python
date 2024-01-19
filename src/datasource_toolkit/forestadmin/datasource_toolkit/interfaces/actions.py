@@ -17,7 +17,7 @@ class ActionsScope(enum.Enum):
 @dataclass
 class File:
     mime_type: str
-    buffer: str
+    buffer: bytes
     name: str
     charset: Optional[str] = None
 
