@@ -2,7 +2,6 @@ import enum
 from dataclasses import dataclass
 from typing import Any, Dict, List, Literal, Optional, Set, TypedDict, Union
 
-# from forestadmin.datasource_toolkit.decorators.action.types.fields import Context, ValueOrHandler
 from typing_extensions import NotRequired
 
 Number = Union[int, float]
@@ -98,28 +97,25 @@ class ActionField(TypedDict):
     enum_values: NotRequired[Optional[List[str]]]
     collection_name: NotRequired[Optional[str]]
     widget: NotRequired[WidgetTypes]
-    # TODO: add all attributes ??
-    # {
-    #     "base",
-    #     "allow_duplicates",
-    #     "quick_palette",
-    #     "min",
-    #     "format",
-    #     "extensions",
-    #     "enable_reorder",
-    #     "options",
-    #     "max_size_mb",
-    #     "currency",
-    #     "enable_opacity",
-    #     "widget",
-    #     "rows",
-    #     "max",
-    #     "placeholder",
-    #     "max_count",
-    #     "search",
-    #     "allow_empty_values",
-    #     "step",
-    # }
+    widget: NotRequired[str]
+    max: NotRequired[Number]
+    min: NotRequired[Number]
+    step: NotRequired[Number]
+    base: NotRequired[Literal["Cent", "Unit"]]
+    allow_duplicates: NotRequired[bool]
+    quick_palette: NotRequired[List[str]]
+    format: NotRequired[str]
+    extensions: NotRequired[List[str]]
+    enable_reorder: NotRequired[bool]
+    options: NotRequired[Any]
+    max_size_mb: NotRequired[Number]
+    currency: NotRequired[str]
+    enable_opacity: NotRequired[bool]
+    rows: NotRequired[Number]
+    placeholder: NotRequired[str]
+    max_count: NotRequired[int]
+    search: NotRequired[Any]
+    allow_empty_values: NotRequired[bool]
 
 
 class SuccessResult(TypedDict):
