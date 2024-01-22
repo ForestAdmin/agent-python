@@ -1,3 +1,10 @@
+# [1.3.0-beta.10](https://github.com/ForestAdmin/agent-python/compare/v1.3.0-beta.9...v1.3.0-beta.10) (2024-01-22)
+
+
+### Bug Fixes
+
+* **relation:** introspection over self many to many works ([#170](https://github.com/ForestAdmin/agent-python/issues/170)) ([83dfdbb](https://github.com/ForestAdmin/agent-python/commit/83dfdbbeb6d5496885c2dc531f7da90dd9f5a91e))
+
 # [1.3.0-beta.9](https://github.com/ForestAdmin/agent-python/compare/v1.3.0-beta.8...v1.3.0-beta.9) (2024-01-22)
 
 
