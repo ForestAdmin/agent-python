@@ -162,7 +162,7 @@ class DjangoCollectionFactory:
             if not field.is_relation:
                 fields[field.name] = FieldFactory.build(field)
             else:
-                if is_polymorphic_relation(field):
+                if generic_foreign_key(field) or is_generic_rel(field) or is_generic_relation(field):
                     ForestLogger.log(
                         "warning",
                         f"Ignoring {model._meta.db_table}.{field.name} because polymorphic relation is not supported.",
@@ -193,9 +193,25 @@ class DjangoCollectionFactory:
         return {"actions": {}, "fields": fields, "searchable": False, "segments": []}
 
 
-def is_polymorphic_relation(field):
+def generic_foreign_key(field):
     # when imported at top level (before app.Ready):
     # it raise django.core.exceptions.AppRegistryNotReady: Apps aren't loaded yet.
     from django.contrib.contenttypes.fields import GenericForeignKey
 
     return isinstance(field, GenericForeignKey)
+
+
+def is_generic_relation(field):
+    # when imported at top level (before app.Ready):
+    # it raise django.core.exceptions.AppRegistryNotReady: Apps aren't loaded yet.
+    from django.contrib.contenttypes.fields import GenericRelation
+
+    return isinstance(field, GenericRelation)
+
+
+def is_generic_rel(field):
+    # when imported at top level (before app.Ready):
+    # it raise django.core.exceptions.AppRegistryNotReady: Apps aren't loaded yet.
+    from django.contrib.contenttypes.fields import GenericRel
+
+    return isinstance(field, GenericRel)
