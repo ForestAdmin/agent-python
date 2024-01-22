@@ -19,11 +19,17 @@ class SortCollectionDecorator(CollectionDecorator):
     def __init__(self, collection: Collection, datasource: Datasource):
         super().__init__(collection, datasource)
         self._sorts: Dict[str, Sort] = {}
+        self._disabled_sorts: List[str] = []
 
     def emulate_field_sorting(self, name: str):
-        self.replace_field_sorting(name, None)
+        self.__replace_or_emulate_field_sorting(name, None)
 
     def replace_field_sorting(self, name: str, equivalent_sort: Optional[List[PlainSortClause]] = None):
+        if not equivalent_sort:
+            raise ForestException("A new sorting method should be provided to replace field sorting")
+        self.__replace_or_emulate_field_sorting(name, equivalent_sort)
+
+    def __replace_or_emulate_field_sorting(self, name: str, equivalent_sort: Optional[List[PlainSortClause]]):
         FieldValidator.validate(self, name)
 
         if self.child_collection.schema["fields"].get(name) is None:

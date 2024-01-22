@@ -136,7 +136,7 @@ class TestDatasourceCustomizerCustomizeCollection(BaseTestDatasourceCustomizer):
     def test_customize_collection_should_provide_collection_customizer(self):
         self.datasource_customizer.add_datasource(self.datasource)
         collection_customizer = self.datasource_customizer.customize_collection("Category")
-        collection_customizer.replace_field_sorting("label", None)
+        collection_customizer.emulate_field_sorting("label")
 
         self.assertEqual(
             self.loop.run_until_complete(self.datasource_customizer.get_datasource()).get_collection("Person").name,
