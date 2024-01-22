@@ -1,3 +1,4 @@
+from datetime import datetime
 from unittest import TestCase
 from unittest.mock import patch
 
@@ -50,6 +51,20 @@ class TestDjangoFieldFactory(TestCase):
         field_schema = FieldFactory.build(field)
 
         self.assertEqual(field_schema["enum_values"], [1, 2, 3])
+        self.assertEqual(field_schema["column_type"], PrimitiveType.ENUM)
+
+    def test_build_should_use_str_on_enum_values_when_value_is_not_json_serializable(self):
+        """enums"""
+        now = datetime.now()
+        choices = [
+            (datetime(1916, 1, 1, 1, 1, 1), "WW1"),
+            (datetime(1941, 2, 2, 2, 2, 2), "WW2"),
+            (now, "NOW"),
+        ]
+        field = models.DateField(choices=choices)
+        field_schema = FieldFactory.build(field)
+
+        self.assertEqual(field_schema["enum_values"], ["1916-01-01 01:01:01", "1941-02-02 02:02:02", str(now)])
         self.assertEqual(field_schema["column_type"], PrimitiveType.ENUM)
 
     def test_build_should_handle_read_only_for_auto_increment_pk(self):
