@@ -87,7 +87,7 @@ class ForestValueConverter:
                 raise ForestValueConverterException(f"{value} is not in {field['enum_values']}")
             return value
 
-        elif field["type"] == ActionFieldType.ENUM_LIST:
+        elif field["type"] == ActionFieldType.ENUM_LIST and value:
             for v in cast(List[str], value):
                 if not field["enum_values"] or v not in field["enum_values"]:
                     raise ForestValueConverterException(f"{v} is not in {field['enum_values']}")
@@ -97,7 +97,7 @@ class ForestValueConverter:
             value = cast(CompositeIdAlias, value)
             return "|".join(value)
 
-        elif field["type"] == ActionFieldType.FILE:
+        elif field["type"] == ActionFieldType.FILE and value:
             return ForestValueConverter._make_data_uri(value)
         elif field["type"] == ActionFieldType.FILE_LIST:
             return [ForestValueConverter._make_data_uri(v) for v in value] if isinstance(value, list) else []
