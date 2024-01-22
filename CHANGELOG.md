@@ -1,3 +1,10 @@
+# [1.3.0-beta.11](https://github.com/ForestAdmin/agent-python/compare/v1.3.0-beta.10...v1.3.0-beta.11) (2024-01-22)
+
+
+### Bug Fixes
+
+* **polymorphic:** also ignore polymorphic reverse relations ([#172](https://github.com/ForestAdmin/agent-python/issues/172)) ([ba026cb](https://github.com/ForestAdmin/agent-python/commit/ba026cb8380846b354a3e03752afe9ae13db4a30))
+
 # [1.3.0-beta.10](https://github.com/ForestAdmin/agent-python/compare/v1.3.0-beta.9...v1.3.0-beta.10) (2024-01-22)
 
 
