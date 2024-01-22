@@ -1,3 +1,10 @@
+# [1.3.0-beta.9](https://github.com/ForestAdmin/agent-python/compare/v1.3.0-beta.8...v1.3.0-beta.9) (2024-01-22)
+
+
+### Bug Fixes
+
+* **enums:** handle not json serializable enum values ([#171](https://github.com/ForestAdmin/agent-python/issues/171)) ([537d25f](https://github.com/ForestAdmin/agent-python/commit/537d25ff5f53cbcd5f48963556faaf17df927be5))
+
 # [1.3.0-beta.8](https://github.com/ForestAdmin/agent-python/compare/v1.3.0-beta.7...v1.3.0-beta.8) (2024-01-17)
 
 
