@@ -1,11 +1,42 @@
-from typing import Any, Awaitable, Callable, Generic, List, Optional, TypedDict, TypeVar, Union
+from datetime import date, datetime
+from typing import Any, Awaitable, Callable, Generic, List, Literal, Optional, TypeVar, Union
 
 from forestadmin.datasource_toolkit.decorators.action.context.base import ActionContext
+from forestadmin.datasource_toolkit.decorators.action.types.widgets import (
+    WIDGET_ATTRIBUTES,
+    AddressAutocompleteFieldConfiguration,
+    ArrayTextInputFieldConfiguration,
+    CheckboxesFieldConfiguration,
+    CheckboxFieldConfiguration,
+    ColorPickerFieldConfiguration,
+    CurrencyInputFieldConfiguration,
+    DatePickerFieldConfiguration,
+    DropdownDynamicFieldConfiguration,
+    DropdownDynamicSearchFieldConfiguration,
+    FileListPickerFieldConfiguration,
+    FilePickerFieldConfiguration,
+    JsonEditorFieldConfiguration,
+    NumberInputFieldConfiguration,
+    NumberInputListFieldConfiguration,
+    RadioButtonFieldConfiguration,
+    RichTextFieldConfiguration,
+    TextAreaFieldConfiguration,
+    TextInputFieldConfiguration,
+    TimePickerFieldConfiguration,
+    UserDropdownFieldConfiguration,
+)
 from forestadmin.datasource_toolkit.exceptions import DatasourceToolkitException
-from forestadmin.datasource_toolkit.interfaces.actions import ActionField, ActionFieldType, File
+from forestadmin.datasource_toolkit.interfaces.actions import (
+    ActionField,
+    ActionFieldType,
+    ActionFieldTypeLiteral,
+    File,
+    WidgetTypes,
+)
 from forestadmin.datasource_toolkit.interfaces.records import CompositeIdAlias
-from typing_extensions import NotRequired
+from typing_extensions import NotRequired, TypedDict
 
+Number = Union[int, float]
 Context = TypeVar("Context", bound=ActionContext)
 Result = TypeVar("Result")
 
@@ -25,6 +56,7 @@ class PlainField(PlainBaseDynamicField):
 
 class BaseDynamicField(Generic[Context, Result]):
     ATTR_TO_EVALUATE = ("is_required", "is_read_only", "if_", "value", "default_value")
+    WIDGET_ATTR_TO_EVALUATE = ("min", "max", "step", "base", "extensions", "max_size_mb", "max_count", "options")
     TYPE: ActionFieldType
 
     def __init__(
@@ -36,6 +68,7 @@ class BaseDynamicField(Generic[Context, Result]):
         if_: Optional[ValueOrHandler[Context, Any]] = None,
         value: Optional[ValueOrHandler[Context, Result]] = None,
         default_value: Optional[ValueOrHandler[Context, Result]] = None,
+        **kwargs,
     ):
         self.label = label
         self.description = description
@@ -45,16 +78,28 @@ class BaseDynamicField(Generic[Context, Result]):
         self._value = value
         self._default_value = default_value
 
+        unknown_keyword_args = [k for k in kwargs.keys() if k not in WIDGET_ATTRIBUTES]
+        if any(unknown_keyword_args):
+            raise TypeError(
+                f"BaseDynamicField.__init__() got an unexpected keyword argument '{unknown_keyword_args[0]}'"
+            )
+        self._widget_fields = kwargs
+
     @property
     def dynamic_fields(self):
-        return [self._is_required, self._is_read_only, self._if_, self._value, self._default_value]
+        ret = [getattr(self, f"_{field}") for field in BaseDynamicField.ATTR_TO_EVALUATE]
+        if len(self._widget_fields) > 0:
+            ret.extend(self._widget_fields.get(widget_attr) for widget_attr in BaseDynamicField.WIDGET_ATTR_TO_EVALUATE)
+        return ret
 
     @property
     def is_dynamic(self):
         return any(map(lambda x: isinstance(x, Callable), self.dynamic_fields))
 
-    async def to_action_field(self, context: Context, default_value: Result) -> ActionField:
-        return ActionField(
+    async def to_action_field(
+        self, context: Context, default_value: Result, search_value: Optional[str] = None
+    ) -> ActionField:
+        field = ActionField(
             type=self.TYPE,
             label=self.label,
             description=self.description,
@@ -65,7 +110,11 @@ class BaseDynamicField(Generic[Context, Result]):
             collection_name=None,
             enum_values=None,
             watch_changes=False,
+            **{k: await self._evaluate(context, v) for k, v in self._widget_fields.items() if k != "options"},
         )
+        if "options" in self._widget_fields:
+            field["options"] = await self._evaluate_option(context, self._widget_fields["options"], search_value)
+        return field
 
     async def default_value(self, context: Context) -> Result:
         return await self._evaluate(context, self._default_value)
@@ -98,9 +147,15 @@ class BaseDynamicField(Generic[Context, Result]):
         else:
             return attribute
 
-    # @classmethod
-    # def from_plain_field(cls, plain_field: PlainBaseDynamicField) -> Self:
-    #     return cls(**plain_field)
+    async def _evaluate_option(
+        self, context: Context, attribute: ValueOrHandler[ActionContext, Any], search_value: Optional[str]
+    ):
+        if self._widget_fields.get("search", "") == "dynamic":
+            res = self._widget_fields["options"](context, search_value)
+            if isinstance(res, Awaitable):
+                return await res
+            return res
+        return await self._evaluate(context, attribute)
 
 
 class PlainCollectionDynamicField(PlainField):
@@ -137,8 +192,10 @@ class CollectionDynamicField(Generic[Context], BaseDynamicField[Context, Composi
     async def collection_name(self, context: Context) -> str:
         return await self._evaluate(context, self._collection_name)
 
-    async def to_action_field(self, context: Context, default_value: CompositeIdAlias) -> ActionField:
-        res = await super(CollectionDynamicField, self).to_action_field(context, default_value)
+    async def to_action_field(
+        self, context: Context, default_value: CompositeIdAlias, search_value: Optional[str] = None
+    ) -> ActionField:
+        res = await super(CollectionDynamicField, self).to_action_field(context, default_value, search_value)
         res["collection_name"] = await self.collection_name(context)
         return res
 
@@ -181,8 +238,10 @@ class EnumDynamicField(BaseDynamicField[Context, str], Generic[Context]):
     async def enum_values(self, context: Context) -> List[str]:
         return await self._evaluate(context, self._enum_values)
 
-    async def to_action_field(self, context: Context, default_value: str) -> ActionField:
-        res = await super().to_action_field(context, default_value)
+    async def to_action_field(
+        self, context: Context, default_value: str, search_value: Optional[str] = None
+    ) -> ActionField:
+        res = await super().to_action_field(context, default_value, search_value)
         res["enum_values"] = await self.enum_values(context)
         return res
 
@@ -225,10 +284,12 @@ class EnumListDynamicField(Generic[Context], BaseDynamicField[Context, List[str]
     async def enum_values(self, context: Context) -> List[str]:
         return await self._evaluate(context, self._enum_values)
 
-    async def to_action_field(self, context: Context, default_value: List[str]) -> ActionField:
-        res = await super(EnumListDynamicField, self).to_action_field(context, default_value)
+    async def to_action_field(
+        self, context: Context, default_value: List[str], search_value: Optional[str] = None
+    ) -> ActionField:
+        res = await super(EnumListDynamicField, self).to_action_field(context, default_value, search_value)
         res["enum_values"] = await self.enum_values(context)
-        if res["value"] is None:
+        if res.get("value") is None:
             res["value"] = []
         return res
 
@@ -247,6 +308,39 @@ class PlainBooleanDynamicField(PlainField):
 
 class BooleanDynamicField(Generic[Context], BaseDynamicField[Context, bool]):
     TYPE = ActionFieldType.BOOLEAN
+
+
+# date only
+class PlainDateOnlyDynamicField(PlainField):
+    if_: NotRequired[ValueOrHandler[ActionContext, Any]]
+    value: NotRequired[ValueOrHandler[ActionContext, date]]
+    default_value: NotRequired[ValueOrHandler[ActionContext, date]]
+
+
+class DateOnlyDynamicField(Generic[Context], BaseDynamicField[Context, date]):
+    TYPE = ActionFieldType.DATE_ONLY
+
+
+# datetime
+class PlainDateTimeDynamicField(PlainField):
+    if_: NotRequired[ValueOrHandler[ActionContext, Any]]
+    value: NotRequired[ValueOrHandler[ActionContext, datetime]]
+    default_value: NotRequired[ValueOrHandler[ActionContext, datetime]]
+
+
+class DateTimeDynamicField(Generic[Context], BaseDynamicField[Context, datetime]):
+    TYPE = ActionFieldType.DATE
+
+
+# time
+class PlainTimeDynamicField(PlainField):
+    if_: NotRequired[ValueOrHandler[ActionContext, Any]]
+    value: NotRequired[ValueOrHandler[ActionContext, str]]
+    default_value: NotRequired[ValueOrHandler[ActionContext, str]]
+
+
+class TimeDynamicField(Generic[Context], BaseDynamicField[Context, str]):
+    TYPE = ActionFieldType.TIME
 
 
 # number
@@ -338,16 +432,205 @@ DynamicField = Union[
     FileDynamicField[Context],
 ]
 
+
+# declare widget for field types
+class PlainStringDynamicFieldColorWidget(PlainStringDynamicField, ColorPickerFieldConfiguration):
+    pass
+
+
+class PlainStringDynamicFieldTextInputWidget(PlainStringDynamicField, TextInputFieldConfiguration):
+    pass
+
+
+class PlainStringDynamicFieldTextAreaWidget(PlainStringDynamicField, TextAreaFieldConfiguration):
+    pass
+
+
+class PlainStringDynamicFieldRichTextWidget(PlainStringDynamicField, RichTextFieldConfiguration):
+    pass
+
+
+class PlainStringDynamicFieldAddressAutocompleteWidget(PlainStringDynamicField, AddressAutocompleteFieldConfiguration):
+    pass
+
+
+class PlainStringListDynamicFieldTextInputListWidget(PlainStringListDynamicField, ArrayTextInputFieldConfiguration):
+    pass
+
+
+class PlainNumberDynamicFieldNumberInputWidget(PlainNumberDynamicField, NumberInputFieldConfiguration):
+    pass
+
+
+class PlainNumberDynamicFieldCurrencyInputWidget(PlainNumberDynamicField, CurrencyInputFieldConfiguration):
+    pass
+
+
+class PlainListNumberDynamicFieldNumberInputListWidget(PlainListNumberDynamicField, NumberInputListFieldConfiguration):
+    pass
+
+
+class PlainJsonDynamicFieldJsonEditorWidget(PlainJsonDynamicField, JsonEditorFieldConfiguration):
+    pass
+
+
+class PlainFileDynamicFieldFilePickerWidget(PlainFileDynamicField, FilePickerFieldConfiguration):
+    pass
+
+
+class PlainFileListDynamicFieldFilePickerWidget(PlainFileListDynamicField, FileListPickerFieldConfiguration):
+    pass
+
+
+class PlainDateDynamicFieldDatePickerWidget(PlainDateTimeDynamicField, DatePickerFieldConfiguration):
+    pass
+
+
+class PlainDateOnlyDynamicFieldDatePickerWidget(PlainDateOnlyDynamicField, DatePickerFieldConfiguration):
+    pass
+
+
+class PlainTimeDynamicFieldTimePickerWidget(PlainTimeDynamicField, TimePickerFieldConfiguration):
+    pass
+
+
+class PlainBooleanDynamicFieldCheckboxWidget(PlainBooleanDynamicField, CheckboxFieldConfiguration):
+    pass
+
+
+class PlainStringDynamicFieldRadioButtonWidget(PlainStringDynamicField, RadioButtonFieldConfiguration[str]):
+    pass
+
+
+class PlainNumberDynamicFieldRadioButtonWidget(PlainNumberDynamicField, RadioButtonFieldConfiguration[Number]):
+    pass
+
+
+class PlainStringListDynamicFieldRadioButtonWidget(PlainStringListDynamicField, CheckboxesFieldConfiguration[str]):
+    pass
+
+
+class PlainListNumberDynamicFieldRadioButtonWidget(PlainListNumberDynamicField, CheckboxesFieldConfiguration[Number]):
+    pass
+
+
+class PlainNumberDynamicFieldDropdownWidget(PlainNumberDynamicField, DropdownDynamicFieldConfiguration[Number]):
+    pass
+
+
+class PlainListNumberDynamicFieldDropdownWidget(PlainListNumberDynamicField, DropdownDynamicFieldConfiguration[Number]):
+    pass
+
+
+class PlainStringDynamicFieldDropdownWidget(PlainStringDynamicField, DropdownDynamicFieldConfiguration[str]):
+    pass
+
+
+class PlainStringListDynamicFieldDropdownWidget(PlainStringListDynamicField, DropdownDynamicFieldConfiguration[str]):
+    pass
+
+
+class PlainNumberDynamicFieldDropdownSearchWidget(
+    PlainNumberDynamicField, DropdownDynamicSearchFieldConfiguration[Number]
+):
+    pass
+
+
+class PlainListNumberDynamicFieldDropdownSearchWidget(
+    PlainListNumberDynamicField, DropdownDynamicSearchFieldConfiguration[Number]
+):
+    pass
+
+
+class PlainStringDynamicFieldDropdownSearchWidget(
+    PlainStringDynamicField, DropdownDynamicSearchFieldConfiguration[str]
+):
+    pass
+
+
+class PlainStringListDynamicFieldDropdownSearchWidget(
+    PlainStringListDynamicField, DropdownDynamicSearchFieldConfiguration[str]
+):
+    pass
+
+
+# user dropdown
+class PlainStringListDynamicFieldUserDropdownFieldConfiguration(
+    PlainStringListDynamicField, UserDropdownFieldConfiguration
+):
+    pass
+
+
+class PlainStringDynamicFieldUserDropdownFieldConfiguration(PlainStringDynamicField, UserDropdownFieldConfiguration):
+    pass
+
+
+class WidgetTyping(TypedDict):
+    type: Union[ActionFieldType, ActionFieldTypeLiteral]
+    widget: WidgetTypes
+    search: Literal["static", "dynamic", "disabled"]
+
+
 PlainDynamicField = Union[
+    # boolean
     PlainBooleanDynamicField,
+    PlainBooleanDynamicFieldCheckboxWidget,
+    # collection
     PlainCollectionDynamicField,
+    # enum
     PlainEnumDynamicField,
     PlainListEnumDynamicField,
+    # number & widgets
     PlainNumberDynamicField,
-    PlainStringDynamicField,
+    PlainNumberDynamicFieldNumberInputWidget,
+    PlainNumberDynamicFieldCurrencyInputWidget,
+    PlainNumberDynamicFieldRadioButtonWidget,
+    PlainNumberDynamicFieldDropdownWidget,
+    PlainNumberDynamicFieldDropdownSearchWidget,
+    # number list & widgets
     PlainListNumberDynamicField,
+    PlainListNumberDynamicFieldNumberInputListWidget,
+    PlainListNumberDynamicFieldRadioButtonWidget,
+    PlainListNumberDynamicFieldDropdownWidget,
+    PlainListNumberDynamicFieldDropdownSearchWidget,
+    # string & widgets
+    PlainStringDynamicField,
+    PlainStringDynamicFieldColorWidget,
+    PlainStringDynamicFieldTextInputWidget,
+    PlainStringDynamicFieldTextAreaWidget,
+    PlainStringDynamicFieldRichTextWidget,
+    PlainStringDynamicFieldAddressAutocompleteWidget,
+    PlainStringDynamicFieldRadioButtonWidget,
+    PlainStringDynamicFieldDropdownWidget,
+    PlainStringDynamicFieldDropdownSearchWidget,
+    PlainStringDynamicFieldUserDropdownFieldConfiguration,
+    # string list & widgets
+    PlainStringListDynamicField,
+    PlainStringListDynamicFieldTextInputListWidget,
+    PlainStringListDynamicFieldRadioButtonWidget,
+    PlainStringListDynamicFieldDropdownWidget,
+    PlainStringListDynamicFieldDropdownSearchWidget,
+    PlainStringListDynamicFieldUserDropdownFieldConfiguration,
+    # json
     PlainJsonDynamicField,
+    PlainJsonDynamicFieldJsonEditorWidget,
+    # file
     PlainFileDynamicField,
+    PlainFileDynamicFieldFilePickerWidget,
+    # file list
+    PlainFileListDynamicField,
+    PlainFileListDynamicFieldFilePickerWidget,
+    # date
+    PlainDateTimeDynamicField,
+    PlainDateDynamicFieldDatePickerWidget,
+    # date only
+    PlainDateOnlyDynamicField,
+    PlainDateDynamicFieldDatePickerWidget,
+    # time
+    PlainTimeDynamicField,
+    PlainTimeDynamicFieldTimePickerWidget,
+    # for autocompletion
+    WidgetTyping,  # this one must be the latest by name class (alphabetic order)
 ]
 
 
@@ -368,13 +651,16 @@ class FieldFactory(Generic[Context]):
         ActionFieldType.JSON: JsonDynamicField,
         ActionFieldType.FILE: FileDynamicField,
         ActionFieldType.FILE_LIST: FileListDynamicField,
+        ActionFieldType.TIME: TimeDynamicField,
+        ActionFieldType.DATE: DateTimeDynamicField,
+        ActionFieldType.DATE_ONLY: DateOnlyDynamicField,
     }
 
     @classmethod
     def build(cls, plain_field: PlainDynamicField) -> DynamicField[Context]:
         try:
-            cls_field = cls.FIELD_FOR_TYPE[plain_field["type"]]
-        except KeyError:
+            cls_field = cls.FIELD_FOR_TYPE[ActionFieldType(plain_field["type"])]
+        except (KeyError, ValueError):
             raise FieldFactoryException(f"Unknown field type: '{plain_field['type']}'")
 
         _plain_field = {**plain_field}

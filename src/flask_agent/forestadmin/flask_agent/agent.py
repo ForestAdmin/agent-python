@@ -134,6 +134,10 @@ def build_blueprint(agent: FlaskAgent):  # noqa: C901
     async def change_hook(**_) -> FlaskResponse:  # type: ignore
         return await _get_collection_response(request, (await agent.get_resources())["actions"], "hook")
 
+    @blueprint.route("/_actions/<collection_name>/<int:action_name>/<slug>/hooks/search", methods=["POST"])
+    async def search_hook(**_) -> FlaskResponse:  # type: ignore
+        return await _get_collection_response(request, (await agent.get_resources())["actions"], "hook")
+
     @blueprint.route("/_actions/<collection_name>/<int:action_name>/<slug>", methods=["POST"])
     async def actions(**_) -> FlaskResponse:  # type: ignore
         return await _get_collection_response(request, (await agent.get_resources())["actions"], "execute")

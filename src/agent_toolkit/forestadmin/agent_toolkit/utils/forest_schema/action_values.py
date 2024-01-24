@@ -87,20 +87,20 @@ class ForestValueConverter:
                 raise ForestValueConverterException(f"{value} is not in {field['enum_values']}")
             return value
 
-        elif field["type"] == ActionFieldType.ENUM_LIST:
+        elif field["type"] == ActionFieldType.ENUM_LIST and value:
             for v in cast(List[str], value):
                 if not field["enum_values"] or v not in field["enum_values"]:
                     raise ForestValueConverterException(f"{v} is not in {field['enum_values']}")
             return value
 
-        elif field["type"] == ActionFieldType.COLLECTION:
+        elif field["type"] == ActionFieldType.COLLECTION and value:
             value = cast(CompositeIdAlias, value)
             return "|".join(value)
 
-        elif field["type"] == ActionFieldType.FILE:
+        elif field["type"] == ActionFieldType.FILE and value:
             return ForestValueConverter._make_data_uri(value)
         elif field["type"] == ActionFieldType.FILE_LIST:
-            return [ForestValueConverter._make_data_uri(v) for v in value]
+            return [ForestValueConverter._make_data_uri(v) for v in value] if isinstance(value, list) else []
 
         return value
 
@@ -137,5 +137,5 @@ class ForestValueConverter:
         return (
             f"data:{file.mime_type};{media_types};base64,{buffer}"
             if media_types != ""
-            else "data:{file.mime_type};base64,{buffer}"
+            else f"data:{file.mime_type};base64,{buffer}"
         )

@@ -66,9 +66,15 @@ class ActionCollectionDecorator(CollectionDecorator):
         form_fields: List[DynamicField[ActionContext]] = cast(
             List[DynamicField[ActionContext]], [field for field in action.get("form", [])]
         )
+        if meta.get("search_field"):
+            # in the case of a search hook,
+            # we don't want to rebuild all the fields. only the one searched
+            form_fields = [field for field in form_fields if field.label == meta["search_field"]]
 
         form_values = await self._build_form_values(context, form_fields, form_values)
-        action_fields = await self._build_fields(context, form_fields, form_values)
+        action_fields = await self._build_fields(
+            context, form_fields, form_values, meta.get("search_values", {}).get(meta.get("search_field"))
+        )
         for field in action_fields:
             field["watch_changes"] = field["label"] in context.form_values.used_keys
         return action_fields
@@ -115,10 +121,14 @@ class ActionCollectionDecorator(CollectionDecorator):
         return form_values
 
     async def _build_fields(
-        self, context: ActionContext, fields: List[DynamicField[ActionContext]], form_values: RecordsDataAlias
+        self,
+        context: ActionContext,
+        fields: List[DynamicField[ActionContext]],
+        form_values: RecordsDataAlias,
+        search_value: Optional[str] = None,
     ) -> List[ActionField]:
         action_fields: List[ActionField] = []
         for field in fields:
             if await field.if_(context):
-                action_fields.append(await field.to_action_field(context, form_values.get(field.label)))  # type: ignore
+                action_fields.append(await field.to_action_field(context, form_values.get(field.label), search_value))
         return action_fields

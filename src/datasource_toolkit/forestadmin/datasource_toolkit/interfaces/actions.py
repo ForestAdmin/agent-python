@@ -2,6 +2,10 @@ import enum
 from dataclasses import dataclass
 from typing import Any, Dict, List, Literal, Optional, Set, TypedDict, Union
 
+from typing_extensions import NotRequired
+
+Number = Union[int, float]
+
 
 class ActionsScope(enum.Enum):
     SINGLE = "single"
@@ -12,7 +16,7 @@ class ActionsScope(enum.Enum):
 @dataclass
 class File:
     mime_type: str
-    buffer: str
+    buffer: bytes
     name: str
     charset: Optional[str] = None
 
@@ -29,6 +33,7 @@ class ActionFieldType(enum.Enum):
     COLLECTION = "Collection"
     DATE = "Date"
     DATE_ONLY = "Dateonly"
+    TIME = "Time"
     ENUM = "Enum"
     FILE = "File"
     JSON = "Json"
@@ -40,17 +45,77 @@ class ActionFieldType(enum.Enum):
     STRING_LIST = "StringList"
 
 
+ActionFieldTypeLiteral = Literal[
+    "Boolean",
+    "Collection",
+    "Date",
+    "Dateonly",
+    "Time",
+    "Enum",
+    "File",
+    "Json",
+    "Number",
+    "String",
+    "EnumList",
+    "FileList",
+    "NumberList",
+    "StringList",
+]
+
+
+WidgetTypes = Literal[
+    "TimePicker",
+    "TextInputList",
+    "TextInput",
+    "TextArea",
+    "RichText",
+    "NumberInputList",
+    "NumberInput",
+    "JsonEditor",
+    "FilePicker",
+    "DatePicker",
+    "CurrencyInput",
+    "Checkbox",
+    "ColorPicker",
+    "AddressAutocomplete",
+    "RadioGroup",
+    "CheckboxGroup",
+    "Dropdown",
+    "UserDropdown",
+]
+
+
 class ActionField(TypedDict):
     type: ActionFieldType
     label: str
-    description: Optional[str]
-    is_required: Optional[bool]
-    is_read_only: Optional[bool]
-    value: Optional[Any]
-    default_value: Optional[Any]
+    description: NotRequired[Optional[str]]
+    is_required: NotRequired[Optional[bool]]
+    is_read_only: NotRequired[Optional[bool]]
+    value: NotRequired[Optional[Any]]
+    default_value: NotRequired[Optional[Any]]
     watch_changes: bool
-    enum_values: Optional[List[str]]
-    collection_name: Optional[str]
+    enum_values: NotRequired[Optional[List[str]]]
+    collection_name: NotRequired[Optional[str]]
+    widget: NotRequired[WidgetTypes]
+    widget: NotRequired[str]
+    max: NotRequired[Number]
+    min: NotRequired[Number]
+    step: NotRequired[Number]
+    base: NotRequired[Literal["Cent", "Unit"]]
+    allow_duplicates: NotRequired[bool]
+    quick_palette: NotRequired[List[str]]
+    format: NotRequired[str]
+    extensions: NotRequired[List[str]]
+    enable_reorder: NotRequired[bool]
+    options: NotRequired[Any]
+    max_size_mb: NotRequired[Number]
+    currency: NotRequired[str]
+    enable_opacity: NotRequired[bool]
+    rows: NotRequired[Number]
+    placeholder: NotRequired[str]
+    max_count: NotRequired[int]
+    search: NotRequired[Any]
+    allow_empty_values: NotRequired[bool]
 
 
 class SuccessResult(TypedDict):
