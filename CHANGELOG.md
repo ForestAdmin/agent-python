@@ -1,3 +1,10 @@
+# [1.3.0](https://github.com/ForestAdmin/agent-python/compare/v1.2.0...v1.3.0) (2024-01-24)
+
+
+### Features
+
+* **action_forms:** add widgets for smart action forms ([#165](https://github.com/ForestAdmin/agent-python/issues/165)) ([c6174f9](https://github.com/ForestAdmin/agent-python/commit/c6174f96a70cdeeaf1eb6450645d09891f307630))
+
 # [1.2.0](https://github.com/ForestAdmin/agent-python/compare/v1.1.4...v1.2.0) (2023-12-14)
 
 
