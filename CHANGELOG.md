@@ -1,3 +1,10 @@
+## [1.3.1](https://github.com/ForestAdmin/agent-python/compare/v1.3.0...v1.3.1) (2024-01-25)
+
+
+### Bug Fixes
+
+* **replace_field:** forbid null values on field replace functions ([#173](https://github.com/ForestAdmin/agent-python/issues/173)) ([d3de1b6](https://github.com/ForestAdmin/agent-python/commit/d3de1b6a3ed6984042d365de2f02e0146f372c6d))
+
 # [1.3.0](https://github.com/ForestAdmin/agent-python/compare/v1.2.0...v1.3.0) (2024-01-24)
 
 
