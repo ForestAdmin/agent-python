@@ -23,6 +23,8 @@ class WriteReplaceCollection(CollectionDecorator):
     def replace_field_writing(self, field_name: str, definition: WriteDefinition):
         if field_name not in self.schema["fields"]:
             raise ForestException(f"The given field '{field_name}' does not exists on the {self.name} collection.")
+        if not definition:
+            raise ForestException("A new writing method should be provided to replace field writing")
 
         self._handlers[field_name] = definition
         self.mark_schema_as_dirty()
