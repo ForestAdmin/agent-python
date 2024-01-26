@@ -35,19 +35,11 @@ except ImportError:
     GeneratedField = None
 
 
-def serialize_enum_value(value):
-    try:
-        json.dumps(value)
-    except TypeError:
-        value = str(value)
-    return value
-
-
 class FieldFactory:
     @staticmethod
     def _build_enum_values(field: Field) -> Optional[List[str]]:
         if field.choices:
-            return [serialize_enum_value(c[0]) for c in field.choices]  # type: ignore
+            return [str(c[0]) for c in field.choices]  # type: ignore
         return None
 
     @staticmethod
