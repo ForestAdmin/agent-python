@@ -136,19 +136,16 @@ class DjangoCollectionFactory:
             kwargs["through_collection"] = relation.remote_field.through._meta.db_table
 
             kwargs["origin_key"] = relation.m2m_column_name()
-            kwargs["origin_key_target"] = relation.m2m_target_field_name()
-
             kwargs["foreign_key"] = relation.m2m_reverse_name()
-            kwargs["foreign_key_target"] = relation.m2m_reverse_target_field_name()
 
         elif isinstance(relation, ManyToManyRel):
             kwargs["through_collection"] = relation.through._meta.db_table
 
             kwargs["origin_key"] = relation.field.m2m_reverse_name()
-            kwargs["origin_key_target"] = relation.field.m2m_reverse_target_field_name()
-
             kwargs["foreign_key"] = relation.field.m2m_column_name()
-            kwargs["foreign_key_target"] = relation.field.m2m_target_field_name()
+
+        kwargs["origin_key_target"] = relation.model._meta.pk.attname
+        kwargs["foreign_key_target"] = relation.target_field.model._meta.pk.attname
 
         return ManyToMany(type=FieldType.MANY_TO_MANY, foreign_relation=None, **kwargs)
 
