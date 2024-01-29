@@ -1,6 +1,6 @@
 {
   "name": "agent-python",
-  "version": "1.3.0-beta.12",
+  "version": "1.3.0-beta.13",
   "description": "The official Python liana for Forest.",
   "repository": {
     "type": "git",

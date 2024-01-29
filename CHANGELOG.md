@@ -1,3 +1,10 @@
+# [1.3.0-beta.13](https://github.com/ForestAdmin/agent-python/compare/v1.3.0-beta.12...v1.3.0-beta.13) (2024-01-29)
+
+
+### Features
+
+* **django_models_inheritance:** support django model inheritance ([#176](https://github.com/ForestAdmin/agent-python/issues/176)) ([6d27929](https://github.com/ForestAdmin/agent-python/commit/6d2792957778e9a43a5596cf3aa2368062759156))
+
 # [1.3.0-beta.12](https://github.com/ForestAdmin/agent-python/compare/v1.3.0-beta.11...v1.3.0-beta.12) (2024-01-29)
 
 
