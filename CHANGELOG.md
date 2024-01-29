@@ -1,3 +1,10 @@
+# [1.3.0-beta.12](https://github.com/ForestAdmin/agent-python/compare/v1.3.0-beta.11...v1.3.0-beta.12) (2024-01-29)
+
+
+### Bug Fixes
+
+* **enum:** force enums to be strings ([#175](https://github.com/ForestAdmin/agent-python/issues/175)) ([c3e546b](https://github.com/ForestAdmin/agent-python/commit/c3e546b8a1939fe1ebf81078b4a279d1165f53be))
+
 # [1.3.0-beta.11](https://github.com/ForestAdmin/agent-python/compare/v1.3.0-beta.10...v1.3.0-beta.11) (2024-01-22)
 
 
