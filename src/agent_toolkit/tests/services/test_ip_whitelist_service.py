@@ -150,5 +150,8 @@ class TestOtherMethods(BaseTestIpWhiteListService):
             side_effect=Exception("backend not available"),
         ):
             self.assertRaisesRegex(
-                ForestException, r"🌳🌳🌳backend not available", self.loop.run_until_complete, self.ip_whitelist.retrieve()
+                ForestException,
+                r"🌳🌳🌳backend not available",
+                self.loop.run_until_complete,
+                self.ip_whitelist.retrieve(),
             )

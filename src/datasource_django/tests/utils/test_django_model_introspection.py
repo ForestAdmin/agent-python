@@ -50,7 +50,7 @@ class TestDjangoFieldFactory(TestCase):
         field = models.IntegerField(choices=choices)
         field_schema = FieldFactory.build(field)
 
-        self.assertEqual(field_schema["enum_values"], [1, 2, 3])
+        self.assertEqual(field_schema["enum_values"], ["1", "2", "3"])
         self.assertEqual(field_schema["column_type"], PrimitiveType.ENUM)
 
     def test_build_should_use_str_on_enum_values_when_value_is_not_json_serializable(self):

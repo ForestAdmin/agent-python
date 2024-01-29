@@ -877,7 +877,11 @@ class TestCrudResource(TestCase):
         self.permission_service.can.reset_mock()
         assert response.status == 500
         response_content = json.loads(response.body)
-        assert response_content["errors"][0] == {"detail": "🌳🌳🌳", "name": "CollectionResourceException", "status": 500}
+        assert response_content["errors"][0] == {
+            "detail": "🌳🌳🌳",
+            "name": "CollectionResourceException",
+            "status": 500,
+        }
 
         # JsonApiException
         mocked_json_serializer_get.return_value.load = Mock(side_effect=JsonApiException)
@@ -964,7 +968,11 @@ class TestCrudResource(TestCase):
 
         assert response.status == 500
         response_content = json.loads(response.body)
-        assert response_content["errors"][0] == {"detail": "🌳🌳🌳", "name": "CollectionResourceException", "status": 500}
+        assert response_content["errors"][0] == {
+            "detail": "🌳🌳🌳",
+            "name": "CollectionResourceException",
+            "status": 500,
+        }
 
     @patch(
         "forestadmin.agent_toolkit.resources.collections.crud.ConditionTreeFactory.match_ids",
@@ -1095,7 +1103,11 @@ class TestCrudResource(TestCase):
 
         assert response.status == 500
         response_content = json.loads(response.body)
-        assert response_content["errors"][0] == {"detail": "🌳🌳🌳cannot make csv", "name": "CsvException", "status": 500}
+        assert response_content["errors"][0] == {
+            "detail": "🌳🌳🌳cannot make csv",
+            "name": "CsvException",
+            "status": 500,
+        }
 
     def test_csv_should_not_apply_pagination(self):
         mock_orders = [{"id": 10, "cost": 200}, {"id": 11, "cost": 201}]
