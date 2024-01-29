@@ -142,7 +142,7 @@ jobs:
     needs: [semantic_release]
     runs-on: ubuntu-latest
     strategy:
-      max-parallel: 1
+      max-parallel: 6
       matrix:
         python-version: ['3.10']
         current_package: ${{ fromJson(inputs.packages) }}
