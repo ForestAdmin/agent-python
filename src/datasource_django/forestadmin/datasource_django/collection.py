@@ -1,5 +1,6 @@
 from typing import List, Optional
 
+from asgiref.sync import sync_to_async
 from django.db import connections
 from django.db.models import Model
 from forestadmin.agent_toolkit.utils.context import User
@@ -30,7 +31,7 @@ class DjangoCollection(BaseDjangoCollection):
 
     async def list(self, caller: User, filter_: PaginatedFilter, projection: Projection) -> List[RecordsDataAlias]:
         return [
-            instance_to_record_data(item, projection)
+            await sync_to_async(instance_to_record_data)(item, projection)
             for item in await DjangoQueryBuilder.mk_list(self, filter_, projection)
         ]
 
@@ -42,7 +43,7 @@ class DjangoCollection(BaseDjangoCollection):
     async def create(self, caller: User, data: List[RecordsDataAlias]) -> List[RecordsDataAlias]:
         instances = await DjangoQueryBuilder.mk_create(self, data)
         projection = Projection(*[k for k in self.schema["fields"].keys() if is_column(self.schema["fields"][k])])
-        return [instance_to_record_data(item, projection) for item in instances]
+        return [await sync_to_async(instance_to_record_data)(item, projection) for item in instances]
 
     async def update(self, caller: User, filter_: Optional[Filter], patch: RecordsDataAlias) -> None:
         await DjangoQueryBuilder.mk_update(self, filter_, patch)
