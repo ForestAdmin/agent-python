@@ -6,9 +6,11 @@ from app.flask_models import FlaskAddress, FlaskCart, FlaskCustomer, FlaskCustom
 from app.models import Address, Cart, Customer, CustomerAddress, Order
 from django.contrib.auth.models import Group, User
 from django.core.management.base import BaseCommand
+from django.db import transaction
 from faker import Faker
 
 fake = Faker(["it_IT", "en_US", "ja_JP", "fr_FR"])
+fr_fake = Faker(["fr_FR"])
 
 
 class Command(BaseCommand):
@@ -33,6 +35,7 @@ class Command(BaseCommand):
             action="store_true",
         )
 
+    @transaction.atomic()
     def handle(self, *args, **options):
         numbers = {
             "groups": 4,
@@ -126,7 +129,7 @@ def create_addresses(customers, nb_addresses=500):
             number=fake.building_number(),
             city=fake.city(),
             country=fake.country(),
-            zip_code=fake.postcode(),
+            zip_code=fr_fake.postcode(),
         )
         addresses.append(a)
     Address.objects.bulk_create(addresses)
