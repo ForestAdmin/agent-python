@@ -1,3 +1,10 @@
+# [1.3.0-beta.14](https://github.com/ForestAdmin/agent-python/compare/v1.3.0-beta.13...v1.3.0-beta.14) (2024-01-31)
+
+
+### Bug Fixes
+
+* **django:** allow requests during object serialization ([#178](https://github.com/ForestAdmin/agent-python/issues/178)) ([eb7dabf](https://github.com/ForestAdmin/agent-python/commit/eb7dabf014183dcf6eb04fc6229c76577406a581))
+
 # [1.3.0-beta.13](https://github.com/ForestAdmin/agent-python/compare/v1.3.0-beta.12...v1.3.0-beta.13) (2024-01-29)
 
 
