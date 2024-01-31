@@ -53,7 +53,7 @@ class ConditionTreeFactory:
     @classmethod
     def intersect(cls, trees: List[ConditionTree]) -> ConditionTree:
         result = ConditionTreeFactory._group(Aggregator.AND, trees)
-        if isinstance(result, ConditionTreeBranch) and not len(result.conditions) == 0:
+        if isinstance(result, ConditionTreeBranch) and len(result.conditions) == 0:
             return None
         return result
 
