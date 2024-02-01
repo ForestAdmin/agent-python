@@ -12,6 +12,7 @@ class DjangoAuthUser(User):
 class Book(models.Model):
     name = models.CharField(max_length=254)
     author = models.ForeignKey("Person", on_delete=models.CASCADE, related_name="books", null=True)
+    price = models.DecimalField(decimal_places=2, max_digits=5)
 
 
 class Person(models.Model):
