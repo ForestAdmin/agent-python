@@ -1,3 +1,10 @@
+# [1.3.0-beta.16](https://github.com/ForestAdmin/agent-python/compare/v1.3.0-beta.15...v1.3.0-beta.16) (2024-02-01)
+
+
+### Bug Fixes
+
+* **float_serialization:** float number were serialized as int ([#180](https://github.com/ForestAdmin/agent-python/issues/180)) ([403e2e7](https://github.com/ForestAdmin/agent-python/commit/403e2e75ee42e7b8dc1ba89ae85893a4a617d175))
+
 # [1.3.0-beta.15](https://github.com/ForestAdmin/agent-python/compare/v1.3.0-beta.14...v1.3.0-beta.15) (2024-02-01)
 
 
