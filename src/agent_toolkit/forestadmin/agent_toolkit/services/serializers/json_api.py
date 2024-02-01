@@ -28,6 +28,8 @@ class IntOrFloat(fields.Field):
     def _serialize(self, value, attr, obj, **kwargs):  # type: ignore
         if value is None:
             return value
+        if isinstance(value, int) or isinstance(value, float):
+            return value
         try:
             return int(value)
         except ValueError:
@@ -35,6 +37,8 @@ class IntOrFloat(fields.Field):
 
     def _deserialize(self, value, attr, data, **kwargs):  # type: ignore
         if value is None:
+            return value
+        if isinstance(value, int) or isinstance(value, float):
             return value
         try:
             return int(value)
