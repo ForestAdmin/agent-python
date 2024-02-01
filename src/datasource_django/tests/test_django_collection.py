@@ -140,6 +140,20 @@ class TestDjangoCollectionCRUDList(TestCase):
             ],
         )
 
+    async def test_decimal_should_be_correctly_serialized(self):
+        ret = await self.book_collection.list(
+            self.mocked_caller,
+            PaginatedFilter({"condition_tree": ConditionTreeLeaf("name", Operator.EQUAL, "Unknown Book")}),
+            Projection("id", "name", "price"),
+        )
+
+        self.assertEqual(
+            ret,
+            [
+                {"id": 3, "name": "Unknown Book", "price": 3.45},
+            ],
+        )
+
 
 class TestDjangoCollectionCRUDAggregateBase(TestCase):
     fixtures = ["person.json", "book.json", "rating.json"]
