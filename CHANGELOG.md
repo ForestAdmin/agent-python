@@ -1,3 +1,10 @@
+# [1.3.0-beta.15](https://github.com/ForestAdmin/agent-python/compare/v1.3.0-beta.14...v1.3.0-beta.15) (2024-02-01)
+
+
+### Bug Fixes
+
+* **django_atomic_requests:** atomic requests can now be enabled ([#179](https://github.com/ForestAdmin/agent-python/issues/179)) ([3404165](https://github.com/ForestAdmin/agent-python/commit/34041654f0d62741f0a48a8e7314ed5177ac880a))
+
 # [1.3.0-beta.14](https://github.com/ForestAdmin/agent-python/compare/v1.3.0-beta.13...v1.3.0-beta.14) (2024-01-31)
 
 
