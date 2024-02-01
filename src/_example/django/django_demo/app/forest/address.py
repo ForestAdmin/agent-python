@@ -17,7 +17,7 @@ from forestadmin.datasource_toolkit.interfaces.records import RecordsDataAlias
 
 
 async def high_delivery_address_segment(context: CollectionCustomizationContext):
-    rows = await context.datasource.get_collection("Order").aggregate(
+    rows = await context.datasource.get_collection("app_order").aggregate(
         context.caller,
         Filter({}),
         Aggregation(

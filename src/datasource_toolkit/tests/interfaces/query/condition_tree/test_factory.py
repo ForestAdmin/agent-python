@@ -113,9 +113,7 @@ def test_intersect(group_mock: mock.Mock):
     ]
     tree = ConditionTreeBranch(Aggregator.AND, [])
     group_mock.return_value = tree
-    with pytest.raises(ConditionTreeFactoryException) as e:
-        ConditionTreeFactory.intersect(trees)
-    assert str(e.value) == "🌳🌳🌳Empty intersect"
+    assert ConditionTreeFactory.intersect(trees) is None
 
     tree = ConditionTreeBranch(Aggregator.AND, trees)
     group_mock.return_value = tree
