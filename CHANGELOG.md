@@ -1,3 +1,10 @@
+# [1.3.0-beta.17](https://github.com/ForestAdmin/agent-python/compare/v1.3.0-beta.16...v1.3.0-beta.17) (2024-02-02)
+
+
+### Bug Fixes
+
+* **csv:** export fails when there is more fields in data than projection ([#181](https://github.com/ForestAdmin/agent-python/issues/181)) ([2202877](https://github.com/ForestAdmin/agent-python/commit/2202877cd9bd4d22c84de5b0f4a76752c62d3a23))
+
 # [1.3.0-beta.16](https://github.com/ForestAdmin/agent-python/compare/v1.3.0-beta.15...v1.3.0-beta.16) (2024-02-01)
 
 
