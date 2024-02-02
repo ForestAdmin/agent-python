@@ -62,3 +62,10 @@ class TestCsv(TestCase):
             self.assertRaises(CsvException, Csv.make_csv, copy.deepcopy(self.data), self.data[0].keys())
 
             mocked_write_row.assert_called_once()
+
+    def test_csv_should_have_only_projection_fields_even_if_more_in_record(self):
+        fieldnames = [*self.data[0].keys()]
+        fieldnames.remove("boolean_field")
+        ret = Csv.make_csv(copy.deepcopy(self.data), fieldnames)
+        data = self.read_csv(ret)
+        self.assertNotIn("boolean_field", data[0].keys())
