@@ -52,6 +52,11 @@ class TestWriteBasicCollection(TestCase):
         self.collection_book_decorated.replace_field_writing("title", lambda val, ctx: {})
         assert self.collection_book_decorated.schema["fields"]["title"]["is_read_only"] is False
 
-    def test_should_mark_field_as_writable_when_handler_is_null(self):
-        self.collection_book_decorated.replace_field_writing("title", None)
-        assert self.collection_book_decorated.schema["fields"]["title"]["is_read_only"] is True
+    def test_should_raise_exception_on_null_definition(self):
+        self.assertRaisesRegex(
+            ForestException,
+            r"🌳🌳🌳A new writing method should be provided to replace field writing",
+            self.collection_book_decorated.replace_field_writing,
+            "title",
+            None,
+        )

@@ -60,6 +60,26 @@ class TestActionFieldFactory(TestCase):
             plain_field,
         )
 
+    def test_field_factory_should_allow_widget_arguments(self):
+        plain_field = PlainStringDynamicField(
+            type=ActionFieldType.STRING,
+            label="amount X10",
+            description="test",
+            is_required=True,
+            is_read_only=True,
+            if_=lambda ctx: "ok",
+            value="1",
+            default_value="10",
+            widget="ColorPicker",
+            placeholder="placeholder",
+            enable_opacity=False,
+            quick_palette=None,
+        )
+        self.assertEqual(plain_field["widget"], "ColorPicker")
+        self.assertEqual(plain_field["placeholder"], "placeholder")
+        self.assertEqual(plain_field["enable_opacity"], False)
+        self.assertEqual(plain_field["quick_palette"], None)
+
 
 class BaseTestDynamicField(TestCase):
     @classmethod

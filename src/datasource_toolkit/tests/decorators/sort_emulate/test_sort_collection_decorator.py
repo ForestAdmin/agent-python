@@ -13,7 +13,7 @@ from forestadmin.datasource_toolkit.collections import Collection
 from forestadmin.datasource_toolkit.datasources import Datasource
 from forestadmin.datasource_toolkit.decorators.datasource_decorator import DatasourceDecorator
 from forestadmin.datasource_toolkit.decorators.sort_emulate.collections import SortCollectionDecorator
-from forestadmin.datasource_toolkit.exceptions import DatasourceToolkitException
+from forestadmin.datasource_toolkit.exceptions import DatasourceToolkitException, ForestException
 from forestadmin.datasource_toolkit.interfaces.fields import Column, FieldType, ManyToOne, Operator, PrimitiveType
 from forestadmin.datasource_toolkit.interfaces.query.filter.paginated import PaginatedFilter
 from forestadmin.datasource_toolkit.interfaces.query.page import Page
@@ -283,4 +283,13 @@ class TestSortEmulateReplaceSort(BaseTestSortEmulateCollectionDecorator):
                 {"id": 3, "title": "Gomorrah", "author": {"last_name": "Saviano"}},
                 {"id": 1, "title": "Foundation", "author": {"last_name": "Asimov"}},
             ],
+        )
+
+    def test_replace_field_sorting_should_not_accept_null_value(self):
+        self.assertRaisesRegex(
+            ForestException,
+            r"🌳🌳🌳A new sorting method should be provided to replace field sorting",
+            self.decorated_books.replace_field_sorting,
+            "title",
+            None,
         )
