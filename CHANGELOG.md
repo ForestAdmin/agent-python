@@ -1,3 +1,37 @@
+# [1.4.0-beta.1](https://github.com/ForestAdmin/agent-python/compare/v1.3.1...v1.4.0-beta.1) (2024-02-05)
+
+
+### Bug Fixes
+
+* **csv:** export fails when there is more fields in data than projection ([#181](https://github.com/ForestAdmin/agent-python/issues/181)) ([2202877](https://github.com/ForestAdmin/agent-python/commit/2202877cd9bd4d22c84de5b0f4a76752c62d3a23))
+* **datasource_django:** inexistant related object does not crash anymore ([#161](https://github.com/ForestAdmin/agent-python/issues/161)) ([53acaad](https://github.com/ForestAdmin/agent-python/commit/53acaad74a185e558c16480f455265588f3f9b78))
+* **datasource_django:** proxy models are not added to datasource ([#158](https://github.com/ForestAdmin/agent-python/issues/158)) ([157e424](https://github.com/ForestAdmin/agent-python/commit/157e424b20587cf9805729c2b3ba6e4f6c83961f))
+* **django:** allow requests during object serialization ([#178](https://github.com/ForestAdmin/agent-python/issues/178)) ([eb7dabf](https://github.com/ForestAdmin/agent-python/commit/eb7dabf014183dcf6eb04fc6229c76577406a581))
+* **django_atomic_requests:** atomic requests can now be enabled ([#179](https://github.com/ForestAdmin/agent-python/issues/179)) ([3404165](https://github.com/ForestAdmin/agent-python/commit/34041654f0d62741f0a48a8e7314ed5177ac880a))
+* **django_datasource:** django datasource now works when model fields use db_column ([#148](https://github.com/ForestAdmin/agent-python/issues/148)) ([4a99e8f](https://github.com/ForestAdmin/agent-python/commit/4a99e8f2cdb999041054a9215cff0ebbf23b9937))
+* **django_introspection:** collection name is now the db table name ([#150](https://github.com/ForestAdmin/agent-python/issues/150)) ([8378c96](https://github.com/ForestAdmin/agent-python/commit/8378c96ff0a7e7eb1ecb2f3d37a74c1413fc9f85))
+* **django_setup:** wait for all apps to be initialized before creating agent ([#169](https://github.com/ForestAdmin/agent-python/issues/169)) ([99bfaf1](https://github.com/ForestAdmin/agent-python/commit/99bfaf142f3fe2f3eb2bb3b4ae091e2034564efe))
+* **enum:** force enums to be strings ([#175](https://github.com/ForestAdmin/agent-python/issues/175)) ([c3e546b](https://github.com/ForestAdmin/agent-python/commit/c3e546b8a1939fe1ebf81078b4a279d1165f53be))
+* **enums:** handle not json serializable enum values ([#171](https://github.com/ForestAdmin/agent-python/issues/171)) ([537d25f](https://github.com/ForestAdmin/agent-python/commit/537d25ff5f53cbcd5f48963556faaf17df927be5))
+* **float_serialization:** float number were serialized as int ([#180](https://github.com/ForestAdmin/agent-python/issues/180)) ([403e2e7](https://github.com/ForestAdmin/agent-python/commit/403e2e75ee42e7b8dc1ba89ae85893a4a617d175))
+* **introspection:** editable attribute now determine is_readonly ([#168](https://github.com/ForestAdmin/agent-python/issues/168)) ([09db661](https://github.com/ForestAdmin/agent-python/commit/09db6619e5e53e9074479b10d5d758447f0158fd))
+* **json_api:** correctly find id before retrieving related_url ([#162](https://github.com/ForestAdmin/agent-python/issues/162)) ([fa5738a](https://github.com/ForestAdmin/agent-python/commit/fa5738ae016c2bc12bfdc86d85b101466a643eb9))
+* **polymorphic:** also ignore polymorphic reverse relations ([#172](https://github.com/ForestAdmin/agent-python/issues/172)) ([ba026cb](https://github.com/ForestAdmin/agent-python/commit/ba026cb8380846b354a3e03752afe9ae13db4a30))
+* **relation:** introspection over self many to many works ([#170](https://github.com/ForestAdmin/agent-python/issues/170)) ([83dfdbb](https://github.com/ForestAdmin/agent-python/commit/83dfdbbeb6d5496885c2dc531f7da90dd9f5a91e))
+* **time_only:** timeonly type was never validated ([#163](https://github.com/ForestAdmin/agent-python/issues/163)) ([4597bac](https://github.com/ForestAdmin/agent-python/commit/4597bac41016b8cab05a660d279ad34bcc174e24))
+* foreign keys can be used as primary key ([#159](https://github.com/ForestAdmin/agent-python/issues/159)) ([5f18f73](https://github.com/ForestAdmin/agent-python/commit/5f18f73d1ab555dcd768a707fc88d432d0c43bd3))
+* **relations:** gracefully ignore polymorphic relationships ([#157](https://github.com/ForestAdmin/agent-python/issues/157)) ([f1c2d6d](https://github.com/ForestAdmin/agent-python/commit/f1c2d6d06ea8e754059557d0c7640a142d6643b8))
+
+
+### Features
+
+* **django:** add database operations and routes ([#145](https://github.com/ForestAdmin/agent-python/issues/145)) ([95f3a94](https://github.com/ForestAdmin/agent-python/commit/95f3a94fc393ed1ea2d49849132717167c0961a7))
+* **django_5:** support django 5 ([#164](https://github.com/ForestAdmin/agent-python/issues/164)) ([817db77](https://github.com/ForestAdmin/agent-python/commit/817db77e86f9aaab6e73a7352c586fdd032a86ba))
+* **django_agent:** agent is ready to onboard on django project ([#147](https://github.com/ForestAdmin/agent-python/issues/147)) ([ac6135d](https://github.com/ForestAdmin/agent-python/commit/ac6135d905fd0cf1ed335d6a0c9eeba802ed2b43))
+* **django_datasource:** add native driver ([#149](https://github.com/ForestAdmin/agent-python/issues/149)) ([5055031](https://github.com/ForestAdmin/agent-python/commit/5055031124d65f36bfd23d4adcdef72d40764eb8))
+* **django_models_inheritance:** support django model inheritance ([#176](https://github.com/ForestAdmin/agent-python/issues/176)) ([6d27929](https://github.com/ForestAdmin/agent-python/commit/6d2792957778e9a43a5596cf3aa2368062759156))
+* support python 3.12 ([#155](https://github.com/ForestAdmin/agent-python/issues/155)) ([93f8374](https://github.com/ForestAdmin/agent-python/commit/93f8374c204feda06bb7c3a78278caa138684fa5))
+
 # [1.3.0-beta.17](https://github.com/ForestAdmin/agent-python/compare/v1.3.0-beta.16...v1.3.0-beta.17) (2024-02-02)
 
 
