@@ -1,3 +1,10 @@
+# [1.4.0-beta.2](https://github.com/ForestAdmin/agent-python/compare/v1.4.0-beta.1...v1.4.0-beta.2) (2024-02-05)
+
+
+### Features
+
+* **search_hook:** add search hook route to django agent ([#183](https://github.com/ForestAdmin/agent-python/issues/183)) ([edbb1d1](https://github.com/ForestAdmin/agent-python/commit/edbb1d100605085d1290fa689c72bed4c13fea58))
+
 # [1.4.0-beta.1](https://github.com/ForestAdmin/agent-python/compare/v1.3.1...v1.4.0-beta.1) (2024-02-05)
 
 
