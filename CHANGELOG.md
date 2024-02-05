@@ -40,6 +40,20 @@
 
 * **enum:** force enums to be strings ([#175](https://github.com/ForestAdmin/agent-python/issues/175)) ([c3e546b](https://github.com/ForestAdmin/agent-python/commit/c3e546b8a1939fe1ebf81078b4a279d1165f53be))
 
+## [1.3.1](https://github.com/ForestAdmin/agent-python/compare/v1.3.0...v1.3.1) (2024-01-25)
+
+
+### Bug Fixes
+
+* **replace_field:** forbid null values on field replace functions ([#173](https://github.com/ForestAdmin/agent-python/issues/173)) ([d3de1b6](https://github.com/ForestAdmin/agent-python/commit/d3de1b6a3ed6984042d365de2f02e0146f372c6d))
+
+# [1.3.0](https://github.com/ForestAdmin/agent-python/compare/v1.2.0...v1.3.0) (2024-01-24)
+
+
+### Features
+
+* **action_forms:** add widgets for smart action forms ([#165](https://github.com/ForestAdmin/agent-python/issues/165)) ([c6174f9](https://github.com/ForestAdmin/agent-python/commit/c6174f96a70cdeeaf1eb6450645d09891f307630))
+
 # [1.3.0-beta.11](https://github.com/ForestAdmin/agent-python/compare/v1.3.0-beta.10...v1.3.0-beta.11) (2024-01-22)
 
 

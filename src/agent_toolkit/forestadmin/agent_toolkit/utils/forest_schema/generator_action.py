@@ -1,6 +1,7 @@
 from typing import List, Union, cast
 
 from forestadmin.agent_toolkit.utils.forest_schema.action_values import ForestValueConverter
+from forestadmin.agent_toolkit.utils.forest_schema.generator_action_field_widget import GeneratorActionFieldWidget
 from forestadmin.agent_toolkit.utils.forest_schema.generator_field import SchemaFieldGenerator
 from forestadmin.agent_toolkit.utils.forest_schema.type import ForestServerAction, ForestServerActionField
 from forestadmin.datasource_toolkit.collections import Collection
@@ -45,6 +46,7 @@ class SchemaActionGenerator:
             redirect=None,
             download=bool(schema.generate_file),
             fields=await cls.build_fields(collection, schema, name),
+            # Always registering the change hook has no consequences, even if we don't use it.
             hooks={"load": not schema.static_form, "change": ["changeHook"]},
         )
 
@@ -53,12 +55,13 @@ class SchemaActionGenerator:
         cls, datasource: Datasource[Collection], field: ActionField
     ) -> ForestServerActionField:
         value = ForestValueConverter.value_to_forest(field, field["value"])
+        default_value = ForestValueConverter.value_to_forest(field, field["default_value"])
         output: ForestServerActionField = {
             "field": field["label"],
             "value": value,
             # When sending to server, we need to rename 'value' into 'defaultValue'
             # otherwise, it does not gets applied 🤷‍♂️
-            "defaultValue": field["default_value"],
+            "defaultValue": default_value,
             "description": field["description"],
             "enums": None,
             "hook": None,
@@ -67,6 +70,7 @@ class SchemaActionGenerator:
             "reference": None,
             "type": PrimitiveType.STRING,
             "widget": None,
+            "widgetEdit": GeneratorActionFieldWidget.build_widget_options(field),
         }
         if field["type"] == ActionFieldType.COLLECTION:
             collection: Collection = datasource.get_collection(field["collection_name"])  # type: ignore

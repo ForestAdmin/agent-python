@@ -59,6 +59,12 @@ class TestFlaskAgentBlueprint(TestCase):
         assert response.json == {"mock": "ok"}
         self.loop.run_until_complete(self.agent.get_resources())["actions"].dispatch.assert_called()
 
+    def test_hook_search(self):
+        response = self.client.post("/forest/_actions/customer/1/action_name/hooks/search")
+        assert response.status_code == 200
+        assert response.json == {"mock": "ok"}
+        self.loop.run_until_complete(self.agent.get_resources())["actions"].dispatch.assert_called()
+
     def test_action(self):
         response = self.client.post("/forest/_actions/customer/1/action_name")
         assert response.status_code == 200

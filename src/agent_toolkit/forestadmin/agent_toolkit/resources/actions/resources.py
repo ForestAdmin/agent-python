@@ -100,8 +100,11 @@ class ActionResource(BaseCollectionResource):
             .get("fields", [])  # type: ignore
         )
         unsafe_data: Optional[Dict[str, Any]] = None
+        search_values = {}
         if forest_fields:
             unsafe_data = ForestValueConverter.make_form_data_from_fields(request.collection.datasource, forest_fields)
+            for field in forest_fields:
+                search_values[field["field"]] = field.get("searchValue")
 
         _filter = await self._get_records_selection(request)
         fields = await request.collection.get_form(
@@ -109,7 +112,11 @@ class ActionResource(BaseCollectionResource):
             request.action_name,
             unsafe_data,
             _filter,
-            {"changed_field": request.body.get("data", {}).get("attributes", {}).get("changed_field")},
+            {
+                "changed_field": request.body.get("data", {}).get("attributes", {}).get("changed_field"),
+                "search_values": search_values,
+                "search_field": request.body.get("data", {}).get("attributes", {}).get("search_field"),
+            },
         )
 
         return HttpResponseBuilder.build_success_response(
