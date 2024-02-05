@@ -31,6 +31,11 @@ urlpatterns = [
         name="action_hook_change",
     ),
     path(
+        f"{prefix}forest/_actions/<str:collection_name>/<int:action_name>/<slug>/hooks/search",
+        actions.hook,
+        name="action_hook_search",
+    ),
+    path(
         f"{prefix}forest/_actions/<str:collection_name>/<int:action_name>/<slug>",
         actions.execute,
         name="action_execute",

@@ -160,6 +160,25 @@ class TestDjangoAgentActionsRoutes(TestDjangoAgentRoutes):
         self.assertEqual(response.headers["Content-Type"], "application/json")
         self.action_resource.dispatch.reset_mock()
 
+    def test_hook_search(self):
+        response = self.client.post(
+            f"/{self.conf_prefix}forest/_actions/customer/1/action_name/hooks/search",
+            json.dumps({"post_attr": "post_value"}),
+            content_type="application/json",
+            HTTP_X_FORWARDED_FOR="179.114.131.49",
+        )
+        self.action_resource.dispatch.assert_any_await(ANY, "hook")
+        request_param: Request = self.action_resource.dispatch.await_args[0][0]
+        self.assertEqual(request_param.method, RequestMethod.POST)
+        self.assertEqual(request_param.client_ip, "179.114.131.49")
+        self.assertEqual(request_param.body, {"post_attr": "post_value"})
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json(), {"mock": "ok"})
+        self.assertEqual(response.has_header("content-type"), True)
+        self.assertEqual(response.headers["Content-Type"], "application/json")
+        self.action_resource.dispatch.reset_mock()
+
     def test_execute(self):
         response = self.client.post(
             f"/{self.conf_prefix}forest/_actions/customer/1/action_name",

@@ -58,59 +58,31 @@ class GeneratorActionFieldWidget:
         if not ActionFields.has_widget(field) or field["type"] in GeneratorActionFieldWidget.NO_WIDGET_FOR_FIELD_TYPES:
             return None
 
-        if ActionFields.is_color_picker_field(field):
-            return GeneratorActionFieldWidget.build_color_picker_widget_edit(field)
-
-        if ActionFields.is_text_input_field(field):
-            return GeneratorActionFieldWidget.build_text_input_widget_edit(field)
-
-        if ActionFields.is_text_input_list_field(field):
-            return GeneratorActionFieldWidget.build_text_input_list_widget_edit(field)
-
-        if ActionFields.is_text_area_field(field):
-            return GeneratorActionFieldWidget.build_text_area_widget_edit(field)
-
-        if ActionFields.is_rich_text_field(field):
-            return GeneratorActionFieldWidget.build_rich_text_widget_edit(field)
-
-        if ActionFields.is_address_autocomplete_field(field):
-            return GeneratorActionFieldWidget.build_address_autocomplete_widget_edit(field)
-
-        if ActionFields.is_number_input_field(field):
-            return GeneratorActionFieldWidget.build_number_input_widget_edit(field)
-
-        if ActionFields.is_currency_input_field(field):
-            return GeneratorActionFieldWidget.build_currency_input_widget_edit(field)
-
-        if ActionFields.is_number_input_list_field(field):
-            return GeneratorActionFieldWidget.build_number_input_list_widget_edit(field)
-
-        if ActionFields.is_json_editor_field(field):
-            return GeneratorActionFieldWidget.build_json_editor_widget_edit(field)
-
-        if ActionFields.is_file_picker_field(field):
-            return GeneratorActionFieldWidget.build_file_picker_widget_edit(field)
-
-        if ActionFields.is_date_picker_field(field):
-            return GeneratorActionFieldWidget.build_date_picker_widget_edit(field)
-
-        if ActionFields.is_time_picker_field(field):
-            return GeneratorActionFieldWidget.build_time_picker_widget_edit(field)
-
-        if ActionFields.is_checkbox_field(field):
-            return GeneratorActionFieldWidget.build_checkbox_widget_edit(field)
-
-        if ActionFields.is_radio_group_field(field):
-            return GeneratorActionFieldWidget.build_radio_group_widget_edit(field)
-
-        if ActionFields.is_checkbox_group_field(field):
-            return GeneratorActionFieldWidget.build_checkbox_group_widget_edit(field)
-
-        if ActionFields.is_dropdown_field(field):
-            return GeneratorActionFieldWidget.build_dropdown_widget_edit(field)
-
-        if ActionFields.is_user_dropdown_field(field):
-            return GeneratorActionFieldWidget.build_user_dropdown_widget_edit(field)
+        if_return_mapping = {
+            ActionFields.is_color_picker_field: GeneratorActionFieldWidget.build_color_picker_widget_edit,
+            ActionFields.is_text_input_field: GeneratorActionFieldWidget.build_text_input_widget_edit,
+            ActionFields.is_text_input_list_field: GeneratorActionFieldWidget.build_text_input_list_widget_edit,
+            ActionFields.is_text_area_field: GeneratorActionFieldWidget.build_text_area_widget_edit,
+            ActionFields.is_rich_text_field: GeneratorActionFieldWidget.build_rich_text_widget_edit,
+            ActionFields.is_address_autocomplete_field: (
+                GeneratorActionFieldWidget.build_address_autocomplete_widget_edit
+            ),
+            ActionFields.is_number_input_field: GeneratorActionFieldWidget.build_number_input_widget_edit,
+            ActionFields.is_currency_input_field: GeneratorActionFieldWidget.build_currency_input_widget_edit,
+            ActionFields.is_number_input_list_field: GeneratorActionFieldWidget.build_number_input_list_widget_edit,
+            ActionFields.is_json_editor_field: GeneratorActionFieldWidget.build_json_editor_widget_edit,
+            ActionFields.is_file_picker_field: GeneratorActionFieldWidget.build_file_picker_widget_edit,
+            ActionFields.is_date_picker_field: GeneratorActionFieldWidget.build_date_picker_widget_edit,
+            ActionFields.is_time_picker_field: GeneratorActionFieldWidget.build_time_picker_widget_edit,
+            ActionFields.is_checkbox_field: GeneratorActionFieldWidget.build_checkbox_widget_edit,
+            ActionFields.is_radio_group_field: GeneratorActionFieldWidget.build_radio_group_widget_edit,
+            ActionFields.is_checkbox_group_field: GeneratorActionFieldWidget.build_checkbox_group_widget_edit,
+            ActionFields.is_dropdown_field: GeneratorActionFieldWidget.build_dropdown_widget_edit,
+            ActionFields.is_user_dropdown_field: GeneratorActionFieldWidget.build_user_dropdown_widget_edit,
+        }
+        for if_fn, return_fn in if_return_mapping.items():
+            if if_fn(field):
+                return return_fn(field)
 
     @staticmethod
     def build_color_picker_widget_edit(
