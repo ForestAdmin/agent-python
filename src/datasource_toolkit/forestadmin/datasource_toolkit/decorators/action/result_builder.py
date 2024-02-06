@@ -3,7 +3,7 @@ from typing import Any, Dict, List, Literal, Optional, TypedDict, Union
 
 from forestadmin.datasource_toolkit.interfaces.actions import ActionResult
 from forestadmin.datasource_toolkit.interfaces.records import RecordsDataAlias
-from typing_extensions import NotRequired
+from typing_extensions import NotRequired, Self
 
 OptionTypeAlias = Union[Literal["html"], Literal["text"]]
 WebhookMethod = Union[Literal["GET"], Literal["POST"]]
@@ -21,42 +21,64 @@ class ResultBuilder:
     FILE = "File"
     REDIRECT = "Redirect"
 
-    @classmethod
-    def success(cls, message: Optional[str] = None, options: Optional[OptionAlias] = None) -> ActionResult:
+    def __init__(self) -> None:
+        self.response_headers: Dict[str:str] = {}
+
+    def set_header(self, name: str, value: str) -> Self:
+        self.response_headers[name] = value
+
+        return self
+
+    def success(self, message: Optional[str] = None, options: Optional[OptionAlias] = None) -> ActionResult:
         if not options:
             options = {}
 
         return {
-            "type": cls.SUCCESS,
-            "message": message or cls.SUCCESS,
+            "type": self.SUCCESS,
+            "message": message or self.SUCCESS,
             "format": options.get("type", "text"),
             "invalidated": set(options.get("invalidated", [])),
+            "response_headers": self.response_headers,
         }
 
-    @classmethod
-    def error(cls, message: Optional[str] = None, options: Optional[OptionAlias] = None) -> ActionResult:
+    def error(self, message: Optional[str] = None, options: Optional[OptionAlias] = None) -> ActionResult:
         if not options:
             options = {}
         return {
-            "type": cls.ERROR,
-            "message": message or cls.ERROR,
+            "type": self.ERROR,
+            "message": message or self.ERROR,
             "format": options.get("type", "text"),
+            "response_headers": self.response_headers,
         }
 
-    @classmethod
     def webhook(
-        cls,
+        self,
         url: str,
         method: WebhookMethod = "POST",
         headers: Optional[RecordsDataAlias] = None,
         body: Optional[Dict[str, Any]] = None,
     ) -> ActionResult:
-        return {"type": cls.WEBHOOK, "url": url, "method": method, "headers": headers or {}, "body": body or {}}
+        return {
+            "type": self.WEBHOOK,
+            "url": url,
+            "method": method,
+            "headers": headers or {},
+            "body": body or {},
+            "response_headers": self.response_headers,
+        }
 
-    @classmethod
-    def file(cls, file: IOBase, name: str = "file", mime_type: str = "text/plain") -> ActionResult:
-        return {"type": cls.FILE, "name": name, "mimeType": mime_type, "stream": file}
+    def file(self, file: IOBase, name: str = "file", mime_type: str = "text/plain") -> ActionResult:
+        return {
+            "type": self.FILE,
+            "name": name,
+            "mimeType": mime_type,
+            "stream": file,
+            "response_headers": self.response_headers,
+        }
 
-    @classmethod
-    def redirect(cls, path: str) -> ActionResult:
-        return {"type": cls.REDIRECT, "path": path}
+    def redirect(self, path: str) -> ActionResult:
+        return {
+            "type": self.REDIRECT,
+            "path": path,
+            "response_headers": self.response_headers,
+        }

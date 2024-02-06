@@ -29,7 +29,11 @@ def convert_response(response: Union[Response, FileResponse]) -> FlaskResponse:
     if isinstance(response, FileResponse):
         flask_response = FlaskResponse(
             response.file,
-            headers={"Content-Type": response.mimetype, "Content-Disposition": f"attachment; filename={response.name}"},
+            headers={
+                "Content-Type": response.mimetype,
+                "Content-Disposition": f"attachment; filename={response.name}",
+                **response.headers,
+            },
         )
     else:
         flask_response = FlaskResponse(response.body)
