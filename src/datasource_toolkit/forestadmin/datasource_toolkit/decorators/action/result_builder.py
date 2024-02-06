@@ -25,11 +25,32 @@ class ResultBuilder:
         self.response_headers: Dict[str:str] = {}
 
     def set_header(self, name: str, value: str) -> Self:
+        """Add header to the action response
+
+        Args:
+            name (str): the header name
+            value (str): the header value
+
+        Returns:
+            Self: self instance for chaining
+
+        Example:
+            .set_header("myHeaderName", "my header value")
+        """
         self.response_headers[name] = value
 
         return self
 
     def success(self, message: Optional[str] = None, options: Optional[OptionAlias] = None) -> ActionResult:
+        """Returns a success response from the action
+
+        Args:
+            message (str, optional): the success message to return. Defaults to None.
+            options (dict, optional): available options to return. Defaults to None.
+
+        Example:
+            .success("Success", {"html": "<blinkee>Success!</blinkee>"})
+        """
         if not options:
             options = {}
 
@@ -42,6 +63,15 @@ class ResultBuilder:
         }
 
     def error(self, message: Optional[str] = None, options: Optional[OptionAlias] = None) -> ActionResult:
+        """Returns an error response from the action
+
+        Args:
+            message (str, optional): the error message to return. Defaults to None.
+            options (dict, optional): available options to return. Defaults to None.
+
+        Example:
+            .error("Failed to refund the customer!", {"html": "<strong>Error!</strong>"})
+        """
         if not options:
             options = {}
         return {
@@ -58,6 +88,17 @@ class ResultBuilder:
         headers: Optional[RecordsDataAlias] = None,
         body: Optional[Dict[str, Any]] = None,
     ) -> ActionResult:
+        """Returns a webhook that the UI will trigger
+
+        Args:
+            url (str): the url of the webhook
+            method (str, optional): the HTTP method of the webhook. Defaults to "POST".
+            headers (dict, optional): a dict representing the list of headers to send with the webhook. Defaults to None
+            body (dict, optional): a dict representing the body of the HTTP request. Defaults to None.
+
+        Example:
+            .webhook("http://my-company-name", "POST", {}, {"adminToken": "my-admin-token"})
+        """
         return {
             "type": self.WEBHOOK,
             "url": url,
@@ -68,6 +109,16 @@ class ResultBuilder:
         }
 
     def file(self, file: IOBase, name: str = "file", mime_type: str = "text/plain") -> ActionResult:
+        """Returns a file that will be downloaded
+
+        Args:
+            file (IOBase): the actual file to download
+            name (str, optional): the name of the file. Defaults to "file".
+            mime_type (str, optional): the mime type of the file. Defaults to "text/plain".
+
+        Example:
+            .file("This is my file content", "download.txt", "text/plain")
+        """
         return {
             "type": self.FILE,
             "name": name,
@@ -77,6 +128,14 @@ class ResultBuilder:
         }
 
     def redirect(self, path: str) -> ActionResult:
+        """Returns to the UI that a redirection is needed
+
+        Args:
+            path (str): the path to redirect to
+
+        Example:
+            .redirect("https://www.google.com")
+        """
         return {
             "type": self.REDIRECT,
             "path": path,
