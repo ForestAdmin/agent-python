@@ -33,7 +33,12 @@ class TestActionFieldFactory(TestCase):
             value="1",
             default_value="10",
         )
-        self.assertRaisesRegex(FieldFactoryException, r"🌳🌳🌳Unknown field type: 'bla'", FieldFactory.build, plain_field)
+        self.assertRaisesRegex(
+            FieldFactoryException,
+            r"🌳🌳🌳Unknown field type: 'bla'",
+            FieldFactory.build,
+            plain_field,
+        )
 
     def test_field_factory_should_raise_if_bad_param(self):
         plain_field = PlainStringDynamicField(

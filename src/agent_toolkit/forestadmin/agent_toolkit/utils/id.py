@@ -15,10 +15,10 @@ class IdException(BaseException):
 def pack_id(schema: CollectionSchema, record: RecordsDataAlias) -> str:
     schema_pks = SchemaUtils.get_primary_keys(schema)
     if len(schema_pks) == 0:
-        raise IdException("")
+        raise IdException("No primary key found in the collection schema.")
     pks = [str(record[pk]) for pk in schema_pks if record.get(pk) is not None]
     if len(pks) == 0:
-        raise IdException("")
+        raise IdException(f"Primary key(s) '{'|'.join(schema_pks)}' not found in record.")
 
     return "|".join(pks)  # type: ignore
 

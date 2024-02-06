@@ -2,11 +2,11 @@
 # set -x
 ARTIFACT_DIR="artifacts_coverages"
 
-PACKAGES=("agent_toolkit" "datasource_sqlalchemy" "datasource_toolkit" "flask_agent")
+PACKAGES=("agent_toolkit" "datasource_sqlalchemy" "datasource_toolkit" "flask_agent" "datasource_django" "django_agent")
 # PACKAGES=("datasource_sqlalchemy")
 PYTHON_VERSIONS=("3.8" "3.9" "3.10" "3.11" "3.12")
 # PYTHON_VERSIONS=("3.8" "3.11")
-# PYTHON_VERSIONS=("3.11")
+# PYTHON_VERSIONS=("3.12")
 
 # flask related settings
 # https://pypi.org/project/Flask/#history
@@ -34,20 +34,18 @@ for sub_version in {0..21}; do
         SQLALCHEMY_VERSIONS+=($version)
     fi
 done
+DJANGO_VERSIONS=("3.2" "4.0" "4.1" "4.2" "5.0")
 
 # launch test on all versions only if we test 1 package
 if [[ ${#PACKAGES[@]} == 1 ]]; then
     LAUNCH_ALL_FLASK_VERSIONS=true
     LAUNCH_ALL_SQLALCHEMY_VERSIONS=true
+    LAUNCH_ALL_DJANGO_VERSIONS=true
 else
     LAUNCH_ALL_FLASK_VERSIONS=false
     LAUNCH_ALL_SQLALCHEMY_VERSIONS=false
+    LAUNCH_ALL_DJANGO_VERSIONS=false
 fi
-LAUNCH_ALL_FLASK_VERSIONS=false
-LAUNCH_ALL_SQLALCHEMY_VERSIONS=false
-# LAUNCH_ALL_FLASK_VERSIONS=true
-# LAUNCH_ALL_SQLALCHEMY_VERSIONS=true
-
 
 eval "$(pyenv init -)"
 mkdir -p $ARTIFACT_DIR
@@ -98,6 +96,14 @@ do
                     pip install -q -U flask werkzeug flask_sqlalchemy sqlalchemy==$version
                 fi
                 echo "#--------- running tests with sqlalchemy==$version"
+                $(which poetry) run coverage run -m pytest  # run tests
+            done
+        elif [[ ("$package" == "datasource_django" || "$package" == "django_agent") &&  $LAUNCH_ALL_DJANGO_VERSIONS == true ]]
+        then
+            for version in ${DJANGO_VERSIONS[@]}
+            do
+                pip install -q -U django==$version
+                echo "#--------- running tests with django==$version"
                 $(which poetry) run coverage run -m pytest  # run tests
             done
 

@@ -28,6 +28,8 @@ class IntOrFloat(fields.Field):
     def _serialize(self, value, attr, obj, **kwargs):  # type: ignore
         if value is None:
             return value
+        if isinstance(value, int) or isinstance(value, float):
+            return value
         try:
             return int(value)
         except ValueError:
@@ -35,6 +37,8 @@ class IntOrFloat(fields.Field):
 
     def _deserialize(self, value, attr, data, **kwargs):  # type: ignore
         if value is None:
+            return value
+        if isinstance(value, int) or isinstance(value, float):
             return value
         try:
             return int(value)
@@ -155,10 +159,12 @@ class ForestRelationShip(fields.Relationship):
         )
 
     def get_related_url(self, obj: Any):
-        if "data" in obj:
+        if "id" in obj:
+            obj["__forest_id__"] = obj["id"]
+        elif "data" in obj:
             obj["__forest_id__"] = obj["data"]["id"]
         else:
-            obj["__forest_id__"] = obj["id"]
+            raise JsonApiException("Cannot find json api 'id' in given obj.")
         res: Any = super(ForestRelationShip, self).get_related_url(obj)  # type: ignore
         del obj["__forest_id__"]
         return {"href": res}

@@ -5,9 +5,13 @@ source=
     src/datasource_toolkit/forestadmin/datasource_toolkit
     src/agent_toolkit/forestadmin/agent_toolkit
     src/flask_agent/forestadmin/flask_agent
+    src/django_agent/forestadmin/django_agent
+    src/datasource_django/forestadmin/datasource_django
 omit =
     **/tests/**
     src/datasource_sqlalchemy/tests/**
     src/datasource_toolkit/tests/**
     src/agent_toolkit/tests/**
     src/flask_agent/tests/**
+    src/django_agent/tests/**
+    src/datasource_django/tests/**

@@ -453,7 +453,10 @@ class CrudRelatedResource(BaseCollectionResource):
         await self.permission.can(request.user, request.collection, "edit")
 
         foreign_value = await CollectionUtils.get_value(
-            request.user, cast(Collection, request.collection), linked_id, request.relation["foreign_key_target"]
+            request.user,
+            cast(Collection, request.foreign_collection),
+            linked_id,
+            request.relation["foreign_key_target"],
         )
 
         trees = [ConditionTreeFactory.match_ids(request.collection.schema, [parent_id])]

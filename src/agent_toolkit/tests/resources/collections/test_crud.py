@@ -25,6 +25,7 @@ from forestadmin.datasource_toolkit.datasources import Datasource, DatasourceExc
 from forestadmin.datasource_toolkit.exceptions import ValidationError
 from forestadmin.datasource_toolkit.interfaces.fields import FieldType, Operator, PrimitiveType
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.leaf import ConditionTreeLeaf
+from forestadmin.datasource_toolkit.interfaces.query.projections import Projection
 from forestadmin.datasource_toolkit.validations.records import RecordValidatorException
 
 
@@ -243,7 +244,10 @@ class TestCrudResource(TestCase):
         "forestadmin.agent_toolkit.resources.collections.crud.ConditionTreeFactory.match_ids",
         return_value=ConditionTreeLeaf("id", Operator.EQUAL, 10),
     )
-    @patch("forestadmin.agent_toolkit.resources.collections.crud.ProjectionFactory.all", return_value=["id", "cost"])
+    @patch(
+        "forestadmin.agent_toolkit.resources.collections.crud.ProjectionFactory.all",
+        return_value=Projection("id", "cost"),
+    )
     @patch(
         "forestadmin.agent_toolkit.resources.collections.crud.JsonApiSerializer.get",
         return_value=Mock,
@@ -310,7 +314,10 @@ class TestCrudResource(TestCase):
         "forestadmin.agent_toolkit.resources.collections.crud.ConditionTreeFactory.match_ids",
         return_value=ConditionTreeLeaf("id", Operator.EQUAL, 10),
     )
-    @patch("forestadmin.agent_toolkit.resources.collections.crud.ProjectionFactory.all", return_value=["id", "cost"])
+    @patch(
+        "forestadmin.agent_toolkit.resources.collections.crud.ProjectionFactory.all",
+        return_value=Projection("id", "cost"),
+    )
     @patch(
         "forestadmin.agent_toolkit.resources.collections.crud.JsonApiSerializer.get",
         return_value=Mock,
@@ -342,7 +349,10 @@ class TestCrudResource(TestCase):
         "forestadmin.agent_toolkit.resources.collections.crud.ConditionTreeFactory.match_ids",
         return_value=ConditionTreeLeaf("id", Operator.EQUAL, 10),
     )
-    @patch("forestadmin.agent_toolkit.resources.collections.crud.ProjectionFactory.all", return_value=["id", "cost"])
+    @patch(
+        "forestadmin.agent_toolkit.resources.collections.crud.ProjectionFactory.all",
+        return_value=Projection("id", "cost"),
+    )
     @patch(
         "forestadmin.agent_toolkit.resources.collections.crud.JsonApiSerializer.get",
         return_value=Mock,
@@ -867,7 +877,11 @@ class TestCrudResource(TestCase):
         self.permission_service.can.reset_mock()
         assert response.status == 500
         response_content = json.loads(response.body)
-        assert response_content["errors"][0] == {"detail": "🌳🌳🌳", "name": "CollectionResourceException", "status": 500}
+        assert response_content["errors"][0] == {
+            "detail": "🌳🌳🌳",
+            "name": "CollectionResourceException",
+            "status": 500,
+        }
 
         # JsonApiException
         mocked_json_serializer_get.return_value.load = Mock(side_effect=JsonApiException)
@@ -954,7 +968,11 @@ class TestCrudResource(TestCase):
 
         assert response.status == 500
         response_content = json.loads(response.body)
-        assert response_content["errors"][0] == {"detail": "🌳🌳🌳", "name": "CollectionResourceException", "status": 500}
+        assert response_content["errors"][0] == {
+            "detail": "🌳🌳🌳",
+            "name": "CollectionResourceException",
+            "status": 500,
+        }
 
     @patch(
         "forestadmin.agent_toolkit.resources.collections.crud.ConditionTreeFactory.match_ids",
@@ -1085,7 +1103,11 @@ class TestCrudResource(TestCase):
 
         assert response.status == 500
         response_content = json.loads(response.body)
-        assert response_content["errors"][0] == {"detail": "🌳🌳🌳cannot make csv", "name": "CsvException", "status": 500}
+        assert response_content["errors"][0] == {
+            "detail": "🌳🌳🌳cannot make csv",
+            "name": "CsvException",
+            "status": 500,
+        }
 
     def test_csv_should_not_apply_pagination(self):
         mock_orders = [{"id": 10, "cost": 200}, {"id": 11, "cost": 201}]

@@ -1,3 +1,4 @@
+import enum
 import sys
 
 if sys.version_info >= (3, 9):
@@ -67,6 +68,9 @@ def aggregations_to_records(items: List[Dict[str, Any]]):
         result = AggregateResult(value=item._mapping[AggregationFactory.LABEL], group={})
         for key in item._mapping.keys():
             if AggregationFactory.GROUP_LABEL in key:
-                result["group"][AggregationFactory.get_field_from_group_field_name(key)] = item._mapping[key]
+                value = item._mapping[key]
+                if isinstance(item._mapping[key], enum.Enum):
+                    value = value.value
+                result["group"][AggregationFactory.get_field_from_group_field_name(key)] = value
         records.append(result)
     return records

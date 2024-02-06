@@ -1,0 +1,44 @@
+[tool.poetry]
+name = "forestadmin-django-demo"
+version = "0.0.1"
+description = "empty project with models to plug forest into"
+authors = ["Julien Barreau <julien.barreau@forestadmin.com>",]
+readme = "README.md"
+packages = [{include = "django_demo"}]
+
+[tool.poetry.dependencies]
+python = ">=3.8,<3.13"
+django = ">=4.2.0"
+python-dotenv = ">= 1.0.0"
+str2bool = ">= 1.0"
+forestadmin-datasource-toolkit = {path = "../../datasource_toolkit", develop = true}
+forestadmin-agent-toolkit = {path = "../../agent_toolkit", develop = true}
+forestadmin-agent-django = {path = "../../django_agent", develop = true}
+forestadmin-datasource-django = {path = "../../datasource_django", develop = true}
+
+[tool.poetry.group.linter.dependencies]
+[[tool.poetry.group.linter.dependencies.flake8]]
+version = "~=5.0"
+python = "<3.8.1"
+
+[[tool.poetry.group.linter.dependencies.flake8]]
+version = "~=6.0"
+python = ">=3.8.1"
+
+[tool.poetry.group.formatter.dependencies]
+black = "~=22.10"
+
+[tool.poetry.group.sorter.dependencies]
+isort = "~=3.6"
+
+[tool.poe.executor]
+type = "simple"
+
+[tool.poe.tasks]
+init-db  = { shell = "cd django_demo && python manage.py migrate" }
+populate-db  = { shell = "cd django_demo && python manage.py populate-db && python manage.py migrate --database=other" }
+runserver = { shell = "cd django_demo && python manage.py runserver" }
+
+[tool.poetry.group.dev.dependencies]
+poethepoet = "^0.16.5"
+faker = "^15.3.4"

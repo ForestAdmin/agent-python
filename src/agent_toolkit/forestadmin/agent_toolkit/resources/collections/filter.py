@@ -11,9 +11,9 @@ else:
 from forestadmin.agent_toolkit.exceptions import AgentToolkitException
 from forestadmin.agent_toolkit.resources.collections.requests import RequestCollection, RequestRelationCollection
 from forestadmin.agent_toolkit.utils.context import Request
-from forestadmin.datasource_toolkit.collections import Collection
+from forestadmin.datasource_toolkit.collections import Collection, CollectionException
 from forestadmin.datasource_toolkit.datasource_customizer.collection_customizer import CollectionCustomizer
-from forestadmin.datasource_toolkit.interfaces.fields import PrimitiveType, is_column, is_many_to_one, is_one_to_one
+from forestadmin.datasource_toolkit.interfaces.fields import PrimitiveType, is_column
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.factory import (
     ConditionTreeFactory,
     ConditionTreeFactoryException,
@@ -228,41 +228,26 @@ def _parse_value(jsoned_filters, collection):
     return jsoned_filters
 
 
-def _parse_projection_fields(
-    query: Dict[str, Any],
-    collection: Union[CollectionCustomizer, Collection],
-    front_collection_name: str,
-    is_related: bool = False,
-) -> List[str]:
-    projection_fields: List[str] = []
-    try:
-        fields: str = query[f"fields[{front_collection_name}]"]
-    except KeyError:
-        return ProjectionFactory.all(collection)
-
-    if fields == "":
-        return ProjectionFactory.all(collection)
-    for field_name in fields.split(","):
-        field_schema = collection.get_field(field_name)
-        if is_column(field_schema):
-            if is_related:
-                projection_fields.append(f"{front_collection_name}:{field_name}")
-            else:
-                projection_fields.append(field_name)
-        elif is_one_to_one(field_schema) or is_many_to_one(field_schema):
-            fk_collection = collection.datasource.get_collection(field_schema["foreign_collection"])
-            projection_fields.extend(_parse_projection_fields(query, fk_collection, field_name, True))
-    return projection_fields
-
-
-def parse_projection(request: Union[RequestCollection, RequestRelationCollection]):
+def parse_projection(request: Union[RequestCollection, RequestRelationCollection]) -> Projection:
     collection = _get_collection(request)
-    if not request.query:
+    schema = collection.schema
+    if not request.query or not request.query.get(f"fields[{collection.name}]"):
         return ProjectionFactory.all(collection)
 
-    projection_fields = _parse_projection_fields(request.query, collection, collection.name)
-    ProjectionValidator.validate(_get_collection(request), projection_fields)
-    return Projection(*projection_fields)
+    root_fields = request.query[f"fields[{collection.name}]"].split(",")
+    explicit_request = []
+    for _field in root_fields:
+        if not schema["fields"].get(_field):
+            raise CollectionException(f"Field not found '{collection.name}.{_field}'")
+
+        if is_column(schema["fields"][_field]):
+            explicit_request.append(_field)
+        else:
+            query_params = f"fields[{_field}]"
+            explicit_request.append(f"{_field}:{request.query[query_params]}")
+
+    ProjectionValidator.validate(_get_collection(request), explicit_request)
+    return Projection(*explicit_request)
 
 
 def parse_projection_with_pks(request: Union[RequestCollection, RequestRelationCollection]):

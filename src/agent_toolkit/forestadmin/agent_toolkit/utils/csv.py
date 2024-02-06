@@ -16,7 +16,7 @@ class Csv:
     def make_csv(rows: List[Dict[str, Any]], projection: Projection) -> str:
         try:
             dumped_csv = StringIO()
-            csv_writer = DictWriter(dumped_csv, fieldnames=projection)
+            csv_writer = DictWriter(dumped_csv, fieldnames=projection, extrasaction="ignore")
             csv_writer.writeheader()
             for row in rows:
                 csv_writer.writerow(Csv.format_field(row))

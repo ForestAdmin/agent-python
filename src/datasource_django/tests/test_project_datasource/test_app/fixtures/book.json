@@ -1,0 +1,17 @@
+[
+  {
+    "model": "test_app.book",
+    "pk": 1,
+    "fields": { "name": "Foundation", "author": 1 , "price": 1.23}
+  },
+  {
+    "model": "test_app.book",
+    "pk": 2,
+    "fields": { "name": "Harry Potter", "author": 2 , "price": 2.34}
+  },
+  {
+    "model": "test_app.book",
+    "pk": 3,
+    "fields": { "name": "Unknown Book", "author": null , "price": 3.45}
+  }
+]

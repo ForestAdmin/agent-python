@@ -2,7 +2,6 @@ import abc
 from typing import Any, Dict, List, Optional
 
 from forestadmin.agent_toolkit.utils.context import User
-from forestadmin.datasource_toolkit.exceptions import ForestException
 from forestadmin.datasource_toolkit.interfaces.actions import ActionField, ActionResult
 from forestadmin.datasource_toolkit.interfaces.chart import Chart
 from forestadmin.datasource_toolkit.interfaces.models.collections import Collection as CollectionModel
@@ -27,7 +26,6 @@ class Collection(CollectionModel, abc.ABC):
         filter_: Optional[Filter],
     ) -> ActionResult:
         """to execute an action"""
-        raise ForestException(f"Action {name} is not implemented")
 
     @abc.abstractmethod
     async def get_form(
@@ -39,12 +37,10 @@ class Collection(CollectionModel, abc.ABC):
         meta: Optional[Dict[str, Any]],
     ) -> List[ActionField]:
         """to get the form of an action"""
-        return []
 
     @abc.abstractmethod
     async def render_chart(self, caller: User, name: str, record_id: List) -> Chart:
         """to render a chart"""
-        raise ForestException(f"Chart {name} is not implemented")
 
     @abc.abstractmethod
     async def create(self, caller: User, data: List[RecordsDataAlias]) -> List[RecordsDataAlias]:

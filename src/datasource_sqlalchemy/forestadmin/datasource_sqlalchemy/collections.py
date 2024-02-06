@@ -23,8 +23,6 @@ from forestadmin.datasource_sqlalchemy.utils.record_serializer import (
     projections_to_records,
 )
 from forestadmin.datasource_sqlalchemy.utils.relationships import Relationships, merge_relationships
-from forestadmin.datasource_toolkit.interfaces.actions import ActionField, ActionResult
-from forestadmin.datasource_toolkit.interfaces.chart import Chart
 from forestadmin.datasource_toolkit.interfaces.fields import PrimitiveType, RelationAlias
 from forestadmin.datasource_toolkit.interfaces.query.aggregation import AggregateResult, Aggregation
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.base import ConditionTree
@@ -228,19 +226,3 @@ class SqlAlchemyCollection(BaseSqlAlchemyCollection):
         with self.datasource.Session.begin() as session:  #  type: ignore
             query = QueryFactory.delete(self, filter_)
             session.execute(query)  # type: ignore
-
-    async def get_form(
-        self,
-        caller: User,
-        name: str,
-        data: Optional[RecordsDataAlias],
-        filter_: Optional[Filter],
-        meta: Optional[Dict[str, Any]],
-    ) -> List[ActionField]:
-        return await super().get_form(caller, name, data, filter_, meta)
-
-    async def execute(self, caller: User, name: str, data: RecordsDataAlias, filter_: Optional[Filter]) -> ActionResult:
-        return await super().execute(caller, name, data, filter_)
-
-    async def render_chart(self, caller: User, name: str, record_id: List) -> Chart:
-        return await super().render_chart(caller, name, record_id)

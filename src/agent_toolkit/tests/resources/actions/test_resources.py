@@ -203,7 +203,11 @@ class TestDispatchActionResource(BaseTestActionResource):
         self.assertEqual(response.status, 500)
         self.assertEqual(
             content["errors"][0],
-            {"name": "RequestActionException", "detail": "🌳🌳🌳'action_name' is missing in the request", "status": 500},
+            {
+                "name": "RequestActionException",
+                "detail": "🌳🌳🌳'action_name' is missing in the request",
+                "status": 500,
+            },
         )
 
     def test_should_return_the_return_value_of_hook_when_method_name_is_hook(self):
