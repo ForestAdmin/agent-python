@@ -34,6 +34,7 @@ class SchemaEmitter:
         """return schema ready to send as api_map format"""
         serialized_collections: List[Dict[str, Any]] = []
         included: List[Dict[str, str]] = []
+        schema_file_hash = sha1(json.dumps({"collections": collections, "meta": meta}).encode("utf-8")).hexdigest()
         for collection in collections:
             action_data, action_included = cls.get_serialized_collection_relation(collection, "actions")
             segment_data, segment_included = cls.get_serialized_collection_relation(collection, "segments")
@@ -50,25 +51,26 @@ class SchemaEmitter:
                     "relationships": {"actions": {"data": action_data}, "segments": {"data": segment_data}},
                 }
             )
-        return {"data": serialized_collections, "included": included, "meta": meta}
+        return {
+            "data": serialized_collections,
+            "included": included,
+            "meta": {**meta, "schemaFileHash": schema_file_hash},
+        }
 
     @classmethod
     async def get_serialized_schema(
         cls, options: Options, datasource: Union[Datasource[Collection], DatasourceCustomizer], meta: AgentMeta
     ):
-        schema: List[ForestServerCollection] = []
         if not options["is_production"]:
             collections_schema = await SchemaEmitter.generate(options["prefix"], datasource)
-            meta["schemaFileHash"] = sha1(json.dumps(collections_schema).encode("utf-8")).hexdigest()
 
             with open(options["schema_path"], "w", encoding="utf-8") as schema_file:
                 json.dump({"collections": collections_schema, "meta": meta}, schema_file, indent=4)
         else:
             try:
                 with open(options["schema_path"], "r", encoding="utf-8") as schema_file:
-                    schema = json.load(schema_file)
-                meta.update(schema["meta"])
-                collections_schema = schema["collections"]
+                    collections_schema = json.load(schema_file)["collections"]
+
             except Exception:
                 ForestLogger.log(
                     "error",

@@ -46,7 +46,6 @@ class AgentMeta(TypedDict):
     liana: str
     liana_version: str
     stack: AgentStackMeta
-    schemaFileHash: str
 
 
 class ForestServerField(TypedDict, total=False):
