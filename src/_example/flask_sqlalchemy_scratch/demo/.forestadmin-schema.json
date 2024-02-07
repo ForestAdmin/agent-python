@@ -666,10 +666,42 @@
                 {
                     "defaultValue": null,
                     "enums": null,
-                    "field": "smart_addresses",
+                    "field": "address_id",
+                    "integration": null,
                     "inverseOf": null,
                     "isFilterable": true,
                     "isPrimaryKey": true,
+                    "isReadOnly": true,
+                    "isRequired": false,
+                    "isSortable": true,
+                    "isVirtual": false,
+                    "reference": null,
+                    "type": "Number",
+                    "validations": []
+                },
+                {
+                    "defaultValue": null,
+                    "enums": null,
+                    "field": "customer_id",
+                    "integration": null,
+                    "inverseOf": null,
+                    "isFilterable": false,
+                    "isPrimaryKey": true,
+                    "isReadOnly": true,
+                    "isRequired": false,
+                    "isSortable": true,
+                    "isVirtual": false,
+                    "reference": null,
+                    "type": "String",
+                    "validations": []
+                },
+                {
+                    "defaultValue": null,
+                    "enums": null,
+                    "field": "smart_addresses",
+                    "inverseOf": null,
+                    "isFilterable": true,
+                    "isPrimaryKey": false,
                     "isReadOnly": false,
                     "isRequired": false,
                     "isSortable": true,
@@ -685,7 +717,7 @@
                     "field": "smart_customers",
                     "inverseOf": null,
                     "isFilterable": true,
-                    "isPrimaryKey": true,
+                    "isPrimaryKey": false,
                     "isReadOnly": false,
                     "isRequired": false,
                     "isSortable": true,
@@ -729,7 +761,8 @@
                             "isRequired": false,
                             "reference": null,
                             "type": "String",
-                            "widget": null
+                            "widget": null,
+                            "widgetEdit": null
                         },
                         {
                             "field": "customer",
@@ -742,7 +775,8 @@
                             "isRequired": true,
                             "reference": "customer.pk",
                             "type": "String",
-                            "widget": null
+                            "widget": null,
+                            "widgetEdit": null
                         }
                     ],
                     "hooks": {
@@ -773,7 +807,8 @@
                             "isRequired": false,
                             "reference": null,
                             "type": "String",
-                            "widget": null
+                            "widget": null,
+                            "widgetEdit": null
                         }
                     ],
                     "hooks": {
@@ -838,7 +873,7 @@
                     "isRequired": false,
                     "isSortable": true,
                     "isVirtual": false,
-                    "reference": "cart.pk",
+                    "reference": "cart.order_id",
                     "relationship": "HasOne",
                     "type": "Number",
                     "validations": []
@@ -997,11 +1032,10 @@
     ],
     "meta": {
         "liana": "agent-python",
-        "liana_version": "1.0.0-beta.27",
+        "liana_version": "1.4.0",
         "stack": {
             "engine": "python",
-            "engine_version": "3.8.16"
-        },
-        "schemaFileHash": "6fd520f90c62e74f48ec2475d890d6628328d96f"
+            "engine_version": "3.10.11"
+        }
     }
 }
