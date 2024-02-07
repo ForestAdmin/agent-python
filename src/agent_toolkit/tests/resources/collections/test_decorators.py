@@ -183,6 +183,39 @@ class TestAuthenticateDecorators(TestDecorators):
 
         self.assertEqual(response, True)
 
+    def test_should_parse_forest_context_url_if_present(self):
+        user = {
+            "rendering_id": "1",
+            "id": "1",
+            "tags": {"test": "tag"},
+            "email": "user@company.com",
+            "first_name": "first_name",
+            "last_name": "last_name",
+            "team": "best_team",
+        }
+        encoded_user = jwt.encode(user, "auth_secret")
+        request = RequestCollection(
+            RequestMethod.GET,
+            self.book_collection,
+            body=None,
+            query={"timezone": "Europe/Paris"},
+            headers={
+                "Authorization": f"Bearer {encoded_user}",
+                "Forest-Context-Url": "http://localhost/?param%3D%2Ftest%2F",
+            },
+        )
+
+        async def _decorated_fn(resource, request):
+            self.assertEqual(request.user.context_url, "http://localhost/?param=/test/")
+
+            return True
+
+        decorated_fn = AsyncMock(wraps=_decorated_fn)
+        response = self.loop.run_until_complete(_authenticate(self.collection_resource, request, decorated_fn))
+        decorated_fn.assert_awaited_once_with(self.collection_resource, request)
+
+        self.assertEqual(response, True)
+
 
 class TestAuthorizeDecorators(TestDecorators):
     @classmethod
