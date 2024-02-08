@@ -66,14 +66,14 @@ class ActionResource(BaseCollectionResource):
         result = await request.collection.execute(request.user, request.action_name, data, filter_)
 
         if result["type"] == ResultBuilder.ERROR:
-            return HttpResponseBuilder.build_json_response(400, {"error": result["message"]})
+            response = HttpResponseBuilder.build_json_response(400, {"error": result["message"]})
         elif result["type"] == ResultBuilder.SUCCESS:
             key = "success"
             if result["format"] == "html":
                 key = "html"
-            return HttpResponseBuilder.build_success_response({key: result["message"]})
+            response = HttpResponseBuilder.build_success_response({key: result["message"]})
         elif result["type"] == ResultBuilder.WEBHOOK:
-            return HttpResponseBuilder.build_success_response(
+            response = HttpResponseBuilder.build_success_response(
                 {
                     "webhook": {
                         "url": result["url"],
@@ -84,10 +84,15 @@ class ActionResource(BaseCollectionResource):
                 }
             )
         elif result["type"] == ResultBuilder.FILE:
-            return FileResponse(result["stream"], result["name"], result["mimeType"])
+            response = FileResponse(result["stream"], result["name"], result["mimeType"])
 
         elif result["type"] == ResultBuilder.REDIRECT:
-            return HttpResponseBuilder.build_success_response({"redirectTo": result["path"]})
+            response = HttpResponseBuilder.build_success_response({"redirectTo": result["path"]})
+
+        if "response_headers" in result:
+            response.headers.update(result["response_headers"])
+
+        return response
 
     @check_method(RequestMethod.POST)
     @authenticate

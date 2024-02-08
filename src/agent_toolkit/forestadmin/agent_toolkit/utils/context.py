@@ -73,6 +73,7 @@ class FileResponse:
     file: Optional[BytesIO]
     name: str
     mimetype: str
+    headers: Dict[str, str] = field(default_factory=lambda: {})
 
 
 class HttpResponseBuilder:

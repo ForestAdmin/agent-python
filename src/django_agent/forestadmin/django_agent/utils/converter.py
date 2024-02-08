@@ -28,6 +28,7 @@ def convert_response(response: Response) -> DjangoResponse:
             headers={
                 "Content-Type": response.mimetype,
                 "Content-Disposition": f"attachment; filename={response.name}",
+                **response.headers,
             },
         )
     else:

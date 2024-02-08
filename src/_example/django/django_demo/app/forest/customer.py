@@ -4,6 +4,7 @@ import logging
 from operator import add, sub
 from typing import List, Union
 
+from dateutil.relativedelta import relativedelta
 from forestadmin.datasource_toolkit.context.collection_context import CollectionCustomizationContext
 from forestadmin.datasource_toolkit.decorators.action.context.bulk import ActionContextBulk
 from forestadmin.datasource_toolkit.decorators.action.context.single import ActionContextSingle
@@ -235,9 +236,13 @@ async def age_operation_execute(
         operation = sub
     value = context.form_values["Value"]
 
-    record = await context.get_record(Projection("age"))
-    await context.collection.update(context.caller, context.filter, {"age": operation(record["age"], value)})
-    return result_builder.success("<h1> Success </h1>", options={"type": "html"})
+    record = await context.get_record(Projection("birthday_date"))
+    new_birthday = operation(record["birthday_date"], relativedelta(years=value))
+    await context.collection.update(context.caller, context.filter, {"birthday_date": new_birthday})
+
+    return result_builder.set_header("MyCustomHeader", "MyCustomValue").success(
+        "<h1> Success </h1>", options={"type": "html"}
+    )
 
 
 age_operation_action_dict: ActionDict = {

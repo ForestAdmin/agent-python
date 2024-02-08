@@ -581,7 +581,7 @@ class TestExecuteActionResource(BaseTestActionResource):
             self.decorated_collection_book,
             "execute",
             new_callable=AsyncMock,
-            return_value=ResultBuilder.success("bravo"),
+            return_value=ResultBuilder().success("bravo"),
         ) as mocked_execute:
             response = self.loop.run_until_complete(self.action_resource.execute(request))
             mocked_execute.assert_awaited_once_with(
@@ -798,3 +798,29 @@ class TestExecuteActionResource(BaseTestActionResource):
         self.assertEqual(request_arg_body["data"]["attributes"]["all_records_ids_excluded"], [])
         self.assertEqual(request_arg_body["data"]["attributes"]["all_records_subset_query"]["timezone"], "Europe/Paris")
         self.assertIsNotNone(request_arg_body["data"]["attributes"]["signed_approval_request"])
+
+    def test_execute_should_handle_response_headers(self):
+        def execute(ctx, result_builder):
+            result_builder.set_header("headerOne", "valueOne")
+            return result_builder.success()
+
+        self.decorated_collection_book.add_action(
+            "test_action_global", {"scope": ActionsScope.GLOBAL, "execute": execute}
+        )
+
+        request = ActionRequest(
+            method=RequestMethod.POST,
+            action_name="test_action_global",
+            collection=self.decorated_collection_book,
+            body=self.body_params,
+            query={
+                "timezone": "Europe/Paris",
+                "collection_name": "Book",
+                "action_name": 0,
+                "slug": "test_action_global",
+            },
+            headers={},
+            user=self.mocked_caller,
+        )
+        response = self.loop.run_until_complete(self.action_resource.execute(request))
+        self.assertEqual(response.headers["headerOne"], "valueOne")
