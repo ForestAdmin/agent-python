@@ -1,3 +1,10 @@
+# [1.5.0](https://github.com/ForestAdmin/agent-python/compare/v1.4.0...v1.5.0) (2024-02-08)
+
+
+### Features
+
+* **action result builder:** allow user to set SA response headers ([#185](https://github.com/ForestAdmin/agent-python/issues/185)) ([0e98849](https://github.com/ForestAdmin/agent-python/commit/0e988493fdda67d34c703de0ae12e8eef0f1a9df))
+
 # [1.4.0](https://github.com/ForestAdmin/agent-python/compare/v1.3.1...v1.4.0) (2024-02-06)
 
 
