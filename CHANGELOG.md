@@ -1,3 +1,10 @@
+## [1.5.1](https://github.com/ForestAdmin/agent-python/compare/v1.5.0...v1.5.1) (2024-02-08)
+
+
+### Bug Fixes
+
+* **schema:** force schema metadata update even in production ([#186](https://github.com/ForestAdmin/agent-python/issues/186)) ([f833e84](https://github.com/ForestAdmin/agent-python/commit/f833e845bd794460d3e474b642faef7be8a606de))
+
 # [1.5.0](https://github.com/ForestAdmin/agent-python/compare/v1.4.0...v1.5.0) (2024-02-08)
 
 
