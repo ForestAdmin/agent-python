@@ -1,3 +1,10 @@
+## [1.5.2](https://github.com/ForestAdmin/agent-python/compare/v1.5.1...v1.5.2) (2024-02-15)
+
+
+### Bug Fixes
+
+* **security:** patch semantic-release dependency vulnerabilities ([#188](https://github.com/ForestAdmin/agent-python/issues/188)) ([87b8a6a](https://github.com/ForestAdmin/agent-python/commit/87b8a6afc96948f4e35f80fd26a4264f64b7243f))
+
 ## [1.5.1](https://github.com/ForestAdmin/agent-python/compare/v1.5.0...v1.5.1) (2024-02-08)
 
 
