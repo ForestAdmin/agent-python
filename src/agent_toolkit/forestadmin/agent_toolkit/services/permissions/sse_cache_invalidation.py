@@ -59,6 +59,14 @@ class SSECacheInvalidation(Thread):
                 ForestLogger.log("debug", f"SSE connection to forestadmin server due to {str(exc)}")
                 ForestLogger.log("warning", "SSE connection to forestadmin server closed unexpectedly, retrying.")
 
-            sleep_delay = sleep_delays[min(sleep_delays_idx, len(sleep_delays) - 1)]
-            sleep_delays_idx += 1
-            time.sleep(sleep_delay)
+            if sleep_delays_idx < len(sleep_delays):
+                sleep_delay = sleep_delays[sleep_delays_idx]
+                sleep_delays_idx += 1
+                time.sleep(sleep_delay)
+            else:
+                reason = f"{self.sse_client._event_source.status} {self.sse_client._event_source.reason}"
+                ForestLogger.log(
+                    "error",
+                    f"SSE connection to forestadmin server failed multiple times because of '{reason}'. Stop trying!",
+                )
+                break
