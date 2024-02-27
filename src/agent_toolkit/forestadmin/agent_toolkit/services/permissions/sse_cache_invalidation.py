@@ -30,6 +30,9 @@ class SSECacheInvalidation(Thread):
             self.sse_client.close()
 
     def run(self) -> None:
+        sleep_delays = [1, 3, 10, 60, 3 * 60, 10 * 60]
+        sleep_delays_idx = 0
+
         while not self._exit_thread:
             url = f"{self.options['server_url']}/liana/v4/subscribe-to-events"
             headers = {"forest-secret-key": self.options["env_secret"], "Accept": "text/event-stream"}
@@ -55,4 +58,7 @@ class SSECacheInvalidation(Thread):
             except Exception as exc:
                 ForestLogger.log("debug", f"SSE connection to forestadmin server due to {str(exc)}")
                 ForestLogger.log("warning", "SSE connection to forestadmin server closed unexpectedly, retrying.")
-            time.sleep(5)
+
+            sleep_delay = sleep_delays[min(sleep_delays_idx, len(sleep_delays) - 1)]
+            sleep_delays_idx += 1
+            time.sleep(sleep_delay)
