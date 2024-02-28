@@ -1,3 +1,10 @@
+## [1.5.3](https://github.com/ForestAdmin/agent-python/compare/v1.5.2...v1.5.3) (2024-02-28)
+
+
+### Bug Fixes
+
+* **cache_invalidation:** wait more between each failed sse connection ([#189](https://github.com/ForestAdmin/agent-python/issues/189)) ([ec47651](https://github.com/ForestAdmin/agent-python/commit/ec476517747aad045a306f037d5384f135853e39))
+
 ## [1.5.2](https://github.com/ForestAdmin/agent-python/compare/v1.5.1...v1.5.2) (2024-02-15)
 
 
