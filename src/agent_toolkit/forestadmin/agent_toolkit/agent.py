@@ -208,7 +208,7 @@ class Agent:
             try:
                 await ForestHttpApi.send_schema(self.options, api_map)
             except Exception:
-                ForestLogger.log("warning", "Cannot send the apimap to Forest. Are you online?")
+                ForestLogger.log("exception", "Cannot send the apimap to Forest. Are you online?")
         else:
             ForestLogger.log("warning", 'Schema update was skipped (caused by options["skip_schema_update"]=True)')
 
