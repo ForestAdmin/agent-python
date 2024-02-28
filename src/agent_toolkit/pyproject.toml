@@ -1,12 +1,15 @@
 [build-system]
-requires = [ "poetry-core",]
+requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 name = "forestadmin-agent-toolkit"
 description = "agent toolkit for forestadmin python agent"
 version = "1.5.3"
-authors = [ "Valentin Monté <valentinm@forestadmin.com>", "Julien Barreau <julien.barreau@forestadmin.com>",]
+authors = [
+    "Valentin Monté <valentinm@forestadmin.com>",
+    "Julien Barreau <julien.barreau@forestadmin.com>",
+]
 readme = "README.md"
 repository = "https://github.com/ForestAdmin/agent-python"
 documentation = "https://docs.forestadmin.com/developer-guide-agents-python/"
@@ -24,7 +27,8 @@ python-jose = ">=3.3, <4.0"
 cachetools = "~=5.2"
 marshmallow-jsonapi = ">=0.24.0, <1.0"
 sseclient-py = "^1.5"
-forestadmin-datasource-toolkit = "1.5.3"
+# forestadmin-datasource-toolkit = "1.5.3"
+forestadmin-datasource-toolkit = { git = "https://github.com/ForestAdmin/agent-python", branch = "debug_send_schema", subdirectory = "src/datasource_toolkit" }
 [[tool.poetry.dependencies.pandas]]
 version = ">=1.4.0"
 python = ">=3.8"
@@ -32,7 +36,7 @@ python = ">=3.8"
 [tool.poetry.dependencies."backports.zoneinfo"]
 version = "~0.2.1"
 python = "<3.9"
-extras = [ "tzdata",]
+extras = ["tzdata"]
 
 [tool.poetry.group.test]
 optional = true
