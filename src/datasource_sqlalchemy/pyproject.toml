@@ -17,7 +17,6 @@ include = "forestadmin"
 [tool.poetry.dependencies]
 python = ">=3.8,<3.13"
 typing-extensions = "~=4.2"
-tzdata = "~=2022.6"
 sqlalchemy = ">=1.4.0"
 forestadmin-datasource-toolkit = "1.5.3"
 forestadmin-agent-toolkit = "1.5.3"
