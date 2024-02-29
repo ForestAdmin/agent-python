@@ -625,7 +625,7 @@ pyflakes = ">=3.1.0,<3.2.0"
 
 [[package]]
 name = "forestadmin-agent-django"
-version = "1.4.0"
+version = "1.5.3"
 description = "django agent for forestadmin python agent"
 optional = false
 python-versions = ">=3.8,<3.13"
@@ -636,10 +636,9 @@ develop = true
 "backports.zoneinfo" = {version = "~=0.2.1", extras = ["tzdata"], markers = "python_version < \"3.9\""}
 django = ">=3.2,<6.0"
 django-cors-headers = ">=3.8"
-forestadmin-agent-toolkit = "1.4.0"
-forestadmin-datasource-django = "1.4.0"
+forestadmin-agent-toolkit = "1.5.3"
+forestadmin-datasource-django = "1.5.3"
 typing-extensions = "~=4.2"
-tzdata = "~=2022.6"
 
 [package.source]
 type = "directory"
@@ -647,7 +646,7 @@ url = "../../django_agent"
 
 [[package]]
 name = "forestadmin-agent-toolkit"
-version = "1.4.0"
+version = "1.5.3"
 description = "agent toolkit for forestadmin python agent"
 optional = false
 python-versions = ">=3.8,<3.13"
@@ -658,14 +657,13 @@ develop = true
 aiohttp = "~=3.9"
 "backports.zoneinfo" = {version = "~0.2.1", extras = ["tzdata"], markers = "python_version < \"3.9\""}
 cachetools = "~=5.2"
-forestadmin-datasource-toolkit = "1.4.0"
+forestadmin-datasource-toolkit = "1.5.3"
 marshmallow-jsonapi = ">=0.24.0, <1.0"
 oic = "~=1.4"
 pandas = {version = ">=1.4.0", markers = "python_version >= \"3.8\""}
 python-jose = ">=3.3, <4.0"
 sseclient-py = "^1.5"
 typing-extensions = ">=4.2.0, <5.0"
-tzdata = "~2022.6"
 
 [package.source]
 type = "directory"
@@ -673,7 +671,7 @@ url = "../../agent_toolkit"
 
 [[package]]
 name = "forestadmin-datasource-django"
-version = "1.4.0"
+version = "1.5.3"
 description = "django datasource for forestadmin python agent"
 optional = false
 python-versions = ">=3.8,<3.13"
@@ -683,11 +681,10 @@ develop = true
 [package.dependencies]
 "backports.zoneinfo" = {version = "~=0.2.1", extras = ["tzdata"], markers = "python_version < \"3.9\""}
 django = ">=3.2,<6.0"
-forestadmin-agent-toolkit = "1.4.0"
-forestadmin-datasource-toolkit = "1.4.0"
+forestadmin-agent-toolkit = "1.5.3"
+forestadmin-datasource-toolkit = "1.5.3"
 psycopg2 = ">=2.8.4"
 typing-extensions = "~=4.2"
-tzdata = "~=2022.6"
 
 [package.source]
 type = "directory"
@@ -695,7 +692,7 @@ url = "../../datasource_django"
 
 [[package]]
 name = "forestadmin-datasource-toolkit"
-version = "1.4.0"
+version = "1.5.3"
 description = "datasource toolkit for forestadmin python agent"
 optional = false
 python-versions = ">=3.8,<3.13"
@@ -707,7 +704,6 @@ develop = true
 filetype = "^1.0.0"
 pandas = ">=1.4.0"
 typing-extensions = "~=4.2"
-tzdata = "~=2022.6"
 
 [package.source]
 type = "directory"
@@ -1257,8 +1253,8 @@ files = [
 [package.dependencies]
 numpy = [
     {version = ">=1.20.3", markers = "python_version < \"3.10\""},
-    {version = ">=1.21.0", markers = "python_version >= \"3.10\" and python_version < \"3.11\""},
     {version = ">=1.23.2", markers = "python_version >= \"3.11\""},
+    {version = ">=1.21.0", markers = "python_version >= \"3.10\" and python_version < \"3.11\""},
 ]
 python-dateutil = ">=2.8.2"
 pytz = ">=2020.1"
