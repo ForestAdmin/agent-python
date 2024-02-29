@@ -4,6 +4,7 @@ import sys
 import threading
 from typing import Callable, Optional, Union
 
+from corsheaders import defaults as default_cors_settings
 from django.apps import AppConfig, apps
 from django.conf import settings
 from forestadmin.agent_toolkit.forest_logger import ForestLogger
@@ -77,6 +78,7 @@ class DjangoAgentApp(AppConfig):
     def ready(self):
         # we need to wait for other apps to be ready, for this forest app must be ready
         # that's why we need another thread waiting for every app to be ready
+        self.setup_cors_settings()
         t = threading.Thread(name="forest.wait_and_launch_agent", target=self._wait_for_all_apps_ready_and_launch_agent)
         t.start()
 
@@ -99,3 +101,13 @@ class DjangoAgentApp(AppConfig):
             )
 
         DjangoAgentApp._DJANGO_AGENT = init_app_agent()
+
+    def setup_cors_settings(self):
+        # headers
+        if getattr(settings, "CORS_ALLOW_HEADERS", None):
+            allowed_headers = settings.CORS_ALLOW_HEADERS
+        else:
+            allowed_headers = default_cors_settings.default_headers
+
+        if "Forest-Context-Url" not in allowed_headers:
+            settings.CORS_ALLOW_HEADERS = (*allowed_headers, "Forest-Context-Url")

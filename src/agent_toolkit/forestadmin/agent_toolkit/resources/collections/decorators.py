@@ -1,4 +1,5 @@
 from typing import Any, Awaitable, Callable, TypeVar, Union
+from urllib.parse import unquote
 
 from forestadmin.agent_toolkit.resources.collections.base_collection_resource import BaseCollectionResource
 from forestadmin.agent_toolkit.resources.collections.filter import parse_timezone
@@ -42,6 +43,10 @@ async def _authenticate(
     except JWTError:
         return Response(status=401)
 
+    context_url = None
+    if "Forest-Context-Url" in request.headers:
+        context_url = unquote(request.headers["Forest-Context-Url"])
+
     request.user = User(
         rendering_id=int(user["rendering_id"]),
         user_id=int(user["id"]),
@@ -51,6 +56,7 @@ async def _authenticate(
         last_name=user["last_name"],
         team=user["team"],
         timezone=parse_timezone(request),
+        context_url=context_url,
     )
     return await decorated_fn(self, request)
 
