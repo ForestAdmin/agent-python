@@ -1,3 +1,10 @@
+## [1.5.4](https://github.com/ForestAdmin/agent-python/compare/v1.5.3...v1.5.4) (2024-02-29)
+
+
+### Bug Fixes
+
+* **tzdata_version:** remove dependencies to tzdata from packages ([#191](https://github.com/ForestAdmin/agent-python/issues/191)) ([2b17760](https://github.com/ForestAdmin/agent-python/commit/2b1776048233935a3035469b57cc1bd12041c2ad))
+
 ## [1.5.3](https://github.com/ForestAdmin/agent-python/compare/v1.5.2...v1.5.3) (2024-02-28)
 
 
