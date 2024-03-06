@@ -114,6 +114,27 @@ class TestDjangoFieldFactory(TestCase):
             [{"operator": Operator.PRESENT}, {"operator": Operator.SHORTER_THAN, "value": 254}],
         )
 
+    def test_build_should_correctly_introspect_uuid(self):
+        field = models.UUIDField()
+        field_schema = FieldFactory.build(field, None)
+        self.assertEqual(field_schema["column_type"], PrimitiveType.UUID)
+        self.assertEqual(
+            field_schema["filter_operators"],
+            {
+                Operator.BLANK,
+                Operator.EQUAL,
+                Operator.MISSING,
+                Operator.NOT_EQUAL,
+                Operator.PRESENT,
+                Operator.CONTAINS,
+                Operator.ENDS_WITH,
+                Operator.LIKE,
+                Operator.STARTS_WITH,
+                Operator.IN,
+                Operator.NOT_IN,
+            },
+        )
+
 
 class TestDjangoCollectionFactory(TestCase):
     @staticmethod
