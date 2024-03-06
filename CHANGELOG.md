@@ -1,3 +1,10 @@
+## [1.5.5](https://github.com/ForestAdmin/agent-python/compare/v1.5.4...v1.5.5) (2024-03-06)
+
+
+### Bug Fixes
+
+* **uuid_field:** enable in and not in for uuid fields ([#192](https://github.com/ForestAdmin/agent-python/issues/192)) ([a77613b](https://github.com/ForestAdmin/agent-python/commit/a77613be4436197908a42afab6e2a4745ac6fa70))
+
 ## [1.5.4](https://github.com/ForestAdmin/agent-python/compare/v1.5.3...v1.5.4) (2024-02-29)
 
 
