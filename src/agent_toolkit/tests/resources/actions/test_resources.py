@@ -13,6 +13,7 @@ else:
 
 import forestadmin.agent_toolkit.resources.actions.resources
 import forestadmin.agent_toolkit.resources.collections.charts_collection
+import jwt
 from forestadmin.agent_toolkit.forest_logger import ForestLogger
 from forestadmin.agent_toolkit.options import Options
 from forestadmin.agent_toolkit.resources.actions.requests import ActionRequest
@@ -30,7 +31,6 @@ from forestadmin.datasource_toolkit.exceptions import ForbiddenError
 from forestadmin.datasource_toolkit.interfaces.actions import ActionFieldType, ActionsScope
 from forestadmin.datasource_toolkit.interfaces.fields import FieldType, Operator, PrimitiveType
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.leaf import ConditionTreeLeaf
-from jose import jwt
 
 
 def authenticate_mock(fn):

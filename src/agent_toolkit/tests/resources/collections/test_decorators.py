@@ -3,6 +3,7 @@ import json
 from unittest import TestCase
 from unittest.mock import AsyncMock, Mock, patch
 
+import jwt
 from forestadmin.agent_toolkit.resources.collections.base_collection_resource import BaseCollectionResource
 from forestadmin.agent_toolkit.resources.collections.decorators import (
     _authenticate,
@@ -18,7 +19,6 @@ from forestadmin.datasource_toolkit.collections import Collection
 from forestadmin.datasource_toolkit.datasources import Datasource
 from forestadmin.datasource_toolkit.exceptions import ForbiddenError
 from forestadmin.datasource_toolkit.interfaces.fields import FieldType, Operator, PrimitiveType
-from jose import jwt
 
 # how to mock decorators, and why they are not testable :
 # https://dev.to/stack-labs/how-to-mock-a-decorator-in-python-55jc
