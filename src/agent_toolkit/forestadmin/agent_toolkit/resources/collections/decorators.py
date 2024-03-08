@@ -1,5 +1,6 @@
 from typing import Any, Awaitable, Callable, TypeVar, Union
 
+import jwt
 from forestadmin.agent_toolkit.resources.collections.base_collection_resource import BaseCollectionResource
 from forestadmin.agent_toolkit.resources.collections.filter import parse_timezone
 from forestadmin.agent_toolkit.resources.collections.requests import RequestCollection
@@ -12,7 +13,6 @@ from forestadmin.agent_toolkit.utils.context import (
     User,
 )
 from forestadmin.datasource_toolkit.exceptions import ForbiddenError
-from jose import JWTError, jwt
 
 BoundRequest = TypeVar("BoundRequest", bound=Request)
 BoundResource = TypeVar("BoundResource", bound=BaseCollectionResource)
@@ -38,8 +38,8 @@ async def _authenticate(
         return Response(status=401)
 
     try:
-        user = jwt.decode(token, self.option["auth_secret"])
-    except JWTError:
+        user = jwt.decode(token, self.option["auth_secret"], algorithms=["HS256"])
+    except jwt.PyJWTError:
         return Response(status=401)
 
     request.user = User(
