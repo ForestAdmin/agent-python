@@ -29,7 +29,7 @@ from app.forest.order import (
     get_customer_full_name_field,
     nb_order_per_week,
     pending_order_segment,
-    refound_order_action,
+    refund_order_action,
     rejected_order_segment,
     suspicious_order_segment,
     total_order_chart,
@@ -197,7 +197,7 @@ def customize_forest(agent: DjangoAgent):
         "Export json",
         export_orders_json,
     ).add_action(
-        "Refund order(s)", refound_order_action
+        "Refund order(s)", refund_order_action
     ).add_field_validation(
         # validation
         "amount",

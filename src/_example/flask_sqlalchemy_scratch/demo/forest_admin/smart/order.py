@@ -121,13 +121,13 @@ export_orders_json: ActionDict = {
 }
 
 
-async def refound_order_execute(context: ActionContext, result_builder: ResultBuilder) -> Union[None, ActionResult]:
+async def refund_order_execute(context: ActionContext, result_builder: ResultBuilder) -> Union[None, ActionResult]:
     return result_builder.success("fake refund")
 
 
-refound_order_action: ActionDict = {
+refund_order_action: ActionDict = {
     "scope": ActionsScope.BULK,
-    "execute": refound_order_execute,
+    "execute": refund_order_execute,
     "form": [
         {
             "type": ActionFieldType.STRING,
