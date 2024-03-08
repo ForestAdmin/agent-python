@@ -1,3 +1,10 @@
+## [1.5.6](https://github.com/ForestAdmin/agent-python/compare/v1.5.5...v1.5.6) (2024-03-08)
+
+
+### Bug Fixes
+
+* **vulnerability:** replace python jose by pyjwt ([#193](https://github.com/ForestAdmin/agent-python/issues/193)) ([d7e0075](https://github.com/ForestAdmin/agent-python/commit/d7e00754937060427f62663f2ff4ab0a1c7d8b77))
+
 ## [1.5.5](https://github.com/ForestAdmin/agent-python/compare/v1.5.4...v1.5.5) (2024-03-06)
 
 
