@@ -1,5 +1,6 @@
 from typing import Any, Dict, List, Literal, Optional, Union
 
+import jwt
 from forestadmin.agent_toolkit.forest_logger import ForestLogger
 from forestadmin.agent_toolkit.resources.actions.requests import ActionRequest, RequestActionException
 from forestadmin.agent_toolkit.resources.collections.base_collection_resource import BaseCollectionResource
@@ -22,7 +23,6 @@ from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.base i
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.branch import Aggregator, ConditionTreeBranch
 from forestadmin.datasource_toolkit.interfaces.query.filter.factory import FilterFactory
 from forestadmin.datasource_toolkit.interfaces.query.filter.unpaginated import Filter
-from jose import jwt
 
 LiteralMethod = Literal["execute", "hook"]
 
@@ -187,4 +187,4 @@ class ActionResource(BaseCollectionResource):
         return request
 
     def _decode_signed_approval_request(self, signed_approval_request):
-        return jwt.decode(signed_approval_request, self.option["env_secret"])
+        return jwt.decode(signed_approval_request, self.option["env_secret"], algorithms=["HS256"])
