@@ -30,7 +30,7 @@ class PartialManyToMany(TypedDict):
     foreign_collection: str
     foreign_key: str
     foreign_key_target: NotRequired[Optional[str]]
-    foreign_relation: str
+    foreign_relation: NotRequired[Optional[str]]
     origin_key: str
     origin_key_target: NotRequired[Optional[str]]
     type: Literal[FieldType.MANY_TO_MANY]
