@@ -1,8 +1,8 @@
 import enum
 from dataclasses import dataclass
-from typing import Any, Dict, List, Literal, Optional, Set, TypedDict, Union
+from typing import Any, Dict, List, Literal, Optional, Set, Union
 
-from typing_extensions import NotRequired
+from typing_extensions import NotRequired, TypedDict
 
 Number = Union[int, float]
 

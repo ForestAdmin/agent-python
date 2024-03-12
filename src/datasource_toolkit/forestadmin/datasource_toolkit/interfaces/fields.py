@@ -1,8 +1,8 @@
 import enum
-from typing import Any, Dict, List, Literal, Optional, Set, TypedDict, Union
+from typing import Any, Dict, List, Literal, Optional, Set, Union
 from uuid import UUID
 
-from typing_extensions import NotRequired, TypeGuard
+from typing_extensions import NotRequired, TypedDict, TypeGuard
 
 
 class Operator(enum.Enum):

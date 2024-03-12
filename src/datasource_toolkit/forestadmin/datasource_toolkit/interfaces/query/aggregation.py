@@ -3,7 +3,7 @@ import json
 import sys
 from datetime import datetime, timedelta
 from numbers import Number
-from typing import Any, Callable, Dict, List, Literal, Optional, TypedDict, Union
+from typing import Any, Callable, Dict, List, Literal, Optional, Union
 
 if sys.version_info >= (3, 9):
     import zoneinfo
@@ -13,7 +13,7 @@ else:
 from forestadmin.datasource_toolkit.interfaces.query.projections import Projection
 from forestadmin.datasource_toolkit.interfaces.records import RecordsDataAlias
 from forestadmin.datasource_toolkit.utils.records import RecordUtils
-from typing_extensions import NotRequired, Self, TypeGuard
+from typing_extensions import NotRequired, Self, TypedDict, TypeGuard
 
 
 class Aggregator(enum.Enum):
@@ -50,7 +50,7 @@ class Summary(TypedDict):
 
 class PlainAggregationGroup(TypedDict):
     field: str
-    operation: NotRequired[str]
+    operation: NotRequired[Union[str, DateOperation]]
 
 
 class AggregationGroup(TypedDict):
