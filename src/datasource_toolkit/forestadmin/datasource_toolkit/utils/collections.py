@@ -111,12 +111,12 @@ class CollectionUtils:
         relation = SchemaUtils.get_to_many_relation(collection.schema, relation_name)
         foreign_collection = collection.datasource.get_collection(relation["foreign_collection"])
 
-        if is_many_to_many(relation) and relation["foreign_relation"] and foreign_filter.is_nestable:
+        if is_many_to_many(relation) and relation.get("foreign_relation") and foreign_filter.is_nestable:
             through = collection.datasource.get_collection(relation["through_collection"])
-            filter = await FilterFactory.make_through_filter(collection, id, relation_name, foreign_filter)
+            filter_ = await FilterFactory.make_through_filter(collection, id, relation_name, foreign_filter)
 
             nested_records = await through.aggregate(
-                caller, filter.to_base_filter(), aggregation.nest(relation["foreign_relation"]), limit
+                caller, filter_.to_base_filter(), aggregation.nest(relation["foreign_relation"]), limit
             )
 
             records: List[AggregateResult] = []
@@ -128,8 +128,8 @@ class CollectionUtils:
             return records
 
         relation = cast(OneToMany, relation)
-        filter = await FilterFactory.make_foreign_filter(caller, collection, id, relation, foreign_filter)
-        return await foreign_collection.aggregate(caller, filter.to_base_filter(), aggregation, limit)
+        filter_ = await FilterFactory.make_foreign_filter(caller, collection, id, relation, foreign_filter)
+        return await foreign_collection.aggregate(caller, filter_.to_base_filter(), aggregation, limit)
 
     @staticmethod
     def get_inverse_relation(collection: Collection, relation_name: str) -> Optional[str]:

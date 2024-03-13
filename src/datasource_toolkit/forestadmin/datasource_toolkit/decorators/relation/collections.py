@@ -16,6 +16,7 @@ from forestadmin.datasource_toolkit.interfaces.query.projections import Projecti
 from forestadmin.datasource_toolkit.interfaces.records import RecordsDataAlias
 from forestadmin.datasource_toolkit.utils.records import RecordUtils
 from forestadmin.datasource_toolkit.utils.schema import SchemaUtils
+from forestadmin.datasource_toolkit.validations.field import FieldValidator
 
 
 class RelationCollectionDecorator(CollectionDecorator):
@@ -153,9 +154,10 @@ class RelationCollectionDecorator(CollectionDecorator):
 
     @staticmethod
     def _check_column(owner: Collection, name: str):
-        column = owner.schema["fields"].get(name)
+        FieldValidator.validate(owner, name)
+        column = owner.schema["fields"][name]
 
-        if column is None or column["type"] != FieldType.COLUMN:
+        if column["type"] != FieldType.COLUMN:
             raise ForestException(f"Column not found: '{owner.name}.{name}'")
 
         if Operator.IN not in column.get("filter_operators", []):

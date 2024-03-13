@@ -122,7 +122,7 @@ class TestPublicationCollectionDecorator(TestCase):
     def test_change_visibility_error_on_non_existent_field(self):
         self.assertRaisesRegex(
             ForestException,
-            r"🌳🌳🌳No such field 'unknown'",
+            r"🌳🌳🌳No such field 'Person.unknown', choices are id, book, books",
             self.decorated_collection_person.change_field_visibility,
             "unknown",
             False,

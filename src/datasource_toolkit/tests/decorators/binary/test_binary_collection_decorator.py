@@ -16,7 +16,7 @@ from forestadmin.datasource_toolkit.datasources import Datasource
 from forestadmin.datasource_toolkit.decorators.binary.collection import BinaryCollectionDecorator
 from forestadmin.datasource_toolkit.decorators.binary.utils import bytes2hex, hex2bytes
 from forestadmin.datasource_toolkit.decorators.datasource_decorator import DatasourceDecorator
-from forestadmin.datasource_toolkit.exceptions import ForestException
+from forestadmin.datasource_toolkit.exceptions import DatasourceToolkitException, ForestException
 from forestadmin.datasource_toolkit.interfaces.fields import Column, FieldType, ManyToOne, Operator, PrimitiveType
 from forestadmin.datasource_toolkit.interfaces.query.aggregation import Aggregation, Aggregator
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.branch import (
@@ -110,8 +110,8 @@ class TestSetBinaryMode(TestBaseBinaryDecorator):
 
     def test_set_binary_mode_should_raise_if_field_does_not_exists(self):
         self.assertRaisesRegex(
-            KeyError,
-            r"'invalid'$",
+            DatasourceToolkitException,
+            r"🌳🌳🌳Column not found: Book\.invalid. Fields in Book are id, title, cover$",
             self.decorated_collection_book.set_binary_mode,
             "invalid",
             "hex",

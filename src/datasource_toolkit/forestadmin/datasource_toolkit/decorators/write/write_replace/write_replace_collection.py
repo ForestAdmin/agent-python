@@ -12,6 +12,7 @@ from forestadmin.datasource_toolkit.interfaces.fields import FieldType
 from forestadmin.datasource_toolkit.interfaces.models.collections import CollectionSchema, Datasource
 from forestadmin.datasource_toolkit.interfaces.query.filter.unpaginated import Filter
 from forestadmin.datasource_toolkit.interfaces.records import RecordsDataAlias
+from forestadmin.datasource_toolkit.validations.field import FieldValidator
 from forestadmin.datasource_toolkit.validations.records import RecordValidator
 
 
@@ -21,8 +22,8 @@ class WriteReplaceCollection(CollectionDecorator):
         self._handlers = {}
 
     def replace_field_writing(self, field_name: str, definition: WriteDefinition):
-        if field_name not in self.schema["fields"]:
-            raise ForestException(f"The given field '{field_name}' does not exists on the {self.name} collection.")
+        FieldValidator.validate(self, field_name)
+
         if not definition:
             raise ForestException("A new writing method should be provided to replace field writing")
 
