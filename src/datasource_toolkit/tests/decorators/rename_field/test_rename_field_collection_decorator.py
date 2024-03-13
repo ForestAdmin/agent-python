@@ -16,7 +16,6 @@ from forestadmin.datasource_toolkit.decorators.rename_field.collections import (
     RenameCollectionException,
     RenameFieldCollectionDecorator,
 )
-from forestadmin.datasource_toolkit.exceptions import DatasourceToolkitException
 from forestadmin.datasource_toolkit.interfaces.fields import (
     Column,
     FieldType,
