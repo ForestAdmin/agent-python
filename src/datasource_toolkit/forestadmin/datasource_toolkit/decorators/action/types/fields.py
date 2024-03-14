@@ -199,7 +199,7 @@ class CollectionDynamicField(BaseDynamicField[CompositeIdAlias]):
 
 # enum
 class PlainEnumDynamicField(PlainField):
-    type: Literal[ActionFieldType.ENUM]
+    type: Literal[ActionFieldType.ENUM, "Enum"]
     enum_values: ValueOrHandler[List[str]]
     if_: NotRequired[ValueOrHandler[bool]]
     value: NotRequired[ValueOrHandler[str]]
@@ -244,7 +244,7 @@ class EnumDynamicField(BaseDynamicField[str]):
 
 # enum list
 class PlainListEnumDynamicField(PlainField):
-    type: Literal[ActionFieldType.ENUM_LIST]
+    type: Literal[ActionFieldType.ENUM_LIST, "EnumList"]
     enum_values: ValueOrHandler[List[str]]
     value: NotRequired[ValueOrHandler[List[str]]]
     default_value: NotRequired[ValueOrHandler[List[str]]]
@@ -293,7 +293,7 @@ class EnumListDynamicField(BaseDynamicField[List[str]]):
 
 # boolean
 class PlainBooleanDynamicField(PlainField):
-    type: Literal[ActionFieldType.BOOLEAN]
+    type: Literal[ActionFieldType.BOOLEAN, "Boolean"]
     value: NotRequired[ValueOrHandler[bool]]
     default_value: NotRequired[ValueOrHandler[bool]]
 
@@ -304,7 +304,7 @@ class BooleanDynamicField(BaseDynamicField[bool]):
 
 # date only
 class PlainDateOnlyDynamicField(PlainField):
-    type: Literal[ActionFieldType.DATE_ONLY]
+    type: Literal[ActionFieldType.DATE_ONLY, "Dateonly"]
     value: NotRequired[ValueOrHandler[date]]
     default_value: NotRequired[ValueOrHandler[date]]
 
@@ -315,7 +315,7 @@ class DateOnlyDynamicField(BaseDynamicField[date]):
 
 # datetime
 class PlainDateTimeDynamicField(PlainField):
-    type: Literal[ActionFieldType.DATE]
+    type: Literal[ActionFieldType.DATE, "Date"]
     value: NotRequired[ValueOrHandler[datetime]]
     default_value: NotRequired[ValueOrHandler[datetime]]
 
@@ -326,7 +326,7 @@ class DateTimeDynamicField(BaseDynamicField[datetime]):
 
 # time
 class PlainTimeDynamicField(PlainField):
-    type: Literal[ActionFieldType.TIME]
+    type: Literal[ActionFieldType.TIME, "Time"]
     value: NotRequired[ValueOrHandler[str]]
     default_value: NotRequired[ValueOrHandler[str]]
 
@@ -337,7 +337,7 @@ class TimeDynamicField(BaseDynamicField[str]):
 
 # number
 class PlainNumberDynamicField(PlainField):
-    type: Literal[ActionFieldType.NUMBER]
+    type: Literal[ActionFieldType.NUMBER, "Number"]
     value: NotRequired[ValueOrHandler[Union[int, float]]]
     default_value: NotRequired[ValueOrHandler[Union[int, float]]]
 
@@ -348,7 +348,7 @@ class NumberDynamicField(BaseDynamicField[Union[int, float]]):
 
 # number list
 class PlainListNumberDynamicField(PlainField):
-    type: Literal[ActionFieldType.NUMBER_LIST]
+    type: Literal[ActionFieldType.NUMBER_LIST, "NumberList"]
     value: NotRequired[ValueOrHandler[Union[int, float]]]
     default_value: NotRequired[ValueOrHandler[Union[int, float]]]
 
@@ -359,7 +359,7 @@ class NumberListDynamicField(BaseDynamicField[List[Union[int, float]]]):
 
 # string
 class PlainStringDynamicField(PlainField):
-    type: Literal[ActionFieldType.STRING]
+    type: Literal[ActionFieldType.STRING, "String"]
     value: NotRequired[ValueOrHandler[str]]
     default_value: NotRequired[ValueOrHandler[str]]
 
@@ -370,7 +370,7 @@ class StringDynamicField(BaseDynamicField[str]):
 
 # string list
 class PlainStringListDynamicField(PlainField):
-    type: Literal[ActionFieldType.STRING_LIST]
+    type: Literal[ActionFieldType.STRING_LIST, "StringList"]
     value: NotRequired[ValueOrHandler[List[str]]]
     default_value: NotRequired[ValueOrHandler[List[str]]]
 
@@ -381,7 +381,7 @@ class StringListDynamicField(BaseDynamicField[str]):
 
 # json
 class PlainJsonDynamicField(PlainField):
-    type: Literal[ActionFieldType.JSON]
+    type: Literal[ActionFieldType.JSON, "Json"]
     value: NotRequired[ValueOrHandler[str]]
     default_value: NotRequired[ValueOrHandler[str]]
 
@@ -396,7 +396,7 @@ class FileDynamicField(BaseDynamicField[File]):
 
 
 class PlainFileDynamicField(PlainField):
-    type: Literal[ActionFieldType.FILE]
+    type: Literal[ActionFieldType.FILE, "File"]
     value: NotRequired[ValueOrHandler[File]]
     default_value: NotRequired[ValueOrHandler[File]]
 
@@ -407,7 +407,7 @@ class FileListDynamicField(BaseDynamicField[File]):
 
 
 class PlainFileListDynamicField(PlainField):
-    type: Literal[ActionFieldType.FILE_LIST]
+    type: Literal[ActionFieldType.FILE_LIST, "FileList"]
     value: NotRequired[ValueOrHandler[List[File]]]
     default_value: NotRequired[ValueOrHandler[List[File]]]
 

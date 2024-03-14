@@ -83,7 +83,9 @@ class ActionCollectionDecorator(CollectionDecorator):
             for field in action.get("form", []):
                 dynamics.append(field.is_dynamic)
             actions_schema[name] = Action(
-                scope=action["scope"], generate_file=action.get("generate_file", False), static_form=not any(dynamics)
+                scope=ActionsScope(action["scope"]),
+                generate_file=action.get("generate_file", False),
+                static_form=not any(dynamics),
             )
         return {**sub_schema, "actions": actions_schema}
 
@@ -100,7 +102,7 @@ class ActionCollectionDecorator(CollectionDecorator):
             ActionsScope.SINGLE: ActionContextSingle,
             ActionsScope.BULK: ActionContextBulk,
             ActionsScope.GLOBAL: ActionContext,
-        }[action["scope"]](
+        }[ActionsScope(action["scope"])](
             cast(Collection, self), caller, form_values, filter_, used, changed_field  # type: ignore
         )
 
