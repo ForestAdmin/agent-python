@@ -203,7 +203,7 @@ def customize_forest(agent: DjangoAgent):
     ).add_field_validation(
         # validation
         "amount",
-        Operator.GREATER_THAN,
+        "greater_than",
         0,
     ).add_field(
         # # computed

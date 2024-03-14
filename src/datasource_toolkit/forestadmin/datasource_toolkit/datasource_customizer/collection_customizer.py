@@ -31,7 +31,13 @@ from forestadmin.datasource_toolkit.decorators.write.write_replace.types import 
 from forestadmin.datasource_toolkit.decorators.write.write_replace.write_replace_collection import (
     WriteReplaceCollection,
 )
-from forestadmin.datasource_toolkit.interfaces.fields import Column, FieldType, Operator, PrimitiveType
+from forestadmin.datasource_toolkit.interfaces.fields import (
+    LITERAL_OPERATORS,
+    Column,
+    FieldType,
+    Operator,
+    PrimitiveType,
+)
 from forestadmin.datasource_toolkit.interfaces.models.collections import CollectionSchema
 from forestadmin.datasource_toolkit.interfaces.query.sort import PlainSortClause
 from forestadmin.datasource_toolkit.plugins.add_external_relation import AddExternalRelation, ExternalRelationDefinition
@@ -233,7 +239,7 @@ class CollectionCustomizer:
         return self
 
     # # validation
-    def add_field_validation(self, name: str, operator: Operator, value: Any) -> Self:
+    def add_field_validation(self, name: str, operator: Union[Operator, LITERAL_OPERATORS], value: Any) -> Self:
         """Add a new validator to the edition form of a given field
 
         Args:
@@ -251,7 +257,7 @@ class CollectionCustomizer:
         async def _add_field_validation():
             cast(
                 ValidationCollectionDecorator, self.stack.validation.get_collection(self.collection_name)
-            ).add_validation(name, {"operator": operator, "value": value})
+            ).add_validation(name, {"operator": Operator(operator), "value": value})
 
         self.stack.queue_customization(_add_field_validation)
         return self
