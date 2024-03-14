@@ -1,9 +1,12 @@
-from typing import Callable, Literal, Union
+from typing import Awaitable, Callable, Literal, TypeVar, Union
 
 from forestadmin.datasource_toolkit.decorators.hook.context.hooks import HookContext
 
-HookHandler = Callable[[HookContext], None]
+THookContext = TypeVar("THookContext", bound=HookContext)
 
-Position = Union[Literal["Before"], Literal["After"]]
 
-CrudMethod = Union[Literal["List"], Literal["Create"], Literal["Update"], Literal["Delete"], Literal["Aggregate"]]
+HookHandler = Callable[[THookContext], Union[Awaitable[None], None]]
+
+Position = Literal["Before", "After"]
+
+CrudMethod = Literal["List", "Create", "Update", "Delete", "Aggregate"]

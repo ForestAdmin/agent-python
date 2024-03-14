@@ -97,7 +97,6 @@ class ActionField(TypedDict):
     enum_values: NotRequired[Optional[List[str]]]
     collection_name: NotRequired[Optional[str]]
     widget: NotRequired[WidgetTypes]
-    widget: NotRequired[str]
     max: NotRequired[Number]
     min: NotRequired[Number]
     step: NotRequired[Number]

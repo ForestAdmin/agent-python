@@ -38,7 +38,7 @@ class ActionContext(CollectionCustomizationContext):
         used: Optional[Set[str]] = set(),
         changed_field: Optional[str] = None,
     ):
-        super(ActionContext, self).__init__(collection, caller)
+        super().__init__(collection, caller)
         self.form_values = FormValueObserver(**form_value)
         self.filter = filter
         self._changed_field = changed_field

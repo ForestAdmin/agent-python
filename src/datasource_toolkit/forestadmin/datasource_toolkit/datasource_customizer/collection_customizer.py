@@ -34,7 +34,7 @@ from forestadmin.datasource_toolkit.decorators.write.write_replace.write_replace
 from forestadmin.datasource_toolkit.interfaces.fields import Column, FieldType, Operator, PrimitiveType
 from forestadmin.datasource_toolkit.interfaces.models.collections import CollectionSchema
 from forestadmin.datasource_toolkit.interfaces.query.sort import PlainSortClause
-from forestadmin.datasource_toolkit.plugins.add_external_relation import AddExternalRelation, AddExternalRelationOptions
+from forestadmin.datasource_toolkit.plugins.add_external_relation import AddExternalRelation, ExternalRelationDefinition
 from forestadmin.datasource_toolkit.plugins.import_field import ImportField, ImportFieldOption
 from forestadmin.datasource_toolkit.utils.collections import CollectionUtils, CollectionUtilsException
 from forestadmin.datasource_toolkit.validations.rules import MAP_ALLOWED_OPERATORS_FOR_COLUMN_TYPE
@@ -648,7 +648,7 @@ class CollectionCustomizer:
         self.stack.queue_customization(__add_relation)
         return self
 
-    def add_external_relation(self, name: str, definition: AddExternalRelationOptions) -> Self:
+    def add_external_relation(self, name: str, definition: ExternalRelationDefinition) -> Self:
         """Add a virtual collection into the related data of a record.
 
         Args:

@@ -1,4 +1,4 @@
-from typing import List, Tuple
+from typing import Any, List
 
 from aiohttp import ClientSession
 from forestadmin.datasource_toolkit.context.collection_context import CollectionCustomizationContext
@@ -33,7 +33,7 @@ async def high_delivery_address_segment(context: CollectionCustomizationContext)
 
 
 # computed fields
-def address_full_name_computed(country_field_name: str) -> Tuple[str, ComputedDefinition]:
+def address_full_name_computed(country_field_name: str) -> ComputedDefinition:
     async def _get_full_address_values(records: List[RecordsDataAlias], _: CollectionCustomizationContext):
         return [f"{record['street']} {record['city']} {record[country_field_name]}" for record in records]
 
@@ -57,7 +57,7 @@ def computed_full_address_caps():
     )
 
 
-async def get_postal_code(record: RecordsDataAlias, context: CollectionCustomizationContext):
+async def get_postal_code(record: RecordsDataAlias, context: CollectionCustomizationContext) -> Any:
     async with ClientSession() as session:
         async with session.get(
             f"https://apicarto.ign.fr/api/codes-postaux/communes/{record['zip_code']}", verify_ssl=False
