@@ -63,9 +63,7 @@ class ActionCollectionDecorator(CollectionDecorator):
         form_values = data or {}
         used: Set[str] = set()
         context = self._get_context(caller, action, form_values, filter_, used, meta.get("changed_field"))
-        form_fields: List[DynamicField[ActionContext]] = cast(
-            List[DynamicField[ActionContext]], [field for field in action.get("form", [])]
-        )
+        form_fields: List[DynamicField] = cast(List[DynamicField], [field for field in action.get("form", [])])
         if meta.get("search_field"):
             # in the case of a search hook,
             # we don't want to rebuild all the fields. only the one searched
@@ -108,7 +106,7 @@ class ActionCollectionDecorator(CollectionDecorator):
         )
 
     async def _build_form_values(
-        self, context: ActionContext, fields: List[DynamicField[ActionContext]], data: Optional[Dict[str, Any]]
+        self, context: ActionContext, fields: List[DynamicField], data: Optional[Dict[str, Any]]
     ):
         if data is None:
             form_values: Dict[str, Any] = {}
@@ -123,7 +121,7 @@ class ActionCollectionDecorator(CollectionDecorator):
     async def _build_fields(
         self,
         context: ActionContext,
-        fields: List[DynamicField[ActionContext]],
+        fields: List[DynamicField],
         form_values: RecordsDataAlias,
         search_value: Optional[str] = None,
     ) -> List[ActionField]:
