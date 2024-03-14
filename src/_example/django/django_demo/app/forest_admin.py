@@ -91,7 +91,7 @@ def customize_forest(agent: DjangoAgent):
             get_values=lambda records, context: [rec["order"]["customer_id"] for rec in records],
         ),
     ).emulate_field_operator(
-        "customer_id", Operator.IN
+        "customer_id", "in"
     ).replace_field_writing(
         "name", cart_update_name
     ).add_segment(
@@ -128,7 +128,7 @@ def customize_forest(agent: DjangoAgent):
     ).replace_field_operator(
         # custom operators for computed fields
         "full_name",
-        Operator.EQUAL,
+        "equal",
         full_name_equal,
     ).replace_field_operator(
         "full_name", Operator.IN, full_name_in
