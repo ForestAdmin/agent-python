@@ -65,7 +65,7 @@ def customize_forest(agent: DjangoAgent):
         "postal_code",
         {
             "schema": {
-                "codePostal": PrimitiveType.STRING,
+                "codePostal": "String",
                 "codeCommune": PrimitiveType.STRING,
                 "nomCommune": PrimitiveType.STRING,
                 "libelleAcheminement": PrimitiveType.STRING,

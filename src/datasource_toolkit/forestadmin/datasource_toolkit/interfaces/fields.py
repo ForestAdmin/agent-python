@@ -98,6 +98,20 @@ class PrimitiveType(enum.Enum):
     BINARY = "Binary"
 
 
+PrimitiveTypeLiteral = Literal[
+    "Boolean",
+    "Date",
+    "Dateonly",
+    "Enum",
+    "Json",
+    "Number",
+    "Point",
+    "String",
+    "Timeonly",
+    "Uuid",
+    "Binary",
+]
+
 LiteralManyToOne = Literal["ManyToOne"]
 LiteralOneToOne = Literal["OneToOne"]
 LiteralOneToMany = Literal["OneToMany"]
@@ -161,7 +175,7 @@ class ManyToMany(TypedDict):
     type: Literal[FieldType.MANY_TO_MANY]
 
 
-ColumnAlias = Union[PrimitiveType, Dict[str, "ColumnAlias"], List["ColumnAlias"]]
+ColumnAlias = Union[PrimitiveType, PrimitiveTypeLiteral, Dict[str, "ColumnAlias"], List["ColumnAlias"]]
 RelationAlias = Union[ManyToMany, ManyToOne, OneToOne, OneToMany]
 FieldAlias = Union[Column, RelationAlias]
 

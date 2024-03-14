@@ -3,7 +3,7 @@ from typing import Any, Awaitable, Callable, Dict, List, Optional, Union
 from forestadmin.datasource_toolkit.context.collection_context import CollectionCustomizationContext
 from forestadmin.datasource_toolkit.decorators.computed.types import ComputedDefinition
 from forestadmin.datasource_toolkit.exceptions import ForestException
-from forestadmin.datasource_toolkit.interfaces.fields import PrimitiveType
+from forestadmin.datasource_toolkit.interfaces.fields import PrimitiveType, PrimitiveTypeLiteral
 from forestadmin.datasource_toolkit.interfaces.records import RecordsDataAlias
 from forestadmin.datasource_toolkit.plugins.plugin import Plugin
 from forestadmin.datasource_toolkit.utils.schema import SchemaUtils
@@ -19,7 +19,7 @@ class AddExternalRelationOptions(TypedDict):
 
 
 class ExternalRelationDefinition(TypedDict):
-    schema: Dict[str, PrimitiveType]
+    schema: Dict[str, Union[PrimitiveType, PrimitiveTypeLiteral]]
     list_records: Callable[[RecordsDataAlias, CollectionCustomizationContext], Union[Awaitable[Any], Any]]
     dependencies: NotRequired[Optional[List[str]]]
 
