@@ -30,6 +30,8 @@ class ValidationCollectionDecorator(CollectionDecorator):
         if field is not None and field.get("is_read_only", False) is True:
             raise ForestException("Cannot add validators on a readonly field")
 
+        # cast
+        validation["operator"] = Operator(validation["operator"])
         if self.validations.get(name) is None:
             self.validations[name] = []
         self.validations[name].append(validation)

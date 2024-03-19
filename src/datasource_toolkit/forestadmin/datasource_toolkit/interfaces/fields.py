@@ -127,7 +127,7 @@ class FieldType(enum.Enum):
 
 
 class Validation(TypedDict):
-    operator: Operator
+    operator: Union[Operator, LITERAL_OPERATORS]
     value: NotRequired[Optional[Any]]
 
 
