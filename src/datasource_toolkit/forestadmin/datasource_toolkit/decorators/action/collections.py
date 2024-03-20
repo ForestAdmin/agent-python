@@ -13,6 +13,7 @@ from forestadmin.datasource_toolkit.interfaces.actions import Action, ActionFiel
 from forestadmin.datasource_toolkit.interfaces.models.collections import CollectionSchema
 from forestadmin.datasource_toolkit.interfaces.query.filter.unpaginated import Filter
 from forestadmin.datasource_toolkit.interfaces.records import RecordsDataAlias
+from forestadmin.datasource_toolkit.utils.user_callable import call_user_function
 
 
 class ActionCollectionDecorator(CollectionDecorator):
@@ -41,9 +42,10 @@ class ActionCollectionDecorator(CollectionDecorator):
 
         context = self._get_context(caller, action, data, filter_, None)
         response_builder = ResultBuilder()
-        result = action["execute"](context, response_builder)  # type: ignore
-        if isinstance(result, Awaitable):
-            result = await result
+        result = await call_user_function(action["execute"], context, response_builder)  # type: ignore
+        # result = action["execute"](context, response_builder)  # type: ignore
+        # if isinstance(result, Awaitable):
+        #     result = await result
         return result or {"type": "Success", "invalidated": set(), "format": "text", "message": "Success"}
 
     async def get_form(
