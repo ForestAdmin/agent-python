@@ -77,7 +77,6 @@ class TestCustomClientOic(TestCase):
             mock_do_AT.assert_called_once_with(
                 state='{"renderingId": 28}',
                 request_args={"code": "secret_code"},
-                verify=False,
                 skew=5,
                 authn_method="",
             )
@@ -87,7 +86,7 @@ class TestClientFactory(TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         cls.loop = asyncio.new_event_loop()
-        cls.options = {"auth_secret": "auth secret", "env_secret": "env_secret"}
+        cls.options = {"auth_secret": "auth secret", "env_secret": "env_secret", "verify_ssl": True}
 
     def test_build_should_return_client_if_already_created(self):
         with patch("forestadmin.agent_toolkit.utils.authentication.ClientFactory.oic_client", "oic_client"):

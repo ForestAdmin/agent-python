@@ -56,6 +56,7 @@ class Agent:
             "is_production": self.options["is_production"],
             "permission_cache_duration": self.options["permissions_cache_duration_in_seconds"],
             "prefix": self.options["prefix"],
+            "verify_ssl": self.options["verify_ssl"],
         }
         self._permission_service = PermissionService(service_options)
         self._ip_white_list_service = IpWhiteListService(service_options)

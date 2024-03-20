@@ -113,6 +113,8 @@ async def _ip_white_list(decorated_fn, self, request: Request, *args, **kwargs):
         await self.check_ip(request)
     except ForbiddenError as exc:
         return HttpResponseBuilder.build_client_error_response([exc])
+    except Exception as exc:
+        return HttpResponseBuilder.build_client_error_response([exc])
     return await decorated_fn(self, request, *args, **kwargs)
 
 
