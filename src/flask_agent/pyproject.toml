@@ -1,5 +1,5 @@
 [build-system]
-requires = [ "poetry-core",]
+requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
@@ -17,18 +17,20 @@ include = "forestadmin"
 [tool.poetry.dependencies]
 python = ">=3.8,<3.13"
 typing-extensions = "~=4.2"
-forestadmin-agent-toolkit = "1.5.6"
-forestadmin-datasource-toolkit = "1.5.6"
+# forestadmin-agent-toolkit = "1.5.6"
+# forestadmin-datasource-toolkit = "1.5.6"
+forestadmin-agent-toolkit = { git = "https://github.com/ForestAdmin/agent-python", branch = "user_function_call_context", subdirectory = "src/agent_toolkit" }
+forestadmin-datasource-toolkit = { git = "https://github.com/ForestAdmin/agent-python", branch = "user_function_call_context", subdirectory = "src/datasource_toolkit" }
 flask-cors = ">=3.0.0"
 
 [tool.poetry.dependencies.flask]
-extras = [ "async",]
+extras = ["async"]
 version = ">=2.0.0"
 
 [tool.poetry.dependencies."backports.zoneinfo"]
 version = "~=0.2.1"
 python = "<3.9"
-extras = [ "tzdata",]
+extras = ["tzdata"]
 
 [tool.poetry.group.test]
 optional = true
