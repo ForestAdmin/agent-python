@@ -7,6 +7,7 @@ from forestadmin.datasource_toolkit.interfaces.fields import PrimitiveType
 from forestadmin.datasource_toolkit.interfaces.records import RecordsDataAlias
 from forestadmin.datasource_toolkit.plugins.plugin import Plugin
 from forestadmin.datasource_toolkit.utils.schema import SchemaUtils
+from forestadmin.datasource_toolkit.utils.user_callable import call_user_function
 from typing_extensions import NotRequired, TypedDict
 
 
@@ -40,9 +41,7 @@ class AddExternalRelation(Plugin):
         async def get_values_fn(records, context):
             ret = []
             for record in records:
-                value = options["list_records"](record, context)
-                if isinstance(value, Awaitable):
-                    value = await value
+                value = await call_user_function(options["list_records"], record, context)
                 ret.append(value)
             return ret
 

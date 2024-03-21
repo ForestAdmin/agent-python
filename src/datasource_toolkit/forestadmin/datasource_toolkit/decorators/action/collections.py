@@ -1,4 +1,4 @@
-from typing import Any, Awaitable, Dict, List, Optional, Set, cast
+from typing import Any, Dict, List, Optional, Set, cast
 
 from forestadmin.agent_toolkit.utils.context import User
 from forestadmin.datasource_toolkit.collections import Collection
@@ -43,9 +43,6 @@ class ActionCollectionDecorator(CollectionDecorator):
         context = self._get_context(caller, action, data, filter_, None)
         response_builder = ResultBuilder()
         result = await call_user_function(action["execute"], context, response_builder)  # type: ignore
-        # result = action["execute"](context, response_builder)  # type: ignore
-        # if isinstance(result, Awaitable):
-        #     result = await result
         return result or {"type": "Success", "invalidated": set(), "format": "text", "message": "Success"}
 
     async def get_form(

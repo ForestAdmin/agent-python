@@ -9,6 +9,7 @@ from forestadmin.datasource_toolkit.interfaces.query.condition_tree.factory impo
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.base import ConditionTree
 from forestadmin.datasource_toolkit.interfaces.query.filter.paginated import PaginatedFilter
 from forestadmin.datasource_toolkit.interfaces.query.filter.unpaginated import Filter
+from forestadmin.datasource_toolkit.utils.user_callable import call_user_function
 
 SegmentAlias = Callable[[CollectionCustomizationContext], Union[ConditionTree, Awaitable[ConditionTree]]]
 
@@ -35,9 +36,7 @@ class SegmentCollectionDecorator(CollectionDecorator):
         if _filter.segment and _filter.segment in self._segments:
             definition = self._segments[_filter.segment]
             context = CollectionCustomizationContext(cast(Collection, self), caller)
-            condition_tree_segment = definition(context)
-            if isinstance(condition_tree_segment, Awaitable):
-                condition_tree_segment = await condition_tree_segment
+            condition_tree_segment = await call_user_function(definition, context)
 
             if isinstance(condition_tree_segment, dict):
                 condition_tree_segment = ConditionTreeFactory.from_plain_object(condition_tree_segment)

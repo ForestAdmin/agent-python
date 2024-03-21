@@ -21,6 +21,7 @@ from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.base i
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.leaf import ConditionTreeLeaf
 from forestadmin.datasource_toolkit.interfaces.query.filter.paginated import PaginatedFilter
 from forestadmin.datasource_toolkit.interfaces.query.filter.unpaginated import Filter
+from forestadmin.datasource_toolkit.utils.user_callable import call_user_function
 
 SearchDefinition = Callable[[Any, bool, CollectionCustomizationContext], ConditionTree]
 
@@ -55,9 +56,7 @@ class SearchCollectionDecorator(CollectionDecorator):
             tree = self._default_replacer(_filter.search, _filter)
 
             if self._replacer is not None:
-                tree = self._replacer(_filter.search, _filter.search_extended, context)
-                if isinstance(tree, Awaitable):
-                    tree = await tree
+                tree = await call_user_function(self._replacer, _filter.search, _filter.search_extended, context)
 
                 if isinstance(tree, dict):
                     tree = ConditionTreeFactory.from_plain_object(tree)
