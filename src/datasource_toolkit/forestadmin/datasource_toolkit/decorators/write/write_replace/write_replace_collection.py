@@ -1,4 +1,4 @@
-from typing import Awaitable, List, Literal, Optional, Union
+from typing import List, Literal, Optional, Union
 
 from forestadmin.agent_toolkit.utils.context import User
 from forestadmin.datasource_toolkit.decorators.collection_decorator import CollectionDecorator
