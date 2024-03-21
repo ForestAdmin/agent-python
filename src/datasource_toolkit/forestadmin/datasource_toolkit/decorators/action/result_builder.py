@@ -1,9 +1,9 @@
 from io import IOBase
-from typing import Any, Dict, List, Literal, Optional, TypedDict, Union
+from typing import Any, Dict, List, Literal, Optional, Union
 
 from forestadmin.datasource_toolkit.interfaces.actions import ActionResult
 from forestadmin.datasource_toolkit.interfaces.records import RecordsDataAlias
-from typing_extensions import NotRequired, Self
+from typing_extensions import NotRequired, Self, TypedDict
 
 OptionTypeAlias = Union[Literal["html"], Literal["text"]]
 WebhookMethod = Union[Literal["GET"], Literal["POST"]]
@@ -22,7 +22,7 @@ class ResultBuilder:
     REDIRECT = "Redirect"
 
     def __init__(self) -> None:
-        self.response_headers: Dict[str:str] = {}
+        self.response_headers: Dict[str, str] = {}
 
     def set_header(self, name: str, value: str) -> Self:
         """Add header to the action response

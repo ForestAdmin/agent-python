@@ -1,4 +1,4 @@
-from typing import Awaitable, List
+from typing import Awaitable, Callable, List
 
 from forestadmin.datasource_toolkit.decorators.action.collections import ActionCollectionDecorator
 from forestadmin.datasource_toolkit.decorators.binary.collection import BinaryCollectionDecorator
@@ -29,7 +29,7 @@ class DecoratorStack:
         last = datasource
 
         # Step 0: Do not query datasource when we know the result with yield an empty set.
-        last = self.empty = DatasourceDecorator(last, EmptyCollectionDecorator)
+        last = self.empty = DatasourceDecorator(last, EmptyCollectionDecorator)  # type: ignore
 
         # Step 1: Computed-Relation-Computed sandwich (needed because some emulated relations depend
         # on computed fields, and some computed fields depend on relation...)
@@ -62,7 +62,7 @@ class DecoratorStack:
 
         self.datasource = last
 
-    def queue_customization(self, customization: Awaitable[None]):
+    def queue_customization(self, customization: Callable[[], Awaitable[None]]):
         self._customizations.append(customization)
 
     async def apply_queue_customization(self):

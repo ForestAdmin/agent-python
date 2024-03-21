@@ -2,7 +2,7 @@ import io
 import json
 import logging
 from operator import add, sub
-from typing import List, Union
+from typing import List
 
 from dateutil.relativedelta import relativedelta
 from forestadmin.datasource_toolkit.context.collection_context import CollectionCustomizationContext
@@ -200,7 +200,7 @@ async def full_name_contains(value, context: CollectionCustomizationContext):
 # ######## Export json
 
 
-async def export_customers_json(context: ActionContextBulk, result_builder: ResultBuilder) -> Union[None, ActionResult]:
+async def export_customers_json(context: ActionContextBulk, result_builder: ResultBuilder) -> ActionResult:
     records = await context.get_records(Projection("id", "full name", "age"))
     return result_builder.file(
         io.BytesIO(json.dumps({"data": records}).encode("utf-8")),
@@ -220,17 +220,15 @@ export_json_action_dict: ActionDict = {
 
 
 # dict style
-def age_operation_get_value_summary(context: ActionContextSingle):
+def age_operation_get_value_summary(context: ActionContextSingle) -> str:
     if not context.has_field_changed("Kind of operation") and not context.has_field_changed("Value"):
         return context.form_values.get("summary")
-    sentence = "add " if context.form_values.get("Kind of operation", "") == "+" else "minus "
+    sentence: str = "add " if context.form_values.get("Kind of operation", "") == "+" else "minus "
     sentence += str(context.form_values.get("Value", ""))
     return sentence
 
 
-async def age_operation_execute(
-    context: ActionContextSingle, result_builder: ResultBuilder
-) -> Union[None, ActionResult]:
+async def age_operation_execute(context: ActionContextSingle, result_builder: ResultBuilder) -> ActionResult:
     operation = add
     if context.form_values["Kind of operation"] == "-":
         operation = sub
@@ -275,7 +273,7 @@ age_operation_action_dict: ActionDict = {
             "is_required": lambda context: context.form_values.get("Value", 11) > 10,
             "is_read_only": lambda context: context.form_values.get("Value", 11) <= 10,
             "if_": lambda context: context.form_values.get("Value", 0) > 10,
-            "default_value": lambda context: [1, 2],
+            "default_value": lambda context: ["1", "2"],
         },
         {"label": "Rating", "type": ActionFieldType.ENUM, "enum_values": ["1", "2", "3", "4", "5"]},
         {

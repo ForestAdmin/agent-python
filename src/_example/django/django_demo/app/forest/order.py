@@ -2,10 +2,11 @@ import io
 import json
 from typing import List, Union
 
-from demo.models.models import ORDER_STATUS
+from app.models import Order
 from forestadmin.datasource_toolkit.context.agent_context import AgentCustomizationContext
 from forestadmin.datasource_toolkit.context.collection_context import CollectionCustomizationContext
 from forestadmin.datasource_toolkit.decorators.action.context.base import ActionContext
+from forestadmin.datasource_toolkit.decorators.action.context.single import ActionContextSingle
 from forestadmin.datasource_toolkit.decorators.action.result_builder import ResultBuilder
 from forestadmin.datasource_toolkit.decorators.action.types.actions import ActionDict
 from forestadmin.datasource_toolkit.decorators.chart.result_builder import ResultBuilder as ResultBuilderChart
@@ -40,7 +41,7 @@ def delivered_order_segment(context: CollectionCustomizationContext):
     return ConditionTreeLeaf(
         field="status",
         operator=Operator.EQUAL,
-        value=ORDER_STATUS.DELIVERED,
+        value=Order.OrderStatus.DELIVERED,
     )
 
 
@@ -48,7 +49,7 @@ def dispatched_order_segment(context: CollectionCustomizationContext):
     return ConditionTreeLeaf(
         field="status",
         operator=Operator.EQUAL,
-        value=ORDER_STATUS.DISPATCHED,
+        value=Order.OrderStatus.DISPATCHED,
     )
 
 
@@ -56,7 +57,7 @@ def rejected_order_segment(context: CollectionCustomizationContext):
     return ConditionTreeLeaf(
         field="status",
         operator=Operator.EQUAL,
-        value=ORDER_STATUS.REJECTED,
+        value=Order.OrderStatus.REJECTED,
     )
 
 
@@ -67,15 +68,17 @@ def suspicious_order_segment(context: CollectionCustomizationContext):
 
 
 # computed fields
-def get_customer_full_name_field():
-    async def get_customer_full_name_value(records: List[RecordsDataAlias], context: CollectionCustomizationContext):
+def get_customer_full_name_field() -> ComputedDefinition:
+    async def get_customer_full_name_value(
+        records: List[RecordsDataAlias], context: CollectionCustomizationContext
+    ) -> List[str]:
         return [f"{record['customer']['first_name']} {record['customer']['last_name']}" for record in records]
 
-    return ComputedDefinition(
-        column_type=PrimitiveType.STRING,
-        dependencies=["customer:first_name", "customer:last_name"],
-        get_values=get_customer_full_name_value,
-    )
+    return {
+        "column_type": PrimitiveType.STRING,
+        "dependencies": ["customer:first_name", "customer:last_name"],
+        "get_values": get_customer_full_name_value,
+    }
 
 
 # actions
@@ -114,19 +117,24 @@ export_orders_json: ActionDict = {
             "label": "customer",
             "is_required": True,
             "description": "",
-            "default_value": "",
-            "value": "",
+            # "default_value": "",
+            # "value": "",
         },
     ],
 }
 
 
-async def refund_order_execute(context: ActionContext, result_builder: ResultBuilder) -> Union[None, ActionResult]:
+async def refund_order_execute(
+    context: ActionContextSingle, result_builder: ResultBuilder
+) -> Union[None, ActionResult]:
+    my_order_id = await context.get_record_id()
+    my_order = await Order.objects.aget(id=my_order_id)
+    await my_order.refund()
     return result_builder.success("fake refund")
 
 
 refund_order_action: ActionDict = {
-    "scope": ActionsScope.BULK,
+    "scope": ActionsScope.SINGLE,
     "execute": refund_order_execute,
     "form": [
         {

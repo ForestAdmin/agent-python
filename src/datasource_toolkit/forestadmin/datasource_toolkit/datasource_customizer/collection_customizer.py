@@ -1,11 +1,19 @@
-from typing import Any, Dict, List, Literal, Optional, Union
+from typing import Any, Dict, List, Literal, Optional, Union, cast
 
+from forestadmin.datasource_toolkit.decorators.action.collections import ActionCollectionDecorator
 from forestadmin.datasource_toolkit.decorators.action.types.actions import ActionDict
+from forestadmin.datasource_toolkit.decorators.binary.collection import BinaryCollectionDecorator
+from forestadmin.datasource_toolkit.decorators.chart.chart_collection_decorator import ChartCollectionDecorator
 from forestadmin.datasource_toolkit.decorators.chart.types import CollectionChartDefinition
+from forestadmin.datasource_toolkit.decorators.computed.collections import ComputedCollectionDecorator
 from forestadmin.datasource_toolkit.decorators.computed.types import ComputedDefinition
 from forestadmin.datasource_toolkit.decorators.decorator_stack import DecoratorStack
+from forestadmin.datasource_toolkit.decorators.hook.collections import CollectionHookDecorator
 from forestadmin.datasource_toolkit.decorators.hook.types import CrudMethod, HookHandler, Position
+from forestadmin.datasource_toolkit.decorators.operators_emulate.collections import OperatorsEmulateCollectionDecorator
 from forestadmin.datasource_toolkit.decorators.operators_emulate.types import OperatorDefinition
+from forestadmin.datasource_toolkit.decorators.publication.collections import PublicationCollectionDecorator
+from forestadmin.datasource_toolkit.decorators.relation.collections import RelationCollectionDecorator
 from forestadmin.datasource_toolkit.decorators.relation.types import (
     PartialManyToMany,
     PartialManyToOne,
@@ -13,13 +21,20 @@ from forestadmin.datasource_toolkit.decorators.relation.types import (
     PartialOneToOne,
     RelationDefinition,
 )
-from forestadmin.datasource_toolkit.decorators.search.collections import SearchDefinition
-from forestadmin.datasource_toolkit.decorators.segments.collections import SegmentAlias
+from forestadmin.datasource_toolkit.decorators.rename_field.collections import RenameFieldCollectionDecorator
+from forestadmin.datasource_toolkit.decorators.schema.collection import SchemaCollectionDecorator
+from forestadmin.datasource_toolkit.decorators.search.collections import SearchCollectionDecorator, SearchDefinition
+from forestadmin.datasource_toolkit.decorators.segments.collections import SegmentAlias, SegmentCollectionDecorator
+from forestadmin.datasource_toolkit.decorators.sort_emulate.collections import SortCollectionDecorator
+from forestadmin.datasource_toolkit.decorators.validation.collection import ValidationCollectionDecorator
 from forestadmin.datasource_toolkit.decorators.write.write_replace.types import WriteDefinition
-from forestadmin.datasource_toolkit.interfaces.fields import FieldType, Operator, PrimitiveType
+from forestadmin.datasource_toolkit.decorators.write.write_replace.write_replace_collection import (
+    WriteReplaceCollection,
+)
+from forestadmin.datasource_toolkit.interfaces.fields import Column, FieldType, Operator, PrimitiveType
 from forestadmin.datasource_toolkit.interfaces.models.collections import CollectionSchema
 from forestadmin.datasource_toolkit.interfaces.query.sort import PlainSortClause
-from forestadmin.datasource_toolkit.plugins.add_external_relation import AddExternalRelation, AddExternalRelationOptions
+from forestadmin.datasource_toolkit.plugins.add_external_relation import AddExternalRelation, ExternalRelationDefinition
 from forestadmin.datasource_toolkit.plugins.import_field import ImportField, ImportFieldOption
 from forestadmin.datasource_toolkit.utils.collections import CollectionUtils, CollectionUtilsException
 from forestadmin.datasource_toolkit.validations.rules import MAP_ALLOWED_OPERATORS_FOR_COLUMN_TYPE
@@ -28,7 +43,10 @@ from typing_extensions import Self
 
 class CollectionCustomizer:
     def __init__(
-        self, datasource_customizer: "DatasourceCustomizer", stack: DecoratorStack, collection_name: str  # noqa: F821
+        self,
+        datasource_customizer: "DatasourceCustomizer",  # noqa: F821 # type: ignore
+        stack: DecoratorStack,
+        collection_name: str,
     ):
         self.datasource_customizer = datasource_customizer
         self.stack = stack
@@ -64,7 +82,9 @@ class CollectionCustomizer:
         """
 
         async def _add_action():
-            self.stack.action.get_collection(self.collection_name).add_action(name, action)
+            cast(ActionCollectionDecorator, self.stack.action.get_collection(self.collection_name)).add_action(
+                name, action
+            )
 
         self.stack.queue_customization(_add_action)
         return self
@@ -93,7 +113,9 @@ class CollectionCustomizer:
         """
 
         async def _add_segment():
-            self.stack.segment.get_collection(self.collection_name).add_segment(name, segment)
+            cast(SegmentCollectionDecorator, self.stack.segment.get_collection(self.collection_name)).add_segment(
+                name, segment
+            )
 
         self.stack.queue_customization(_add_segment)
         return self
@@ -140,7 +162,10 @@ class CollectionCustomizer:
                     can_be_compted_before_relations = False
                     break
 
-            collection = collection_before_relations if can_be_compted_before_relations else collection_after_relations
+            collection = cast(
+                ComputedCollectionDecorator,
+                collection_before_relations if can_be_compted_before_relations else collection_after_relations,
+            )
             collection.register_computed(name, computed_definition)
 
         self.stack.queue_customization(_add_field)
@@ -177,7 +202,9 @@ class CollectionCustomizer:
         """
 
         async def _rename_field():
-            self.stack.rename_field.get_collection(self.collection_name).rename_field(current_name, new_name)
+            cast(
+                RenameFieldCollectionDecorator, self.stack.rename_field.get_collection(self.collection_name)
+            ).rename_field(current_name, new_name)
 
         self.stack.queue_customization(_rename_field)
         return self
@@ -196,7 +223,9 @@ class CollectionCustomizer:
         """
 
         async def _remove_field():
-            stack_collection = self.stack.publication.get_collection(self.collection_name)
+            stack_collection = cast(
+                PublicationCollectionDecorator, self.stack.publication.get_collection(self.collection_name)
+            )
             for field in fields:
                 stack_collection.change_field_visibility(field, False)
 
@@ -220,9 +249,9 @@ class CollectionCustomizer:
         """
 
         async def _add_field_validation():
-            self.stack.validation.get_collection(self.collection_name).add_validation(
-                name, {"operator": operator, "value": value}
-            )
+            cast(
+                ValidationCollectionDecorator, self.stack.validation.get_collection(self.collection_name)
+            ).add_validation(name, {"operator": operator, "value": value})
 
         self.stack.queue_customization(_add_field_validation)
         return self
@@ -253,7 +282,7 @@ class CollectionCustomizer:
                 collection = self.stack.early_op_emulate.get_collection(self.collection_name)
             else:
                 collection = self.stack.late_op_emulate.get_collection(self.collection_name)
-            collection.replace_field_operator(name, operator, replacer)
+            cast(OperatorsEmulateCollectionDecorator, collection).replace_field_operator(name, operator, replacer)
 
         self.stack.queue_customization(_replace_field_operator)
         return self
@@ -278,7 +307,7 @@ class CollectionCustomizer:
                 collection = self.stack.early_op_emulate.get_collection(self.collection_name)
             else:
                 collection = self.stack.late_op_emulate.get_collection(self.collection_name)
-            collection.emulate_field_operator(name, operator)
+            cast(OperatorsEmulateCollectionDecorator, collection).emulate_field_operator(name, operator)
 
         self.stack.queue_customization(_emulate_field_operator)
         return self
@@ -301,7 +330,9 @@ class CollectionCustomizer:
         """
 
         async def _replace_field_writing():
-            self.stack.write.get_collection(self.collection_name).replace_field_writing(name, definition)
+            cast(WriteReplaceCollection, self.stack.write.get_collection(self.collection_name)).replace_field_writing(
+                name, definition
+            )
 
         self.stack.queue_customization(_replace_field_writing)
         return self
@@ -324,11 +355,12 @@ class CollectionCustomizer:
         async def _emulate_field_filtering():
             collection = self.stack.late_op_emulate.get_collection(self.collection_name)
             field = collection.schema["fields"][name]
-            operators = MAP_ALLOWED_OPERATORS_FOR_COLUMN_TYPE[field["column_type"]]
 
-            if isinstance(field["column_type"], PrimitiveType):
+            field_type = cast(Column, field)["column_type"]
+            if isinstance(field_type, PrimitiveType):
+                operators = MAP_ALLOWED_OPERATORS_FOR_COLUMN_TYPE[field_type]
                 for operator in operators:
-                    if operator not in field.get("filter_operators", set()):
+                    if operator not in cast(set, field.get("filter_operators", set())):
                         self.emulate_field_operator(name, operator)
 
         self.stack.queue_customization(_emulate_field_filtering)
@@ -350,7 +382,9 @@ class CollectionCustomizer:
         """
 
         async def _emulate_field_sorting():
-            self.stack.sort_emulate.get_collection(self.collection_name).emulate_field_sorting(name)
+            cast(
+                SortCollectionDecorator, self.stack.sort_emulate.get_collection(self.collection_name)
+            ).emulate_field_sorting(name)
 
         self.stack.queue_customization(_emulate_field_sorting)
         return self
@@ -374,7 +408,9 @@ class CollectionCustomizer:
         """
 
         async def _replace_field_sorting():
-            self.stack.sort_emulate.get_collection(self.collection_name).replace_field_sorting(name, equivalent_sort)
+            cast(
+                SortCollectionDecorator, self.stack.sort_emulate.get_collection(self.collection_name)
+            ).replace_field_sorting(name, equivalent_sort)
 
         self.stack.queue_customization(_replace_field_sorting)
         return self
@@ -396,9 +432,12 @@ class CollectionCustomizer:
         """
 
         async def _replace_field_binary_mode():
-            self.stack.binary.get_collection(self.collection_name).set_binary_mode(name, binary_mode)
+            cast(BinaryCollectionDecorator, self.stack.binary.get_collection(self.collection_name)).set_binary_mode(
+                name, binary_mode
+            )
 
         self.stack.queue_customization(_replace_field_binary_mode)
+        return self
 
     # collection
 
@@ -413,7 +452,9 @@ class CollectionCustomizer:
         """
 
         async def _disable_count():
-            self.stack.schema.get_collection(self.collection_name).override_schema("countable", False)
+            cast(SchemaCollectionDecorator, self.stack.schema.get_collection(self.collection_name)).override_schema(
+                "countable", False
+            )
 
         self.stack.queue_customization(_disable_count)
         return self
@@ -434,7 +475,9 @@ class CollectionCustomizer:
         """
 
         async def _replace_search():
-            self.stack.search.get_collection(self.collection_name).replace_search(definition)
+            cast(SearchCollectionDecorator, self.stack.search.get_collection(self.collection_name)).replace_search(
+                definition
+            )
 
         self.stack.queue_customization(_replace_search)
         return self
@@ -456,7 +499,9 @@ class CollectionCustomizer:
         """
 
         async def _add_chart():
-            self.stack.chart.get_collection(self.collection_name).add_chart(name, definition)
+            cast(ChartCollectionDecorator, self.stack.chart.get_collection(self.collection_name)).add_chart(
+                name, definition
+            )
 
         self.stack.queue_customization(_add_chart)
         return self
@@ -579,28 +624,31 @@ class CollectionCustomizer:
         Example:
             .add_many_to_many_relation('rentalsOfThisDvd', 'rentals', 'dvdRentals', 'dvdId', 'rentalId')
         """
+
         self._add_relation(
             name,
             PartialManyToMany(
-                type=FieldType.MANY_TO_MANY,
-                foreign_collection=foreign_collection,
                 through_collection=through_collection,
-                origin_key=origin_key,
+                foreign_collection=foreign_collection,
                 foreign_key=foreign_key,
-                origin_key_target=origin_key_target,
                 foreign_key_target=foreign_key_target,
+                origin_key=origin_key,
+                origin_key_target=origin_key_target,
+                type=FieldType.MANY_TO_MANY,
             ),
         )
         return self
 
     def _add_relation(self, name: str, definition: RelationDefinition) -> Self:
         async def __add_relation():
-            self.stack.relation.get_collection(self.collection_name).add_relation(name, definition)
+            cast(RelationCollectionDecorator, self.stack.relation.get_collection(self.collection_name)).add_relation(
+                name, definition
+            )
 
         self.stack.queue_customization(__add_relation)
         return self
 
-    def add_external_relation(self, name: str, definition: AddExternalRelationOptions) -> Self:
+    def add_external_relation(self, name: str, definition: ExternalRelationDefinition) -> Self:
         """Add a virtual collection into the related data of a record.
 
         Args:
@@ -645,7 +693,9 @@ class CollectionCustomizer:
         """
 
         async def _add_hook():
-            self.stack.hook.get_collection(self.collection_name).add_hook(position, type, handler)
+            cast(CollectionHookDecorator, self.stack.hook.get_collection(self.collection_name)).add_hook(
+                position, type, handler
+            )
 
         self.stack.queue_customization(_add_hook)
         return self

@@ -34,6 +34,7 @@ from app.forest.order import (
     suspicious_order_segment,
     total_order_chart,
 )
+from forestadmin.datasource_django.datasource import DjangoDatasource
 from forestadmin.datasource_toolkit.decorators.computed.types import ComputedDefinition
 from forestadmin.datasource_toolkit.interfaces.fields import Operator, PrimitiveType
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.leaf import ConditionTreeLeaf
@@ -42,6 +43,7 @@ from forestadmin.django_agent.agent import DjangoAgent
 
 def customize_forest(agent: DjangoAgent):
     # customize_forest_logging()
+    agent.add_datasource(DjangoDatasource())
 
     # # ## ADDRESS
     agent.customize_collection("app_address").add_segment(
@@ -147,7 +149,7 @@ def customize_forest(agent: DjangoAgent):
         "full_name"
     ).add_field(
         "TotalSpending",
-        customer_spending_computed()
+        customer_spending_computed(),
         # validation
         # ).add_field_validation(
         #     "age", Operator.GREATER_THAN, 0
@@ -218,4 +220,5 @@ def customize_forest(agent: DjangoAgent):
             [{"username": "Darth Vador", "points": 1500000}, {"username": "Luke Skywalker", "points": 2}]
         ),
     ).add_chart("total_order_week", nb_order_per_week)
+
     return agent

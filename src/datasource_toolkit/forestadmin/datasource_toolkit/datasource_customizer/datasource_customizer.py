@@ -109,7 +109,7 @@ class DatasourceCustomizer:
             names (List[str]): the collections to remove
 
         Documentation:
-            https://docs.forestadmin.com/developer-guide-agents-python/agent-customization/plugins
+            https://docs.forestadmin.com/developer-guide-agents-python/agent-customization/agent-customization#removing-collections
 
         Example:
             .remove_collections('aCollectionToRemove', 'anotherCollectionToRemove')

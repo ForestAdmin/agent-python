@@ -63,7 +63,6 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "forestadmin.django_agent",
-    "corsheaders",
 ]
 
 MIDDLEWARE = [

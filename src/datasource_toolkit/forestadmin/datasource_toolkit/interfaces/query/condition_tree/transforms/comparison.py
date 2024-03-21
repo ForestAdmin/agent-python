@@ -1,5 +1,5 @@
 import sys
-from typing import Any, Callable, Dict, List, TypedDict, cast
+from typing import Any, Callable, Dict, List, cast
 
 if sys.version_info >= (3, 9):
     import zoneinfo
@@ -10,7 +10,7 @@ from forestadmin.datasource_toolkit.interfaces.fields import Operator, Primitive
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.factory import ConditionTreeFactory
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.base import ConditionTree
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.leaf import ConditionTreeLeaf
-from typing_extensions import NotRequired
+from typing_extensions import NotRequired, TypedDict
 
 ReplacerAlias = Callable[[ConditionTreeLeaf, zoneinfo.ZoneInfo], ConditionTree]
 

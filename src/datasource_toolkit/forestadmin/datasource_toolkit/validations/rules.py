@@ -27,7 +27,7 @@ BASE_DATE_ONLY_OPERATORS = [
     Operator.AFTER,
 ]
 
-MAP_ALLOWED_OPERATORS_FOR_COLUMN_TYPE = {
+MAP_ALLOWED_OPERATORS_FOR_COLUMN_TYPE: Dict[PrimitiveType, List[Operator]] = {
     PrimitiveType.STRING: [
         *BASE_OPERATORS,
         *ARRAY_OPERATORS,

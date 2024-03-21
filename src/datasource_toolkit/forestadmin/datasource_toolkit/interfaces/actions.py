@@ -1,8 +1,8 @@
 import enum
 from dataclasses import dataclass
-from typing import Any, Dict, List, Literal, Optional, Set, TypedDict, Union
+from typing import Any, Dict, List, Literal, Optional, Set, Union
 
-from typing_extensions import NotRequired
+from typing_extensions import NotRequired, TypedDict
 
 Number = Union[int, float]
 
@@ -97,7 +97,6 @@ class ActionField(TypedDict):
     enum_values: NotRequired[Optional[List[str]]]
     collection_name: NotRequired[Optional[str]]
     widget: NotRequired[WidgetTypes]
-    widget: NotRequired[str]
     max: NotRequired[Number]
     min: NotRequired[Number]
     step: NotRequired[Number]
