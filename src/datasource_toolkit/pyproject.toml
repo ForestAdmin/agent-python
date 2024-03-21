@@ -1,5 +1,5 @@
 [build-system]
-requires = ["poetry-core"]
+requires = [ "poetry-core",]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
@@ -23,7 +23,7 @@ filetype = "^1.0.0"
 [tool.poetry.dependencies."backports.zoneinfo"]
 version = "~=0.2.1"
 python = "<3.9"
-extras = ["tzdata"]
+extras = [ "tzdata",]
 
 [tool.poetry.group.test]
 optional = true
