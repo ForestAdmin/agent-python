@@ -48,7 +48,7 @@ version = "~=6.0"
 python = ">=3.8.1"
 
 [tool.poetry.group.formatter.dependencies]
-black = "~=22.10"
+black = ">=24.3.0"
 
 [tool.poetry.group.sorter.dependencies]
 isort = "~=3.6"
