@@ -69,12 +69,6 @@ class ConditionTreeLeaf(ConditionTree):
     def use_interval_operator(self):
         return self.operator in INTERVAL_OPERATORS
 
-    """
-        get useIntervalOperator() {
-    return intervalOperators.includes(this.operator as typeof intervalOperators[number]);
-  }
-    """
-
     @classmethod
     def load(cls, json: LeafComponents) -> "ConditionTreeLeaf":
         value = json.get("value")

@@ -36,6 +36,7 @@ from forestadmin.datasource_toolkit.interfaces.actions import (
     WidgetTypes,
 )
 from forestadmin.datasource_toolkit.interfaces.records import CompositeIdAlias
+from forestadmin.datasource_toolkit.utils.user_callable import call_user_function
 from typing_extensions import NotRequired, TypedDict
 
 Number = Union[int, float]
@@ -135,29 +136,17 @@ class BaseDynamicField(Generic[Result]):
     async def value(self, context: Context) -> Result:
         return await self._evaluate(context, self._value)
 
-    async def _evaluate(self, context: Context, attribute: ValueOrHandler[Any]) -> Any:
-        if isinstance(attribute, Callable):
-            res = attribute(context)
-            if isinstance(res, Awaitable):
-                return await res
-            return res
-        # ugly hack for static or classmethod in python<3.10
-        # https://stackoverflow.com/questions/41921255/staticmethod-object-is-not-callable
-        elif hasattr(attribute, "__func__") and isinstance(attribute.__func__, Callable):
-            res = attribute.__func__(context)
-            if isinstance(res, Awaitable):
-                return await res
-            return res
+    async def _evaluate(self, context: Context, attribute: ValueOrHandler[Any]):
+        if callable(attribute):
+            return await call_user_function(attribute, context)
         else:
             return attribute
 
     async def _evaluate_option(self, context: Context, attribute: ValueOrHandler[Any], search_value: Optional[str]):
         if self._widget_fields.get("search", "") == "dynamic":
-            res = self._widget_fields["options"](context, search_value)
-            if isinstance(res, Awaitable):
-                return await res
-            return res
-        return await self._evaluate(context, attribute)
+            return await call_user_function(self._widget_fields["options"], context, search_value)
+        else:
+            return await self._evaluate(context, attribute)
 
 
 class PlainCollectionDynamicField(PlainField):

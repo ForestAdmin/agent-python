@@ -1,4 +1,4 @@
-from typing import Any, Awaitable, Dict, List
+from typing import Any, Dict, List
 
 from forestadmin.agent_toolkit.utils.context import User
 from forestadmin.datasource_toolkit.collections import CollectionException
@@ -8,6 +8,7 @@ from forestadmin.datasource_toolkit.decorators.chart.types import CollectionChar
 from forestadmin.datasource_toolkit.decorators.collection_decorator import CollectionDecorator
 from forestadmin.datasource_toolkit.interfaces.chart import Chart
 from forestadmin.datasource_toolkit.interfaces.models.collections import CollectionSchema
+from forestadmin.datasource_toolkit.utils.user_callable import call_user_function
 
 
 class ChartCollectionDecorator(CollectionDecorator):
@@ -26,9 +27,7 @@ class ChartCollectionDecorator(CollectionDecorator):
         if self._charts.get(name) is not None:
             context = CollectionChartContext(caller, self, record_id)
             result_builder = ResultBuilder()
-            ret = self._charts[name](context, result_builder, record_id)
-            if isinstance(ret, Awaitable):
-                ret = await ret
+            ret = await call_user_function(self._charts[name], context, result_builder, record_id)
             return ret
 
         return await self.child_collection.render_chart(caller, name, record_id)

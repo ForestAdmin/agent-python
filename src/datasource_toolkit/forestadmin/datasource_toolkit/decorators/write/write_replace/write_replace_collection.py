@@ -1,4 +1,4 @@
-from typing import Awaitable, List, Literal, Optional, Union
+from typing import List, Literal, Optional, Union
 
 from forestadmin.agent_toolkit.utils.context import User
 from forestadmin.datasource_toolkit.decorators.collection_decorator import CollectionDecorator
@@ -12,6 +12,7 @@ from forestadmin.datasource_toolkit.interfaces.fields import FieldType
 from forestadmin.datasource_toolkit.interfaces.models.collections import CollectionSchema, Datasource
 from forestadmin.datasource_toolkit.interfaces.query.filter.unpaginated import Filter
 from forestadmin.datasource_toolkit.interfaces.records import RecordsDataAlias
+from forestadmin.datasource_toolkit.utils.user_callable import call_user_function
 from forestadmin.datasource_toolkit.validations.field import FieldValidator
 from forestadmin.datasource_toolkit.validations.records import RecordValidator
 
@@ -88,9 +89,7 @@ class WriteReplaceCollection(CollectionDecorator):
         if field_schema.get("type") == FieldType.COLUMN:
             # We either call the customer handler or a default one that does nothing.
             handler = self._handlers.get(key, lambda value, context: {key: value})
-            field_patch = handler(context.record[key], context)
-            if isinstance(field_patch, Awaitable):
-                field_patch = await field_patch
+            field_patch = await call_user_function(handler, context.record[key], context)
             if field_patch is None:
                 field_patch: RecordsDataAlias = {}
 
