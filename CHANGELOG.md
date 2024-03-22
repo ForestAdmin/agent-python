@@ -1,3 +1,10 @@
+## [1.6.1](https://github.com/ForestAdmin/agent-python/compare/v1.6.0...v1.6.1) (2024-03-22)
+
+
+### Bug Fixes
+
+* **usage:** allow string to be used next to enums ([#197](https://github.com/ForestAdmin/agent-python/issues/197)) ([1dee475](https://github.com/ForestAdmin/agent-python/commit/1dee47578da25a594a1a7e5dd46cdcdc4ccf8dbc))
+
 # [1.6.0](https://github.com/ForestAdmin/agent-python/compare/v1.5.6...v1.6.0) (2024-03-22)
 
 
