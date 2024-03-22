@@ -65,7 +65,7 @@ def customize_forest(agent: DjangoAgent):
         "postal_code",
         {
             "schema": {
-                "codePostal": PrimitiveType.STRING,
+                "codePostal": "String",
                 "codeCommune": PrimitiveType.STRING,
                 "nomCommune": PrimitiveType.STRING,
                 "libelleAcheminement": PrimitiveType.STRING,
@@ -91,7 +91,7 @@ def customize_forest(agent: DjangoAgent):
             get_values=lambda records, context: [rec["order"]["customer_id"] for rec in records],
         ),
     ).emulate_field_operator(
-        "customer_id", Operator.IN
+        "customer_id", "in"
     ).replace_field_writing(
         "name", cart_update_name
     ).add_segment(
@@ -128,7 +128,7 @@ def customize_forest(agent: DjangoAgent):
     ).replace_field_operator(
         # custom operators for computed fields
         "full_name",
-        Operator.EQUAL,
+        "equal",
         full_name_equal,
     ).replace_field_operator(
         "full_name", Operator.IN, full_name_in
@@ -203,7 +203,7 @@ def customize_forest(agent: DjangoAgent):
     ).add_field_validation(
         # validation
         "amount",
-        Operator.GREATER_THAN,
+        "greater_than",
         0,
     ).add_field(
         # # computed

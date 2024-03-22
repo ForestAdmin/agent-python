@@ -7,7 +7,7 @@ from forestadmin.datasource_toolkit.decorators.computed.exceptions import Comput
 from forestadmin.datasource_toolkit.decorators.computed.helpers import compute_from_records, rewrite_fields
 from forestadmin.datasource_toolkit.decorators.computed.types import ComputedDefinition
 from forestadmin.datasource_toolkit.interfaces.collections import Collection
-from forestadmin.datasource_toolkit.interfaces.fields import FieldType, RelationAlias
+from forestadmin.datasource_toolkit.interfaces.fields import ColumnAlias, FieldType, PrimitiveType, RelationAlias
 from forestadmin.datasource_toolkit.interfaces.models.collections import CollectionSchema
 from forestadmin.datasource_toolkit.interfaces.query.aggregation import AggregateResult, Aggregation
 from forestadmin.datasource_toolkit.interfaces.query.filter.paginated import PaginatedFilter
@@ -44,7 +44,10 @@ class ComputedCollectionDecorator(CollectionDecorator):
         for field in computed["dependencies"]:
             FieldValidator.validate(self.child_collection, field)
 
-        self._computeds[name] = computed
+        # cast
+        column_type = ComputedCollectionDecorator._cast_column_type(computed["column_type"])
+
+        self._computeds[name] = cast(ComputedDefinition, {**computed, "column_type": column_type})
         self.mark_schema_as_dirty()
 
     async def list(self, caller: User, _filter: PaginatedFilter, projection: Projection) -> List[RecordsDataAlias]:
@@ -80,3 +83,15 @@ class ComputedCollectionDecorator(CollectionDecorator):
                 "validations": [],
             }
         return {**sub_schema, "fields": computed_fields_schema}
+
+    @staticmethod
+    def _cast_column_type(
+        column_type_input: ColumnAlias,
+    ) -> Union[PrimitiveType, Dict[str, PrimitiveType], List[PrimitiveType], List[Dict[str, PrimitiveType]]]:
+        if isinstance(column_type_input, dict):
+            column_type = {k: ComputedCollectionDecorator._cast_column_type(t) for k, t in column_type_input.items()}
+        elif isinstance(column_type_input, list):
+            column_type = [ComputedCollectionDecorator._cast_column_type(column) for column in column_type_input]
+        else:
+            column_type = PrimitiveType(column_type_input)
+        return column_type  # type:ignore

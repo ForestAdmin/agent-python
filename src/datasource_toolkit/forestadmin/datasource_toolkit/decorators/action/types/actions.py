@@ -5,7 +5,7 @@ from forestadmin.datasource_toolkit.decorators.action.context.bulk import Action
 from forestadmin.datasource_toolkit.decorators.action.context.single import ActionContextSingle
 from forestadmin.datasource_toolkit.decorators.action.result_builder import ResultBuilder
 from forestadmin.datasource_toolkit.decorators.action.types.fields import BaseDynamicField, PlainDynamicField
-from forestadmin.datasource_toolkit.interfaces.actions import ActionResult, ActionsScope
+from forestadmin.datasource_toolkit.interfaces.actions import ActionResult, ActionScopeLiteral, ActionsScope
 from typing_extensions import NotRequired, TypedDict
 
 ActionExecute = Union[
@@ -25,7 +25,7 @@ ActionExecute = Union[
 
 
 class ActionDict(TypedDict):
-    scope: ActionsScope
+    scope: Union[ActionsScope, ActionScopeLiteral]
     generate_file: NotRequired[bool]
     execute: ActionExecute
     form: NotRequired[List[Union[PlainDynamicField, BaseDynamicField]]]

@@ -13,6 +13,9 @@ class ActionsScope(enum.Enum):
     GLOBAL = "global"
 
 
+ActionScopeLiteral = Literal["single", "bulk", "global"]
+
+
 @dataclass
 class File:
     mime_type: str

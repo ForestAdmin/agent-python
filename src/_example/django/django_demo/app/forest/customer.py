@@ -73,7 +73,7 @@ def customer_full_name() -> ComputedDefinition:
         return [f"{record['first_name']} - {record['last_name']}" for record in records]
 
     return ComputedDefinition(
-        column_type=PrimitiveType.STRING,
+        column_type="String",
         dependencies=["first_name", "last_name"],
         get_values=_get_customer_fullname_values,
     )
@@ -210,7 +210,7 @@ async def export_customers_json(context: ActionContextBulk, result_builder: Resu
 
 
 export_json_action_dict: ActionDict = {
-    "scope": ActionsScope.BULK,
+    "scope": "bulk",
     "generate_file": True,
     "execute": export_customers_json,
 }
@@ -256,7 +256,7 @@ age_operation_action_dict: ActionDict = {
             "enum_values": ["+", "-"],
         },
         {
-            "type": ActionFieldType.NUMBER,
+            "type": "Number",
             "label": "Value",
             "default_value": 0,
         },

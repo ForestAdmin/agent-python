@@ -31,7 +31,13 @@ from forestadmin.datasource_toolkit.decorators.write.write_replace.types import 
 from forestadmin.datasource_toolkit.decorators.write.write_replace.write_replace_collection import (
     WriteReplaceCollection,
 )
-from forestadmin.datasource_toolkit.interfaces.fields import Column, FieldType, Operator, PrimitiveType
+from forestadmin.datasource_toolkit.interfaces.fields import (
+    LITERAL_OPERATORS,
+    Column,
+    FieldType,
+    Operator,
+    PrimitiveType,
+)
 from forestadmin.datasource_toolkit.interfaces.models.collections import CollectionSchema
 from forestadmin.datasource_toolkit.interfaces.query.sort import PlainSortClause
 from forestadmin.datasource_toolkit.plugins.add_external_relation import AddExternalRelation, ExternalRelationDefinition
@@ -233,7 +239,7 @@ class CollectionCustomizer:
         return self
 
     # # validation
-    def add_field_validation(self, name: str, operator: Operator, value: Any) -> Self:
+    def add_field_validation(self, name: str, operator: Union[Operator, LITERAL_OPERATORS], value: Any) -> Self:
         """Add a new validator to the edition form of a given field
 
         Args:
@@ -251,13 +257,15 @@ class CollectionCustomizer:
         async def _add_field_validation():
             cast(
                 ValidationCollectionDecorator, self.stack.validation.get_collection(self.collection_name)
-            ).add_validation(name, {"operator": operator, "value": value})
+            ).add_validation(name, {"operator": Operator(operator), "value": value})
 
         self.stack.queue_customization(_add_field_validation)
         return self
 
     # # operators
-    def replace_field_operator(self, name: str, operator: Operator, replacer: OperatorDefinition) -> Self:
+    def replace_field_operator(
+        self, name: str, operator: Union[Operator, LITERAL_OPERATORS], replacer: OperatorDefinition
+    ) -> Self:
         """Replace an implementation for a specific operator on a specific field.
             The operator replacement will be done by the datasource.
 
@@ -282,12 +290,14 @@ class CollectionCustomizer:
                 collection = self.stack.early_op_emulate.get_collection(self.collection_name)
             else:
                 collection = self.stack.late_op_emulate.get_collection(self.collection_name)
-            cast(OperatorsEmulateCollectionDecorator, collection).replace_field_operator(name, operator, replacer)
+            cast(OperatorsEmulateCollectionDecorator, collection).replace_field_operator(
+                name, Operator(operator), replacer
+            )
 
         self.stack.queue_customization(_replace_field_operator)
         return self
 
-    def emulate_field_operator(self, name: str, operator: Operator) -> Self:
+    def emulate_field_operator(self, name: str, operator: Union[Operator, LITERAL_OPERATORS]) -> Self:
         """Enable filtering on a specific field with a specific operator using emulation.
             As for all the emulation method, the field filtering will be done in-memory.
 
@@ -307,7 +317,7 @@ class CollectionCustomizer:
                 collection = self.stack.early_op_emulate.get_collection(self.collection_name)
             else:
                 collection = self.stack.late_op_emulate.get_collection(self.collection_name)
-            cast(OperatorsEmulateCollectionDecorator, collection).emulate_field_operator(name, operator)
+            cast(OperatorsEmulateCollectionDecorator, collection).emulate_field_operator(name, Operator(operator))
 
         self.stack.queue_customization(_emulate_field_operator)
         return self
