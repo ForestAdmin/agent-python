@@ -24,12 +24,14 @@ class Datasource(DatasourceInterface[BoundCollection]):
         return list(self._collections.values())
 
     def get_collection(self, name: str) -> BoundCollection:
-        try:
-            collection: BoundCollection = self._collections[name]
-        except KeyError:
-            raise DatasourceException(f"Collection '{name}' not found")
-        else:
-            return collection
+        collection_names = self._collections.keys()
+        if name not in collection_names:
+            raise DatasourceException(
+                f"Collection '{name}' not found. Available collections are: {', '.join(collection_names)}"
+            )
+
+        collection: BoundCollection = self._collections[name]
+        return collection
 
     def add_collection(self, collection: BoundCollection) -> None:
         if collection.name in self._collections:

@@ -6,7 +6,6 @@ from forestadmin.datasource_toolkit.decorators.collection_decorator import Colle
 from forestadmin.datasource_toolkit.decorators.computed.exceptions import ComputedDecoratorException
 from forestadmin.datasource_toolkit.decorators.computed.helpers import compute_from_records, rewrite_fields
 from forestadmin.datasource_toolkit.decorators.computed.types import ComputedDefinition
-from forestadmin.datasource_toolkit.exceptions import DatasourceToolkitException
 from forestadmin.datasource_toolkit.interfaces.collections import Collection
 from forestadmin.datasource_toolkit.interfaces.fields import FieldType, RelationAlias
 from forestadmin.datasource_toolkit.interfaces.models.collections import CollectionSchema
@@ -39,14 +38,12 @@ class ComputedCollectionDecorator(CollectionDecorator):
     def register_computed(self, name: str, computed: ComputedDefinition):
         if computed.get("dependencies") is None or len(computed["dependencies"]) == 0:
             raise ComputedDecoratorException(f"Computed field '{self.name}.{name}' must have at least one dependency")
+
         FieldValidator.validate_name(self.name, name)
+
         for field in computed["dependencies"]:
-            try:
-                FieldValidator.validate(self.child_collection, field)  # type: ignore
-            except DatasourceToolkitException:
-                raise ComputedDecoratorException(
-                    f"The dependency {field} of the computed field {name} is unknown in the collection {self.name}"
-                )
+            FieldValidator.validate(self.child_collection, field)
+
         self._computeds[name] = computed
         self.mark_schema_as_dirty()
 

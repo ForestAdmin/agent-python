@@ -24,6 +24,7 @@ from forestadmin.datasource_toolkit.interfaces.query.filter.unpaginated import F
 from forestadmin.datasource_toolkit.interfaces.query.projections import Projection
 from forestadmin.datasource_toolkit.interfaces.records import RecordsDataAlias
 from forestadmin.datasource_toolkit.utils.schema import SchemaUtils
+from forestadmin.datasource_toolkit.validations.field import FieldValidator
 
 
 class BinaryCollectionDecorator(CollectionDecorator):
@@ -48,6 +49,7 @@ class BinaryCollectionDecorator(CollectionDecorator):
         self.__use_hex_conversion = {}
 
     def set_binary_mode(self, name: str, type_: Union[Literal["datauri"], Literal["hex"]]):
+        FieldValidator.validate(self.child_collection, name)
         field = self.child_collection.schema["fields"][name]
         if type_ not in ["datauri", "hex"]:
             raise ForestException("Invalid binary mode")

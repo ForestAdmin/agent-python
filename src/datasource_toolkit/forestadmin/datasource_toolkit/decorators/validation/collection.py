@@ -25,10 +25,7 @@ class ValidationCollectionDecorator(CollectionDecorator):
     def add_validation(self, name: str, validation: Validation):
         FieldValidator.validate(self.child_collection, name)
 
-        field = self.child_collection.schema["fields"].get(name)
-        # this case is handled by FieldValidator.validate
-        # if field is not None and field["type"] != FieldType.COLUMN:
-        #     raise ForestException("Cannot add validators on a relation, use the foreign key instead")
+        field = self.child_collection.schema["fields"][name]
 
         if field is not None and field.get("is_read_only", False) is True:
             raise ForestException("Cannot add validators on a readonly field")
