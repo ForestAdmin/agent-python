@@ -1,3 +1,10 @@
+# [1.6.0](https://github.com/ForestAdmin/agent-python/compare/v1.5.6...v1.6.0) (2024-03-22)
+
+
+### Features
+
+* call user function in correct context  ([#199](https://github.com/ForestAdmin/agent-python/issues/199)) ([a5308f4](https://github.com/ForestAdmin/agent-python/commit/a5308f4f619d1a588620951dabb3f905657bc7cb))
+
 ## [1.5.6](https://github.com/ForestAdmin/agent-python/compare/v1.5.5...v1.5.6) (2024-03-08)
 
 

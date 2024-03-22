@@ -4,7 +4,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 name = "forestadmin-agent-django"
-version = "1.5.6"
+version = "1.6.0"
 description = "django agent for forestadmin python agent"
 authors = [ "Julien Barreau <julien.barreau@forestadmin.com>",]
 readme = "README.md"
@@ -17,8 +17,8 @@ include = "forestadmin"
 [tool.poetry.dependencies]
 python = ">=3.8,<3.13"
 typing-extensions = "~=4.2"
-forestadmin-agent-toolkit = "1.5.6"
-forestadmin-datasource-django = "1.5.6"
+forestadmin-agent-toolkit = "1.6.0"
+forestadmin-datasource-django = "1.6.0"
 django = ">=3.2,<6.0"
 django-cors-headers = ">=3.8"
 
