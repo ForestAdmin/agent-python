@@ -8,12 +8,12 @@ Number = Union[int, float]
 
 
 class ActionsScope(enum.Enum):
-    SINGLE = "single"
-    BULK = "bulk"
-    GLOBAL = "global"
+    SINGLE = "Single"
+    BULK = "Bulk"
+    GLOBAL = "Global"
 
 
-ActionScopeLiteral = Literal["single", "bulk", "global"]
+ActionScopeLiteral = Literal["Single", "Bulk", "Global"]
 
 
 @dataclass
@@ -123,22 +123,25 @@ class ActionField(TypedDict):
 class SuccessResult(TypedDict):
     type: Literal["Success"]
     message: str
-    format: Union[Literal["html"], Literal["text"]]
+    format: Literal["html", "text"]
     invalidated: Set[str]
+    response_headers: Optional[Dict[str, str]]
 
 
 class ErrorResult(TypedDict):
     type: Literal["Error"]
     message: str
-    format: Union[Literal["html"], Literal["text"]]
+    format: Literal["html", "text"]
+    response_headers: Optional[Dict[str, str]]
 
 
 class WebHookResult(TypedDict):
     type: Literal["Webhook"]
     url: str
-    method: Union[Literal["GET"], Literal["POST"]]
+    method: Literal["GET", "POST"]
     headers: Dict[str, str]
     body: Any
+    response_headers: Optional[Dict[str, str]]
 
 
 class FileResult(TypedDict):
@@ -146,11 +149,13 @@ class FileResult(TypedDict):
     mimeType: str
     name: str
     stream: Any
+    response_headers: Optional[Dict[str, str]]
 
 
 class RedirectResult(TypedDict):
     type: Literal["Redirect"]
     path: str
+    response_headers: Optional[Dict[str, str]]
 
 
 ActionResult = Union[SuccessResult, ErrorResult, WebHookResult, FileResult, RedirectResult]
