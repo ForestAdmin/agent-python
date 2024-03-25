@@ -59,17 +59,6 @@ poetry run poe init-db
 poetry run poe populate-db
 ```
 
-## To add a custom root certificate in the trust bundle
-
-If you use a local forest-admin-server for dev, set these variables in your .env file
-
-```bash
-rootCaPath=~/git/forestadmin-server/docker/etc/nginx/ssl/rootCA.pem  # adapt to your need
-
-SSL_CERT_FILE=$rootCaPath  # for aiohttp
-REQUESTS_CA_BUNDLE=$rootCaPath  # for oic (openId client)
-```
-
 ## Run the server
 
 ```bash
