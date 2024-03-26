@@ -1,5 +1,7 @@
 from typing import Any, Dict, List
+from urllib.parse import quote
 
+from forestadmin.agent_toolkit.forest_logger import ForestLogger
 from forestadmin.agent_toolkit.utils.context import User
 from forestadmin.datasource_toolkit.collections import CollectionException
 from forestadmin.datasource_toolkit.decorators.chart.collection_chart_context import CollectionChartContext
@@ -21,6 +23,8 @@ class ChartCollectionDecorator(CollectionDecorator):
             raise CollectionException(f"Chart {name} already exists.")
 
         self._charts[name] = definition
+        chart_url = quote(f"/forest/_charts/{self.name}/{name}")
+        ForestLogger.log("info", f"Chart {self.name}.{name} added with url: '{chart_url}'")
         self.mark_schema_as_dirty()
 
     async def render_chart(self, caller: User, name: str, record_id: List) -> Chart:
