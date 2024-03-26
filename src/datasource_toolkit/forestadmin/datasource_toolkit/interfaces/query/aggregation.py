@@ -35,6 +35,9 @@ class DateOperation(enum.Enum):
     DAY = "Day"
 
 
+DateOperationLiteral = Literal["Year", "Month", "Week", "Day"]
+
+
 class AggregateResult(TypedDict):
     value: Any
     group: Dict[str, Any]
