@@ -150,7 +150,7 @@ class BaseDynamicField(Generic[Result]):
 
 
 class PlainCollectionDynamicField(PlainField):
-    type: Literal[ActionFieldType.COLLECTION]
+    type: Literal[ActionFieldType.COLLECTION, "Collection"]
     collection_name: ValueOrHandler[str]
     value: NotRequired[ValueOrHandler[CompositeIdAlias]]
     default_value: NotRequired[ValueOrHandler[CompositeIdAlias]]
