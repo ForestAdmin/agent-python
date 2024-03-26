@@ -43,7 +43,7 @@ from forestadmin.django_agent.agent import DjangoAgent
 
 def customize_forest(agent: DjangoAgent):
     # customize_forest_logging()
-    agent.add_datasource(DjangoDatasource())
+    # agent.add_datasource(DjangoDatasource())
 
     # # ## ADDRESS
     agent.customize_collection("app_address").add_segment(
