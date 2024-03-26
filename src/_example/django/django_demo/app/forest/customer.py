@@ -18,15 +18,10 @@ from forestadmin.datasource_toolkit.decorators.hook.context.list import HookAfte
 from forestadmin.datasource_toolkit.decorators.write.write_replace.write_customization_context import (
     WriteCustomizationContext,
 )
-from forestadmin.datasource_toolkit.interfaces.actions import ActionFieldType, ActionResult, ActionsScope
-from forestadmin.datasource_toolkit.interfaces.fields import Operator, PrimitiveType
-from forestadmin.datasource_toolkit.interfaces.query.aggregation import (
-    Aggregation,
-    PlainAggregation,
-    PlainAggregationGroup,
-)
+from forestadmin.datasource_toolkit.interfaces.actions import ActionResult
+from forestadmin.datasource_toolkit.interfaces.query.aggregation import Aggregation
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.base import ConditionTree
-from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.branch import Aggregator, ConditionTreeBranch
+from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.branch import ConditionTreeBranch
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.leaf import ConditionTreeLeaf
 from forestadmin.datasource_toolkit.interfaces.query.filter.paginated import PaginatedFilter
 from forestadmin.datasource_toolkit.interfaces.query.filter.unpaginated import Filter
@@ -36,23 +31,21 @@ from forestadmin.datasource_toolkit.interfaces.records import CompositeIdAlias, 
 
 # segments
 def french_address_segment(context: CollectionCustomizationContext):
-    return ConditionTreeLeaf(field="addresses:country", operator=Operator.EQUAL, value="France")
+    return ConditionTreeLeaf(field="addresses:country", operator="equal", value="France")
 
 
 # computed fields
-def customer_spending_computed():
+def customer_spending_computed() -> ComputedDefinition:
     async def get_customer_spending_values(records: List[RecordsDataAlias], context: CollectionCustomizationContext):
         record_ids = [record["id"] for record in records]
-        condition = Filter(
-            {"condition_tree": ConditionTreeLeaf(field="customer_id", operator=Operator.IN, value=record_ids)}
-        )
+        condition = Filter({"condition_tree": ConditionTreeLeaf(field="customer_id", operator="in", value=record_ids)})
 
         aggregation = Aggregation(
-            component=PlainAggregation(
-                operation="Sum",
-                field="amount",
-                groups=[PlainAggregationGroup(field="customer_id")],
-            ),
+            {
+                "operation": "Sum",
+                "field": "amount",
+                "groups": [{"field": "customer_id"}],
+            }
         )
         rows = await context.datasource.get_collection("app_order").aggregate(context.caller, condition, aggregation)
         ret = []
@@ -63,26 +56,22 @@ def customer_spending_computed():
 
         return ret
 
-    return ComputedDefinition(
-        column_type=PrimitiveType.NUMBER, dependencies=["id"], get_values=get_customer_spending_values
-    )
+    return {
+        "column_type": "Number",
+        "dependencies": ["id"],
+        "get_values": get_customer_spending_values,
+    }
 
 
 def customer_full_name() -> ComputedDefinition:
     async def _get_customer_fullname_values(records: List[RecordsDataAlias], context: CollectionCustomizationContext):
         return [f"{record['first_name']} - {record['last_name']}" for record in records]
 
-    return ComputedDefinition(
-        column_type="String",
-        dependencies=["first_name", "last_name"],
-        get_values=_get_customer_fullname_values,
-    )
-    # or
-    # return {
-    #     "column_type": PrimitiveType.STRING,
-    #     "dependencies": ["first_name", "last_name"],
-    #     "get_values": _get_customer_fullname_values,
-    # }
+    return {
+        "column_type": "String",
+        "dependencies": ["first_name", "last_name"],
+        "get_values": _get_customer_fullname_values,
+    }
 
 
 def customer_full_name_write(value: str, context: WriteCustomizationContext):
@@ -94,24 +83,24 @@ def customer_full_name_write(value: str, context: WriteCustomizationContext):
 async def full_name_equal(value, context: CollectionCustomizationContext) -> ConditionTree:
     first_name, last_name = value.split(" - ")
     return ConditionTreeBranch(
-        Aggregator.AND,
+        "and",
         [
-            ConditionTreeLeaf("first_name", Operator.EQUAL, first_name),
-            ConditionTreeLeaf("last_name", Operator.EQUAL, last_name),
+            ConditionTreeLeaf("first_name", "equal", first_name),
+            ConditionTreeLeaf("last_name", "equal", last_name),
         ],
     )
 
 
 async def full_name_less_than(value, context: CollectionCustomizationContext):
     return ConditionTreeBranch(
-        Aggregator.OR,
+        "or",
         [
-            ConditionTreeLeaf("first_name", Operator.LESS_THAN, value),
+            ConditionTreeLeaf("first_name", "less_than", value),
             ConditionTreeBranch(
-                Aggregator.AND,
+                "and",
                 [
-                    ConditionTreeLeaf("first_name", Operator.EQUAL, value),
-                    ConditionTreeLeaf("last_name", Operator.LESS_THAN, value),
+                    ConditionTreeLeaf("first_name", "equal", value),
+                    ConditionTreeLeaf("last_name", "less_than", value),
                 ],
             ),
         ],
@@ -120,14 +109,14 @@ async def full_name_less_than(value, context: CollectionCustomizationContext):
 
 async def full_name_greater_than(value, context: CollectionCustomizationContext):
     return ConditionTreeBranch(
-        Aggregator.OR,
+        "or",
         [
-            ConditionTreeLeaf("first_name", Operator.GREATER_THAN, value),
+            ConditionTreeLeaf("first_name", "greater_than", value),
             ConditionTreeBranch(
-                Aggregator.AND,
+                "and",
                 [
-                    ConditionTreeLeaf("first_name", Operator.EQUAL, value),
-                    ConditionTreeLeaf("last_name", Operator.GREATER_THAN, value),
+                    ConditionTreeLeaf("first_name", "equal", value),
+                    ConditionTreeLeaf("last_name", "greater_than", value),
                 ],
             ),
         ],
@@ -138,7 +127,7 @@ async def full_name_in(value, context: CollectionCustomizationContext):
     conditions = []
     for v in value:
         conditions.append(await full_name_equal(v, context))
-    return ConditionTreeBranch(Aggregator.OR, conditions)
+    return ConditionTreeBranch("or", conditions)
 
 
 async def full_name_not_in(value, context: CollectionCustomizationContext):
@@ -148,10 +137,10 @@ async def full_name_not_in(value, context: CollectionCustomizationContext):
 
 async def full_name_like(value, context: CollectionCustomizationContext):
     return ConditionTreeBranch(
-        Aggregator.OR,
+        "or",
         [
-            ConditionTreeLeaf("first_name", Operator.LIKE, value),
-            ConditionTreeLeaf("last_name", Operator.LIKE, value),
+            ConditionTreeLeaf("first_name", "like", value),
+            ConditionTreeLeaf("last_name", "like", value),
         ],
     )
 
@@ -160,18 +149,18 @@ async def full_name_not_contains(value, context: CollectionCustomizationContext)
     if " - " in value:
         first_name, last_name = value.split(" - ")
         return ConditionTreeBranch(
-            Aggregator.AND,
+            "and",
             [
-                ConditionTreeLeaf("first_name", Operator.NOT_CONTAINS, first_name),
-                ConditionTreeLeaf("last_name", Operator.NOT_CONTAINS, last_name),
+                ConditionTreeLeaf("first_name", "not_contains", first_name),
+                ConditionTreeLeaf("last_name", "not_contains", last_name),
             ],
         )
     else:
         return ConditionTreeBranch(
-            Aggregator.AND,
+            "and",
             [
-                ConditionTreeLeaf("first_name", Operator.NOT_CONTAINS, value),
-                ConditionTreeLeaf("last_name", Operator.NOT_CONTAINS, value),
+                ConditionTreeLeaf("first_name", "not_contains", value),
+                ConditionTreeLeaf("last_name", "not_contains", value),
             ],
         )
 
@@ -180,18 +169,18 @@ async def full_name_contains(value, context: CollectionCustomizationContext):
     if " - " in value:
         first_name, last_name = value.split(" - ")
         return ConditionTreeBranch(
-            Aggregator.AND,
+            "and",
             [
-                ConditionTreeLeaf("first_name", Operator.CONTAINS, first_name),
-                ConditionTreeLeaf("last_name", Operator.CONTAINS, last_name),
+                ConditionTreeLeaf("first_name", "contains", first_name),
+                ConditionTreeLeaf("last_name", "contains", last_name),
             ],
         )
     else:
         return ConditionTreeBranch(
-            Aggregator.AND,
+            "and",
             [
-                ConditionTreeLeaf("first_name", Operator.CONTAINS, value),
-                ConditionTreeLeaf("last_name", Operator.CONTAINS, value),
+                ConditionTreeLeaf("first_name", "contains", value),
+                ConditionTreeLeaf("last_name", "contains", value),
             ],
         )
 
@@ -210,7 +199,7 @@ async def export_customers_json(context: ActionContextBulk, result_builder: Resu
 
 
 export_json_action_dict: ActionDict = {
-    "scope": "bulk",
+    "scope": "Bulk",
     "generate_file": True,
     "execute": export_customers_json,
 }
@@ -244,11 +233,11 @@ async def age_operation_execute(context: ActionContextSingle, result_builder: Re
 
 
 age_operation_action_dict: ActionDict = {
-    "scope": ActionsScope.SINGLE,
+    "scope": "Single",
     "execute": age_operation_execute,
     "form": [
         {
-            "type": ActionFieldType.ENUM,
+            "type": "Enum",
             "label": "Kind of operation",
             "is_required": True,
             "default_value": "+",
@@ -261,7 +250,7 @@ age_operation_action_dict: ActionDict = {
             "default_value": 0,
         },
         {
-            "type": ActionFieldType.STRING,
+            "type": "String",
             "label": "summary",
             "is_required": False,
             "is_read_only": True,
@@ -269,20 +258,20 @@ age_operation_action_dict: ActionDict = {
         },
         {
             "label": "test list",
-            "type": ActionFieldType.STRING_LIST,
+            "type": "StringList",
             "is_required": lambda context: context.form_values.get("Value", 11) > 10,
             "is_read_only": lambda context: context.form_values.get("Value", 11) <= 10,
             "if_": lambda context: context.form_values.get("Value", 0) > 10,
             "default_value": lambda context: ["1", "2"],
         },
-        {"label": "Rating", "type": ActionFieldType.ENUM, "enum_values": ["1", "2", "3", "4", "5"]},
+        {"label": "Rating", "type": "Enum", "enum_values": ["1", "2", "3", "4", "5"]},
         {
             "label": "Put a comment",
-            "type": ActionFieldType.STRING,
+            "type": "String",
             # Only display this field if the rating is 4 or 5
             "if_": lambda context: int(context.form_values.get("Rating", "0") or "0") < 4,
         },
-        {"label": "test filelist", "type": ActionFieldType.FILE_LIST, "is_required": False, "default_value": []},
+        {"label": "test filelist", "type": "FileList", "is_required": False, "default_value": []},
     ],
 }
 
@@ -291,9 +280,9 @@ age_operation_action_dict: ActionDict = {
 async def total_orders_customer_chart(
     context: CollectionChartContext, result_builder: ResultBuilderChart, ids: CompositeIdAlias
 ):
-    orders = await context.datasource.get_collection("order").aggregate(
+    orders = await context.datasource.get_collection("app_order").aggregate(
         caller=context.caller,
-        filter_=Filter({"condition_tree": ConditionTreeLeaf("customer_id", Operator.EQUAL, ids[0])}),
+        filter_=Filter({"condition_tree": ConditionTreeLeaf("customer_id", "equal", ids[0])}),
         aggregation=Aggregation({"field": "amount", "operation": "Sum"}),
     )
     return result_builder.value(orders[0]["value"])
@@ -303,7 +292,7 @@ async def order_details(context: CollectionChartContext, result_builder: ResultB
     orders = await context.datasource.get_collection("order").list(
         context.caller,
         PaginatedFilter(
-            {"condition_tree": ConditionTreeLeaf("customer_id", Operator.IN, ids)},
+            {"condition_tree": ConditionTreeLeaf("customer_id", "in", ids)},
         ),
         Projection("id", "customer_full_name"),
     )
