@@ -56,7 +56,7 @@ class RelaxedCollection(Collection):
     def __init__(self, collection: Collection):
         self.collection = collection
 
-    def get_native_driver(self):
+    def get_native_driver(self) -> Any:
         return self.collection.get_native_driver()
 
     @property
