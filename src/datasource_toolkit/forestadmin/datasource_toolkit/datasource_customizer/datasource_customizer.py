@@ -102,7 +102,7 @@ class DatasourceCustomizer:
         self.stack.queue_customization(_add_chart)
         return self
 
-    def remove_collections(self, *names: List[str]) -> Self:
+    def remove_collections(self, *names: str) -> Self:
         """Remove collections from the exported schema (they will still be usable within the agent).
 
         Args:
