@@ -48,17 +48,17 @@ class OverrideLeafComponents(ConditionTreeComponent, total=False):
 
 
 class ConditionTreeLeaf(ConditionTree):
-    def __init__(self, field: str, operator: Operator, value: Optional[Any] = None) -> None:
+    def __init__(self, field: str, operator: Union[Operator, LITERAL_OPERATORS], value: Optional[Any] = None) -> None:
         super().__init__()
         self.field = field
-        self.operator = operator
+        self.operator = Operator(operator)
         self.value = value
 
-    def __eq__(self: Self, obj: Self) -> bool:
+    def __eq__(self: Self, obj: Self) -> bool:  # type: ignore
         return (
             self.__class__ == obj.__class__
             and self.field == obj.field
-            and self.operator == obj.operator
+            and Operator(self.operator) == Operator(obj.operator)
             and self.value == obj.value
         )
 
@@ -117,10 +117,10 @@ class ConditionTreeLeaf(ConditionTree):
         return handler(self)
 
     @property
-    def _to_leaf_components(self) -> "LeafComponents":
+    def _to_leaf_components(self) -> LeafComponents:
         return {
             "field": self.field,
-            "operator": self.operator.value,
+            "operator": self.operator.value,  # type: ignore
             "value": self.value,
         }
 
@@ -259,5 +259,9 @@ class ConditionTreeLeaf(ConditionTree):
             is not None
         )
 
-    def to_plain_object(self) -> LeafComponents:
-        return LeafComponents(field=self.field, operator=self.operator.value, value=self.value)
+    def to_plain_object(self) -> LeafComponents:  # type: ignore
+        return LeafComponents(
+            field=self.field,
+            operator=self.operator.value,  # type: ignore
+            value=self.value,
+        )
