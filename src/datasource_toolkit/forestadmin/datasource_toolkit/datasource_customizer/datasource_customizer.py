@@ -36,19 +36,20 @@ class DatasourceCustomizer:
             datasource (Datasource): the datasource to add
             options (DataSourceOptions, optional): the options
         """
-        if options is None:
-            options = {}
+        _options: DataSourceOptions = DataSourceOptions() if options is None else options
 
         async def _add_datasource():
             nonlocal datasource
-            if "include" in options or "exclude" in options:
+            if "include" in _options or "exclude" in _options:
                 publication_decorator = PublicationDataSourceDecorator(datasource)
-                publication_decorator.keep_collections_matching(options.get("include", []), options.get("exclude", []))
+                publication_decorator.keep_collections_matching(
+                    _options.get("include", []), _options.get("exclude", [])
+                )
                 datasource = publication_decorator
 
-            if "rename" in options:
+            if "rename" in _options:
                 rename_decorator = RenameCollectionDataSourceDecorator(datasource)
-                rename_decorator.rename_collections(options.get("rename", {}))
+                rename_decorator.rename_collections(_options.get("rename", {}))
                 datasource = rename_decorator
 
             for collection in datasource.collections:

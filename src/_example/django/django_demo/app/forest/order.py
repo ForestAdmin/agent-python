@@ -1,6 +1,6 @@
 import io
 import json
-from typing import List, Union
+from typing import List
 
 from app.models import Order
 from forestadmin.datasource_toolkit.context.agent_context import AgentCustomizationContext
@@ -11,10 +11,9 @@ from forestadmin.datasource_toolkit.decorators.action.result_builder import Resu
 from forestadmin.datasource_toolkit.decorators.action.types.actions import ActionDict
 from forestadmin.datasource_toolkit.decorators.chart.result_builder import ResultBuilder as ResultBuilderChart
 from forestadmin.datasource_toolkit.decorators.computed.types import ComputedDefinition
-from forestadmin.datasource_toolkit.interfaces.actions import ActionFieldType, ActionResult, ActionsScope
-from forestadmin.datasource_toolkit.interfaces.fields import Operator, PrimitiveType
-from forestadmin.datasource_toolkit.interfaces.query.aggregation import Aggregation, DateOperation, PlainAggregation
-from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.branch import Aggregator, ConditionTreeBranch
+from forestadmin.datasource_toolkit.interfaces.actions import ActionResult
+from forestadmin.datasource_toolkit.interfaces.query.aggregation import Aggregation
+from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.branch import ConditionTreeBranch
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.leaf import ConditionTreeLeaf
 from forestadmin.datasource_toolkit.interfaces.query.filter.paginated import PaginatedFilter
 from forestadmin.datasource_toolkit.interfaces.query.filter.unpaginated import Filter
@@ -31,7 +30,7 @@ def pending_order_segment(context: CollectionCustomizationContext):
 
     return ConditionTreeLeaf(
         field="id",
-        operator=Operator.IN,
+        operator="in",
         value=[r[0] for r in rows],
         # value=[r[0] for r in rows[0 : min(len(rows), 32766)]],  # https://www.sqlite.org/c3ref/bind_blob.html
     )
@@ -40,7 +39,7 @@ def pending_order_segment(context: CollectionCustomizationContext):
 def delivered_order_segment(context: CollectionCustomizationContext):
     return ConditionTreeLeaf(
         field="status",
-        operator=Operator.EQUAL,
+        operator="equal",
         value=Order.OrderStatus.DELIVERED,
     )
 
@@ -48,7 +47,7 @@ def delivered_order_segment(context: CollectionCustomizationContext):
 def dispatched_order_segment(context: CollectionCustomizationContext):
     return ConditionTreeLeaf(
         field="status",
-        operator=Operator.EQUAL,
+        operator="equal",
         value=Order.OrderStatus.DISPATCHED,
     )
 
@@ -56,15 +55,15 @@ def dispatched_order_segment(context: CollectionCustomizationContext):
 def rejected_order_segment(context: CollectionCustomizationContext):
     return ConditionTreeLeaf(
         field="status",
-        operator=Operator.EQUAL,
+        operator="equal",
         value=Order.OrderStatus.REJECTED,
     )
 
 
 def suspicious_order_segment(context: CollectionCustomizationContext):
-    too_old = ConditionTreeLeaf(field="customer:age", operator=Operator.GREATER_THAN, value=99)
-    too_young = ConditionTreeLeaf(field="customer:age", operator=Operator.LESS_THAN, value=18)
-    return ConditionTreeBranch(Aggregator.OR, [too_old, too_young])
+    too_old = ConditionTreeLeaf(field="customer:age", operator="greater_than", value=99)
+    too_young = ConditionTreeLeaf(field="customer:age", operator="less_than", value=18)
+    return ConditionTreeBranch("or", [too_old, too_young])
 
 
 # computed fields
@@ -75,14 +74,14 @@ def get_customer_full_name_field() -> ComputedDefinition:
         return [f"{record['customer']['first_name']} {record['customer']['last_name']}" for record in records]
 
     return {
-        "column_type": PrimitiveType.STRING,
+        "column_type": "String",
         "dependencies": ["customer:first_name", "customer:last_name"],
         "get_values": get_customer_full_name_value,
     }
 
 
 # actions
-async def execute_export_json(context: ActionContext, result_builder: ResultBuilder) -> Union[None, ActionResult]:
+async def execute_export_json(context: ActionContext, result_builder: ResultBuilder) -> ActionResult:
     records = await context.get_records(
         Projection(
             "id",
@@ -99,12 +98,12 @@ async def execute_export_json(context: ActionContext, result_builder: ResultBuil
 
 
 export_orders_json: ActionDict = {
-    "scope": ActionsScope.GLOBAL,
+    "scope": "Global",
     "generate_file": True,
     "execute": execute_export_json,
     "form": [
         {
-            "type": ActionFieldType.STRING,
+            "type": "String",
             "label": "dummy field",
             "is_required": False,
             "description": "",
@@ -112,7 +111,7 @@ export_orders_json: ActionDict = {
             "value": "",
         },
         {
-            "type": ActionFieldType.COLLECTION,
+            "type": "Collection",
             "collection_name": "app_customer",
             "label": "customer",
             "is_required": True,
@@ -124,21 +123,19 @@ export_orders_json: ActionDict = {
 }
 
 
-async def refund_order_execute(
-    context: ActionContextSingle, result_builder: ResultBuilder
-) -> Union[None, ActionResult]:
+async def refund_order_execute(context: ActionContextSingle, result_builder: ResultBuilder) -> ActionResult:
     my_order_id = await context.get_record_id()
     my_order = await Order.objects.aget(id=my_order_id)
-    await my_order.refund()
-    return result_builder.success("fake refund")
+    # await my_order.refund()
+    return result_builder.success(f"fake refund ({my_order.amount})")
 
 
 refund_order_action: ActionDict = {
-    "scope": ActionsScope.SINGLE,
+    "scope": "Single",
     "execute": refund_order_execute,
     "form": [
         {
-            "type": ActionFieldType.STRING,
+            "type": "String",
             "label": "reason",
             "is_required": False,
             "description": "",
@@ -160,13 +157,13 @@ async def total_order_chart(context: AgentCustomizationContext, result_builder: 
 async def nb_order_per_week(context: AgentCustomizationContext, result_builder: ResultBuilderChart):
     records = await context.datasource.get_collection("order").aggregate(
         context.caller,
-        Filter({"condition_tree": ConditionTreeLeaf("created_at", Operator.BEFORE, "2022-01-01")}),
+        Filter({"condition_tree": ConditionTreeLeaf("created_at", "before", "2022-01-01")}),
         Aggregation(
-            PlainAggregation(
-                field="created_at",
-                operation="Count",
-                groups=[{"field": "created_at", "operation": DateOperation.WEEK}],
-            )
+            {
+                "field": "created_at",
+                "operation": "Count",
+                "groups": [{"field": "created_at", "operation": "Week"}],
+            }
         ),
     )
     return result_builder.time_based(

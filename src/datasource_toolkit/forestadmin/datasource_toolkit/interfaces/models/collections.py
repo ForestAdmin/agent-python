@@ -1,5 +1,5 @@
 import abc
-from typing import Dict, Generic, List, TypedDict, TypeVar
+from typing import Callable, Dict, Generic, List, TypedDict, TypeVar
 
 from forestadmin.datasource_toolkit.interfaces.actions import Action
 from forestadmin.datasource_toolkit.interfaces.fields import FieldAlias
@@ -12,6 +12,7 @@ class CollectionSchema(TypedDict):
     searchable: bool
     segments: List[str]
     countable: bool
+    charts: Dict[str, Callable]
 
 
 class Collection(abc.ABC):
