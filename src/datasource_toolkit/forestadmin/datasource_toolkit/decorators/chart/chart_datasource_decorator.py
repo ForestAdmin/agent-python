@@ -1,5 +1,7 @@
 from typing import Dict, Union
+from urllib.parse import quote
 
+from forestadmin.agent_toolkit.forest_logger import ForestLogger
 from forestadmin.agent_toolkit.utils.context import User
 from forestadmin.datasource_toolkit.context.agent_context import AgentCustomizationContext
 from forestadmin.datasource_toolkit.datasources import Datasource
@@ -21,6 +23,8 @@ class ChartDataSourceDecorator(DatasourceDecorator):
         if name in self.schema["charts"]:
             raise DatasourceToolkitException(f"Chart {name} already exists.")
         self.charts[name] = chart_definition
+        chart_url = quote(f"/forest/_charts/{name}")
+        ForestLogger.log("info", f"Chart {name} added with url: '{chart_url}'")
 
     async def render_chart(self, caller: User, name: str) -> Chart:
         chart_definition = self.charts.get(name)

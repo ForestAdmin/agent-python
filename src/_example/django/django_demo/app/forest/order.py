@@ -166,6 +166,4 @@ async def nb_order_per_week(context: AgentCustomizationContext, result_builder: 
             }
         ),
     )
-    return result_builder.time_based(
-        DateOperation.WEEK, {entry["group"]["created_at"]: entry["value"] for entry in records}
-    )
+    return result_builder.time_based("Week", {entry["group"]["created_at"]: entry["value"] for entry in records})
