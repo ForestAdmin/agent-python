@@ -1,12 +1,12 @@
 from io import IOBase
-from typing import Any, Dict, List, Literal, Optional, Union
+from typing import Any, Dict, List, Literal, Optional
 
 from forestadmin.datasource_toolkit.interfaces.actions import ActionResult
 from forestadmin.datasource_toolkit.interfaces.records import RecordsDataAlias
 from typing_extensions import NotRequired, Self, TypedDict
 
-OptionTypeAlias = Union[Literal["html"], Literal["text"]]
-WebhookMethod = Union[Literal["GET"], Literal["POST"]]
+OptionTypeAlias = Literal["html", "text"]
+WebhookMethod = Literal["GET", "POST"]
 
 
 class OptionAlias(TypedDict):
@@ -49,7 +49,7 @@ class ResultBuilder:
             options (dict, optional): available options to return. Defaults to None.
 
         Example:
-            .success("Success", {"html": "<blinkee>Success!</blinkee>"})
+            .success("Success", {"type": "html"})
         """
         if not options:
             options = {}
@@ -70,7 +70,7 @@ class ResultBuilder:
             options (dict, optional): available options to return. Defaults to None.
 
         Example:
-            .error("Failed to refund the customer!", {"html": "<strong>Error!</strong>"})
+            .error("Failed to refund the customer!", {"type": "html"})
         """
         if not options:
             options = {}
