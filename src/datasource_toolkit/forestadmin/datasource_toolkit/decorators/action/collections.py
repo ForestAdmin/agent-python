@@ -43,7 +43,9 @@ class ActionCollectionDecorator(CollectionDecorator):
         context = self._get_context(caller, action, data, filter_, None)
         response_builder = ResultBuilder()
         result = await call_user_function(action["execute"], context, response_builder)  # type: ignore
-        return result or {"type": "Success", "invalidated": set(), "format": "text", "message": "Success"}
+        return cast(
+            ActionResult, result or {"type": "Success", "invalidated": set(), "format": "text", "message": "Success"}
+        )
 
     async def get_form(
         self,

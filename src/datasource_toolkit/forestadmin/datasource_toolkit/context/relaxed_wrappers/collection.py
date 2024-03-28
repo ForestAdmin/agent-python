@@ -131,7 +131,10 @@ class RelaxedCollection(Collection):
         return Aggregation(aggregation)
 
     async def list(
-        self, caller: User, filter_: Union[PaginatedFilter, PlainPaginatedFilter], projection: Projection
+        self,
+        caller: User,
+        filter_: Union[PaginatedFilter, PlainPaginatedFilter],
+        projection: Union[Projection, List[str]],
     ) -> List[RecordsDataAlias]:
         filter_instance = self._build_paginated_filter(filter_)
         projection_instance = self._build_projection(projection)

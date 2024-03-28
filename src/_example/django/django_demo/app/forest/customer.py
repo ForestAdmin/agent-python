@@ -190,7 +190,7 @@ async def full_name_contains(value, context: CollectionCustomizationContext):
 
 
 async def export_customers_json(context: ActionContextBulk, result_builder: ResultBuilder) -> ActionResult:
-    records = await context.get_records(Projection("id", "full name", "age"))
+    records = await context.get_records(["id", "full_name", "age"])
     return result_builder.file(
         io.BytesIO(json.dumps({"data": records}).encode("utf-8")),
         "dumps.json",

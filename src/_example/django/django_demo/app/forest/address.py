@@ -15,7 +15,7 @@ async def high_delivery_address_segment(context: CollectionCustomizationContext)
     rows = await context.datasource.get_collection("app_order").aggregate(
         context.caller,
         Filter({}),
-        Aggregation(component={"operation": "Count", "groups": [{"field": "delivering_address_id"}]}),
+        Aggregation({"operation": "Count", "groups": [{"field": "delivering_address_id"}]}),
         100,
     )
     return ConditionTreeLeaf(field="id", operator="in", value=[row["group"]["delivering_address_id"] for row in rows])

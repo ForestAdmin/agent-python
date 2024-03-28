@@ -19,7 +19,7 @@ class Operator(enum.Enum):
     STARTS_WITH = "starts_with"
     ENDS_WITH = "ends_with"
     CONTAINS = "contains"
-    MATCH = "Match"
+    MATCH = "match"
     # ICONTAINS = "icontains"
     NOT_CONTAINS = "not_contains"
     LONGER_THAN = "longer_than"
