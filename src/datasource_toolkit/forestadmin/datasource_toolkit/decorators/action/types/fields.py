@@ -98,7 +98,7 @@ class BaseDynamicField(Generic[Result]):
         return ret
 
     @property
-    def is_dynamic(self):
+    def is_dynamic(self) -> bool:
         return any(map(lambda x: isinstance(x, Callable), self.dynamic_fields))
 
     async def to_action_field(
