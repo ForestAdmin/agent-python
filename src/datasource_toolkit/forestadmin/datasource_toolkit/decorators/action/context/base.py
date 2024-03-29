@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Optional, Set
+from typing import Any, Dict, List, Optional, Set, Union
 
 from forestadmin.agent_toolkit.utils.context import User
 from forestadmin.datasource_toolkit.collections import Collection
@@ -47,7 +47,7 @@ class ActionContext(CollectionCustomizationContext):
         self.form_values._used.add(field_name)
         return field_name == self._changed_field
 
-    async def get_records(self, fields: Projection) -> List[RecordsDataAlias]:
+    async def get_records(self, fields: Union[Projection, List[str]]) -> List[RecordsDataAlias]:
         ProjectionValidator.validate(self.collection, fields)
         projection = Projection(*fields)
         return await self._run_query(projection)

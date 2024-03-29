@@ -17,7 +17,6 @@ from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.branch
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.leaf import ConditionTreeLeaf
 from forestadmin.datasource_toolkit.interfaces.query.filter.paginated import PaginatedFilter
 from forestadmin.datasource_toolkit.interfaces.query.filter.unpaginated import Filter
-from forestadmin.datasource_toolkit.interfaces.query.projections import Projection
 from forestadmin.datasource_toolkit.interfaces.records import RecordsDataAlias
 
 # segments
@@ -83,14 +82,14 @@ def get_customer_full_name_field() -> ComputedDefinition:
 # actions
 async def execute_export_json(context: ActionContext, result_builder: ResultBuilder) -> ActionResult:
     records = await context.get_records(
-        Projection(
+        [
             "id",
             "customer:full_name",
             "billing_address:full_address",
             "delivering_address:full_address",
             "status",
             "amount",
-        )
+        ]
     )
     return result_builder.file(
         io.BytesIO(json.dumps({"data": records}, default=str).encode("utf-8")), "dumps.json", "application/json"
@@ -148,9 +147,7 @@ refund_order_action: ActionDict = {
 
 # charts
 async def total_order_chart(context: AgentCustomizationContext, result_builder: ResultBuilderChart):
-    records = await context.datasource.get_collection("order").list(
-        context.caller, PaginatedFilter({}), Projection("id")
-    )
+    records = await context.datasource.get_collection("order").list(context.caller, PaginatedFilter({}), ["id"])
     return result_builder.value(len(records))
 
 
