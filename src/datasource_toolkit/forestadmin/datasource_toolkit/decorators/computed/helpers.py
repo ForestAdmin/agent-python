@@ -50,7 +50,6 @@ async def queue_field(
         if ":" in new_path:
             nested_field = new_path.split(":")[0]
             dependencies = cast(List[str], dependencies.nest(nested_field))
-            dependencies.sort()
         for path in cast(List[str], dependencies):
             await queue_field(ctx, collection, path, paths, flatten_records.copy())
         dependency_values = [flatten_records[paths.index(path)] for path in cast(List[str], dependencies)]
@@ -67,8 +66,6 @@ async def compute_from_records(
     records: List[Optional[RecordsDataAlias]],
 ) -> List[RecordsDataAlias]:
     paths: List[str] = [*records_projection]
-    paths.sort()
-    cast(List[str], desired_projections).sort()
     flatten_records = flatten(records, paths)
     add_operations: List[Tuple[int, Any]] = []
     delete_operations: List[int] = []
