@@ -1,6 +1,7 @@
 from typing import Any, List, Literal
 
 from forestadmin.agent_toolkit.utils.forest_schema.type import (
+    AgentMeta,
     ForestServerAction,
     ForestServerSegment,
     ServerValidationType,
@@ -51,6 +52,11 @@ class SchemaV2Collection(TypedDict):
     canChart: NotRequired[bool]
     canSearch: NotRequired[bool]
     canNativeQuery: NotRequired[bool]
+
+
+class ForestSchemaV2(TypedDict):
+    data: List[SchemaV2Collection]
+    meta: AgentMeta
 
 
 # MASKS
