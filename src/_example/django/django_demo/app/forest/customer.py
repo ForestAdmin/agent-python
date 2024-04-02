@@ -288,6 +288,23 @@ async def total_orders_customer_chart(
     return result_builder.value(orders[0]["value"])
 
 
+async def time_order_number_chart(
+    context: CollectionChartContext, result_builder: ResultBuilderChart, ids: CompositeIdAlias
+):
+    records = await context.datasource.get_collection("app_order").aggregate(
+        caller=context.caller,
+        filter_=Filter({"condition_tree": ConditionTreeLeaf("customer_id", "equal", ids[0])}),
+        aggregation=Aggregation(
+            {
+                "field": "ordered_date",
+                "operation": "Count",
+                "groups": [{"field": "ordered_date", "operation": "Week"}],
+            }
+        ),
+    )
+    return result_builder.time_based("Week", {entry["group"]["ordered_date"]: entry["value"] for entry in records})
+
+
 async def order_details(context: CollectionChartContext, result_builder: ResultBuilderChart, ids: CompositeIdAlias):
     orders = await context.datasource.get_collection("order").list(
         context.caller,

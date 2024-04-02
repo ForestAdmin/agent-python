@@ -20,6 +20,7 @@ from app.forest.customer import (
     hook_customer_after_list,
     hook_customer_before_create,
     order_details,
+    time_order_number_chart,
     total_orders_customer_chart,
 )
 from app.forest.order import (
@@ -32,8 +33,8 @@ from app.forest.order import (
     refund_order_action,
     rejected_order_segment,
     suspicious_order_segment,
-    total_order_chart,
 )
+from demo.forest_admin.smart.order import total_order_chart
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.leaf import ConditionTreeLeaf
 from forestadmin.django_agent.agent import DjangoAgent
 
@@ -167,6 +168,8 @@ def customize_forest(agent: DjangoAgent):
         hook_customer_before_create,
     ).add_hook(
         "After", "List", hook_customer_after_list
+    ).add_chart(
+        "nb_order_week", time_order_number_chart
     )
 
     # # ## ORDERS
@@ -201,6 +204,13 @@ def customize_forest(agent: DjangoAgent):
         get_customer_full_name_field(),
     ).import_field(
         "customer_first_name", {"path": "customer:first_name"}
+    ).add_field(
+        "ordered_date",
+        {
+            "column_type": "Date",
+            "dependencies": ["ordered_at"],
+            "get_values": lambda records, cts: [r["ordered_at"] for r in records],
+        },
     )
 
     # general
