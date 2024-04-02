@@ -1,4 +1,4 @@
-from typing import Dict, List, Optional, TypedDict
+from typing import Dict, Optional, TypedDict
 
 from forestadmin.agent_toolkit.exceptions import AgentToolkitException
 from forestadmin.agent_toolkit.forest_logger import ForestLogger
@@ -156,7 +156,7 @@ class Agent:
         """
         return self.customizer.customize_collection(collection_name)
 
-    def remove_collections(self, *names: List[str]):
+    def remove_collections(self, *names: str):
         """Remove collections from the exported schema (they will still be usable within the agent).
 
         Args:
@@ -168,7 +168,7 @@ class Agent:
         Example:
             .remove_collections('aCollectionToRemove', 'anotherCollectionToRemove')
         """
-        return self.customizer.remove_collections(names)
+        return self.customizer.remove_collections(*names)
 
     def add_chart(self, name: str, definition: DataSourceChartDefinition):
         """Create a new API chart

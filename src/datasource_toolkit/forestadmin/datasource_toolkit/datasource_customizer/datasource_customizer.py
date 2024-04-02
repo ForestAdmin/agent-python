@@ -1,4 +1,4 @@
-from typing import Dict, List, Optional
+from typing import Dict, Optional
 
 from forestadmin.datasource_toolkit.datasource_customizer.collection_customizer import CollectionCustomizer
 from forestadmin.datasource_toolkit.datasource_customizer.types import DataSourceOptions
@@ -103,7 +103,7 @@ class DatasourceCustomizer:
         self.stack.queue_customization(_add_chart)
         return self
 
-    def remove_collections(self, *names: List[str]) -> Self:
+    def remove_collections(self, *names: str) -> Self:
         """Remove collections from the exported schema (they will still be usable within the agent).
 
         Args:
