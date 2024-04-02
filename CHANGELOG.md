@@ -1,3 +1,10 @@
+## [1.6.2](https://github.com/ForestAdmin/agent-python/compare/v1.6.1...v1.6.2) (2024-04-02)
+
+
+### Bug Fixes
+
+* **publication_collection:** remove_collections now works ([#206](https://github.com/ForestAdmin/agent-python/issues/206)) ([97deb51](https://github.com/ForestAdmin/agent-python/commit/97deb51fee304e56585e50e34ae5c056d79fc704))
+
 ## [1.6.1](https://github.com/ForestAdmin/agent-python/compare/v1.6.0...v1.6.1) (2024-03-22)
 
 
