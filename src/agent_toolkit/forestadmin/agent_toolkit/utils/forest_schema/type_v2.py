@@ -37,8 +37,8 @@ class SchemaV2Field(TypedDict):
 
 class SchemaV2Collection(TypedDict):
     name: str
-    fields: List[SchemaV2Field]  # to define
-    relations: List  # to define
+    fields: List[SchemaV2Field]
+    relations: List[SchemaV2Relation]
 
     segments: NotRequired[List[ForestServerSegment]]
     actions: NotRequired[List[ForestServerAction]]
