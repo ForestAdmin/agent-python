@@ -1,7 +1,7 @@
 import enum
 import json
 import sys
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 from typing import Any, Callable, Dict, List, Literal, Optional, Union
 
 if sys.version_info >= (3, 9):
@@ -197,7 +197,9 @@ class Aggregation:
         for group in self.groups:
             group_value = RecordUtils.get_field_value(record, group["field"])
             group_record[group["field"]] = self._apply_date_operation(
-                group_value.isoformat(), group.get("operation"), timezone
+                group_value.isoformat() if isinstance(group_value, date) else group_value,
+                group.get("operation"),
+                timezone,
             )
         return group_record
 
