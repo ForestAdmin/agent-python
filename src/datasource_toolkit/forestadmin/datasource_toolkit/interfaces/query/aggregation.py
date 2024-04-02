@@ -196,7 +196,9 @@ class Aggregation:
         group_record: RecordsDataAlias = {}
         for group in self.groups:
             group_value = RecordUtils.get_field_value(record, group["field"])
-            group_record[group["field"]] = self._apply_date_operation(group_value, group.get("operation"), timezone)
+            group_record[group["field"]] = self._apply_date_operation(
+                group_value.isoformat(), group.get("operation"), timezone
+            )
         return group_record
 
     def _apply_date_operation(self, value: str, operation: Optional[DateOperation], timezone: str) -> str:

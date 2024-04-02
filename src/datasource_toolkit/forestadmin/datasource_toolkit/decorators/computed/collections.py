@@ -52,7 +52,7 @@ class ComputedCollectionDecorator(CollectionDecorator):
 
     async def list(self, caller: User, _filter: PaginatedFilter, projection: Projection) -> List[RecordsDataAlias]:
         new_projection = projection.replace(lambda path: rewrite_fields(self, path))
-        records: List[Optional[RecordsDataAlias]] = await super().list(caller, _filter, new_projection)  # type: ignore
+        records: List[RecordsDataAlias] = await super().list(caller, _filter, new_projection)  # type: ignore
         if new_projection == projection:
             return records
 
@@ -66,7 +66,7 @@ class ComputedCollectionDecorator(CollectionDecorator):
             return await self.child_collection.aggregate(caller, _filter, aggregation, limit)
 
         records = await self.list(caller, PaginatedFilter.from_base_filter(_filter), aggregation.projection)
-        return aggregation.apply(records, caller.timezone, limit)
+        return aggregation.apply(records, str(caller.timezone), limit)
 
     def _refine_schema(self, sub_schema: CollectionSchema) -> CollectionSchema:
         computed_fields_schema = {**sub_schema["fields"]}

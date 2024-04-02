@@ -41,7 +41,9 @@ class CollectionUtils:
             schema = fields[field_name]
         except KeyError:
             kind = "Relation" if sub_path else "Column"
-            raise CollectionUtilsException(f"{kind} not found {collection.name}.{field_name}")
+            raise CollectionUtilsException(
+                f"{kind} not found {collection.name}.{field_name}. Felds are {','.join(fields.keys())}"
+            )
 
         if not sub_path:
             return schema
