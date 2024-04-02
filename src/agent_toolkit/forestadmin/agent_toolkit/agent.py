@@ -16,6 +16,7 @@ from forestadmin.agent_toolkit.services.permissions.sse_cache_invalidation impor
 from forestadmin.agent_toolkit.services.serializers.json_api import create_json_api_schema
 from forestadmin.agent_toolkit.utils.context import HttpResponseBuilder
 from forestadmin.agent_toolkit.utils.forest_schema.emitter import SchemaEmitter
+from forestadmin.agent_toolkit.utils.forest_schema.emitter_v2 import SchemaEmitterV2
 from forestadmin.agent_toolkit.utils.forest_schema.type import AgentMeta
 from forestadmin.agent_toolkit.utils.http import ForestHttpApi
 from forestadmin.datasource_toolkit.datasource_customizer.collection_customizer import CollectionCustomizer
@@ -197,6 +198,13 @@ class Agent:
             ForestLogger.log("debug", "Agent already started.")
             return
         ForestLogger.log("debug", "Starting agent")
+
+        try:
+            api_map = await SchemaEmitterV2.get_serialized_schema(
+                self.options, await self.customizer.get_datasource(), self.meta
+            )
+        except Exception:
+            ForestLogger.log("exception", "Error generating forest schema V2")
 
         if self.options["skip_schema_update"] is False:
             try:

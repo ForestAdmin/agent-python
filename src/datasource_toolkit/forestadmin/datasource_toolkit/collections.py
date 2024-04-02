@@ -20,6 +20,16 @@ class CollectionException(DatasourceException):
 
 
 class Collection(CollectionInterface):
+    # collection capabilities
+    canList: bool
+    canCreate: bool
+    canUpdate: bool
+    canDelete: bool
+    canChart: bool
+    canCount: bool
+    canNativeQuery: bool
+    canSearch: bool
+
     def __init__(self, name: str, datasource: Datasource[Self]):
         super().__init__()
         self._datasource = datasource
@@ -29,8 +39,14 @@ class Collection(CollectionInterface):
             "fields": {},
             "searchable": False,
             "segments": [],
-            "countable": True,
             "charts": {},
+            "chartable": self.canChart,
+            "listable": self.canList,
+            "creatable": self.canCreate,
+            "updatable": self.canUpdate,
+            "deletable": self.canDelete,
+            "countable": self.canCount,
+            "support_native_query": self.canCount,
         }
 
     def __repr__(self) -> str:
@@ -72,7 +88,7 @@ class Collection(CollectionInterface):
         self.schema["segments"].extend(segments)
 
     def enable_search(self):
-        self.schema["searchable"] = False
+        self.schema["searchable"] = True
 
     async def execute(
         self,

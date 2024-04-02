@@ -9,10 +9,20 @@ from typing_extensions import Self
 class CollectionSchema(TypedDict):
     actions: Dict[str, Action]
     fields: Dict[str, FieldAlias]
-    searchable: bool
     segments: List[str]
-    countable: bool
     charts: Dict[str, Callable]
+
+    # collection capabilities
+    # it should be in the form of 'canSomething' but countable & searchable already exists
+    # because I'm lazy, I'm so sorry for 'chartable' 😅
+    listable: bool
+    creatable: bool
+    updatable: bool
+    deletable: bool
+    chartable: bool
+    countable: bool
+    searchable: bool
+    support_native_query: bool
 
 
 class Collection(abc.ABC):

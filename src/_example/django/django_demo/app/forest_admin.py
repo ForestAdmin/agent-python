@@ -33,8 +33,8 @@ from app.forest.order import (
     refund_order_action,
     rejected_order_segment,
     suspicious_order_segment,
+    total_order_chart,
 )
-from demo.forest_admin.smart.order import total_order_chart
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.leaf import ConditionTreeLeaf
 from forestadmin.django_agent.agent import DjangoAgent
 
@@ -102,7 +102,7 @@ def customize_forest(agent: DjangoAgent):
         },
     ).add_segment("with french address", french_address_segment).add_segment(
         "VIP customers",
-        lambda context: ConditionTreeLeaf("is_vip", "equal", True)
+        lambda context: ConditionTreeLeaf("is_vip", "equal", True),
         # add actions
     ).add_action(
         "Export json", export_json_action_dict

@@ -1,0 +1,4236 @@
+{
+    "collections": [
+        {
+            "segments": [],
+            "actions": [],
+            "fields": [
+                {
+                    "enumerations": null,
+                    "isPrimaryKey": false,
+                    "isWritable": true,
+                    "prefillFormValue": null,
+                    "isSortable": true,
+                    "validations": [
+                        {
+                            "type": "is present",
+                            "value": null,
+                            "message": null
+                        },
+                        {
+                            "type": "is shorter than",
+                            "value": 255,
+                            "message": null
+                        }
+                    ],
+                    "name": "city",
+                    "type": "String",
+                    "filterOperators": [
+                        "Blank",
+                        "Contains",
+                        "EndsWith",
+                        "Equal",
+                        "In",
+                        "Like",
+                        "LongerThan",
+                        "Missing",
+                        "NotContains",
+                        "NotEqual",
+                        "NotIn",
+                        "Present",
+                        "ShorterThan",
+                        "StartsWith"
+                    ]
+                },
+                {
+                    "enumerations": null,
+                    "isPrimaryKey": false,
+                    "isWritable": true,
+                    "prefillFormValue": null,
+                    "isSortable": true,
+                    "validations": [
+                        {
+                            "type": "is present",
+                            "value": null,
+                            "message": null
+                        },
+                        {
+                            "type": "is shorter than",
+                            "value": 255,
+                            "message": null
+                        }
+                    ],
+                    "name": "country",
+                    "type": "String",
+                    "filterOperators": [
+                        "Blank",
+                        "Contains",
+                        "EndsWith",
+                        "Equal",
+                        "In",
+                        "Like",
+                        "LongerThan",
+                        "Missing",
+                        "NotContains",
+                        "NotEqual",
+                        "NotIn",
+                        "Present",
+                        "ShorterThan",
+                        "StartsWith"
+                    ]
+                },
+                {
+                    "enumerations": null,
+                    "isPrimaryKey": true,
+                    "isWritable": false,
+                    "prefillFormValue": null,
+                    "isSortable": true,
+                    "validations": [],
+                    "name": "id",
+                    "type": "Number",
+                    "filterOperators": [
+                        "Blank",
+                        "Equal",
+                        "GreaterThan",
+                        "In",
+                        "LessThan",
+                        "Missing",
+                        "NotEqual",
+                        "NotIn",
+                        "Present"
+                    ]
+                },
+                {
+                    "enumerations": null,
+                    "isPrimaryKey": false,
+                    "isWritable": true,
+                    "prefillFormValue": null,
+                    "isSortable": true,
+                    "validations": [
+                        {
+                            "type": "is present",
+                            "value": null,
+                            "message": null
+                        },
+                        {
+                            "type": "is shorter than",
+                            "value": 255,
+                            "message": null
+                        }
+                    ],
+                    "name": "street",
+                    "type": "String",
+                    "filterOperators": [
+                        "Blank",
+                        "Contains",
+                        "EndsWith",
+                        "Equal",
+                        "In",
+                        "Like",
+                        "LongerThan",
+                        "Missing",
+                        "NotContains",
+                        "NotEqual",
+                        "NotIn",
+                        "Present",
+                        "ShorterThan",
+                        "StartsWith"
+                    ]
+                },
+                {
+                    "enumerations": null,
+                    "isPrimaryKey": false,
+                    "isWritable": true,
+                    "prefillFormValue": null,
+                    "isSortable": true,
+                    "validations": [
+                        {
+                            "type": "is shorter than",
+                            "value": 2,
+                            "message": null
+                        }
+                    ],
+                    "name": "street_number",
+                    "type": "String",
+                    "filterOperators": [
+                        "Blank",
+                        "Contains",
+                        "EndsWith",
+                        "Equal",
+                        "In",
+                        "Like",
+                        "LongerThan",
+                        "Missing",
+                        "NotContains",
+                        "NotEqual",
+                        "NotIn",
+                        "Present",
+                        "ShorterThan",
+                        "StartsWith"
+                    ]
+                },
+                {
+                    "enumerations": null,
+                    "isPrimaryKey": false,
+                    "isWritable": true,
+                    "prefillFormValue": null,
+                    "isSortable": true,
+                    "validations": [
+                        {
+                            "type": "is present",
+                            "value": null,
+                            "message": null
+                        },
+                        {
+                            "type": "is shorter than",
+                            "value": 5,
+                            "message": null
+                        }
+                    ],
+                    "name": "zip_code",
+                    "type": "String",
+                    "filterOperators": [
+                        "Blank",
+                        "Contains",
+                        "EndsWith",
+                        "Equal",
+                        "In",
+                        "Like",
+                        "LongerThan",
+                        "Missing",
+                        "NotContains",
+                        "NotEqual",
+                        "NotIn",
+                        "Present",
+                        "ShorterThan",
+                        "StartsWith"
+                    ]
+                }
+            ],
+            "relations": [
+                {
+                    "name": "customers",
+                    "type": "ManyToMany",
+                    "foreignCollection": "customer",
+                    "throughCollection": "customers_addresses",
+                    "originKey": "address_id",
+                    "originKeyTarget": "id",
+                    "foreignKey": "customer_id",
+                    "foreignKeyTarget": "id"
+                },
+                {
+                    "name": "flaskcustomersaddresses_address",
+                    "type": "OneToMany",
+                    "foreignCollection": "customers_addresses",
+                    "originKey": "address_id",
+                    "originKeyTarget": "id"
+                },
+                {
+                    "name": "flaskorder_billing_address",
+                    "type": "OneToMany",
+                    "foreignCollection": "order",
+                    "originKey": "billing_address_id",
+                    "originKeyTarget": "id"
+                },
+                {
+                    "name": "order_delivering_address_set_delivering_address",
+                    "type": "OneToMany",
+                    "foreignCollection": "order",
+                    "originKey": "delivering_address_id",
+                    "originKeyTarget": "id"
+                }
+            ],
+            "canList": true,
+            "canCreate": true,
+            "canUpdate": true,
+            "canDelete": true,
+            "canCount": true,
+            "canSearch": true,
+            "canChart": true,
+            "canNativeQuery": true,
+            "name": "address"
+        },
+        {
+            "segments": [
+                {
+                    "id": "app_address.highOrderDelivery",
+                    "name": "highOrderDelivery"
+                }
+            ],
+            "actions": [],
+            "fields": [
+                {
+                    "enumerations": null,
+                    "isPrimaryKey": false,
+                    "isWritable": true,
+                    "prefillFormValue": null,
+                    "isSortable": true,
+                    "validations": [
+                        {
+                            "type": "is present",
+                            "value": null,
+                            "message": null
+                        },
+                        {
+                            "type": "is shorter than",
+                            "value": 254,
+                            "message": null
+                        }
+                    ],
+                    "name": "city",
+                    "type": "String",
+                    "filterOperators": [
+                        "Blank",
+                        "Contains",
+                        "EndsWith",
+                        "Equal",
+                        "In",
+                        "Like",
+                        "LongerThan",
+                        "Missing",
+                        "NotContains",
+                        "NotEqual",
+                        "NotIn",
+                        "Present",
+                        "ShorterThan",
+                        "StartsWith"
+                    ]
+                },
+                {
+                    "enumerations": null,
+                    "isPrimaryKey": false,
+                    "isWritable": false,
+                    "prefillFormValue": null,
+                    "isSortable": true,
+                    "validations": [],
+                    "name": "complete_address",
+                    "type": "String",
+                    "filterOperators": []
+                },
+                {
+                    "enumerations": null,
+                    "isPrimaryKey": true,
+                    "isWritable": false,
+                    "prefillFormValue": null,
+                    "isSortable": true,
+                    "validations": [],
+                    "name": "id",
+                    "type": "Number",
+                    "filterOperators": [
+                        "Blank",
+                        "Equal",
+                        "GreaterThan",
+                        "In",
+                        "LessThan",
+                        "Missing",
+                        "NotEqual",
+                        "NotIn",
+                        "Present"
+                    ]
+                },
+                {
+                    "enumerations": null,
+                    "isPrimaryKey": false,
+                    "isWritable": true,
+                    "prefillFormValue": "France",
+                    "isSortable": true,
+                    "validations": [
+                        {
+                            "type": "is shorter than",
+                            "value": 254,
+                            "message": null
+                        }
+                    ],
+                    "name": "pays",
+                    "type": "String",
+                    "filterOperators": [
+                        "Blank",
+                        "Contains",
+                        "EndsWith",
+                        "Equal",
+                        "In",
+                        "Like",
+                        "LongerThan",
+                        "Missing",
+                        "NotContains",
+                        "NotEqual",
+                        "NotIn",
+                        "Present",
+                        "ShorterThan",
+                        "StartsWith"
+                    ]
+                },
+                {
+                    "enumerations": null,
+                    "isPrimaryKey": false,
+                    "isWritable": false,
+                    "prefillFormValue": null,
+                    "isSortable": false,
+                    "validations": [],
+                    "name": "postal_code",
+                    "type": [
+                        {
+                            "codePostal": "String",
+                            "codeCommune": "String",
+                            "nomCommune": "String",
+                            "libelleAcheminement": "String"
+                        }
+                    ],
+                    "filterOperators": []
+                },
+                {
+                    "enumerations": null,
+                    "isPrimaryKey": false,
+                    "isWritable": true,
+                    "prefillFormValue": null,
+                    "isSortable": true,
+                    "validations": [
+                        {
+                            "type": "is present",
+                            "value": null,
+                            "message": null
+                        },
+                        {
+                            "type": "is shorter than",
+                            "value": 254,
+                            "message": null
+                        }
+                    ],
+                    "name": "street",
+                    "type": "String",
+                    "filterOperators": [
+                        "Blank",
+                        "Contains",
+                        "EndsWith",
+                        "Equal",
+                        "In",
+                        "Like",
+                        "LongerThan",
+                        "Missing",
+                        "NotContains",
+                        "NotEqual",
+                        "NotIn",
+                        "Present",
+                        "ShorterThan",
+                        "StartsWith"
+                    ]
+                },
+                {
+                    "enumerations": null,
+                    "isPrimaryKey": false,
+                    "isWritable": true,
+                    "prefillFormValue": "75009",
+                    "isSortable": true,
+                    "validations": [
+                        {
+                            "type": "is shorter than",
+                            "value": 5,
+                            "message": null
+                        }
+                    ],
+                    "name": "zip_code",
+                    "type": "String",
+                    "filterOperators": [
+                        "Blank",
+                        "Contains",
+                        "EndsWith",
+                        "Equal",
+                        "In",
+                        "Like",
+                        "LongerThan",
+                        "Missing",
+                        "NotContains",
+                        "NotEqual",
+                        "NotIn",
+                        "Present",
+                        "ShorterThan",
+                        "StartsWith"
+                    ]
+                }
+            ],
+            "relations": [
+                {
+                    "name": "billing_orders_billing_address",
+                    "type": "OneToMany",
+                    "foreignCollection": "app_order",
+                    "originKey": "billing_address_id",
+                    "originKeyTarget": "id"
+                },
+                {
+                    "name": "customeraddress_address",
+                    "type": "OneToMany",
+                    "foreignCollection": "app_customeraddress",
+                    "originKey": "address_id",
+                    "originKeyTarget": "id"
+                },
+                {
+                    "name": "customers",
+                    "type": "ManyToMany",
+                    "foreignCollection": "app_customer",
+                    "throughCollection": "app_customeraddress",
+                    "originKey": "address_id",
+                    "originKeyTarget": "id",
+                    "foreignKey": "customer_id",
+                    "foreignKeyTarget": "id"
+                },
+                {
+                    "name": "delivering_orders_delivering_address",
+                    "type": "OneToMany",
+                    "foreignCollection": "app_order",
+                    "originKey": "delivering_address_id",
+                    "originKeyTarget": "id"
+                }
+            ],
+            "canList": true,
+            "canCreate": true,
+            "canUpdate": true,
+            "canDelete": true,
+            "canCount": false,
+            "canSearch": true,
+            "canChart": true,
+            "canNativeQuery": true,
+            "name": "app_address"
+        },
+        {
+            "segments": [
+                {
+                    "id": "app_cart.No order",
+                    "name": "No order"
+                }
+            ],
+            "actions": [],
+            "fields": [
+                {
+                    "enumerations": null,
+                    "isPrimaryKey": false,
+                    "isWritable": false,
+                    "prefillFormValue": null,
+                    "isSortable": true,
+                    "validations": [],
+                    "name": "created_at",
+                    "type": "Date",
+                    "filterOperators": [
+                        "After",
+                        "AfterXHoursAgo",
+                        "Before",
+                        "BeforeXHoursAgo",
+                        "Blank",
+                        "Equal",
+                        "Future",
+                        "GreaterThan",
+                        "In",
+                        "LessThan",
+                        "Missing",
+                        "NotEqual",
+                        "NotIn",
+                        "Past",
+                        "Present",
+                        "PreviousMonth",
+                        "PreviousMonthToDate",
+                        "PreviousQuarter",
+                        "PreviousQuarterToDate",
+                        "PreviousWeek",
+                        "PreviousWeekToDate",
+                        "PreviousXDays",
+                        "PreviousXDaysToDate",
+                        "PreviousYear",
+                        "PreviousYearToDate",
+                        "Today",
+                        "Yesterday"
+                    ]
+                },
+                {
+                    "enumerations": null,
+                    "isPrimaryKey": false,
+                    "isWritable": false,
+                    "prefillFormValue": null,
+                    "isSortable": false,
+                    "validations": [],
+                    "name": "customer_id",
+                    "type": "Number",
+                    "filterOperators": [
+                        "Blank",
+                        "Equal",
+                        "GreaterThan",
+                        "In",
+                        "IncludesAll",
+                        "LessThan",
+                        "Missing",
+                        "NotEqual",
+                        "NotIn",
+                        "Present"
+                    ]
+                },
+                {
+                    "enumerations": null,
+                    "isPrimaryKey": true,
+                    "isWritable": false,
+                    "prefillFormValue": null,
+                    "isSortable": true,
+                    "validations": [],
+                    "name": "id",
+                    "type": "Number",
+                    "filterOperators": [
+                        "Blank",
+                        "Equal",
+                        "GreaterThan",
+                        "In",
+                        "LessThan",
+                        "Missing",
+                        "NotEqual",
+                        "NotIn",
+                        "Present"
+                    ]
+                },
+                {
+                    "enumerations": null,
+                    "isPrimaryKey": false,
+                    "isWritable": true,
+                    "prefillFormValue": null,
+                    "isSortable": true,
+                    "validations": [
+                        {
+                            "type": "is present",
+                            "value": null,
+                            "message": null
+                        },
+                        {
+                            "type": "is shorter than",
+                            "value": 254,
+                            "message": null
+                        }
+                    ],
+                    "name": "name",
+                    "type": "String",
+                    "filterOperators": [
+                        "Blank",
+                        "Contains",
+                        "EndsWith",
+                        "Equal",
+                        "In",
+                        "Like",
+                        "LongerThan",
+                        "Missing",
+                        "NotContains",
+                        "NotEqual",
+                        "NotIn",
+                        "Present",
+                        "ShorterThan",
+                        "StartsWith"
+                    ]
+                },
+                {
+                    "enumerations": null,
+                    "isPrimaryKey": false,
+                    "isWritable": true,
+                    "prefillFormValue": null,
+                    "isSortable": true,
+                    "validations": [],
+                    "name": "order_id",
+                    "type": "Number",
+                    "filterOperators": [
+                        "Blank",
+                        "Equal",
+                        "GreaterThan",
+                        "In",
+                        "LessThan",
+                        "Missing",
+                        "NotEqual",
+                        "NotIn",
+                        "Present"
+                    ]
+                }
+            ],
+            "relations": [
+                {
+                    "name": "extendedcart",
+                    "type": "OneToOne",
+                    "foreignCollection": "app_extendedcart",
+                    "originKey": "cart_id",
+                    "originKeyTarget": "id"
+                },
+                {
+                    "name": "order",
+                    "type": "ManyToOne",
+                    "foreignCollection": "app_order",
+                    "foreignKey": "order_id",
+                    "foreignKeyTarget": "id"
+                }
+            ],
+            "canList": true,
+            "canCreate": true,
+            "canUpdate": true,
+            "canDelete": true,
+            "canCount": true,
+            "canSearch": true,
+            "canChart": true,
+            "canNativeQuery": true,
+            "name": "app_cart"
+        },
+        {
+            "segments": [
+                {
+                    "id": "app_customer.VIP customers",
+                    "name": "VIP customers"
+                },
+                {
+                    "id": "app_customer.with french address",
+                    "name": "with french address"
+                }
+            ],
+            "actions": [
+                {
+                    "id": "app_customer-0-export json",
+                    "name": "Export json",
+                    "type": "bulk",
+                    "baseUrl": null,
+                    "endpoint": "/forest/_actions/app_customer/0/export json",
+                    "httpMethod": "POST",
+                    "redirect": null,
+                    "download": true,
+                    "fields": [],
+                    "hooks": {
+                        "load": false,
+                        "change": [
+                            "changeHook"
+                        ]
+                    }
+                },
+                {
+                    "id": "app_customer-1-age operation",
+                    "name": "Age operation",
+                    "type": "single",
+                    "baseUrl": null,
+                    "endpoint": "/forest/_actions/app_customer/1/age operation",
+                    "httpMethod": "POST",
+                    "redirect": null,
+                    "download": false,
+                    "fields": [
+                        {
+                            "field": "Loading...",
+                            "type": "String",
+                            "isReadOnly": true,
+                            "defaultValue": "Form is loading",
+                            "value": null,
+                            "description": "",
+                            "enums": null,
+                            "hook": null,
+                            "isRequired": false,
+                            "reference": null,
+                            "widget": null
+                        }
+                    ],
+                    "hooks": {
+                        "load": true,
+                        "change": [
+                            "changeHook"
+                        ]
+                    }
+                }
+            ],
+            "fields": [
+                {
+                    "enumerations": null,
+                    "isPrimaryKey": false,
+                    "isWritable": false,
+                    "prefillFormValue": null,
+                    "isSortable": false,
+                    "validations": [],
+                    "name": "TotalSpending",
+                    "type": "Number",
+                    "filterOperators": []
+                },
+                {
+                    "enumerations": null,
+                    "isPrimaryKey": false,
+                    "isWritable": false,
+                    "prefillFormValue": null,
+                    "isSortable": false,
+                    "validations": [],
+                    "name": "age",
+                    "type": "Number",
+                    "filterOperators": []
+                },
+                {
+                    "enumerations": null,
+                    "isPrimaryKey": false,
+                    "isWritable": true,
+                    "prefillFormValue": null,
+                    "isSortable": true,
+                    "validations": [],
+                    "name": "avatar",
+                    "type": "String",
+                    "filterOperators": [
+                        "Blank",
+                        "Equal",
+                        "In",
+                        "Missing",
+                        "NotEqual",
+                        "NotIn",
+                        "Present"
+                    ]
+                },
+                {
+                    "enumerations": null,
+                    "isPrimaryKey": false,
+                    "isWritable": true,
+                    "prefillFormValue": null,
+                    "isSortable": true,
+                    "validations": [],
+                    "name": "birthday_date",
+                    "type": "Dateonly",
+                    "filterOperators": [
+                        "After",
+                        "AfterXHoursAgo",
+                        "Before",
+                        "BeforeXHoursAgo",
+                        "Blank",
+                        "Equal",
+                        "Future",
+                        "GreaterThan",
+                        "In",
+                        "LessThan",
+                        "Missing",
+                        "NotEqual",
+                        "NotIn",
+                        "Past",
+                        "Present",
+                        "PreviousMonth",
+                        "PreviousMonthToDate",
+                        "PreviousQuarter",
+                        "PreviousQuarterToDate",
+                        "PreviousWeek",
+                        "PreviousWeekToDate",
+                        "PreviousXDays",
+                        "PreviousXDaysToDate",
+                        "PreviousYear",
+                        "PreviousYearToDate",
+                        "Today",
+                        "Yesterday"
+                    ]
+                },
+                {
+                    "enumerations": null,
+                    "isPrimaryKey": false,
+                    "isWritable": false,
+                    "prefillFormValue": null,
+                    "isSortable": true,
+                    "validations": [],
+                    "name": "created_at",
+                    "type": "Date",
+                    "filterOperators": [
+                        "After",
+                        "AfterXHoursAgo",
+                        "Before",
+                        "BeforeXHoursAgo",
+                        "Blank",
+                        "Equal",
+                        "Future",
+                        "GreaterThan",
+                        "In",
+                        "LessThan",
+                        "Missing",
+                        "NotEqual",
+                        "NotIn",
+                        "Past",
+                        "Present",
+                        "PreviousMonth",
+                        "PreviousMonthToDate",
+                        "PreviousQuarter",
+                        "PreviousQuarterToDate",
+                        "PreviousWeek",
+                        "PreviousWeekToDate",
+                        "PreviousXDays",
+                        "PreviousXDaysToDate",
+                        "PreviousYear",
+                        "PreviousYearToDate",
+                        "Today",
+                        "Yesterday"
+                    ]
+                },
+                {
+                    "enumerations": null,
+                    "isPrimaryKey": false,
+                    "isWritable": true,
+                    "prefillFormValue": null,
+                    "isSortable": true,
+                    "validations": [
+                        {
+                            "type": "is present",
+                            "value": null,
+                            "message": null
+                        },
+                        {
+                            "type": "is shorter than",
+                            "value": 254,
+                            "message": null
+                        }
+                    ],
+                    "name": "first_name",
+                    "type": "String",
+                    "filterOperators": [
+                        "Blank",
+                        "Contains",
+                        "EndsWith",
+                        "Equal",
+                        "In",
+                        "Like",
+                        "LongerThan",
+                        "Missing",
+                        "NotContains",
+                        "NotEqual",
+                        "NotIn",
+                        "Present",
+                        "ShorterThan",
+                        "StartsWith"
+                    ]
+                },
+                {
+                    "enumerations": null,
+                    "isPrimaryKey": false,
+                    "isWritable": true,
+                    "prefillFormValue": null,
+                    "isSortable": false,
+                    "validations": [],
+                    "name": "full_name",
+                    "type": "String",
+                    "filterOperators": [
+                        "Blank",
+                        "Contains",
+                        "EndsWith",
+                        "Equal",
+                        "GreaterThan",
+                        "In",
+                        "IncludesAll",
+                        "LessThan",
+                        "Like",
+                        "LongerThan",
+                        "Missing",
+                        "NotContains",
+                        "NotEqual",
+                        "NotIn",
+                        "Present",
+                        "ShorterThan",
+                        "StartsWith"
+                    ]
+                },
+                {
+                    "enumerations": null,
+                    "isPrimaryKey": true,
+                    "isWritable": false,
+                    "prefillFormValue": null,
+                    "isSortable": true,
+                    "validations": [],
+                    "name": "id",
+                    "type": "Number",
+                    "filterOperators": [
+                        "Blank",
+                        "Equal",
+                        "GreaterThan",
+                        "In",
+                        "LessThan",
+                        "Missing",
+                        "NotEqual",
+                        "NotIn",
+                        "Present"
+                    ]
+                },
+                {
+                    "enumerations": null,
+                    "isPrimaryKey": false,
+                    "isWritable": true,
+                    "prefillFormValue": false,
+                    "isSortable": true,
+                    "validations": [],
+                    "name": "is_vip",
+                    "type": "Boolean",
+                    "filterOperators": [
+                        "Blank",
+                        "Equal",
+                        "In",
+                        "Missing",
+                        "NotEqual",
+                        "NotIn",
+                        "Present"
+                    ]
+                },
+                {
+                    "enumerations": null,
+                    "isPrimaryKey": false,
+                    "isWritable": true,
+                    "prefillFormValue": null,
+                    "isSortable": true,
+                    "validations": [
+                        {
+                            "type": "is present",
+                            "value": null,
+                            "message": null
+                        },
+                        {
+                            "type": "is shorter than",
+                            "value": 254,
+                            "message": null
+                        }
+                    ],
+                    "name": "last_name",
+                    "type": "String",
+                    "filterOperators": [
+                        "Blank",
+                        "Contains",
+                        "EndsWith",
+                        "Equal",
+                        "In",
+                        "Like",
+                        "LongerThan",
+                        "Missing",
+                        "NotContains",
+                        "NotEqual",
+                        "NotIn",
+                        "Present",
+                        "ShorterThan",
+                        "StartsWith"
+                    ]
+                },
+                {
+                    "enumerations": null,
+                    "isPrimaryKey": false,
+                    "isWritable": false,
+                    "prefillFormValue": null,
+                    "isSortable": true,
+                    "validations": [],
+                    "name": "updated_at",
+                    "type": "Date",
+                    "filterOperators": [
+                        "After",
+                        "AfterXHoursAgo",
+                        "Before",
+                        "BeforeXHoursAgo",
+                        "Blank",
+                        "Equal",
+                        "Future",
+                        "GreaterThan",
+                        "In",
+                        "LessThan",
+                        "Missing",
+                        "NotEqual",
+                        "NotIn",
+                        "Past",
+                        "Present",
+                        "PreviousMonth",
+                        "PreviousMonthToDate",
+                        "PreviousQuarter",
+                        "PreviousQuarterToDate",
+                        "PreviousWeek",
+                        "PreviousWeekToDate",
+                        "PreviousXDays",
+                        "PreviousXDaysToDate",
+                        "PreviousYear",
+                        "PreviousYearToDate",
+                        "Today",
+                        "Yesterday"
+                    ]
+                }
+            ],
+            "relations": [
+                {
+                    "name": "Customer_blocked_customer+_from_customer",
+                    "type": "OneToMany",
+                    "foreignCollection": "app_customer_blocked_customer",
+                    "originKey": "from_customer_id",
+                    "originKeyTarget": "id"
+                },
+                {
+                    "name": "Customer_blocked_customer+_to_customer",
+                    "type": "OneToMany",
+                    "foreignCollection": "app_customer_blocked_customer",
+                    "originKey": "to_customer_id",
+                    "originKeyTarget": "id"
+                },
+                {
+                    "name": "addresses",
+                    "type": "ManyToMany",
+                    "foreignCollection": "app_address",
+                    "throughCollection": "app_customeraddress",
+                    "originKey": "customer_id",
+                    "originKeyTarget": "id",
+                    "foreignKey": "address_id",
+                    "foreignKeyTarget": "id"
+                },
+                {
+                    "name": "block_by_users",
+                    "type": "ManyToMany",
+                    "foreignCollection": "app_customer",
+                    "throughCollection": "app_customer_blocked_customer",
+                    "originKey": "to_customer_id",
+                    "originKeyTarget": "id",
+                    "foreignKey": "from_customer_id",
+                    "foreignKeyTarget": "id"
+                },
+                {
+                    "name": "blocked_customer",
+                    "type": "ManyToMany",
+                    "foreignCollection": "app_customer",
+                    "throughCollection": "app_customer_blocked_customer",
+                    "originKey": "from_customer_id",
+                    "originKeyTarget": "id",
+                    "foreignKey": "to_customer_id",
+                    "foreignKeyTarget": "id"
+                },
+                {
+                    "name": "customeraddress_customer",
+                    "type": "OneToMany",
+                    "foreignCollection": "app_customeraddress",
+                    "originKey": "customer_id",
+                    "originKeyTarget": "id"
+                },
+                {
+                    "name": "orders_customer",
+                    "type": "OneToMany",
+                    "foreignCollection": "app_order",
+                    "originKey": "customer_id",
+                    "originKeyTarget": "id"
+                },
+                {
+                    "name": "smart_billing_addresses",
+                    "type": "ManyToMany",
+                    "foreignCollection": "app_address",
+                    "throughCollection": "app_order",
+                    "originKey": "customer_id",
+                    "originKeyTarget": "id",
+                    "foreignKey": "billing_address_id",
+                    "foreignKeyTarget": "id"
+                },
+                {
+                    "name": "smart_carts",
+                    "type": "OneToMany",
+                    "foreignCollection": "app_cart",
+                    "originKey": "customer_id",
+                    "originKeyTarget": "id"
+                },
+                {
+                    "name": "smart_delivering_addresses",
+                    "type": "ManyToMany",
+                    "foreignCollection": "app_address",
+                    "throughCollection": "app_order",
+                    "originKey": "customer_id",
+                    "originKeyTarget": "id",
+                    "foreignKey": "delivering_address_id",
+                    "foreignKeyTarget": "id"
+                }
+            ],
+            "canList": true,
+            "canCreate": true,
+            "canUpdate": true,
+            "canDelete": true,
+            "canCount": true,
+            "canSearch": true,
+            "canChart": true,
+            "canNativeQuery": true,
+            "name": "app_customer"
+        },
+        {
+            "segments": [],
+            "actions": [],
+            "fields": [
+                {
+                    "enumerations": null,
+                    "isPrimaryKey": false,
+                    "isWritable": true,
+                    "prefillFormValue": null,
+                    "isSortable": true,
+                    "validations": [
+                        {
+                            "type": "is present",
+                            "value": null,
+                            "message": null
+                        }
+                    ],
+                    "name": "from_customer_id",
+                    "type": "Number",
+                    "filterOperators": [
+                        "Blank",
+                        "Equal",
+                        "GreaterThan",
+                        "In",
+                        "LessThan",
+                        "Missing",
+                        "NotEqual",
+                        "NotIn",
+                        "Present"
+                    ]
+                },
+                {
+                    "enumerations": null,
+                    "isPrimaryKey": true,
+                    "isWritable": false,
+                    "prefillFormValue": null,
+                    "isSortable": true,
+                    "validations": [],
+                    "name": "id",
+                    "type": "Number",
+                    "filterOperators": [
+                        "Blank",
+                        "Equal",
+                        "GreaterThan",
+                        "In",
+                        "LessThan",
+                        "Missing",
+                        "NotEqual",
+                        "NotIn",
+                        "Present"
+                    ]
+                },
+                {
+                    "enumerations": null,
+                    "isPrimaryKey": false,
+                    "isWritable": true,
+                    "prefillFormValue": null,
+                    "isSortable": true,
+                    "validations": [
+                        {
+                            "type": "is present",
+                            "value": null,
+                            "message": null
+                        }
+                    ],
+                    "name": "to_customer_id",
+                    "type": "Number",
+                    "filterOperators": [
+                        "Blank",
+                        "Equal",
+                        "GreaterThan",
+                        "In",
+                        "LessThan",
+                        "Missing",
+                        "NotEqual",
+                        "NotIn",
+                        "Present"
+                    ]
+                }
+            ],
+            "relations": [
+                {
+                    "name": "from_customer",
+                    "type": "ManyToOne",
+                    "foreignCollection": "app_customer",
+                    "foreignKey": "from_customer_id",
+                    "foreignKeyTarget": "id"
+                },
+                {
+                    "name": "to_customer",
+                    "type": "ManyToOne",
+                    "foreignCollection": "app_customer",
+                    "foreignKey": "to_customer_id",
+                    "foreignKeyTarget": "id"
+                }
+            ],
+            "canList": true,
+            "canCreate": true,
+            "canUpdate": true,
+            "canDelete": true,
+            "canCount": true,
+            "canSearch": true,
+            "canChart": true,
+            "canNativeQuery": true,
+            "name": "app_customer_blocked_customer"
+        },
+        {
+            "segments": [],
+            "actions": [],
+            "fields": [
+                {
+                    "enumerations": null,
+                    "isPrimaryKey": false,
+                    "isWritable": true,
+                    "prefillFormValue": null,
+                    "isSortable": true,
+                    "validations": [
+                        {
+                            "type": "is present",
+                            "value": null,
+                            "message": null
+                        }
+                    ],
+                    "name": "address_id",
+                    "type": "Number",
+                    "filterOperators": [
+                        "Blank",
+                        "Equal",
+                        "GreaterThan",
+                        "In",
+                        "LessThan",
+                        "Missing",
+                        "NotEqual",
+                        "NotIn",
+                        "Present"
+                    ]
+                },
+                {
+                    "enumerations": null,
+                    "isPrimaryKey": false,
+                    "isWritable": true,
+                    "prefillFormValue": null,
+                    "isSortable": true,
+                    "validations": [
+                        {
+                            "type": "is present",
+                            "value": null,
+                            "message": null
+                        }
+                    ],
+                    "name": "customer_id",
+                    "type": "Number",
+                    "filterOperators": [
+                        "Blank",
+                        "Equal",
+                        "GreaterThan",
+                        "In",
+                        "LessThan",
+                        "Missing",
+                        "NotEqual",
+                        "NotIn",
+                        "Present"
+                    ]
+                },
+                {
+                    "enumerations": null,
+                    "isPrimaryKey": true,
+                    "isWritable": false,
+                    "prefillFormValue": null,
+                    "isSortable": true,
+                    "validations": [],
+                    "name": "id",
+                    "type": "Number",
+                    "filterOperators": [
+                        "Blank",
+                        "Equal",
+                        "GreaterThan",
+                        "In",
+                        "LessThan",
+                        "Missing",
+                        "NotEqual",
+                        "NotIn",
+                        "Present"
+                    ]
+                }
+            ],
+            "relations": [
+                {
+                    "name": "address",
+                    "type": "ManyToOne",
+                    "foreignCollection": "app_address",
+                    "foreignKey": "address_id",
+                    "foreignKeyTarget": "id"
+                },
+                {
+                    "name": "customer",
+                    "type": "ManyToOne",
+                    "foreignCollection": "app_customer",
+                    "foreignKey": "customer_id",
+                    "foreignKeyTarget": "id"
+                }
+            ],
+            "canList": true,
+            "canCreate": true,
+            "canUpdate": true,
+            "canDelete": true,
+            "canCount": true,
+            "canSearch": true,
+            "canChart": true,
+            "canNativeQuery": true,
+            "name": "app_customeraddress"
+        },
+        {
+            "segments": [],
+            "actions": [],
+            "fields": [
+                {
+                    "enumerations": null,
+                    "isPrimaryKey": false,
+                    "isWritable": true,
+                    "prefillFormValue": null,
+                    "isSortable": true,
+                    "validations": [
+                        {
+                            "type": "is present",
+                            "value": null,
+                            "message": null
+                        }
+                    ],
+                    "name": "discount",
+                    "type": "Number",
+                    "filterOperators": [
+                        "Blank",
+                        "Equal",
+                        "GreaterThan",
+                        "In",
+                        "LessThan",
+                        "Missing",
+                        "NotEqual",
+                        "NotIn",
+                        "Present"
+                    ]
+                },
+                {
+                    "enumerations": null,
+                    "isPrimaryKey": true,
+                    "isWritable": false,
+                    "prefillFormValue": null,
+                    "isSortable": true,
+                    "validations": [],
+                    "name": "id",
+                    "type": "Number",
+                    "filterOperators": [
+                        "Blank",
+                        "Equal",
+                        "GreaterThan",
+                        "In",
+                        "LessThan",
+                        "Missing",
+                        "NotEqual",
+                        "NotIn",
+                        "Present"
+                    ]
+                }
+            ],
+            "relations": [
+                {
+                    "name": "extendedcart",
+                    "type": "OneToOne",
+                    "foreignCollection": "app_extendedcart",
+                    "originKey": "discount_id",
+                    "originKeyTarget": "id"
+                }
+            ],
+            "canList": true,
+            "canCreate": true,
+            "canUpdate": true,
+            "canDelete": true,
+            "canCount": true,
+            "canSearch": true,
+            "canChart": true,
+            "canNativeQuery": true,
+            "name": "app_discountcart"
+        },
+        {
+            "segments": [],
+            "actions": [],
+            "fields": [
+                {
+                    "enumerations": null,
+                    "isPrimaryKey": true,
+                    "isWritable": true,
+                    "prefillFormValue": null,
+                    "isSortable": true,
+                    "validations": [
+                        {
+                            "type": "is present",
+                            "value": null,
+                            "message": null
+                        }
+                    ],
+                    "name": "cart_id",
+                    "type": "Number",
+                    "filterOperators": [
+                        "Blank",
+                        "Equal",
+                        "GreaterThan",
+                        "In",
+                        "LessThan",
+                        "Missing",
+                        "NotEqual",
+                        "NotIn",
+                        "Present"
+                    ]
+                },
+                {
+                    "enumerations": null,
+                    "isPrimaryKey": false,
+                    "isWritable": true,
+                    "prefillFormValue": null,
+                    "isSortable": true,
+                    "validations": [
+                        {
+                            "type": "is present",
+                            "value": null,
+                            "message": null
+                        },
+                        {
+                            "type": "is shorter than",
+                            "value": 20,
+                            "message": null
+                        }
+                    ],
+                    "name": "color",
+                    "type": "String",
+                    "filterOperators": [
+                        "Blank",
+                        "Contains",
+                        "EndsWith",
+                        "Equal",
+                        "In",
+                        "Like",
+                        "LongerThan",
+                        "Missing",
+                        "NotContains",
+                        "NotEqual",
+                        "NotIn",
+                        "Present",
+                        "ShorterThan",
+                        "StartsWith"
+                    ]
+                },
+                {
+                    "enumerations": null,
+                    "isPrimaryKey": false,
+                    "isWritable": true,
+                    "prefillFormValue": null,
+                    "isSortable": true,
+                    "validations": [],
+                    "name": "discount_id",
+                    "type": "Number",
+                    "filterOperators": [
+                        "Blank",
+                        "Equal",
+                        "GreaterThan",
+                        "In",
+                        "LessThan",
+                        "Missing",
+                        "NotEqual",
+                        "NotIn",
+                        "Present"
+                    ]
+                }
+            ],
+            "relations": [
+                {
+                    "name": "cart",
+                    "type": "ManyToOne",
+                    "foreignCollection": "app_cart",
+                    "foreignKey": "cart_id",
+                    "foreignKeyTarget": "id"
+                },
+                {
+                    "name": "discount",
+                    "type": "ManyToOne",
+                    "foreignCollection": "app_discountcart",
+                    "foreignKey": "discount_id",
+                    "foreignKeyTarget": "id"
+                }
+            ],
+            "canList": true,
+            "canCreate": true,
+            "canUpdate": true,
+            "canDelete": true,
+            "canCount": true,
+            "canSearch": true,
+            "canChart": true,
+            "canNativeQuery": true,
+            "name": "app_extendedcart"
+        },
+        {
+            "segments": [
+                {
+                    "id": "app_order.Delivered order",
+                    "name": "Delivered order"
+                },
+                {
+                    "id": "app_order.Dispatched order",
+                    "name": "Dispatched order"
+                },
+                {
+                    "id": "app_order.Pending order",
+                    "name": "Pending order"
+                },
+                {
+                    "id": "app_order.Rejected order",
+                    "name": "Rejected order"
+                },
+                {
+                    "id": "app_order.Suspicious order",
+                    "name": "Suspicious order"
+                },
+                {
+                    "id": "app_order.newly_created",
+                    "name": "newly_created"
+                }
+            ],
+            "actions": [
+                {
+                    "id": "app_order-0-export json",
+                    "name": "Export json",
+                    "type": "global",
+                    "baseUrl": null,
+                    "endpoint": "/forest/_actions/app_order/0/export json",
+                    "httpMethod": "POST",
+                    "redirect": null,
+                    "download": true,
+                    "fields": [
+                        {
+                            "field": "dummy field",
+                            "value": "",
+                            "defaultValue": "",
+                            "description": "",
+                            "enums": null,
+                            "hook": null,
+                            "isReadOnly": false,
+                            "isRequired": false,
+                            "reference": null,
+                            "type": "String",
+                            "widget": null,
+                            "widgetEdit": null
+                        },
+                        {
+                            "field": "customer",
+                            "value": null,
+                            "defaultValue": null,
+                            "description": "",
+                            "enums": null,
+                            "hook": null,
+                            "isReadOnly": false,
+                            "isRequired": true,
+                            "reference": "app_customer.id",
+                            "type": "Number",
+                            "widget": null,
+                            "widgetEdit": null
+                        }
+                    ],
+                    "hooks": {
+                        "load": false,
+                        "change": [
+                            "changeHook"
+                        ]
+                    }
+                },
+                {
+                    "id": "app_order-1-refund order(s)",
+                    "name": "Refund order(s)",
+                    "type": "single",
+                    "baseUrl": null,
+                    "endpoint": "/forest/_actions/app_order/1/refund order(s)",
+                    "httpMethod": "POST",
+                    "redirect": null,
+                    "download": false,
+                    "fields": [
+                        {
+                            "field": "reason",
+                            "value": "",
+                            "defaultValue": "",
+                            "description": "",
+                            "enums": null,
+                            "hook": null,
+                            "isReadOnly": false,
+                            "isRequired": false,
+                            "reference": null,
+                            "type": "String",
+                            "widget": null,
+                            "widgetEdit": null
+                        }
+                    ],
+                    "hooks": {
+                        "load": false,
+                        "change": [
+                            "changeHook"
+                        ]
+                    }
+                }
+            ],
+            "fields": [
+                {
+                    "enumerations": null,
+                    "isPrimaryKey": false,
+                    "isWritable": true,
+                    "prefillFormValue": null,
+                    "isSortable": true,
+                    "validations": [
+                        {
+                            "type": "is present",
+                            "value": null,
+                            "message": null
+                        }
+                    ],
+                    "name": "billing_address_id",
+                    "type": "Number",
+                    "filterOperators": [
+                        "Blank",
+                        "Equal",
+                        "GreaterThan",
+                        "In",
+                        "LessThan",
+                        "Missing",
+                        "NotEqual",
+                        "NotIn",
+                        "Present"
+                    ]
+                },
+                {
+                    "enumerations": null,
+                    "isPrimaryKey": false,
+                    "isWritable": true,
+                    "prefillFormValue": null,
+                    "isSortable": true,
+                    "validations": [
+                        {
+                            "type": "is present",
+                            "value": null,
+                            "message": null
+                        },
+                        {
+                            "type": "is greater than",
+                            "value": 0,
+                            "message": null
+                        },
+                        {
+                            "type": "is greater than",
+                            "value": 0,
+                            "message": null
+                        }
+                    ],
+                    "name": "cost",
+                    "type": "Number",
+                    "filterOperators": [
+                        "Blank",
+                        "Equal",
+                        "GreaterThan",
+                        "In",
+                        "LessThan",
+                        "Missing",
+                        "NotEqual",
+                        "NotIn",
+                        "Present"
+                    ]
+                },
+                {
+                    "enumerations": null,
+                    "isPrimaryKey": false,
+                    "isWritable": false,
+                    "prefillFormValue": null,
+                    "isSortable": true,
+                    "validations": [],
+                    "name": "created_at",
+                    "type": "Date",
+                    "filterOperators": [
+                        "After",
+                        "AfterXHoursAgo",
+                        "Before",
+                        "BeforeXHoursAgo",
+                        "Blank",
+                        "Equal",
+                        "Future",
+                        "GreaterThan",
+                        "In",
+                        "LessThan",
+                        "Missing",
+                        "NotEqual",
+                        "NotIn",
+                        "Past",
+                        "Present",
+                        "PreviousMonth",
+                        "PreviousMonthToDate",
+                        "PreviousQuarter",
+                        "PreviousQuarterToDate",
+                        "PreviousWeek",
+                        "PreviousWeekToDate",
+                        "PreviousXDays",
+                        "PreviousXDaysToDate",
+                        "PreviousYear",
+                        "PreviousYearToDate",
+                        "Today",
+                        "Yesterday"
+                    ]
+                },
+                {
+                    "enumerations": null,
+                    "isPrimaryKey": false,
+                    "isWritable": true,
+                    "prefillFormValue": null,
+                    "isSortable": true,
+                    "validations": [],
+                    "name": "customer_first_name",
+                    "type": "String",
+                    "filterOperators": [
+                        "Blank",
+                        "Contains",
+                        "EndsWith",
+                        "Equal",
+                        "In",
+                        "Like",
+                        "LongerThan",
+                        "Missing",
+                        "NotContains",
+                        "NotEqual",
+                        "NotIn",
+                        "Present",
+                        "ShorterThan",
+                        "StartsWith"
+                    ]
+                },
+                {
+                    "enumerations": null,
+                    "isPrimaryKey": false,
+                    "isWritable": false,
+                    "prefillFormValue": null,
+                    "isSortable": false,
+                    "validations": [],
+                    "name": "customer_full_name",
+                    "type": "String",
+                    "filterOperators": []
+                },
+                {
+                    "enumerations": null,
+                    "isPrimaryKey": false,
+                    "isWritable": true,
+                    "prefillFormValue": null,
+                    "isSortable": true,
+                    "validations": [],
+                    "name": "customer_id",
+                    "type": "Number",
+                    "filterOperators": [
+                        "Blank",
+                        "Equal",
+                        "GreaterThan",
+                        "In",
+                        "LessThan",
+                        "Missing",
+                        "NotEqual",
+                        "NotIn",
+                        "Present"
+                    ]
+                },
+                {
+                    "enumerations": null,
+                    "isPrimaryKey": false,
+                    "isWritable": true,
+                    "prefillFormValue": null,
+                    "isSortable": true,
+                    "validations": [
+                        {
+                            "type": "is present",
+                            "value": null,
+                            "message": null
+                        }
+                    ],
+                    "name": "delivering_address_id",
+                    "type": "Number",
+                    "filterOperators": [
+                        "Blank",
+                        "Equal",
+                        "GreaterThan",
+                        "In",
+                        "LessThan",
+                        "Missing",
+                        "NotEqual",
+                        "NotIn",
+                        "Present"
+                    ]
+                },
+                {
+                    "enumerations": null,
+                    "isPrimaryKey": true,
+                    "isWritable": false,
+                    "prefillFormValue": null,
+                    "isSortable": true,
+                    "validations": [],
+                    "name": "id",
+                    "type": "Number",
+                    "filterOperators": [
+                        "Blank",
+                        "Equal",
+                        "GreaterThan",
+                        "In",
+                        "LessThan",
+                        "Missing",
+                        "NotEqual",
+                        "NotIn",
+                        "Present"
+                    ]
+                },
+                {
+                    "enumerations": null,
+                    "isPrimaryKey": false,
+                    "isWritable": true,
+                    "prefillFormValue": null,
+                    "isSortable": true,
+                    "validations": [],
+                    "name": "ordered_at",
+                    "type": "Date",
+                    "filterOperators": [
+                        "After",
+                        "AfterXHoursAgo",
+                        "Before",
+                        "BeforeXHoursAgo",
+                        "Blank",
+                        "Equal",
+                        "Future",
+                        "GreaterThan",
+                        "In",
+                        "LessThan",
+                        "Missing",
+                        "NotEqual",
+                        "NotIn",
+                        "Past",
+                        "Present",
+                        "PreviousMonth",
+                        "PreviousMonthToDate",
+                        "PreviousQuarter",
+                        "PreviousQuarterToDate",
+                        "PreviousWeek",
+                        "PreviousWeekToDate",
+                        "PreviousXDays",
+                        "PreviousXDaysToDate",
+                        "PreviousYear",
+                        "PreviousYearToDate",
+                        "Today",
+                        "Yesterday"
+                    ]
+                },
+                {
+                    "enumerations": null,
+                    "isPrimaryKey": false,
+                    "isWritable": false,
+                    "prefillFormValue": null,
+                    "isSortable": false,
+                    "validations": [],
+                    "name": "ordered_date",
+                    "type": "Date",
+                    "filterOperators": []
+                },
+                {
+                    "enumerations": [
+                        "PENDING",
+                        "DISPATCHED",
+                        "DELIVERED",
+                        "REJECTED"
+                    ],
+                    "isPrimaryKey": false,
+                    "isWritable": true,
+                    "prefillFormValue": null,
+                    "isSortable": true,
+                    "validations": [
+                        {
+                            "type": "is present",
+                            "value": null,
+                            "message": null
+                        },
+                        {
+                            "type": "is shorter than",
+                            "value": 10,
+                            "message": null
+                        }
+                    ],
+                    "name": "status",
+                    "type": "Enum",
+                    "filterOperators": [
+                        "Blank",
+                        "Equal",
+                        "In",
+                        "Missing",
+                        "NotEqual",
+                        "NotIn",
+                        "Present"
+                    ]
+                },
+                {
+                    "enumerations": null,
+                    "isPrimaryKey": false,
+                    "isWritable": false,
+                    "prefillFormValue": null,
+                    "isSortable": false,
+                    "validations": [],
+                    "name": "test_skillcorner",
+                    "type": "String",
+                    "filterOperators": []
+                },
+                {
+                    "enumerations": null,
+                    "isPrimaryKey": false,
+                    "isWritable": false,
+                    "prefillFormValue": null,
+                    "isSortable": true,
+                    "validations": [],
+                    "name": "updated_at",
+                    "type": "Date",
+                    "filterOperators": [
+                        "After",
+                        "AfterXHoursAgo",
+                        "Before",
+                        "BeforeXHoursAgo",
+                        "Blank",
+                        "Equal",
+                        "Future",
+                        "GreaterThan",
+                        "In",
+                        "LessThan",
+                        "Missing",
+                        "NotEqual",
+                        "NotIn",
+                        "Past",
+                        "Present",
+                        "PreviousMonth",
+                        "PreviousMonthToDate",
+                        "PreviousQuarter",
+                        "PreviousQuarterToDate",
+                        "PreviousWeek",
+                        "PreviousWeekToDate",
+                        "PreviousXDays",
+                        "PreviousXDaysToDate",
+                        "PreviousYear",
+                        "PreviousYearToDate",
+                        "Today",
+                        "Yesterday"
+                    ]
+                }
+            ],
+            "relations": [
+                {
+                    "name": "billing_address",
+                    "type": "ManyToOne",
+                    "foreignCollection": "app_address",
+                    "foreignKey": "billing_address_id",
+                    "foreignKeyTarget": "id"
+                },
+                {
+                    "name": "cart",
+                    "type": "OneToOne",
+                    "foreignCollection": "app_cart",
+                    "originKey": "order_id",
+                    "originKeyTarget": "id"
+                },
+                {
+                    "name": "customer",
+                    "type": "ManyToOne",
+                    "foreignCollection": "app_customer",
+                    "foreignKey": "customer_id",
+                    "foreignKeyTarget": "id"
+                },
+                {
+                    "name": "delivering_address",
+                    "type": "ManyToOne",
+                    "foreignCollection": "app_address",
+                    "foreignKey": "delivering_address_id",
+                    "foreignKeyTarget": "id"
+                }
+            ],
+            "canList": true,
+            "canCreate": true,
+            "canUpdate": true,
+            "canDelete": true,
+            "canCount": true,
+            "canSearch": true,
+            "canChart": true,
+            "canNativeQuery": true,
+            "name": "app_order"
+        },
+        {
+            "segments": [],
+            "actions": [],
+            "fields": [
+                {
+                    "enumerations": null,
+                    "isPrimaryKey": true,
+                    "isWritable": false,
+                    "prefillFormValue": null,
+                    "isSortable": true,
+                    "validations": [],
+                    "name": "id",
+                    "type": "Number",
+                    "filterOperators": [
+                        "Blank",
+                        "Equal",
+                        "GreaterThan",
+                        "In",
+                        "LessThan",
+                        "Missing",
+                        "NotEqual",
+                        "NotIn",
+                        "Present"
+                    ]
+                },
+                {
+                    "enumerations": null,
+                    "isPrimaryKey": false,
+                    "isWritable": true,
+                    "prefillFormValue": null,
+                    "isSortable": true,
+                    "validations": [
+                        {
+                            "type": "is present",
+                            "value": null,
+                            "message": null
+                        },
+                        {
+                            "type": "is shorter than",
+                            "value": 150,
+                            "message": null
+                        }
+                    ],
+                    "name": "name",
+                    "type": "String",
+                    "filterOperators": [
+                        "Blank",
+                        "Contains",
+                        "EndsWith",
+                        "Equal",
+                        "In",
+                        "Like",
+                        "LongerThan",
+                        "Missing",
+                        "NotContains",
+                        "NotEqual",
+                        "NotIn",
+                        "Present",
+                        "ShorterThan",
+                        "StartsWith"
+                    ]
+                }
+            ],
+            "relations": [
+                {
+                    "name": "Group_permissions+_group",
+                    "type": "OneToMany",
+                    "foreignCollection": "auth_group_permissions",
+                    "originKey": "group_id",
+                    "originKeyTarget": "id"
+                },
+                {
+                    "name": "User_groups+_group",
+                    "type": "OneToMany",
+                    "foreignCollection": "auth_user_groups",
+                    "originKey": "group_id",
+                    "originKeyTarget": "id"
+                },
+                {
+                    "name": "permissions",
+                    "type": "ManyToMany",
+                    "foreignCollection": "auth_permission",
+                    "throughCollection": "auth_group_permissions",
+                    "originKey": "group_id",
+                    "originKeyTarget": "id",
+                    "foreignKey": "permission_id",
+                    "foreignKeyTarget": "id"
+                },
+                {
+                    "name": "user",
+                    "type": "ManyToMany",
+                    "foreignCollection": "auth_user",
+                    "throughCollection": "auth_user_groups",
+                    "originKey": "group_id",
+                    "originKeyTarget": "id",
+                    "foreignKey": "user_id",
+                    "foreignKeyTarget": "id"
+                }
+            ],
+            "canList": true,
+            "canCreate": true,
+            "canUpdate": true,
+            "canDelete": true,
+            "canCount": true,
+            "canSearch": true,
+            "canChart": true,
+            "canNativeQuery": true,
+            "name": "auth_group"
+        },
+        {
+            "segments": [],
+            "actions": [],
+            "fields": [
+                {
+                    "enumerations": null,
+                    "isPrimaryKey": false,
+                    "isWritable": true,
+                    "prefillFormValue": null,
+                    "isSortable": true,
+                    "validations": [
+                        {
+                            "type": "is present",
+                            "value": null,
+                            "message": null
+                        }
+                    ],
+                    "name": "group_id",
+                    "type": "Number",
+                    "filterOperators": [
+                        "Blank",
+                        "Equal",
+                        "GreaterThan",
+                        "In",
+                        "LessThan",
+                        "Missing",
+                        "NotEqual",
+                        "NotIn",
+                        "Present"
+                    ]
+                },
+                {
+                    "enumerations": null,
+                    "isPrimaryKey": true,
+                    "isWritable": false,
+                    "prefillFormValue": null,
+                    "isSortable": true,
+                    "validations": [],
+                    "name": "id",
+                    "type": "Number",
+                    "filterOperators": [
+                        "Blank",
+                        "Equal",
+                        "GreaterThan",
+                        "In",
+                        "LessThan",
+                        "Missing",
+                        "NotEqual",
+                        "NotIn",
+                        "Present"
+                    ]
+                },
+                {
+                    "enumerations": null,
+                    "isPrimaryKey": false,
+                    "isWritable": true,
+                    "prefillFormValue": null,
+                    "isSortable": true,
+                    "validations": [
+                        {
+                            "type": "is present",
+                            "value": null,
+                            "message": null
+                        }
+                    ],
+                    "name": "permission_id",
+                    "type": "Number",
+                    "filterOperators": [
+                        "Blank",
+                        "Equal",
+                        "GreaterThan",
+                        "In",
+                        "LessThan",
+                        "Missing",
+                        "NotEqual",
+                        "NotIn",
+                        "Present"
+                    ]
+                }
+            ],
+            "relations": [
+                {
+                    "name": "group",
+                    "type": "ManyToOne",
+                    "foreignCollection": "auth_group",
+                    "foreignKey": "group_id",
+                    "foreignKeyTarget": "id"
+                },
+                {
+                    "name": "permission",
+                    "type": "ManyToOne",
+                    "foreignCollection": "auth_permission",
+                    "foreignKey": "permission_id",
+                    "foreignKeyTarget": "id"
+                }
+            ],
+            "canList": true,
+            "canCreate": true,
+            "canUpdate": true,
+            "canDelete": true,
+            "canCount": true,
+            "canSearch": true,
+            "canChart": true,
+            "canNativeQuery": true,
+            "name": "auth_group_permissions"
+        },
+        {
+            "segments": [],
+            "actions": [],
+            "fields": [
+                {
+                    "enumerations": null,
+                    "isPrimaryKey": false,
+                    "isWritable": true,
+                    "prefillFormValue": null,
+                    "isSortable": true,
+                    "validations": [
+                        {
+                            "type": "is present",
+                            "value": null,
+                            "message": null
+                        },
+                        {
+                            "type": "is shorter than",
+                            "value": 100,
+                            "message": null
+                        }
+                    ],
+                    "name": "codename",
+                    "type": "String",
+                    "filterOperators": [
+                        "Blank",
+                        "Contains",
+                        "EndsWith",
+                        "Equal",
+                        "In",
+                        "Like",
+                        "LongerThan",
+                        "Missing",
+                        "NotContains",
+                        "NotEqual",
+                        "NotIn",
+                        "Present",
+                        "ShorterThan",
+                        "StartsWith"
+                    ]
+                },
+                {
+                    "enumerations": null,
+                    "isPrimaryKey": false,
+                    "isWritable": true,
+                    "prefillFormValue": null,
+                    "isSortable": true,
+                    "validations": [
+                        {
+                            "type": "is present",
+                            "value": null,
+                            "message": null
+                        }
+                    ],
+                    "name": "content_type_id",
+                    "type": "Number",
+                    "filterOperators": [
+                        "Blank",
+                        "Equal",
+                        "GreaterThan",
+                        "In",
+                        "LessThan",
+                        "Missing",
+                        "NotEqual",
+                        "NotIn",
+                        "Present"
+                    ]
+                },
+                {
+                    "enumerations": null,
+                    "isPrimaryKey": true,
+                    "isWritable": false,
+                    "prefillFormValue": null,
+                    "isSortable": true,
+                    "validations": [],
+                    "name": "id",
+                    "type": "Number",
+                    "filterOperators": [
+                        "Blank",
+                        "Equal",
+                        "GreaterThan",
+                        "In",
+                        "LessThan",
+                        "Missing",
+                        "NotEqual",
+                        "NotIn",
+                        "Present"
+                    ]
+                },
+                {
+                    "enumerations": null,
+                    "isPrimaryKey": false,
+                    "isWritable": true,
+                    "prefillFormValue": null,
+                    "isSortable": true,
+                    "validations": [
+                        {
+                            "type": "is present",
+                            "value": null,
+                            "message": null
+                        },
+                        {
+                            "type": "is shorter than",
+                            "value": 255,
+                            "message": null
+                        }
+                    ],
+                    "name": "name",
+                    "type": "String",
+                    "filterOperators": [
+                        "Blank",
+                        "Contains",
+                        "EndsWith",
+                        "Equal",
+                        "In",
+                        "Like",
+                        "LongerThan",
+                        "Missing",
+                        "NotContains",
+                        "NotEqual",
+                        "NotIn",
+                        "Present",
+                        "ShorterThan",
+                        "StartsWith"
+                    ]
+                }
+            ],
+            "relations": [
+                {
+                    "name": "Group_permissions+_permission",
+                    "type": "OneToMany",
+                    "foreignCollection": "auth_group_permissions",
+                    "originKey": "permission_id",
+                    "originKeyTarget": "id"
+                },
+                {
+                    "name": "User_user_permissions+_permission",
+                    "type": "OneToMany",
+                    "foreignCollection": "auth_user_user_permissions",
+                    "originKey": "permission_id",
+                    "originKeyTarget": "id"
+                },
+                {
+                    "name": "content_type",
+                    "type": "ManyToOne",
+                    "foreignCollection": "django_content_type",
+                    "foreignKey": "content_type_id",
+                    "foreignKeyTarget": "id"
+                },
+                {
+                    "name": "group",
+                    "type": "ManyToMany",
+                    "foreignCollection": "auth_group",
+                    "throughCollection": "auth_group_permissions",
+                    "originKey": "permission_id",
+                    "originKeyTarget": "id",
+                    "foreignKey": "group_id",
+                    "foreignKeyTarget": "id"
+                },
+                {
+                    "name": "user",
+                    "type": "ManyToMany",
+                    "foreignCollection": "auth_user",
+                    "throughCollection": "auth_user_user_permissions",
+                    "originKey": "permission_id",
+                    "originKeyTarget": "id",
+                    "foreignKey": "user_id",
+                    "foreignKeyTarget": "id"
+                }
+            ],
+            "canList": true,
+            "canCreate": true,
+            "canUpdate": true,
+            "canDelete": true,
+            "canCount": true,
+            "canSearch": true,
+            "canChart": true,
+            "canNativeQuery": true,
+            "name": "auth_permission"
+        },
+        {
+            "segments": [],
+            "actions": [],
+            "fields": [
+                {
+                    "enumerations": null,
+                    "isPrimaryKey": false,
+                    "isWritable": true,
+                    "prefillFormValue": null,
+                    "isSortable": true,
+                    "validations": [],
+                    "name": "date_joined",
+                    "type": "Date",
+                    "filterOperators": [
+                        "After",
+                        "AfterXHoursAgo",
+                        "Before",
+                        "BeforeXHoursAgo",
+                        "Blank",
+                        "Equal",
+                        "Future",
+                        "GreaterThan",
+                        "In",
+                        "LessThan",
+                        "Missing",
+                        "NotEqual",
+                        "NotIn",
+                        "Past",
+                        "Present",
+                        "PreviousMonth",
+                        "PreviousMonthToDate",
+                        "PreviousQuarter",
+                        "PreviousQuarterToDate",
+                        "PreviousWeek",
+                        "PreviousWeekToDate",
+                        "PreviousXDays",
+                        "PreviousXDaysToDate",
+                        "PreviousYear",
+                        "PreviousYearToDate",
+                        "Today",
+                        "Yesterday"
+                    ]
+                },
+                {
+                    "enumerations": null,
+                    "isPrimaryKey": false,
+                    "isWritable": true,
+                    "prefillFormValue": null,
+                    "isSortable": true,
+                    "validations": [
+                        {
+                            "type": "is shorter than",
+                            "value": 254,
+                            "message": null
+                        }
+                    ],
+                    "name": "email",
+                    "type": "String",
+                    "filterOperators": [
+                        "Blank",
+                        "Contains",
+                        "EndsWith",
+                        "Equal",
+                        "In",
+                        "Like",
+                        "LongerThan",
+                        "Missing",
+                        "NotContains",
+                        "NotEqual",
+                        "NotIn",
+                        "Present",
+                        "ShorterThan",
+                        "StartsWith"
+                    ]
+                },
+                {
+                    "enumerations": null,
+                    "isPrimaryKey": false,
+                    "isWritable": true,
+                    "prefillFormValue": null,
+                    "isSortable": true,
+                    "validations": [
+                        {
+                            "type": "is shorter than",
+                            "value": 150,
+                            "message": null
+                        }
+                    ],
+                    "name": "first_name",
+                    "type": "String",
+                    "filterOperators": [
+                        "Blank",
+                        "Contains",
+                        "EndsWith",
+                        "Equal",
+                        "In",
+                        "Like",
+                        "LongerThan",
+                        "Missing",
+                        "NotContains",
+                        "NotEqual",
+                        "NotIn",
+                        "Present",
+                        "ShorterThan",
+                        "StartsWith"
+                    ]
+                },
+                {
+                    "enumerations": null,
+                    "isPrimaryKey": true,
+                    "isWritable": false,
+                    "prefillFormValue": null,
+                    "isSortable": true,
+                    "validations": [],
+                    "name": "id",
+                    "type": "Number",
+                    "filterOperators": [
+                        "Blank",
+                        "Equal",
+                        "GreaterThan",
+                        "In",
+                        "LessThan",
+                        "Missing",
+                        "NotEqual",
+                        "NotIn",
+                        "Present"
+                    ]
+                },
+                {
+                    "enumerations": null,
+                    "isPrimaryKey": false,
+                    "isWritable": true,
+                    "prefillFormValue": true,
+                    "isSortable": true,
+                    "validations": [],
+                    "name": "is_active",
+                    "type": "Boolean",
+                    "filterOperators": [
+                        "Blank",
+                        "Equal",
+                        "In",
+                        "Missing",
+                        "NotEqual",
+                        "NotIn",
+                        "Present"
+                    ]
+                },
+                {
+                    "enumerations": null,
+                    "isPrimaryKey": false,
+                    "isWritable": true,
+                    "prefillFormValue": false,
+                    "isSortable": true,
+                    "validations": [],
+                    "name": "is_staff",
+                    "type": "Boolean",
+                    "filterOperators": [
+                        "Blank",
+                        "Equal",
+                        "In",
+                        "Missing",
+                        "NotEqual",
+                        "NotIn",
+                        "Present"
+                    ]
+                },
+                {
+                    "enumerations": null,
+                    "isPrimaryKey": false,
+                    "isWritable": true,
+                    "prefillFormValue": false,
+                    "isSortable": true,
+                    "validations": [],
+                    "name": "is_superuser",
+                    "type": "Boolean",
+                    "filterOperators": [
+                        "Blank",
+                        "Equal",
+                        "In",
+                        "Missing",
+                        "NotEqual",
+                        "NotIn",
+                        "Present"
+                    ]
+                },
+                {
+                    "enumerations": null,
+                    "isPrimaryKey": false,
+                    "isWritable": true,
+                    "prefillFormValue": null,
+                    "isSortable": true,
+                    "validations": [],
+                    "name": "last_login",
+                    "type": "Date",
+                    "filterOperators": [
+                        "After",
+                        "AfterXHoursAgo",
+                        "Before",
+                        "BeforeXHoursAgo",
+                        "Blank",
+                        "Equal",
+                        "Future",
+                        "GreaterThan",
+                        "In",
+                        "LessThan",
+                        "Missing",
+                        "NotEqual",
+                        "NotIn",
+                        "Past",
+                        "Present",
+                        "PreviousMonth",
+                        "PreviousMonthToDate",
+                        "PreviousQuarter",
+                        "PreviousQuarterToDate",
+                        "PreviousWeek",
+                        "PreviousWeekToDate",
+                        "PreviousXDays",
+                        "PreviousXDaysToDate",
+                        "PreviousYear",
+                        "PreviousYearToDate",
+                        "Today",
+                        "Yesterday"
+                    ]
+                },
+                {
+                    "enumerations": null,
+                    "isPrimaryKey": false,
+                    "isWritable": true,
+                    "prefillFormValue": null,
+                    "isSortable": true,
+                    "validations": [
+                        {
+                            "type": "is shorter than",
+                            "value": 150,
+                            "message": null
+                        }
+                    ],
+                    "name": "last_name",
+                    "type": "String",
+                    "filterOperators": [
+                        "Blank",
+                        "Contains",
+                        "EndsWith",
+                        "Equal",
+                        "In",
+                        "Like",
+                        "LongerThan",
+                        "Missing",
+                        "NotContains",
+                        "NotEqual",
+                        "NotIn",
+                        "Present",
+                        "ShorterThan",
+                        "StartsWith"
+                    ]
+                },
+                {
+                    "enumerations": null,
+                    "isPrimaryKey": false,
+                    "isWritable": true,
+                    "prefillFormValue": null,
+                    "isSortable": true,
+                    "validations": [
+                        {
+                            "type": "is present",
+                            "value": null,
+                            "message": null
+                        },
+                        {
+                            "type": "is shorter than",
+                            "value": 128,
+                            "message": null
+                        }
+                    ],
+                    "name": "password",
+                    "type": "String",
+                    "filterOperators": [
+                        "Blank",
+                        "Contains",
+                        "EndsWith",
+                        "Equal",
+                        "In",
+                        "Like",
+                        "LongerThan",
+                        "Missing",
+                        "NotContains",
+                        "NotEqual",
+                        "NotIn",
+                        "Present",
+                        "ShorterThan",
+                        "StartsWith"
+                    ]
+                },
+                {
+                    "enumerations": null,
+                    "isPrimaryKey": false,
+                    "isWritable": true,
+                    "prefillFormValue": null,
+                    "isSortable": true,
+                    "validations": [
+                        {
+                            "type": "is present",
+                            "value": null,
+                            "message": null
+                        },
+                        {
+                            "type": "is shorter than",
+                            "value": 150,
+                            "message": null
+                        }
+                    ],
+                    "name": "username",
+                    "type": "String",
+                    "filterOperators": [
+                        "Blank",
+                        "Contains",
+                        "EndsWith",
+                        "Equal",
+                        "In",
+                        "Like",
+                        "LongerThan",
+                        "Missing",
+                        "NotContains",
+                        "NotEqual",
+                        "NotIn",
+                        "Present",
+                        "ShorterThan",
+                        "StartsWith"
+                    ]
+                }
+            ],
+            "relations": [
+                {
+                    "name": "User_groups+_user",
+                    "type": "OneToMany",
+                    "foreignCollection": "auth_user_groups",
+                    "originKey": "user_id",
+                    "originKeyTarget": "id"
+                },
+                {
+                    "name": "User_user_permissions+_user",
+                    "type": "OneToMany",
+                    "foreignCollection": "auth_user_user_permissions",
+                    "originKey": "user_id",
+                    "originKeyTarget": "id"
+                },
+                {
+                    "name": "groups",
+                    "type": "ManyToMany",
+                    "foreignCollection": "auth_group",
+                    "throughCollection": "auth_user_groups",
+                    "originKey": "user_id",
+                    "originKeyTarget": "id",
+                    "foreignKey": "group_id",
+                    "foreignKeyTarget": "id"
+                },
+                {
+                    "name": "logentry_user",
+                    "type": "OneToMany",
+                    "foreignCollection": "django_admin_log",
+                    "originKey": "user_id",
+                    "originKeyTarget": "id"
+                },
+                {
+                    "name": "user_permissions",
+                    "type": "ManyToMany",
+                    "foreignCollection": "auth_permission",
+                    "throughCollection": "auth_user_user_permissions",
+                    "originKey": "user_id",
+                    "originKeyTarget": "id",
+                    "foreignKey": "permission_id",
+                    "foreignKeyTarget": "id"
+                }
+            ],
+            "canList": true,
+            "canCreate": true,
+            "canUpdate": true,
+            "canDelete": true,
+            "canCount": true,
+            "canSearch": true,
+            "canChart": true,
+            "canNativeQuery": true,
+            "name": "auth_user"
+        },
+        {
+            "segments": [],
+            "actions": [],
+            "fields": [
+                {
+                    "enumerations": null,
+                    "isPrimaryKey": false,
+                    "isWritable": true,
+                    "prefillFormValue": null,
+                    "isSortable": true,
+                    "validations": [
+                        {
+                            "type": "is present",
+                            "value": null,
+                            "message": null
+                        }
+                    ],
+                    "name": "group_id",
+                    "type": "Number",
+                    "filterOperators": [
+                        "Blank",
+                        "Equal",
+                        "GreaterThan",
+                        "In",
+                        "LessThan",
+                        "Missing",
+                        "NotEqual",
+                        "NotIn",
+                        "Present"
+                    ]
+                },
+                {
+                    "enumerations": null,
+                    "isPrimaryKey": true,
+                    "isWritable": false,
+                    "prefillFormValue": null,
+                    "isSortable": true,
+                    "validations": [],
+                    "name": "id",
+                    "type": "Number",
+                    "filterOperators": [
+                        "Blank",
+                        "Equal",
+                        "GreaterThan",
+                        "In",
+                        "LessThan",
+                        "Missing",
+                        "NotEqual",
+                        "NotIn",
+                        "Present"
+                    ]
+                },
+                {
+                    "enumerations": null,
+                    "isPrimaryKey": false,
+                    "isWritable": true,
+                    "prefillFormValue": null,
+                    "isSortable": true,
+                    "validations": [
+                        {
+                            "type": "is present",
+                            "value": null,
+                            "message": null
+                        }
+                    ],
+                    "name": "user_id",
+                    "type": "Number",
+                    "filterOperators": [
+                        "Blank",
+                        "Equal",
+                        "GreaterThan",
+                        "In",
+                        "LessThan",
+                        "Missing",
+                        "NotEqual",
+                        "NotIn",
+                        "Present"
+                    ]
+                }
+            ],
+            "relations": [
+                {
+                    "name": "group",
+                    "type": "ManyToOne",
+                    "foreignCollection": "auth_group",
+                    "foreignKey": "group_id",
+                    "foreignKeyTarget": "id"
+                },
+                {
+                    "name": "user",
+                    "type": "ManyToOne",
+                    "foreignCollection": "auth_user",
+                    "foreignKey": "user_id",
+                    "foreignKeyTarget": "id"
+                }
+            ],
+            "canList": true,
+            "canCreate": true,
+            "canUpdate": true,
+            "canDelete": true,
+            "canCount": true,
+            "canSearch": true,
+            "canChart": true,
+            "canNativeQuery": true,
+            "name": "auth_user_groups"
+        },
+        {
+            "segments": [],
+            "actions": [],
+            "fields": [
+                {
+                    "enumerations": null,
+                    "isPrimaryKey": true,
+                    "isWritable": false,
+                    "prefillFormValue": null,
+                    "isSortable": true,
+                    "validations": [],
+                    "name": "id",
+                    "type": "Number",
+                    "filterOperators": [
+                        "Blank",
+                        "Equal",
+                        "GreaterThan",
+                        "In",
+                        "LessThan",
+                        "Missing",
+                        "NotEqual",
+                        "NotIn",
+                        "Present"
+                    ]
+                },
+                {
+                    "enumerations": null,
+                    "isPrimaryKey": false,
+                    "isWritable": true,
+                    "prefillFormValue": null,
+                    "isSortable": true,
+                    "validations": [
+                        {
+                            "type": "is present",
+                            "value": null,
+                            "message": null
+                        }
+                    ],
+                    "name": "permission_id",
+                    "type": "Number",
+                    "filterOperators": [
+                        "Blank",
+                        "Equal",
+                        "GreaterThan",
+                        "In",
+                        "LessThan",
+                        "Missing",
+                        "NotEqual",
+                        "NotIn",
+                        "Present"
+                    ]
+                },
+                {
+                    "enumerations": null,
+                    "isPrimaryKey": false,
+                    "isWritable": true,
+                    "prefillFormValue": null,
+                    "isSortable": true,
+                    "validations": [
+                        {
+                            "type": "is present",
+                            "value": null,
+                            "message": null
+                        }
+                    ],
+                    "name": "user_id",
+                    "type": "Number",
+                    "filterOperators": [
+                        "Blank",
+                        "Equal",
+                        "GreaterThan",
+                        "In",
+                        "LessThan",
+                        "Missing",
+                        "NotEqual",
+                        "NotIn",
+                        "Present"
+                    ]
+                }
+            ],
+            "relations": [
+                {
+                    "name": "permission",
+                    "type": "ManyToOne",
+                    "foreignCollection": "auth_permission",
+                    "foreignKey": "permission_id",
+                    "foreignKeyTarget": "id"
+                },
+                {
+                    "name": "user",
+                    "type": "ManyToOne",
+                    "foreignCollection": "auth_user",
+                    "foreignKey": "user_id",
+                    "foreignKeyTarget": "id"
+                }
+            ],
+            "canList": true,
+            "canCreate": true,
+            "canUpdate": true,
+            "canDelete": true,
+            "canCount": true,
+            "canSearch": true,
+            "canChart": true,
+            "canNativeQuery": true,
+            "name": "auth_user_user_permissions"
+        },
+        {
+            "segments": [],
+            "actions": [],
+            "fields": [
+                {
+                    "enumerations": null,
+                    "isPrimaryKey": false,
+                    "isWritable": true,
+                    "prefillFormValue": null,
+                    "isSortable": true,
+                    "validations": [],
+                    "name": "created_at",
+                    "type": "Date",
+                    "filterOperators": [
+                        "After",
+                        "AfterXHoursAgo",
+                        "Before",
+                        "BeforeXHoursAgo",
+                        "Blank",
+                        "Equal",
+                        "Future",
+                        "GreaterThan",
+                        "In",
+                        "LessThan",
+                        "Missing",
+                        "NotEqual",
+                        "NotIn",
+                        "Past",
+                        "Present",
+                        "PreviousMonth",
+                        "PreviousMonthToDate",
+                        "PreviousQuarter",
+                        "PreviousQuarterToDate",
+                        "PreviousWeek",
+                        "PreviousWeekToDate",
+                        "PreviousXDays",
+                        "PreviousXDaysToDate",
+                        "PreviousYear",
+                        "PreviousYearToDate",
+                        "Today",
+                        "Yesterday"
+                    ]
+                },
+                {
+                    "enumerations": null,
+                    "isPrimaryKey": true,
+                    "isWritable": false,
+                    "prefillFormValue": null,
+                    "isSortable": true,
+                    "validations": [],
+                    "name": "id",
+                    "type": "Number",
+                    "filterOperators": [
+                        "Blank",
+                        "Equal",
+                        "GreaterThan",
+                        "In",
+                        "LessThan",
+                        "Missing",
+                        "NotEqual",
+                        "NotIn",
+                        "Present"
+                    ]
+                },
+                {
+                    "enumerations": null,
+                    "isPrimaryKey": false,
+                    "isWritable": true,
+                    "prefillFormValue": null,
+                    "isSortable": true,
+                    "validations": [
+                        {
+                            "type": "is present",
+                            "value": null,
+                            "message": null
+                        },
+                        {
+                            "type": "is shorter than",
+                            "value": 255,
+                            "message": null
+                        }
+                    ],
+                    "name": "name",
+                    "type": "String",
+                    "filterOperators": [
+                        "Blank",
+                        "Contains",
+                        "EndsWith",
+                        "Equal",
+                        "In",
+                        "Like",
+                        "LongerThan",
+                        "Missing",
+                        "NotContains",
+                        "NotEqual",
+                        "NotIn",
+                        "Present",
+                        "ShorterThan",
+                        "StartsWith"
+                    ]
+                },
+                {
+                    "enumerations": null,
+                    "isPrimaryKey": false,
+                    "isWritable": true,
+                    "prefillFormValue": null,
+                    "isSortable": true,
+                    "validations": [],
+                    "name": "order_id",
+                    "type": "Number",
+                    "filterOperators": [
+                        "Blank",
+                        "Equal",
+                        "GreaterThan",
+                        "In",
+                        "LessThan",
+                        "Missing",
+                        "NotEqual",
+                        "NotIn",
+                        "Present"
+                    ]
+                }
+            ],
+            "relations": [
+                {
+                    "name": "order",
+                    "type": "ManyToOne",
+                    "foreignCollection": "order",
+                    "foreignKey": "order_id",
+                    "foreignKeyTarget": "id"
+                }
+            ],
+            "canList": true,
+            "canCreate": true,
+            "canUpdate": true,
+            "canDelete": true,
+            "canCount": true,
+            "canSearch": true,
+            "canChart": true,
+            "canNativeQuery": true,
+            "name": "cart"
+        },
+        {
+            "segments": [],
+            "actions": [],
+            "fields": [
+                {
+                    "enumerations": null,
+                    "isPrimaryKey": false,
+                    "isWritable": true,
+                    "prefillFormValue": null,
+                    "isSortable": true,
+                    "validations": [],
+                    "name": "age",
+                    "type": "Number",
+                    "filterOperators": [
+                        "Blank",
+                        "Equal",
+                        "GreaterThan",
+                        "In",
+                        "LessThan",
+                        "Missing",
+                        "NotEqual",
+                        "NotIn",
+                        "Present"
+                    ]
+                },
+                {
+                    "enumerations": null,
+                    "isPrimaryKey": false,
+                    "isWritable": true,
+                    "prefillFormValue": null,
+                    "isSortable": true,
+                    "validations": [],
+                    "name": "avatar",
+                    "type": "String",
+                    "filterOperators": [
+                        "Blank",
+                        "Equal",
+                        "In",
+                        "Missing",
+                        "NotEqual",
+                        "NotIn",
+                        "Present"
+                    ]
+                },
+                {
+                    "enumerations": null,
+                    "isPrimaryKey": false,
+                    "isWritable": true,
+                    "prefillFormValue": null,
+                    "isSortable": true,
+                    "validations": [],
+                    "name": "birthday_date",
+                    "type": "Date",
+                    "filterOperators": [
+                        "After",
+                        "AfterXHoursAgo",
+                        "Before",
+                        "BeforeXHoursAgo",
+                        "Blank",
+                        "Equal",
+                        "Future",
+                        "GreaterThan",
+                        "In",
+                        "LessThan",
+                        "Missing",
+                        "NotEqual",
+                        "NotIn",
+                        "Past",
+                        "Present",
+                        "PreviousMonth",
+                        "PreviousMonthToDate",
+                        "PreviousQuarter",
+                        "PreviousQuarterToDate",
+                        "PreviousWeek",
+                        "PreviousWeekToDate",
+                        "PreviousXDays",
+                        "PreviousXDaysToDate",
+                        "PreviousYear",
+                        "PreviousYearToDate",
+                        "Today",
+                        "Yesterday"
+                    ]
+                },
+                {
+                    "enumerations": null,
+                    "isPrimaryKey": false,
+                    "isWritable": true,
+                    "prefillFormValue": null,
+                    "isSortable": true,
+                    "validations": [
+                        {
+                            "type": "is present",
+                            "value": null,
+                            "message": null
+                        },
+                        {
+                            "type": "is shorter than",
+                            "value": 255,
+                            "message": null
+                        }
+                    ],
+                    "name": "first_name",
+                    "type": "String",
+                    "filterOperators": [
+                        "Blank",
+                        "Contains",
+                        "EndsWith",
+                        "Equal",
+                        "In",
+                        "Like",
+                        "LongerThan",
+                        "Missing",
+                        "NotContains",
+                        "NotEqual",
+                        "NotIn",
+                        "Present",
+                        "ShorterThan",
+                        "StartsWith"
+                    ]
+                },
+                {
+                    "enumerations": null,
+                    "isPrimaryKey": true,
+                    "isWritable": true,
+                    "prefillFormValue": null,
+                    "isSortable": true,
+                    "validations": [],
+                    "name": "id",
+                    "type": "String",
+                    "filterOperators": [
+                        "Blank",
+                        "Equal",
+                        "In",
+                        "Missing",
+                        "NotEqual",
+                        "NotIn",
+                        "Present"
+                    ]
+                },
+                {
+                    "enumerations": null,
+                    "isPrimaryKey": false,
+                    "isWritable": true,
+                    "prefillFormValue": null,
+                    "isSortable": true,
+                    "validations": [],
+                    "name": "is_vip",
+                    "type": "Boolean",
+                    "filterOperators": [
+                        "Blank",
+                        "Equal",
+                        "In",
+                        "Missing",
+                        "NotEqual",
+                        "NotIn",
+                        "Present"
+                    ]
+                },
+                {
+                    "enumerations": null,
+                    "isPrimaryKey": false,
+                    "isWritable": true,
+                    "prefillFormValue": null,
+                    "isSortable": true,
+                    "validations": [
+                        {
+                            "type": "is present",
+                            "value": null,
+                            "message": null
+                        },
+                        {
+                            "type": "is shorter than",
+                            "value": 255,
+                            "message": null
+                        }
+                    ],
+                    "name": "last_name",
+                    "type": "String",
+                    "filterOperators": [
+                        "Blank",
+                        "Contains",
+                        "EndsWith",
+                        "Equal",
+                        "In",
+                        "Like",
+                        "LongerThan",
+                        "Missing",
+                        "NotContains",
+                        "NotEqual",
+                        "NotIn",
+                        "Present",
+                        "ShorterThan",
+                        "StartsWith"
+                    ]
+                }
+            ],
+            "relations": [
+                {
+                    "name": "addresses",
+                    "type": "ManyToMany",
+                    "foreignCollection": "address",
+                    "throughCollection": "customers_addresses",
+                    "originKey": "customer_id",
+                    "originKeyTarget": "id",
+                    "foreignKey": "address_id",
+                    "foreignKeyTarget": "id"
+                },
+                {
+                    "name": "flaskcustomersaddresses_customer",
+                    "type": "OneToMany",
+                    "foreignCollection": "customers_addresses",
+                    "originKey": "customer_id",
+                    "originKeyTarget": "id"
+                },
+                {
+                    "name": "flaskorder_customer",
+                    "type": "OneToMany",
+                    "foreignCollection": "order",
+                    "originKey": "customer_id",
+                    "originKeyTarget": "id"
+                }
+            ],
+            "canList": true,
+            "canCreate": true,
+            "canUpdate": true,
+            "canDelete": true,
+            "canCount": true,
+            "canSearch": true,
+            "canChart": true,
+            "canNativeQuery": true,
+            "name": "customer"
+        },
+        {
+            "segments": [],
+            "actions": [],
+            "fields": [
+                {
+                    "enumerations": null,
+                    "isPrimaryKey": false,
+                    "isWritable": true,
+                    "prefillFormValue": null,
+                    "isSortable": true,
+                    "validations": [
+                        {
+                            "type": "is present",
+                            "value": null,
+                            "message": null
+                        }
+                    ],
+                    "name": "address_id",
+                    "type": "Number",
+                    "filterOperators": [
+                        "Blank",
+                        "Equal",
+                        "GreaterThan",
+                        "In",
+                        "LessThan",
+                        "Missing",
+                        "NotEqual",
+                        "NotIn",
+                        "Present"
+                    ]
+                },
+                {
+                    "enumerations": null,
+                    "isPrimaryKey": false,
+                    "isWritable": true,
+                    "prefillFormValue": null,
+                    "isSortable": true,
+                    "validations": [],
+                    "name": "customer_id",
+                    "type": "String",
+                    "filterOperators": [
+                        "Blank",
+                        "Equal",
+                        "In",
+                        "Missing",
+                        "NotEqual",
+                        "NotIn",
+                        "Present"
+                    ]
+                },
+                {
+                    "enumerations": null,
+                    "isPrimaryKey": true,
+                    "isWritable": false,
+                    "prefillFormValue": null,
+                    "isSortable": true,
+                    "validations": [],
+                    "name": "id",
+                    "type": "Number",
+                    "filterOperators": [
+                        "Blank",
+                        "Equal",
+                        "GreaterThan",
+                        "In",
+                        "LessThan",
+                        "Missing",
+                        "NotEqual",
+                        "NotIn",
+                        "Present"
+                    ]
+                }
+            ],
+            "relations": [
+                {
+                    "name": "address",
+                    "type": "ManyToOne",
+                    "foreignCollection": "address",
+                    "foreignKey": "address_id",
+                    "foreignKeyTarget": "id"
+                },
+                {
+                    "name": "customer",
+                    "type": "ManyToOne",
+                    "foreignCollection": "customer",
+                    "foreignKey": "customer_id",
+                    "foreignKeyTarget": "id"
+                }
+            ],
+            "canList": true,
+            "canCreate": true,
+            "canUpdate": true,
+            "canDelete": true,
+            "canCount": true,
+            "canSearch": true,
+            "canChart": true,
+            "canNativeQuery": true,
+            "name": "customers_addresses"
+        },
+        {
+            "segments": [],
+            "actions": [],
+            "fields": [
+                {
+                    "enumerations": [
+                        "1",
+                        "2",
+                        "3"
+                    ],
+                    "isPrimaryKey": false,
+                    "isWritable": true,
+                    "prefillFormValue": null,
+                    "isSortable": true,
+                    "validations": [
+                        {
+                            "type": "is present",
+                            "value": null,
+                            "message": null
+                        }
+                    ],
+                    "name": "action_flag",
+                    "type": "Enum",
+                    "filterOperators": [
+                        "Blank",
+                        "Equal",
+                        "In",
+                        "Missing",
+                        "NotEqual",
+                        "NotIn",
+                        "Present"
+                    ]
+                },
+                {
+                    "enumerations": null,
+                    "isPrimaryKey": false,
+                    "isWritable": true,
+                    "prefillFormValue": null,
+                    "isSortable": true,
+                    "validations": [],
+                    "name": "action_time",
+                    "type": "Date",
+                    "filterOperators": [
+                        "After",
+                        "AfterXHoursAgo",
+                        "Before",
+                        "BeforeXHoursAgo",
+                        "Blank",
+                        "Equal",
+                        "Future",
+                        "GreaterThan",
+                        "In",
+                        "LessThan",
+                        "Missing",
+                        "NotEqual",
+                        "NotIn",
+                        "Past",
+                        "Present",
+                        "PreviousMonth",
+                        "PreviousMonthToDate",
+                        "PreviousQuarter",
+                        "PreviousQuarterToDate",
+                        "PreviousWeek",
+                        "PreviousWeekToDate",
+                        "PreviousXDays",
+                        "PreviousXDaysToDate",
+                        "PreviousYear",
+                        "PreviousYearToDate",
+                        "Today",
+                        "Yesterday"
+                    ]
+                },
+                {
+                    "enumerations": null,
+                    "isPrimaryKey": false,
+                    "isWritable": true,
+                    "prefillFormValue": null,
+                    "isSortable": true,
+                    "validations": [],
+                    "name": "change_message",
+                    "type": "String",
+                    "filterOperators": [
+                        "Blank",
+                        "Contains",
+                        "EndsWith",
+                        "Equal",
+                        "In",
+                        "Like",
+                        "LongerThan",
+                        "Missing",
+                        "NotContains",
+                        "NotEqual",
+                        "NotIn",
+                        "Present",
+                        "ShorterThan",
+                        "StartsWith"
+                    ]
+                },
+                {
+                    "enumerations": null,
+                    "isPrimaryKey": false,
+                    "isWritable": true,
+                    "prefillFormValue": null,
+                    "isSortable": true,
+                    "validations": [],
+                    "name": "content_type_id",
+                    "type": "Number",
+                    "filterOperators": [
+                        "Blank",
+                        "Equal",
+                        "GreaterThan",
+                        "In",
+                        "LessThan",
+                        "Missing",
+                        "NotEqual",
+                        "NotIn",
+                        "Present"
+                    ]
+                },
+                {
+                    "enumerations": null,
+                    "isPrimaryKey": true,
+                    "isWritable": false,
+                    "prefillFormValue": null,
+                    "isSortable": true,
+                    "validations": [],
+                    "name": "id",
+                    "type": "Number",
+                    "filterOperators": [
+                        "Blank",
+                        "Equal",
+                        "GreaterThan",
+                        "In",
+                        "LessThan",
+                        "Missing",
+                        "NotEqual",
+                        "NotIn",
+                        "Present"
+                    ]
+                },
+                {
+                    "enumerations": null,
+                    "isPrimaryKey": false,
+                    "isWritable": true,
+                    "prefillFormValue": null,
+                    "isSortable": true,
+                    "validations": [],
+                    "name": "object_id",
+                    "type": "String",
+                    "filterOperators": [
+                        "Blank",
+                        "Contains",
+                        "EndsWith",
+                        "Equal",
+                        "In",
+                        "Like",
+                        "LongerThan",
+                        "Missing",
+                        "NotContains",
+                        "NotEqual",
+                        "NotIn",
+                        "Present",
+                        "ShorterThan",
+                        "StartsWith"
+                    ]
+                },
+                {
+                    "enumerations": null,
+                    "isPrimaryKey": false,
+                    "isWritable": true,
+                    "prefillFormValue": null,
+                    "isSortable": true,
+                    "validations": [
+                        {
+                            "type": "is present",
+                            "value": null,
+                            "message": null
+                        },
+                        {
+                            "type": "is shorter than",
+                            "value": 200,
+                            "message": null
+                        }
+                    ],
+                    "name": "object_repr",
+                    "type": "String",
+                    "filterOperators": [
+                        "Blank",
+                        "Contains",
+                        "EndsWith",
+                        "Equal",
+                        "In",
+                        "Like",
+                        "LongerThan",
+                        "Missing",
+                        "NotContains",
+                        "NotEqual",
+                        "NotIn",
+                        "Present",
+                        "ShorterThan",
+                        "StartsWith"
+                    ]
+                },
+                {
+                    "enumerations": null,
+                    "isPrimaryKey": false,
+                    "isWritable": true,
+                    "prefillFormValue": null,
+                    "isSortable": true,
+                    "validations": [
+                        {
+                            "type": "is present",
+                            "value": null,
+                            "message": null
+                        }
+                    ],
+                    "name": "user_id",
+                    "type": "Number",
+                    "filterOperators": [
+                        "Blank",
+                        "Equal",
+                        "GreaterThan",
+                        "In",
+                        "LessThan",
+                        "Missing",
+                        "NotEqual",
+                        "NotIn",
+                        "Present"
+                    ]
+                }
+            ],
+            "relations": [
+                {
+                    "name": "content_type",
+                    "type": "ManyToOne",
+                    "foreignCollection": "django_content_type",
+                    "foreignKey": "content_type_id",
+                    "foreignKeyTarget": "id"
+                },
+                {
+                    "name": "user",
+                    "type": "ManyToOne",
+                    "foreignCollection": "auth_user",
+                    "foreignKey": "user_id",
+                    "foreignKeyTarget": "id"
+                }
+            ],
+            "canList": true,
+            "canCreate": true,
+            "canUpdate": true,
+            "canDelete": true,
+            "canCount": true,
+            "canSearch": true,
+            "canChart": true,
+            "canNativeQuery": true,
+            "name": "django_admin_log"
+        },
+        {
+            "segments": [],
+            "actions": [],
+            "fields": [
+                {
+                    "enumerations": null,
+                    "isPrimaryKey": false,
+                    "isWritable": true,
+                    "prefillFormValue": null,
+                    "isSortable": true,
+                    "validations": [
+                        {
+                            "type": "is present",
+                            "value": null,
+                            "message": null
+                        },
+                        {
+                            "type": "is shorter than",
+                            "value": 100,
+                            "message": null
+                        }
+                    ],
+                    "name": "app_label",
+                    "type": "String",
+                    "filterOperators": [
+                        "Blank",
+                        "Contains",
+                        "EndsWith",
+                        "Equal",
+                        "In",
+                        "Like",
+                        "LongerThan",
+                        "Missing",
+                        "NotContains",
+                        "NotEqual",
+                        "NotIn",
+                        "Present",
+                        "ShorterThan",
+                        "StartsWith"
+                    ]
+                },
+                {
+                    "enumerations": null,
+                    "isPrimaryKey": true,
+                    "isWritable": false,
+                    "prefillFormValue": null,
+                    "isSortable": true,
+                    "validations": [],
+                    "name": "id",
+                    "type": "Number",
+                    "filterOperators": [
+                        "Blank",
+                        "Equal",
+                        "GreaterThan",
+                        "In",
+                        "LessThan",
+                        "Missing",
+                        "NotEqual",
+                        "NotIn",
+                        "Present"
+                    ]
+                },
+                {
+                    "enumerations": null,
+                    "isPrimaryKey": false,
+                    "isWritable": true,
+                    "prefillFormValue": null,
+                    "isSortable": true,
+                    "validations": [
+                        {
+                            "type": "is present",
+                            "value": null,
+                            "message": null
+                        },
+                        {
+                            "type": "is shorter than",
+                            "value": 100,
+                            "message": null
+                        }
+                    ],
+                    "name": "model",
+                    "type": "String",
+                    "filterOperators": [
+                        "Blank",
+                        "Contains",
+                        "EndsWith",
+                        "Equal",
+                        "In",
+                        "Like",
+                        "LongerThan",
+                        "Missing",
+                        "NotContains",
+                        "NotEqual",
+                        "NotIn",
+                        "Present",
+                        "ShorterThan",
+                        "StartsWith"
+                    ]
+                }
+            ],
+            "relations": [
+                {
+                    "name": "logentry_content_type",
+                    "type": "OneToMany",
+                    "foreignCollection": "django_admin_log",
+                    "originKey": "content_type_id",
+                    "originKeyTarget": "id"
+                },
+                {
+                    "name": "permission_content_type",
+                    "type": "OneToMany",
+                    "foreignCollection": "auth_permission",
+                    "originKey": "content_type_id",
+                    "originKeyTarget": "id"
+                }
+            ],
+            "canList": true,
+            "canCreate": true,
+            "canUpdate": true,
+            "canDelete": true,
+            "canCount": true,
+            "canSearch": true,
+            "canChart": true,
+            "canNativeQuery": true,
+            "name": "django_content_type"
+        },
+        {
+            "segments": [],
+            "actions": [],
+            "fields": [
+                {
+                    "enumerations": null,
+                    "isPrimaryKey": false,
+                    "isWritable": true,
+                    "prefillFormValue": null,
+                    "isSortable": true,
+                    "validations": [
+                        {
+                            "type": "is present",
+                            "value": null,
+                            "message": null
+                        }
+                    ],
+                    "name": "expire_date",
+                    "type": "Date",
+                    "filterOperators": [
+                        "After",
+                        "AfterXHoursAgo",
+                        "Before",
+                        "BeforeXHoursAgo",
+                        "Blank",
+                        "Equal",
+                        "Future",
+                        "GreaterThan",
+                        "In",
+                        "LessThan",
+                        "Missing",
+                        "NotEqual",
+                        "NotIn",
+                        "Past",
+                        "Present",
+                        "PreviousMonth",
+                        "PreviousMonthToDate",
+                        "PreviousQuarter",
+                        "PreviousQuarterToDate",
+                        "PreviousWeek",
+                        "PreviousWeekToDate",
+                        "PreviousXDays",
+                        "PreviousXDaysToDate",
+                        "PreviousYear",
+                        "PreviousYearToDate",
+                        "Today",
+                        "Yesterday"
+                    ]
+                },
+                {
+                    "enumerations": null,
+                    "isPrimaryKey": false,
+                    "isWritable": true,
+                    "prefillFormValue": null,
+                    "isSortable": true,
+                    "validations": [
+                        {
+                            "type": "is present",
+                            "value": null,
+                            "message": null
+                        }
+                    ],
+                    "name": "session_data",
+                    "type": "String",
+                    "filterOperators": [
+                        "Blank",
+                        "Contains",
+                        "EndsWith",
+                        "Equal",
+                        "In",
+                        "Like",
+                        "LongerThan",
+                        "Missing",
+                        "NotContains",
+                        "NotEqual",
+                        "NotIn",
+                        "Present",
+                        "ShorterThan",
+                        "StartsWith"
+                    ]
+                },
+                {
+                    "enumerations": null,
+                    "isPrimaryKey": true,
+                    "isWritable": true,
+                    "prefillFormValue": null,
+                    "isSortable": true,
+                    "validations": [
+                        {
+                            "type": "is present",
+                            "value": null,
+                            "message": null
+                        },
+                        {
+                            "type": "is shorter than",
+                            "value": 40,
+                            "message": null
+                        }
+                    ],
+                    "name": "session_key",
+                    "type": "String",
+                    "filterOperators": [
+                        "Blank",
+                        "Contains",
+                        "EndsWith",
+                        "Equal",
+                        "In",
+                        "Like",
+                        "LongerThan",
+                        "Missing",
+                        "NotContains",
+                        "NotEqual",
+                        "NotIn",
+                        "Present",
+                        "ShorterThan",
+                        "StartsWith"
+                    ]
+                }
+            ],
+            "relations": [],
+            "canList": true,
+            "canCreate": true,
+            "canUpdate": true,
+            "canDelete": true,
+            "canCount": true,
+            "canSearch": true,
+            "canChart": true,
+            "canNativeQuery": true,
+            "name": "django_session"
+        },
+        {
+            "segments": [],
+            "actions": [],
+            "fields": [
+                {
+                    "enumerations": null,
+                    "isPrimaryKey": false,
+                    "isWritable": true,
+                    "prefillFormValue": null,
+                    "isSortable": true,
+                    "validations": [
+                        {
+                            "type": "is present",
+                            "value": null,
+                            "message": null
+                        }
+                    ],
+                    "name": "amount",
+                    "type": "Number",
+                    "filterOperators": [
+                        "Blank",
+                        "Equal",
+                        "GreaterThan",
+                        "In",
+                        "LessThan",
+                        "Missing",
+                        "NotEqual",
+                        "NotIn",
+                        "Present"
+                    ]
+                },
+                {
+                    "enumerations": null,
+                    "isPrimaryKey": false,
+                    "isWritable": true,
+                    "prefillFormValue": null,
+                    "isSortable": true,
+                    "validations": [],
+                    "name": "billing_address_id",
+                    "type": "Number",
+                    "filterOperators": [
+                        "Blank",
+                        "Equal",
+                        "GreaterThan",
+                        "In",
+                        "LessThan",
+                        "Missing",
+                        "NotEqual",
+                        "NotIn",
+                        "Present"
+                    ]
+                },
+                {
+                    "enumerations": null,
+                    "isPrimaryKey": false,
+                    "isWritable": true,
+                    "prefillFormValue": null,
+                    "isSortable": true,
+                    "validations": [],
+                    "name": "created_at",
+                    "type": "Date",
+                    "filterOperators": [
+                        "After",
+                        "AfterXHoursAgo",
+                        "Before",
+                        "BeforeXHoursAgo",
+                        "Blank",
+                        "Equal",
+                        "Future",
+                        "GreaterThan",
+                        "In",
+                        "LessThan",
+                        "Missing",
+                        "NotEqual",
+                        "NotIn",
+                        "Past",
+                        "Present",
+                        "PreviousMonth",
+                        "PreviousMonthToDate",
+                        "PreviousQuarter",
+                        "PreviousQuarterToDate",
+                        "PreviousWeek",
+                        "PreviousWeekToDate",
+                        "PreviousXDays",
+                        "PreviousXDaysToDate",
+                        "PreviousYear",
+                        "PreviousYearToDate",
+                        "Today",
+                        "Yesterday"
+                    ]
+                },
+                {
+                    "enumerations": null,
+                    "isPrimaryKey": false,
+                    "isWritable": true,
+                    "prefillFormValue": null,
+                    "isSortable": true,
+                    "validations": [],
+                    "name": "customer_id",
+                    "type": "String",
+                    "filterOperators": [
+                        "Blank",
+                        "Equal",
+                        "In",
+                        "Missing",
+                        "NotEqual",
+                        "NotIn",
+                        "Present"
+                    ]
+                },
+                {
+                    "enumerations": null,
+                    "isPrimaryKey": false,
+                    "isWritable": true,
+                    "prefillFormValue": null,
+                    "isSortable": true,
+                    "validations": [],
+                    "name": "delivering_address_id",
+                    "type": "Number",
+                    "filterOperators": [
+                        "Blank",
+                        "Equal",
+                        "GreaterThan",
+                        "In",
+                        "LessThan",
+                        "Missing",
+                        "NotEqual",
+                        "NotIn",
+                        "Present"
+                    ]
+                },
+                {
+                    "enumerations": null,
+                    "isPrimaryKey": true,
+                    "isWritable": false,
+                    "prefillFormValue": null,
+                    "isSortable": true,
+                    "validations": [],
+                    "name": "id",
+                    "type": "Number",
+                    "filterOperators": [
+                        "Blank",
+                        "Equal",
+                        "GreaterThan",
+                        "In",
+                        "LessThan",
+                        "Missing",
+                        "NotEqual",
+                        "NotIn",
+                        "Present"
+                    ]
+                },
+                {
+                    "enumerations": [
+                        "PENDING",
+                        "DISPATCHED",
+                        "DELIVERED",
+                        "REJECTED"
+                    ],
+                    "isPrimaryKey": false,
+                    "isWritable": true,
+                    "prefillFormValue": null,
+                    "isSortable": true,
+                    "validations": [
+                        {
+                            "type": "is present",
+                            "value": null,
+                            "message": null
+                        },
+                        {
+                            "type": "is shorter than",
+                            "value": 10,
+                            "message": null
+                        }
+                    ],
+                    "name": "status",
+                    "type": "Enum",
+                    "filterOperators": [
+                        "Blank",
+                        "Equal",
+                        "In",
+                        "Missing",
+                        "NotEqual",
+                        "NotIn",
+                        "Present"
+                    ]
+                }
+            ],
+            "relations": [
+                {
+                    "name": "billing_address",
+                    "type": "ManyToOne",
+                    "foreignCollection": "address",
+                    "foreignKey": "billing_address_id",
+                    "foreignKeyTarget": "id"
+                },
+                {
+                    "name": "customer",
+                    "type": "ManyToOne",
+                    "foreignCollection": "customer",
+                    "foreignKey": "customer_id",
+                    "foreignKeyTarget": "id"
+                },
+                {
+                    "name": "delivering_address",
+                    "type": "ManyToOne",
+                    "foreignCollection": "address",
+                    "foreignKey": "delivering_address_id",
+                    "foreignKeyTarget": "id"
+                },
+                {
+                    "name": "flaskcart_order",
+                    "type": "OneToMany",
+                    "foreignCollection": "cart",
+                    "originKey": "order_id",
+                    "originKeyTarget": "id"
+                }
+            ],
+            "canList": true,
+            "canCreate": true,
+            "canUpdate": true,
+            "canDelete": true,
+            "canCount": true,
+            "canSearch": true,
+            "canChart": true,
+            "canNativeQuery": true,
+            "name": "order"
+        }
+    ],
+    "meta": {
+        "liana": "agent-python",
+        "liana_version": "1.5.6",
+        "stack": {
+            "engine": "python",
+            "engine_version": "3.11.3"
+        }
+    }
+}
