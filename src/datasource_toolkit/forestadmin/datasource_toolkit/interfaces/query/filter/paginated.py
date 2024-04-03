@@ -33,17 +33,19 @@ class PaginatedFilter(BaseFilter[PaginatedFilterComponent]):
     @staticmethod
     def from_base_filter(filter: Optional[Filter]) -> "PaginatedFilter":
         kwargs: Dict[str, Any] = {"sort": None, "page": None}
-        if filter is not None:
-            if filter.condition_tree:
-                kwargs["condition_tree"] = filter.condition_tree
-            if filter.search:
-                kwargs["search"] = filter.search
-            if filter.search_extended:
-                kwargs["search_extended"] = filter.search_extended
-            if filter.segment:
-                kwargs["segment"] = filter.segment
-            if filter.timezone:
-                kwargs["timezone"] = filter.timezone
+        if filter is None:
+            return PaginatedFilter(PaginatedFilterComponent(**kwargs))
+
+        if filter.condition_tree:
+            kwargs["condition_tree"] = filter.condition_tree
+        if filter.search:
+            kwargs["search"] = filter.search
+        if filter.search_extended:
+            kwargs["search_extended"] = filter.search_extended
+        if filter.segment:
+            kwargs["segment"] = filter.segment
+        if filter.timezone:
+            kwargs["timezone"] = filter.timezone
         return PaginatedFilter(PaginatedFilterComponent(**kwargs))
 
     def to_base_filter(self) -> Filter:
