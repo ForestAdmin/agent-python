@@ -1,3 +1,10 @@
+## [1.6.6](https://github.com/ForestAdmin/agent-python/compare/v1.6.5...v1.6.6) (2024-04-03)
+
+
+### Bug Fixes
+
+* **smart-field:** dependencies order does not matter anymore in implementation ([#211](https://github.com/ForestAdmin/agent-python/issues/211)) ([c52543c](https://github.com/ForestAdmin/agent-python/commit/c52543c2c25f5ca0de00e76015fd4dd6143806ee))
+
 ## [1.6.5](https://github.com/ForestAdmin/agent-python/compare/v1.6.4...v1.6.5) (2024-04-03)
 
 
