@@ -1,3 +1,10 @@
+## [1.6.4](https://github.com/ForestAdmin/agent-python/compare/v1.6.3...v1.6.4) (2024-04-03)
+
+
+### Bug Fixes
+
+* **computed:** aggregate on computed raised timezone error ([#209](https://github.com/ForestAdmin/agent-python/issues/209)) ([5d50943](https://github.com/ForestAdmin/agent-python/commit/5d50943cfa5485c1c57cf4d17f4ef5b7e96a6098))
+
 ## [1.6.3](https://github.com/ForestAdmin/agent-python/compare/v1.6.2...v1.6.3) (2024-04-03)
 
 
