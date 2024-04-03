@@ -46,6 +46,9 @@ class SearchCollectionDecorator(CollectionDecorator):
     async def _refine_filter(
         self, caller: User, _filter: Union[Optional[PaginatedFilter], Optional[Filter]]
     ) -> Optional[Union[PaginatedFilter, Filter]]:
+        if _filter is None:
+            return _filter
+
         # Search string is not significant
         if _filter.search is None or _filter.search.strip() == "":
             return _filter.override({"search": None})

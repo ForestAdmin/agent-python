@@ -147,12 +147,12 @@ refund_order_action: ActionDict = {
 
 # charts
 async def total_order_chart(context: AgentCustomizationContext, result_builder: ResultBuilderChart):
-    records = await context.datasource.get_collection("order").list(context.caller, PaginatedFilter({}), ["id"])
+    records = await context.datasource.get_collection("app_order").list(context.caller, PaginatedFilter({}), ["id"])
     return result_builder.value(len(records))
 
 
 async def nb_order_per_week(context: AgentCustomizationContext, result_builder: ResultBuilderChart):
-    records = await context.datasource.get_collection("order").aggregate(
+    records = await context.datasource.get_collection("app_order").aggregate(
         context.caller,
         Filter({"condition_tree": ConditionTreeLeaf("created_at", "before", "2022-01-01")}),
         Aggregation(
