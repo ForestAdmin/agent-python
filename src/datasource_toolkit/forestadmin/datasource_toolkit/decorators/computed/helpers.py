@@ -1,5 +1,5 @@
 import copy
-from typing import Any, List, Optional, Tuple, cast
+from typing import Any, List, Tuple, cast
 
 from forestadmin.datasource_toolkit.context.collection_context import CollectionCustomizationContext
 from forestadmin.datasource_toolkit.decorators.computed.types import ComputedDefinition
@@ -44,16 +44,16 @@ async def queue_field(
     paths: List[str],
     flatten_records: List[List[Any]],
 ):
+    # Skip double computations (we're not checking before adding to queue).
     if new_path not in paths:
         computed = collection.get_computed(new_path)
         dependencies = Projection(*computed["dependencies"])
         if ":" in new_path:
             nested_field = new_path.split(":")[0]
-            dependencies = cast(List[str], dependencies.nest(nested_field))
-            dependencies.sort()
-        for path in cast(List[str], dependencies):
+            dependencies = dependencies.nest(nested_field)
+        for path in dependencies:
             await queue_field(ctx, collection, path, paths, flatten_records.copy())
-        dependency_values = [flatten_records[paths.index(path)] for path in cast(List[str], dependencies)]
+        dependency_values = [flatten_records[paths.index(path)] for path in dependencies]
         paths.append(new_path)
 
         return await compute_field(ctx, computed, computed["dependencies"], copy.deepcopy(dependency_values)) or []
@@ -64,20 +64,20 @@ async def compute_from_records(
     collection: Any,
     records_projection: Projection,
     desired_projections: Projection,
-    records: List[Optional[RecordsDataAlias]],
+    records: List[RecordsDataAlias],
 ) -> List[RecordsDataAlias]:
+
     paths: List[str] = [*records_projection]
     paths.sort()
-    cast(List[str], desired_projections).sort()
+    desired_projections.sort()
     flatten_records = flatten(records, paths)
     add_operations: List[Tuple[int, Any]] = []
     delete_operations: List[int] = []
 
-    for i, path in enumerate(cast(List[str], desired_projections)):
+    for i, path in enumerate(desired_projections):
         value = await queue_field(ctx, collection, path, paths, copy.deepcopy(flatten_records))
         if value is not None:
             add_operations.append((i, value))
-            # operations.append((i, value, 1))
 
     for path in paths:
         if path not in desired_projections:
