@@ -5,7 +5,7 @@ build-backend = "poetry.core.masonry.api"
 [tool.poetry]
 name = "forestadmin-agent-flask"
 description = "flask agent for forestadmin python agent"
-version = "1.6.4"
+version = "1.6.5"
 authors = [ "Valentin Monté <valentinm@forestadmin.com>", "Julien Barreau <julien.barreau@forestadmin.com>",]
 readme = "README.md"
 repository = "https://github.com/ForestAdmin/agent-python"
@@ -17,8 +17,8 @@ include = "forestadmin"
 [tool.poetry.dependencies]
 python = ">=3.8,<3.13"
 typing-extensions = "~=4.2"
-forestadmin-agent-toolkit = "1.6.4"
-forestadmin-datasource-toolkit = "1.6.4"
+forestadmin-agent-toolkit = "1.6.5"
+forestadmin-datasource-toolkit = "1.6.5"
 flask-cors = ">=3.0.0"
 
 [tool.poetry.dependencies.flask]
