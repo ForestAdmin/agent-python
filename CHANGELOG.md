@@ -1,3 +1,10 @@
+## [1.6.3](https://github.com/ForestAdmin/agent-python/compare/v1.6.2...v1.6.3) (2024-04-03)
+
+
+### Bug Fixes
+
+* smart fields records are now correctly formed ([#208](https://github.com/ForestAdmin/agent-python/issues/208)) ([79c4e78](https://github.com/ForestAdmin/agent-python/commit/79c4e787dd59e2af0f90369e1a27bb59315f7b50))
+
 ## [1.6.2](https://github.com/ForestAdmin/agent-python/compare/v1.6.1...v1.6.2) (2024-04-02)
 
 
