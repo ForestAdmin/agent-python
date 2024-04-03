@@ -1,5 +1,6 @@
 import asyncio
 import sys
+from typing import cast
 from unittest import TestCase
 from unittest.mock import AsyncMock, patch
 
@@ -240,3 +241,34 @@ class TestComputedCollectionDecorator(TestCase):
         assert "group" in result[0]
         assert result[0]["value"] == "Edward O. Thorp"
         assert result[0]["group"] == {}
+
+    def test_records_are_not_shuffled_by_key_and_values(self):
+        async def get_values(records, context):
+            return [
+                f"({record['id']} - {record['title']}) {record['author']['first_name']} {record['author']['last_name']}"
+                for record in records
+            ]
+
+        decorated_book_collection = self.datasource_decorator.get_collection("Book")
+        cast(ComputedCollectionDecorator, decorated_book_collection).register_computed(
+            "test_not_shuffle",
+            {
+                "column_type": "String",
+                "dependencies": ["author:last_name", "title", "id", "author:first_name"],
+                "get_values": get_values,
+            },
+        )
+        with patch.object(self.collection_book, "list", new_callable=AsyncMock, return_value=self.book_records):
+            results = self.loop.run_until_complete(
+                decorated_book_collection.list(
+                    self.mocked_caller, PaginatedFilter({}), Projection("id", "test_not_shuffle")
+                )
+            )
+
+        self.assertEquals(
+            results,
+            [
+                {"id": 1, "test_not_shuffle": "(1 - Foundation) Isaac Asimov"},
+                {"id": 2, "test_not_shuffle": "(2 - Beat the dealer) Edward O. Thorp"},
+            ],
+        )
