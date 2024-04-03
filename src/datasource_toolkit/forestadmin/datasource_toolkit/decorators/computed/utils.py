@@ -74,7 +74,7 @@ def unflatten(flats: FlatRecordList, projection: Projection) -> List[Optional[Re
     return res
 
 
-def flatten(records: List[RecordsDataAlias], projection: List[str]) -> FlatRecordList:
+def flatten(records: List[Optional[RecordsDataAlias]], projection: List[str]) -> FlatRecordList:
     res: FlatRecordList = []
     for field_name in projection:
         values: List[Optional[str]] = []
