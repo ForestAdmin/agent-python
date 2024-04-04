@@ -50,7 +50,7 @@ class SchemaFieldGenerator:
             schema = cls.build_relation_schema(collection, field_name, field_schema)
         else:
             raise
-        return cast(ForestServerField, dict(sorted(schema.items())))
+        return schema
 
     @staticmethod
     def build_column_type(_column_type: ColumnAlias) -> ColumnAlias:
@@ -81,21 +81,21 @@ class SchemaFieldGenerator:
         res = {
             "field": name,
             "type": cls.build_column_type(column["column_type"]),
-            "validations": FrontendValidationUtils.convert_validation_list(column["validations"]),
-            "defaultValue": column["default_value"],
             "enums": column["enum_values"],
+            "defaultValue": column["default_value"],
             "integration": None,
             "inverseOf": None,
             "isFilterable": FrontendFilterableUtils.is_filterable(column["column_type"], column["filter_operators"]),
             "isPrimaryKey": bool(column["is_primary_key"]),
-            "isSortable": bool(column["is_sortable"]),
             # When a column is a foreign key, it is readonly.
             # This may sound counter-intuitive: it is so that the user don't have two fields which
             # allow updating the same foreign key in the detail-view form (fk + many to one)
             "isReadOnly": is_foreign_key or bool(column["is_read_only"]),
             "isRequired": any([v["operator"] == Operator.PRESENT for v in validations]),
+            "isSortable": bool(column["is_sortable"]),
             "isVirtual": False,
             "reference": None,
+            "validations": FrontendValidationUtils.convert_validation_list(column["validations"]),
         }
         return ForestServerField(**res)
 
@@ -123,11 +123,11 @@ class SchemaFieldGenerator:
             "defaultValue": None,
             "isFilterable": cls.is_foreign_collection_filterable(foreign_collection),
             "isPrimaryKey": False,
-            "isRequired": False,
             "isReadOnly": bool(key_field["is_read_only"]),
+            "isRequired": False,
             "isSortable": bool(target_field["is_sortable"]),
-            "validations": [],
             "reference": f"{foreign_collection.name}.{relation['origin_key']}",
+            "validations": [],
         }
 
     @classmethod
@@ -202,4 +202,4 @@ class SchemaFieldGenerator:
             res = cls.build_many_to_one_schema(
                 cast(ManyToOne, field_schema), collection, foreign_collection, relation_schema
             )
-        return res
+        return {"field": res["field"], "type": res["type"], **dict(sorted(res.items()))}

@@ -201,6 +201,13 @@ class Agent:
 
         if self.options["skip_schema_update"] is False:
             try:
+                api_map = await SchemaEmitter.get_serialized_schema(
+                    self.options, await self.customizer.get_datasource(), self.meta
+                )
+            except Exception:
+                ForestLogger.log("exception", "Error generating forest schema V1")
+
+            try:
                 api_map = await SchemaEmitterV2.get_serialized_schema(
                     self.options, await self.customizer.get_datasource(), self.meta
                 )

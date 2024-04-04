@@ -2,20 +2,21 @@
     "collections": [
         {
             "name": "address",
-            "isVirtual": false,
             "icon": null,
-            "isReadOnly": false,
             "integration": null,
+            "isReadOnly": false,
             "isSearchable": true,
+            "isVirtual": false,
             "onlyForRelationships": false,
             "paginationType": "page",
             "actions": [],
             "segments": [],
             "fields": [
                 {
-                    "defaultValue": null,
-                    "enums": null,
                     "field": "city",
+                    "type": "String",
+                    "enums": null,
+                    "defaultValue": null,
                     "integration": null,
                     "inverseOf": null,
                     "isFilterable": true,
@@ -25,7 +26,6 @@
                     "isSortable": true,
                     "isVirtual": false,
                     "reference": null,
-                    "type": "String",
                     "validations": [
                         {
                             "type": "is present",
@@ -40,9 +40,10 @@
                     ]
                 },
                 {
-                    "defaultValue": null,
-                    "enums": null,
                     "field": "country",
+                    "type": "String",
+                    "enums": null,
+                    "defaultValue": null,
                     "integration": null,
                     "inverseOf": null,
                     "isFilterable": true,
@@ -52,7 +53,6 @@
                     "isSortable": true,
                     "isVirtual": false,
                     "reference": null,
-                    "type": "String",
                     "validations": [
                         {
                             "type": "is present",
@@ -67,9 +67,12 @@
                     ]
                 },
                 {
+                    "field": "customers",
+                    "type": [
+                        "String"
+                    ],
                     "defaultValue": null,
                     "enums": null,
-                    "field": "customers",
                     "inverseOf": "addresses",
                     "isFilterable": false,
                     "isPrimaryKey": false,
@@ -79,15 +82,15 @@
                     "isVirtual": false,
                     "reference": "customer.id",
                     "relationship": "BelongsToMany",
-                    "type": [
-                        "String"
-                    ],
                     "validations": []
                 },
                 {
+                    "field": "flaskcustomersaddresses_address",
+                    "type": [
+                        "Number"
+                    ],
                     "defaultValue": null,
                     "enums": null,
-                    "field": "flaskcustomersaddresses_address",
                     "inverseOf": "address",
                     "isFilterable": false,
                     "isPrimaryKey": false,
@@ -97,15 +100,15 @@
                     "isVirtual": false,
                     "reference": "customers_addresses.id",
                     "relationship": "HasMany",
-                    "type": [
-                        "Number"
-                    ],
                     "validations": []
                 },
                 {
+                    "field": "flaskorder_billing_address",
+                    "type": [
+                        "Number"
+                    ],
                     "defaultValue": null,
                     "enums": null,
-                    "field": "flaskorder_billing_address",
                     "inverseOf": "billing_address",
                     "isFilterable": false,
                     "isPrimaryKey": false,
@@ -115,15 +118,13 @@
                     "isVirtual": false,
                     "reference": "order.id",
                     "relationship": "HasMany",
-                    "type": [
-                        "Number"
-                    ],
                     "validations": []
                 },
                 {
-                    "defaultValue": null,
-                    "enums": null,
                     "field": "id",
+                    "type": "Number",
+                    "enums": null,
+                    "defaultValue": null,
                     "integration": null,
                     "inverseOf": null,
                     "isFilterable": true,
@@ -133,13 +134,15 @@
                     "isSortable": true,
                     "isVirtual": false,
                     "reference": null,
-                    "type": "Number",
                     "validations": []
                 },
                 {
+                    "field": "order_delivering_address_set_delivering_address",
+                    "type": [
+                        "Number"
+                    ],
                     "defaultValue": null,
                     "enums": null,
-                    "field": "order_delivering_address_set_delivering_address",
                     "inverseOf": "delivering_address",
                     "isFilterable": false,
                     "isPrimaryKey": false,
@@ -149,15 +152,13 @@
                     "isVirtual": false,
                     "reference": "order.id",
                     "relationship": "HasMany",
-                    "type": [
-                        "Number"
-                    ],
                     "validations": []
                 },
                 {
-                    "defaultValue": null,
-                    "enums": null,
                     "field": "street",
+                    "type": "String",
+                    "enums": null,
+                    "defaultValue": null,
                     "integration": null,
                     "inverseOf": null,
                     "isFilterable": true,
@@ -167,7 +168,6 @@
                     "isSortable": true,
                     "isVirtual": false,
                     "reference": null,
-                    "type": "String",
                     "validations": [
                         {
                             "type": "is present",
@@ -182,9 +182,10 @@
                     ]
                 },
                 {
-                    "defaultValue": null,
-                    "enums": null,
                     "field": "street_number",
+                    "type": "String",
+                    "enums": null,
+                    "defaultValue": null,
                     "integration": null,
                     "inverseOf": null,
                     "isFilterable": true,
@@ -194,7 +195,6 @@
                     "isSortable": true,
                     "isVirtual": false,
                     "reference": null,
-                    "type": "String",
                     "validations": [
                         {
                             "type": "is shorter than",
@@ -204,9 +204,10 @@
                     ]
                 },
                 {
-                    "defaultValue": null,
-                    "enums": null,
                     "field": "zip_code",
+                    "type": "String",
+                    "enums": null,
+                    "defaultValue": null,
                     "integration": null,
                     "inverseOf": null,
                     "isFilterable": true,
@@ -216,7 +217,6 @@
                     "isSortable": true,
                     "isVirtual": false,
                     "reference": null,
-                    "type": "String",
                     "validations": [
                         {
                             "type": "is present",
@@ -234,11 +234,11 @@
         },
         {
             "name": "app_address",
-            "isVirtual": false,
             "icon": null,
-            "isReadOnly": false,
             "integration": null,
+            "isReadOnly": false,
             "isSearchable": true,
+            "isVirtual": false,
             "onlyForRelationships": false,
             "paginationType": "page",
             "actions": [],
@@ -250,9 +250,12 @@
             ],
             "fields": [
                 {
+                    "field": "billing_orders_billing_address",
+                    "type": [
+                        "Number"
+                    ],
                     "defaultValue": null,
                     "enums": null,
-                    "field": "billing_orders_billing_address",
                     "inverseOf": "billing_address",
                     "isFilterable": false,
                     "isPrimaryKey": false,
@@ -262,15 +265,13 @@
                     "isVirtual": false,
                     "reference": "app_order.id",
                     "relationship": "HasMany",
-                    "type": [
-                        "Number"
-                    ],
                     "validations": []
                 },
                 {
-                    "defaultValue": null,
-                    "enums": null,
                     "field": "city",
+                    "type": "String",
+                    "enums": null,
+                    "defaultValue": null,
                     "integration": null,
                     "inverseOf": null,
                     "isFilterable": true,
@@ -280,7 +281,6 @@
                     "isSortable": true,
                     "isVirtual": false,
                     "reference": null,
-                    "type": "String",
                     "validations": [
                         {
                             "type": "is present",
@@ -295,9 +295,10 @@
                     ]
                 },
                 {
-                    "defaultValue": null,
-                    "enums": null,
                     "field": "complete_address",
+                    "type": "String",
+                    "enums": null,
+                    "defaultValue": null,
                     "integration": null,
                     "inverseOf": null,
                     "isFilterable": false,
@@ -307,13 +308,15 @@
                     "isSortable": true,
                     "isVirtual": false,
                     "reference": null,
-                    "type": "String",
                     "validations": []
                 },
                 {
+                    "field": "customeraddress_address",
+                    "type": [
+                        "Number"
+                    ],
                     "defaultValue": null,
                     "enums": null,
-                    "field": "customeraddress_address",
                     "inverseOf": "address",
                     "isFilterable": false,
                     "isPrimaryKey": false,
@@ -323,15 +326,15 @@
                     "isVirtual": false,
                     "reference": "app_customeraddress.id",
                     "relationship": "HasMany",
-                    "type": [
-                        "Number"
-                    ],
                     "validations": []
                 },
                 {
+                    "field": "customers",
+                    "type": [
+                        "Number"
+                    ],
                     "defaultValue": null,
                     "enums": null,
-                    "field": "customers",
                     "inverseOf": "addresses",
                     "isFilterable": false,
                     "isPrimaryKey": false,
@@ -341,15 +344,15 @@
                     "isVirtual": false,
                     "reference": "app_customer.id",
                     "relationship": "BelongsToMany",
-                    "type": [
-                        "Number"
-                    ],
                     "validations": []
                 },
                 {
+                    "field": "delivering_orders_delivering_address",
+                    "type": [
+                        "Number"
+                    ],
                     "defaultValue": null,
                     "enums": null,
-                    "field": "delivering_orders_delivering_address",
                     "inverseOf": "delivering_address",
                     "isFilterable": false,
                     "isPrimaryKey": false,
@@ -359,15 +362,13 @@
                     "isVirtual": false,
                     "reference": "app_order.id",
                     "relationship": "HasMany",
-                    "type": [
-                        "Number"
-                    ],
                     "validations": []
                 },
                 {
-                    "defaultValue": null,
-                    "enums": null,
                     "field": "id",
+                    "type": "Number",
+                    "enums": null,
+                    "defaultValue": null,
                     "integration": null,
                     "inverseOf": null,
                     "isFilterable": true,
@@ -377,13 +378,13 @@
                     "isSortable": true,
                     "isVirtual": false,
                     "reference": null,
-                    "type": "Number",
                     "validations": []
                 },
                 {
-                    "defaultValue": "France",
-                    "enums": null,
                     "field": "pays",
+                    "type": "String",
+                    "enums": null,
+                    "defaultValue": "France",
                     "integration": null,
                     "inverseOf": null,
                     "isFilterable": true,
@@ -393,7 +394,6 @@
                     "isSortable": true,
                     "isVirtual": false,
                     "reference": null,
-                    "type": "String",
                     "validations": [
                         {
                             "type": "is shorter than",
@@ -403,18 +403,7 @@
                     ]
                 },
                 {
-                    "defaultValue": null,
-                    "enums": null,
                     "field": "postal_code",
-                    "integration": null,
-                    "inverseOf": null,
-                    "isFilterable": false,
-                    "isPrimaryKey": false,
-                    "isReadOnly": true,
-                    "isRequired": false,
-                    "isSortable": false,
-                    "isVirtual": false,
-                    "reference": null,
                     "type": [
                         {
                             "fields": [
@@ -437,12 +426,24 @@
                             ]
                         }
                     ],
+                    "enums": null,
+                    "defaultValue": null,
+                    "integration": null,
+                    "inverseOf": null,
+                    "isFilterable": false,
+                    "isPrimaryKey": false,
+                    "isReadOnly": true,
+                    "isRequired": false,
+                    "isSortable": false,
+                    "isVirtual": false,
+                    "reference": null,
                     "validations": []
                 },
                 {
-                    "defaultValue": null,
-                    "enums": null,
                     "field": "street",
+                    "type": "String",
+                    "enums": null,
+                    "defaultValue": null,
                     "integration": null,
                     "inverseOf": null,
                     "isFilterable": true,
@@ -452,7 +453,6 @@
                     "isSortable": true,
                     "isVirtual": false,
                     "reference": null,
-                    "type": "String",
                     "validations": [
                         {
                             "type": "is present",
@@ -467,9 +467,10 @@
                     ]
                 },
                 {
-                    "defaultValue": "75009",
-                    "enums": null,
                     "field": "zip_code",
+                    "type": "String",
+                    "enums": null,
+                    "defaultValue": "75009",
                     "integration": null,
                     "inverseOf": null,
                     "isFilterable": true,
@@ -479,7 +480,6 @@
                     "isSortable": true,
                     "isVirtual": false,
                     "reference": null,
-                    "type": "String",
                     "validations": [
                         {
                             "type": "is shorter than",
@@ -492,11 +492,11 @@
         },
         {
             "name": "app_cart",
-            "isVirtual": false,
             "icon": null,
-            "isReadOnly": false,
             "integration": null,
+            "isReadOnly": false,
             "isSearchable": true,
+            "isVirtual": false,
             "onlyForRelationships": false,
             "paginationType": "page",
             "actions": [],
@@ -508,9 +508,10 @@
             ],
             "fields": [
                 {
-                    "defaultValue": null,
-                    "enums": null,
                     "field": "created_at",
+                    "type": "Date",
+                    "enums": null,
+                    "defaultValue": null,
                     "integration": null,
                     "inverseOf": null,
                     "isFilterable": true,
@@ -520,13 +521,13 @@
                     "isSortable": true,
                     "isVirtual": false,
                     "reference": null,
-                    "type": "Date",
                     "validations": []
                 },
                 {
-                    "defaultValue": null,
-                    "enums": null,
                     "field": "customer_id",
+                    "type": "Number",
+                    "enums": null,
+                    "defaultValue": null,
                     "integration": null,
                     "inverseOf": null,
                     "isFilterable": true,
@@ -536,13 +537,13 @@
                     "isSortable": false,
                     "isVirtual": false,
                     "reference": null,
-                    "type": "Number",
                     "validations": []
                 },
                 {
+                    "field": "extendedcart",
+                    "type": "Number",
                     "defaultValue": null,
                     "enums": null,
-                    "field": "extendedcart",
                     "inverseOf": "cart",
                     "isFilterable": true,
                     "isPrimaryKey": false,
@@ -552,13 +553,13 @@
                     "isVirtual": false,
                     "reference": "app_extendedcart.cart_id",
                     "relationship": "HasOne",
-                    "type": "Number",
                     "validations": []
                 },
                 {
-                    "defaultValue": null,
-                    "enums": null,
                     "field": "id",
+                    "type": "Number",
+                    "enums": null,
+                    "defaultValue": null,
                     "integration": null,
                     "inverseOf": null,
                     "isFilterable": true,
@@ -568,13 +569,13 @@
                     "isSortable": true,
                     "isVirtual": false,
                     "reference": null,
-                    "type": "Number",
                     "validations": []
                 },
                 {
-                    "defaultValue": null,
-                    "enums": null,
                     "field": "name",
+                    "type": "String",
+                    "enums": null,
+                    "defaultValue": null,
                     "integration": null,
                     "inverseOf": null,
                     "isFilterable": true,
@@ -584,7 +585,6 @@
                     "isSortable": true,
                     "isVirtual": false,
                     "reference": null,
-                    "type": "String",
                     "validations": [
                         {
                             "type": "is present",
@@ -599,9 +599,10 @@
                     ]
                 },
                 {
+                    "field": "order",
+                    "type": "Number",
                     "defaultValue": null,
                     "enums": null,
-                    "field": "order",
                     "inverseOf": "cart",
                     "isFilterable": true,
                     "isPrimaryKey": false,
@@ -611,18 +612,17 @@
                     "isVirtual": false,
                     "reference": "app_order.id",
                     "relationship": "BelongsTo",
-                    "type": "Number",
                     "validations": []
                 }
             ]
         },
         {
             "name": "app_customer",
-            "isVirtual": false,
             "icon": null,
-            "isReadOnly": false,
             "integration": null,
+            "isReadOnly": false,
             "isSearchable": true,
+            "isVirtual": false,
             "onlyForRelationships": false,
             "paginationType": "page",
             "actions": [
@@ -687,9 +687,12 @@
             ],
             "fields": [
                 {
+                    "field": "Customer_blocked_customer+_from_customer",
+                    "type": [
+                        "Number"
+                    ],
                     "defaultValue": null,
                     "enums": null,
-                    "field": "Customer_blocked_customer+_from_customer",
                     "inverseOf": "from_customer",
                     "isFilterable": false,
                     "isPrimaryKey": false,
@@ -699,15 +702,15 @@
                     "isVirtual": false,
                     "reference": "app_customer_blocked_customer.id",
                     "relationship": "HasMany",
-                    "type": [
-                        "Number"
-                    ],
                     "validations": []
                 },
                 {
+                    "field": "Customer_blocked_customer+_to_customer",
+                    "type": [
+                        "Number"
+                    ],
                     "defaultValue": null,
                     "enums": null,
-                    "field": "Customer_blocked_customer+_to_customer",
                     "inverseOf": "to_customer",
                     "isFilterable": false,
                     "isPrimaryKey": false,
@@ -717,15 +720,13 @@
                     "isVirtual": false,
                     "reference": "app_customer_blocked_customer.id",
                     "relationship": "HasMany",
-                    "type": [
-                        "Number"
-                    ],
                     "validations": []
                 },
                 {
-                    "defaultValue": null,
-                    "enums": null,
                     "field": "TotalSpending",
+                    "type": "Number",
+                    "enums": null,
+                    "defaultValue": null,
                     "integration": null,
                     "inverseOf": null,
                     "isFilterable": false,
@@ -735,13 +736,15 @@
                     "isSortable": false,
                     "isVirtual": false,
                     "reference": null,
-                    "type": "Number",
                     "validations": []
                 },
                 {
+                    "field": "addresses",
+                    "type": [
+                        "Number"
+                    ],
                     "defaultValue": null,
                     "enums": null,
-                    "field": "addresses",
                     "inverseOf": "customers",
                     "isFilterable": false,
                     "isPrimaryKey": false,
@@ -751,15 +754,13 @@
                     "isVirtual": false,
                     "reference": "app_address.id",
                     "relationship": "BelongsToMany",
-                    "type": [
-                        "Number"
-                    ],
                     "validations": []
                 },
                 {
-                    "defaultValue": null,
-                    "enums": null,
                     "field": "age",
+                    "type": "Number",
+                    "enums": null,
+                    "defaultValue": null,
                     "integration": null,
                     "inverseOf": null,
                     "isFilterable": false,
@@ -769,13 +770,13 @@
                     "isSortable": false,
                     "isVirtual": false,
                     "reference": null,
-                    "type": "Number",
                     "validations": []
                 },
                 {
-                    "defaultValue": null,
-                    "enums": null,
                     "field": "avatar",
+                    "type": "String",
+                    "enums": null,
+                    "defaultValue": null,
                     "integration": null,
                     "inverseOf": null,
                     "isFilterable": false,
@@ -785,13 +786,13 @@
                     "isSortable": true,
                     "isVirtual": false,
                     "reference": null,
-                    "type": "String",
                     "validations": []
                 },
                 {
-                    "defaultValue": null,
-                    "enums": null,
                     "field": "birthday_date",
+                    "type": "Dateonly",
+                    "enums": null,
+                    "defaultValue": null,
                     "integration": null,
                     "inverseOf": null,
                     "isFilterable": true,
@@ -801,13 +802,15 @@
                     "isSortable": true,
                     "isVirtual": false,
                     "reference": null,
-                    "type": "Dateonly",
                     "validations": []
                 },
                 {
+                    "field": "block_by_users",
+                    "type": [
+                        "Number"
+                    ],
                     "defaultValue": null,
                     "enums": null,
-                    "field": "block_by_users",
                     "inverseOf": "blocked_customer",
                     "isFilterable": false,
                     "isPrimaryKey": false,
@@ -817,15 +820,15 @@
                     "isVirtual": false,
                     "reference": "app_customer.id",
                     "relationship": "BelongsToMany",
-                    "type": [
-                        "Number"
-                    ],
                     "validations": []
                 },
                 {
+                    "field": "blocked_customer",
+                    "type": [
+                        "Number"
+                    ],
                     "defaultValue": null,
                     "enums": null,
-                    "field": "blocked_customer",
                     "inverseOf": "block_by_users",
                     "isFilterable": false,
                     "isPrimaryKey": false,
@@ -835,15 +838,13 @@
                     "isVirtual": false,
                     "reference": "app_customer.id",
                     "relationship": "BelongsToMany",
-                    "type": [
-                        "Number"
-                    ],
                     "validations": []
                 },
                 {
-                    "defaultValue": null,
-                    "enums": null,
                     "field": "created_at",
+                    "type": "Date",
+                    "enums": null,
+                    "defaultValue": null,
                     "integration": null,
                     "inverseOf": null,
                     "isFilterable": true,
@@ -853,13 +854,15 @@
                     "isSortable": true,
                     "isVirtual": false,
                     "reference": null,
-                    "type": "Date",
                     "validations": []
                 },
                 {
+                    "field": "customeraddress_customer",
+                    "type": [
+                        "Number"
+                    ],
                     "defaultValue": null,
                     "enums": null,
-                    "field": "customeraddress_customer",
                     "inverseOf": "customer",
                     "isFilterable": false,
                     "isPrimaryKey": false,
@@ -869,15 +872,13 @@
                     "isVirtual": false,
                     "reference": "app_customeraddress.id",
                     "relationship": "HasMany",
-                    "type": [
-                        "Number"
-                    ],
                     "validations": []
                 },
                 {
-                    "defaultValue": null,
-                    "enums": null,
                     "field": "first_name",
+                    "type": "String",
+                    "enums": null,
+                    "defaultValue": null,
                     "integration": null,
                     "inverseOf": null,
                     "isFilterable": true,
@@ -887,7 +888,6 @@
                     "isSortable": true,
                     "isVirtual": false,
                     "reference": null,
-                    "type": "String",
                     "validations": [
                         {
                             "type": "is present",
@@ -902,9 +902,10 @@
                     ]
                 },
                 {
-                    "defaultValue": null,
-                    "enums": null,
                     "field": "full_name",
+                    "type": "String",
+                    "enums": null,
+                    "defaultValue": null,
                     "integration": null,
                     "inverseOf": null,
                     "isFilterable": true,
@@ -914,13 +915,13 @@
                     "isSortable": false,
                     "isVirtual": false,
                     "reference": null,
-                    "type": "String",
                     "validations": []
                 },
                 {
-                    "defaultValue": null,
-                    "enums": null,
                     "field": "id",
+                    "type": "Number",
+                    "enums": null,
+                    "defaultValue": null,
                     "integration": null,
                     "inverseOf": null,
                     "isFilterable": true,
@@ -930,13 +931,13 @@
                     "isSortable": true,
                     "isVirtual": false,
                     "reference": null,
-                    "type": "Number",
                     "validations": []
                 },
                 {
-                    "defaultValue": false,
-                    "enums": null,
                     "field": "is_vip",
+                    "type": "Boolean",
+                    "enums": null,
+                    "defaultValue": false,
                     "integration": null,
                     "inverseOf": null,
                     "isFilterable": true,
@@ -946,13 +947,13 @@
                     "isSortable": true,
                     "isVirtual": false,
                     "reference": null,
-                    "type": "Boolean",
                     "validations": []
                 },
                 {
-                    "defaultValue": null,
-                    "enums": null,
                     "field": "last_name",
+                    "type": "String",
+                    "enums": null,
+                    "defaultValue": null,
                     "integration": null,
                     "inverseOf": null,
                     "isFilterable": true,
@@ -962,7 +963,6 @@
                     "isSortable": true,
                     "isVirtual": false,
                     "reference": null,
-                    "type": "String",
                     "validations": [
                         {
                             "type": "is present",
@@ -977,9 +977,12 @@
                     ]
                 },
                 {
+                    "field": "orders_customer",
+                    "type": [
+                        "Number"
+                    ],
                     "defaultValue": null,
                     "enums": null,
-                    "field": "orders_customer",
                     "inverseOf": "customer",
                     "isFilterable": false,
                     "isPrimaryKey": false,
@@ -989,15 +992,15 @@
                     "isVirtual": false,
                     "reference": "app_order.id",
                     "relationship": "HasMany",
-                    "type": [
-                        "Number"
-                    ],
                     "validations": []
                 },
                 {
+                    "field": "smart_billing_addresses",
+                    "type": [
+                        "Number"
+                    ],
                     "defaultValue": null,
                     "enums": null,
-                    "field": "smart_billing_addresses",
                     "inverseOf": null,
                     "isFilterable": false,
                     "isPrimaryKey": false,
@@ -1007,15 +1010,15 @@
                     "isVirtual": false,
                     "reference": "app_address.id",
                     "relationship": "BelongsToMany",
-                    "type": [
-                        "Number"
-                    ],
                     "validations": []
                 },
                 {
+                    "field": "smart_carts",
+                    "type": [
+                        "Number"
+                    ],
                     "defaultValue": null,
                     "enums": null,
-                    "field": "smart_carts",
                     "inverseOf": null,
                     "isFilterable": false,
                     "isPrimaryKey": false,
@@ -1025,15 +1028,15 @@
                     "isVirtual": false,
                     "reference": "app_cart.id",
                     "relationship": "HasMany",
-                    "type": [
-                        "Number"
-                    ],
                     "validations": []
                 },
                 {
+                    "field": "smart_delivering_addresses",
+                    "type": [
+                        "Number"
+                    ],
                     "defaultValue": null,
                     "enums": null,
-                    "field": "smart_delivering_addresses",
                     "inverseOf": null,
                     "isFilterable": false,
                     "isPrimaryKey": false,
@@ -1043,15 +1046,13 @@
                     "isVirtual": false,
                     "reference": "app_address.id",
                     "relationship": "BelongsToMany",
-                    "type": [
-                        "Number"
-                    ],
                     "validations": []
                 },
                 {
-                    "defaultValue": null,
-                    "enums": null,
                     "field": "updated_at",
+                    "type": "Date",
+                    "enums": null,
+                    "defaultValue": null,
                     "integration": null,
                     "inverseOf": null,
                     "isFilterable": true,
@@ -1061,27 +1062,27 @@
                     "isSortable": true,
                     "isVirtual": false,
                     "reference": null,
-                    "type": "Date",
                     "validations": []
                 }
             ]
         },
         {
             "name": "app_customer_blocked_customer",
-            "isVirtual": false,
             "icon": null,
-            "isReadOnly": false,
             "integration": null,
+            "isReadOnly": false,
             "isSearchable": true,
+            "isVirtual": false,
             "onlyForRelationships": false,
             "paginationType": "page",
             "actions": [],
             "segments": [],
             "fields": [
                 {
+                    "field": "from_customer",
+                    "type": "Number",
                     "defaultValue": null,
                     "enums": null,
-                    "field": "from_customer",
                     "inverseOf": "Customer_blocked_customer+_from_customer",
                     "isFilterable": true,
                     "isPrimaryKey": false,
@@ -1091,7 +1092,6 @@
                     "isVirtual": false,
                     "reference": "app_customer.id",
                     "relationship": "BelongsTo",
-                    "type": "Number",
                     "validations": [
                         {
                             "type": "is present",
@@ -1101,9 +1101,10 @@
                     ]
                 },
                 {
-                    "defaultValue": null,
-                    "enums": null,
                     "field": "id",
+                    "type": "Number",
+                    "enums": null,
+                    "defaultValue": null,
                     "integration": null,
                     "inverseOf": null,
                     "isFilterable": true,
@@ -1113,13 +1114,13 @@
                     "isSortable": true,
                     "isVirtual": false,
                     "reference": null,
-                    "type": "Number",
                     "validations": []
                 },
                 {
+                    "field": "to_customer",
+                    "type": "Number",
                     "defaultValue": null,
                     "enums": null,
-                    "field": "to_customer",
                     "inverseOf": "Customer_blocked_customer+_to_customer",
                     "isFilterable": true,
                     "isPrimaryKey": false,
@@ -1129,7 +1130,6 @@
                     "isVirtual": false,
                     "reference": "app_customer.id",
                     "relationship": "BelongsTo",
-                    "type": "Number",
                     "validations": [
                         {
                             "type": "is present",
@@ -1142,20 +1142,21 @@
         },
         {
             "name": "app_customeraddress",
-            "isVirtual": false,
             "icon": null,
-            "isReadOnly": false,
             "integration": null,
+            "isReadOnly": false,
             "isSearchable": true,
+            "isVirtual": false,
             "onlyForRelationships": false,
             "paginationType": "page",
             "actions": [],
             "segments": [],
             "fields": [
                 {
+                    "field": "address",
+                    "type": "Number",
                     "defaultValue": null,
                     "enums": null,
-                    "field": "address",
                     "inverseOf": "customeraddress_address",
                     "isFilterable": true,
                     "isPrimaryKey": false,
@@ -1165,7 +1166,6 @@
                     "isVirtual": false,
                     "reference": "app_address.id",
                     "relationship": "BelongsTo",
-                    "type": "Number",
                     "validations": [
                         {
                             "type": "is present",
@@ -1175,9 +1175,10 @@
                     ]
                 },
                 {
+                    "field": "customer",
+                    "type": "Number",
                     "defaultValue": null,
                     "enums": null,
-                    "field": "customer",
                     "inverseOf": "customeraddress_customer",
                     "isFilterable": true,
                     "isPrimaryKey": false,
@@ -1187,7 +1188,6 @@
                     "isVirtual": false,
                     "reference": "app_customer.id",
                     "relationship": "BelongsTo",
-                    "type": "Number",
                     "validations": [
                         {
                             "type": "is present",
@@ -1197,9 +1197,10 @@
                     ]
                 },
                 {
-                    "defaultValue": null,
-                    "enums": null,
                     "field": "id",
+                    "type": "Number",
+                    "enums": null,
+                    "defaultValue": null,
                     "integration": null,
                     "inverseOf": null,
                     "isFilterable": true,
@@ -1209,27 +1210,27 @@
                     "isSortable": true,
                     "isVirtual": false,
                     "reference": null,
-                    "type": "Number",
                     "validations": []
                 }
             ]
         },
         {
             "name": "app_discountcart",
-            "isVirtual": false,
             "icon": null,
-            "isReadOnly": false,
             "integration": null,
+            "isReadOnly": false,
             "isSearchable": true,
+            "isVirtual": false,
             "onlyForRelationships": false,
             "paginationType": "page",
             "actions": [],
             "segments": [],
             "fields": [
                 {
-                    "defaultValue": null,
-                    "enums": null,
                     "field": "discount",
+                    "type": "Number",
+                    "enums": null,
+                    "defaultValue": null,
                     "integration": null,
                     "inverseOf": null,
                     "isFilterable": true,
@@ -1239,7 +1240,6 @@
                     "isSortable": true,
                     "isVirtual": false,
                     "reference": null,
-                    "type": "Number",
                     "validations": [
                         {
                             "type": "is present",
@@ -1249,9 +1249,10 @@
                     ]
                 },
                 {
+                    "field": "extendedcart",
+                    "type": "Number",
                     "defaultValue": null,
                     "enums": null,
-                    "field": "extendedcart",
                     "inverseOf": "discount",
                     "isFilterable": true,
                     "isPrimaryKey": false,
@@ -1261,13 +1262,13 @@
                     "isVirtual": false,
                     "reference": "app_extendedcart.discount_id",
                     "relationship": "HasOne",
-                    "type": "Number",
                     "validations": []
                 },
                 {
-                    "defaultValue": null,
-                    "enums": null,
                     "field": "id",
+                    "type": "Number",
+                    "enums": null,
+                    "defaultValue": null,
                     "integration": null,
                     "inverseOf": null,
                     "isFilterable": true,
@@ -1277,27 +1278,27 @@
                     "isSortable": true,
                     "isVirtual": false,
                     "reference": null,
-                    "type": "Number",
                     "validations": []
                 }
             ]
         },
         {
             "name": "app_extendedcart",
-            "isVirtual": false,
             "icon": null,
-            "isReadOnly": false,
             "integration": null,
+            "isReadOnly": false,
             "isSearchable": true,
+            "isVirtual": false,
             "onlyForRelationships": false,
             "paginationType": "page",
             "actions": [],
             "segments": [],
             "fields": [
                 {
+                    "field": "cart",
+                    "type": "Number",
                     "defaultValue": null,
                     "enums": null,
-                    "field": "cart",
                     "inverseOf": "extendedcart",
                     "isFilterable": true,
                     "isPrimaryKey": false,
@@ -1307,7 +1308,6 @@
                     "isVirtual": false,
                     "reference": "app_cart.id",
                     "relationship": "BelongsTo",
-                    "type": "Number",
                     "validations": [
                         {
                             "type": "is present",
@@ -1317,9 +1317,10 @@
                     ]
                 },
                 {
-                    "defaultValue": null,
-                    "enums": null,
                     "field": "cart_id",
+                    "type": "Number",
+                    "enums": null,
+                    "defaultValue": null,
                     "integration": null,
                     "inverseOf": null,
                     "isFilterable": true,
@@ -1329,7 +1330,6 @@
                     "isSortable": true,
                     "isVirtual": false,
                     "reference": null,
-                    "type": "Number",
                     "validations": [
                         {
                             "type": "is present",
@@ -1339,9 +1339,10 @@
                     ]
                 },
                 {
-                    "defaultValue": null,
-                    "enums": null,
                     "field": "color",
+                    "type": "String",
+                    "enums": null,
+                    "defaultValue": null,
                     "integration": null,
                     "inverseOf": null,
                     "isFilterable": true,
@@ -1351,7 +1352,6 @@
                     "isSortable": true,
                     "isVirtual": false,
                     "reference": null,
-                    "type": "String",
                     "validations": [
                         {
                             "type": "is present",
@@ -1366,9 +1366,10 @@
                     ]
                 },
                 {
+                    "field": "discount",
+                    "type": "Number",
                     "defaultValue": null,
                     "enums": null,
-                    "field": "discount",
                     "inverseOf": "extendedcart",
                     "isFilterable": true,
                     "isPrimaryKey": false,
@@ -1378,18 +1379,17 @@
                     "isVirtual": false,
                     "reference": "app_discountcart.id",
                     "relationship": "BelongsTo",
-                    "type": "Number",
                     "validations": []
                 }
             ]
         },
         {
             "name": "app_order",
-            "isVirtual": false,
             "icon": null,
-            "isReadOnly": false,
             "integration": null,
+            "isReadOnly": false,
             "isSearchable": true,
+            "isVirtual": false,
             "onlyForRelationships": false,
             "paginationType": "page",
             "actions": [
@@ -1500,9 +1500,10 @@
             ],
             "fields": [
                 {
+                    "field": "billing_address",
+                    "type": "Number",
                     "defaultValue": null,
                     "enums": null,
-                    "field": "billing_address",
                     "inverseOf": "billing_orders_billing_address",
                     "isFilterable": true,
                     "isPrimaryKey": false,
@@ -1512,7 +1513,6 @@
                     "isVirtual": false,
                     "reference": "app_address.id",
                     "relationship": "BelongsTo",
-                    "type": "Number",
                     "validations": [
                         {
                             "type": "is present",
@@ -1522,9 +1522,10 @@
                     ]
                 },
                 {
+                    "field": "cart",
+                    "type": "Number",
                     "defaultValue": null,
                     "enums": null,
-                    "field": "cart",
                     "inverseOf": "order",
                     "isFilterable": true,
                     "isPrimaryKey": false,
@@ -1534,13 +1535,13 @@
                     "isVirtual": false,
                     "reference": "app_cart.order_id",
                     "relationship": "HasOne",
-                    "type": "Number",
                     "validations": []
                 },
                 {
-                    "defaultValue": null,
-                    "enums": null,
                     "field": "cost",
+                    "type": "Number",
+                    "enums": null,
+                    "defaultValue": null,
                     "integration": null,
                     "inverseOf": null,
                     "isFilterable": true,
@@ -1550,7 +1551,6 @@
                     "isSortable": true,
                     "isVirtual": false,
                     "reference": null,
-                    "type": "Number",
                     "validations": [
                         {
                             "type": "is present",
@@ -1570,9 +1570,10 @@
                     ]
                 },
                 {
-                    "defaultValue": null,
-                    "enums": null,
                     "field": "created_at",
+                    "type": "Date",
+                    "enums": null,
+                    "defaultValue": null,
                     "integration": null,
                     "inverseOf": null,
                     "isFilterable": true,
@@ -1582,13 +1583,13 @@
                     "isSortable": true,
                     "isVirtual": false,
                     "reference": null,
-                    "type": "Date",
                     "validations": []
                 },
                 {
+                    "field": "customer",
+                    "type": "Number",
                     "defaultValue": null,
                     "enums": null,
-                    "field": "customer",
                     "inverseOf": "orders_customer",
                     "isFilterable": true,
                     "isPrimaryKey": false,
@@ -1598,13 +1599,13 @@
                     "isVirtual": false,
                     "reference": "app_customer.id",
                     "relationship": "BelongsTo",
-                    "type": "Number",
                     "validations": []
                 },
                 {
-                    "defaultValue": null,
-                    "enums": null,
                     "field": "customer_first_name",
+                    "type": "String",
+                    "enums": null,
+                    "defaultValue": null,
                     "integration": null,
                     "inverseOf": null,
                     "isFilterable": true,
@@ -1614,13 +1615,13 @@
                     "isSortable": true,
                     "isVirtual": false,
                     "reference": null,
-                    "type": "String",
                     "validations": []
                 },
                 {
-                    "defaultValue": null,
-                    "enums": null,
                     "field": "customer_full_name",
+                    "type": "String",
+                    "enums": null,
+                    "defaultValue": null,
                     "integration": null,
                     "inverseOf": null,
                     "isFilterable": false,
@@ -1630,13 +1631,13 @@
                     "isSortable": false,
                     "isVirtual": false,
                     "reference": null,
-                    "type": "String",
                     "validations": []
                 },
                 {
+                    "field": "delivering_address",
+                    "type": "Number",
                     "defaultValue": null,
                     "enums": null,
-                    "field": "delivering_address",
                     "inverseOf": "delivering_orders_delivering_address",
                     "isFilterable": true,
                     "isPrimaryKey": false,
@@ -1646,7 +1647,6 @@
                     "isVirtual": false,
                     "reference": "app_address.id",
                     "relationship": "BelongsTo",
-                    "type": "Number",
                     "validations": [
                         {
                             "type": "is present",
@@ -1656,9 +1656,10 @@
                     ]
                 },
                 {
-                    "defaultValue": null,
-                    "enums": null,
                     "field": "id",
+                    "type": "Number",
+                    "enums": null,
+                    "defaultValue": null,
                     "integration": null,
                     "inverseOf": null,
                     "isFilterable": true,
@@ -1668,13 +1669,13 @@
                     "isSortable": true,
                     "isVirtual": false,
                     "reference": null,
-                    "type": "Number",
                     "validations": []
                 },
                 {
-                    "defaultValue": null,
-                    "enums": null,
                     "field": "ordered_at",
+                    "type": "Date",
+                    "enums": null,
+                    "defaultValue": null,
                     "integration": null,
                     "inverseOf": null,
                     "isFilterable": true,
@@ -1684,13 +1685,13 @@
                     "isSortable": true,
                     "isVirtual": false,
                     "reference": null,
-                    "type": "Date",
                     "validations": []
                 },
                 {
-                    "defaultValue": null,
-                    "enums": null,
                     "field": "ordered_date",
+                    "type": "Date",
+                    "enums": null,
+                    "defaultValue": null,
                     "integration": null,
                     "inverseOf": null,
                     "isFilterable": false,
@@ -1700,18 +1701,18 @@
                     "isSortable": false,
                     "isVirtual": false,
                     "reference": null,
-                    "type": "Date",
                     "validations": []
                 },
                 {
-                    "defaultValue": null,
+                    "field": "status",
+                    "type": "Enum",
                     "enums": [
                         "PENDING",
                         "DISPATCHED",
                         "DELIVERED",
                         "REJECTED"
                     ],
-                    "field": "status",
+                    "defaultValue": null,
                     "integration": null,
                     "inverseOf": null,
                     "isFilterable": true,
@@ -1721,7 +1722,6 @@
                     "isSortable": true,
                     "isVirtual": false,
                     "reference": null,
-                    "type": "Enum",
                     "validations": [
                         {
                             "type": "is present",
@@ -1736,25 +1736,10 @@
                     ]
                 },
                 {
-                    "defaultValue": null,
-                    "enums": null,
-                    "field": "test_skillcorner",
-                    "integration": null,
-                    "inverseOf": null,
-                    "isFilterable": false,
-                    "isPrimaryKey": false,
-                    "isReadOnly": true,
-                    "isRequired": false,
-                    "isSortable": false,
-                    "isVirtual": false,
-                    "reference": null,
-                    "type": "String",
-                    "validations": []
-                },
-                {
-                    "defaultValue": null,
-                    "enums": null,
                     "field": "updated_at",
+                    "type": "Date",
+                    "enums": null,
+                    "defaultValue": null,
                     "integration": null,
                     "inverseOf": null,
                     "isFilterable": true,
@@ -1764,27 +1749,29 @@
                     "isSortable": true,
                     "isVirtual": false,
                     "reference": null,
-                    "type": "Date",
                     "validations": []
                 }
             ]
         },
         {
             "name": "auth_group",
-            "isVirtual": false,
             "icon": null,
-            "isReadOnly": false,
             "integration": null,
+            "isReadOnly": false,
             "isSearchable": true,
+            "isVirtual": false,
             "onlyForRelationships": false,
             "paginationType": "page",
             "actions": [],
             "segments": [],
             "fields": [
                 {
+                    "field": "Group_permissions+_group",
+                    "type": [
+                        "Number"
+                    ],
                     "defaultValue": null,
                     "enums": null,
-                    "field": "Group_permissions+_group",
                     "inverseOf": "group",
                     "isFilterable": false,
                     "isPrimaryKey": false,
@@ -1794,15 +1781,15 @@
                     "isVirtual": false,
                     "reference": "auth_group_permissions.id",
                     "relationship": "HasMany",
-                    "type": [
-                        "Number"
-                    ],
                     "validations": []
                 },
                 {
+                    "field": "User_groups+_group",
+                    "type": [
+                        "Number"
+                    ],
                     "defaultValue": null,
                     "enums": null,
-                    "field": "User_groups+_group",
                     "inverseOf": "group",
                     "isFilterable": false,
                     "isPrimaryKey": false,
@@ -1812,15 +1799,13 @@
                     "isVirtual": false,
                     "reference": "auth_user_groups.id",
                     "relationship": "HasMany",
-                    "type": [
-                        "Number"
-                    ],
                     "validations": []
                 },
                 {
-                    "defaultValue": null,
-                    "enums": null,
                     "field": "id",
+                    "type": "Number",
+                    "enums": null,
+                    "defaultValue": null,
                     "integration": null,
                     "inverseOf": null,
                     "isFilterable": true,
@@ -1830,13 +1815,13 @@
                     "isSortable": true,
                     "isVirtual": false,
                     "reference": null,
-                    "type": "Number",
                     "validations": []
                 },
                 {
-                    "defaultValue": null,
-                    "enums": null,
                     "field": "name",
+                    "type": "String",
+                    "enums": null,
+                    "defaultValue": null,
                     "integration": null,
                     "inverseOf": null,
                     "isFilterable": true,
@@ -1846,7 +1831,6 @@
                     "isSortable": true,
                     "isVirtual": false,
                     "reference": null,
-                    "type": "String",
                     "validations": [
                         {
                             "type": "is present",
@@ -1861,9 +1845,12 @@
                     ]
                 },
                 {
+                    "field": "permissions",
+                    "type": [
+                        "Number"
+                    ],
                     "defaultValue": null,
                     "enums": null,
-                    "field": "permissions",
                     "inverseOf": "group",
                     "isFilterable": false,
                     "isPrimaryKey": false,
@@ -1873,15 +1860,15 @@
                     "isVirtual": false,
                     "reference": "auth_permission.id",
                     "relationship": "BelongsToMany",
-                    "type": [
-                        "Number"
-                    ],
                     "validations": []
                 },
                 {
+                    "field": "user",
+                    "type": [
+                        "Number"
+                    ],
                     "defaultValue": null,
                     "enums": null,
-                    "field": "user",
                     "inverseOf": "groups",
                     "isFilterable": false,
                     "isPrimaryKey": false,
@@ -1891,29 +1878,27 @@
                     "isVirtual": false,
                     "reference": "auth_user.id",
                     "relationship": "BelongsToMany",
-                    "type": [
-                        "Number"
-                    ],
                     "validations": []
                 }
             ]
         },
         {
             "name": "auth_group_permissions",
-            "isVirtual": false,
             "icon": null,
-            "isReadOnly": false,
             "integration": null,
+            "isReadOnly": false,
             "isSearchable": true,
+            "isVirtual": false,
             "onlyForRelationships": false,
             "paginationType": "page",
             "actions": [],
             "segments": [],
             "fields": [
                 {
+                    "field": "group",
+                    "type": "Number",
                     "defaultValue": null,
                     "enums": null,
-                    "field": "group",
                     "inverseOf": "Group_permissions+_group",
                     "isFilterable": true,
                     "isPrimaryKey": false,
@@ -1923,7 +1908,6 @@
                     "isVirtual": false,
                     "reference": "auth_group.id",
                     "relationship": "BelongsTo",
-                    "type": "Number",
                     "validations": [
                         {
                             "type": "is present",
@@ -1933,9 +1917,10 @@
                     ]
                 },
                 {
-                    "defaultValue": null,
-                    "enums": null,
                     "field": "id",
+                    "type": "Number",
+                    "enums": null,
+                    "defaultValue": null,
                     "integration": null,
                     "inverseOf": null,
                     "isFilterable": true,
@@ -1945,13 +1930,13 @@
                     "isSortable": true,
                     "isVirtual": false,
                     "reference": null,
-                    "type": "Number",
                     "validations": []
                 },
                 {
+                    "field": "permission",
+                    "type": "Number",
                     "defaultValue": null,
                     "enums": null,
-                    "field": "permission",
                     "inverseOf": "Group_permissions+_permission",
                     "isFilterable": true,
                     "isPrimaryKey": false,
@@ -1961,7 +1946,6 @@
                     "isVirtual": false,
                     "reference": "auth_permission.id",
                     "relationship": "BelongsTo",
-                    "type": "Number",
                     "validations": [
                         {
                             "type": "is present",
@@ -1974,20 +1958,23 @@
         },
         {
             "name": "auth_permission",
-            "isVirtual": false,
             "icon": null,
-            "isReadOnly": false,
             "integration": null,
+            "isReadOnly": false,
             "isSearchable": true,
+            "isVirtual": false,
             "onlyForRelationships": false,
             "paginationType": "page",
             "actions": [],
             "segments": [],
             "fields": [
                 {
+                    "field": "Group_permissions+_permission",
+                    "type": [
+                        "Number"
+                    ],
                     "defaultValue": null,
                     "enums": null,
-                    "field": "Group_permissions+_permission",
                     "inverseOf": "permission",
                     "isFilterable": false,
                     "isPrimaryKey": false,
@@ -1997,15 +1984,15 @@
                     "isVirtual": false,
                     "reference": "auth_group_permissions.id",
                     "relationship": "HasMany",
-                    "type": [
-                        "Number"
-                    ],
                     "validations": []
                 },
                 {
+                    "field": "User_user_permissions+_permission",
+                    "type": [
+                        "Number"
+                    ],
                     "defaultValue": null,
                     "enums": null,
-                    "field": "User_user_permissions+_permission",
                     "inverseOf": "permission",
                     "isFilterable": false,
                     "isPrimaryKey": false,
@@ -2015,15 +2002,13 @@
                     "isVirtual": false,
                     "reference": "auth_user_user_permissions.id",
                     "relationship": "HasMany",
-                    "type": [
-                        "Number"
-                    ],
                     "validations": []
                 },
                 {
-                    "defaultValue": null,
-                    "enums": null,
                     "field": "codename",
+                    "type": "String",
+                    "enums": null,
+                    "defaultValue": null,
                     "integration": null,
                     "inverseOf": null,
                     "isFilterable": true,
@@ -2033,7 +2018,6 @@
                     "isSortable": true,
                     "isVirtual": false,
                     "reference": null,
-                    "type": "String",
                     "validations": [
                         {
                             "type": "is present",
@@ -2048,9 +2032,10 @@
                     ]
                 },
                 {
+                    "field": "content_type",
+                    "type": "Number",
                     "defaultValue": null,
                     "enums": null,
-                    "field": "content_type",
                     "inverseOf": "permission_content_type",
                     "isFilterable": true,
                     "isPrimaryKey": false,
@@ -2060,7 +2045,6 @@
                     "isVirtual": false,
                     "reference": "django_content_type.id",
                     "relationship": "BelongsTo",
-                    "type": "Number",
                     "validations": [
                         {
                             "type": "is present",
@@ -2070,9 +2054,12 @@
                     ]
                 },
                 {
+                    "field": "group",
+                    "type": [
+                        "Number"
+                    ],
                     "defaultValue": null,
                     "enums": null,
-                    "field": "group",
                     "inverseOf": "permissions",
                     "isFilterable": false,
                     "isPrimaryKey": false,
@@ -2082,15 +2069,13 @@
                     "isVirtual": false,
                     "reference": "auth_group.id",
                     "relationship": "BelongsToMany",
-                    "type": [
-                        "Number"
-                    ],
                     "validations": []
                 },
                 {
-                    "defaultValue": null,
-                    "enums": null,
                     "field": "id",
+                    "type": "Number",
+                    "enums": null,
+                    "defaultValue": null,
                     "integration": null,
                     "inverseOf": null,
                     "isFilterable": true,
@@ -2100,13 +2085,13 @@
                     "isSortable": true,
                     "isVirtual": false,
                     "reference": null,
-                    "type": "Number",
                     "validations": []
                 },
                 {
-                    "defaultValue": null,
-                    "enums": null,
                     "field": "name",
+                    "type": "String",
+                    "enums": null,
+                    "defaultValue": null,
                     "integration": null,
                     "inverseOf": null,
                     "isFilterable": true,
@@ -2116,7 +2101,6 @@
                     "isSortable": true,
                     "isVirtual": false,
                     "reference": null,
-                    "type": "String",
                     "validations": [
                         {
                             "type": "is present",
@@ -2131,9 +2115,12 @@
                     ]
                 },
                 {
+                    "field": "user",
+                    "type": [
+                        "Number"
+                    ],
                     "defaultValue": null,
                     "enums": null,
-                    "field": "user",
                     "inverseOf": "user_permissions",
                     "isFilterable": false,
                     "isPrimaryKey": false,
@@ -2143,29 +2130,29 @@
                     "isVirtual": false,
                     "reference": "auth_user.id",
                     "relationship": "BelongsToMany",
-                    "type": [
-                        "Number"
-                    ],
                     "validations": []
                 }
             ]
         },
         {
             "name": "auth_user",
-            "isVirtual": false,
             "icon": null,
-            "isReadOnly": false,
             "integration": null,
+            "isReadOnly": false,
             "isSearchable": true,
+            "isVirtual": false,
             "onlyForRelationships": false,
             "paginationType": "page",
             "actions": [],
             "segments": [],
             "fields": [
                 {
+                    "field": "User_groups+_user",
+                    "type": [
+                        "Number"
+                    ],
                     "defaultValue": null,
                     "enums": null,
-                    "field": "User_groups+_user",
                     "inverseOf": "user",
                     "isFilterable": false,
                     "isPrimaryKey": false,
@@ -2175,15 +2162,15 @@
                     "isVirtual": false,
                     "reference": "auth_user_groups.id",
                     "relationship": "HasMany",
-                    "type": [
-                        "Number"
-                    ],
                     "validations": []
                 },
                 {
+                    "field": "User_user_permissions+_user",
+                    "type": [
+                        "Number"
+                    ],
                     "defaultValue": null,
                     "enums": null,
-                    "field": "User_user_permissions+_user",
                     "inverseOf": "user",
                     "isFilterable": false,
                     "isPrimaryKey": false,
@@ -2193,15 +2180,13 @@
                     "isVirtual": false,
                     "reference": "auth_user_user_permissions.id",
                     "relationship": "HasMany",
-                    "type": [
-                        "Number"
-                    ],
                     "validations": []
                 },
                 {
-                    "defaultValue": null,
-                    "enums": null,
                     "field": "date_joined",
+                    "type": "Date",
+                    "enums": null,
+                    "defaultValue": null,
                     "integration": null,
                     "inverseOf": null,
                     "isFilterable": true,
@@ -2211,13 +2196,13 @@
                     "isSortable": true,
                     "isVirtual": false,
                     "reference": null,
-                    "type": "Date",
                     "validations": []
                 },
                 {
-                    "defaultValue": null,
-                    "enums": null,
                     "field": "email",
+                    "type": "String",
+                    "enums": null,
+                    "defaultValue": null,
                     "integration": null,
                     "inverseOf": null,
                     "isFilterable": true,
@@ -2227,7 +2212,6 @@
                     "isSortable": true,
                     "isVirtual": false,
                     "reference": null,
-                    "type": "String",
                     "validations": [
                         {
                             "type": "is shorter than",
@@ -2237,9 +2221,10 @@
                     ]
                 },
                 {
-                    "defaultValue": null,
-                    "enums": null,
                     "field": "first_name",
+                    "type": "String",
+                    "enums": null,
+                    "defaultValue": null,
                     "integration": null,
                     "inverseOf": null,
                     "isFilterable": true,
@@ -2249,7 +2234,6 @@
                     "isSortable": true,
                     "isVirtual": false,
                     "reference": null,
-                    "type": "String",
                     "validations": [
                         {
                             "type": "is shorter than",
@@ -2259,9 +2243,12 @@
                     ]
                 },
                 {
+                    "field": "groups",
+                    "type": [
+                        "Number"
+                    ],
                     "defaultValue": null,
                     "enums": null,
-                    "field": "groups",
                     "inverseOf": "user",
                     "isFilterable": false,
                     "isPrimaryKey": false,
@@ -2271,15 +2258,13 @@
                     "isVirtual": false,
                     "reference": "auth_group.id",
                     "relationship": "BelongsToMany",
-                    "type": [
-                        "Number"
-                    ],
                     "validations": []
                 },
                 {
-                    "defaultValue": null,
-                    "enums": null,
                     "field": "id",
+                    "type": "Number",
+                    "enums": null,
+                    "defaultValue": null,
                     "integration": null,
                     "inverseOf": null,
                     "isFilterable": true,
@@ -2289,13 +2274,13 @@
                     "isSortable": true,
                     "isVirtual": false,
                     "reference": null,
-                    "type": "Number",
                     "validations": []
                 },
                 {
-                    "defaultValue": true,
-                    "enums": null,
                     "field": "is_active",
+                    "type": "Boolean",
+                    "enums": null,
+                    "defaultValue": true,
                     "integration": null,
                     "inverseOf": null,
                     "isFilterable": true,
@@ -2305,45 +2290,45 @@
                     "isSortable": true,
                     "isVirtual": false,
                     "reference": null,
-                    "type": "Boolean",
                     "validations": []
                 },
                 {
-                    "defaultValue": false,
-                    "enums": null,
                     "field": "is_staff",
-                    "integration": null,
-                    "inverseOf": null,
-                    "isFilterable": true,
-                    "isPrimaryKey": false,
-                    "isReadOnly": false,
-                    "isRequired": false,
-                    "isSortable": true,
-                    "isVirtual": false,
-                    "reference": null,
                     "type": "Boolean",
-                    "validations": []
-                },
-                {
+                    "enums": null,
                     "defaultValue": false,
-                    "enums": null,
+                    "integration": null,
+                    "inverseOf": null,
+                    "isFilterable": true,
+                    "isPrimaryKey": false,
+                    "isReadOnly": false,
+                    "isRequired": false,
+                    "isSortable": true,
+                    "isVirtual": false,
+                    "reference": null,
+                    "validations": []
+                },
+                {
                     "field": "is_superuser",
-                    "integration": null,
-                    "inverseOf": null,
-                    "isFilterable": true,
-                    "isPrimaryKey": false,
-                    "isReadOnly": false,
-                    "isRequired": false,
-                    "isSortable": true,
-                    "isVirtual": false,
-                    "reference": null,
                     "type": "Boolean",
+                    "enums": null,
+                    "defaultValue": false,
+                    "integration": null,
+                    "inverseOf": null,
+                    "isFilterable": true,
+                    "isPrimaryKey": false,
+                    "isReadOnly": false,
+                    "isRequired": false,
+                    "isSortable": true,
+                    "isVirtual": false,
+                    "reference": null,
                     "validations": []
                 },
                 {
-                    "defaultValue": null,
-                    "enums": null,
                     "field": "last_login",
+                    "type": "Date",
+                    "enums": null,
+                    "defaultValue": null,
                     "integration": null,
                     "inverseOf": null,
                     "isFilterable": true,
@@ -2353,13 +2338,13 @@
                     "isSortable": true,
                     "isVirtual": false,
                     "reference": null,
-                    "type": "Date",
                     "validations": []
                 },
                 {
-                    "defaultValue": null,
-                    "enums": null,
                     "field": "last_name",
+                    "type": "String",
+                    "enums": null,
+                    "defaultValue": null,
                     "integration": null,
                     "inverseOf": null,
                     "isFilterable": true,
@@ -2369,7 +2354,6 @@
                     "isSortable": true,
                     "isVirtual": false,
                     "reference": null,
-                    "type": "String",
                     "validations": [
                         {
                             "type": "is shorter than",
@@ -2379,9 +2363,12 @@
                     ]
                 },
                 {
+                    "field": "logentry_user",
+                    "type": [
+                        "Number"
+                    ],
                     "defaultValue": null,
                     "enums": null,
-                    "field": "logentry_user",
                     "inverseOf": "user",
                     "isFilterable": false,
                     "isPrimaryKey": false,
@@ -2391,15 +2378,13 @@
                     "isVirtual": false,
                     "reference": "django_admin_log.id",
                     "relationship": "HasMany",
-                    "type": [
-                        "Number"
-                    ],
                     "validations": []
                 },
                 {
-                    "defaultValue": null,
-                    "enums": null,
                     "field": "password",
+                    "type": "String",
+                    "enums": null,
+                    "defaultValue": null,
                     "integration": null,
                     "inverseOf": null,
                     "isFilterable": true,
@@ -2409,7 +2394,6 @@
                     "isSortable": true,
                     "isVirtual": false,
                     "reference": null,
-                    "type": "String",
                     "validations": [
                         {
                             "type": "is present",
@@ -2424,9 +2408,12 @@
                     ]
                 },
                 {
+                    "field": "user_permissions",
+                    "type": [
+                        "Number"
+                    ],
                     "defaultValue": null,
                     "enums": null,
-                    "field": "user_permissions",
                     "inverseOf": "user",
                     "isFilterable": false,
                     "isPrimaryKey": false,
@@ -2436,15 +2423,13 @@
                     "isVirtual": false,
                     "reference": "auth_permission.id",
                     "relationship": "BelongsToMany",
-                    "type": [
-                        "Number"
-                    ],
                     "validations": []
                 },
                 {
-                    "defaultValue": null,
-                    "enums": null,
                     "field": "username",
+                    "type": "String",
+                    "enums": null,
+                    "defaultValue": null,
                     "integration": null,
                     "inverseOf": null,
                     "isFilterable": true,
@@ -2454,7 +2439,6 @@
                     "isSortable": true,
                     "isVirtual": false,
                     "reference": null,
-                    "type": "String",
                     "validations": [
                         {
                             "type": "is present",
@@ -2472,20 +2456,21 @@
         },
         {
             "name": "auth_user_groups",
-            "isVirtual": false,
             "icon": null,
-            "isReadOnly": false,
             "integration": null,
+            "isReadOnly": false,
             "isSearchable": true,
+            "isVirtual": false,
             "onlyForRelationships": false,
             "paginationType": "page",
             "actions": [],
             "segments": [],
             "fields": [
                 {
+                    "field": "group",
+                    "type": "Number",
                     "defaultValue": null,
                     "enums": null,
-                    "field": "group",
                     "inverseOf": "User_groups+_group",
                     "isFilterable": true,
                     "isPrimaryKey": false,
@@ -2495,7 +2480,6 @@
                     "isVirtual": false,
                     "reference": "auth_group.id",
                     "relationship": "BelongsTo",
-                    "type": "Number",
                     "validations": [
                         {
                             "type": "is present",
@@ -2505,9 +2489,10 @@
                     ]
                 },
                 {
-                    "defaultValue": null,
-                    "enums": null,
                     "field": "id",
+                    "type": "Number",
+                    "enums": null,
+                    "defaultValue": null,
                     "integration": null,
                     "inverseOf": null,
                     "isFilterable": true,
@@ -2517,13 +2502,13 @@
                     "isSortable": true,
                     "isVirtual": false,
                     "reference": null,
-                    "type": "Number",
                     "validations": []
                 },
                 {
+                    "field": "user",
+                    "type": "Number",
                     "defaultValue": null,
                     "enums": null,
-                    "field": "user",
                     "inverseOf": "User_groups+_user",
                     "isFilterable": true,
                     "isPrimaryKey": false,
@@ -2533,7 +2518,6 @@
                     "isVirtual": false,
                     "reference": "auth_user.id",
                     "relationship": "BelongsTo",
-                    "type": "Number",
                     "validations": [
                         {
                             "type": "is present",
@@ -2546,20 +2530,21 @@
         },
         {
             "name": "auth_user_user_permissions",
-            "isVirtual": false,
             "icon": null,
-            "isReadOnly": false,
             "integration": null,
+            "isReadOnly": false,
             "isSearchable": true,
+            "isVirtual": false,
             "onlyForRelationships": false,
             "paginationType": "page",
             "actions": [],
             "segments": [],
             "fields": [
                 {
-                    "defaultValue": null,
-                    "enums": null,
                     "field": "id",
+                    "type": "Number",
+                    "enums": null,
+                    "defaultValue": null,
                     "integration": null,
                     "inverseOf": null,
                     "isFilterable": true,
@@ -2569,13 +2554,13 @@
                     "isSortable": true,
                     "isVirtual": false,
                     "reference": null,
-                    "type": "Number",
                     "validations": []
                 },
                 {
+                    "field": "permission",
+                    "type": "Number",
                     "defaultValue": null,
                     "enums": null,
-                    "field": "permission",
                     "inverseOf": "User_user_permissions+_permission",
                     "isFilterable": true,
                     "isPrimaryKey": false,
@@ -2585,7 +2570,6 @@
                     "isVirtual": false,
                     "reference": "auth_permission.id",
                     "relationship": "BelongsTo",
-                    "type": "Number",
                     "validations": [
                         {
                             "type": "is present",
@@ -2595,9 +2579,10 @@
                     ]
                 },
                 {
+                    "field": "user",
+                    "type": "Number",
                     "defaultValue": null,
                     "enums": null,
-                    "field": "user",
                     "inverseOf": "User_user_permissions+_user",
                     "isFilterable": true,
                     "isPrimaryKey": false,
@@ -2607,7 +2592,6 @@
                     "isVirtual": false,
                     "reference": "auth_user.id",
                     "relationship": "BelongsTo",
-                    "type": "Number",
                     "validations": [
                         {
                             "type": "is present",
@@ -2620,20 +2604,21 @@
         },
         {
             "name": "cart",
-            "isVirtual": false,
             "icon": null,
-            "isReadOnly": false,
             "integration": null,
+            "isReadOnly": false,
             "isSearchable": true,
+            "isVirtual": false,
             "onlyForRelationships": false,
             "paginationType": "page",
             "actions": [],
             "segments": [],
             "fields": [
                 {
-                    "defaultValue": null,
-                    "enums": null,
                     "field": "created_at",
+                    "type": "Date",
+                    "enums": null,
+                    "defaultValue": null,
                     "integration": null,
                     "inverseOf": null,
                     "isFilterable": true,
@@ -2643,13 +2628,13 @@
                     "isSortable": true,
                     "isVirtual": false,
                     "reference": null,
-                    "type": "Date",
                     "validations": []
                 },
                 {
-                    "defaultValue": null,
-                    "enums": null,
                     "field": "id",
+                    "type": "Number",
+                    "enums": null,
+                    "defaultValue": null,
                     "integration": null,
                     "inverseOf": null,
                     "isFilterable": true,
@@ -2659,13 +2644,13 @@
                     "isSortable": true,
                     "isVirtual": false,
                     "reference": null,
-                    "type": "Number",
                     "validations": []
                 },
                 {
-                    "defaultValue": null,
-                    "enums": null,
                     "field": "name",
+                    "type": "String",
+                    "enums": null,
+                    "defaultValue": null,
                     "integration": null,
                     "inverseOf": null,
                     "isFilterable": true,
@@ -2675,7 +2660,6 @@
                     "isSortable": true,
                     "isVirtual": false,
                     "reference": null,
-                    "type": "String",
                     "validations": [
                         {
                             "type": "is present",
@@ -2690,9 +2674,10 @@
                     ]
                 },
                 {
+                    "field": "order",
+                    "type": "Number",
                     "defaultValue": null,
                     "enums": null,
-                    "field": "order",
                     "inverseOf": "flaskcart_order",
                     "isFilterable": true,
                     "isPrimaryKey": false,
@@ -2702,27 +2687,29 @@
                     "isVirtual": false,
                     "reference": "order.id",
                     "relationship": "BelongsTo",
-                    "type": "Number",
                     "validations": []
                 }
             ]
         },
         {
             "name": "customer",
-            "isVirtual": false,
             "icon": null,
-            "isReadOnly": false,
             "integration": null,
+            "isReadOnly": false,
             "isSearchable": true,
+            "isVirtual": false,
             "onlyForRelationships": false,
             "paginationType": "page",
             "actions": [],
             "segments": [],
             "fields": [
                 {
+                    "field": "addresses",
+                    "type": [
+                        "Number"
+                    ],
                     "defaultValue": null,
                     "enums": null,
-                    "field": "addresses",
                     "inverseOf": "customers",
                     "isFilterable": false,
                     "isPrimaryKey": false,
@@ -2732,15 +2719,13 @@
                     "isVirtual": false,
                     "reference": "address.id",
                     "relationship": "BelongsToMany",
-                    "type": [
-                        "Number"
-                    ],
                     "validations": []
                 },
                 {
-                    "defaultValue": null,
-                    "enums": null,
                     "field": "age",
+                    "type": "Number",
+                    "enums": null,
+                    "defaultValue": null,
                     "integration": null,
                     "inverseOf": null,
                     "isFilterable": true,
@@ -2750,13 +2735,13 @@
                     "isSortable": true,
                     "isVirtual": false,
                     "reference": null,
-                    "type": "Number",
                     "validations": []
                 },
                 {
-                    "defaultValue": null,
-                    "enums": null,
                     "field": "avatar",
+                    "type": "String",
+                    "enums": null,
+                    "defaultValue": null,
                     "integration": null,
                     "inverseOf": null,
                     "isFilterable": false,
@@ -2766,13 +2751,13 @@
                     "isSortable": true,
                     "isVirtual": false,
                     "reference": null,
-                    "type": "String",
                     "validations": []
                 },
                 {
-                    "defaultValue": null,
-                    "enums": null,
                     "field": "birthday_date",
+                    "type": "Date",
+                    "enums": null,
+                    "defaultValue": null,
                     "integration": null,
                     "inverseOf": null,
                     "isFilterable": true,
@@ -2782,13 +2767,13 @@
                     "isSortable": true,
                     "isVirtual": false,
                     "reference": null,
-                    "type": "Date",
                     "validations": []
                 },
                 {
-                    "defaultValue": null,
-                    "enums": null,
                     "field": "first_name",
+                    "type": "String",
+                    "enums": null,
+                    "defaultValue": null,
                     "integration": null,
                     "inverseOf": null,
                     "isFilterable": true,
@@ -2798,7 +2783,6 @@
                     "isSortable": true,
                     "isVirtual": false,
                     "reference": null,
-                    "type": "String",
                     "validations": [
                         {
                             "type": "is present",
@@ -2813,9 +2797,12 @@
                     ]
                 },
                 {
+                    "field": "flaskcustomersaddresses_customer",
+                    "type": [
+                        "String"
+                    ],
                     "defaultValue": null,
                     "enums": null,
-                    "field": "flaskcustomersaddresses_customer",
                     "inverseOf": "customer",
                     "isFilterable": false,
                     "isPrimaryKey": false,
@@ -2825,15 +2812,15 @@
                     "isVirtual": false,
                     "reference": "customers_addresses.id",
                     "relationship": "HasMany",
-                    "type": [
-                        "String"
-                    ],
                     "validations": []
                 },
                 {
+                    "field": "flaskorder_customer",
+                    "type": [
+                        "String"
+                    ],
                     "defaultValue": null,
                     "enums": null,
-                    "field": "flaskorder_customer",
                     "inverseOf": "customer",
                     "isFilterable": false,
                     "isPrimaryKey": false,
@@ -2843,15 +2830,13 @@
                     "isVirtual": false,
                     "reference": "order.id",
                     "relationship": "HasMany",
-                    "type": [
-                        "String"
-                    ],
                     "validations": []
                 },
                 {
-                    "defaultValue": null,
-                    "enums": null,
                     "field": "id",
+                    "type": "String",
+                    "enums": null,
+                    "defaultValue": null,
                     "integration": null,
                     "inverseOf": null,
                     "isFilterable": false,
@@ -2861,13 +2846,13 @@
                     "isSortable": true,
                     "isVirtual": false,
                     "reference": null,
-                    "type": "String",
                     "validations": []
                 },
                 {
-                    "defaultValue": null,
-                    "enums": null,
                     "field": "is_vip",
+                    "type": "Boolean",
+                    "enums": null,
+                    "defaultValue": null,
                     "integration": null,
                     "inverseOf": null,
                     "isFilterable": true,
@@ -2877,13 +2862,13 @@
                     "isSortable": true,
                     "isVirtual": false,
                     "reference": null,
-                    "type": "Boolean",
                     "validations": []
                 },
                 {
-                    "defaultValue": null,
-                    "enums": null,
                     "field": "last_name",
+                    "type": "String",
+                    "enums": null,
+                    "defaultValue": null,
                     "integration": null,
                     "inverseOf": null,
                     "isFilterable": true,
@@ -2893,7 +2878,6 @@
                     "isSortable": true,
                     "isVirtual": false,
                     "reference": null,
-                    "type": "String",
                     "validations": [
                         {
                             "type": "is present",
@@ -2911,20 +2895,21 @@
         },
         {
             "name": "customers_addresses",
-            "isVirtual": false,
             "icon": null,
-            "isReadOnly": false,
             "integration": null,
+            "isReadOnly": false,
             "isSearchable": true,
+            "isVirtual": false,
             "onlyForRelationships": false,
             "paginationType": "page",
             "actions": [],
             "segments": [],
             "fields": [
                 {
+                    "field": "address",
+                    "type": "Number",
                     "defaultValue": null,
                     "enums": null,
-                    "field": "address",
                     "inverseOf": "flaskcustomersaddresses_address",
                     "isFilterable": true,
                     "isPrimaryKey": false,
@@ -2934,7 +2919,6 @@
                     "isVirtual": false,
                     "reference": "address.id",
                     "relationship": "BelongsTo",
-                    "type": "Number",
                     "validations": [
                         {
                             "type": "is present",
@@ -2944,9 +2928,10 @@
                     ]
                 },
                 {
+                    "field": "customer",
+                    "type": "String",
                     "defaultValue": null,
                     "enums": null,
-                    "field": "customer",
                     "inverseOf": "flaskcustomersaddresses_customer",
                     "isFilterable": true,
                     "isPrimaryKey": false,
@@ -2956,13 +2941,13 @@
                     "isVirtual": false,
                     "reference": "customer.id",
                     "relationship": "BelongsTo",
-                    "type": "String",
                     "validations": []
                 },
                 {
-                    "defaultValue": null,
-                    "enums": null,
                     "field": "id",
+                    "type": "Number",
+                    "enums": null,
+                    "defaultValue": null,
                     "integration": null,
                     "inverseOf": null,
                     "isFilterable": true,
@@ -2972,31 +2957,31 @@
                     "isSortable": true,
                     "isVirtual": false,
                     "reference": null,
-                    "type": "Number",
                     "validations": []
                 }
             ]
         },
         {
             "name": "django_admin_log",
-            "isVirtual": false,
             "icon": null,
-            "isReadOnly": false,
             "integration": null,
+            "isReadOnly": false,
             "isSearchable": true,
+            "isVirtual": false,
             "onlyForRelationships": false,
             "paginationType": "page",
             "actions": [],
             "segments": [],
             "fields": [
                 {
-                    "defaultValue": null,
+                    "field": "action_flag",
+                    "type": "Enum",
                     "enums": [
                         "1",
                         "2",
                         "3"
                     ],
-                    "field": "action_flag",
+                    "defaultValue": null,
                     "integration": null,
                     "inverseOf": null,
                     "isFilterable": true,
@@ -3006,7 +2991,6 @@
                     "isSortable": true,
                     "isVirtual": false,
                     "reference": null,
-                    "type": "Enum",
                     "validations": [
                         {
                             "type": "is present",
@@ -3016,25 +3000,10 @@
                     ]
                 },
                 {
-                    "defaultValue": null,
-                    "enums": null,
                     "field": "action_time",
-                    "integration": null,
-                    "inverseOf": null,
-                    "isFilterable": true,
-                    "isPrimaryKey": false,
-                    "isReadOnly": false,
-                    "isRequired": false,
-                    "isSortable": true,
-                    "isVirtual": false,
-                    "reference": null,
                     "type": "Date",
-                    "validations": []
-                },
-                {
-                    "defaultValue": null,
                     "enums": null,
-                    "field": "change_message",
+                    "defaultValue": null,
                     "integration": null,
                     "inverseOf": null,
                     "isFilterable": true,
@@ -3044,13 +3013,29 @@
                     "isSortable": true,
                     "isVirtual": false,
                     "reference": null,
-                    "type": "String",
                     "validations": []
                 },
                 {
+                    "field": "change_message",
+                    "type": "String",
+                    "enums": null,
+                    "defaultValue": null,
+                    "integration": null,
+                    "inverseOf": null,
+                    "isFilterable": true,
+                    "isPrimaryKey": false,
+                    "isReadOnly": false,
+                    "isRequired": false,
+                    "isSortable": true,
+                    "isVirtual": false,
+                    "reference": null,
+                    "validations": []
+                },
+                {
+                    "field": "content_type",
+                    "type": "Number",
                     "defaultValue": null,
                     "enums": null,
-                    "field": "content_type",
                     "inverseOf": "logentry_content_type",
                     "isFilterable": true,
                     "isPrimaryKey": false,
@@ -3060,13 +3045,13 @@
                     "isVirtual": false,
                     "reference": "django_content_type.id",
                     "relationship": "BelongsTo",
-                    "type": "Number",
                     "validations": []
                 },
                 {
-                    "defaultValue": null,
-                    "enums": null,
                     "field": "id",
+                    "type": "Number",
+                    "enums": null,
+                    "defaultValue": null,
                     "integration": null,
                     "inverseOf": null,
                     "isFilterable": true,
@@ -3076,13 +3061,13 @@
                     "isSortable": true,
                     "isVirtual": false,
                     "reference": null,
-                    "type": "Number",
                     "validations": []
                 },
                 {
-                    "defaultValue": null,
-                    "enums": null,
                     "field": "object_id",
+                    "type": "String",
+                    "enums": null,
+                    "defaultValue": null,
                     "integration": null,
                     "inverseOf": null,
                     "isFilterable": true,
@@ -3092,13 +3077,13 @@
                     "isSortable": true,
                     "isVirtual": false,
                     "reference": null,
-                    "type": "String",
                     "validations": []
                 },
                 {
-                    "defaultValue": null,
-                    "enums": null,
                     "field": "object_repr",
+                    "type": "String",
+                    "enums": null,
+                    "defaultValue": null,
                     "integration": null,
                     "inverseOf": null,
                     "isFilterable": true,
@@ -3108,7 +3093,6 @@
                     "isSortable": true,
                     "isVirtual": false,
                     "reference": null,
-                    "type": "String",
                     "validations": [
                         {
                             "type": "is present",
@@ -3123,9 +3107,10 @@
                     ]
                 },
                 {
+                    "field": "user",
+                    "type": "Number",
                     "defaultValue": null,
                     "enums": null,
-                    "field": "user",
                     "inverseOf": "logentry_user",
                     "isFilterable": true,
                     "isPrimaryKey": false,
@@ -3135,7 +3120,6 @@
                     "isVirtual": false,
                     "reference": "auth_user.id",
                     "relationship": "BelongsTo",
-                    "type": "Number",
                     "validations": [
                         {
                             "type": "is present",
@@ -3148,20 +3132,21 @@
         },
         {
             "name": "django_content_type",
-            "isVirtual": false,
             "icon": null,
-            "isReadOnly": false,
             "integration": null,
+            "isReadOnly": false,
             "isSearchable": true,
+            "isVirtual": false,
             "onlyForRelationships": false,
             "paginationType": "page",
             "actions": [],
             "segments": [],
             "fields": [
                 {
-                    "defaultValue": null,
-                    "enums": null,
                     "field": "app_label",
+                    "type": "String",
+                    "enums": null,
+                    "defaultValue": null,
                     "integration": null,
                     "inverseOf": null,
                     "isFilterable": true,
@@ -3171,7 +3156,6 @@
                     "isSortable": true,
                     "isVirtual": false,
                     "reference": null,
-                    "type": "String",
                     "validations": [
                         {
                             "type": "is present",
@@ -3186,9 +3170,10 @@
                     ]
                 },
                 {
-                    "defaultValue": null,
-                    "enums": null,
                     "field": "id",
+                    "type": "Number",
+                    "enums": null,
+                    "defaultValue": null,
                     "integration": null,
                     "inverseOf": null,
                     "isFilterable": true,
@@ -3198,13 +3183,15 @@
                     "isSortable": true,
                     "isVirtual": false,
                     "reference": null,
-                    "type": "Number",
                     "validations": []
                 },
                 {
+                    "field": "logentry_content_type",
+                    "type": [
+                        "Number"
+                    ],
                     "defaultValue": null,
                     "enums": null,
-                    "field": "logentry_content_type",
                     "inverseOf": "content_type",
                     "isFilterable": false,
                     "isPrimaryKey": false,
@@ -3214,15 +3201,13 @@
                     "isVirtual": false,
                     "reference": "django_admin_log.id",
                     "relationship": "HasMany",
-                    "type": [
-                        "Number"
-                    ],
                     "validations": []
                 },
                 {
-                    "defaultValue": null,
-                    "enums": null,
                     "field": "model",
+                    "type": "String",
+                    "enums": null,
+                    "defaultValue": null,
                     "integration": null,
                     "inverseOf": null,
                     "isFilterable": true,
@@ -3232,7 +3217,6 @@
                     "isSortable": true,
                     "isVirtual": false,
                     "reference": null,
-                    "type": "String",
                     "validations": [
                         {
                             "type": "is present",
@@ -3247,9 +3231,12 @@
                     ]
                 },
                 {
+                    "field": "permission_content_type",
+                    "type": [
+                        "Number"
+                    ],
                     "defaultValue": null,
                     "enums": null,
-                    "field": "permission_content_type",
                     "inverseOf": "content_type",
                     "isFilterable": false,
                     "isPrimaryKey": false,
@@ -3259,51 +3246,27 @@
                     "isVirtual": false,
                     "reference": "auth_permission.id",
                     "relationship": "HasMany",
-                    "type": [
-                        "Number"
-                    ],
                     "validations": []
                 }
             ]
         },
         {
             "name": "django_session",
-            "isVirtual": false,
             "icon": null,
-            "isReadOnly": false,
             "integration": null,
+            "isReadOnly": false,
             "isSearchable": true,
+            "isVirtual": false,
             "onlyForRelationships": false,
             "paginationType": "page",
             "actions": [],
             "segments": [],
             "fields": [
                 {
-                    "defaultValue": null,
-                    "enums": null,
                     "field": "expire_date",
-                    "integration": null,
-                    "inverseOf": null,
-                    "isFilterable": true,
-                    "isPrimaryKey": false,
-                    "isReadOnly": false,
-                    "isRequired": true,
-                    "isSortable": true,
-                    "isVirtual": false,
-                    "reference": null,
                     "type": "Date",
-                    "validations": [
-                        {
-                            "type": "is present",
-                            "value": null,
-                            "message": null
-                        }
-                    ]
-                },
-                {
-                    "defaultValue": null,
                     "enums": null,
-                    "field": "session_data",
+                    "defaultValue": null,
                     "integration": null,
                     "inverseOf": null,
                     "isFilterable": true,
@@ -3313,7 +3276,6 @@
                     "isSortable": true,
                     "isVirtual": false,
                     "reference": null,
-                    "type": "String",
                     "validations": [
                         {
                             "type": "is present",
@@ -3323,9 +3285,32 @@
                     ]
                 },
                 {
-                    "defaultValue": null,
+                    "field": "session_data",
+                    "type": "String",
                     "enums": null,
+                    "defaultValue": null,
+                    "integration": null,
+                    "inverseOf": null,
+                    "isFilterable": true,
+                    "isPrimaryKey": false,
+                    "isReadOnly": false,
+                    "isRequired": true,
+                    "isSortable": true,
+                    "isVirtual": false,
+                    "reference": null,
+                    "validations": [
+                        {
+                            "type": "is present",
+                            "value": null,
+                            "message": null
+                        }
+                    ]
+                },
+                {
                     "field": "session_key",
+                    "type": "String",
+                    "enums": null,
+                    "defaultValue": null,
                     "integration": null,
                     "inverseOf": null,
                     "isFilterable": true,
@@ -3335,7 +3320,6 @@
                     "isSortable": true,
                     "isVirtual": false,
                     "reference": null,
-                    "type": "String",
                     "validations": [
                         {
                             "type": "is present",
@@ -3353,20 +3337,21 @@
         },
         {
             "name": "order",
-            "isVirtual": false,
             "icon": null,
-            "isReadOnly": false,
             "integration": null,
+            "isReadOnly": false,
             "isSearchable": true,
+            "isVirtual": false,
             "onlyForRelationships": false,
             "paginationType": "page",
             "actions": [],
             "segments": [],
             "fields": [
                 {
-                    "defaultValue": null,
-                    "enums": null,
                     "field": "amount",
+                    "type": "Number",
+                    "enums": null,
+                    "defaultValue": null,
                     "integration": null,
                     "inverseOf": null,
                     "isFilterable": true,
@@ -3376,7 +3361,6 @@
                     "isSortable": true,
                     "isVirtual": false,
                     "reference": null,
-                    "type": "Number",
                     "validations": [
                         {
                             "type": "is present",
@@ -3386,9 +3370,10 @@
                     ]
                 },
                 {
+                    "field": "billing_address",
+                    "type": "Number",
                     "defaultValue": null,
                     "enums": null,
-                    "field": "billing_address",
                     "inverseOf": "flaskorder_billing_address",
                     "isFilterable": true,
                     "isPrimaryKey": false,
@@ -3398,13 +3383,13 @@
                     "isVirtual": false,
                     "reference": "address.id",
                     "relationship": "BelongsTo",
-                    "type": "Number",
                     "validations": []
                 },
                 {
-                    "defaultValue": null,
-                    "enums": null,
                     "field": "created_at",
+                    "type": "Date",
+                    "enums": null,
+                    "defaultValue": null,
                     "integration": null,
                     "inverseOf": null,
                     "isFilterable": true,
@@ -3414,13 +3399,13 @@
                     "isSortable": true,
                     "isVirtual": false,
                     "reference": null,
-                    "type": "Date",
                     "validations": []
                 },
                 {
+                    "field": "customer",
+                    "type": "String",
                     "defaultValue": null,
                     "enums": null,
-                    "field": "customer",
                     "inverseOf": "flaskorder_customer",
                     "isFilterable": true,
                     "isPrimaryKey": false,
@@ -3430,13 +3415,13 @@
                     "isVirtual": false,
                     "reference": "customer.id",
                     "relationship": "BelongsTo",
-                    "type": "String",
                     "validations": []
                 },
                 {
+                    "field": "delivering_address",
+                    "type": "Number",
                     "defaultValue": null,
                     "enums": null,
-                    "field": "delivering_address",
                     "inverseOf": "order_delivering_address_set_delivering_address",
                     "isFilterable": true,
                     "isPrimaryKey": false,
@@ -3446,13 +3431,15 @@
                     "isVirtual": false,
                     "reference": "address.id",
                     "relationship": "BelongsTo",
-                    "type": "Number",
                     "validations": []
                 },
                 {
+                    "field": "flaskcart_order",
+                    "type": [
+                        "Number"
+                    ],
                     "defaultValue": null,
                     "enums": null,
-                    "field": "flaskcart_order",
                     "inverseOf": "order",
                     "isFilterable": false,
                     "isPrimaryKey": false,
@@ -3462,15 +3449,13 @@
                     "isVirtual": false,
                     "reference": "cart.id",
                     "relationship": "HasMany",
-                    "type": [
-                        "Number"
-                    ],
                     "validations": []
                 },
                 {
-                    "defaultValue": null,
-                    "enums": null,
                     "field": "id",
+                    "type": "Number",
+                    "enums": null,
+                    "defaultValue": null,
                     "integration": null,
                     "inverseOf": null,
                     "isFilterable": true,
@@ -3480,18 +3465,18 @@
                     "isSortable": true,
                     "isVirtual": false,
                     "reference": null,
-                    "type": "Number",
                     "validations": []
                 },
                 {
-                    "defaultValue": null,
+                    "field": "status",
+                    "type": "Enum",
                     "enums": [
                         "PENDING",
                         "DISPATCHED",
                         "DELIVERED",
                         "REJECTED"
                     ],
-                    "field": "status",
+                    "defaultValue": null,
                     "integration": null,
                     "inverseOf": null,
                     "isFilterable": true,
@@ -3501,7 +3486,6 @@
                     "isSortable": true,
                     "isVirtual": false,
                     "reference": null,
-                    "type": "Enum",
                     "validations": [
                         {
                             "type": "is present",
