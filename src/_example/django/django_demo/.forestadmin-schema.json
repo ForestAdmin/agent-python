@@ -69,7 +69,7 @@
                 {
                     "field": "customers",
                     "type": [
-                        "String"
+                        "Uuid"
                     ],
                     "defaultValue": null,
                     "enums": null,
@@ -2799,7 +2799,7 @@
                 {
                     "field": "flaskcustomersaddresses_customer",
                     "type": [
-                        "String"
+                        "Uuid"
                     ],
                     "defaultValue": null,
                     "enums": null,
@@ -2817,7 +2817,7 @@
                 {
                     "field": "flaskorder_customer",
                     "type": [
-                        "String"
+                        "Uuid"
                     ],
                     "defaultValue": null,
                     "enums": null,
@@ -2834,19 +2834,30 @@
                 },
                 {
                     "field": "id",
-                    "type": "String",
+                    "type": "Uuid",
                     "enums": null,
                     "defaultValue": null,
                     "integration": null,
                     "inverseOf": null,
-                    "isFilterable": false,
+                    "isFilterable": true,
                     "isPrimaryKey": true,
                     "isReadOnly": false,
-                    "isRequired": false,
+                    "isRequired": true,
                     "isSortable": true,
                     "isVirtual": false,
                     "reference": null,
-                    "validations": []
+                    "validations": [
+                        {
+                            "type": "is present",
+                            "value": null,
+                            "message": null
+                        },
+                        {
+                            "type": "is shorter than",
+                            "value": 32,
+                            "message": null
+                        }
+                    ]
                 },
                 {
                     "field": "is_vip",
@@ -2929,19 +2940,25 @@
                 },
                 {
                     "field": "customer",
-                    "type": "String",
+                    "type": "Uuid",
                     "defaultValue": null,
                     "enums": null,
                     "inverseOf": "flaskcustomersaddresses_customer",
                     "isFilterable": true,
                     "isPrimaryKey": false,
                     "isReadOnly": false,
-                    "isRequired": false,
+                    "isRequired": true,
                     "isSortable": true,
                     "isVirtual": false,
                     "reference": "customer.id",
                     "relationship": "BelongsTo",
-                    "validations": []
+                    "validations": [
+                        {
+                            "type": "is present",
+                            "value": null,
+                            "message": null
+                        }
+                    ]
                 },
                 {
                     "field": "id",
@@ -3403,7 +3420,7 @@
                 },
                 {
                     "field": "customer",
-                    "type": "String",
+                    "type": "Uuid",
                     "defaultValue": null,
                     "enums": null,
                     "inverseOf": "flaskorder_customer",
