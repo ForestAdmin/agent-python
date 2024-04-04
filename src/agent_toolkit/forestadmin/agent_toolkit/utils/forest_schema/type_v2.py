@@ -63,7 +63,6 @@ class ForestSchemaV2(TypedDict):
 SCHEMA_V2_FIELDS_MASK = {
     "enumerations": None,
     "isPrimaryKey": False,
-    "isWritable": True,
     "prefillFormValue": None,
     "isSortable": True,
     "isWritable": True,
@@ -104,10 +103,14 @@ def template_apply_collection(collection: SchemaV2Collection) -> SchemaV2Collect
 
 
 def _reduce_from_template(input, mask):
-    reduced = {}
-    for key, value in input.items():
-        if key not in mask or input[key] != mask[key]:
-            reduced[key] = value
+    # reduced = {}
+    # for key, value in input.items():
+    #     if key not in mask or input[key] != mask[key]:
+    #         reduced[key] = value
+    reduced = {**input}
+    for key, value in mask.items():
+        if input[key] == value:
+            del reduced[key]
     return reduced
 
 

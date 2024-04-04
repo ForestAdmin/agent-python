@@ -8,8 +8,8 @@ from forestadmin.agent_toolkit.utils.forest_schema.generator_collection_v2 impor
 from forestadmin.agent_toolkit.utils.forest_schema.type import AgentMeta
 from forestadmin.agent_toolkit.utils.forest_schema.type_v2 import (
     SchemaV2Collection,
-    template_apply_collection,
-    template_apply_field,
+    template_reduce_collection,
+    template_reduce_field,
 )
 from forestadmin.datasource_toolkit.collections import Collection
 from forestadmin.datasource_toolkit.datasource_customizer.datasource_customizer import DatasourceCustomizer
@@ -38,20 +38,21 @@ class SchemaEmitterV2:
         if not options["is_production"]:
             collections_schema = await SchemaEmitterV2.generate(options["prefix"], datasource)
 
-            with open(schema_path, "w", encoding="utf-8") as schema_file:
+            with open(full_schema_path, "w", encoding="utf-8") as schema_file:
                 json.dump({"collections": collections_schema, "meta": meta}, schema_file, indent=4)
 
-            with open(full_schema_path, "w", encoding="utf-8") as schema_file:
-                full_collections = []
+            with open(schema_path, "w", encoding="utf-8") as schema_file:
+                reduced_collections = []
                 for collection in collections_schema:
-                    full_collections.append(
+                    reduced_collections.append(
                         {
-                            **template_apply_collection(collection),
-                            "fields": [{**template_apply_field(f)} for f in collection["fields"]],
+                            **template_reduce_collection(collection),
+                            "fields": [{**template_reduce_field(f)} for f in collection["fields"]],
                         }
                     )
-                json.dump({"collections": full_collections, "meta": meta}, schema_file, indent=4)
+                json.dump({"collections": reduced_collections, "meta": meta}, schema_file, indent=4)
         else:
+            1 / 0
             try:
                 with open(schema_path, "r", encoding="utf-8") as schema_file:
                     collections_schema = json.load(schema_file)["collections"]
@@ -63,6 +64,7 @@ class SchemaEmitterV2:
                 )
                 raise
 
+        # return cls.serialize(reduced_collections, meta)
         return cls.serialize(collections_schema, meta)
 
     @staticmethod
