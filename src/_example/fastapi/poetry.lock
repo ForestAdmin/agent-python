@@ -699,6 +699,26 @@ pycodestyle = ">=2.11.0,<2.12.0"
 pyflakes = ">=3.1.0,<3.2.0"
 
 [[package]]
+name = "forestadmin-agent-fastapi"
+version = "1.6.6"
+description = "fastapi agent for forestadmin python agent"
+optional = false
+python-versions = ">=3.8,<3.13"
+files = []
+develop = true
+
+[package.dependencies]
+"backports.zoneinfo" = {version = "~=0.2.1", extras = ["tzdata"], markers = "python_version < \"3.9\""}
+fastapi = ">=0.110.0"
+forestadmin-agent-toolkit = "1.6.6"
+forestadmin-datasource-toolkit = "1.6.6"
+typing-extensions = "~=4.2"
+
+[package.source]
+type = "directory"
+url = "../../fastapi_agent"
+
+[[package]]
 name = "forestadmin-agent-toolkit"
 version = "1.6.6"
 description = "agent toolkit for forestadmin python agent"
@@ -2307,4 +2327,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.8,<3.13"
-content-hash = "733b1caec9def48b3144a83edc3c7bbdfc0371060844e00b9d8efc159b214a2b"
+content-hash = "fe3ec028b364e2792d4c1e9afe85c7971c7216f6a1f34f7667f65d13c77ffee4"
