@@ -15,7 +15,9 @@ class Settings(BaseSettings):
     # db_uri: str = f'sqlite+aiosqlite:///{os.path.abspath(os.path.join(__file__, "..", "..", "db.sql"))}'
     db_uri: str = f'sqlite:///{os.path.abspath(os.path.join(__file__, "..", "..", "db.sql"))}'
 
-    forest_server_url: Union[str, None] = os.environ.get("FOREST_SERVER_URL", "")
+    forest_server_url: Union[str, None] = os.environ.get("FOREST_SERVER_URL")
+    forest_env_secret: Union[str, None] = os.environ.get("FOREST_ENV_SECRET")
+    forest_auth_secret: Union[str, None] = os.environ.get("FOREST_AUTH_SECRET")
 
 
 @lru_cache

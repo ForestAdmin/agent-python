@@ -20,7 +20,7 @@ forestadmin-datasource-toolkit = {path = "../../datasource_toolkit", develop = t
 forestadmin-agent-toolkit = {path = "../../agent_toolkit", develop = true}
 forestadmin-datasource-sqlalchemy = {path = "../../datasource_sqlalchemy", develop = true}
 # forestadmin-agent-flask = {path = "../../flask_agent", develop = true}
-# forestadmin-agent-fastapi = {path = "../../fastapi_agent", develop = true}
+forestadmin-agent-fastapi = {path = "../../fastapi_agent", develop = true}
 
 [tool.poetry.group.test]
 optional = true
