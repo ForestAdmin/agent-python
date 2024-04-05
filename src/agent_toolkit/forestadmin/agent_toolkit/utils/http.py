@@ -164,9 +164,12 @@ class ForestHttpApi:
     @classmethod
     async def send_schema_v2(cls, options: HttpOptions, schema: ForestSchemaV2) -> bool:
         ForestLogger.log("info", "Schema was updated, sending new version.")
-        await cls.post(
+        ret = await cls.post(
             cls.build_endpoint(options["server_url"], "/forest/v2/apimaps"),
             schema,
             {"forest-secret-key": options["env_secret"], "content-type": "application/json"},
             options["verify_ssl"],
         )
+        # TODO: this dump is only to compare schema during poc
+        with open(options["schema_path"], "w") as fout:
+            json.dump(ret, fout, indent=4)
