@@ -78,7 +78,10 @@ class SchemaEmitter:
                 )
                 raise
 
-        return cls.serialize(collections_schema, meta)
+        serialized = cls.serialize(collections_schema, meta)
+        with open(f'{options["schema_path"].split(".json")[0]}_json_api.json', "w") as fout:
+            json.dump(serialized, fout, indent=4)
+        return serialized
 
     @staticmethod
     async def generate(

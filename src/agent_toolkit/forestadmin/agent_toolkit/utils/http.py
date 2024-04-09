@@ -170,6 +170,11 @@ class ForestHttpApi:
             {"forest-secret-key": options["env_secret"], "content-type": "application/json"},
             options["verify_ssl"],
         )
-        # TODO: this dump is only to compare schema during poc
-        with open(options["schema_path"], "w") as fout:
-            json.dump(ret, fout, indent=4)
+        pass
+        # TODO: remove file writing just after this dump is only to compare schema during poc
+        if ret:
+            with open(options["schema_path"], "w") as fout:
+                json.dump(ret["schemaV1"], fout, indent=4)
+
+            with open(f'{options["schema_path"].split(".json")[0]}_json_api.json', "w") as fout:
+                json.dump(ret["schemaV1JSONAPI"], fout, indent=4)

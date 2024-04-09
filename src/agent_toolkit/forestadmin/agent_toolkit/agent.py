@@ -200,13 +200,13 @@ class Agent:
         ForestLogger.log("debug", "Starting agent")
 
         if self.options["skip_schema_update"] is False:
-            try:
-                api_map = await SchemaEmitter.get_serialized_schema(
-                    self.options, await self.customizer.get_datasource(), self.meta
-                )
-                await ForestHttpApi.send_schema(self.options, api_map)
-            except Exception:
-                ForestLogger.log("exception", "Error generating/sending forest schema V1")
+            # try:
+            #     api_map = await SchemaEmitter.get_serialized_schema(
+            #         self.options, await self.customizer.get_datasource(), self.meta
+            #     )
+            #     await ForestHttpApi.send_schema(self.options, api_map)
+            # except Exception:
+            #     ForestLogger.log("exception", "Error generating/sending forest schema V1")
 
             try:
                 api_map = await SchemaEmitterV2.get_serialized_schema(
