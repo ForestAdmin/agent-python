@@ -300,10 +300,24 @@
                     "name": "postal_code",
                     "type": [
                         {
-                            "codePostal": "String",
-                            "codeCommune": "String",
-                            "nomCommune": "String",
-                            "libelleAcheminement": "String"
+                            "fields": [
+                                {
+                                    "field": "codePostal",
+                                    "type": "String"
+                                },
+                                {
+                                    "field": "codeCommune",
+                                    "type": "String"
+                                },
+                                {
+                                    "field": "nomCommune",
+                                    "type": "String"
+                                },
+                                {
+                                    "field": "libelleAcheminement",
+                                    "type": "String"
+                                }
+                            ]
                         }
                     ],
                     "filterOperators": [],
@@ -1506,13 +1520,6 @@
                     ]
                 },
                 {
-                    "name": "test_skillcorner",
-                    "type": "String",
-                    "filterOperators": [],
-                    "isSortable": false,
-                    "isWritable": false
-                },
-                {
                     "name": "updated_at",
                     "type": "Date",
                     "filterOperators": [
@@ -2698,17 +2705,33 @@
                 },
                 {
                     "name": "id",
-                    "type": "String",
+                    "type": "Uuid",
                     "filterOperators": [
                         "Blank",
+                        "Contains",
+                        "EndsWith",
                         "Equal",
                         "In",
+                        "Like",
                         "Missing",
                         "NotEqual",
                         "NotIn",
-                        "Present"
+                        "Present",
+                        "StartsWith"
                     ],
-                    "isPrimaryKey": true
+                    "isPrimaryKey": true,
+                    "validations": [
+                        {
+                            "type": "is present",
+                            "value": null,
+                            "message": null
+                        },
+                        {
+                            "type": "is shorter than",
+                            "value": 32,
+                            "message": null
+                        }
+                    ]
                 },
                 {
                     "name": "is_vip",
@@ -2810,15 +2833,26 @@
                 },
                 {
                     "name": "customer_id",
-                    "type": "String",
+                    "type": "Uuid",
                     "filterOperators": [
                         "Blank",
+                        "Contains",
+                        "EndsWith",
                         "Equal",
                         "In",
+                        "Like",
                         "Missing",
                         "NotEqual",
                         "NotIn",
-                        "Present"
+                        "Present",
+                        "StartsWith"
+                    ],
+                    "validations": [
+                        {
+                            "type": "is present",
+                            "value": null,
+                            "message": null
+                        }
                     ]
                 },
                 {
@@ -3343,15 +3377,19 @@
                 },
                 {
                     "name": "customer_id",
-                    "type": "String",
+                    "type": "Uuid",
                     "filterOperators": [
                         "Blank",
+                        "Contains",
+                        "EndsWith",
                         "Equal",
                         "In",
+                        "Like",
                         "Missing",
                         "NotEqual",
                         "NotIn",
-                        "Present"
+                        "Present",
+                        "StartsWith"
                     ]
                 },
                 {
