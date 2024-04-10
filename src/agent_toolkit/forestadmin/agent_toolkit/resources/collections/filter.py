@@ -229,7 +229,7 @@ def _cast_to_type(value: Any, expected_type: ColumnAlias) -> Any:
     if value is None:
         return value
     expected_type_to_cast: Dict[PrimitiveType, Callable[[Any], Any]] = {
-        PrimitiveType.NUMBER: __parse_number,
+        PrimitiveType.NUMBER: _parse_str_as_number,
         PrimitiveType.STRING: lambda value: f"{value}",
         PrimitiveType.DATE: lambda value: f"{value}",
         PrimitiveType.DATE_ONLY: lambda value: f"{value}",
@@ -247,7 +247,7 @@ def _cast_to_type(value: Any, expected_type: ColumnAlias) -> Any:
                 return_value = [
                     _cast_to_type(item, expected_type[0])
                     for item in return_value
-                    if not (expected_type[0] == PrimitiveType.NUMBER and not __is_number(item))
+                    if not (expected_type[0] == PrimitiveType.NUMBER and not _is_str_a_number(item))
                 ]
     elif expected_type in expected_type_to_cast.keys():
         method = expected_type_to_cast[expected_type]  # type:ignore
@@ -257,16 +257,18 @@ def _cast_to_type(value: Any, expected_type: ColumnAlias) -> Any:
     return return_value
 
 
-def __parse_number(value):
+def _parse_str_as_number(value):
+    if isinstance(value, int) or isinstance(value, float):
+        return value
     try:
         return int(value)
     except Exception:
         return float(value)
 
 
-def __is_number(value):
+def _is_str_a_number(value):
     try:
-        __parse_number(value)
+        _parse_str_as_number(value)
         return True
     except Exception:
         return False
