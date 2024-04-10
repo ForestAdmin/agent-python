@@ -86,7 +86,7 @@ def parse_selection_ids(request: RequestCollection) -> Tuple[List[CompositeIdAli
             if "ids" in attributes:
                 ids = [unpack_id(request.collection.schema, pk) for pk in attributes["ids"]]
             elif isinstance(request.body.get("data"), list):
-                ids = [*request.body["data"]]
+                ids = [unpack_id(request.collection.schema, pk["id"]) for pk in request.body["data"]]
             else:
                 ids = []
         return ids, exclude_ids
