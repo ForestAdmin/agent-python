@@ -1,6 +1,6 @@
 import json
 import sys
-from typing import Any, Dict, List, Optional, Tuple, Union, cast
+from typing import Any, Callable, Dict, List, Optional, Tuple, Union, cast
 
 if sys.version_info >= (3, 9):
     import zoneinfo
@@ -228,6 +228,15 @@ def _parse_value(collection: Collection, leaf: Dict[str, Any]):
 def _cast_to_type(value: Any, expected_type: ColumnAlias) -> Any:
     if value is None:
         return value
+    expected_type_to_cast: Dict[PrimitiveType, Callable[[Any], Any]] = {
+        PrimitiveType.NUMBER: __parse_number,
+        PrimitiveType.STRING: lambda value: f"{value}",
+        PrimitiveType.DATE: lambda value: f"{value}",
+        PrimitiveType.DATE_ONLY: lambda value: f"{value}",
+        PrimitiveType.BOOLEAN: lambda value: STRING_TO_BOOLEAN[value.lower()]
+        if isinstance(value, str)
+        else not not value,
+    }
 
     if isinstance(expected_type, list):
         return_value = value
@@ -240,13 +249,9 @@ def _cast_to_type(value: Any, expected_type: ColumnAlias) -> Any:
                     for item in return_value
                     if not (expected_type[0] == PrimitiveType.NUMBER and not __is_number(item))
                 ]
-
-    elif expected_type == PrimitiveType.NUMBER:
-        return_value = __parse_number(value)
-    elif expected_type == PrimitiveType.BOOLEAN:
-        return_value = STRING_TO_BOOLEAN[value.lower()] if isinstance(value, str) else not not value
-    elif expected_type in [PrimitiveType.STRING, PrimitiveType.DATE, PrimitiveType.DATE_ONLY]:
-        return_value = f"{value}"
+    elif expected_type in expected_type_to_cast.keys():
+        method = expected_type_to_cast[expected_type]  # type:ignore
+        return_value = method(value)
     else:
         return_value = value
     return return_value
