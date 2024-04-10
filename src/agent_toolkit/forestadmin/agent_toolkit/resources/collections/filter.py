@@ -218,7 +218,7 @@ def sanitize_json_filter(jsoned_filters, collection):
 
 
 def _parse_value(collection: Collection, leaf: Dict[str, Any]):
-    schema = cast(ColumnAlias, CollectionUtils.get_field_schema(collection, leaf["field"]))
+    schema = cast(Column, CollectionUtils.get_field_schema(collection, leaf["field"]))
     expected_type = _get_expected_type_for_condition(Operator(leaf["operator"]), schema)
 
     return _cast_to_type(leaf["value"], expected_type)
@@ -237,22 +237,18 @@ def _cast_to_type(value: Any, expected_type: ColumnAlias) -> Any:
         ),
     }
 
-    if isinstance(expected_type, list):
-        return_value = value
-        if isinstance(value, str):
-            if "," in value:
-                return_value = [v.strip() for v in value.split(",")]
+    return_value = value
+    if isinstance(expected_type, list) and isinstance(value, str):
+        return_value = [v.strip() for v in value.split(",")]
 
-                return_value = [
-                    _cast_to_type(item, expected_type[0])
-                    for item in return_value
-                    if not (expected_type[0] == PrimitiveType.NUMBER and not _is_str_a_number(item))
-                ]
+        return_value = [
+            _cast_to_type(item, expected_type[0])
+            for item in return_value
+            if expected_type[0] != PrimitiveType.NUMBER and not _is_str_a_number(item)
+        ]
     elif expected_type in expected_type_to_cast.keys():
         method = expected_type_to_cast[expected_type]  # type:ignore
         return_value = method(value)
-    else:
-        return_value = value
     return return_value
 
 
