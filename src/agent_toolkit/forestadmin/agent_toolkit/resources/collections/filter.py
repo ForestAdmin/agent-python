@@ -51,6 +51,15 @@ class FilterException(AgentToolkitException):
     pass
 
 
+def _get_collection(
+    request: Union[RequestCollection, RequestRelationCollection]
+) -> Union[CollectionCustomizer, Collection]:
+    collection = request.collection
+    if isinstance(request, RequestRelationCollection):
+        collection = request.foreign_collection
+    return collection
+
+
 def _all_records_subset_query(request: Request) -> Dict[str, Any]:
     try:
         return request.body.get("data", {}).get("attributes", {}).get("all_records_subset_query", {})  # type: ignore
@@ -92,15 +101,6 @@ def parse_selection_ids(request: RequestCollection) -> Tuple[List[CompositeIdAli
         return ids, exclude_ids
 
     raise Exception()
-
-
-def _get_collection(
-    request: Union[RequestCollection, RequestRelationCollection]
-) -> Union[CollectionCustomizer, Collection]:
-    collection = request.collection
-    if isinstance(request, RequestRelationCollection):
-        collection = request.foreign_collection
-    return collection
 
 
 def parse_sort(request: Union[RequestCollection, RequestRelationCollection]):
@@ -232,22 +232,23 @@ def _cast_to_type(value: Any, expected_type: ColumnAlias) -> Any:
     if isinstance(expected_type, list):
         items = [v.strip() for v in value.split(",")] if isinstance(value, str) else value
         if isinstance(items, list):
-            return [
+            return_value = [
                 _cast_to_type(item, expected_type[0])
                 for item in items
                 if not (expected_type[0] == PrimitiveType.NUMBER and not __is_number(item))
             ]
         else:
-            return value
+            return_value = value
 
-    if expected_type in [PrimitiveType.STRING, PrimitiveType.DATE, PrimitiveType.DATE_ONLY]:
-        return f"{value}"
+    elif expected_type in [PrimitiveType.STRING, PrimitiveType.DATE, PrimitiveType.DATE_ONLY]:
+        return_value = f"{value}"
     elif expected_type == PrimitiveType.NUMBER:
-        return __parse_number(value)
+        return_value = __parse_number(value)
     elif expected_type == PrimitiveType.BOOLEAN:
-        return STRING_TO_BOOLEAN[value.lower()] if isinstance(value, str) else not not value
+        return_value = STRING_TO_BOOLEAN[value.lower()] if isinstance(value, str) else not not value
     else:
-        return value
+        return_value = value
+    return return_value
 
 
 def __parse_number(value):
