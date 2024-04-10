@@ -13,7 +13,7 @@ from forestadmin.agent_toolkit.utils.context import Request
 from forestadmin.agent_toolkit.utils.id import unpack_id
 from forestadmin.datasource_toolkit.collections import Collection, CollectionException
 from forestadmin.datasource_toolkit.datasource_customizer.collection_customizer import CollectionCustomizer
-from forestadmin.datasource_toolkit.interfaces.fields import ColumnAlias, Operator, PrimitiveType, is_column
+from forestadmin.datasource_toolkit.interfaces.fields import Column, ColumnAlias, Operator, PrimitiveType, is_column
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.factory import (
     ConditionTreeFactory,
     ConditionTreeFactoryException,
@@ -219,7 +219,6 @@ def sanitize_json_filter(jsoned_filters, collection):
 
 def _parse_value(collection: Collection, leaf: Dict[str, Any]):
     schema = cast(ColumnAlias, CollectionUtils.get_field_schema(collection, leaf["field"]))
-
     expected_type = _get_expected_type_for_condition(Operator(leaf["operator"]), schema)
 
     return _cast_to_type(leaf["value"], expected_type)
@@ -233,9 +232,9 @@ def _cast_to_type(value: Any, expected_type: ColumnAlias) -> Any:
         PrimitiveType.STRING: lambda value: f"{value}",
         PrimitiveType.DATE: lambda value: f"{value}",
         PrimitiveType.DATE_ONLY: lambda value: f"{value}",
-        PrimitiveType.BOOLEAN: lambda value: STRING_TO_BOOLEAN[value.lower()]
-        if isinstance(value, str)
-        else not not value,
+        PrimitiveType.BOOLEAN: lambda value: (
+            STRING_TO_BOOLEAN[value.lower()] if isinstance(value, str) else not not value
+        ),
     }
 
     if isinstance(expected_type, list):
@@ -257,7 +256,7 @@ def _cast_to_type(value: Any, expected_type: ColumnAlias) -> Any:
     return return_value
 
 
-def _parse_str_as_number(value):
+def _parse_str_as_number(value: Union[str, int, float]) -> Union[int, float]:
     if isinstance(value, int) or isinstance(value, float):
         return value
     try:
@@ -266,7 +265,7 @@ def _parse_str_as_number(value):
         return float(value)
 
 
-def _is_str_a_number(value):
+def _is_str_a_number(value: Union[str, int, float]) -> bool:
     try:
         _parse_str_as_number(value)
         return True
@@ -276,7 +275,7 @@ def _is_str_a_number(value):
 
 def _get_expected_type_for_condition(
     operator: Operator,
-    field_schema: ColumnAlias,
+    field_schema: Column,
 ) -> PrimitiveType:
     operators_expecting_number = [
         Operator.SHORTER_THAN,
@@ -291,9 +290,9 @@ def _get_expected_type_for_condition(
         return PrimitiveType.NUMBER
 
     if operator == Operator.IN:
-        return [field_schema["column_type"]]
+        return [cast(PrimitiveType, field_schema["column_type"])]  # type:ignore
 
-    return field_schema["column_type"]
+    return cast(PrimitiveType, field_schema["column_type"])
 
 
 def parse_projection(request: Union[RequestCollection, RequestRelationCollection]) -> Projection:
