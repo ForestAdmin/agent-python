@@ -37,6 +37,15 @@ from forestadmin.datasource_toolkit.validations.projection import ProjectionVali
 DEFAULT_ITEMS_PER_PAGE = 15
 DEFAULT_PAGE_TO_SKIP = 1
 
+STRING_TO_BOOLEAN = {
+    "true": True,
+    "yes": True,
+    "1": True,
+    "false": False,
+    "no": False,
+    "0": False,
+}
+
 
 class FilterException(AgentToolkitException):
     pass
@@ -183,11 +192,7 @@ def parse_condition_tree(request: Union[RequestCollection, RequestRelationCollec
 
     json_filters = json.loads(filters) if isinstance(filters, str) else filters
     try:
-        if isinstance(request, RequestRelationCollection):
-            collection = request.foreign_collection
-        else:
-            collection = request.collection
-
+        collection = _get_collection(request)
         json_filters = sanitize_json_filter(json_filters, collection)
 
         condition_tree = ConditionTreeFactory.from_plain_object(json_filters)
@@ -223,15 +228,6 @@ def _parse_value(collection: Collection, leaf: Dict[str, Any]):
 def _cast_to_type(value: Any, expected_type: ColumnAlias) -> Any:
     if value is None:
         return value
-
-    STRING_TO_BOOLEAN = {
-        "true": True,
-        "yes": True,
-        "1": True,
-        "false": False,
-        "no": False,
-        "0": False,
-    }
 
     if isinstance(expected_type, list):
         items = [v.strip() for v in value.split(",")] if isinstance(value, str) else value
