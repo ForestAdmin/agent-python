@@ -230,22 +230,23 @@ def _cast_to_type(value: Any, expected_type: ColumnAlias) -> Any:
         return value
 
     if isinstance(expected_type, list):
-        items = [v.strip() for v in value.split(",")] if isinstance(value, str) else value
-        if isinstance(items, list):
-            return_value = [
-                _cast_to_type(item, expected_type[0])
-                for item in items
-                if not (expected_type[0] == PrimitiveType.NUMBER and not __is_number(item))
-            ]
-        else:
-            return_value = value
+        return_value = value
+        if isinstance(value, str):
+            if "," in value:
+                return_value = [v.strip() for v in value.split(",")]
 
-    elif expected_type in [PrimitiveType.STRING, PrimitiveType.DATE, PrimitiveType.DATE_ONLY]:
-        return_value = f"{value}"
+                return_value = [
+                    _cast_to_type(item, expected_type[0])
+                    for item in return_value
+                    if not (expected_type[0] == PrimitiveType.NUMBER and not __is_number(item))
+                ]
+
     elif expected_type == PrimitiveType.NUMBER:
         return_value = __parse_number(value)
     elif expected_type == PrimitiveType.BOOLEAN:
         return_value = STRING_TO_BOOLEAN[value.lower()] if isinstance(value, str) else not not value
+    elif expected_type in [PrimitiveType.STRING, PrimitiveType.DATE, PrimitiveType.DATE_ONLY]:
+        return_value = f"{value}"
     else:
         return_value = value
     return return_value
