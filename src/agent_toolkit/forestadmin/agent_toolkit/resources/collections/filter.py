@@ -233,19 +233,12 @@ def _cast_to_type(value: Any, expected_type: ColumnAlias) -> Any:
         items = [v.strip() for v in value.split(",")] if isinstance(value, str) else value
         if isinstance(items, list):
             return [
-                *filter(
-                    lambda x: x is not None,
-                    [
-                        _cast_to_type(item, expected_type[0])
-                        if not (expected_type[0] == PrimitiveType.NUMBER and not __is_number(item))
-                        else None
-                        for item in items
-                    ],
-                )
+                _cast_to_type(item, expected_type[0])
+                for item in items
+                if not (expected_type[0] == PrimitiveType.NUMBER and not __is_number(item))
             ]
         else:
             return value
-        return [_cast_to_type(item, expected_type[0]) for item in items if __is_number(item)]
 
     if expected_type in [PrimitiveType.STRING, PrimitiveType.DATE, PrimitiveType.DATE_ONLY]:
         return f"{value}"
