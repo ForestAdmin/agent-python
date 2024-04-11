@@ -985,7 +985,7 @@ class TestCrudResource(TestCase):
         request = RequestCollection(
             RequestMethod.DELETE,
             self.collection_order,
-            {"data": {"attributes": {"all_records": True, "all_records_ids_excluded": ["10"]}}},
+            {"data": {"attributes": {"all_records": True, "all_records_ids_excluded": [10]}}},
             {"collection_name": "order", "timezone": "Europe/Paris", "pks": "10"},
             {},
             None,

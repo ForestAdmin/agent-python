@@ -1,6 +1,7 @@
 import json
 import sys
-from typing import Any, Callable, Dict, List, Optional, Tuple, Union, cast
+from ast import literal_eval
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 if sys.version_info >= (3, 9):
     import zoneinfo
@@ -10,10 +11,9 @@ else:
 from forestadmin.agent_toolkit.exceptions import AgentToolkitException
 from forestadmin.agent_toolkit.resources.collections.requests import RequestCollection, RequestRelationCollection
 from forestadmin.agent_toolkit.utils.context import Request
-from forestadmin.agent_toolkit.utils.id import unpack_id
 from forestadmin.datasource_toolkit.collections import Collection, CollectionException
 from forestadmin.datasource_toolkit.datasource_customizer.collection_customizer import CollectionCustomizer
-from forestadmin.datasource_toolkit.interfaces.fields import Column, ColumnAlias, Operator, PrimitiveType, is_column
+from forestadmin.datasource_toolkit.interfaces.fields import PrimitiveType, is_column
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.factory import (
     ConditionTreeFactory,
     ConditionTreeFactoryException,
@@ -37,27 +37,9 @@ from forestadmin.datasource_toolkit.validations.projection import ProjectionVali
 DEFAULT_ITEMS_PER_PAGE = 15
 DEFAULT_PAGE_TO_SKIP = 1
 
-STRING_TO_BOOLEAN = {
-    "true": True,
-    "yes": True,
-    "1": True,
-    "false": False,
-    "no": False,
-    "0": False,
-}
-
 
 class FilterException(AgentToolkitException):
     pass
-
-
-def _get_collection(
-    request: Union[RequestCollection, RequestRelationCollection]
-) -> Union[CollectionCustomizer, Collection]:
-    collection = request.collection
-    if isinstance(request, RequestRelationCollection):
-        collection = request.foreign_collection
-    return collection
 
 
 def _all_records_subset_query(request: Request) -> Dict[str, Any]:
@@ -81,26 +63,34 @@ def _subset_or_query(request: Request, key: str) -> Optional[str]:
     return res
 
 
-def parse_selection_ids(request: RequestCollection) -> Tuple[List[CompositeIdAlias], bool]:
+def parse_selection_ids(request: Request) -> Tuple[List[CompositeIdAlias], bool]:
     if request.body:
         try:
             attributes: Dict[str, Any] = request.body.get("data", {}).get("attributes", {})  # type: ignore
         except AttributeError:
             attributes = {}
         exclude_ids = bool(attributes.get("all_records", False))  # type: ignore
-
         if exclude_ids is True:
-            ids = [unpack_id(request.collection.schema, pk) for pk in attributes.get("all_records_ids_excluded", [])]
+            ids = [[id] for id in attributes.get("all_records_ids_excluded", [])]
         else:
             if "ids" in attributes:
-                ids = [unpack_id(request.collection.schema, pk) for pk in attributes["ids"]]
+                ids = [[id] for id in attributes["ids"]]
             elif isinstance(request.body.get("data"), list):
-                ids = [unpack_id(request.collection.schema, pk["id"]) for pk in request.body["data"]]
+                ids = [[r["id"]] for r in request.body["data"]]
             else:
                 ids = []
         return ids, exclude_ids
 
     raise Exception()
+
+
+def _get_collection(
+    request: Union[RequestCollection, RequestRelationCollection]
+) -> Union[CollectionCustomizer, Collection]:
+    collection = request.collection
+    if isinstance(request, RequestRelationCollection):
+        collection = request.foreign_collection
+    return collection
 
 
 def parse_sort(request: Union[RequestCollection, RequestRelationCollection]):
@@ -192,8 +182,12 @@ def parse_condition_tree(request: Union[RequestCollection, RequestRelationCollec
 
     json_filters = json.loads(filters) if isinstance(filters, str) else filters
     try:
-        collection = _get_collection(request)
-        json_filters = sanitize_json_filter(json_filters, collection)
+        if isinstance(request, RequestRelationCollection):
+            collection = request.foreign_collection
+        else:
+            collection = request.collection
+
+        json_filters = _parse_value(json_filters, collection)
 
         condition_tree = ConditionTreeFactory.from_plain_object(json_filters)
     except ConditionTreeFactoryException as e:
@@ -207,88 +201,31 @@ def parse_condition_tree(request: Union[RequestCollection, RequestRelationCollec
     return condition_tree
 
 
-def sanitize_json_filter(jsoned_filters, collection):
+def _parse_value(jsoned_filters, collection):
     if "conditions" in jsoned_filters:
         for condition in jsoned_filters["conditions"]:
-            condition = sanitize_json_filter(condition, condition)
+            condition = _parse_value(condition, collection)
         return jsoned_filters
 
-    jsoned_filters["value"] = _parse_value(collection, jsoned_filters)
+    schema = CollectionUtils.get_field_schema(collection, jsoned_filters["field"])
+
+    new_value = jsoned_filters["value"]
+    if jsoned_filters["operator"] == "in" and isinstance(jsoned_filters["value"], str):
+        values = [val.strip() for val in jsoned_filters["value"].split(",")]
+
+        if schema["column_type"] == PrimitiveType.NUMBER:
+            new_value = [literal_eval(str(value)) for value in values]
+        else:
+            new_value = values
+
+    elif schema["column_type"] == PrimitiveType.NUMBER:
+        new_value = literal_eval(str(jsoned_filters["value"]))
+
+    elif schema["column_type"] == PrimitiveType.BOOLEAN:
+        new_value = jsoned_filters["value"]
+
+    jsoned_filters["value"] = new_value
     return jsoned_filters
-
-
-def _parse_value(collection: Collection, leaf: Dict[str, Any]):
-    schema = cast(Column, CollectionUtils.get_field_schema(collection, leaf["field"]))
-    expected_type = _get_expected_type_for_condition(Operator(leaf["operator"]), schema)
-
-    return _cast_to_type(leaf["value"], expected_type)
-
-
-def _cast_to_type(value: Any, expected_type: ColumnAlias) -> Any:
-    if value is None:
-        return value
-    expected_type_to_cast: Dict[PrimitiveType, Callable[[Any], Any]] = {
-        PrimitiveType.NUMBER: _parse_str_as_number,
-        PrimitiveType.STRING: lambda value: f"{value}",
-        PrimitiveType.DATE: lambda value: f"{value}",
-        PrimitiveType.DATE_ONLY: lambda value: f"{value}",
-        PrimitiveType.BOOLEAN: lambda value: (
-            STRING_TO_BOOLEAN[value.lower()] if isinstance(value, str) else not not value
-        ),
-    }
-
-    return_value = value
-    if isinstance(expected_type, list) and isinstance(value, str):
-        return_value = [v.strip() for v in value.split(",")]
-
-        return_value = [
-            _cast_to_type(item, expected_type[0])
-            for item in return_value
-            if not (expected_type[0] == PrimitiveType.NUMBER and not _is_str_a_number(item))
-        ]
-    elif expected_type in expected_type_to_cast.keys():
-        method = expected_type_to_cast[expected_type]  # type:ignore
-        return_value = method(value)
-    return return_value
-
-
-def _parse_str_as_number(value: Union[str, int, float]) -> Union[int, float]:
-    if isinstance(value, int) or isinstance(value, float):
-        return value
-    try:
-        return int(value)
-    except Exception:
-        return float(value)
-
-
-def _is_str_a_number(value: Union[str, int, float]) -> bool:
-    try:
-        _parse_str_as_number(value)
-        return True
-    except Exception:
-        return False
-
-
-def _get_expected_type_for_condition(
-    operator: Operator,
-    field_schema: Column,
-) -> PrimitiveType:
-    operators_expecting_number = [
-        Operator.SHORTER_THAN,
-        Operator.LONGER_THAN,
-        Operator.AFTER_X_HOURS_AGO,
-        Operator.BEFORE_X_HOURS_AGO,
-        Operator.PREVIOUS_X_DAYS,
-        Operator.PREVIOUS_X_DAYS_TO_DATE,
-    ]
-
-    if operator in operators_expecting_number:
-        return PrimitiveType.NUMBER
-
-    if operator == Operator.IN:
-        return [cast(PrimitiveType, field_schema["column_type"])]  # type:ignore
-
-    return cast(PrimitiveType, field_schema["column_type"])
 
 
 def parse_projection(request: Union[RequestCollection, RequestRelationCollection]) -> Projection:
