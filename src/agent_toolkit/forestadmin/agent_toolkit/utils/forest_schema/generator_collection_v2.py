@@ -1,6 +1,6 @@
 from typing import List
 
-from forestadmin.agent_toolkit.utils.forest_schema.generator_action import SchemaActionGenerator
+from forestadmin.agent_toolkit.utils.forest_schema.generator_action_v2 import SchemaActionGeneratorV2
 from forestadmin.agent_toolkit.utils.forest_schema.generator_field_v2 import SchemaFieldGeneratorV2
 from forestadmin.agent_toolkit.utils.forest_schema.generator_segment import SchemaSegmentGenerator
 from forestadmin.agent_toolkit.utils.forest_schema.type_v2 import SchemaV2Collection, SchemaV2Field, SchemaV2Relation
@@ -26,7 +26,7 @@ class SchemaCollectionGeneratorV2:
             "relations": sorted(relations, key=lambda field: field["name"]),
             "actions": sorted(
                 [
-                    await SchemaActionGenerator.build(prefix, collection, name)
+                    await SchemaActionGeneratorV2.build(prefix, collection, name)
                     for name in collection.schema["actions"].keys()
                 ],
                 key=lambda action: action["id"],

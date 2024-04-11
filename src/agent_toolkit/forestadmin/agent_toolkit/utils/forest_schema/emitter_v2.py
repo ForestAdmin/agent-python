@@ -6,11 +6,7 @@ from forestadmin.agent_toolkit.forest_logger import ForestLogger
 from forestadmin.agent_toolkit.options import Options
 from forestadmin.agent_toolkit.utils.forest_schema.generator_collection_v2 import SchemaCollectionGeneratorV2
 from forestadmin.agent_toolkit.utils.forest_schema.type import AgentMeta
-from forestadmin.agent_toolkit.utils.forest_schema.type_v2 import (
-    SchemaV2Collection,
-    template_reduce_collection,
-    template_reduce_field,
-)
+from forestadmin.agent_toolkit.utils.forest_schema.type_v2 import SchemaV2Collection, template_reduce_collection
 from forestadmin.datasource_toolkit.collections import Collection
 from forestadmin.datasource_toolkit.datasource_customizer.datasource_customizer import DatasourceCustomizer
 from forestadmin.datasource_toolkit.datasources import Datasource
@@ -44,12 +40,7 @@ class SchemaEmitterV2:
             with open(schema_path, "w", encoding="utf-8") as schema_file:
                 reduced_collections = []
                 for collection in collections_schema:
-                    reduced_collections.append(
-                        {
-                            **template_reduce_collection(collection),
-                            "fields": [{**template_reduce_field(f)} for f in collection["fields"]],
-                        }
-                    )
+                    reduced_collections.append(template_reduce_collection(collection))
                 json.dump({"collections": reduced_collections, "meta": meta}, schema_file, indent=4)
         else:
             1 / 0
