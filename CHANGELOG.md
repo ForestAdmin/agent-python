@@ -1,3 +1,10 @@
+## [1.6.7](https://github.com/ForestAdmin/agent-python/compare/v1.6.6...v1.6.7) (2024-04-11)
+
+
+### Bug Fixes
+
+* error parsing query for get_record_id ([#213](https://github.com/ForestAdmin/agent-python/issues/213)) ([03444f1](https://github.com/ForestAdmin/agent-python/commit/03444f17c83623d132872224e74d30043cf3efce))
+
 ## [1.6.6](https://github.com/ForestAdmin/agent-python/compare/v1.6.5...v1.6.6) (2024-04-03)
 
 
