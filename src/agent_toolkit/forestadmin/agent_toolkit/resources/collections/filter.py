@@ -210,7 +210,7 @@ def parse_condition_tree(request: Union[RequestCollection, RequestRelationCollec
 def sanitize_json_filter(jsoned_filters, collection):
     if "conditions" in jsoned_filters:
         for condition in jsoned_filters["conditions"]:
-            condition = _parse_value(condition, collection)
+            condition = sanitize_json_filter(condition, condition)
         return jsoned_filters
 
     jsoned_filters["value"] = _parse_value(collection, jsoned_filters)
@@ -244,7 +244,7 @@ def _cast_to_type(value: Any, expected_type: ColumnAlias) -> Any:
         return_value = [
             _cast_to_type(item, expected_type[0])
             for item in return_value
-            if expected_type[0] != PrimitiveType.NUMBER and not _is_str_a_number(item)
+            if not (expected_type[0] == PrimitiveType.NUMBER and not _is_str_a_number(item))
         ]
     elif expected_type in expected_type_to_cast.keys():
         method = expected_type_to_cast[expected_type]  # type:ignore
