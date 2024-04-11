@@ -1213,7 +1213,7 @@ class TestCrudRelatedResource(TestCase):
         request = RequestRelationCollection(
             RequestMethod.DELETE,
             *self.mk_request_customer_order_one_to_many(),
-            {"data": [{"id": "201", "type": "order"}]},
+            {"data": [{"id": 201, "type": "order"}]},
             query_get_params,
             {},
             None,
@@ -1491,7 +1491,7 @@ class TestCrudRelatedResource(TestCase):
         request = RequestRelationCollection(
             RequestMethod.DELETE,
             *self.mk_request_customer_order_one_to_many(),
-            {"data": [{"id": "201", "type": "order"}]},
+            {"data": [{"id": 201, "type": "order"}]},
             query_get_params,
             {},
             None,
@@ -1548,7 +1548,7 @@ class TestCrudRelatedResource(TestCase):
     # _delete_one_to_many
     @patch(
         "forestadmin.agent_toolkit.resources.collections.crud_related.ConditionTreeFactory.match_ids",
-        return_value=ConditionTreeLeaf("id", Operator.EQUAL, "201"),
+        return_value=ConditionTreeLeaf("id", Operator.EQUAL, 201),
     )
     def test_delete_one_to_many(self, mocked_match_id: Mock):
         crud_related_resource = CrudRelatedResource(
@@ -1566,7 +1566,7 @@ class TestCrudRelatedResource(TestCase):
         request = RequestRelationCollection(
             RequestMethod.DELETE,
             *self.mk_request_customer_order_one_to_many(),
-            {"data": [{"id": "201", "type": "order"}]},
+            {"data": [{"id": 201, "type": "order"}]},
             query_get_params,
             {},
             None,
@@ -1581,7 +1581,7 @@ class TestCrudRelatedResource(TestCase):
         request = RequestRelationCollection(
             "DELETE",
             *self.mk_request_customer_order_one_to_many(),
-            {"data": [{"id": "201", "type": "order"}]},
+            {"data": [{"id": 201, "type": "order"}]},
             query_get_params,
             {},
             None,
