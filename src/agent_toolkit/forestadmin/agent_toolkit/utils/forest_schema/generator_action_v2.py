@@ -33,16 +33,22 @@ class SchemaActionGeneratorV2:
     async def build_field_schema(cls, datasource: Datasource[Collection], field: ActionField) -> SchemaV2ActionField:
         value = ForestValueConverter.value_to_forest(field, field.get("value"))
         default_value = ForestValueConverter.value_to_forest(field, field.get("default_value"))
-        output = {
+        output: SchemaV2ActionField = {
             "name": field["label"],
-            "type": PrimitiveType.STRING,
+            "type": field["type"],
             "description": field.get("description"),
             # When sending to server, we need to rename 'value' into 'defaultValue'
             # otherwise, it does not gets applied 🤷‍♂️
             "value": value,
             "defaultValue": default_value,
-            "isReadOnly": field.get("is_read_only", False),
-            "isRequired": field.get("is_required", True),
+            # "enumeration": None,  # default value
+            "isReadOnly": (
+                field["is_read_only"] if "is_read_only" in field and field["is_read_only"] is not None else False
+            ),
+            "isRequired": (
+                field["is_required"] if "is_required" in field and field["is_required"] is not None else True
+            ),
+            # "reference": None,  # default value
             "widget": GeneratorActionFieldWidget.build_widget_options(field),
         }
         if field["type"] == ActionFieldType.COLLECTION:
@@ -61,7 +67,7 @@ class SchemaActionGeneratorV2:
             output["type"] = field["type"].value
 
         if field["type"] in [ActionFieldType.ENUM, ActionFieldType.ENUM_LIST]:
-            output["enums"] = field.get("enum_values")
+            output["enumeration"] = field.get("enum_values")
 
         if not isinstance(output["type"], str):
             output["type"] = SchemaFieldGeneratorV2.build_column_type(output["type"])  # type:ignore

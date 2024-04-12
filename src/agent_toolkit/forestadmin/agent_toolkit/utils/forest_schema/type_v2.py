@@ -98,6 +98,7 @@ SCHEMA_V2_ACTION_FIELD_MASK = {
     "value": None,
     "defaultValue": None,
     "enumeration": None,
+    "description": "",
     "isReadOnly": False,
     "isRequired": False,
     "reference": None,
@@ -162,7 +163,7 @@ def _reduce_from_template(input, mask):
     #         reduced[key] = value
     reduced = {**input}
     for key, value in mask.items():
-        if input[key] == value:
+        if key in input and input[key] == value:
             del reduced[key]
     return reduced
 
