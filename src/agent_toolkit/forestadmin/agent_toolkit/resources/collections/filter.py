@@ -210,7 +210,7 @@ def parse_condition_tree(request: Union[RequestCollection, RequestRelationCollec
 def sanitize_json_filter(jsoned_filters, collection):
     if "conditions" in jsoned_filters:
         for condition in jsoned_filters["conditions"]:
-            condition = sanitize_json_filter(condition, condition)
+            condition = sanitize_json_filter(condition, collection)
         return jsoned_filters
 
     jsoned_filters["value"] = _parse_value(collection, jsoned_filters)
