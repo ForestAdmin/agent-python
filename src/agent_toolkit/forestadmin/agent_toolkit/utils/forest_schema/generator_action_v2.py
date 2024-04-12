@@ -2,7 +2,9 @@ from typing import List, Union, cast
 
 from forestadmin.agent_toolkit.utils.forest_schema.action_values import ForestValueConverter
 from forestadmin.agent_toolkit.utils.forest_schema.generator_action_field_widget import GeneratorActionFieldWidget
+from forestadmin.agent_toolkit.utils.forest_schema.generator_field import SchemaFieldGenerator
 from forestadmin.agent_toolkit.utils.forest_schema.generator_field_v2 import SchemaFieldGeneratorV2
+from forestadmin.agent_toolkit.utils.forest_schema.type import ForestServerActionField
 from forestadmin.agent_toolkit.utils.forest_schema.type_v2 import SchemaV2Action, SchemaV2ActionField
 from forestadmin.datasource_toolkit.collections import Collection
 from forestadmin.datasource_toolkit.datasource_customizer.collection_customizer import CollectionCustomizer
@@ -13,6 +15,21 @@ from forestadmin.datasource_toolkit.utils.schema import SchemaUtils
 
 
 class SchemaActionGeneratorV2:
+    DUMMY_FIELDS = [
+        ForestServerActionField(
+            field="Loading...",
+            type=SchemaFieldGenerator.build_column_type(PrimitiveType.STRING),
+            isReadOnly=True,
+            defaultValue="Form is loading",
+            value=None,
+            description="",
+            enums=None,
+            hook=None,
+            isRequired=False,
+            reference=None,
+            widget=None,
+        )
+    ]
 
     @classmethod
     async def build(cls, prefix: str, collection: Union[Collection, CollectionCustomizer], name: str) -> SchemaV2Action:
@@ -25,7 +42,11 @@ class SchemaActionGeneratorV2:
             type=schema.scope.value.lower(),  # type:ignore
             endpoint=f"/forest/_actions/{collection.name}/{idx}/{slug}",  # type:ignore
             download=bool(schema.generate_file),
-            fields=await cls.build_fields(collection, schema, name),
+            fields=(
+                await cls.build_fields(collection, schema, name)
+                if schema.static_form
+                else SchemaActionGeneratorV2.DUMMY_FIELDS
+            ),
             isDynamicForm=not schema.static_form,
         )
 
