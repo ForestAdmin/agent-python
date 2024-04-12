@@ -100,7 +100,8 @@ class TestFilter(TestCase):
             method=RequestMethod.GET,
             body=None,
             query={
-                "filters": '{"aggregator": "or","conditions": [{"field":"id","operator":"in","value":"1,2"}, {"field":"author:firstname","operator":"starts_with","value":"A"}]}',
+                "filters": '{"aggregator": "or","conditions": [{"field":"id","operator":"in","value":"1,2"}, '
+                '{"field":"author:firstname","operator":"starts_with","value":"A"}]}',
                 "collection_name": "Book",
             },
             collection=self.collection_book,
