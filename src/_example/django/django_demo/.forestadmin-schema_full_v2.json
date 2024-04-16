@@ -1076,50 +1076,19 @@
                 {
                     "id": "app_customer-0-export json",
                     "name": "Export json",
-                    "type": "bulk",
-                    "baseUrl": null,
+                    "scope": "bulk",
                     "endpoint": "/forest/_actions/app_customer/0/export json",
-                    "httpMethod": "POST",
-                    "redirect": null,
                     "download": true,
-                    "fields": [],
-                    "hooks": {
-                        "load": false,
-                        "change": [
-                            "changeHook"
-                        ]
-                    }
+                    "isDynamicForm": false,
+                    "fields": []
                 },
                 {
                     "id": "app_customer-1-age operation",
                     "name": "Age operation",
-                    "type": "single",
-                    "baseUrl": null,
+                    "scope": "single",
                     "endpoint": "/forest/_actions/app_customer/1/age operation",
-                    "httpMethod": "POST",
-                    "redirect": null,
                     "download": false,
-                    "fields": [
-                        {
-                            "field": "Loading...",
-                            "type": "String",
-                            "isReadOnly": true,
-                            "defaultValue": "Form is loading",
-                            "value": null,
-                            "description": "",
-                            "enums": null,
-                            "hook": null,
-                            "isRequired": false,
-                            "reference": null,
-                            "widget": null
-                        }
-                    ],
-                    "hooks": {
-                        "load": true,
-                        "change": [
-                            "changeHook"
-                        ]
-                    }
+                    "isDynamicForm": true
                 }
             ],
             "segments": [
@@ -1912,80 +1881,53 @@
                 {
                     "id": "app_order-0-export json",
                     "name": "Export json",
-                    "type": "global",
-                    "baseUrl": null,
+                    "scope": "global",
                     "endpoint": "/forest/_actions/app_order/0/export json",
-                    "httpMethod": "POST",
-                    "redirect": null,
                     "download": true,
+                    "isDynamicForm": false,
                     "fields": [
                         {
-                            "field": "dummy field",
+                            "name": "dummy field",
+                            "type": "String",
+                            "description": "",
                             "value": "",
                             "defaultValue": "",
-                            "description": "",
-                            "enums": null,
-                            "hook": null,
                             "isReadOnly": false,
                             "isRequired": false,
-                            "reference": null,
-                            "type": "String",
-                            "widget": null,
-                            "widgetEdit": null
+                            "widget": null
                         },
                         {
-                            "field": "customer",
+                            "name": "customer",
+                            "type": "Number",
+                            "description": "",
                             "value": null,
                             "defaultValue": null,
-                            "description": "",
-                            "enums": null,
-                            "hook": null,
                             "isReadOnly": false,
                             "isRequired": true,
-                            "reference": "app_customer.id",
-                            "type": "Number",
                             "widget": null,
-                            "widgetEdit": null
+                            "reference": "app_customer.id"
                         }
-                    ],
-                    "hooks": {
-                        "load": false,
-                        "change": [
-                            "changeHook"
-                        ]
-                    }
+                    ]
                 },
                 {
                     "id": "app_order-1-refund order(s)",
                     "name": "Refund order(s)",
-                    "type": "single",
-                    "baseUrl": null,
+                    "scope": "single",
                     "endpoint": "/forest/_actions/app_order/1/refund order(s)",
-                    "httpMethod": "POST",
-                    "redirect": null,
                     "download": false,
+                    "isDynamicForm": false,
                     "fields": [
                         {
-                            "field": "reason",
+                            "name": "reason",
+                            "type": "String",
+                            "description": "",
                             "value": "",
                             "defaultValue": "",
-                            "description": "",
-                            "enums": null,
-                            "hook": null,
                             "isReadOnly": false,
                             "isRequired": false,
-                            "reference": null,
-                            "type": "String",
-                            "widget": null,
-                            "widgetEdit": null
+                            "widget": null
                         }
-                    ],
-                    "hooks": {
-                        "load": false,
-                        "change": [
-                            "changeHook"
-                        ]
-                    }
+                    ]
                 }
             ],
             "segments": [
@@ -4259,10 +4201,10 @@
     ],
     "meta": {
         "liana": "agent-python",
-        "liana_version": "1.5.6",
+        "liana_version": "1.5.5",
         "stack": {
             "engine": "python",
-            "engine_version": "3.11.3"
+            "engine_version": "3.10.11"
         }
     }
 }

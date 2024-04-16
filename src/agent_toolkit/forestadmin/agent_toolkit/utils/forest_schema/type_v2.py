@@ -42,7 +42,7 @@ class SchemaV2ActionField(TypedDict):
     description: NotRequired[Optional[str]]
 
     value: NotRequired[Optional[Any]]
-    defaultValue: NotRequired[Optional[Any]]
+    prefillValue: NotRequired[Optional[Any]]
     enumeration: NotRequired[Optional[List[str]]]
     isReadOnly: NotRequired[bool]
     isRequired: NotRequired[bool]
@@ -53,7 +53,7 @@ class SchemaV2ActionField(TypedDict):
 class SchemaV2Action(TypedDict):
     id: str
     name: str
-    type: Literal["single", "bulk", "global"]
+    scope: Literal["single", "bulk", "global"]
     endpoint: str  # should it include the 'prefix' setting of the agent ??
     fields: NotRequired[List[SchemaV2ActionField]]
     download: NotRequired[bool]

@@ -2,9 +2,7 @@ from typing import List, Union, cast
 
 from forestadmin.agent_toolkit.utils.forest_schema.action_values import ForestValueConverter
 from forestadmin.agent_toolkit.utils.forest_schema.generator_action_field_widget import GeneratorActionFieldWidget
-from forestadmin.agent_toolkit.utils.forest_schema.generator_field import SchemaFieldGenerator
 from forestadmin.agent_toolkit.utils.forest_schema.generator_field_v2 import SchemaFieldGeneratorV2
-from forestadmin.agent_toolkit.utils.forest_schema.type import ForestServerActionField
 from forestadmin.agent_toolkit.utils.forest_schema.type_v2 import SchemaV2Action, SchemaV2ActionField
 from forestadmin.datasource_toolkit.collections import Collection
 from forestadmin.datasource_toolkit.datasource_customizer.collection_customizer import CollectionCustomizer
@@ -15,40 +13,23 @@ from forestadmin.datasource_toolkit.utils.schema import SchemaUtils
 
 
 class SchemaActionGeneratorV2:
-    DUMMY_FIELDS = [
-        ForestServerActionField(
-            field="Loading...",
-            type=SchemaFieldGenerator.build_column_type(PrimitiveType.STRING),
-            isReadOnly=True,
-            defaultValue="Form is loading",
-            value=None,
-            description="",
-            enums=None,
-            hook=None,
-            isRequired=False,
-            reference=None,
-            widget=None,
-        )
-    ]
-
     @classmethod
     async def build(cls, prefix: str, collection: Union[Collection, CollectionCustomizer], name: str) -> SchemaV2Action:
         schema = collection.schema["actions"][name]
         idx = list(collection.schema["actions"].keys()).index(name)
         slug = name.lower().replace(r"[^a-z0-9-]+", "-")
-        return SchemaV2Action(
+        ret = SchemaV2Action(
             id=f"{collection.name}-{idx}-{slug}",  # type:ignore
             name=name,
-            type=schema.scope.value.lower(),  # type:ignore
+            scope=schema.scope.value.lower(),  # type:ignore
             endpoint=f"/forest/_actions/{collection.name}/{idx}/{slug}",  # type:ignore
             download=bool(schema.generate_file),
-            fields=(
-                await cls.build_fields(collection, schema, name)
-                if schema.static_form
-                else SchemaActionGeneratorV2.DUMMY_FIELDS
-            ),
             isDynamicForm=not schema.static_form,
         )
+        if schema.static_form:
+            ret["fields"] = await cls.build_fields(collection, schema, name)
+
+        return ret
 
     @classmethod
     async def build_field_schema(cls, datasource: Datasource[Collection], field: ActionField) -> SchemaV2ActionField:
@@ -61,7 +42,7 @@ class SchemaActionGeneratorV2:
             # When sending to server, we need to rename 'value' into 'defaultValue'
             # otherwise, it does not gets applied 🤷‍♂️
             "value": value,
-            "defaultValue": default_value,
+            "prefillValue": default_value,
             # "enumeration": None,  # default value
             "isReadOnly": (
                 field["is_read_only"] if "is_read_only" in field and field["is_read_only"] is not None else False
@@ -80,18 +61,18 @@ class SchemaActionGeneratorV2:
             output["reference"] = f"{collection.name}.{pk}"
 
         elif "File" in field["type"].value:
-            output["type"] = ["File"] if "List" in field["type"].value else "File"
+            output["type"] = ["File"] if "List" in field["type"].value else "File"  # type: ignore
 
         elif field["type"].value.endswith("List"):
-            output["type"] = [PrimitiveType(field["type"].value[:-4])]
+            output["type"] = [PrimitiveType(field["type"].value[:-4])]  # type: ignore
         else:
-            output["type"] = field["type"].value
+            output["type"] = field["type"].value  # type: ignore
 
         if field["type"] in [ActionFieldType.ENUM, ActionFieldType.ENUM_LIST]:
             output["enumeration"] = field.get("enum_values")
 
         if not isinstance(output["type"], str):
-            output["type"] = SchemaFieldGeneratorV2.build_column_type(output["type"])  # type:ignore
+            output["type"] = SchemaFieldGeneratorV2.build_column_type(output["type"])  # type: ignore
 
         return SchemaV2ActionField(**output)
 
