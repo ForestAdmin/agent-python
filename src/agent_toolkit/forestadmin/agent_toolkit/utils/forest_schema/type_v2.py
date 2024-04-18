@@ -1,7 +1,7 @@
-from typing import Any, List, Literal, Optional
+from typing import Any, Dict, List, Literal, Optional
 
 from forestadmin.agent_toolkit.utils.forest_schema.type import (
-    AgentMeta,
+    AgentStackMeta,
     ForestServerSegment,
     ServerValidationType,
     WidgetEditConfiguration,
@@ -15,6 +15,7 @@ class SchemaV2Relation(TypedDict):
     name: str
     type: Literal["ManyToMany", "ManyToOne", "OneToOne", "OneToMany"]
     foreignCollection: str
+
     throughCollection: NotRequired[str]
     foreignKey: NotRequired[str]
     foreignKeyTarget: NotRequired[str]
@@ -79,9 +80,18 @@ class SchemaV2Collection(TypedDict):
     canNativeQuery: NotRequired[bool]
 
 
+class AgentMetaV2(TypedDict):
+    agent: str
+    agent_version: str
+    stack: AgentStackMeta
+    datasources: NotRequired[
+        List[Dict[str, Any]]
+    ]  # here to store "name", "version", "dialect", ... and other nice to have values without formal keys
+
+
 class ForestSchemaV2(TypedDict):
-    data: List[SchemaV2Collection]
-    meta: AgentMeta
+    collections: List[SchemaV2Collection]
+    meta: AgentMetaV2
 
 
 # MASKS
@@ -96,7 +106,7 @@ SCHEMA_V2_FIELDS_MASK = {
 
 SCHEMA_V2_ACTION_FIELD_MASK = {
     "value": None,
-    "defaultValue": None,
+    "prefillValue": None,
     "enumeration": None,
     "description": "",
     "isReadOnly": False,

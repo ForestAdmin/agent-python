@@ -1891,7 +1891,7 @@
                             "type": "String",
                             "description": "",
                             "value": "",
-                            "defaultValue": "",
+                            "prefillValue": "",
                             "isReadOnly": false,
                             "isRequired": false,
                             "widget": null
@@ -1901,7 +1901,7 @@
                             "type": "Number",
                             "description": "",
                             "value": null,
-                            "defaultValue": null,
+                            "prefillValue": null,
                             "isReadOnly": false,
                             "isRequired": true,
                             "widget": null,
@@ -1922,7 +1922,7 @@
                             "type": "String",
                             "description": "",
                             "value": "",
-                            "defaultValue": "",
+                            "prefillValue": "",
                             "isReadOnly": false,
                             "isRequired": false,
                             "widget": null
@@ -4200,11 +4200,18 @@
         }
     ],
     "meta": {
-        "liana": "agent-python",
-        "liana_version": "1.5.5",
+        "agent": "agent-python",
+        "agent_version": "1.5.5",
         "stack": {
             "engine": "python",
             "engine_version": "3.10.11"
-        }
+        },
+        "datasources": [
+            {
+                "name": "DjangoDatasource",
+                "version": "1.5.5",
+                "django_version": "4.2.11"
+            }
+        ]
     }
 }
