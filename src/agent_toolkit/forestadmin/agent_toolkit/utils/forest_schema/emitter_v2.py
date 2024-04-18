@@ -62,10 +62,11 @@ class SchemaEmitterV2:
             with open(full_schema_path, "w", encoding="utf-8") as schema_file:
                 json.dump({"collections": collections_schema, "meta": meta_v2}, schema_file, indent=4)
 
+            reduced_collections = []
+            for collection in collections_schema:
+                reduced_collections.append(template_reduce_collection(collection))
+            collections_schema = reduced_collections
             with open(schema_path, "w", encoding="utf-8") as schema_file:
-                reduced_collections = []
-                for collection in collections_schema:
-                    reduced_collections.append(template_reduce_collection(collection))
                 json.dump({"collections": reduced_collections, "meta": meta_v2}, schema_file, indent=4)
         else:
             1 / 0

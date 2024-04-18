@@ -28,7 +28,7 @@ class SchemaV2Field(TypedDict):
     type: ColumnAlias
     isPrimaryKey: NotRequired[bool]
     filterOperators: List[str]
-    enumerations: NotRequired[Optional[List[str]]]
+    enumerations: NotRequired[List[str]]
 
     isWritable: NotRequired[bool]
     isSortable: NotRequired[bool]
@@ -96,7 +96,7 @@ class ForestSchemaV2(TypedDict):
 
 # MASKS
 SCHEMA_V2_FIELDS_MASK = {
-    "enumerations": None,
+    "enumerations": [],
     "isPrimaryKey": False,
     "prefillFormValue": None,
     "isSortable": True,

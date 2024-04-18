@@ -37,7 +37,9 @@ class SchemaFieldGeneratorV2:
                     for operator in field_schema["filter_operators"] or {}
                 ]
             ),
-            "enumerations": field_schema["enum_values"],  # type:ignore
+            "enumerations": (
+                field_schema["enum_values"] if field_schema["enum_values"] is not None else []
+            ),  # type:ignore
             "isPrimaryKey": field_schema["is_primary_key"],
             "isSortable": field_schema["is_sortable"],
             "isWritable": not field_schema["is_read_only"],
