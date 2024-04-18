@@ -7,6 +7,7 @@ from forestadmin.agent_toolkit.utils.context import RequestMethod
 from forestadmin.datasource_toolkit.collections import Collection, CollectionException
 from forestadmin.datasource_toolkit.datasources import Datasource
 from forestadmin.datasource_toolkit.interfaces.fields import Column, FieldType, ManyToOne, Operator, PrimitiveType
+from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.branch import Aggregator
 from forestadmin.datasource_toolkit.validations.projection import ProjectionValidator
 
 
@@ -55,7 +56,7 @@ class TestFilter(TestCase):
                 ),
                 "firstname": Column(
                     column_type=PrimitiveType.STRING,
-                    filter_operators=[Operator.IN, Operator.EQUAL],
+                    filter_operators=[Operator.IN, Operator.EQUAL, Operator.STARTS_WITH],
                     type=FieldType.COLUMN,
                 ),
                 "lastname": Column(
@@ -93,6 +94,24 @@ class TestFilter(TestCase):
         )
         condition_tree = parse_condition_tree(request)
         self.assertEqual(condition_tree.value, [1, 2])
+
+    def test_parse_condition_tree_should_parse_complex_condition_tree(self):
+        request = RequestCollection(
+            method=RequestMethod.GET,
+            body=None,
+            query={
+                "filters": '{"aggregator": "or","conditions": [{"field":"id","operator":"in","value":"1,2"}, '
+                '{"field":"author:firstname","operator":"starts_with","value":"A"}]}',
+                "collection_name": "Book",
+            },
+            collection=self.collection_book,
+        )
+        condition_tree = parse_condition_tree(request)
+        self.assertEqual(condition_tree.aggregator, Aggregator.OR)
+        self.assertEqual(condition_tree.conditions[0].operator, Operator.IN)
+        self.assertEqual(condition_tree.conditions[0].value, [1, 2])
+        self.assertEqual(condition_tree.conditions[1].operator, Operator.STARTS_WITH)
+        self.assertEqual(condition_tree.conditions[1].value, "A")
 
     def test_parse_projection_should_parse_in_query_projection(self):
         request = RequestCollection(
