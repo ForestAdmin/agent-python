@@ -104,8 +104,8 @@ class CollectionCustomizer:
             https://docs.forestadmin.com/developer-guide-agents-python/agent-customization/hooks/collection-override
 
         Example:
-            TODO : continue example
             def update(context: UpdateOverrideCustomizationContext):
+                pk = context.patch['id']
                 req = requests.put(f"https://external_api/my_collection/{pk}", json=context.data)
 
             .override_update(update)
@@ -129,8 +129,8 @@ class CollectionCustomizer:
             https://docs.forestadmin.com/developer-guide-agents-python/agent-customization/hooks/collection-override
 
         Example:
-            TODO : continue example
             def update(context: UpdateOverrideCustomizationContext):
+                pk = context.filter.value
                 req = requests.delete(f"https://external_api/my_collection/{pk}")
 
             .override_update(update)

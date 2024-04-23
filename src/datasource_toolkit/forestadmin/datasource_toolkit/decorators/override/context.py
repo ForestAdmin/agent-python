@@ -14,7 +14,6 @@ class CreateOverrideCustomizationContext(CollectionCustomizationContext):
 
 
 class UpdateOverrideCustomizationContext(CollectionCustomizationContext):
-    # TODO: why didn't we reuse a context that have get_record / get_record_id method ??
     def __init__(self, collection: Collection, caller: User, filter_: Optional[Filter], patch: RecordsDataAlias):
         self.patch: RecordsDataAlias = {**patch}
         self.filter: Optional[Filter] = filter_
@@ -22,7 +21,6 @@ class UpdateOverrideCustomizationContext(CollectionCustomizationContext):
 
 
 class DeleteOverrideCustomizationContext(CollectionCustomizationContext):
-    # TODO: why didn't we reuse a context that have get_record / get_record_id method ??
     def __init__(self, collection: Collection, caller: User, filter_: Optional[Filter]):
         self.filter: Optional[Filter] = filter_
         super().__init__(collection, caller)

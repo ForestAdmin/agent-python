@@ -15,6 +15,10 @@ from forestadmin.datasource_toolkit.decorators.chart.result_builder import Resul
 from forestadmin.datasource_toolkit.decorators.computed.types import ComputedDefinition
 from forestadmin.datasource_toolkit.decorators.hook.context.create import HookBeforeCreateContext
 from forestadmin.datasource_toolkit.decorators.hook.context.list import HookAfterListContext
+from forestadmin.datasource_toolkit.decorators.override.context import (
+    DeleteOverrideCustomizationContext,
+    UpdateOverrideCustomizationContext,
+)
 from forestadmin.datasource_toolkit.decorators.write.write_replace.write_customization_context import (
     WriteCustomizationContext,
 )
@@ -334,3 +338,18 @@ async def hook_customer_after_list(context: HookAfterListContext):
         logger.info("All these customers, you must be rich !!!")
     else:
         logger.info("No customers, No problems !!!")
+
+
+async def customer_delete_override(context: DeleteOverrideCustomizationContext):
+    logger = logging.getLogger("forestadmin")
+
+    logger.info("Summoning a god to erase a bad customer")
+    await context.collection.delete(context.caller, context.filter)
+    logger.info("An evil god did it, and like it!!")
+
+
+async def customer_update_override(context: UpdateOverrideCustomizationContext):
+    logger = logging.getLogger("forestadmin")
+
+    logger.info(f"Making the customer {context.patch['id']} prettier")
+    await context.collection.update(context.caller, context.filter, context.patch)
