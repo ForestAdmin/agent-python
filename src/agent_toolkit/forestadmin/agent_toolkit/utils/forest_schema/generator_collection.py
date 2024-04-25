@@ -25,16 +25,16 @@ class SchemaCollectionGenerator:
 
         return {
             "name": collection.name,
-            "isVirtual": False,
             "icon": None,
+            "integration": None,
             "isReadOnly": all(
                 [f["type"] == FieldType.COLUMN and f["is_read_only"] for f in collection.schema["fields"].values()]
             ),
-            "integration": None,
             "isSearchable": collection.schema["searchable"],
+            "isVirtual": False,
             "onlyForRelationships": False,
             "paginationType": "page",
-            "searchField": None,
+            # "searchField": None,
             "actions": sorted(
                 [
                     await SchemaActionGenerator.build(prefix, collection, name)

@@ -6,7 +6,8 @@ from forestadmin.datasource_toolkit.datasources import Datasource
 
 
 class BaseDjangoCollection(Collection, abc.ABC):
-    def model(self) -> Model:
+    @property
+    def model(self) -> Model:  # type: ignore
         """return model of the collection"""
 
 

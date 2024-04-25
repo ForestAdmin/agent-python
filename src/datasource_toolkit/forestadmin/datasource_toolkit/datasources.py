@@ -1,4 +1,5 @@
-from typing import Dict, List
+from importlib.metadata import version
+from typing import Any, Dict, List
 
 from forestadmin.agent_toolkit.utils.context import User
 from forestadmin.datasource_toolkit.exceptions import DatasourceToolkitException
@@ -14,6 +15,13 @@ class DatasourceException(DatasourceToolkitException):
 class Datasource(DatasourceInterface[BoundCollection]):
     def __init__(self) -> None:
         self._collections: Dict[str, BoundCollection] = {}
+
+    @classmethod
+    def mk_meta_entry(cls) -> Dict[str, Any]:
+        return {
+            "name": "FromToolkitDatasource",
+            "version": version("forestadmin-datasource-toolkit").replace("b", "-beta."),
+        }
 
     @property
     def schema(self):

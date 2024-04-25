@@ -19,6 +19,15 @@ from forestadmin.datasource_toolkit.interfaces.records import RecordsDataAlias
 
 
 class DjangoCollection(BaseDjangoCollection):
+    canList: bool = True
+    canCreate: bool = True
+    canUpdate: bool = True
+    canDelete: bool = True
+    canChart: bool = True
+    canCount: bool = True
+    canNativeQuery: bool = True
+    canSearch: bool = True
+
     def __init__(self, datasource: Datasource, model: Model):
         super().__init__(model._meta.db_table, datasource)
         self._model = model

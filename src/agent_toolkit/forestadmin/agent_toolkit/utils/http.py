@@ -6,6 +6,7 @@ from aiohttp.web import HTTPException
 from forestadmin.agent_toolkit.exceptions import AgentToolkitException
 from forestadmin.agent_toolkit.forest_logger import ForestLogger
 from forestadmin.agent_toolkit.utils.forest_schema.type import ForestSchema
+from forestadmin.agent_toolkit.utils.forest_schema.type_v2 import ForestSchemaV2
 
 
 class ForestHttpApiException(AgentToolkitException):
@@ -159,3 +160,21 @@ class ForestHttpApi:
             )
         else:
             ForestLogger.log("info", "Schema was not updated since last run.")
+
+    @classmethod
+    async def send_schema_v2(cls, options: HttpOptions, schema: ForestSchemaV2) -> bool:
+        ForestLogger.log("info", "Schema was updated, sending new version.")
+        ret = await cls.post(
+            cls.build_endpoint(options["server_url"], "/forest/v2/apimaps"),
+            schema,
+            {"forest-secret-key": options["env_secret"], "content-type": "application/json"},
+            options["verify_ssl"],
+        )
+        pass
+        # TODO: remove file writing just after this dump is only to compare schema during poc
+        if ret:
+            with open(options["schema_path"], "w") as fout:
+                json.dump(ret["schemaV1"], fout, indent=4)
+
+            with open(f'{options["schema_path"].split(".json")[0]}_json_api.json', "w") as fout:
+                json.dump(ret["schemaV1JSONAPI"], fout, indent=4)
