@@ -4,9 +4,11 @@ from app.forest.address import address_full_name_computed, get_postal_code, high
 from app.forest.cart import cart_update_name
 from app.forest.customer import (
     age_operation_action_dict,
+    customer_delete_override,
     customer_full_name,
     customer_full_name_write,
     customer_spending_computed,
+    customer_update_override,
     export_json_action_dict,
     french_address_segment,
     full_name_contains,
@@ -102,7 +104,7 @@ def customize_forest(agent: DjangoAgent):
         },
     ).add_segment("with french address", french_address_segment).add_segment(
         "VIP customers",
-        lambda context: ConditionTreeLeaf("is_vip", "equal", True)
+        lambda context: ConditionTreeLeaf("is_vip", "equal", True),
         # add actions
     ).add_action(
         "Export json", export_json_action_dict
@@ -170,6 +172,10 @@ def customize_forest(agent: DjangoAgent):
         "After", "List", hook_customer_after_list
     ).add_chart(
         "nb_order_week", time_order_number_chart
+    ).override_delete(
+        customer_delete_override
+    ).override_update(
+        customer_update_override
     )
 
     # # ## ORDERS

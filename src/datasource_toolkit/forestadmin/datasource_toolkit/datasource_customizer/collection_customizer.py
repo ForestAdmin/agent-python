@@ -12,6 +12,12 @@ from forestadmin.datasource_toolkit.decorators.hook.collections import Collectio
 from forestadmin.datasource_toolkit.decorators.hook.types import CrudMethod, HookHandler, Position
 from forestadmin.datasource_toolkit.decorators.operators_emulate.collections import OperatorsEmulateCollectionDecorator
 from forestadmin.datasource_toolkit.decorators.operators_emulate.types import OperatorDefinition
+from forestadmin.datasource_toolkit.decorators.override.collection import OverrideCollectionDecorator
+from forestadmin.datasource_toolkit.decorators.override.types import (
+    CreateOverrideHandler,
+    DeleteOverrideHandler,
+    UpdateOverrideHandler,
+)
 from forestadmin.datasource_toolkit.decorators.publication.collections import PublicationCollectionDecorator
 from forestadmin.datasource_toolkit.decorators.relation.collections import RelationCollectionDecorator
 from forestadmin.datasource_toolkit.decorators.relation.types import (
@@ -62,6 +68,82 @@ class CollectionCustomizer:
     def schema(self) -> CollectionSchema:
         return self.stack.validation.get_collection(self.collection_name).schema
 
+    # override CUD
+    def override_create(self, handler: CreateOverrideHandler) -> Self:
+        """Override the default create behavior of datasource for this collection
+
+        Args:
+            handler (CreateOverrideHandler): the new create method
+
+        Documentation:
+            https://docs.forestadmin.com/developer-guide-agents-python/agent-customization/hooks/collection-override
+
+        Example:
+            def create(context: CreateOverrideCustomizationContext):
+                req = requests.post("https://external_api/my_collection", json=context.data)
+                return req.json()
+
+            .override_create(create)
+        """
+
+        async def _override_create():
+            cast(
+                OverrideCollectionDecorator, self.stack.override.get_collection(self.collection_name)
+            ).add_create_handler(handler)
+
+        self.stack.queue_customization(_override_create)
+        return self
+
+    def override_update(self, handler: UpdateOverrideHandler) -> Self:
+        """Override the default update behavior of datasource for this collection
+
+        Args:
+            handler (UpdateOverrideHandler): the new update method
+
+        Documentation:
+            https://docs.forestadmin.com/developer-guide-agents-python/agent-customization/hooks/collection-override
+
+        Example:
+            def update(context: UpdateOverrideCustomizationContext):
+                pk = context.patch['id']
+                req = requests.put(f"https://external_api/my_collection/{pk}", json=context.data)
+
+            .override_update(update)
+        """
+
+        async def _override_update():
+            cast(
+                OverrideCollectionDecorator, self.stack.override.get_collection(self.collection_name)
+            ).add_update_handler(handler)
+
+        self.stack.queue_customization(_override_update)
+        return self
+
+    def override_delete(self, handler: DeleteOverrideHandler) -> Self:
+        """Override the default delete behavior of datasource for this collection
+
+        Args:
+            handler (DeleteOverrideCustomizationContext): the new delete method
+
+        Documentation:
+            https://docs.forestadmin.com/developer-guide-agents-python/agent-customization/hooks/collection-override
+
+        Example:
+            def update(context: UpdateOverrideCustomizationContext):
+                pk = context.filter.value
+                req = requests.delete(f"https://external_api/my_collection/{pk}")
+
+            .override_update(update)
+        """
+
+        async def _override_delete():
+            cast(
+                OverrideCollectionDecorator, self.stack.override.get_collection(self.collection_name)
+            ).add_delete_handler(handler)
+
+        self.stack.queue_customization(_override_delete)
+        return self
+
     # action
 
     def add_action(self, name: str, action: ActionDict) -> Self:
@@ -84,7 +166,6 @@ class CollectionCustomizer:
                 "scope": ActionsScope.SINGLE,
                 "execute": execute,  # this method can be a callable, awaitable or a lambda
             })
-
         """
 
         async def _add_action():
