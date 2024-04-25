@@ -1,3 +1,10 @@
+# [1.7.0](https://github.com/ForestAdmin/agent-python/compare/v1.6.8...v1.7.0) (2024-04-25)
+
+
+### Features
+
+* add override decorator ([#217](https://github.com/ForestAdmin/agent-python/issues/217)) ([56b4ce8](https://github.com/ForestAdmin/agent-python/commit/56b4ce82c6a644c89152aec0d9c7bc2a0df98fbd))
+
 ## [1.6.8](https://github.com/ForestAdmin/agent-python/compare/v1.6.7...v1.6.8) (2024-04-18)
 
 
