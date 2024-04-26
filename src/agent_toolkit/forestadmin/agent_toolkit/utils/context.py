@@ -42,7 +42,7 @@ class Request:
     query: Optional[Dict[str, Any]] = None
     headers: Optional[Dict[str, str]] = None
     user: Optional[User] = None
-    client_ip: Optional[str] = (None,)
+    client_ip: Optional[str] = None
 
     def __init__(
         self,
