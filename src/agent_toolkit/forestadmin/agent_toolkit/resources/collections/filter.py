@@ -241,9 +241,8 @@ def _cast_to_type(value: Any, expected_type: ColumnAlias) -> Any:
     }
 
     return_value = value
-    if isinstance(expected_type, list) and isinstance(value, str):
-        return_value = [v.strip() for v in value.split(",")]
-
+    if isinstance(expected_type, list):
+        return_value = [v.strip() for v in value.split(",")] if isinstance(value, str) else value
         return_value = [
             _cast_to_type(item, expected_type[0])
             for item in return_value

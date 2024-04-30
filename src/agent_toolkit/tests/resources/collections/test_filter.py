@@ -115,6 +115,43 @@ class TestFilterConditionTree(TestFilter):
         self.assertEqual(condition_tree.conditions[1].operator, Operator.STARTS_WITH)
         self.assertEqual(condition_tree.conditions[1].value, "A")
 
+    def test_parse_condition_tree_should_parse_in_operators_with_list_and_comma_separated_values(self):
+        request = RequestCollection(
+            method=RequestMethod.GET,
+            body=None,
+            query={
+                "filters": '{"field":"id","operator":"in","value":"1,2"}',
+                "collection_name": "Book",
+            },
+            collection=self.collection_book,
+        )
+        condition_tree = parse_condition_tree(request)
+        self.assertEqual(condition_tree.value, [1, 2])
+
+        request = RequestCollection(
+            method=RequestMethod.GET,
+            body=None,
+            query={
+                "filters": '{"field":"id","operator":"in","value":[1, 2]}',
+                "collection_name": "Book",
+            },
+            collection=self.collection_book,
+        )
+        condition_tree = parse_condition_tree(request)
+        self.assertEqual(condition_tree.value, [1, 2])
+
+        request = RequestCollection(
+            method=RequestMethod.GET,
+            body=None,
+            query={
+                "filters": '{"field":"id","operator":"in","value":["1", "2"]}',
+                "collection_name": "Book",
+            },
+            collection=self.collection_book,
+        )
+        condition_tree = parse_condition_tree(request)
+        self.assertEqual(condition_tree.value, [1, 2])
+
 
 class TestFilterProjection(TestFilter):
     def test_parse_projection_should_parse_in_query_projection(self):
