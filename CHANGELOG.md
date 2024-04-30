@@ -1,3 +1,10 @@
+# [1.8.0](https://github.com/ForestAdmin/agent-python/compare/v1.7.0...v1.8.0) (2024-04-30)
+
+
+### Features
+
+* support multi field sorting from frontend ([#218](https://github.com/ForestAdmin/agent-python/issues/218)) ([2887f94](https://github.com/ForestAdmin/agent-python/commit/2887f94ea18bd9af7858915b3e859fb73d928d2a))
+
 # [1.7.0](https://github.com/ForestAdmin/agent-python/compare/v1.6.8...v1.7.0) (2024-04-25)
 
 
