@@ -104,15 +104,18 @@ def parse_selection_ids(request: RequestCollection) -> Tuple[List[CompositeIdAli
 
 
 def parse_sort(request: Union[RequestCollection, RequestRelationCollection]):
-    sort_string: Optional[str] = _subset_or_query(request, "sort")
-    if not sort_string:
+    raw_sort_string: Optional[str] = _subset_or_query(request, "sort")
+    if not raw_sort_string:
         return SortFactory.by_primary_keys(_get_collection(request))
 
-    sort_field = sort_string.replace(".", ":")
-    is_descending = sort_string[0] == "-"
-    if is_descending:
-        sort_field = sort_field[1:]
-    return Sort([{"field": sort_field, "ascending": not is_descending}])
+    sort_list = []
+    for sort_string in raw_sort_string.split(","):
+        sort_field = sort_string.replace(".", ":")
+        is_descending = sort_string[0] == "-"
+        if is_descending:
+            sort_field = sort_field[1:]
+        sort_list.append({"field": sort_field, "ascending": not is_descending})
+    return Sort(sort_list)
 
 
 def parse_page(request: Request) -> Page:
@@ -238,9 +241,8 @@ def _cast_to_type(value: Any, expected_type: ColumnAlias) -> Any:
     }
 
     return_value = value
-    if isinstance(expected_type, list) and isinstance(value, str):
-        return_value = [v.strip() for v in value.split(",")]
-
+    if isinstance(expected_type, list):
+        return_value = [v.strip() for v in value.split(",")] if isinstance(value, str) else value
         return_value = [
             _cast_to_type(item, expected_type[0])
             for item in return_value

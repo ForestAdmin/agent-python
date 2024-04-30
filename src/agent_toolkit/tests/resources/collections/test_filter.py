@@ -1,7 +1,7 @@
 from unittest import TestCase
 from unittest.mock import patch
 
-from forestadmin.agent_toolkit.resources.collections.filter import parse_condition_tree, parse_projection
+from forestadmin.agent_toolkit.resources.collections.filter import parse_condition_tree, parse_projection, parse_sort
 from forestadmin.agent_toolkit.resources.collections.requests import RequestCollection
 from forestadmin.agent_toolkit.utils.context import RequestMethod
 from forestadmin.datasource_toolkit.collections import Collection, CollectionException
@@ -69,6 +69,8 @@ class TestFilter(TestCase):
         cls.datasource.add_collection(cls.collection_book)
         cls.datasource.add_collection(cls.collection_person)
 
+
+class TestFilterConditionTree(TestFilter):
     def test_parse_condition_tree_should_parse_array_when_IN_operator_str(self):
         request = RequestCollection(
             method=RequestMethod.GET,
@@ -113,6 +115,45 @@ class TestFilter(TestCase):
         self.assertEqual(condition_tree.conditions[1].operator, Operator.STARTS_WITH)
         self.assertEqual(condition_tree.conditions[1].value, "A")
 
+    def test_parse_condition_tree_should_parse_in_operators_with_list_and_comma_separated_values(self):
+        request = RequestCollection(
+            method=RequestMethod.GET,
+            body=None,
+            query={
+                "filters": '{"field":"id","operator":"in","value":"1,2"}',
+                "collection_name": "Book",
+            },
+            collection=self.collection_book,
+        )
+        condition_tree = parse_condition_tree(request)
+        self.assertEqual(condition_tree.value, [1, 2])
+
+        request = RequestCollection(
+            method=RequestMethod.GET,
+            body=None,
+            query={
+                "filters": '{"field":"id","operator":"in","value":[1, 2]}',
+                "collection_name": "Book",
+            },
+            collection=self.collection_book,
+        )
+        condition_tree = parse_condition_tree(request)
+        self.assertEqual(condition_tree.value, [1, 2])
+
+        request = RequestCollection(
+            method=RequestMethod.GET,
+            body=None,
+            query={
+                "filters": '{"field":"id","operator":"in","value":["1", "2"]}',
+                "collection_name": "Book",
+            },
+            collection=self.collection_book,
+        )
+        condition_tree = parse_condition_tree(request)
+        self.assertEqual(condition_tree.value, [1, 2])
+
+
+class TestFilterProjection(TestFilter):
     def test_parse_projection_should_parse_in_query_projection(self):
         request = RequestCollection(
             method=RequestMethod.GET,
@@ -160,3 +201,63 @@ class TestFilter(TestCase):
         )
 
         self.assertRaisesRegex(CollectionException, r"Field not found 'Book.blabedoubla'", parse_projection, request)
+
+
+class TestFilterSort(TestFilter):
+    def test_parse_sort_should_return_pk_when_nothing_set(self):
+        request = RequestCollection(
+            method=RequestMethod.GET,
+            body=None,
+            query={
+                "collection_name": "Book",
+                "fields[Book]": "id,title",
+            },
+            collection=self.collection_book,
+        )
+
+        sort = parse_sort(request)
+        self.assertEqual(sort, [{"field": "id", "ascending": True}])
+
+    def test_parse_sort_should_parse_sort_from_request(self):
+        request = RequestCollection(
+            method=RequestMethod.GET,
+            body=None,
+            query={
+                "collection_name": "Book",
+                "fields[Book]": "id,title",
+                "sort": "title",
+            },
+            collection=self.collection_book,
+        )
+
+        sort = parse_sort(request)
+        self.assertEqual(sort, [{"field": "title", "ascending": True}])
+
+    def test_parse_sort_should_parse_descending_sort_from_request(self):
+        request = RequestCollection(
+            method=RequestMethod.GET,
+            body=None,
+            query={
+                "collection_name": "Book",
+                "fields[Book]": "id,title",
+                "sort": "-title",
+            },
+            collection=self.collection_book,
+        )
+
+        sort = parse_sort(request)
+        self.assertEqual(sort, [{"field": "title", "ascending": False}])
+
+    def test_parse_sort_should_parse_multiple_field_sorting(self):
+        request = RequestCollection(
+            method=RequestMethod.GET,
+            body=None,
+            query={
+                "collection_name": "Book",
+                "fields[Book]": "id,title",
+                "sort": "-title,id",
+            },
+            collection=self.collection_book,
+        )
+        sort = parse_sort(request)
+        self.assertEqual(sort, [{"field": "title", "ascending": False}, {"field": "id", "ascending": True}])

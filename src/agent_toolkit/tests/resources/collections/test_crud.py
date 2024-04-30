@@ -97,6 +97,7 @@ class TestCrudResource(TestCase):
             {
                 "id": {"column_type": PrimitiveType.NUMBER, "is_primary_key": True, "type": FieldType.COLUMN},
                 "cost": {"column_type": PrimitiveType.NUMBER, "is_primary_key": False, "type": FieldType.COLUMN},
+                "important": {"column_type": PrimitiveType.BOOLEAN, "is_primary_key": False, "type": FieldType.COLUMN},
                 "products": {
                     "column_type": PrimitiveType.NUMBER,
                     "is_primary_key": False,
@@ -652,6 +653,48 @@ class TestCrudResource(TestCase):
 
         assert response_content["meta"]["decorators"]["0"] == {"id": 10, "search": ["cost"]}
         assert response_content["meta"]["decorators"]["1"] == {"id": 11, "search": ["cost"]}
+
+    @patch(
+        "forestadmin.agent_toolkit.resources.collections.crud.JsonApiSerializer.get",
+        return_value=Mock,
+    )
+    def test_list_should_parse_multi_field_sorting(self, mocked_json_serializer_get: Mock):
+        mock_orders = [
+            {"id": 10, "cost": 200, "important": "02_PENDING"},
+            {"id": 11, "cost": 201, "important": "02_PENDING"},
+            {"id": 13, "cost": 20, "important": "01_URGENT"},
+        ]
+        request = RequestCollection(
+            RequestMethod.GET,
+            self.collection_order,
+            None,
+            {
+                "collection_name": "order",
+                "timezone": "Europe/Paris",
+                "fields[order]": "id,cost,important",
+                "search": "20",
+                "sort": "important,-cost",
+            },
+            {},
+            None,
+        )
+        crud_resource = CrudResource(self.datasource, self.permission_service, self.ip_white_list_service, self.options)
+        mocked_json_serializer_get.return_value.dump = Mock(
+            return_value={
+                "data": [
+                    {"type": "order", "attributes": mock_order, "id": mock_order["id"]} for mock_order in mock_orders
+                ]
+            }
+        )
+        self.collection_order.list = AsyncMock(return_value=mock_orders)
+        self.loop.run_until_complete(crud_resource.list(request))
+
+        self.collection_order.list.assert_awaited()
+
+        paginated_filter = self.collection_order.list.await_args[0][1]
+        self.assertEqual(len(paginated_filter.sort), 2)
+        self.assertEqual(paginated_filter.sort[0], {"field": "important", "ascending": True})
+        self.assertEqual(paginated_filter.sort[1], {"field": "cost", "ascending": False})
 
     @patch(
         "forestadmin.agent_toolkit.resources.collections.crud.JsonApiSerializer.get",
