@@ -1,4 +1,4 @@
-from typing import Literal, Union
+from typing import Literal, Optional, Union
 
 from forestadmin.agent_toolkit.forest_logger import ForestLogger
 from forestadmin.agent_toolkit.resources.collections.base_collection_resource import BaseCollectionResource
@@ -10,7 +10,9 @@ from forestadmin.datasource_toolkit.exceptions import ForestException
 
 class ChartsDatasourceResource(BaseCollectionResource):
     @ip_white_list
-    async def dispatch(self, request: Request, method_name: Literal["add"]) -> Union[Response, FileResponse]:
+    async def dispatch(
+        self, request: Request, method_name: Optional[Literal["useless"]] = None
+    ) -> Union[Response, FileResponse]:
         if request.method.value == "POST":
             handle = self.handle_api_chart
         elif request.method.value == "GET":
