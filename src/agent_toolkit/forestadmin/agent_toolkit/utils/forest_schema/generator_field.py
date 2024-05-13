@@ -83,7 +83,7 @@ class SchemaFieldGenerator:
             "type": cls.build_column_type(column["column_type"]),
             "validations": FrontendValidationUtils.convert_validation_list(column["validations"]),
             "defaultValue": column["default_value"],
-            "enums": column["enum_values"],
+            "enums": sorted(column["enum_values"]),
             "integration": None,
             "inverseOf": None,
             "isFilterable": FrontendFilterableUtils.is_filterable(column["column_type"], column["filter_operators"]),
