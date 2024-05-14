@@ -1,3 +1,10 @@
+## [1.8.1](https://github.com/ForestAdmin/agent-python/compare/v1.8.0...v1.8.1) (2024-05-14)
+
+
+### Bug Fixes
+
+* **schema_file:** enum values are now sorted in schema json file ([#219](https://github.com/ForestAdmin/agent-python/issues/219)) ([d42716f](https://github.com/ForestAdmin/agent-python/commit/d42716f1e15d394fffa2560bf80e5f1d045b0a46))
+
 # [1.8.0](https://github.com/ForestAdmin/agent-python/compare/v1.7.0...v1.8.0) (2024-04-30)
 
 
