@@ -71,7 +71,7 @@ class SchemaFieldGenerator:
 
     @classmethod
     def build_column_schema(cls, name: str, collection: Collection) -> ForestServerField:
-        column = collection.schema["fields"][name]
+        column: Column = collection.schema["fields"][name]  #  type:ignore
         validations = []
         if column["validations"]:
             validations = column["validations"]
@@ -83,7 +83,7 @@ class SchemaFieldGenerator:
             "type": cls.build_column_type(column["column_type"]),
             "validations": FrontendValidationUtils.convert_validation_list(column["validations"]),
             "defaultValue": column["default_value"],
-            "enums": column["enum_values"],
+            "enums": sorted(column["enum_values"]) if column.get("enum_values") is not None else None,
             "integration": None,
             "inverseOf": None,
             "isFilterable": FrontendFilterableUtils.is_filterable(column["column_type"], column["filter_operators"]),
