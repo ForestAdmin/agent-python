@@ -10,7 +10,25 @@
             "onlyForRelationships": false,
             "paginationType": "page",
             "searchField": null,
-            "actions": [],
+            "actions": [
+                {
+                    "id": "address-0-file_action",
+                    "name": "file_action",
+                    "type": "global",
+                    "baseUrl": null,
+                    "endpoint": "/forest/_actions/address/0/file_action",
+                    "httpMethod": "POST",
+                    "redirect": null,
+                    "download": true,
+                    "fields": [],
+                    "hooks": {
+                        "load": false,
+                        "change": [
+                            "changeHook"
+                        ]
+                    }
+                }
+            ],
             "segments": [],
             "fields": [
                 {
@@ -641,7 +659,7 @@
     ],
     "meta": {
         "liana": "agent-python",
-        "liana_version": "1.6.6",
+        "liana_version": "1.8.0",
         "stack": {
             "engine": "python",
             "engine_version": "3.10.11"
