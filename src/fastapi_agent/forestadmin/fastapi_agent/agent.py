@@ -1,4 +1,3 @@
-import asyncio
 import sys
 from importlib.metadata import version
 
@@ -25,7 +24,6 @@ class FastAPIAgent(BaseAgent):
     }
 
     def __init__(self, app: FastAPI, settings: Options):
-        self.loop = asyncio.get_event_loop()
         self._app: FastAPI = app
         self._settings: Options = settings
         self._app.add_event_handler("startup", self.start)
