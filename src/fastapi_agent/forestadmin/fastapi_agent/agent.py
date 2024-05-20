@@ -128,6 +128,10 @@ class FastAPIAgent(BaseAgent):
             return convert_response(ret)
 
         # list
+        @router.get("/{collection_name}.csv")
+        async def collection_csv(request: FastAPIRequest):
+            return await collection_crud_resource(request, "csv")
+
         @router.get("/{collection_name}")
         async def collection_list_get(request: FastAPIRequest):
             return await collection_crud_resource(request, "list")
@@ -143,10 +147,6 @@ class FastAPIAgent(BaseAgent):
         @router.get("/{collection_name}/count")
         async def collection_count(request: FastAPIRequest):
             return await collection_crud_resource(request, "count")
-
-        @router.get("/{collection_name}.csv")
-        async def collection_csv(request: FastAPIRequest):
-            return await collection_crud_resource(request, "csv")
 
         # detail
         @router.put("/{collection_name}/{pks}")
@@ -171,6 +171,10 @@ class FastAPIAgent(BaseAgent):
             ret = await resource.dispatch(await convert_request(request), verb)
             return convert_response(ret)
 
+        @router.get("/{collection_name}/{pks}/relationships/{relation_name}.csv")
+        async def collection_related_csv_get(request: FastAPIRequest):
+            return await collection_crud_related_resource(request, "csv")
+
         @router.get("/{collection_name}/{pks}/relationships/{relation_name}")
         async def collection_related_list_get(request: FastAPIRequest):
             return await collection_crud_related_resource(request, "list")
@@ -191,14 +195,10 @@ class FastAPIAgent(BaseAgent):
         async def collection_related_count_get(request: FastAPIRequest):
             return await collection_crud_related_resource(request, "count")
 
-        @router.get("/{collection_name}/{pks}/relationships/{relation_name}.csv")
-        async def collection_related_csv_get(request: FastAPIRequest):
-            return await collection_crud_related_resource(request, "csv")
-
         return router
 
     def _build_action_router(self) -> APIRouter:
-        router = APIRouter(prefix="/_actions/{collection_name}/{action_name}/{slug}")
+        router = APIRouter(prefix="/_actions/{collection_name}/{action_name:int}/{slug}")
 
         async def action_resource(request: FastAPIRequest, verb: ActionLiteralMethod):
             resource = (await self.get_resources())["actions"]
@@ -209,15 +209,15 @@ class FastAPIAgent(BaseAgent):
         async def execute(request: FastAPIRequest):
             return await action_resource(request, "execute")
 
-        @router.get("/hooks/load")
+        @router.post("/hooks/load")
         async def hook_load(request: FastAPIRequest):
             return await action_resource(request, "hook")
 
-        @router.get("/hooks/change")
+        @router.post("/hooks/change")
         async def hook_change(request: FastAPIRequest):
             return await action_resource(request, "hook")
 
-        @router.get("/hooks/search")
+        @router.post("/hooks/search")
         async def hook_search(request: FastAPIRequest):
             return await action_resource(request, "hook")
 
