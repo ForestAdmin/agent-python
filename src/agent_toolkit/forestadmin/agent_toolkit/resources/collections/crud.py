@@ -1,5 +1,5 @@
 import asyncio
-from typing import Any, Awaitable, Dict, List, Literal, Tuple, cast
+from typing import Any, Awaitable, Dict, List, Literal, Tuple, Union, cast
 from uuid import UUID
 
 from forestadmin.agent_toolkit.forest_logger import ForestLogger
@@ -23,7 +23,14 @@ from forestadmin.agent_toolkit.resources.collections.filter import (
 from forestadmin.agent_toolkit.resources.collections.requests import RequestCollection, RequestCollectionException
 from forestadmin.agent_toolkit.services.serializers import add_search_metadata
 from forestadmin.agent_toolkit.services.serializers.json_api import JsonApiException, JsonApiSerializer
-from forestadmin.agent_toolkit.utils.context import HttpResponseBuilder, Request, RequestMethod, Response, User
+from forestadmin.agent_toolkit.utils.context import (
+    FileResponse,
+    HttpResponseBuilder,
+    Request,
+    RequestMethod,
+    Response,
+    User,
+)
 from forestadmin.agent_toolkit.utils.csv import Csv, CsvException
 from forestadmin.agent_toolkit.utils.id import unpack_id
 from forestadmin.datasource_toolkit.collections import Collection
@@ -181,7 +188,7 @@ class CrudResource(BaseCollectionResource):
     @authenticate
     @authorize("browse")
     @authorize("export")
-    async def csv(self, request: RequestCollection) -> Response:
+    async def csv(self, request: RequestCollection) -> Union[FileResponse, Response]:
         scope_tree = await self.permission.get_scope(request.user, request.collection)
         try:
             paginated_filter = build_paginated_filter(request, scope_tree)

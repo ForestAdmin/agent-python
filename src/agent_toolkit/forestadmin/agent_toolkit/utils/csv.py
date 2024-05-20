@@ -21,7 +21,7 @@ class Csv:
             for row in rows:
                 csv_writer.writerow(Csv.format_field(row))
             dumped_csv.seek(0)
-            return dumped_csv
+            return dumped_csv.read()
         except Exception:
             raise CsvException("Cannot make a csv")
 

@@ -107,10 +107,8 @@ class HttpResponseBuilder:
         )
 
     @staticmethod
-    def build_csv_response(body: str, filename: str) -> Response:
-        return Response(
-            200, body, headers={"content-type": "text/csv", "Content-Disposition": f'attachment; filename="{filename}"'}
-        )
+    def build_csv_response(body: str, filename: str) -> FileResponse:
+        return FileResponse(BytesIO(body.encode("utf8")), filename, "text/csv")
 
     @staticmethod
     def build_success_response(body: Dict[str, Any]) -> Response:
