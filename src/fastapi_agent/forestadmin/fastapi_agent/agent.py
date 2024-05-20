@@ -44,12 +44,12 @@ class FastAPIAgent(BaseAgent):
 
         for key, value in fastapi_settings.items():
             if not key.upper().startswith("FOREST_"):
-                continue
+                ForestLogger.log("warning", f"Unknown setting named '{key}'.")
 
             forest_key = key.lower().replace("forest_", "")
             # Options.__annotations__ is a dict of {key_name:type_class}
             if forest_key not in Options.__annotations__.keys():
-                ForestLogger.log("debug", f"Skipping unknown setting {key}.")
+                ForestLogger.log("warning", f"Skipping unknown setting {key}.")
                 continue
 
             value_type = Options.__annotations__[forest_key]
@@ -228,11 +228,7 @@ class FastAPIAgent(BaseAgent):
         ForestLogger.log("info", "FastAPI agent initialized")
 
 
+# TODO: make typing for settings
 def create_agent(app: FastAPI, settings) -> FastAPIAgent:
     agent = FastAPIAgent(app, settings)
     return agent
-
-
-# def _after_request(response: FlaskResponse):
-#     response.headers["Access-Control-Allow-Private-Network"] = "true"
-#     return response
