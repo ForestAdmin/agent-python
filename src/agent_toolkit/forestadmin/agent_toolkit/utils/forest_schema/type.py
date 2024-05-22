@@ -21,10 +21,23 @@ class ValidationType(enum.Enum):
     LIKE = "is like"
 
 
+LiteralValidationType = Literal[
+    "is present",
+    "is greater than",
+    "is less than",
+    "is before",
+    "is after",
+    "is longer than",
+    "is shorter than",
+    "contains",
+    "is like",
+]
+
+
 class ServerValidationType(TypedDict):
-    type: ValidationType
-    value: Optional[Any]
-    message: Optional[Any]
+    type: LiteralValidationType
+    value: NotRequired[Optional[Any]]
+    message: NotRequired[Optional[Any]]
 
 
 LiteralHasOne = Literal["HasOne"]
@@ -48,23 +61,34 @@ class AgentMeta(TypedDict):
     stack: AgentStackMeta
 
 
-class ForestServerField(TypedDict, total=False):
+class ForestServerFieldColumn(TypedDict):
     field: str
     type: ColumnAlias
-    defaultValue: Any
-    enums: Optional[List[str]]
-    integration: None
+    defaultValue: NotRequired[Any]
+    enums: NotRequired[Optional[List[str]]]
     isFilterable: bool
-    isPrimaryKey: bool
+    isPrimaryKey: NotRequired[bool]
     isReadOnly: bool
     isRequired: bool
     isSortable: bool
-    isVirtual: bool
-    reference: Optional[str]
-    inverseOf: Optional[str]
-    relationship: RelationServer
-    validations: List[ServerValidationType]
+    validations: NotRequired[List[ServerValidationType]]
 
+
+class ForestServerFieldRelation(TypedDict):
+    field: str
+    type: ColumnAlias
+    defaultValue: NotRequired[Any]
+    isFilterable: bool
+    isReadOnly: bool
+    isRequired: bool
+    isSortable: bool
+    reference: str
+    inverseOf: str
+    relationship: RelationServer
+    validations: NotRequired[List[ServerValidationType]]
+
+
+ForestServerField = Union[ForestServerFieldColumn, ForestServerFieldRelation]
 
 LiteralPage = Literal["page"]
 
@@ -299,33 +323,42 @@ WidgetEditConfiguration = Union[
 
 
 class ForestServerActionField(TypedDict):
-    value: Any
     defaultValue: Any
-    description: Optional[str]
-    enums: Optional[List[str]]
+    description: NotRequired[str]
+    enums: NotRequired[List[str]]
     field: str
-    hook: Optional[str]
+    # hook: Optional[str]
     isReadOnly: bool
     isRequired: bool
     reference: Optional[str]
     type: Union[ColumnAlias, Literal["File"]]
-    widget: Optional[Literal["belongsto select", "file picker"]]
+    # widget: Optional[Literal["belongsto select", "file picker"]]
     widgetEdit: Optional[WidgetEditConfiguration]
     searchValue: Optional[str]
+
+
+class ForestServerActionFieldApiMap(TypedDict):
+    field: str
+    type: Union[ColumnAlias, Literal["File", "FileList"]]
+    defaultValue: NotRequired[Any]
+    description: NotRequired[str]
+    enums: NotRequired[List[str]]
+    isReadOnly: NotRequired[bool]
+    isRequired: NotRequired[bool]
+    reference: NotRequired[str]
+    widgetEdit: NotRequired[WidgetEditConfiguration]
 
 
 class ForestServerAction(TypedDict):
     id: str
     name: str
     type: Literal["single", "bulk", "global"]
-    baseUrl: Optional[str]
+    baseUrl: NotRequired[str]
     endpoint: str
-    httpMethod: Literal["POST"]
-    redirect: Any
-    download: bool
-    fields: List[ForestServerActionField]
-    hooks: ForestServerActionHooks
-    searchField: Optional[str]
+    download: NotRequired[bool]
+    fields: NotRequired[List[ForestServerActionField]]
+    hooks: NotRequired[ForestServerActionHooks]
+    # searchField: Optional[str] ??? I think I miss something about this one
 
 
 class ForestServerSegment(TypedDict):
@@ -335,16 +368,9 @@ class ForestServerSegment(TypedDict):
 
 class ForestServerCollection(TypedDict):
     name: str
-    icon: None
-    integration: None
-    isReadOnly: bool
-    isSearchable: bool
-    isVirtual: bool
-    onlyForRelationships: bool
-    paginationType: LiteralPage
-    actions: Optional[List[ForestServerAction]]
+    actions: NotRequired[List[ForestServerAction]]
     fields: List[ForestServerField]
-    segments: Optional[List[ForestServerSegment]]
+    segments: NotRequired[List[ForestServerSegment]]
 
 
 class ForestSchema(TypedDict):

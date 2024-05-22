@@ -1,11 +1,11 @@
-from typing import List, Optional
+from typing import Dict, List, Optional
 
 from forestadmin.agent_toolkit.utils.forest_schema.type import ServerValidationType, ValidationType
 from forestadmin.datasource_toolkit.interfaces.fields import Operator, Validation
 
 
 class FrontendValidationUtils:
-    OPERATOR_VALIDATION_TYPE = {
+    OPERATOR_VALIDATION_TYPE: Dict[Operator, ValidationType] = {
         Operator.PRESENT: ValidationType.PRESENT,
         Operator.GREATER_THAN: ValidationType.GREATER_THAN,
         Operator.LESS_THAN: ValidationType.LESS_THAN,
@@ -22,13 +22,14 @@ class FrontendValidationUtils:
 
         res: List[ServerValidationType] = []
         for predicate in predicates:
-            validation_type = cls.OPERATOR_VALIDATION_TYPE.get(predicate["operator"])
+            validation_type = cls.OPERATOR_VALIDATION_TYPE.get(Operator(predicate["operator"]))
             if validation_type:
-                res.append(
-                    {
-                        "type": validation_type.value,
-                        "value": predicate.get("value"),
-                        "message": None,
-                    }
-                )
+                tmp: ServerValidationType = {
+                    "type": validation_type.value,
+                    "value": predicate.get("value"),
+                    # "message": None,
+                }
+                if tmp.get("value") is None:
+                    tmp.pop("value", None)
+                res.append(tmp)
         return res

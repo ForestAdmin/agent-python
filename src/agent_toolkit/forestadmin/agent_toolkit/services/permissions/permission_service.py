@@ -197,6 +197,6 @@ class PermissionService:
             action
             for action in actions
             if action["id"] == f"{collection.name}-{get_params['action_name']}-{get_params['slug']}"
-            and http_method.value == action["httpMethod"]
+            # and http_method.value == action["httpMethod"]
         ]
         return actions[0] if len(actions) > 0 else None

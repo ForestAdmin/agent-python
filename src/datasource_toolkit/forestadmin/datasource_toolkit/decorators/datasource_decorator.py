@@ -1,4 +1,4 @@
-from typing import Dict, Union
+from typing import Dict, List, Union
 
 from forestadmin.agent_toolkit.utils.context import User
 from forestadmin.datasource_toolkit.collections import Collection
@@ -24,8 +24,8 @@ class DatasourceDecorator(Datasource):
         return self.child_datasource.schema
 
     @property
-    def collections(self):
-        return [self.get_collection(c.name) for c in self.child_datasource.collections]
+    def collections(self) -> List[Collection]:
+        return [self.get_collection(c.name) for c in self.child_datasource.collections]  # type:ignore
 
     def get_collection(self, name: str) -> CollectionDecorator:
         collection = self.child_datasource.get_collection(name)
