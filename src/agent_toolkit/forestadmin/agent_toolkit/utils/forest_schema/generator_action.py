@@ -1,4 +1,4 @@
-from typing import List, Union, cast
+from typing import List, Literal, Union, cast
 
 from forestadmin.agent_toolkit.utils.forest_schema.action_values import ForestValueConverter
 from forestadmin.agent_toolkit.utils.forest_schema.generator_action_field_widget import GeneratorActionFieldWidget
@@ -39,11 +39,8 @@ class SchemaActionGenerator:
         return ForestServerAction(
             id=f"{collection.name}-{idx}-{slug}",
             name=name,
-            type=schema.scope.value.lower(),
-            baseUrl=None,
+            type=cast(Literal["single", "bulk", "global"], schema.scope.value.lower()),
             endpoint=f"/forest/_actions/{collection.name}/{idx}/{slug}",
-            httpMethod="POST",
-            redirect=None,
             download=bool(schema.generate_file),
             fields=await cls.build_fields(collection, schema, name),
             # Always registering the change hook has no consequences, even if we don't use it.

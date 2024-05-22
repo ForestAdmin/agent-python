@@ -56,10 +56,7 @@ class TestSchemaActionGenerator(TestCase):
                 "id": "Book-0-send email",
                 "name": "Send email",
                 "type": "single",
-                "baseUrl": None,
                 "endpoint": "/forest/_actions/Book/0/send email",
-                "httpMethod": "POST",
-                "redirect": None,
                 "download": False,
                 "fields": [],
                 "hooks": {"load": False, "change": ["changeHook"]},
@@ -95,10 +92,7 @@ class TestSchemaActionGenerator(TestCase):
                 "id": "Book-0-send email",
                 "name": "Send email",
                 "type": "single",
-                "baseUrl": None,
                 "endpoint": "/forest/_actions/Book/0/send email",
-                "httpMethod": "POST",
-                "redirect": None,
                 "download": False,
                 "fields": [
                     {

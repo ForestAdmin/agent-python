@@ -316,14 +316,10 @@ class ForestServerAction(TypedDict):
     id: str
     name: str
     type: Literal["single", "bulk", "global"]
-    baseUrl: Optional[str]
     endpoint: str
-    httpMethod: Literal["POST"]
-    redirect: Any
     download: bool
     fields: List[ForestServerActionField]
     hooks: ForestServerActionHooks
-    searchField: Optional[str]
 
 
 class ForestServerSegment(TypedDict):
