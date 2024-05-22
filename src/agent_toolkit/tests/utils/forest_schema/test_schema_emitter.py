@@ -193,7 +193,7 @@ class TestSchemaEmitter(TestCase):
 
         self.assertEqual(
             serialized_collections["meta"],
-            {**self.meta, "schemaFileHash": "d0de3b987177d58ea25386c8c5120047dcaf6ce3"},
+            {**self.meta, "schemaFileHash": "647adc2b51fc9018ca32e0f4c8acd9074b858013"},
         )
         self.assertEqual(serialized_collections["included"], [])
         self.assertEqual(
@@ -203,14 +203,9 @@ class TestSchemaEmitter(TestCase):
                 "type": "collections",
                 "attributes": {
                     "name": "Author",
-                    "isVirtual": False,
-                    "icon": None,
                     "isReadOnly": False,
-                    "integration": None,
                     "isSearchable": False,
-                    "onlyForRelationships": False,
                     "paginationType": "page",
-                    "searchField": None,
                     "fields": [
                         {
                             "defaultValue": None,

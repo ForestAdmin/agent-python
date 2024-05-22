@@ -335,16 +335,12 @@ class ForestServerSegment(TypedDict):
 
 class ForestServerCollection(TypedDict):
     name: str
-    icon: None
-    integration: None
     isReadOnly: bool
     isSearchable: bool
-    isVirtual: bool
-    onlyForRelationships: bool
     paginationType: LiteralPage
-    actions: Optional[List[ForestServerAction]]
+    actions: List[ForestServerAction]
     fields: List[ForestServerField]
-    segments: Optional[List[ForestServerSegment]]
+    segments: List[ForestServerSegment]
 
 
 class ForestSchema(TypedDict):
