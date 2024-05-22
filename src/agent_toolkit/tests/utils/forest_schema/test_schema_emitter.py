@@ -193,7 +193,7 @@ class TestSchemaEmitter(TestCase):
 
         self.assertEqual(
             serialized_collections["meta"],
-            {**self.meta, "schemaFileHash": "647adc2b51fc9018ca32e0f4c8acd9074b858013"},
+            {**self.meta, "schemaFileHash": "485fe9769d94329de2ac09866f0135131c0148a5"},
         )
         self.assertEqual(serialized_collections["included"], [])
         self.assertEqual(
@@ -211,14 +211,12 @@ class TestSchemaEmitter(TestCase):
                             "defaultValue": None,
                             "enums": None,
                             "field": "name",
-                            "integration": None,
                             "inverseOf": None,
                             "isFilterable": True,
                             "isPrimaryKey": False,
                             "isReadOnly": False,
                             "isRequired": False,
                             "isSortable": True,
-                            "isVirtual": False,
                             "reference": None,
                             "type": "String",
                             "validations": [],
@@ -227,14 +225,12 @@ class TestSchemaEmitter(TestCase):
                             "defaultValue": None,
                             "enums": None,
                             "field": "primary_id",
-                            "integration": None,
                             "inverseOf": None,
                             "isFilterable": True,
                             "isPrimaryKey": True,
                             "isReadOnly": True,
                             "isRequired": False,
                             "isSortable": True,
-                            "isVirtual": False,
                             "reference": None,
                             "type": "Uuid",
                             "validations": [],

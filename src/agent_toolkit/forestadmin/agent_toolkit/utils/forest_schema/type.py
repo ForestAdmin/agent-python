@@ -53,13 +53,11 @@ class ForestServerField(TypedDict, total=False):
     type: ColumnAlias
     defaultValue: Any
     enums: Optional[List[str]]
-    integration: None
     isFilterable: bool
     isPrimaryKey: bool
     isReadOnly: bool
     isRequired: bool
     isSortable: bool
-    isVirtual: bool
     reference: Optional[str]
     inverseOf: Optional[str]
     relationship: RelationServer
