@@ -1,3 +1,10 @@
+## [1.8.2](https://github.com/ForestAdmin/agent-python/compare/v1.8.1...v1.8.2) (2024-05-23)
+
+
+### Bug Fixes
+
+* **datasource_django:** remove direct dependency to postgresql driver ([#222](https://github.com/ForestAdmin/agent-python/issues/222)) ([0b67a77](https://github.com/ForestAdmin/agent-python/commit/0b67a7770eb7cbbc3977f8653730b89da8df447f))
+
 ## [1.8.1](https://github.com/ForestAdmin/agent-python/compare/v1.8.0...v1.8.1) (2024-05-14)
 
 
