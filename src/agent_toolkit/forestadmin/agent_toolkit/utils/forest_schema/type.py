@@ -307,9 +307,7 @@ class ForestServerActionField(TypedDict):
     isRequired: bool
     reference: Optional[str]
     type: Union[ColumnAlias, Literal["File"]]
-    widget: Optional[Literal["belongsto select", "file picker"]]
     widgetEdit: Optional[WidgetEditConfiguration]
-    searchValue: Optional[str]
 
 
 class ForestServerAction(TypedDict):

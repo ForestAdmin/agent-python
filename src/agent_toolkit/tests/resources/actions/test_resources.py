@@ -488,7 +488,6 @@ class TestHookActionResource(BaseTestActionResource):
                     "isRequired": False,
                     "reference": None,
                     "type": "Number",
-                    "widget": None,
                     "widgetEdit": None,
                 },
                 {
@@ -502,7 +501,6 @@ class TestHookActionResource(BaseTestActionResource):
                     "isRequired": False,
                     "reference": None,
                     "type": "String",
-                    "widget": None,
                     "widgetEdit": None,
                 },
             ],

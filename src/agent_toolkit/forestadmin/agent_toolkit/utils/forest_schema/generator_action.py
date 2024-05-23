@@ -59,15 +59,14 @@ class SchemaActionGenerator:
             # When sending to server, we need to rename 'value' into 'defaultValue'
             # otherwise, it does not gets applied 🤷‍♂️
             "defaultValue": default_value,
-            "description": field["description"],
+            "description": field.get("description"),
             "enums": None,
             "hook": None,
             "isReadOnly": field.get("is_read_only", False),
             "isRequired": field.get("is_required", True),
             "reference": None,
             "type": PrimitiveType.STRING,
-            "widget": None,
-            "widgetEdit": GeneratorActionFieldWidget.build_widget_options(field),
+            "widgetEdit": GeneratorActionFieldWidget.build_widget_options(field),  # type:ignore
         }
         if field["type"] == ActionFieldType.COLLECTION:
             collection: Collection = datasource.get_collection(field["collection_name"])  # type: ignore
