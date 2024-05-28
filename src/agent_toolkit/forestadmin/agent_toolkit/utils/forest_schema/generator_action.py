@@ -25,7 +25,7 @@ class SchemaActionGenerator:
             hook=None,
             isRequired=False,
             reference=None,
-            widget=None,
+            widgetEdit=None,
         )
     ]
 
