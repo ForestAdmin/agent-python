@@ -2,7 +2,7 @@ import enum
 from typing import Any, Dict, Generic, List, Literal, Optional, TypeVar, Union
 
 from forestadmin.datasource_toolkit.interfaces.fields import ColumnAlias
-from typing_extensions import NotRequired, TypedDict
+from typing_extensions import TypedDict
 
 Number = Union[int, float]
 TValue = TypeVar("TValue")
@@ -163,7 +163,7 @@ class ForestServerActionFieldNumberInputListEditorOptionsParameters(TypedDict):
 
 
 class ForestServerActionFieldNumberInputListEditorOptions(TypedDict):
-    name: Literal["address editor"]
+    name: Literal["input array"]
     parameters: ForestServerActionFieldNumberInputListEditorOptionsParameters
 
 
