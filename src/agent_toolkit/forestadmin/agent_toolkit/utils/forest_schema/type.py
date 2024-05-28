@@ -110,7 +110,7 @@ class ForestServerActionFieldTextListEditorOptions(TypedDict):
 # text area
 class ForestServerActionFieldTextAreaEditorOptionsParameters(TypedDict):
     placeholder: Optional[str]
-    rows: NotRequired[str]
+    rows: Optional[int]
 
 
 class ForestServerActionFieldTextAreaEditorOptions(TypedDict):
@@ -140,13 +140,14 @@ class ForestServerActionFieldAddressAutocompleteEditorOptions(TypedDict):
 
 # number
 class ForestServerActionFieldNumberInputEditorOptionsParameters(TypedDict):
+    placeholder: Optional[str]
     min: Optional[Number]
     max: Optional[Number]
     step: Optional[Number]
 
 
 class ForestServerActionFieldNumberInputEditorOptions(TypedDict):
-    name: Literal["address editor"]
+    name: Literal["number input"]
     parameters: ForestServerActionFieldNumberInputEditorOptionsParameters
 
 
