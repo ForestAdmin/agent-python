@@ -1,3 +1,10 @@
+## [1.8.3](https://github.com/ForestAdmin/agent-python/compare/v1.8.2...v1.8.3) (2024-05-29)
+
+
+### Bug Fixes
+
+* **schema_keys_removal:** remove useless keys ([#221](https://github.com/ForestAdmin/agent-python/issues/221)) ([731a24d](https://github.com/ForestAdmin/agent-python/commit/731a24d543b4ef6c0faca97da8cc2731e0f0b14a))
+
 ## [1.8.2](https://github.com/ForestAdmin/agent-python/compare/v1.8.1...v1.8.2) (2024-05-23)
 
 
