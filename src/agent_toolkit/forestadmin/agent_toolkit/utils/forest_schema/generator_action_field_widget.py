@@ -3,6 +3,7 @@ from typing import Literal, Union
 
 from forestadmin.agent_toolkit.utils.forest_schema.action_fields import ActionFields
 from forestadmin.agent_toolkit.utils.forest_schema.type import (
+    ForestServerActionFieldAddressAutocompleteEditorOptions,
     ForestServerActionFieldCheckboxGroupOptions,
     ForestServerActionFieldCheckboxOptions,
     ForestServerActionFieldColorPickerOptions,
@@ -130,7 +131,7 @@ class GeneratorActionFieldWidget:
             "name": "text area editor",
             "parameters": {
                 "placeholder": field.get("placeholder"),
-                "rows": int(field["rows"]) if field.get("rows") else None,
+                "rows": int(field["rows"]) if field.get("rows") is not None else None,
             },
         }
 
@@ -148,7 +149,7 @@ class GeneratorActionFieldWidget:
     @staticmethod
     def build_address_autocomplete_widget_edit(
         field: PlainStringDynamicFieldAddressAutocompleteWidget,
-    ) -> ForestServerActionFieldRichTextEditorOptions:
+    ) -> ForestServerActionFieldAddressAutocompleteEditorOptions:
         return {
             "name": "address editor",
             "parameters": {
@@ -164,9 +165,9 @@ class GeneratorActionFieldWidget:
             "name": "number input",
             "parameters": {
                 "placeholder": field.get("placeholder"),
-                "min": field.get("min"),
-                "max": field.get("max"),
-                "step": field.get("step"),
+                "min": field.get("min"),  #  type:ignore
+                "max": field.get("max"),  #  type:ignore
+                "step": field.get("step"),  #  type:ignore
             },
         }
 
@@ -178,7 +179,7 @@ class GeneratorActionFieldWidget:
             "name": "price editor",
             "parameters": {
                 "placeholder": field.get("placeholder"),
-                "min": field.get("min"),
+                "min": field.get("min"),  #  type:ignore
                 "max": field.get("max"),
                 "step": field.get("step"),
                 "currency": (
@@ -210,7 +211,7 @@ class GeneratorActionFieldWidget:
             "name": "input array",
             "parameters": {
                 "placeholder": field.get("placeholder"),
-                "min": field.get("min"),
+                "min": field.get("min"),  # type: ignore
                 "max": field.get("max"),
                 "step": field.get("step"),
                 "allowDuplicate": field.get("allow_duplicates", False),
@@ -231,7 +232,7 @@ class GeneratorActionFieldWidget:
         return {
             "name": "file picker",
             "parameters": {
-                "prefix": None,
+                "prefix": None,  # type:ignore
                 "filesExtensions": field.get("extensions", None),
                 "filesCountLimit": field.get("max_count"),
                 "filesSizeLimit": field.get("max_size_mb"),
@@ -245,7 +246,7 @@ class GeneratorActionFieldWidget:
         return {
             "name": "date editor",
             "parameters": {
-                "format": field.get("format"),
+                "format": field.get("format"),  # type:ignore
                 "placeholder": field.get("placeholder"),
                 "minDate": field["min"].isoformat() if isinstance(field.get("min"), date) else None,
                 "maxDate": field["max"].isoformat() if isinstance(field.get("max"), date) else None,
@@ -283,7 +284,7 @@ class GeneratorActionFieldWidget:
         return {
             "name": "radio button",
             "parameters": {
-                "static": {
+                "static": {  # type:ignore
                     "options": field.get("options", []),
                 },
             },
@@ -302,7 +303,7 @@ class GeneratorActionFieldWidget:
         return {
             "name": "checkboxes",
             "parameters": {
-                "static": {
+                "static": {  # type:ignore
                     "options": field.get("options", []),
                 },
             },

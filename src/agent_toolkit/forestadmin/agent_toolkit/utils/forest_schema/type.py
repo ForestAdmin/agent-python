@@ -2,7 +2,7 @@ import enum
 from typing import Any, Dict, Generic, List, Literal, Optional, TypeVar, Union
 
 from forestadmin.datasource_toolkit.interfaces.fields import ColumnAlias
-from typing_extensions import NotRequired, TypedDict
+from typing_extensions import TypedDict
 
 Number = Union[int, float]
 TValue = TypeVar("TValue")
@@ -53,13 +53,11 @@ class ForestServerField(TypedDict, total=False):
     type: ColumnAlias
     defaultValue: Any
     enums: Optional[List[str]]
-    integration: None
     isFilterable: bool
     isPrimaryKey: bool
     isReadOnly: bool
     isRequired: bool
     isSortable: bool
-    isVirtual: bool
     reference: Optional[str]
     inverseOf: Optional[str]
     relationship: RelationServer
@@ -112,7 +110,7 @@ class ForestServerActionFieldTextListEditorOptions(TypedDict):
 # text area
 class ForestServerActionFieldTextAreaEditorOptionsParameters(TypedDict):
     placeholder: Optional[str]
-    rows: NotRequired[str]
+    rows: Optional[int]
 
 
 class ForestServerActionFieldTextAreaEditorOptions(TypedDict):
@@ -142,13 +140,14 @@ class ForestServerActionFieldAddressAutocompleteEditorOptions(TypedDict):
 
 # number
 class ForestServerActionFieldNumberInputEditorOptionsParameters(TypedDict):
+    placeholder: Optional[str]
     min: Optional[Number]
     max: Optional[Number]
     step: Optional[Number]
 
 
 class ForestServerActionFieldNumberInputEditorOptions(TypedDict):
-    name: Literal["address editor"]
+    name: Literal["number input"]
     parameters: ForestServerActionFieldNumberInputEditorOptionsParameters
 
 
@@ -164,7 +163,7 @@ class ForestServerActionFieldNumberInputListEditorOptionsParameters(TypedDict):
 
 
 class ForestServerActionFieldNumberInputListEditorOptions(TypedDict):
-    name: Literal["address editor"]
+    name: Literal["input array"]
     parameters: ForestServerActionFieldNumberInputListEditorOptionsParameters
 
 
@@ -309,23 +308,17 @@ class ForestServerActionField(TypedDict):
     isRequired: bool
     reference: Optional[str]
     type: Union[ColumnAlias, Literal["File"]]
-    widget: Optional[Literal["belongsto select", "file picker"]]
     widgetEdit: Optional[WidgetEditConfiguration]
-    searchValue: Optional[str]
 
 
 class ForestServerAction(TypedDict):
     id: str
     name: str
     type: Literal["single", "bulk", "global"]
-    baseUrl: Optional[str]
     endpoint: str
-    httpMethod: Literal["POST"]
-    redirect: Any
     download: bool
     fields: List[ForestServerActionField]
     hooks: ForestServerActionHooks
-    searchField: Optional[str]
 
 
 class ForestServerSegment(TypedDict):
@@ -335,16 +328,12 @@ class ForestServerSegment(TypedDict):
 
 class ForestServerCollection(TypedDict):
     name: str
-    icon: None
-    integration: None
     isReadOnly: bool
     isSearchable: bool
-    isVirtual: bool
-    onlyForRelationships: bool
     paginationType: LiteralPage
-    actions: Optional[List[ForestServerAction]]
+    actions: List[ForestServerAction]
     fields: List[ForestServerField]
-    segments: Optional[List[ForestServerSegment]]
+    segments: List[ForestServerSegment]
 
 
 class ForestSchema(TypedDict):

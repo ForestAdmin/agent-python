@@ -193,7 +193,7 @@ class TestSchemaEmitter(TestCase):
 
         self.assertEqual(
             serialized_collections["meta"],
-            {**self.meta, "schemaFileHash": "d0de3b987177d58ea25386c8c5120047dcaf6ce3"},
+            {**self.meta, "schemaFileHash": "485fe9769d94329de2ac09866f0135131c0148a5"},
         )
         self.assertEqual(serialized_collections["included"], [])
         self.assertEqual(
@@ -203,27 +203,20 @@ class TestSchemaEmitter(TestCase):
                 "type": "collections",
                 "attributes": {
                     "name": "Author",
-                    "isVirtual": False,
-                    "icon": None,
                     "isReadOnly": False,
-                    "integration": None,
                     "isSearchable": False,
-                    "onlyForRelationships": False,
                     "paginationType": "page",
-                    "searchField": None,
                     "fields": [
                         {
                             "defaultValue": None,
                             "enums": None,
                             "field": "name",
-                            "integration": None,
                             "inverseOf": None,
                             "isFilterable": True,
                             "isPrimaryKey": False,
                             "isReadOnly": False,
                             "isRequired": False,
                             "isSortable": True,
-                            "isVirtual": False,
                             "reference": None,
                             "type": "String",
                             "validations": [],
@@ -232,14 +225,12 @@ class TestSchemaEmitter(TestCase):
                             "defaultValue": None,
                             "enums": None,
                             "field": "primary_id",
-                            "integration": None,
                             "inverseOf": None,
                             "isFilterable": True,
                             "isPrimaryKey": True,
                             "isReadOnly": True,
                             "isRequired": False,
                             "isSortable": True,
-                            "isVirtual": False,
                             "reference": None,
                             "type": "Uuid",
                             "validations": [],
