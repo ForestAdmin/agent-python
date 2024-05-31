@@ -6,7 +6,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from forestadmin.datasource_sqlalchemy.datasource import SqlAlchemyDatasource
 from forestadmin.fastapi_agent.agent import create_agent
-from src.config import settings
+from src.config import forest_settings, settings
 from src.custom_logs import ColorizedFormatter
 from src.forest_admin import customize_forest
 from src.with_sql_alchemy.models import Base
@@ -23,7 +23,7 @@ app.add_middleware(
     allow_headers=["authorization"],
 )
 
-agent = create_agent(app, settings.model_dump())
+agent = create_agent(app, forest_settings)
 agent.add_datasource(SqlAlchemyDatasource(Base, settings.db_uri))
 customize_forest(agent)
 

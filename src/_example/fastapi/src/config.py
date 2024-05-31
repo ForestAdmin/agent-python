@@ -1,8 +1,8 @@
 import os
 from functools import lru_cache
-from typing import Union
 
 from dotenv import load_dotenv
+from forestadmin.fastapi_agent.settings import ForestFastAPISettings
 from pydantic_settings import BaseSettings
 
 load_dotenv()  # load .env file into environ variables
@@ -15,14 +15,22 @@ class Settings(BaseSettings):
     # db_uri: str = f'sqlite+aiosqlite:///{os.path.abspath(os.path.join(__file__, "..", "..", "db.sql"))}'
     db_uri: str = f'sqlite:///{os.path.abspath(os.path.join(__file__, "..", "..", "db.sql"))}'
 
-    forest_server_url: Union[str, None] = os.environ.get("FOREST_SERVER_URL")
-    forest_env_secret: Union[str, None] = os.environ.get("FOREST_ENV_SECRET")
-    forest_auth_secret: Union[str, None] = os.environ.get("FOREST_AUTH_SECRET")
-
 
 @lru_cache
 def get_settings() -> Settings:
     return Settings()
 
 
+@lru_cache
+def get_forest_settings() -> ForestFastAPISettings:
+    return ForestFastAPISettings(
+        auth_secret=os.environ.get("FOREST_AUTH_SECRET", "mandatory"),
+        env_secret=os.environ.get("FOREST_ENV_SECRET", "mandatory"),
+        schema_path=os.path.abspath(os.path.join(__file__, "..", ".forestadmin-schema.json")),
+        server_url=os.environ.get("FOREST_SERVER_URL"),
+        # prefix="/bla",
+    )
+
+
 settings: Settings = get_settings()
+forest_settings: ForestFastAPISettings = get_forest_settings()
