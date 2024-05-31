@@ -34,8 +34,16 @@ class TestFastAPIAgent(TestCase):
             self.loop.run_until_complete(agent.start())
             spy_parent_start.assert_awaited_once()
 
-    def test_router_is_correctly_mount(self):
+    def test_start_should_mount_router(self):
         agent = create_agent(self.fastapi_app, self.options)
+
+        with patch.object(agent, "_mount_router", wraps=agent._mount_router) as spy_mount_router:
+            self.loop.run_until_complete(agent.start())
+            spy_mount_router.assert_awaited_once()
+
+    def test_mount_router_correctly_mount_routes(self):
+        agent = create_agent(self.fastapi_app, self.options)
+        self.loop.run_until_complete(agent._mount_router())
 
         urls_routes = {}
         for route in agent._app.router.routes:

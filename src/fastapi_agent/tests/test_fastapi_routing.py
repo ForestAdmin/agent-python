@@ -43,6 +43,7 @@ class TestFastApiRouting(TestCase):
                 schema_path="/tmp/.forestadmin.json",
             ),
         )
+        cls.loop.run_until_complete(cls.agent._mount_router())
         cls.client = TestClient(cls.app)
 
 
