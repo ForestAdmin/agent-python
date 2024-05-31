@@ -6,6 +6,7 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from forestadmin.agent_toolkit.utils.context import Response
 from forestadmin.fastapi_agent.agent import create_agent
+from forestadmin.fastapi_agent.settings import ForestFastAPISettings
 
 
 class TestFastApiRouting(TestCase):
@@ -36,10 +37,11 @@ class TestFastApiRouting(TestCase):
 
         cls.agent = create_agent(
             cls.app,
-            {
-                "FOREST_ENV_SECRET": "da4fc9331a68a18c2262154c74d9acb22f335724c8f2a510f8df187fa808703e",
-                "FOREST_AUTH_SECRET": "fake",
-            },
+            ForestFastAPISettings(
+                env_secret="da4fc9331a68a18c2262154c74d9acb22f335724c8f2a510f8df187fa808703e",
+                auth_secret="fake",
+                schema_path="/tmp/.forestadmin.json",
+            ),
         )
         cls.client = TestClient(cls.app)
 
