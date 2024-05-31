@@ -181,7 +181,7 @@ class CrudResource(BaseCollectionResource):
     @authenticate
     @authorize("browse")
     @authorize("export")
-    async def csv(self, request: RequestCollection) -> Union[FileResponse, Response]:
+    async def csv(self, request: RequestCollection) -> Response:
         scope_tree = await self.permission.get_scope(request.user, request.collection)
         try:
             paginated_filter = build_paginated_filter(request, scope_tree)
