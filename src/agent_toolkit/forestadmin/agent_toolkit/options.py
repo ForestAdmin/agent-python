@@ -15,13 +15,13 @@ class Options(TypedDict):
     server_url: str
     is_production: bool
     schema_path: str
-    logger: Callable[[str, str], None]
+    logger: Optional[Callable[[str, str], None]]
     logger_level: int
     permissions_cache_duration_in_seconds: int
-    customize_error_message: Callable[[Exception], str]
+    customize_error_message: Optional[Callable[[Exception], str]]
     instant_cache_refresh: Optional[bool]
-    skip_schema_update: Optional[bool]
-    verify_ssl: Optional[bool]
+    skip_schema_update: bool
+    verify_ssl: bool
 
 
 class OptionValidator:
