@@ -3,6 +3,7 @@ import csv
 import importlib
 import json
 import sys
+from io import StringIO
 from unittest import TestCase
 from unittest.mock import ANY, AsyncMock, Mock, patch
 
@@ -538,7 +539,7 @@ class TestCrudRelatedResource(TestCase):
         self.permission_service.can.reset_mock()
 
         assert response.status == 200
-        csv_reader = csv.DictReader(response.body)
+        csv_reader = csv.DictReader(StringIO(response.body))
         response_content = [row for row in csv_reader]
         assert isinstance(response_content, list)
         assert len(response_content) == 2
