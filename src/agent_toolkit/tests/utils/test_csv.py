@@ -30,9 +30,8 @@ class TestCsv(TestCase):
             },
         ]
 
-    def read_csv(self, string: StringIO):
-        string.seek(0)
-        reader = DictReader(string)
+    def read_csv(self, string: str):
+        reader = DictReader(StringIO(string))
         data = [line for line in reader]
         return data
 
