@@ -1,17 +1,13 @@
 import sys
 from importlib.metadata import version
 
-from fastapi import APIRouter, FastAPI
-from fastapi import Request as FastAPIRequest
+from fastapi import FastAPI
 from forestadmin.agent_toolkit.agent import Agent as BaseAgent
 from forestadmin.agent_toolkit.forest_logger import ForestLogger
 from forestadmin.agent_toolkit.options import Options
-from forestadmin.agent_toolkit.resources.actions.resources import LiteralMethod as ActionLiteralMethod
-from forestadmin.agent_toolkit.resources.collections.crud import LiteralMethod as CrudLiteralMethod
-from forestadmin.agent_toolkit.resources.collections.crud_related import LiteralMethod as CrudRelatedLiteralMethod
 from forestadmin.agent_toolkit.utils.forest_schema.type import AgentMeta
+from forestadmin.fastapi_agent.routes import make_router
 from forestadmin.fastapi_agent.settings import ForestFastAPISettings
-from forestadmin.fastapi_agent.utils.requests import convert_request, convert_response
 
 
 class FastAPIAgent(BaseAgent):
@@ -28,7 +24,6 @@ class FastAPIAgent(BaseAgent):
         self._app: FastAPI = app
         self._app.add_event_handler("startup", self.start)
         super().__init__(self.__parse_config(settings))
-        self._mount_router()
 
         # TODO: check for:
         # * csrf
@@ -57,167 +52,13 @@ class FastAPIAgent(BaseAgent):
 
         return settings
 
-    def _mount_router(self):
-        router = APIRouter(prefix=f"{self.options['prefix']}/forest")
-
-        @router.get("", status_code=204)
-        async def forest():
-            pass
-
-        @router.post("/scope-cache-invalidation", status_code=204)
-        async def scope_cache_invalidation():
-            self._permission_service.invalidate_cache("forest.scopes")
-
-        @router.post("/stats/{collection_name}")
-        async def stats(request: FastAPIRequest):
-            resource = (await self.get_resources())["stats"]
-            ret = await resource.dispatch(await convert_request(request))
-            return convert_response(ret)
-
-        @router.post("/_charts/{collection_name}/{chart_name}")
-        @router.get("/_charts/{collection_name}/{chart_name}")
-        async def charts_collection(request: FastAPIRequest):
-            resource = (await self.get_resources())["collection_charts"]
-            ret = await resource.dispatch(await convert_request(request))
-            return convert_response(ret)
-
-        @router.post("/_charts/{chart_name}")
-        @router.get("/_charts/{chart_name}")
-        async def charts_datasource(request: FastAPIRequest):
-            resource = (await self.get_resources())["datasource_charts"]
-            ret = await resource.dispatch(await convert_request(request))
-            return convert_response(ret)
-
-        router.include_router(self._build_authentication_router())
-        router.include_router(self._build_crud_router())
-        router.include_router(self._build_crud_related_router())
-        router.include_router(self._build_action_router())
-
+    async def _mount_router(self):
+        router = make_router(self.options["prefix"], await self.get_resources(), self._permission_service)
         self._app.include_router(router)
         self._router = router
 
-    def _build_authentication_router(self) -> APIRouter:
-        router = APIRouter(prefix="/authentication")
-
-        @router.post("")
-        async def authentication(request: FastAPIRequest):
-            resource = (await self.get_resources())["authentication"]
-            ret = await resource.dispatch(await convert_request(request), "authenticate")
-            return convert_response(ret)
-
-        @router.get("/callback")
-        async def callback(request: FastAPIRequest):
-            resource = (await self.get_resources())["authentication"]
-            ret = await resource.dispatch(await convert_request(request), "callback")
-            return convert_response(ret)
-
-        return router
-
-    def _build_crud_router(self) -> APIRouter:
-        router = APIRouter()
-
-        async def collection_crud_resource(request: FastAPIRequest, verb: CrudLiteralMethod):
-            resource = (await self.get_resources())["crud"]
-            ret = await resource.dispatch(await convert_request(request), verb)
-            return convert_response(ret)
-
-        # list
-        @router.get("/{collection_name}.csv")
-        async def collection_csv(request: FastAPIRequest):
-            return await collection_crud_resource(request, "csv")
-
-        @router.get("/{collection_name}")
-        async def collection_list_get(request: FastAPIRequest):
-            return await collection_crud_resource(request, "list")
-
-        @router.post("/{collection_name}")
-        async def collection_list_post(request: FastAPIRequest):
-            return await collection_crud_resource(request, "add")
-
-        @router.delete("/{collection_name}")
-        async def collection_list_delete(request: FastAPIRequest):
-            return await collection_crud_resource(request, "delete_list")
-
-        @router.get("/{collection_name}/count")
-        async def collection_count(request: FastAPIRequest):
-            return await collection_crud_resource(request, "count")
-
-        # detail
-        @router.put("/{collection_name}/{pks}")
-        async def collection_detail_put(request: FastAPIRequest):
-            return await collection_crud_resource(request, "update")
-
-        @router.get("/{collection_name}/{pks}")
-        async def collection_detail_get(request: FastAPIRequest):
-            return await collection_crud_resource(request, "get")
-
-        @router.delete("/{collection_name}/{pks}")
-        async def collection_detail_del(request: FastAPIRequest):
-            return await collection_crud_resource(request, "delete")
-
-        return router
-
-    def _build_crud_related_router(self) -> APIRouter:
-        router = APIRouter()
-
-        async def collection_crud_related_resource(request: FastAPIRequest, verb: CrudRelatedLiteralMethod):
-            resource = (await self.get_resources())["crud_related"]
-            ret = await resource.dispatch(await convert_request(request), verb)
-            return convert_response(ret)
-
-        @router.get("/{collection_name}/{pks}/relationships/{relation_name}.csv")
-        async def collection_related_csv_get(request: FastAPIRequest):
-            return await collection_crud_related_resource(request, "csv")
-
-        @router.get("/{collection_name}/{pks}/relationships/{relation_name}")
-        async def collection_related_list_get(request: FastAPIRequest):
-            return await collection_crud_related_resource(request, "list")
-
-        @router.post("/{collection_name}/{pks}/relationships/{relation_name}")
-        async def collection_related_list_post(request: FastAPIRequest):
-            return await collection_crud_related_resource(request, "add")
-
-        @router.delete("/{collection_name}/{pks}/relationships/{relation_name}")
-        async def collection_related_list_delete(request: FastAPIRequest):
-            return await collection_crud_related_resource(request, "delete_list")
-
-        @router.put("/{collection_name}/{pks}/relationships/{relation_name}")
-        async def collection_related_list_put(request: FastAPIRequest):
-            return await collection_crud_related_resource(request, "update_list")
-
-        @router.get("/{collection_name}/{pks}/relationships/{relation_name}/count")
-        async def collection_related_count_get(request: FastAPIRequest):
-            return await collection_crud_related_resource(request, "count")
-
-        return router
-
-    def _build_action_router(self) -> APIRouter:
-        router = APIRouter(prefix="/_actions/{collection_name}/{action_name:int}/{slug}")
-
-        async def action_resource(request: FastAPIRequest, verb: ActionLiteralMethod):
-            resource = (await self.get_resources())["actions"]
-            ret = await resource.dispatch(await convert_request(request), verb)
-            return convert_response(ret)
-
-        @router.post("")
-        async def execute(request: FastAPIRequest):
-            return await action_resource(request, "execute")
-
-        @router.post("/hooks/load")
-        async def hook_load(request: FastAPIRequest):
-            return await action_resource(request, "hook")
-
-        @router.post("/hooks/change")
-        async def hook_change(request: FastAPIRequest):
-            return await action_resource(request, "hook")
-
-        @router.post("/hooks/search")
-        async def hook_search(request: FastAPIRequest):
-            return await action_resource(request, "hook")
-
-        return router
-
     async def start(self):
+        await self._mount_router()
         await self._start()
         ForestLogger.log("info", "FastAPI agent initialized")
 
