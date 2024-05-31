@@ -4,16 +4,18 @@ from unittest.mock import patch
 
 from fastapi import FastAPI
 from forestadmin.fastapi_agent.agent import FastAPIAgent, create_agent
+from forestadmin.fastapi_agent.settings import ForestFastAPISettings
 
 
-class TestFlaskAgent(TestCase):
+class TestFastAPIAgent(TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         cls.loop = asyncio.new_event_loop()
-        cls.options = {
-            "FOREST_ENV_SECRET": "da4fc9331a68a18c2262154c74d9acb22f335724c8f2a510f8df187fa808703e",
-            "FOREST_AUTH_SECRET": "fake",
-        }
+        cls.options = ForestFastAPISettings(
+            env_secret="da4fc9331a68a18c2262154c74d9acb22f335724c8f2a510f8df187fa808703e",
+            auth_secret="fake",
+            schema_path="/tmp/.forestadmin.json",
+        )
 
     def setUp(self) -> None:
         self.fastapi_app = FastAPI()
@@ -22,7 +24,8 @@ class TestFlaskAgent(TestCase):
         agent = create_agent(self.fastapi_app, self.options)
         self.assertTrue(isinstance(agent, FastAPIAgent))
         self.assertEqual(agent.options["auth_secret"], "fake")
-        self.assertEqual(agent.options["env_secret"], self.options["FOREST_ENV_SECRET"])
+        self.assertEqual(agent.options["env_secret"], self.options.env_secret)
+        self.assertEqual(agent.options["schema_path"], self.options.schema_path)
 
     def test_start_should_await_parent_start(self):
         agent = create_agent(self.fastapi_app, self.options)
