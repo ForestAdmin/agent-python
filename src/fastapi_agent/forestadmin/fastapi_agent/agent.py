@@ -10,6 +10,7 @@ from forestadmin.agent_toolkit.resources.actions.resources import LiteralMethod 
 from forestadmin.agent_toolkit.resources.collections.crud import LiteralMethod as CrudLiteralMethod
 from forestadmin.agent_toolkit.resources.collections.crud_related import LiteralMethod as CrudRelatedLiteralMethod
 from forestadmin.agent_toolkit.utils.forest_schema.type import AgentMeta
+from forestadmin.fastapi_agent.settings import ForestFastAPISettings
 from forestadmin.fastapi_agent.utils.requests import convert_request, convert_response
 
 
@@ -23,13 +24,11 @@ class FastAPIAgent(BaseAgent):
         "stack": {"engine": "python", "engine_version": ".".join(map(str, [*sys.version_info[:3]]))},
     }
 
-    def __init__(self, app: FastAPI, settings: Options):
+    def __init__(self, app: FastAPI, settings: ForestFastAPISettings):
         self._app: FastAPI = app
-        self._settings: Options = settings
         self._app.add_event_handler("startup", self.start)
-        self._mount_router()
-
         super().__init__(self.__parse_config(settings))
+        self._mount_router()
 
         # TODO: check for:
         # * csrf
@@ -38,25 +37,20 @@ class FastAPIAgent(BaseAgent):
         #     self._blueprint = self._app.extensions["csrf"].exempt(self._blueprint)
         # self._app.register_blueprint(self.blueprint, url_prefix=f'{self.options["prefix"]}/forest')
 
-    def __parse_config(self, fastapi_settings: Options) -> Options:
-        # TODO: file a way to get ROOT_PATH
-        settings: Options = {"schema_path": "./.forestadmin-schema.json"}  # type:ignore
+    def __parse_config(self, fast_api_settings: ForestFastAPISettings) -> Options:
+        # it's not possible to get root path of a fastapi project, so let's the user fill this setting
+        settings: Options = {}  # type:ignore
 
-        for key, value in fastapi_settings.items():
-            if not key.upper().startswith("FOREST_"):
-                ForestLogger.log("warning", f"Unknown setting named '{key}'.")
-
-            forest_key = key.lower().replace("forest_", "")
-            # Options.__annotations__ is a dict of {key_name:type_class}
-            if forest_key not in Options.__annotations__.keys():
+        for key, value in fast_api_settings.model_dump().items():
+            if key not in Options.__annotations__.keys():
                 ForestLogger.log("warning", f"Skipping unknown setting {key}.")
                 continue
 
-            value_type = Options.__annotations__[forest_key]
+            value_type = Options.__annotations__[key]
             try:
-                settings[forest_key] = value_type(value)
+                settings[key] = value_type(value)
             except Exception:
-                settings[forest_key] = value
+                settings[key] = value
 
         if settings.get("is_production") is None:
             settings["is_production"] = not self._app.debug
@@ -64,7 +58,7 @@ class FastAPIAgent(BaseAgent):
         return settings
 
     def _mount_router(self):
-        router = APIRouter(prefix="/forest")  # TODO: option["prefix"]
+        router = APIRouter(prefix=f"{self.options['prefix']}/forest")
 
         @router.get("", status_code=204)
         async def forest():
@@ -228,7 +222,6 @@ class FastAPIAgent(BaseAgent):
         ForestLogger.log("info", "FastAPI agent initialized")
 
 
-# TODO: make typing for settings
-def create_agent(app: FastAPI, settings) -> FastAPIAgent:
+def create_agent(app: FastAPI, settings: ForestFastAPISettings) -> FastAPIAgent:
     agent = FastAPIAgent(app, settings)
     return agent
