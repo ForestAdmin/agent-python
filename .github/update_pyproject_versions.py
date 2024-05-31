@@ -9,6 +9,7 @@ PYPROJECT_FILES = [
     "src/datasource_toolkit/pyproject.toml",
     "src/django_agent/pyproject.toml",
     "src/flask_agent/pyproject.toml",
+    "src/fastapi_agent/pyproject.toml",
 ]
 
 PACKAGE_NAMES = [
@@ -16,8 +17,9 @@ PACKAGE_NAMES = [
     "forestadmin-datasource-django",
     "forestadmin-datasource-sqlalchemy",
     "forestadmin-datasource-toolkit",
-    "forestadmin-django-agent",
-    "forestadmin-flask-agent",
+    "forestadmin-agent-django",
+    "forestadmin-agent-flask",
+    "forestadmin-agent-fastapi",
 ]
 
 
