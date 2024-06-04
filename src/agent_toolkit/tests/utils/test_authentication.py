@@ -1,7 +1,7 @@
 import asyncio
 import json
 from unittest import TestCase
-from unittest.mock import AsyncMock, MagicMock, Mock, patch
+from unittest.mock import AsyncMock, Mock, patch
 
 from forestadmin.agent_toolkit.resources.security.exceptions import OpenIdException
 from forestadmin.agent_toolkit.utils.authentication import ClientFactory, CustomClientOic
