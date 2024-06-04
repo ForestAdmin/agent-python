@@ -21,16 +21,17 @@ class CustomClientOic(OicClient):
         """
         needed to avoid bj64 encoding in authorization header
         """
-        req = self.create_registration_request(**kwargs)  # type: ignore
+        req = self.create_registration_request(**kwargs)
         if self.events:
             self.events.store("Protocol request", req)
         headers = {"content-type": "application/json"}
         if registration_token is not None:
             headers["Authorization"] = "Bearer " + registration_token
 
-        rsp = self.http_request(url, "POST", data=req.to_json(), headers=headers)  # type: ignore
+        rsp = self.http_request(url, "POST", data=req.to_json(), headers=headers)
 
-        return self.handle_registration_info(rsp)  # type: ignore
+        self.handle_registration_info(rsp)
+        self.redirect_uris = self.registration_response["redirect_uris"]
 
     def get_authorization_url(self, state: str) -> str:
         args: Dict[str, Any] = {
