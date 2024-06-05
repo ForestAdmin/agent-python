@@ -12,15 +12,22 @@ class TestCustomClientOic(TestCase):
     def test_register_should_call_http_url_with_env_secret(self):
         mock_response = Mock()
         client = CustomClientOic()
-        client.events = Mock()
+        client.events = Mock()  # type:ignore
         body_data = json.dumps(
             {"application_type": "web", "response_types": ["code"], "grant_types": ["authorization_code"]}
         )
+
+        def handle_registration_info_mock(response):
+            client.registration_response = {  # type:ignore
+                "redirect_uris": ["https://my_project.com/forest/authentication/callback"]
+            }
+
         with patch.object(client, "http_request", return_value=mock_response) as mocked_http_request:
-            with patch.object(
-                client, "handle_registration_info", side_effect=lambda rsp: rsp
+            with patch(
+                "forestadmin.agent_toolkit.utils.authentication.CustomClientOic.handle_registration_info",
+                wraps=handle_registration_info_mock,
             ) as mocked_handle_registration:
-                response = client.register("https://api.development.forestadmin.com/oidc/reg", "env_secret")
+                client.register("https://api.development.forestadmin.com/oidc/reg", "env_secret")
 
                 mocked_http_request.assert_called_once_with(
                     "https://api.development.forestadmin.com/oidc/reg",
@@ -28,7 +35,8 @@ class TestCustomClientOic(TestCase):
                     data=body_data,
                     headers={"content-type": "application/json", "Authorization": "Bearer env_secret"},
                 )
-                mocked_handle_registration.assert_called_once_with(response)
+                mocked_handle_registration.assert_called_once_with(mock_response)
+        self.assertEqual(client.redirect_uris, ["https://my_project.com/forest/authentication/callback"])
 
     def test_get_authorization_url_should_return_the_correct_url(self):
         client = CustomClientOic()
