@@ -1,3 +1,10 @@
+## [1.8.4](https://github.com/ForestAdmin/agent-python/compare/v1.8.3...v1.8.4) (2024-06-05)
+
+
+### Bug Fixes
+
+* **authent:** works on multi instances setup ([#224](https://github.com/ForestAdmin/agent-python/issues/224)) ([c31db91](https://github.com/ForestAdmin/agent-python/commit/c31db91771a6f7d58662f8aca3b15c0c72339ba6))
+
 ## [1.8.3](https://github.com/ForestAdmin/agent-python/compare/v1.8.2...v1.8.3) (2024-05-29)
 
 
