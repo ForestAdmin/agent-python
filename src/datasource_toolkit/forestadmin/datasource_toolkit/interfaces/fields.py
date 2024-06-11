@@ -116,6 +116,7 @@ LiteralManyToOne = Literal["ManyToOne"]
 LiteralOneToOne = Literal["OneToOne"]
 LiteralOneToMany = Literal["OneToMany"]
 LiteralManyToMany = Literal["ManyToMany"]
+LiteralPolymorphicManyToOne = Literal["PolymorphicManyToOne"]
 
 
 class FieldType(enum.Enum):
@@ -124,6 +125,7 @@ class FieldType(enum.Enum):
     ONE_TO_ONE = LiteralOneToOne
     ONE_TO_MANY = LiteralOneToMany
     MANY_TO_MANY = LiteralManyToMany
+    POLYMORPHIC_MANY_TO_ONE = LiteralPolymorphicManyToOne
 
 
 class Validation(TypedDict):
@@ -148,6 +150,14 @@ class ManyToOne(TypedDict):
     foreign_key: str
     foreign_key_target: str
     type: Literal[FieldType.MANY_TO_ONE]
+
+
+class PolymorphicManyToOne(TypedDict):
+    foreign_collections: List[str]
+    foreign_key: str
+    foreign_key_type_field: str
+    foreign_key_targets: Dict[str, str]
+    type: Literal[FieldType.POLYMORPHIC_MANY_TO_ONE]
 
 
 class OneToOne(TypedDict):
@@ -176,7 +186,7 @@ class ManyToMany(TypedDict):
 
 
 ColumnAlias = Union[PrimitiveType, PrimitiveTypeLiteral, Dict[str, "ColumnAlias"], List["ColumnAlias"]]
-RelationAlias = Union[ManyToMany, ManyToOne, OneToOne, OneToMany]
+RelationAlias = Union[ManyToMany, ManyToOne, OneToOne, OneToMany, PolymorphicManyToOne]
 FieldAlias = Union[Column, RelationAlias]
 
 
@@ -186,6 +196,10 @@ def is_column(field: "FieldAlias") -> TypeGuard[Column]:
 
 def is_many_to_one(field: "FieldAlias") -> TypeGuard[ManyToOne]:
     return field["type"] == FieldType.MANY_TO_ONE
+
+
+def is_polymorphic_many_to_one(field: "FieldAlias") -> TypeGuard[PolymorphicManyToOne]:
+    return field["type"] == FieldType.POLYMORPHIC_MANY_TO_ONE
 
 
 def is_one_to_many(field: "FieldAlias") -> TypeGuard[OneToMany]:
