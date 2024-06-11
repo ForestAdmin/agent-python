@@ -14,6 +14,7 @@ from forestadmin.datasource_toolkit.interfaces.fields import (
     OneToMany,
     OneToOne,
     Operator,
+    PolymorphicManyToOne,
     PrimitiveType,
     RelationAlias,
     is_column,
@@ -21,6 +22,7 @@ from forestadmin.datasource_toolkit.interfaces.fields import (
     is_many_to_one,
     is_one_to_many,
     is_one_to_one,
+    is_polymorphic_many_to_one,
 )
 from forestadmin.datasource_toolkit.utils.collections import CollectionUtils
 from forestadmin.datasource_toolkit.utils.schema import SchemaUtils
@@ -31,6 +33,7 @@ class SchemaFieldGenerator:
         FieldType.ONE_TO_ONE: "HasOne",
         FieldType.ONE_TO_MANY: "HasMany",
         FieldType.MANY_TO_ONE: "BelongsTo",
+        FieldType.POLYMORPHIC_MANY_TO_ONE: "BelongsTo",
         FieldType.MANY_TO_MANY: "BelongsToMany",
     }
 
@@ -48,6 +51,8 @@ class SchemaFieldGenerator:
             or is_many_to_many(field_schema)
         ):
             schema = cls.build_relation_schema(collection, field_name, field_schema)
+        elif is_polymorphic_many_to_one(field_schema):
+            schema = cls.build_polymorphic_relation_schema(collection, field_name, field_schema)
         else:
             raise
         return cast(ForestServerField, dict(sorted(schema.items())))
@@ -200,3 +205,31 @@ class SchemaFieldGenerator:
                 cast(ManyToOne, field_schema), collection, foreign_collection, relation_schema
             )
         return res
+
+    @classmethod
+    def build_polymorphic_relation_schema(
+        cls, collection: Union[Collection, CollectionCustomizer], field_name: str, field_schema: PolymorphicManyToOne
+    ) -> ForestServerField:
+
+        key = field_schema["foreign_key"]
+        key_schema = cast(Column, collection.get_field(key))
+        validations = key_schema["validations"] or []
+
+        relation_schema: ForestServerField = {
+            "field": field_name,
+            "enums": None,
+            "isReadOnly": False,
+            "inverseOf": collection.name,
+            "relationship": cls.RELATION_MAPPING[field_schema["type"]],
+            #
+            "type": cls.build_column_type(key_schema["column_type"]),
+            "defaultValue": None,
+            "isFilterable": False,
+            "isPrimaryKey": False,
+            "isRequired": any([v["operator"] == Operator.PRESENT for v in validations]),
+            "isSortable": bool(key_schema["is_sortable"]),
+            "validations": FrontendValidationUtils.convert_validation_list(validations),
+            "reference": f"{field_name}.id",
+            "polymorphic_referenced_models": field_schema["foreign_collections"],
+        }
+        return relation_schema
