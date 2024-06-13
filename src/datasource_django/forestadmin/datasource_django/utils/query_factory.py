@@ -5,6 +5,7 @@ from typing import Any, Dict, List, Optional, Set, Tuple
 from django.db import models
 from forestadmin.datasource_django.exception import DjangoDatasourceException
 from forestadmin.datasource_django.interface import BaseDjangoCollection
+from forestadmin.datasource_django.utils.polymorphic_util import DjangoPolymorphismUtil
 from forestadmin.datasource_django.utils.type_converter import FilterOperator
 from forestadmin.datasource_toolkit.interfaces.fields import is_many_to_one, is_one_to_one
 from forestadmin.datasource_toolkit.interfaces.query.aggregation import (
@@ -50,7 +51,7 @@ class DjangoQueryBuilder:
         largest_projection: Projection,
         filter_: BaseFilter,
     ) -> models.QuerySet:
-        qs: models.QuerySet = collection.model.objects.all()
+        qs: models.QuerySet = collection.model.objects.all()  # type:ignore
 
         select_related, prefetch_related = DjangoQueryBuilder._find_related_in_projection(
             collection, largest_projection
@@ -60,6 +61,13 @@ class DjangoQueryBuilder:
         ).prefetch_related(
             *cls._normalize_projection(Projection(*prefetch_related)),
         )
+
+        if filter_.condition_tree:
+            if DjangoPolymorphismUtil.is_polymorphism_implied(filter_.condition_tree.projection, collection):
+                print("should do something with polymorphism ???")
+                pass
+
+            print(filter_.condition_tree)
 
         qs = qs.filter(DjangoQueryConditionTreeBuilder.build(filter_.condition_tree))
 
@@ -112,10 +120,19 @@ class DjangoQueryBuilder:
             full_projection = full_projection.union(filter_.sort.projection)
         qs = cls._mk_base_queryset(collection, full_projection, filter_)
 
+        with_generic_fk = DjangoPolymorphismUtil.is_polymorphism_implied(projection, collection)
+        if with_generic_fk:
+            content_types_to_prefetch = [
+                collection.schema["fields"][generic_fk]["foreign_key_type_field"]
+                # generic_fk
+                for generic_fk in DjangoPolymorphismUtil.get_polymorphism_relations(projection, collection)
+            ]
+            qs = qs.select_related(*content_types_to_prefetch)
+
         # only raise errors when trying to get a field by a to_many relation
         # or in other words if we have something to pass to prefetch_related
         _, prefetch = cls._find_related_in_projection(collection, full_projection)
-        if len(prefetch) == 0:
+        if len(prefetch) == 0 and not with_generic_fk:
             qs = qs.only(*cls._normalize_projection(full_projection))
         qs = DjangoQueryPaginationBuilder.paginate_queryset(qs, filter_)
 
@@ -184,6 +201,7 @@ class DjangoQueryBuilder:
         filter_: Optional[Filter],
         patch: RecordsDataAlias,
     ):
+        patch = DjangoPolymorphismUtil.replace_content_type_in_patch(patch, collection)
         qs = collection.model.objects.filter(DjangoQueryConditionTreeBuilder.build(filter_.condition_tree))
         qs.update(**{k.replace(":", "__"): v for k, v in patch.items()})
 
