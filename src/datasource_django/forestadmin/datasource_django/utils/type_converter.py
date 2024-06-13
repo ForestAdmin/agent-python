@@ -120,6 +120,7 @@ class FilterOperator(BaseFilterOperator):
         Operator.NOT_IN: ("__in", True),
         Operator.INCLUDES_ALL: ("__contains", False),
         Operator.MATCH: ("regex", False),
+        Operator.LIKE: ("__icontains", False),
     }
 
     @classmethod

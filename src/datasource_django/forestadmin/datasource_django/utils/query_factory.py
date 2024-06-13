@@ -6,6 +6,7 @@ from asgiref.sync import sync_to_async
 from django.db import models
 from forestadmin.datasource_django.exception import DjangoDatasourceException
 from forestadmin.datasource_django.interface import BaseDjangoCollection
+from forestadmin.datasource_django.utils.polymorphic_util import DjangoPolymorphismUtil
 from forestadmin.datasource_django.utils.type_converter import FilterOperator
 from forestadmin.datasource_toolkit.interfaces.fields import is_many_to_one, is_one_to_one
 from forestadmin.datasource_toolkit.interfaces.query.aggregation import (
@@ -183,6 +184,10 @@ class DjangoQueryBuilder:
         qs = await sync_to_async(collection.model.objects.filter)(
             DjangoQueryConditionTreeBuilder.build(filter_.condition_tree)
         )
+        # TODO: handle polymorphic
+        # DjangoPolymorphismHelper.is_polymorphism_implied(filter_.condition_tree.projection, collection)
+        patch = await DjangoPolymorphismUtil.replace_content_type_in_patch(patch, collection)
+
         await sync_to_async(qs.update)(**{k.replace(":", "__"): v for k, v in patch.items()})
 
     @staticmethod

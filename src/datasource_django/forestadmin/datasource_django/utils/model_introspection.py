@@ -25,6 +25,7 @@ from forestadmin.datasource_toolkit.interfaces.fields import (
     OneToOne,
     Operator,
     PolymorphicManyToOne,
+    PrimitiveType,
     Validation,
 )
 from forestadmin.datasource_toolkit.interfaces.models.collections import CollectionSchema
@@ -174,6 +175,7 @@ class DjangoCollectionFactory:
     @staticmethod
     def build(model: Model) -> CollectionSchema:
         fields = {}
+        overrides = {}
         for field in model._meta.get_fields(include_hidden=True):
             if not field.is_relation:
                 fields[field.name] = FieldFactory.build(field, model)
@@ -204,12 +206,25 @@ class DjangoCollectionFactory:
                 elif field.many_to_one is True:
                     if is_generic_foreign_key(field):
                         fields[field.name] = DjangoCollectionFactory._build_many_to_one_polymorphic(field, model)
+                        type_field = model._meta.get_field(field.ct_field)
+                        overrides[field.ct_field] = {
+                            "column_type": PrimitiveType.ENUM,
+                            "is_primary_key": type_field.primary_key,  # type: ignore
+                            "is_read_only": False,
+                            "default_value": None,
+                            "is_sortable": True,
+                            "validations": [],
+                            "filter_operators": FilterOperator.get_for_type(PrimitiveType.STRING),
+                            "enum_values": fields[field.name]["foreign_collections"],
+                            "type": FieldType.COLUMN,
+                        }
                     else:
                         fields[field.name] = DjangoCollectionFactory._build_many_to_one(field)
 
                 elif field.many_to_many is True:
                     fields[field.name] = DjangoCollectionFactory._build_many_to_many(field)
 
+        fields.update(overrides)
         return {"actions": {}, "fields": fields, "searchable": False, "segments": [], "countable": True, "charts": []}
 
 
