@@ -1,9 +1,11 @@
 from datetime import date
 
 from app.flask_models import *  # noqa:F401,F403
-from django.db import models
 
 # from django.db.models.functions import Concat
+from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
+from django.contrib.contenttypes.models import ContentType
+from django.db import models
 
 """
 checklist:
@@ -63,6 +65,13 @@ class Address(models.Model):
     country = models.CharField(max_length=254, default="France")
     zip_code = models.CharField(max_length=5, default="75009")
 
+    addressable_id = models.PositiveIntegerField(null=True)
+    addressable_type = models.ForeignKey(ContentType, on_delete=models.PROTECT, null=True)
+    addressable = GenericForeignKey("addressable_type", "addressable_id")
+
+    # class Meta:
+    #     unique_together = ("addressable_type", "addressable_id")
+
     # test with django 5 ; if enable, don't forget to make migration and migrate
     # full_text_address = models.GeneratedField(
     #     expression=Concat(
@@ -80,9 +89,9 @@ class Address(models.Model):
     #     db_persist=False,
     # )
 
-    customers = models.ManyToManyField(
-        "Customer", related_name="addresses", through="CustomerAddress", through_fields=("address", "customer")
-    )
+    # customers = models.ManyToManyField(
+    #     "Customer", related_name="addresses", through="CustomerAddress", through_fields=("address", "customer")
+    # )
 
 
 class CustomerAddress(models.Model):
@@ -102,6 +111,13 @@ class Customer(AutoUpdatedCreatedAt):
 
     blocked_customer = models.ManyToManyField("self", blank=True, related_name="block_by_users", symmetrical=False)
 
+    addresses = GenericRelation(
+        "Address",
+        content_type_field="addressable_type",
+        object_id_field="addressable_id",
+        related_query_name="customers",
+    )
+
 
 class Order(AutoUpdatedCreatedAt):
     class OrderStatus(models.TextChoices):
@@ -118,6 +134,10 @@ class Order(AutoUpdatedCreatedAt):
     status = models.CharField(max_length=10, choices=OrderStatus.choices)
     ordered_at = models.DateTimeField(null=True)
     # cart
+
+    addresses = GenericRelation(
+        "Address", content_type_field="addressable_type", object_id_field="addressable_id"
+    )  # OneToOne
 
 
 class Cart(models.Model):
