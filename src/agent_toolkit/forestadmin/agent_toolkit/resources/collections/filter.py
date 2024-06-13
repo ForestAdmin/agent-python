@@ -13,7 +13,14 @@ from forestadmin.agent_toolkit.utils.context import Request
 from forestadmin.agent_toolkit.utils.id import unpack_id
 from forestadmin.datasource_toolkit.collections import Collection, CollectionException
 from forestadmin.datasource_toolkit.datasource_customizer.collection_customizer import CollectionCustomizer
-from forestadmin.datasource_toolkit.interfaces.fields import Column, ColumnAlias, Operator, PrimitiveType, is_column
+from forestadmin.datasource_toolkit.interfaces.fields import (
+    Column,
+    ColumnAlias,
+    Operator,
+    PrimitiveType,
+    is_column,
+    is_polymorphic_many_to_one,
+)
 from forestadmin.datasource_toolkit.interfaces.models.collections import CollectionSchema
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.factory import (
     ConditionTreeFactory,
@@ -308,6 +315,10 @@ def parse_projection(request: Union[RequestCollection, RequestRelationCollection
 
         if is_column(schema["fields"][_field]):
             explicit_request.append(_field)
+        elif is_polymorphic_many_to_one(schema["fields"][_field]):
+            pass
+            # TODO: verify
+            # explicit_request.append(f"{_field}")
         else:
             query_params = f"fields[{_field}]"
             explicit_request.append(f"{_field}:{request.query[query_params]}")

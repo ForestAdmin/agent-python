@@ -40,6 +40,7 @@ from forestadmin.datasource_toolkit.interfaces.fields import (
     is_many_to_one,
     is_one_to_many,
     is_one_to_one,
+    is_polymorphic_many_to_one,
 )
 from forestadmin.datasource_toolkit.interfaces.query.aggregation import Aggregation
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.factory import ConditionTreeFactory
@@ -206,8 +207,12 @@ class CrudRelatedResource(BaseCollectionResource):
         else:
             linked_id = None
 
-        if is_many_to_one(request.relation) or is_one_to_one(request.relation):
-            if is_many_to_one(request.relation):
+        if (
+            is_many_to_one(request.relation)
+            or is_one_to_one(request.relation)
+            or is_polymorphic_many_to_one(request.relation)
+        ):
+            if is_many_to_one(request.relation) or is_polymorphic_many_to_one(request.relation):
                 meth = self._update_many_to_one
             else:
                 meth = self._update_one_to_one
@@ -448,22 +453,30 @@ class CrudRelatedResource(BaseCollectionResource):
         linked_id: CompositeIdAlias,
         timezone: zoneinfo.ZoneInfo,
     ):
-        if not is_many_to_one(request.relation):
+        if not is_many_to_one(request.relation) and not is_polymorphic_many_to_one(request.relation):
             raise CollectionResourceException("Unhandled relation type")
 
         scope = await self.permission.get_scope(request.user, request.collection)
         await self.permission.can(request.user, request.collection, "edit")
+
+        patch = {}
+        if is_many_to_one(request.relation):
+            field = request.relation["foreign_key_target"]
+        elif is_polymorphic_many_to_one(request.relation):
+            field = request.relation["foreign_key_targets"][request.foreign_collection.name]
+            patch[request.relation["foreign_key_type_field"]] = request.foreign_collection.name
 
         foreign_value = (
             await CollectionUtils.get_value(
                 request.user,
                 cast(Collection, request.foreign_collection),
                 linked_id,
-                request.relation["foreign_key_target"],
+                field,
             )
             if linked_id is not None
             else None
         )
+        patch[request.relation["foreign_key"]] = foreign_value
 
         trees = [ConditionTreeFactory.match_ids(request.collection.schema, [parent_id])]
         if scope:
@@ -472,5 +485,5 @@ class CrudRelatedResource(BaseCollectionResource):
         await request.collection.update(
             request.user,
             Filter({"condition_tree": ConditionTreeFactory.intersect(trees), "timezone": timezone}),
-            {f"{request.relation['foreign_key']}": foreign_value},
+            patch,
         )
