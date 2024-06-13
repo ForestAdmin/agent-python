@@ -14,6 +14,7 @@ from forestadmin.datasource_toolkit.interfaces.fields import (
     is_column,
     is_many_to_many,
     is_one_to_many,
+    is_polymorphic_many_to_one,
 )
 from forestadmin.datasource_toolkit.interfaces.query.projections import Projection
 from forestadmin.datasource_toolkit.utils.schema import SchemaUtils
@@ -88,8 +89,12 @@ def _create_relationship(collection: CollectionAlias, field_name: str, relation:
         "related_url_kwargs": {f"{collection.name.lower()}_id": "<__forest_id__>"},
         "collection": collection,
     }
-    type_ = relation["foreign_collection"]
-    if not is_many_to_many(relation):
+    if is_many_to_many(relation):
+        type_ = relation["foreign_collection"]
+    elif is_polymorphic_many_to_one(relation):
+        type_ = relation["foreign_collections"]  # TODO: this is certainly wrong
+    else:
+        type_ = relation["foreign_collection"]
         kwargs["id_field"] = SchemaUtils.get_primary_keys(collection.datasource.get_collection(type_).schema)[0]
 
     kwargs.update(
@@ -146,12 +151,14 @@ class JsonApiSchemaType(JsonApiSerializer, SchemaMeta):
 class ForestRelationShip(fields.Relationship):
     def __init__(self, *args, **kwargs):  # type: ignore
         self.collection: Collection = kwargs.pop("collection")  # type: ignore
-        self.related_collection: Collection = self.collection.datasource.get_collection(kwargs["type_"])  # type: ignore
+        self.related_collection_name: List[str] = kwargs["type_"]
         super(ForestRelationShip, self).__init__(*args, **kwargs)  # type: ignore
 
     @property
     def schema(self) -> "ForestSchema":
-        SchemaClass: Type[Schema] = JsonApiSerializer.get(self.related_collection)
+        related_collection = self.collection.datasource.get_collection(self.related_collection_name)
+        # TODO: I don't know how this thing works
+        SchemaClass: Type[Schema] = JsonApiSerializer.get(related_collection)
         return SchemaClass(
             only=getattr(self, "only", None), exclude=getattr(self, "exclude", ()), context=getattr(self, "context", {})
         )
