@@ -1,6 +1,7 @@
 from typing import Any, Dict, Optional, TypedDict, TypeVar, Union
 
 from forestadmin.agent_toolkit.exceptions import AgentToolkitException
+from forestadmin.agent_toolkit.forest_logger import ForestLogger
 from forestadmin.agent_toolkit.resources.collections.exceptions import CollectionResourceException
 from forestadmin.agent_toolkit.utils.context import Request, RequestMethod, User
 from forestadmin.datasource_toolkit.collections import Collection, CollectionException
@@ -16,6 +17,7 @@ from forestadmin.datasource_toolkit.interfaces.fields import (
     is_many_to_one,
     is_one_to_many,
     is_one_to_one,
+    is_polymorphic_many_to_one,
 )
 from typing_extensions import Self
 
@@ -134,6 +136,16 @@ class RequestRelationCollection(RequestCollection):
         ):
             try:
                 foreign_collection = datasource.get_collection(related_field["foreign_collection"])
+            except DatasourceException:
+                raise RequestCollectionException(f"Collection '{relation_name}' not found")
+            return cls(
+                relation=related_field, relation_name=relation_name, foreign_collection=foreign_collection, **kwargs
+            )
+        elif is_polymorphic_many_to_one(related_field):
+            try:
+                request.body["data"]["type"] = "app_order"  # TODO: don't commit this
+                ForestLogger.log("warning", "log for shosho: \n this is the request body buddy: {request.body}")
+                foreign_collection = datasource.get_collection(request.body["data"]["type"])
             except DatasourceException:
                 raise RequestCollectionException(f"Collection '{relation_name}' not found")
             return cls(
