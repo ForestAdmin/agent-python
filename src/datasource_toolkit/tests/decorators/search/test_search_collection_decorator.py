@@ -459,9 +459,7 @@ class TestSearchCollectionDecorator(TestCase):
             "_default_replacer",
             wraps=self.decorated_collection_person._default_replacer,
         ) as spy_default_replacer:
-            returned_filter = self.loop.run_until_complete(
-                self.decorated_collection_person._refine_filter(self.mocked_caller, filter_)
-            )
+            self.loop.run_until_complete(self.decorated_collection_person._refine_filter(self.mocked_caller, filter_))
             spy_default_replacer.assert_not_called()
             spy_replacer_fn.assert_awaited_with("something", False, ANY)
 
