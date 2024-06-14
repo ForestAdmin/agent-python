@@ -1,9 +1,7 @@
 import asyncio
 import sys
 from unittest import TestCase
-from unittest.mock import ANY, AsyncMock, patch
 
-from forestadmin.datasource_toolkit.datasource_customizer.collection_customizer import CollectionCustomizer
 from forestadmin.datasource_toolkit.datasource_customizer.datasource_customizer import DatasourceCustomizer
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.leaf import ConditionTreeLeaf
 
