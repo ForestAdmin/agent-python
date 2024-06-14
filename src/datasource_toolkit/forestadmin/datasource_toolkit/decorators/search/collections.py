@@ -1,5 +1,5 @@
 from ast import literal_eval
-from typing import Any, Awaitable, Callable, List, Optional, Tuple, Union
+from typing import Any, Callable, List, Optional, Tuple, Union
 
 from forestadmin.agent_toolkit.utils.context import User
 from forestadmin.datasource_toolkit.context.collection_context import CollectionCustomizationContext
@@ -21,6 +21,7 @@ from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.base i
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.leaf import ConditionTreeLeaf
 from forestadmin.datasource_toolkit.interfaces.query.filter.paginated import PaginatedFilter
 from forestadmin.datasource_toolkit.interfaces.query.filter.unpaginated import Filter
+from forestadmin.datasource_toolkit.utils.user_callable import call_user_function
 
 SearchDefinition = Callable[[Any, bool, CollectionCustomizationContext], ConditionTree]
 
@@ -45,6 +46,9 @@ class SearchCollectionDecorator(CollectionDecorator):
     async def _refine_filter(
         self, caller: User, _filter: Union[Optional[PaginatedFilter], Optional[Filter]]
     ) -> Optional[Union[PaginatedFilter, Filter]]:
+        if _filter is None:
+            return _filter
+
         # Search string is not significant
         if _filter.search is None or _filter.search.strip() == "":
             return _filter.override({"search": None})
@@ -52,15 +56,13 @@ class SearchCollectionDecorator(CollectionDecorator):
         # Implement search ourselves
         if self._replacer or not self.child_collection.schema["searchable"]:
             context = CollectionCustomizationContext(self, caller)
-            tree = self._default_replacer(_filter.search, _filter)
 
             if self._replacer is not None:
-                tree = self._replacer(_filter.search, _filter.search_extended, context)
-                if isinstance(tree, Awaitable):
-                    tree = await tree
-
+                tree = await call_user_function(self._replacer, _filter.search, bool(_filter.search_extended), context)
                 if isinstance(tree, dict):
                     tree = ConditionTreeFactory.from_plain_object(tree)
+            else:
+                tree = self._default_replacer(_filter.search, bool(_filter.search_extended))
 
             # Note that if no fields are searchable with the provided searchString, the conditions
             # array might be empty, which will create a condition returning zero records

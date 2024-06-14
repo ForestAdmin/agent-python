@@ -131,7 +131,7 @@ class TestRenameFieldCollectionDecorator(TestCase):
     def test_rename_unexistent_field(self):
         self.assertRaisesRegex(
             RenameCollectionException,
-            r"🌳🌳🌳No such field 'unknown'",
+            r"🌳🌳No such field 'Book.unknown', choices are id, title, author_id, author, persons",
             self.decorated_collection_book.rename_field,
             "unknown",
             "new_title",
@@ -144,7 +144,7 @@ class TestRenameFieldCollectionDecorator(TestCase):
         )
         self.assertRaisesRegex(
             RenameCollectionException,
-            r"🌳🌳🌳No such field 'id'",
+            r"🌳🌳No such field 'Book.id', choices are id, title, author_id, author, persons",
             self.decorated_collection_book.rename_field,
             "id",
             "primary_key",

@@ -177,3 +177,6 @@ src/datasource_toolkit/poetry.lock
 src/flask_agent/poetry.lock
 src/django_agent/poetry.lock
 src/datasource_django/poetry.lock
+
+# generate file during tests
+src/django_agent/tests/test_project_agent/.forestadmin-schema.json

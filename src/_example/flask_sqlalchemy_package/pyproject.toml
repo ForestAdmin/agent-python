@@ -12,6 +12,7 @@ sqlalchemy = ">=1.4.0"
 Flask = ">=2.0.0"
 Flask-SQLAlchemy = ">=2.4.0"
 flask-cors = ">=3.0.0"
+python-dotenv = ">= 1.0.0"
 forestadmin-datasource-toolkit = {path = "../../datasource_toolkit", develop = true}
 forestadmin-agent-toolkit = {path = "../../agent_toolkit", develop = true}
 forestadmin-datasource-sqlalchemy = {path = "../../datasource_sqlalchemy", develop = true}
@@ -49,7 +50,7 @@ version = "~=6.0"
 python = ">=3.8.1"
 
 [tool.poetry.group.formatter.dependencies]
-black = "~=22.10"
+black = ">=24.3.0"
 
 [tool.poetry.group.sorter.dependencies]
 isort = "~=3.6"

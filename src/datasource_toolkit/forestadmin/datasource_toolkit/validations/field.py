@@ -25,10 +25,14 @@ class FieldValidator:
         nested_field = None
         if ":" in field:
             field, nested_field = field.split(":", 1)
-        try:
-            schema = collection.schema["fields"][field]
-        except KeyError:
-            raise DatasourceToolkitException(f"Column not found: {collection.name}.{field}")
+
+        field_list = collection.schema["fields"].keys()
+        if field not in field_list:
+            raise DatasourceToolkitException(
+                f"Column not found: {collection.name}.{field}. Fields in {collection.name} are {', '.join(field_list)}"
+            )
+
+        schema = collection.schema["fields"][field]
 
         if not nested_field:
             if not is_column(schema):

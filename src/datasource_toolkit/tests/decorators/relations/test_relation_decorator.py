@@ -19,7 +19,7 @@ from forestadmin.datasource_toolkit.decorators.relation.types import (
     PartialOneToMany,
     PartialOneToOne,
 )
-from forestadmin.datasource_toolkit.exceptions import ForestException
+from forestadmin.datasource_toolkit.exceptions import DatasourceToolkitException, ForestException
 from forestadmin.datasource_toolkit.interfaces.fields import Column, FieldType, ManyToOne, Operator, PrimitiveType
 from forestadmin.datasource_toolkit.interfaces.query.aggregation import Aggregation
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.leaf import ConditionTreeLeaf
@@ -171,8 +171,9 @@ class BaseRelationDecoratorTest(TestCase):
 class TestOneToOneRelationCreation(BaseRelationDecoratorTest):
     def test_missing_dependency_should_fail(self):
         self.assertRaisesRegex(
-            ForestException,
-            r"🌳🌳🌳Column not found: 'Passports.__non_existing__'",
+            DatasourceToolkitException,
+            r"🌳🌳🌳Column not found: Passports.__non_existing__."
+            + r" Fields in Passports are passport_id, issue_date, owner_id, picture_id, picture",
             self.decorated_persons.add_relation,
             "persons",
             PartialOneToOne(type=FieldType.ONE_TO_ONE, foreign_collection="Passports", origin_key="__non_existing__"),
@@ -268,8 +269,8 @@ class TestOneToManyRelationCreation(BaseRelationDecoratorTest):
 class TestManyToOneRelationCreation(BaseRelationDecoratorTest):
     def test_should_raise_on_non_existent_collection(self):
         self.assertRaisesRegex(
-            ForestException,
-            r"🌳🌳🌳Collection '__non_exits__' not found",
+            DatasourceToolkitException,
+            r"🌳🌳🌳Collection '__non_exits__' not found. Available collections are: Pictures, Passports, Persons",
             self.decorated_passports.add_relation,
             "some_name",
             PartialManyToOne(type=FieldType.MANY_TO_ONE, foreign_collection="__non_exits__", foreign_key="owner_id"),
@@ -277,8 +278,9 @@ class TestManyToOneRelationCreation(BaseRelationDecoratorTest):
 
     def test_should_raise_on_non_existent_fk(self):
         self.assertRaisesRegex(
-            ForestException,
-            r"🌳🌳🌳Column not found: 'Passports.__non_existent__'",
+            DatasourceToolkitException,
+            r"🌳🌳🌳Column not found: Passports.__non_existent__. "
+            + r"Fields in Passports are passport_id, issue_date, owner_id, picture_id, picture",
             self.decorated_passports.add_relation,
             "owner",
             PartialManyToOne(type=FieldType.MANY_TO_ONE, foreign_collection="Persons", foreign_key="__non_existent__"),
@@ -322,7 +324,7 @@ class TestManyToManyRelationCreation(BaseRelationDecoratorTest):
     def test_should_raise_on_non_existent_through_collection(self):
         self.assertRaisesRegex(
             ForestException,
-            r"🌳🌳🌳Collection '__non_exists__' not found",
+            r"🌳🌳🌳Collection '__non_exists__' not found. Available collections are: Pictures, Passports, Persons",
             self.decorated_persons.add_relation,
             "passports",
             PartialManyToMany(
@@ -336,8 +338,9 @@ class TestManyToManyRelationCreation(BaseRelationDecoratorTest):
 
     def test_should_raise_on_non_existent_origin_key(self):
         self.assertRaisesRegex(
-            ForestException,
-            r"🌳🌳🌳Column not found: 'Passports.__non_exists__'",
+            DatasourceToolkitException,
+            r"🌳🌳🌳Column not found: Passports.__non_exists__. Fields in Passports are passport_id, "
+            + r"issue_date, owner_id, picture_id, picture",
             self.decorated_persons.add_relation,
             "passports",
             PartialManyToMany(
@@ -351,8 +354,9 @@ class TestManyToManyRelationCreation(BaseRelationDecoratorTest):
 
     def test_should_raise_on_non_existent_fk(self):
         self.assertRaisesRegex(
-            ForestException,
-            r"🌳🌳🌳Column not found: 'Passports.__non_exists__'",
+            DatasourceToolkitException,
+            r"🌳🌳🌳Column not found: Passports.__non_exists__. "
+            + r"Fields in Passports are passport_id, issue_date, owner_id, picture_id, picture",
             self.decorated_persons.add_relation,
             "passports",
             PartialManyToMany(

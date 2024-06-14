@@ -2,17 +2,24 @@ from datetime import date
 from typing import Awaitable, Callable, Generic, List, Literal, Optional, Set, TypeVar, Union
 
 from forestadmin.datasource_toolkit.decorators.action.context.base import ActionContext
+from forestadmin.datasource_toolkit.decorators.action.context.bulk import ActionContextBulk
+from forestadmin.datasource_toolkit.decorators.action.context.single import ActionContextSingle
 from typing_extensions import NotRequired, TypedDict
 
 Number = Union[int, float]
 
-Context = TypeVar("Context", bound=ActionContext)
+Context = Union[ActionContext, ActionContextSingle, ActionContextBulk]
 Result = TypeVar("Result")
 
 TWidget = TypeVar("TWidget")
 TValue = TypeVar("TValue")
 
-ValueOrHandler = Union[Callable[[Context], Union[Awaitable[Result], Result]], Result]
+ValueOrHandler = Union[
+    Callable[[ActionContext], Union[Awaitable[Result], Result]],
+    Callable[[ActionContextSingle], Union[Awaitable[Result], Result]],
+    Callable[[ActionContextBulk], Union[Awaitable[Result], Result]],
+    Result,
+]
 
 
 class ColorPickerFieldConfiguration(TypedDict):
@@ -53,16 +60,16 @@ class ArrayTextInputFieldConfiguration(TypedDict):
 
 class NumberInputFieldConfiguration(TypedDict):
     widget: Literal["NumberInput"]
-    min: NotRequired[Optional[ValueOrHandler[Context, Number]]]
-    max: NotRequired[Optional[ValueOrHandler[Context, Number]]]
-    step: NotRequired[Optional[ValueOrHandler[Context, Number]]]
+    min: NotRequired[Optional[ValueOrHandler[Number]]]
+    max: NotRequired[Optional[ValueOrHandler[Number]]]
+    step: NotRequired[Optional[ValueOrHandler[Number]]]
 
 
 class NumberInputListFieldConfiguration(TypedDict):
     widget: Literal["NumberInputList"]
-    min: NotRequired[Optional[ValueOrHandler[Context, Number]]]
-    max: NotRequired[Optional[ValueOrHandler[Context, Number]]]
-    step: NotRequired[Optional[ValueOrHandler[Context, Number]]]
+    min: NotRequired[Optional[ValueOrHandler[Number]]]
+    max: NotRequired[Optional[ValueOrHandler[Number]]]
+    step: NotRequired[Optional[ValueOrHandler[Number]]]
     placeholder: NotRequired[Optional[str]]
     enable_reorder: NotRequired[Optional[bool]]
     allow_duplicates: NotRequired[Optional[bool]]
@@ -72,10 +79,10 @@ class CurrencyInputFieldConfiguration(TypedDict):
     widget: Literal["CurrencyInput"]
     placeholder: NotRequired[Optional[str]]
     currency: NotRequired[Optional[str]]
-    base: NotRequired[Optional[ValueOrHandler[Context, Literal["Unit", "Cent"]]]]
-    min: NotRequired[Optional[ValueOrHandler[Context, Number]]]
-    max: NotRequired[Optional[ValueOrHandler[Context, Number]]]
-    step: NotRequired[Optional[ValueOrHandler[Context, Number]]]
+    base: NotRequired[Optional[ValueOrHandler[Literal["Unit", "Cent"]]]]
+    min: NotRequired[Optional[ValueOrHandler[Number]]]
+    max: NotRequired[Optional[ValueOrHandler[Number]]]
+    step: NotRequired[Optional[ValueOrHandler[Number]]]
 
 
 class JsonEditorFieldConfiguration(TypedDict):
@@ -84,15 +91,15 @@ class JsonEditorFieldConfiguration(TypedDict):
 
 class FilePickerFieldConfiguration(TypedDict):
     widget: Literal["FilePicker"]
-    extensions: NotRequired[Optional[ValueOrHandler[Context, List[str]]]]
-    max_size_mb: NotRequired[Optional[ValueOrHandler[Context, Number]]]
+    extensions: NotRequired[Optional[ValueOrHandler[List[str]]]]
+    max_size_mb: NotRequired[Optional[ValueOrHandler[Number]]]
 
 
 class FileListPickerFieldConfiguration(TypedDict):
     widget: Literal["FilePicker"]
-    extensions: NotRequired[Optional[ValueOrHandler[Context, List[str]]]]
-    max_size_mb: NotRequired[Optional[ValueOrHandler[Context, Number]]]
-    max_count: NotRequired[Optional[ValueOrHandler[Context, Number]]]
+    extensions: NotRequired[Optional[ValueOrHandler[List[str]]]]
+    max_size_mb: NotRequired[Optional[ValueOrHandler[Number]]]
+    max_count: NotRequired[Optional[ValueOrHandler[Number]]]
 
 
 class TimePickerFieldConfiguration(TypedDict):
@@ -102,9 +109,9 @@ class TimePickerFieldConfiguration(TypedDict):
 class DatePickerFieldConfiguration(TypedDict):
     widget: Literal["DatePicker"]
     placeholder: NotRequired[Optional[str]]
-    format: NotRequired[Optional[ValueOrHandler[Context, str]]]
-    min: NotRequired[Optional[ValueOrHandler[Context, date]]]
-    max: NotRequired[Optional[ValueOrHandler[Context, date]]]
+    format: NotRequired[Optional[ValueOrHandler[str]]]
+    min: NotRequired[Optional[ValueOrHandler[date]]]
+    max: NotRequired[Optional[ValueOrHandler[date]]]
 
 
 class CheckboxFieldConfiguration(TypedDict):
@@ -146,7 +153,7 @@ class DropdownDynamicFieldConfiguration(LimitedValueDynamicFieldConfiguration[Li
 class DropdownDynamicSearchFieldConfiguration(LimitedValueDynamicFieldConfiguration[Literal["Dropdown"], TValue]):
     placeholder: NotRequired[Optional[str]]
     search: Literal["dynamic"]
-    options: SearchOptionHandler[Context, TValue]
+    options: SearchOptionHandler[TValue]  # type: ignore
 
 
 class UserDropdownFieldConfiguration(TypedDict):

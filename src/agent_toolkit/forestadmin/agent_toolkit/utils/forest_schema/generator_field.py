@@ -71,7 +71,7 @@ class SchemaFieldGenerator:
 
     @classmethod
     def build_column_schema(cls, name: str, collection: Collection) -> ForestServerField:
-        column = collection.schema["fields"][name]
+        column: Column = collection.schema["fields"][name]  #  type:ignore
         validations = []
         if column["validations"]:
             validations = column["validations"]
@@ -83,8 +83,7 @@ class SchemaFieldGenerator:
             "type": cls.build_column_type(column["column_type"]),
             "validations": FrontendValidationUtils.convert_validation_list(column["validations"]),
             "defaultValue": column["default_value"],
-            "enums": column["enum_values"],
-            "integration": None,
+            "enums": sorted(column["enum_values"]) if column.get("enum_values") is not None else None,
             "inverseOf": None,
             "isFilterable": FrontendFilterableUtils.is_filterable(column["column_type"], column["filter_operators"]),
             "isPrimaryKey": bool(column["is_primary_key"]),
@@ -94,7 +93,6 @@ class SchemaFieldGenerator:
             # allow updating the same foreign key in the detail-view form (fk + many to one)
             "isReadOnly": is_foreign_key or bool(column["is_read_only"]),
             "isRequired": any([v["operator"] == Operator.PRESENT for v in validations]),
-            "isVirtual": False,
             "reference": None,
         }
         return ForestServerField(**res)
@@ -190,7 +188,6 @@ class SchemaFieldGenerator:
             "field": field_name,
             "enums": None,
             "isReadOnly": False,
-            "isVirtual": False,
             "inverseOf": CollectionUtils.get_inverse_relation(cast(Collection, collection), field_name),
             "relationship": cls.RELATION_MAPPING[field_schema["type"]],
         }

@@ -27,7 +27,8 @@ class PublicationCollectionDecorator(CollectionDecorator):
         """Show/hide fields from the schema"""
         field = self.child_collection.schema["fields"].get(name)
         if field is None:
-            raise ForestException(f"No such field '{name}'")
+            available_fields = [field_name for field_name in self.child_collection.schema["fields"].keys()]
+            raise ForestException(f"No such field '{self.name}.{name}', choices are {', '.join(available_fields)}")
 
         if is_column(field) and field.get("is_primary_key", False):
             raise ForestException("Cannot hide primary key")

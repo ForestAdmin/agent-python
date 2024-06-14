@@ -1,4 +1,4 @@
-from typing import Awaitable, Dict, List, Optional, Union
+from typing import Dict, List, Optional, Union
 
 from forestadmin.agent_toolkit.utils.context import User
 from forestadmin.datasource_toolkit.context.collection_context import CollectionCustomizationContext
@@ -6,7 +6,7 @@ from forestadmin.datasource_toolkit.decorators.collection_decorator import Colle
 from forestadmin.datasource_toolkit.decorators.operators_emulate.types import OperatorDefinition
 from forestadmin.datasource_toolkit.exceptions import ForestException
 from forestadmin.datasource_toolkit.interfaces.collections import Collection
-from forestadmin.datasource_toolkit.interfaces.fields import FieldAlias, Operator, RelationAlias
+from forestadmin.datasource_toolkit.interfaces.fields import LITERAL_OPERATORS, FieldAlias, Operator, RelationAlias
 from forestadmin.datasource_toolkit.interfaces.models.collections import CollectionSchema, Datasource
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.factory import ConditionTreeFactory
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.base import ConditionTree
@@ -14,19 +14,22 @@ from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.leaf i
 from forestadmin.datasource_toolkit.interfaces.query.filter.paginated import PaginatedFilter
 from forestadmin.datasource_toolkit.interfaces.query.filter.unpaginated import Filter
 from forestadmin.datasource_toolkit.utils.schema import SchemaUtils
+from forestadmin.datasource_toolkit.utils.user_callable import call_user_function
 from forestadmin.datasource_toolkit.validations.condition_tree import ConditionTreeValidator
 from forestadmin.datasource_toolkit.validations.field import FieldValidator
 
 
 class OperatorsEmulateCollectionDecorator(CollectionDecorator):
     def __init__(self, collection: Collection, datasource: Datasource):
-        self._fields: Dict[str, Dict[str, OperatorDefinition]] = {}
+        self._fields: Dict[str, Dict[Operator, Optional[OperatorDefinition]]] = {}
         super().__init__(collection, datasource)
 
-    def emulate_field_operator(self, name: str, operator: Operator):
+    def emulate_field_operator(self, name: str, operator: Union[Operator, LITERAL_OPERATORS]):
         self.replace_field_operator(name, operator, None)
 
-    def replace_field_operator(self, name: str, operator: Operator, replace_by: Optional[OperatorDefinition]):
+    def replace_field_operator(
+        self, name: str, operator: Union[Operator, LITERAL_OPERATORS], replace_by: Optional[OperatorDefinition]
+    ):
         # Check that the collection can actually support our rewriting
         pks = SchemaUtils.get_primary_keys(self.child_collection.schema)
         for pk in pks:
@@ -48,7 +51,7 @@ class OperatorsEmulateCollectionDecorator(CollectionDecorator):
 
         if self._fields.get(name) is None:
             self._fields[name] = dict()
-        self._fields[name][operator] = replace_by
+        self._fields[name][Operator(operator)] = replace_by
         self.mark_schema_as_dirty()
 
     def _refine_schema(self, sub_schema: CollectionSchema) -> CollectionSchema:
@@ -103,9 +106,7 @@ class OperatorsEmulateCollectionDecorator(CollectionDecorator):
             if replacement_id in replacements:
                 raise ForestException(f"Operator replacement cycle: {' -> '.join(sub_replacements)}")
 
-            result = handler(leaf.value, CollectionCustomizationContext(self, caller))
-            if isinstance(result, Awaitable):
-                result = await result
+            result = await call_user_function(handler, leaf.value, CollectionCustomizationContext(self, caller))
 
             if result:
                 equivalent = (

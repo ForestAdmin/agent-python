@@ -1,20 +1,37 @@
 from typing import Dict, Tuple
 
-from django.contrib.postgres import fields as postgres_fields
 from django.db import models
 from forestadmin.datasource_django.exception import DjangoDatasourceException
 from forestadmin.datasource_toolkit.interfaces.fields import ColumnAlias, Operator, PrimitiveType
 from forestadmin.datasource_toolkit.utils.operators import BaseFilterOperator
 
 try:
+    # if postgres driver is installed
+    from django.contrib.postgres import fields as postgres_fields
+except ImportError:
+    postgres_fields = None
+
+try:
     # GeneratedField is available since django 5
     from django.db.models import GeneratedField
-except Exception:
+except ImportError:
     GeneratedField = None
 
 
 class ConverterException(DjangoDatasourceException):
     pass
+
+
+if postgres_fields is not None:
+    POSTGRES_TYPE: Dict[type, PrimitiveType] = {
+        # specific postgres fields
+        postgres_fields.CIText: PrimitiveType.STRING,
+        postgres_fields.CIEmailField: PrimitiveType.STRING,
+        postgres_fields.HStoreField: PrimitiveType.JSON,
+        # postgres_fields.RangeField and subclassed ones not handles
+    }
+else:
+    POSTGRES_TYPE: Dict[type, PrimitiveType] = {}
 
 
 class TypeConverter:
@@ -56,11 +73,7 @@ class TypeConverter:
         # uuid
         models.UUIDField: PrimitiveType.UUID,
         #
-        # specific fields
-        postgres_fields.CIText: PrimitiveType.STRING,
-        postgres_fields.CIEmailField: PrimitiveType.STRING,
-        postgres_fields.HStoreField: PrimitiveType.JSON,
-        # postgres_fields.RangeField and subclassed ones not handles
+        **POSTGRES_TYPE,
     }
 
     @classmethod
@@ -77,7 +90,7 @@ class TypeConverter:
         if field.__class__ in cls.TYPES:
             return cls.TYPES[field.__class__]
 
-        if isinstance(field, postgres_fields.ArrayField):
+        if postgres_fields is not None and isinstance(field, postgres_fields.ArrayField):
             return [cls.convert(field.base_field)]
 
         for model_type, primitive_type in cls.TYPES.items():

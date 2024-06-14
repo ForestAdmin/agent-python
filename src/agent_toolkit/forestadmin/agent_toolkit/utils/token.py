@@ -7,7 +7,7 @@ if sys.version_info >= (3, 9):
 else:
     from backports import zoneinfo
 
-from jose import jwt
+import jwt
 
 
 def build_jwt(body: Dict[str, Any], secret: str, expiration: int = 1) -> Tuple[str, Dict[str, Any]]:

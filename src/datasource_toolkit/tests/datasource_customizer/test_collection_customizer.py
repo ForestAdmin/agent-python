@@ -631,3 +631,30 @@ class TestCollectionCustomizer(TestCase):
             self.person_customizer.use(TestPlugin)
             self.loop.run_until_complete(self.datasource_customizer.stack.apply_queue_customization())
             override_schema_fn.assert_called_once_with("countable", False)
+
+    def test_override_create_should_add_a_handler_to_stack(self):
+        handler = Mock()
+        with patch.object(
+            self.datasource_customizer.stack.override.get_collection("Person"), "add_create_handler"
+        ) as mocked_add_create_handler:
+            self.person_customizer.override_create(handler)
+            self.loop.run_until_complete(self.datasource_customizer.stack.apply_queue_customization())
+            mocked_add_create_handler.assert_called_once_with(handler)
+
+    def test_override_update_should_add_a_handler_to_stack(self):
+        handler = Mock()
+        with patch.object(
+            self.datasource_customizer.stack.override.get_collection("Person"), "add_update_handler"
+        ) as mocked_add_update_handler:
+            self.person_customizer.override_update(handler)
+            self.loop.run_until_complete(self.datasource_customizer.stack.apply_queue_customization())
+            mocked_add_update_handler.assert_called_once_with(handler)
+
+    def test_override_delete_should_add_a_handler_to_stack(self):
+        handler = Mock()
+        with patch.object(
+            self.datasource_customizer.stack.override.get_collection("Person"), "add_delete_handler"
+        ) as mocked_add_delete_handler:
+            self.person_customizer.override_delete(handler)
+            self.loop.run_until_complete(self.datasource_customizer.stack.apply_queue_customization())
+            mocked_add_delete_handler.assert_called_once_with(handler)

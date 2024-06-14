@@ -457,7 +457,7 @@
                         {
                             "field": "file list",
                             "value": [],
-                            "defaultValue": null,
+                            "defaultValue": [],
                             "description": "",
                             "enums": null,
                             "hook": null,
@@ -498,7 +498,7 @@
                                     "format": "YYYY-MM-DD HH:mm",
                                     "placeholder": null,
                                     "minDate": "2023-10-01T00:00:00+00:00",
-                                    "maxDate": "2024-01-12T14:32:00.117383+00:00"
+                                    "maxDate": "2024-02-07T10:39:48.773278+00:00"
                                 }
                             }
                         },
@@ -1110,10 +1110,42 @@
                 {
                     "defaultValue": null,
                     "enums": null,
-                    "field": "smart_addresses",
+                    "field": "address_id",
+                    "integration": null,
                     "inverseOf": null,
                     "isFilterable": true,
                     "isPrimaryKey": true,
+                    "isReadOnly": true,
+                    "isRequired": false,
+                    "isSortable": true,
+                    "isVirtual": false,
+                    "reference": null,
+                    "type": "Number",
+                    "validations": []
+                },
+                {
+                    "defaultValue": null,
+                    "enums": null,
+                    "field": "customer_id",
+                    "integration": null,
+                    "inverseOf": null,
+                    "isFilterable": false,
+                    "isPrimaryKey": true,
+                    "isReadOnly": true,
+                    "isRequired": false,
+                    "isSortable": true,
+                    "isVirtual": false,
+                    "reference": null,
+                    "type": "String",
+                    "validations": []
+                },
+                {
+                    "defaultValue": null,
+                    "enums": null,
+                    "field": "smart_addresses",
+                    "inverseOf": null,
+                    "isFilterable": true,
+                    "isPrimaryKey": false,
                     "isReadOnly": false,
                     "isRequired": false,
                     "isSortable": true,
@@ -1129,7 +1161,7 @@
                     "field": "smart_customers",
                     "inverseOf": null,
                     "isFilterable": true,
-                    "isPrimaryKey": true,
+                    "isPrimaryKey": false,
                     "isReadOnly": false,
                     "isRequired": false,
                     "isSortable": true,
@@ -1285,7 +1317,7 @@
                     "isRequired": false,
                     "isSortable": true,
                     "isVirtual": false,
-                    "reference": "cart.pk",
+                    "reference": "cart.order_id",
                     "relationship": "HasOne",
                     "type": "Number",
                     "validations": []
@@ -1444,11 +1476,10 @@
     ],
     "meta": {
         "liana": "agent-python",
-        "liana_version": "1.2.0",
+        "liana_version": "1.4.0",
         "stack": {
             "engine": "python",
-            "engine_version": "3.8.16"
-        },
-        "schemaFileHash": "375d7a8126f487911d66e7e344da3b39e09fc747"
+            "engine_version": "3.10.11"
+        }
     }
 }

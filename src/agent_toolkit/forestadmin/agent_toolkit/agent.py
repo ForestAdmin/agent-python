@@ -1,4 +1,4 @@
-from typing import Dict, List, Optional, TypedDict
+from typing import Dict, Optional, TypedDict
 
 from forestadmin.agent_toolkit.exceptions import AgentToolkitException
 from forestadmin.agent_toolkit.forest_logger import ForestLogger
@@ -56,6 +56,7 @@ class Agent:
             "is_production": self.options["is_production"],
             "permission_cache_duration": self.options["permissions_cache_duration_in_seconds"],
             "prefix": self.options["prefix"],
+            "verify_ssl": self.options["verify_ssl"],
         }
         self._permission_service = PermissionService(service_options)
         self._ip_white_list_service = IpWhiteListService(service_options)
@@ -155,19 +156,19 @@ class Agent:
         """
         return self.customizer.customize_collection(collection_name)
 
-    def remove_collections(self, *names: List[str]):
+    def remove_collections(self, *names: str):
         """Remove collections from the exported schema (they will still be usable within the agent).
 
         Args:
             names (str | List[str]): the collections to remove
 
         Documentation:
-            https://docs.forestadmin.com/developer-guide-agents-python/agent-customization/plugins
+            https://docs.forestadmin.com/developer-guide-agents-python/agent-customization/agent-customization#removing-collections
 
         Example:
             .remove_collections('aCollectionToRemove', 'anotherCollectionToRemove')
         """
-        return self.customizer.remove_collections(names)
+        return self.customizer.remove_collections(*names)
 
     def add_chart(self, name: str, definition: DataSourceChartDefinition):
         """Create a new API chart

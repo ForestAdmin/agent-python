@@ -70,6 +70,7 @@ class TestActionCollectionCustomizer(TestCase):
             "message": "Bravo !!!",
             "format": "text",
             "invalidated": set(),
+            "response_headers": {},
         }
 
     def test_execute_return_default_response_when_result_is_not_result_builder_response(self):
@@ -102,6 +103,7 @@ class TestActionCollectionCustomizer(TestCase):
             "type": "Error",
             "message": '<div><p class="c-clr-1-4 l-mb">you failed</p></div>',
             "format": "html",
+            "response_headers": {},
         }
 
     def test_execute_can_also_exec_synchronous_function(self):

@@ -56,7 +56,7 @@ class RelaxedCollection(Collection):
     def __init__(self, collection: Collection):
         self.collection = collection
 
-    def get_native_driver(self):
+    def get_native_driver(self) -> Any:
         return self.collection.get_native_driver()
 
     @property
@@ -131,7 +131,10 @@ class RelaxedCollection(Collection):
         return Aggregation(aggregation)
 
     async def list(
-        self, caller: User, filter_: Union[PaginatedFilter, PlainPaginatedFilter], projection: Projection
+        self,
+        caller: User,
+        filter_: Union[PaginatedFilter, PlainPaginatedFilter],
+        projection: Union[Projection, List[str]],
     ) -> List[RecordsDataAlias]:
         filter_instance = self._build_paginated_filter(filter_)
         projection_instance = self._build_projection(projection)

@@ -1,5 +1,7 @@
-from typing import Awaitable, Dict, Union
+from typing import Dict, Union
+from urllib.parse import quote
 
+from forestadmin.agent_toolkit.forest_logger import ForestLogger
 from forestadmin.agent_toolkit.utils.context import User
 from forestadmin.datasource_toolkit.context.agent_context import AgentCustomizationContext
 from forestadmin.datasource_toolkit.datasources import Datasource
@@ -9,6 +11,7 @@ from forestadmin.datasource_toolkit.decorators.chart.types import DataSourceChar
 from forestadmin.datasource_toolkit.decorators.datasource_decorator import DatasourceDecorator
 from forestadmin.datasource_toolkit.exceptions import DatasourceToolkitException
 from forestadmin.datasource_toolkit.interfaces.chart import Chart
+from forestadmin.datasource_toolkit.utils.user_callable import call_user_function
 
 
 class ChartDataSourceDecorator(DatasourceDecorator):
@@ -20,15 +23,14 @@ class ChartDataSourceDecorator(DatasourceDecorator):
         if name in self.schema["charts"]:
             raise DatasourceToolkitException(f"Chart {name} already exists.")
         self.charts[name] = chart_definition
+        chart_url = quote(f"/forest/_charts/{name}")
+        ForestLogger.log("info", f"Chart {name} added with url: '{chart_url}'")
 
     async def render_chart(self, caller: User, name: str) -> Chart:
         chart_definition = self.charts.get(name)
 
         if chart_definition is not None:
-            ret = chart_definition(AgentCustomizationContext(self, caller), ResultBuilder)
-            if isinstance(ret, Awaitable):
-                ret = await ret
-            return ret
+            return await call_user_function(chart_definition, AgentCustomizationContext(self, caller), ResultBuilder)
 
         return await super().render_chart(caller, name)
 

@@ -56,10 +56,7 @@ class TestSchemaActionGenerator(TestCase):
                 "id": "Book-0-send email",
                 "name": "Send email",
                 "type": "single",
-                "baseUrl": None,
                 "endpoint": "/forest/_actions/Book/0/send email",
-                "httpMethod": "POST",
-                "redirect": None,
                 "download": False,
                 "fields": [],
                 "hooks": {"load": False, "change": ["changeHook"]},
@@ -95,10 +92,7 @@ class TestSchemaActionGenerator(TestCase):
                 "id": "Book-0-send email",
                 "name": "Send email",
                 "type": "single",
-                "baseUrl": None,
                 "endpoint": "/forest/_actions/Book/0/send email",
-                "httpMethod": "POST",
-                "redirect": None,
                 "download": False,
                 "fields": [
                     {
@@ -112,7 +106,6 @@ class TestSchemaActionGenerator(TestCase):
                         "isRequired": True,
                         "reference": None,
                         "type": "String",
-                        "widget": None,
                         "widgetEdit": None,
                     }
                 ],
@@ -156,7 +149,6 @@ class TestSchemaActionGenerator(TestCase):
                 "isRequired": True,
                 "reference": None,
                 "type": "String",
-                "widget": None,
                 "widgetEdit": None,
             },
         )
@@ -215,7 +207,6 @@ class TestSchemaActionGenerator(TestCase):
                 "isRequired": True,
                 "reference": "Author.primary_id",
                 "type": "Uuid",
-                "widget": None,
                 "widgetEdit": None,
             },
         )
@@ -233,7 +224,6 @@ class TestSchemaActionGenerator(TestCase):
                 "isRequired": True,
                 "reference": None,
                 "type": "File",
-                "widget": None,
                 "widgetEdit": None,
             },
         )
@@ -251,7 +241,6 @@ class TestSchemaActionGenerator(TestCase):
                 "isRequired": True,
                 "reference": None,
                 "type": ["Enum"],
-                "widget": None,
                 "widgetEdit": None,
             },
         )
@@ -279,7 +268,6 @@ class TestSchemaActionGenerator(TestCase):
         result = self.loop.run_until_complete(
             SchemaActionGenerator.build("", self.book_collection_action, "Update title")
         )
-        self.assertIsNone(result["fields"][0]["widget"])
         self.assertIsNone(result["fields"][0]["widgetEdit"])
 
     def test_should_generate_widget_configuration(self):

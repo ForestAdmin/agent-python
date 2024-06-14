@@ -15,6 +15,7 @@ class ForestHttpApiException(AgentToolkitException):
 class HttpOptions(TypedDict):
     env_secret: str
     server_url: str
+    verify_ssl: bool
 
 
 class ForestHttpApi:
@@ -26,24 +27,24 @@ class ForestHttpApi:
     async def get_environment_permissions(cls, options: HttpOptions):
         endpoint = cls.build_endpoint(options["server_url"], "/liana/v4/permissions/environment")
         headers = {"forest-secret-key": options["env_secret"]}
-        return await cls.get(endpoint, headers)
+        return await cls.get(endpoint, headers, options["verify_ssl"])
 
     @classmethod
     async def get_users(cls, options: HttpOptions):
         endpoint = cls.build_endpoint(options["server_url"], "/liana/v4/permissions/users")
         headers = {"forest-secret-key": options["env_secret"]}
-        return await cls.get(endpoint, headers)
+        return await cls.get(endpoint, headers, options["verify_ssl"])
 
     @classmethod
     async def get_rendering_permissions(cls, rendering_id: int, options: HttpOptions):
         endpoint = cls.build_endpoint(options["server_url"], f"/liana/v4/permissions/renderings/{rendering_id}")
         headers = {"forest-secret-key": options["env_secret"]}
-        return await cls.get(endpoint, headers)
+        return await cls.get(endpoint, headers, options["verify_ssl"])
 
     @classmethod
     async def get_open_id_issuer_metadata(cls, options: HttpOptions) -> Dict[str, Any]:
         endpoint = cls.build_endpoint(options["server_url"], "/oidc/.well-known/openid-configuration")
-        return await cls.get(endpoint, {"forest-secret-key": options["env_secret"]})
+        return await cls.get(endpoint, {"forest-secret-key": options["env_secret"]}, options["verify_ssl"])
 
     @classmethod
     async def get_rendering_authorization(cls, rendering_id: int, access_token: str, options: HttpOptions):
@@ -54,18 +55,19 @@ class ForestHttpApi:
                 "forest-token": access_token,
                 "forest-secret-key": options["env_secret"],
             },
+            options["verify_ssl"],
         )
 
     @classmethod
     async def get_ip_white_list_rules(cls, options: HttpOptions):
         endpoint = cls.build_endpoint(options["server_url"], "/liana/v1/ip-whitelist-rules")
-        return await cls.get(endpoint, {"forest-secret-key": options["env_secret"]})
+        return await cls.get(endpoint, {"forest-secret-key": options["env_secret"]}, options["verify_ssl"])
 
     @staticmethod
-    async def get(endpoint: str, headers: Dict[str, str]) -> Dict[str, Any]:
+    async def get(endpoint: str, headers: Dict[str, str], verify_ssl: bool = True) -> Dict[str, Any]:
         async with ClientSession() as session:
             try:
-                async with session.get(endpoint, headers=headers) as response:
+                async with session.get(endpoint, headers=headers, ssl=verify_ssl) as response:
                     if response.status == 200:
                         return await response.json()
                     raise HTTPException(text=await response.text(), headers=headers)
@@ -73,10 +75,12 @@ class ForestHttpApi:
                 await ForestHttpApi._handle_server_error(endpoint, exc)
 
     @staticmethod
-    async def post(endpoint: str, body: Dict[str, Any], headers: Dict[str, str]) -> Optional[Dict[str, Any]]:
+    async def post(
+        endpoint: str, body: Dict[str, Any], headers: Dict[str, str], verify_ssl: bool = True
+    ) -> Optional[Dict[str, Any]]:
         async with ClientSession() as session:
             try:
-                async with session.post(endpoint, json=body, headers=headers) as response:
+                async with session.post(endpoint, json=body, headers=headers, ssl=verify_ssl) as response:
                     if response.status == 200:
                         return await response.json()
                     if response.status == 204:
@@ -142,6 +146,7 @@ class ForestHttpApi:
             cls.build_endpoint(options["server_url"], "/forest/apimaps/hashcheck"),
             {"schemaFileHash": schema["meta"]["schemaFileHash"]},
             {"forest-secret-key": options["env_secret"], "content-type": "application/json"},
+            options["verify_ssl"],
         )
 
         if ret["sendSchema"] is True:
@@ -150,6 +155,7 @@ class ForestHttpApi:
                 cls.build_endpoint(options["server_url"], "/forest/apimaps"),
                 schema,
                 {"forest-secret-key": options["env_secret"], "content-type": "application/json"},
+                options["verify_ssl"],
             )
         else:
             ForestLogger.log("info", "Schema was not updated since last run.")

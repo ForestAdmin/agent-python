@@ -7,7 +7,7 @@ from forestadmin.datasource_toolkit.decorators.datasource_decorator import Datas
 from forestadmin.datasource_toolkit.decorators.write.write_replace.write_replace_collection import (
     WriteReplaceCollection,
 )
-from forestadmin.datasource_toolkit.exceptions import ForestException
+from forestadmin.datasource_toolkit.exceptions import DatasourceToolkitException, ForestException
 from forestadmin.datasource_toolkit.interfaces.fields import Column, FieldType, Operator, PrimitiveType
 
 
@@ -40,8 +40,8 @@ class TestWriteBasicCollection(TestCase):
 
     def test_replace_field_writing_should_raise_on_non_existent_field(self):
         self.assertRaisesRegex(
-            ForestException,
-            r"The given field '_dont_exists' does not exists on the Book collection\.",
+            DatasourceToolkitException,
+            r"🌳🌳🌳Column not found: Book._dont_exists\. Fields in Book are id, title",
             self.collection_book_decorated.replace_field_writing,
             "_dont_exists",
             lambda val, ctx: {},

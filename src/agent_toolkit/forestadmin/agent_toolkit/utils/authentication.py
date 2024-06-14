@@ -8,25 +8,30 @@ from forestadmin.agent_toolkit.utils.http import ForestHttpApi
 from oic.oauth2.message import Message
 from oic.oic import Client as OicClient
 from oic.oic.message import AuthorizationRequest, AuthorizationResponse, ProviderConfigurationResponse
+from oic.utils.settings import PyoidcSettings
 
 
 class CustomClientOic(OicClient):
     SCOPE = ["openid", "email", "profile"]
 
+    def __init__(self, verify_ssl: bool = True):
+        super().__init__(settings=PyoidcSettings(verify_ssl=verify_ssl))
+
     def register(self, url: str, registration_token: Optional[str] = None, **kwargs):  # type: ignore
         """
         needed to avoid bj64 encoding in authorization header
         """
-        req = self.create_registration_request(**kwargs)  # type: ignore
+        req = self.create_registration_request(**kwargs)
         if self.events:
             self.events.store("Protocol request", req)
         headers = {"content-type": "application/json"}
         if registration_token is not None:
             headers["Authorization"] = "Bearer " + registration_token
 
-        rsp = self.http_request(url, "POST", data=req.to_json(), headers=headers)  # type: ignore
+        rsp = self.http_request(url, "POST", data=req.to_json(), headers=headers)
 
-        return self.handle_registration_info(rsp)  # type: ignore
+        self.handle_registration_info(rsp)
+        self.redirect_uris = self.registration_response["redirect_uris"]
 
     def get_authorization_url(self, state: str) -> str:
         args: Dict[str, Any] = {
@@ -52,7 +57,6 @@ class CustomClientOic(OicClient):
         access_token = self.do_access_token_request(  # type: ignore
             state=authorization_response["state"],
             request_args={"code": authorization_response["code"]},
-            verify=False,
             skew=5,
             authn_method="",
         )
@@ -69,7 +73,7 @@ class ClientFactory:
 
         issuer_metadata: Dict[str, Any] = await ForestHttpApi.get_open_id_issuer_metadata(options)
 
-        client = CustomClientOic()
+        client = CustomClientOic(options["verify_ssl"])
         client.register(  # type: ignore
             issuer_metadata["registration_endpoint"],
             registration_token=options["env_secret"],

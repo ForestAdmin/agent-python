@@ -34,7 +34,10 @@ class RenameFieldCollectionDecorator(CollectionDecorator):
     def rename_field(self, current_name: str, new_name: str):
         schema = self.schema
         if current_name not in schema["fields"]:
-            raise RenameCollectionException(f"No such field '{current_name}'")
+            available_fields = [field_name for field_name in self.child_collection.schema["fields"].keys()]
+            raise RenameCollectionException(
+                f"No such field '{self.name}.{current_name}', choices are {', '.join(available_fields)}"
+            )
 
         initial_name = current_name
 

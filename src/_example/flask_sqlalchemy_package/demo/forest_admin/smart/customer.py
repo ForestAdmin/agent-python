@@ -227,7 +227,9 @@ async def execute_age_operation(
 
     record = await context.get_record(Projection("age"))
     await context.collection.update(context.caller, context.filter, {"age": operation(record["age"], value)})
-    return result_builder.success("<h1> Success </h1>", options={"type": "html"})
+    return result_builder.set_header("MyCustomHeader", "MyCustomValue").success(
+        "<h1> Success </h1>", options={"type": "html"}
+    )
 
 
 def get_value_summary(context: ActionContextSingle):

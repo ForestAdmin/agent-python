@@ -13,7 +13,7 @@ from forestadmin.datasource_toolkit.interfaces.chart import (
     TimeBasedChart,
     ValueChart,
 )
-from forestadmin.datasource_toolkit.interfaces.query.aggregation import DateOperation
+from forestadmin.datasource_toolkit.interfaces.query.aggregation import DateOperation, DateOperationLiteral
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.transforms.time import Frequency
 
 
@@ -70,7 +70,9 @@ class ResultBuilder:
 
     @classmethod
     def time_based(
-        cls, time_range: DateOperation, values: Dict[Union[str, date, datetime], Union[int, float]]
+        cls,
+        time_range: Union[DateOperation, DateOperationLiteral],
+        values: Dict[Union[str, date, datetime], Union[int, float]],
     ) -> TimeBasedChart:
         """Add a TimeBasedChart based on a time range and a set of values
 
@@ -93,12 +95,12 @@ class ResultBuilder:
         for _date, value in values.items():
             formatted.append({"date": _date, "value": value})
 
-        return ResultBuilder._build_time_base_chart_result(time_range, formatted)
+        return ResultBuilder._build_time_base_chart_result(DateOperation(time_range), formatted)
 
     @classmethod
     def multiple_time_based(
         cls,
-        time_range: DateOperation,
+        time_range: Union[DateOperation, DateOperationLiteral],
         dates: List[Union[str, date, datetime]],
         lines: MultipleTimeBasedLines,
     ) -> MultipleTimeBasedChart:
@@ -131,7 +133,7 @@ class ResultBuilder:
             values = []
             for idx, _date in enumerate(dates):
                 values.append({"date": _date, "value": line["values"][idx]})
-            build_time_base = ResultBuilder._build_time_base_chart_result(time_range, values)
+            build_time_base = ResultBuilder._build_time_base_chart_result(DateOperation(time_range), values)
 
             if formatted_times is None:
                 formatted_times = [time_based["label"] for time_based in build_time_base]
@@ -159,7 +161,8 @@ class ResultBuilder:
 
     @staticmethod
     def _build_time_base_chart_result(
-        time_range: DateOperation, points: List[Dict[Union[date, datetime, str], Union[int, float, None]]]
+        time_range: Union[DateOperation, DateOperationLiteral],
+        points: List[Dict[Union[date, datetime, str], Union[int, float, None]]],
     ) -> TimeBasedChart:
         """Normalize the time based chart result to have a value for each time range.
         For example, if the time range is 'Month' and the values are:
@@ -179,7 +182,7 @@ class ResultBuilder:
         if len(points) == 0:
             return []
         points_in_date_time = [{"date": _parse_date(point["date"]), "value": point["value"]} for point in points]
-        format_ = ResultBuilder.FORMATS[time_range]
+        format_ = ResultBuilder.FORMATS[DateOperation(time_range)]
 
         formatted = {}
         for point in points_in_date_time:
@@ -191,6 +194,8 @@ class ResultBuilder:
         dates = sorted([p["date"] for p in points_in_date_time])
         first = dates[0]
         last = dates[-1]
-        for label in _make_formatted_date_range(first, last, _DateRangeFrequency[time_range.value], format_):
+        for label in _make_formatted_date_range(
+            first, last, _DateRangeFrequency[DateOperation(time_range).value], format_
+        ):
             data_points.append({"label": label, "values": {"value": formatted.get(label, 0)}})
         return data_points

@@ -1,8 +1,8 @@
 import enum
-from typing import Any, Dict, List, Literal, Optional, Set, TypedDict, Union
+from typing import Any, Dict, List, Literal, Optional, Set, Union
 from uuid import UUID
 
-from typing_extensions import NotRequired, TypeGuard
+from typing_extensions import NotRequired, TypedDict, TypeGuard
 
 
 class Operator(enum.Enum):
@@ -19,7 +19,7 @@ class Operator(enum.Enum):
     STARTS_WITH = "starts_with"
     ENDS_WITH = "ends_with"
     CONTAINS = "contains"
-    MATCH = "Match"
+    MATCH = "match"
     # ICONTAINS = "icontains"
     NOT_CONTAINS = "not_contains"
     LONGER_THAN = "longer_than"
@@ -45,42 +45,42 @@ class Operator(enum.Enum):
     INCLUDES_ALL = "includes_all"
 
 
-LITERAL_OPERATORS = Union[
-    Literal["present"],
-    Literal["blank"],
-    Literal["missing"],
-    Literal["equal"],
-    Literal["not_equal"],
-    Literal["less_than"],
-    Literal["greater_than"],
-    Literal["in"],
-    Literal["not_in"],
-    Literal["like"],
-    Literal["starts_with"],
-    Literal["ends_with"],
-    Literal["contains"],
-    Literal["not_contains"],
-    Literal["longer_than"],
-    Literal["shorter_than"],
-    Literal["before"],
-    Literal["after"],
-    Literal["after_x_hours_ago"],
-    Literal["before_x_hours_ago"],
-    Literal["future"],
-    Literal["past"],
-    Literal["previous_month_to_date"],
-    Literal["previous_month"],
-    Literal["previous_quarter_to_date"],
-    Literal["previous_quarter"],
-    Literal["previous_week_to_date"],
-    Literal["previous_week"],
-    Literal["previous_x_days_to_date"],
-    Literal["previous_x_days"],
-    Literal["previous_year_to_date"],
-    Literal["previous_year"],
-    Literal["today"],
-    Literal["yesterday"],
-    Literal["includes_all"],
+LITERAL_OPERATORS = Literal[
+    "present",
+    "blank",
+    "missing",
+    "equal",
+    "not_equal",
+    "less_than",
+    "greater_than",
+    "in",
+    "not_in",
+    "like",
+    "starts_with",
+    "ends_with",
+    "contains",
+    "not_contains",
+    "longer_than",
+    "shorter_than",
+    "before",
+    "after",
+    "after_x_hours_ago",
+    "before_x_hours_ago",
+    "future",
+    "past",
+    "previous_month_to_date",
+    "previous_month",
+    "previous_quarter_to_date",
+    "previous_quarter",
+    "previous_week_to_date",
+    "previous_week",
+    "previous_x_days_to_date",
+    "previous_x_days",
+    "previous_year_to_date",
+    "previous_year",
+    "today",
+    "yesterday",
+    "includes_all",
 ]
 
 
@@ -98,6 +98,20 @@ class PrimitiveType(enum.Enum):
     BINARY = "Binary"
 
 
+PrimitiveTypeLiteral = Literal[
+    "Boolean",
+    "Date",
+    "Dateonly",
+    "Enum",
+    "Json",
+    "Number",
+    "Point",
+    "String",
+    "Timeonly",
+    "Uuid",
+    "Binary",
+]
+
 LiteralManyToOne = Literal["ManyToOne"]
 LiteralOneToOne = Literal["OneToOne"]
 LiteralOneToMany = Literal["OneToMany"]
@@ -113,7 +127,7 @@ class FieldType(enum.Enum):
 
 
 class Validation(TypedDict):
-    operator: Operator
+    operator: Union[Operator, LITERAL_OPERATORS]
     value: NotRequired[Optional[Any]]
 
 
@@ -161,7 +175,7 @@ class ManyToMany(TypedDict):
     type: Literal[FieldType.MANY_TO_MANY]
 
 
-ColumnAlias = Union[PrimitiveType, Dict[str, "ColumnAlias"], List["ColumnAlias"]]
+ColumnAlias = Union[PrimitiveType, PrimitiveTypeLiteral, Dict[str, "ColumnAlias"], List["ColumnAlias"]]
 RelationAlias = Union[ManyToMany, ManyToOne, OneToOne, OneToMany]
 FieldAlias = Union[Column, RelationAlias]
 

@@ -1,7 +1,10 @@
-from typing import Callable, Dict, List, Optional, TypedDict, Union
+from typing import Dict, List
+
+from typing_extensions import NotRequired, TypedDict
 
 
 class DataSourceOptions(TypedDict):
-    rename: Optional[Union[Dict[str, str], Callable[[str], str]]]
-    include: Optional[List[str]]
-    exclude: Optional[List[str]]
+    rename: NotRequired[Dict[str, str]]
+    # TODO: rename should also be a function
+    include: NotRequired[List[str]]
+    exclude: NotRequired[List[str]]

@@ -148,7 +148,7 @@ class TestWriteRelation(TestCase):
         async def first_name_handler(value, context: WriteCustomizationContext):
             return {"first_name": value}
 
-        first_name_handler_mock = Mock(side_effect=first_name_handler)
+        first_name_handler_mock = AsyncMock(wraps=first_name_handler)
 
         self.collection_person_decorated.replace_field_writing("first_name_alias", first_name_handler_mock)
         self.collection_book_decorated.replace_field_writing(

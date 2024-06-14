@@ -1,4 +1,4 @@
-from typing import List, Union, cast
+from typing import List, Literal, Union, cast
 
 from forestadmin.agent_toolkit.utils.forest_schema.action_values import ForestValueConverter
 from forestadmin.agent_toolkit.utils.forest_schema.generator_action_field_widget import GeneratorActionFieldWidget
@@ -25,7 +25,7 @@ class SchemaActionGenerator:
             hook=None,
             isRequired=False,
             reference=None,
-            widget=None,
+            widgetEdit=None,
         )
     ]
 
@@ -39,11 +39,8 @@ class SchemaActionGenerator:
         return ForestServerAction(
             id=f"{collection.name}-{idx}-{slug}",
             name=name,
-            type=schema.scope.value.lower(),
-            baseUrl=None,
+            type=cast(Literal["single", "bulk", "global"], schema.scope.value.lower()),
             endpoint=f"/forest/_actions/{collection.name}/{idx}/{slug}",
-            httpMethod="POST",
-            redirect=None,
             download=bool(schema.generate_file),
             fields=await cls.build_fields(collection, schema, name),
             # Always registering the change hook has no consequences, even if we don't use it.
@@ -62,15 +59,14 @@ class SchemaActionGenerator:
             # When sending to server, we need to rename 'value' into 'defaultValue'
             # otherwise, it does not gets applied 🤷‍♂️
             "defaultValue": default_value,
-            "description": field["description"],
+            "description": field.get("description"),
             "enums": None,
             "hook": None,
             "isReadOnly": field.get("is_read_only", False),
             "isRequired": field.get("is_required", True),
             "reference": None,
             "type": PrimitiveType.STRING,
-            "widget": None,
-            "widgetEdit": GeneratorActionFieldWidget.build_widget_options(field),
+            "widgetEdit": GeneratorActionFieldWidget.build_widget_options(field),  # type:ignore
         }
         if field["type"] == ActionFieldType.COLLECTION:
             collection: Collection = datasource.get_collection(field["collection_name"])  # type: ignore

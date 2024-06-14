@@ -1,6 +1,6 @@
 import abc
 import sys
-from typing import Any, Awaitable, Callable, Dict, List, TypedDict, TypeVar, Union
+from typing import Any, Awaitable, Callable, Dict, List, TypeVar, Union
 
 if sys.version_info >= (3, 9):
     import zoneinfo
@@ -11,6 +11,7 @@ from forestadmin.datasource_toolkit.exceptions import DatasourceToolkitException
 from forestadmin.datasource_toolkit.interfaces.models.collections import Collection
 from forestadmin.datasource_toolkit.interfaces.query.projections import Projection
 from forestadmin.datasource_toolkit.interfaces.records import RecordsDataAlias
+from typing_extensions import TypedDict
 
 
 class ConditionTreeException(DatasourceToolkitException):
@@ -32,7 +33,7 @@ class ConditionTree(abc.ABC):
         """return conditionTree matching record"""
 
     @abc.abstractmethod
-    def some_leaf(self, handler: Callable[["ConditionTreeLeaf"], bool]) -> bool:  # noqa:F821
+    def some_leaf(self, handler: Callable[["ConditionTreeLeaf"], bool]) -> bool:  # noqa:F821 # type: ignore
         """return bool if handler return True for at least on leaf"""
 
     @abc.abstractmethod

@@ -84,6 +84,7 @@ class TestResponse(TestCase):
         mocked_file_response.mimetype = "application/json"
         mocked_file_response.name = "test.json"
         mocked_file_response.file = BytesIO('{"data": []}'.encode("utf-8"))
+        mocked_file_response.headers = {}
         response = convert_response(mocked_file_response)
 
         assert isinstance(response, FlaskResponse)

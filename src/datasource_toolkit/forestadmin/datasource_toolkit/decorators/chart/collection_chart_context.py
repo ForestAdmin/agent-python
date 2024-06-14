@@ -21,7 +21,7 @@ class CollectionChartContext(CollectionCustomizationContext):
 
         return self.composite_record_id[0]
 
-    async def get_record(self, fields: Projection) -> RecordsDataAlias:
+    async def get_record(self, fields: Union[Projection, List[str]]) -> RecordsDataAlias:
         condition_tree = ConditionTreeFactory.match_ids(self.collection.schema, [self.composite_record_id])
 
         records = await self.collection.list(self._caller, PaginatedFilter({"condition_tree": condition_tree}), fields)

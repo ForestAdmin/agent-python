@@ -2,6 +2,9 @@ import logging
 import os
 
 from demo.forest_admin.forest_logging_customization import custom_error_message_fn, custom_logger_fn
+from dotenv import load_dotenv
+
+load_dotenv()  # load .env file into environ variables
 
 
 class FlaskConfig(object):

@@ -1,9 +1,8 @@
 import enum
 import json
 import sys
-from datetime import datetime, timedelta
-from numbers import Number
-from typing import Any, Callable, Dict, List, Literal, Optional, TypedDict, Union
+from datetime import date, datetime, timedelta
+from typing import Any, Callable, Dict, List, Literal, Optional, Union
 
 if sys.version_info >= (3, 9):
     import zoneinfo
@@ -13,7 +12,9 @@ else:
 from forestadmin.datasource_toolkit.interfaces.query.projections import Projection
 from forestadmin.datasource_toolkit.interfaces.records import RecordsDataAlias
 from forestadmin.datasource_toolkit.utils.records import RecordUtils
-from typing_extensions import NotRequired, Self, TypeGuard
+from typing_extensions import NotRequired, Self, TypedDict, TypeGuard
+
+Number = Union[int, float]
 
 
 class Aggregator(enum.Enum):
@@ -24,7 +25,7 @@ class Aggregator(enum.Enum):
     MIN = "Min"
 
 
-PlainAggregator = Union[Literal["Count"], Literal["Sum"], Literal["Avg"], Literal["Max"], Literal["Min"]]
+PlainAggregator = Literal["Count", "Sum", "Avg", "Max", "Min"]
 
 
 class DateOperation(enum.Enum):
@@ -34,6 +35,9 @@ class DateOperation(enum.Enum):
     DAY = "Day"
 
 
+DateOperationLiteral = Literal["Year", "Month", "Week", "Day"]
+
+
 class AggregateResult(TypedDict):
     value: Any
     group: Dict[str, Any]
@@ -41,16 +45,16 @@ class AggregateResult(TypedDict):
 
 class Summary(TypedDict):
     group: Dict[str, Any]
-    start_count: int
-    Count: int
-    Sum: int
-    Max: Optional[int]
-    Min: Optional[int]
+    start_count: Number
+    Count: Number
+    Sum: Number
+    Max: Optional[Number]
+    Min: Optional[Number]
 
 
 class PlainAggregationGroup(TypedDict):
     field: str
-    operation: NotRequired[str]
+    operation: NotRequired[Union[DateOperation, DateOperationLiteral]]
 
 
 class AggregationGroup(TypedDict):
@@ -77,7 +81,7 @@ class Aggregation:
                 aggregation_group["operation"] = DateOperation(plain_aggregation_group.get("operation"))
             self.groups.append(aggregation_group)
 
-    def __eq__(self: Self, obj: Self) -> bool:
+    def __eq__(self: Self, obj: Self) -> bool:  # type:ignore
         return (
             self.__class__ == obj.__class__
             and self.field == obj.field
@@ -105,12 +109,12 @@ class Aggregation:
 
         return __prefix
 
-    def nest(self, prefix: str) -> Self:
+    def nest(self, prefix: str) -> "Aggregation":
         if not prefix or (not self.field and not self.groups):
             return self
         return self.replace_fields(self._prefix_handler(prefix))
 
-    def replace_fields(self, handler: Callable[[str], str]) -> Self:
+    def replace_fields(self, handler: Callable[[str], str]) -> "Aggregation":
         result = Aggregation(self._to_plain)
         if result.field:
             result.field = handler(result.field)
@@ -184,7 +188,7 @@ class Aggregation:
                     summary["Min"] = value
                 if summary["Max"] is None or value > summary["Max"]:
                     summary["Max"] = value
-            if isinstance(value, Number):
+            if isinstance(value, int) or isinstance(value, float):
                 summary["Sum"] += value
         return summary
 
@@ -192,7 +196,11 @@ class Aggregation:
         group_record: RecordsDataAlias = {}
         for group in self.groups:
             group_value = RecordUtils.get_field_value(record, group["field"])
-            group_record[group["field"]] = self._apply_date_operation(group_value, group.get("operation"), timezone)
+            group_record[group["field"]] = self._apply_date_operation(
+                group_value.isoformat() if isinstance(group_value, date) else group_value,
+                group.get("operation"),
+                timezone,
+            )
         return group_record
 
     def _apply_date_operation(self, value: str, operation: Optional[DateOperation], timezone: str) -> str:

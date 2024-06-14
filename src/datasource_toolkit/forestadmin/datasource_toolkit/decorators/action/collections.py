@@ -1,4 +1,4 @@
-from typing import Any, Awaitable, Dict, List, Optional, Set, cast
+from typing import Any, Dict, List, Optional, Set, cast
 
 from forestadmin.agent_toolkit.utils.context import User
 from forestadmin.datasource_toolkit.collections import Collection
@@ -13,6 +13,7 @@ from forestadmin.datasource_toolkit.interfaces.actions import Action, ActionFiel
 from forestadmin.datasource_toolkit.interfaces.models.collections import CollectionSchema
 from forestadmin.datasource_toolkit.interfaces.query.filter.unpaginated import Filter
 from forestadmin.datasource_toolkit.interfaces.records import RecordsDataAlias
+from forestadmin.datasource_toolkit.utils.user_callable import call_user_function
 
 
 class ActionCollectionDecorator(CollectionDecorator):
@@ -41,10 +42,10 @@ class ActionCollectionDecorator(CollectionDecorator):
 
         context = self._get_context(caller, action, data, filter_, None)
         response_builder = ResultBuilder()
-        result = action["execute"](context, response_builder)  # type: ignore
-        if isinstance(result, Awaitable):
-            result = await result
-        return result or {"type": "Success", "invalidated": set(), "format": "text", "message": "Success"}
+        result = await call_user_function(action["execute"], context, response_builder)  # type: ignore
+        return cast(
+            ActionResult, result or {"type": "Success", "invalidated": set(), "format": "text", "message": "Success"}
+        )
 
     async def get_form(
         self,
@@ -63,9 +64,7 @@ class ActionCollectionDecorator(CollectionDecorator):
         form_values = data or {}
         used: Set[str] = set()
         context = self._get_context(caller, action, form_values, filter_, used, meta.get("changed_field"))
-        form_fields: List[DynamicField[ActionContext]] = cast(
-            List[DynamicField[ActionContext]], [field for field in action.get("form", [])]
-        )
+        form_fields: List[DynamicField] = cast(List[DynamicField], [field for field in action.get("form", [])])
         if meta.get("search_field"):
             # in the case of a search hook,
             # we don't want to rebuild all the fields. only the one searched
@@ -86,7 +85,9 @@ class ActionCollectionDecorator(CollectionDecorator):
             for field in action.get("form", []):
                 dynamics.append(field.is_dynamic)
             actions_schema[name] = Action(
-                scope=action["scope"], generate_file=action.get("generate_file", False), static_form=not any(dynamics)
+                scope=ActionsScope(action["scope"]),
+                generate_file=action.get("generate_file", False),
+                static_form=not any(dynamics),
             )
         return {**sub_schema, "actions": actions_schema}
 
@@ -103,12 +104,12 @@ class ActionCollectionDecorator(CollectionDecorator):
             ActionsScope.SINGLE: ActionContextSingle,
             ActionsScope.BULK: ActionContextBulk,
             ActionsScope.GLOBAL: ActionContext,
-        }[action["scope"]](
+        }[ActionsScope(action["scope"])](
             cast(Collection, self), caller, form_values, filter_, used, changed_field  # type: ignore
         )
 
     async def _build_form_values(
-        self, context: ActionContext, fields: List[DynamicField[ActionContext]], data: Optional[Dict[str, Any]]
+        self, context: ActionContext, fields: List[DynamicField], data: Optional[Dict[str, Any]]
     ):
         if data is None:
             form_values: Dict[str, Any] = {}
@@ -123,7 +124,7 @@ class ActionCollectionDecorator(CollectionDecorator):
     async def _build_fields(
         self,
         context: ActionContext,
-        fields: List[DynamicField[ActionContext]],
+        fields: List[DynamicField],
         form_values: RecordsDataAlias,
         search_value: Optional[str] = None,
     ) -> List[ActionField]:

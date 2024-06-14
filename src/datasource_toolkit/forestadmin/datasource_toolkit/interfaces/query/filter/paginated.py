@@ -31,8 +31,11 @@ class PaginatedFilter(BaseFilter[PaginatedFilterComponent]):
         return super(PaginatedFilter, self).__eq__(object) and self.sort == object.sort and self.page == object.page
 
     @staticmethod
-    def from_base_filter(filter: Filter) -> "PaginatedFilter":
+    def from_base_filter(filter: Optional[Filter]) -> "PaginatedFilter":
         kwargs: Dict[str, Any] = {"sort": None, "page": None}
+        if filter is None:
+            return PaginatedFilter(PaginatedFilterComponent(**kwargs))
+
         if filter.condition_tree:
             kwargs["condition_tree"] = filter.condition_tree
         if filter.search:

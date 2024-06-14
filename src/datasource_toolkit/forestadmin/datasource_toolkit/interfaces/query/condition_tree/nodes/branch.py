@@ -29,7 +29,7 @@ class Aggregator(enum.Enum):
     AND = "and"
 
 
-LiteralAggregator = Union[Literal["or"], Literal["and"]]
+LiteralAggregator = Literal["or", "and"]
 
 
 class BranchComponents(ConditionTreeComponent):
@@ -42,15 +42,15 @@ def is_branch_component(tree: Any) -> TypeGuard[BranchComponents]:
 
 
 class ConditionTreeBranch(ConditionTree):
-    def __init__(self, aggregator: Aggregator, conditions: List[ConditionTree]):
+    def __init__(self, aggregator: Union[Aggregator, LiteralAggregator], conditions: List[ConditionTree]):
         super().__init__()
-        self.aggregator = aggregator
+        self.aggregator = Aggregator(aggregator)
         self.conditions = conditions
 
     def __repr__(self):
         return f"{self.aggregator}[{self.conditions}]"
 
-    def __eq__(self: Self, obj: Self) -> bool:
+    def __eq__(self: Self, obj: Self) -> bool:  # type: ignore
         return (
             self.__class__ == obj.__class__ and self.aggregator == obj.aggregator and self.conditions == obj.conditions
         )
@@ -76,7 +76,7 @@ class ConditionTreeBranch(ConditionTree):
 
     def some_leaf(self, handler: Callable[["ConditionTreeLeaf"], bool]) -> bool:  # noqa:F821
         for condition in self.conditions:
-            handler_res = handler(condition)
+            handler_res = handler(condition)  # type: ignore
             if handler_res is True:
                 return True
         return False
@@ -125,7 +125,8 @@ class ConditionTreeBranch(ConditionTree):
         prefix = self._get_prefix()
         return self._remove_prefix(prefix)
 
-    def to_plain_object(self) -> BranchComponents:
+    def to_plain_object(self) -> BranchComponents:  # type: ignore
         return BranchComponents(
-            aggregator=self.aggregator.value, conditions=[condition.to_plain_object() for condition in self.conditions]
+            aggregator=self.aggregator.value,
+            conditions=[condition.to_plain_object() for condition in self.conditions],  # type: ignore
         )

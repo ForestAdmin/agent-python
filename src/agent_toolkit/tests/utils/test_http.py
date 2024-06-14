@@ -17,6 +17,7 @@ class TestForestHttp(TestCase):
         cls.options: HttpOptions = {
             "env_secret": "env_secret",
             "server_url": "http://local.forest.com",
+            "verify_ssl": True,
         }
 
     def test_get_environment_permissions_should_make_correct_call(self):
@@ -24,7 +25,7 @@ class TestForestHttp(TestCase):
             self.loop.run_until_complete(ForestHttpApi.get_environment_permissions(self.options))
 
             mock_get.assert_awaited_once_with(
-                "http://local.forest.com/liana/v4/permissions/environment", {"forest-secret-key": "env_secret"}
+                "http://local.forest.com/liana/v4/permissions/environment", {"forest-secret-key": "env_secret"}, True
             )
 
     def test_get_users(self):
@@ -32,7 +33,7 @@ class TestForestHttp(TestCase):
             self.loop.run_until_complete(ForestHttpApi.get_users(self.options))
 
             mock_get.assert_awaited_once_with(
-                "http://local.forest.com/liana/v4/permissions/users", {"forest-secret-key": "env_secret"}
+                "http://local.forest.com/liana/v4/permissions/users", {"forest-secret-key": "env_secret"}, True
             )
 
     def test_get_rendering_permissions(self):
@@ -40,7 +41,7 @@ class TestForestHttp(TestCase):
             self.loop.run_until_complete(ForestHttpApi.get_rendering_permissions(42, self.options))
 
             mock_get.assert_awaited_once_with(
-                "http://local.forest.com/liana/v4/permissions/renderings/42", {"forest-secret-key": "env_secret"}
+                "http://local.forest.com/liana/v4/permissions/renderings/42", {"forest-secret-key": "env_secret"}, True
             )
 
     def test_get_open_id_issuer_metadata(self):
@@ -48,7 +49,9 @@ class TestForestHttp(TestCase):
             self.loop.run_until_complete(ForestHttpApi.get_open_id_issuer_metadata(self.options))
 
             mock_get.assert_awaited_once_with(
-                "http://local.forest.com/oidc/.well-known/openid-configuration", {"forest-secret-key": "env_secret"}
+                "http://local.forest.com/oidc/.well-known/openid-configuration",
+                {"forest-secret-key": "env_secret"},
+                True,
             )
 
     def test_get_rendering_authorization(self):
@@ -58,6 +61,7 @@ class TestForestHttp(TestCase):
             mock_get.assert_awaited_once_with(
                 "http://local.forest.com/liana/v2/renderings/42/authorization",
                 {"forest-secret-key": "env_secret", "forest-token": "access_token"},
+                True,
             )
 
     def test_schema_should_send_schema_if_server_want_it(self):
@@ -72,11 +76,13 @@ class TestForestHttp(TestCase):
                         "http://local.forest.com/forest/apimaps/hashcheck",
                         {"schemaFileHash": "hash"},
                         {"forest-secret-key": "env_secret", "content-type": "application/json"},
+                        True,
                     ),
                     call(
                         "http://local.forest.com/forest/apimaps",
                         schema,
                         {"forest-secret-key": "env_secret", "content-type": "application/json"},
+                        True,
                     ),
                 ]
             )
@@ -93,6 +99,7 @@ class TestForestHttp(TestCase):
                         "http://local.forest.com/forest/apimaps/hashcheck",
                         {"schemaFileHash": "hash"},
                         {"forest-secret-key": "env_secret", "content-type": "application/json"},
+                        True,
                     ),
                 ]
             )
@@ -101,7 +108,7 @@ class TestForestHttp(TestCase):
         with patch.object(ForestHttpApi, "get", new_callable=AsyncMock) as mock_get:
             self.loop.run_until_complete(ForestHttpApi.get_ip_white_list_rules(self.options))
             mock_get.assert_awaited_once_with(
-                "http://local.forest.com/liana/v1/ip-whitelist-rules", {"forest-secret-key": "env_secret"}
+                "http://local.forest.com/liana/v1/ip-whitelist-rules", {"forest-secret-key": "env_secret"}, True
             )
 
     def test_post_should_make_a_post_request_and_return_json(self):
@@ -125,7 +132,9 @@ class TestForestHttp(TestCase):
 
             self.assertEqual(response, {"ret": True})
 
-        mock_session.post.assert_called_once_with("http://addr", json={"body": "dict"}, headers={"headers": "headers"})
+        mock_session.post.assert_called_once_with(
+            "http://addr", json={"body": "dict"}, headers={"headers": "headers"}, ssl=True
+        )
         mock_response.json.assert_awaited_once()
 
     def test_post_should_make_a_post_request_and_return_None_if_no_200_answer(self):
@@ -148,7 +157,9 @@ class TestForestHttp(TestCase):
 
             self.assertIsNone(response)
 
-        mock_session.post.assert_called_once_with("http://addr", json={"body": "dict"}, headers={"headers": "headers"})
+        mock_session.post.assert_called_once_with(
+            "http://addr", json={"body": "dict"}, headers={"headers": "headers"}, ssl=True
+        )
 
     def test_post_should_make_a_post_request_and_raise_exception_on_http_error(self):
         mock_session = Mock()
@@ -168,7 +179,9 @@ class TestForestHttp(TestCase):
                 ForestHttpApi.post("http://addr", {"body": "dict"}, {"headers": "headers"}),
             )
 
-        mock_session.post.assert_called_once_with("http://addr", json={"body": "dict"}, headers={"headers": "headers"})
+        mock_session.post.assert_called_once_with(
+            "http://addr", json={"body": "dict"}, headers={"headers": "headers"}, ssl=True
+        )
 
     def test_get_should_make_a_get_request_and_return_json(self):
         mock_response = Mock()
@@ -189,7 +202,7 @@ class TestForestHttp(TestCase):
 
             self.assertEqual(response, {"ret": True})
 
-        mock_session.get.assert_called_once_with("http://addr", headers={"headers": "headers"})
+        mock_session.get.assert_called_once_with("http://addr", headers={"headers": "headers"}, ssl=True)
         mock_response.json.assert_awaited_once()
 
     def test_get_should_make_a_get_request_and_return_None_if_no_200_answer(self):
@@ -209,7 +222,7 @@ class TestForestHttp(TestCase):
             response = self.loop.run_until_complete(ForestHttpApi.get("http://addr", {"headers": "headers"}))
 
             self.assertIsNone(response)
-        mock_session.get.assert_called_once_with("http://addr", headers={"headers": "headers"})
+        mock_session.get.assert_called_once_with("http://addr", headers={"headers": "headers"}, ssl=True)
 
     def test_get_should_make_a_get_request_and_raise_exception_on_http_error(self):
         mock_session = Mock()
@@ -230,7 +243,7 @@ class TestForestHttp(TestCase):
                 self.loop.run_until_complete,
                 ForestHttpApi.get("http://addr", {"headers": "headers"}),
             )
-        mock_session.get.assert_called_once_with("http://addr", headers={"headers": "headers"})
+        mock_session.get.assert_called_once_with("http://addr", headers={"headers": "headers"}, ssl=True)
 
 
 class TestHandleError(TestCase):
