@@ -1,3 +1,10 @@
+## [1.8.6](https://github.com/ForestAdmin/agent-python/compare/v1.8.5...v1.8.6) (2024-06-14)
+
+
+### Bug Fixes
+
+* imported fields operators were wrong ([#226](https://github.com/ForestAdmin/agent-python/issues/226)) ([8859fa4](https://github.com/ForestAdmin/agent-python/commit/8859fa4f64bc11298d311fe71e3344b09bb4478a))
+
 ## [1.8.5](https://github.com/ForestAdmin/agent-python/compare/v1.8.4...v1.8.5) (2024-06-14)
 
 
