@@ -74,9 +74,6 @@ class TestComputedCollectionDecorator(TestCase):
                 ),
             }
         )
-        cls.datasource.add_collection(cls.collection_book)
-        cls.datasource.add_collection(cls.collection_person)
-
         cls.mocked_caller = User(
             rendering_id=1,
             user_id=1,
@@ -89,20 +86,20 @@ class TestComputedCollectionDecorator(TestCase):
         )
 
     def setUp(self) -> None:
+        self.datasource.add_collection(self.collection_book)
+        self.datasource.add_collection(self.collection_person)
+
         self.datasource_customizer: DatasourceCustomizer = DatasourceCustomizer()
         self.datasource_customizer.add_datasource(self.datasource, {})
 
     def test_operators_should_correctly_be_replaced(self):
-        self.datasource_customizer.customize_collection("Book").import_field(
-            "author_first_name", {"path": "author:first_name"}
-        )
+        book_collection_customizer = self.datasource_customizer.customize_collection("Book")
+        book_collection_customizer.import_field("author_first_name", {"path": "author:first_name"})
         self.loop.run_until_complete(self.datasource_customizer.stack.apply_queue_customization())
 
         for operator in [Operator.CONTAINS, Operator.ENDS_WITH, Operator.EQUAL, Operator.LIKE]:
             new_filter = self.loop.run_until_complete(
-                self.datasource_customizer.customize_collection("Book")
-                .stack.early_op_emulate.get_collection("Book")
-                ._refine_filter(
+                self.datasource_customizer.stack.early_op_emulate.get_collection("Book")._refine_filter(
                     self.mocked_caller,
                     Filter({"condition_tree": ConditionTreeLeaf("author_first_name", operator, "test")}),
                 )
