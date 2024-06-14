@@ -56,13 +56,13 @@ class SearchCollectionDecorator(CollectionDecorator):
         # Implement search ourselves
         if self._replacer or not self.child_collection.schema["searchable"]:
             context = CollectionCustomizationContext(self, caller)
-            tree = self._default_replacer(_filter.search, _filter)
 
             if self._replacer is not None:
-                tree = await call_user_function(self._replacer, _filter.search, _filter.search_extended, context)
-
+                tree = await call_user_function(self._replacer, _filter.search, bool(_filter.search_extended), context)
                 if isinstance(tree, dict):
                     tree = ConditionTreeFactory.from_plain_object(tree)
+            else:
+                tree = self._default_replacer(_filter.search, bool(_filter.search_extended))
 
             # Note that if no fields are searchable with the provided searchString, the conditions
             # array might be empty, which will create a condition returning zero records
