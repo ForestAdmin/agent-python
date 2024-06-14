@@ -1,4 +1,4 @@
-from functools import reduce
+from functools import partial, reduce
 from typing import Dict, Optional
 
 from forestadmin.datasource_toolkit.decorators.computed.types import ComputedDefinition
@@ -72,8 +72,14 @@ class ImportField(Plugin):
 
     def _handle_sortable_and_operators(self, collection_customizer, name: str, schema: FieldAlias, options: Dict):
         for operator in schema["filter_operators"]:
+
+            async def replacer(origin_operator, value, context):
+                return {"field": options["path"], "operator": origin_operator, "value": value}
+
             collection_customizer.replace_field_operator(
-                name, operator, lambda value, ctx: {"field": options["path"], "operator": operator, "value": value}
+                name,
+                operator,
+                partial(replacer, operator),
             )
 
         if schema.get("is_sortable"):
