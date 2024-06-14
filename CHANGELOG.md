@@ -1,3 +1,10 @@
+## [1.8.5](https://github.com/ForestAdmin/agent-python/compare/v1.8.4...v1.8.5) (2024-06-14)
+
+
+### Bug Fixes
+
+* **search:** search was always extended ([#225](https://github.com/ForestAdmin/agent-python/issues/225)) ([a28f544](https://github.com/ForestAdmin/agent-python/commit/a28f5446710c7e6dbf1d8db64d093d1d70f14d06))
+
 ## [1.8.4](https://github.com/ForestAdmin/agent-python/compare/v1.8.3...v1.8.4) (2024-06-05)
 
 
