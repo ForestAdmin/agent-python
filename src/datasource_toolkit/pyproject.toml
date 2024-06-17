@@ -18,6 +18,7 @@ include = "forestadmin"
 python = ">=3.8,<3.13"
 typing-extensions = "~=4.2"
 pandas = ">=1.4.0"
+numpy = "!=2.0.0"
 filetype = "^1.0.0"
 
 [tool.poetry.dependencies."backports.zoneinfo"]
