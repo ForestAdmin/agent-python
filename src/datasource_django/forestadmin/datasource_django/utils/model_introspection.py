@@ -1,5 +1,5 @@
 import json
-from typing import Dict, List, Optional, TypeGuard, Union
+from typing import Dict, List, Optional, Union
 
 from django.db.models import (
     DateField,
@@ -29,6 +29,7 @@ from forestadmin.datasource_toolkit.interfaces.fields import (
     Validation,
 )
 from forestadmin.datasource_toolkit.interfaces.models.collections import CollectionSchema
+from typing_extensions import TypeGuard
 
 try:
     # GeneratedField is available since django 5
