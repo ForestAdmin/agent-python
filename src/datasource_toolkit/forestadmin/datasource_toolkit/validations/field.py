@@ -9,6 +9,7 @@ from forestadmin.datasource_toolkit.interfaces.fields import (
     is_column,
     is_many_to_one,
     is_one_to_one,
+    is_polymorphic_many_to_one,
 )
 from forestadmin.datasource_toolkit.interfaces.models.collections import Collection
 from forestadmin.datasource_toolkit.validations.type_getter import TypeGetter
@@ -21,10 +22,12 @@ class FieldValidatorException(DatasourceToolkitException):
 
 class FieldValidator:
     @classmethod
-    def validate(cls, collection: Collection, field: str, values: Optional[List[Any]] = None) -> None:
+    def validate(cls, collection: Collection, field_p: str, values: Optional[List[Any]] = None) -> None:
         nested_field = None
-        if ":" in field:
-            field, nested_field = field.split(":", 1)
+        if ":" in field_p:
+            field, nested_field = field_p.split(":", 1)
+        else:
+            field = field_p[:]
 
         field_list = collection.schema["fields"].keys()
         if field not in field_list:
@@ -34,7 +37,7 @@ class FieldValidator:
 
         schema = collection.schema["fields"][field]
 
-        if not nested_field:
+        if nested_field is None:
             if not is_column(schema):
                 raise DatasourceToolkitException(
                     f'Unexpected field type: {collection.name}.{field} (found {schema["type"]} expected Column)'
@@ -43,11 +46,18 @@ class FieldValidator:
                 for value in values:
                     cls.validate_value(field, schema, value)
         else:
-            if not (is_many_to_one(schema) or is_one_to_one(schema)):
+            if is_polymorphic_many_to_one(schema):
+                if nested_field != "":
+                    raise FieldValidatorException(
+                        f"Unexpected nested field {nested_field} under generic relation: {collection.name}.{field}"
+                    )
+
+            elif not (is_many_to_one(schema) or is_one_to_one(schema)):
                 raise FieldValidatorException(f'Unexpected field type {schema["type"]}: {collection.name}.{field}')
 
-            association = collection.datasource.get_collection(schema["foreign_collection"])
-            cls.validate(association, nested_field, values)
+            if not is_polymorphic_many_to_one(schema):
+                association = collection.datasource.get_collection(schema["foreign_collection"])
+                cls.validate(association, nested_field, values)
 
     @classmethod
     def validate_value(

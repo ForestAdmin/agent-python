@@ -143,8 +143,8 @@ class RequestRelationCollection(RequestCollection):
             )
         elif is_polymorphic_many_to_one(related_field):
             try:
-                request.body["data"]["type"] = "app_order"  # TODO: don't commit this
-                ForestLogger.log("warning", "log for shosho: \n this is the request body buddy: {request.body}")
+                # ForestLogger.log("warning", "log for shosho: \n this is the request body buddy: {request.body}")
+                # request.body["data"]["type"] = "app_order"  # TODO: don't commit this
                 foreign_collection = datasource.get_collection(request.body["data"]["type"])
             except DatasourceException:
                 raise RequestCollectionException(f"Collection '{relation_name}' not found")
