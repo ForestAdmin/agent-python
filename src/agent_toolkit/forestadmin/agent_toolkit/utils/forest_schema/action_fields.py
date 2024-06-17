@@ -119,9 +119,7 @@ class ActionFields:
         return field is not None and field.get("widget", "") == "CheckboxGroup"
 
     @staticmethod
-    def is_dropdown_field(
-        field: ActionField,
-    ) -> TypeGuard[
+    def is_dropdown_field(field: ActionField) -> TypeGuard[
         Union[
             DropdownDynamicSearchFieldConfiguration[str],
             DropdownDynamicSearchFieldConfiguration[int],
@@ -131,9 +129,7 @@ class ActionFields:
         return field is not None and field.get("widget", "") == "Dropdown"
 
     @staticmethod
-    def is_user_dropdown_field(
-        field: ActionField,
-    ) -> TypeGuard[
+    def is_user_dropdown_field(field: ActionField) -> TypeGuard[
         Union[
             PlainStringListDynamicFieldUserDropdownFieldConfiguration,
             PlainStringDynamicFieldUserDropdownFieldConfiguration,
