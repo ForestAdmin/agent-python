@@ -80,6 +80,14 @@ def unflatten(flats: FlatRecordList, projection: List[str]) -> List[RecordsDataA
                 elif not record.get(part):
                     record[part] = {}
                 record = record[part]
+
+    # there was something like this. I don't know if it's still necessary after work on this decorator
+    # TODO: verify
+    # poly_relations = [p for p in projection if p[-1] == ":"]
+    # for poly_relation in poly_relations:
+    #     for idx in range(len(records)):
+    #         records[idx][poly_relation] = flats[projection.index(poly_relation)][idx]
+
     return records
 
 

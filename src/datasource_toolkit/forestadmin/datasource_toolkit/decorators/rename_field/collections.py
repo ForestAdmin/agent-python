@@ -9,6 +9,7 @@ from forestadmin.datasource_toolkit.interfaces.fields import (
     is_many_to_one,
     is_one_to_many,
     is_one_to_one,
+    is_polymorphic_many_to_one,
 )
 from forestadmin.datasource_toolkit.interfaces.models.collections import BoundCollection, CollectionSchema, Datasource
 from forestadmin.datasource_toolkit.interfaces.query.aggregation import AggregateResult, Aggregation
@@ -83,7 +84,7 @@ class RenameFieldCollectionDecorator(CollectionDecorator):
     async def list(self, caller: User, _filter: PaginatedFilter, projection: Projection) -> List[RecordsDataAlias]:
         child_projection = projection.replace(lambda field_name: self._path_to_child_collection(field_name))
         records: List[RecordsDataAlias] = await super().list(caller, _filter, child_projection)  # type: ignore
-        if child_projection == projection:
+        if sorted(child_projection) == sorted(projection):
             return records
 
         return [self._record_from_child_collection(record) for record in records]
@@ -171,6 +172,8 @@ class RenameFieldCollectionDecorator(CollectionDecorator):
             elif is_many_to_many(schema) or is_many_to_one(schema) or is_one_to_many(schema) or is_one_to_one(schema):
                 relation = datasource.get_collection(schema["foreign_collection"])
                 new_record[new_field_name] = relation._record_from_child_collection(value)
+            elif is_polymorphic_many_to_one(schema):
+                new_record[new_field_name] = value
         return new_record
 
     def _path_to_child_collection(self, path: str) -> str:
@@ -179,12 +182,14 @@ class RenameFieldCollectionDecorator(CollectionDecorator):
         if ":" in path:
             field_name, *related_field = path.split(":")
             related_field = ":".join(related_field)
-        if related_field:
+        if related_field is not None:
             schema = self.schema["fields"][field_name]
             if is_many_to_many(schema) or is_one_to_many(schema) or is_one_to_one(schema) or is_many_to_one(schema):
                 relation = datasource.get_collection(schema["foreign_collection"])
                 child_field = self._to_child_collection.get(field_name, field_name)
                 return f"{child_field}:{relation._path_to_child_collection(related_field)}"
+            elif is_polymorphic_many_to_one(schema):
+                return path
             else:
                 raise RenameCollectionException(f"The field {field_name} is not a relation")
         return self._to_child_collection.get(field_name, field_name)
