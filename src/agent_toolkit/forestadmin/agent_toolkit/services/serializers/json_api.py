@@ -9,6 +9,7 @@ from forestadmin.datasource_toolkit.interfaces.chart import Chart
 from forestadmin.datasource_toolkit.interfaces.fields import (
     FieldAlias,
     Operator,
+    PolymorphicManyToOne,
     PrimitiveType,
     RelationAlias,
     is_column,
@@ -88,11 +89,14 @@ def _create_relationship(collection: CollectionAlias, field_name: str, relation:
         "related_url": f"/forest/{collection.name}/{{{collection.name.lower()}_id}}/relationships/{field_name}",
         "related_url_kwargs": {f"{collection.name.lower()}_id": "<__forest_id__>"},
         "collection": collection,
+        "forest_is_polymorphic": False,
     }
     if is_many_to_many(relation):
         type_ = relation["foreign_collection"]
     elif is_polymorphic_many_to_one(relation):
-        type_ = relation["foreign_collections"]  # TODO: this is certainly wrong
+        kwargs["forest_is_polymorphic"] = True
+        kwargs["forest_relation"] = relation
+        type_ = relation["foreign_collections"]
     else:
         type_ = relation["foreign_collection"]
         kwargs["id_field"] = SchemaUtils.get_primary_keys(collection.datasource.get_collection(type_).schema)[0]
@@ -152,16 +156,42 @@ class ForestRelationShip(fields.Relationship):
     def __init__(self, *args, **kwargs):  # type: ignore
         self.collection: Collection = kwargs.pop("collection")  # type: ignore
         self.related_collection_name: List[str] = kwargs["type_"]
+        self.forest_is_polymorphic = kwargs.get("forest_is_polymorphic")
+        self.forest_relation = kwargs.get("forest_relation")
         super(ForestRelationShip, self).__init__(*args, **kwargs)  # type: ignore
 
     @property
     def schema(self) -> "ForestSchema":
-        related_collection = self.collection.datasource.get_collection(self.related_collection_name)
-        # TODO: I don't know how this thing works
+        if self.forest_is_polymorphic:
+            target_collection_field = cast(PolymorphicManyToOne, self.forest_relation)["foreign_key_type_field"]
+            target_collection = self._forest_current_obj[target_collection_field]
+            related_collection = self.collection.datasource.get_collection(target_collection)
+        else:
+            related_collection = self.collection.datasource.get_collection(self.related_collection_name)
+
         SchemaClass: Type[Schema] = JsonApiSerializer.get(related_collection)
         return SchemaClass(
             only=getattr(self, "only", None), exclude=getattr(self, "exclude", ()), context=getattr(self, "context", {})
         )
+
+    def handle_polymorphism(self):
+        target_collection_field = cast(PolymorphicManyToOne, self.forest_relation)["foreign_key_type_field"]
+        target_collection = self._forest_current_obj[target_collection_field]
+        self.type_ = target_collection
+        if "" in self.only:
+            self.only.remove("")
+
+    def teardown_polymorphism(self):
+        self.__schema = None  # this is a cache variable, so it's preferable to clean it after
+
+    def serialize(self, attr, obj, accessor=None):
+        self._forest_current_obj = obj
+        if self.forest_is_polymorphic:
+            self.handle_polymorphism()
+        ret = super(ForestRelationShip, self).serialize(attr, obj, accessor)
+        if self.forest_is_polymorphic:
+            self.teardown_polymorphism()
+        return ret
 
     def get_related_url(self, obj: Any):
         if "id" in obj:
