@@ -7,7 +7,13 @@ from forestadmin.datasource_toolkit.decorators.computed.exceptions import Comput
 from forestadmin.datasource_toolkit.decorators.computed.helpers import compute_from_records, rewrite_fields
 from forestadmin.datasource_toolkit.decorators.computed.types import ComputedDefinition
 from forestadmin.datasource_toolkit.interfaces.collections import Collection
-from forestadmin.datasource_toolkit.interfaces.fields import ColumnAlias, FieldType, PrimitiveType, RelationAlias
+from forestadmin.datasource_toolkit.interfaces.fields import (
+    ColumnAlias,
+    FieldType,
+    PrimitiveType,
+    RelationAlias,
+    is_polymorphic_many_to_one,
+)
 from forestadmin.datasource_toolkit.interfaces.models.collections import CollectionSchema
 from forestadmin.datasource_toolkit.interfaces.query.aggregation import AggregateResult, Aggregation
 from forestadmin.datasource_toolkit.interfaces.query.filter.paginated import PaginatedFilter
@@ -23,15 +29,18 @@ class ComputedCollectionDecorator(CollectionDecorator):
         super().__init__(*args, **kwargs)
         self._computeds: Dict[str, ComputedDefinition] = {}
 
-    def get_computed(self, path: str) -> Union[ComputedDefinition, None]:
-        if ":" not in path:
+    def get_computed(self, path_p: str) -> Union[ComputedDefinition, None]:
+        if ":" not in path_p:
             try:
-                return self._computeds[path]
+                return self._computeds[path_p]
             except KeyError:
                 return None
 
-        related_field, path = path.split(":", 1)
+        related_field, path = path_p.split(":", 1)
         field = cast(RelationAlias, self.get_field(related_field))
+        if is_polymorphic_many_to_one(field):
+            return self._computeds[path]
+
         foreign_collection: Self = self.datasource.get_collection(field["foreign_collection"])
         return foreign_collection.get_computed(path)
 
