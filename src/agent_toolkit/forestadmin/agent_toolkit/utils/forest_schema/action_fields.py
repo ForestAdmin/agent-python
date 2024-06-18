@@ -1,4 +1,4 @@
-from typing import TypeGuard, Union
+from typing import Union
 
 from forestadmin.datasource_toolkit.decorators.action.types.fields import (
     PlainBooleanDynamicFieldCheckboxWidget,
@@ -26,6 +26,7 @@ from forestadmin.datasource_toolkit.decorators.action.types.widgets import (
     RadioButtonFieldConfiguration,
 )
 from forestadmin.datasource_toolkit.interfaces.actions import ActionField
+from typing_extensions import TypeGuard
 
 
 class ActionFields:
