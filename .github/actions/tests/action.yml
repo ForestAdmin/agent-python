@@ -15,6 +15,7 @@ runs:
       uses: actions/setup-python@v4
       with:
         python-version: ${{ inputs.python-version }}
+        cache: 'poetry'
     - name: Install poetry
       uses: snok/install-poetry@v1
     - name: Install package dependencies
