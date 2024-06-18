@@ -15,17 +15,16 @@ runs:
       uses: actions/setup-python@v4
       with:
         python-version: ${{ inputs.python-version }}
-        # cache: 'poetry'
     - name: Install poetry
       uses: snok/install-poetry@v1
     - name: Install package dependencies
       shell: bash
       working-directory: ${{ inputs.current_package }}
-      run: which python && python --version && which poetry && poetry install --with test
+      run: poetry install --with test
     - name: Test with pytest
       shell: bash
       working-directory: ${{ inputs.current_package }}
-      run: which python && python --version && which poetry && poetry run coverage run -m pytest
+      run: poetry run coverage run -m pytest
     - name: Extract source name
       uses: jungwinter/split@v2
       id: split
