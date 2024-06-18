@@ -19,7 +19,7 @@ runs:
     - name: Install poetry
       uses: snok/install-poetry@v1
       with:
-        version: 1.8.2
+        version: 1.7.1
     - name: Install package dependencies
       shell: bash
       working-directory: ${{ inputs.current_package }}
