@@ -1,12 +1,15 @@
 [build-system]
-requires = [ "poetry-core",]
+requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 name = "forestadmin-agent-toolkit"
 description = "agent toolkit for forestadmin python agent"
 version = "1.8.6"
-authors = [ "Valentin Monté <valentinm@forestadmin.com>", "Julien Barreau <julien.barreau@forestadmin.com>",]
+authors = [
+    "Valentin Monté <valentinm@forestadmin.com>",
+    "Julien Barreau <julien.barreau@forestadmin.com>",
+]
 readme = "README.md"
 repository = "https://github.com/ForestAdmin/agent-python"
 documentation = "https://docs.forestadmin.com/developer-guide-agents-python/"
@@ -33,7 +36,7 @@ numpy = [
 [tool.poetry.dependencies."backports.zoneinfo"]
 version = "~0.2.1"
 python = "<3.9"
-extras = [ "tzdata",]
+extras = ["tzdata"]
 
 [tool.poetry.group.test]
 optional = true
