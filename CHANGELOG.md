@@ -1,3 +1,10 @@
+## [1.8.7](https://github.com/ForestAdmin/agent-python/compare/v1.8.6...v1.8.7) (2024-06-18)
+
+
+### Bug Fixes
+
+* bad import python 3.8 and 3.9 ([#230](https://github.com/ForestAdmin/agent-python/issues/230)) ([511f30c](https://github.com/ForestAdmin/agent-python/commit/511f30cc4fc7171c98cbac41773e9ba2554dfcf2))
+
 ## [1.8.6](https://github.com/ForestAdmin/agent-python/compare/v1.8.5...v1.8.6) (2024-06-14)
 
 
