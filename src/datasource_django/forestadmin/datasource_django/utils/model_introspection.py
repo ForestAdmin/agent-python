@@ -25,6 +25,8 @@ from forestadmin.datasource_toolkit.interfaces.fields import (
     OneToOne,
     Operator,
     PolymorphicManyToOne,
+    PolymorphicOneToMany,
+    PolymorphicOneToOne,
     PrimitiveType,
     Validation,
 )
@@ -123,6 +125,27 @@ class DjangoCollectionFactory:
         }
 
     @staticmethod
+    def _build_one_to_polymorphic(
+        relation: "GenericRelation", model: Model  # noqa: F821  # type: ignore
+    ) -> Union[PolymorphicOneToMany, PolymorphicOneToOne]:
+        foreign_model = relation.target_field.model
+        ret = {
+            "foreign_collection": foreign_model._meta.db_table,  # app_addresses
+            "origin_key": relation.object_id_field_name,  # addressable_id
+            "origin_key_target": relation.target_field.attname,  # id
+            "origin_type_field": relation.content_type_field_name,  # addressable_type
+            "origin_type_value": model._meta.db_table,  # app_customer
+        }
+
+        for uniqueness in relation.target_field.model._meta.unique_together:
+            if len(uniqueness) == 2 and ret["origin_type_field"] in uniqueness and ret["origin_key"] in uniqueness:
+                ret["type"] = FieldType.POLYMORPHIC_ONE_TO_ONE
+                break
+        else:
+            ret["type"] = FieldType.POLYMORPHIC_ONE_TO_MANY
+        return ret  # type:ignore
+
+    @staticmethod
     def _build_many_to_one_polymorphic(
         relation: "GenericForeignKey", model: Model  # noqa: F821  # type: ignore
     ) -> PolymorphicManyToOne:
@@ -189,16 +212,14 @@ class DjangoCollectionFactory:
                     fields[field.attname] = FieldFactory.build(field, model)
 
                 if field.one_to_one is True:
-                    if is_generic_relation(field):
-                        pass  # TODO
-                    elif isinstance(field, OneToOneField):
+                    if isinstance(field, OneToOneField):
                         fields[field.name] = DjangoCollectionFactory._build_many_to_one(field)
                     else:
                         fields[field.name] = DjangoCollectionFactory._build_one_to_one(field)
 
                 elif field.one_to_many is True:
                     if is_generic_relation(field):
-                        pass  # TODO
+                        fields[field.name] = DjangoCollectionFactory._build_one_to_polymorphic(field, model)
                     else:
                         fields[f"{field.name}_{field.remote_field.name}"] = DjangoCollectionFactory._build_one_to_many(
                             field
