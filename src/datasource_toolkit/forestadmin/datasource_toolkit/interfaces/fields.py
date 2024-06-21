@@ -117,6 +117,8 @@ LiteralOneToOne = Literal["OneToOne"]
 LiteralOneToMany = Literal["OneToMany"]
 LiteralManyToMany = Literal["ManyToMany"]
 LiteralPolymorphicManyToOne = Literal["PolymorphicManyToOne"]
+LiteralPolymorphicOneToMany = Literal["PolymorphicOneToMany"]
+LiteralPolymorphicOneToOne = Literal["PolymorphicOneToOne"]
 
 
 class FieldType(enum.Enum):
@@ -126,6 +128,8 @@ class FieldType(enum.Enum):
     ONE_TO_MANY = LiteralOneToMany
     MANY_TO_MANY = LiteralManyToMany
     POLYMORPHIC_MANY_TO_ONE = LiteralPolymorphicManyToOne
+    POLYMORPHIC_ONE_TO_MANY = LiteralPolymorphicOneToMany
+    POLYMORPHIC_ONE_TO_ONE = LiteralPolymorphicOneToOne
 
 
 class Validation(TypedDict):
@@ -160,6 +164,24 @@ class PolymorphicManyToOne(TypedDict):
     type: Literal[FieldType.POLYMORPHIC_MANY_TO_ONE]
 
 
+class PolymorphicOneToMany(TypedDict):
+    foreign_collection: str
+    origin_key: str
+    origin_key_target: str
+    type: Literal[FieldType.POLYMORPHIC_ONE_TO_MANY]
+    origin_type_field: str
+    origin_type_value: str
+
+
+class PolymorphicOneToOne(TypedDict):
+    foreign_collection: str
+    origin_key: str
+    origin_key_target: str
+    type: Literal[FieldType.POLYMORPHIC_ONE_TO_ONE]
+    origin_type_field: str
+    origin_type_value: str
+
+
 class OneToOne(TypedDict):
     foreign_collection: str
     origin_key: str
@@ -186,7 +208,10 @@ class ManyToMany(TypedDict):
 
 
 ColumnAlias = Union[PrimitiveType, PrimitiveTypeLiteral, Dict[str, "ColumnAlias"], List["ColumnAlias"]]
-RelationAlias = Union[ManyToMany, ManyToOne, OneToOne, OneToMany, PolymorphicManyToOne]
+RelationAlias = Union[
+    ManyToMany, ManyToOne, OneToOne, OneToMany, PolymorphicManyToOne, PolymorphicOneToOne, PolymorphicOneToMany
+]
+PolyRelationAlias = Union[PolymorphicManyToOne, PolymorphicOneToOne, PolymorphicOneToMany]
 FieldAlias = Union[Column, RelationAlias]
 
 
@@ -202,6 +227,14 @@ def is_polymorphic_many_to_one(field: "FieldAlias") -> TypeGuard[PolymorphicMany
     return field["type"] == FieldType.POLYMORPHIC_MANY_TO_ONE
 
 
+def is_polymorphic_one_to_one(field: "FieldAlias") -> TypeGuard[PolymorphicOneToOne]:
+    return field["type"] == FieldType.POLYMORPHIC_ONE_TO_ONE
+
+
+def is_polymorphic_one_to_many(field: "FieldAlias") -> TypeGuard[PolymorphicOneToMany]:
+    return field["type"] == FieldType.POLYMORPHIC_ONE_TO_MANY
+
+
 def is_one_to_many(field: "FieldAlias") -> TypeGuard[OneToMany]:
     return field["type"] == FieldType.ONE_TO_MANY
 
@@ -214,8 +247,20 @@ def is_many_to_many(field: "FieldAlias") -> TypeGuard[ManyToMany]:
     return field["type"] == FieldType.MANY_TO_MANY
 
 
+def is_poly_relation(field: "FieldAlias") -> TypeGuard[PolyRelationAlias]:
+    return is_polymorphic_many_to_one(field) or is_polymorphic_one_to_many(field) or is_polymorphic_one_to_one(field)
+
+
 def is_relation(field: "FieldAlias") -> TypeGuard[RelationAlias]:
-    return is_many_to_one(field) or is_one_to_many(field) or is_one_to_one(field) or is_many_to_many(field)
+    return (
+        is_many_to_one(field)
+        or is_one_to_many(field)
+        or is_one_to_one(field)
+        or is_many_to_many(field)
+        or is_polymorphic_many_to_one(field)
+        or is_polymorphic_one_to_many(field)
+        or is_polymorphic_one_to_one(field)
+    )
 
 
 def is_valid_uuid(uuid: str) -> bool:
