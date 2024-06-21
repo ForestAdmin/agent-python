@@ -23,6 +23,8 @@ from forestadmin.datasource_toolkit.interfaces.fields import (
     is_one_to_many,
     is_one_to_one,
     is_polymorphic_many_to_one,
+    is_polymorphic_one_to_many,
+    is_polymorphic_one_to_one,
 )
 from forestadmin.datasource_toolkit.utils.collections import CollectionUtils
 from forestadmin.datasource_toolkit.utils.schema import SchemaUtils
@@ -31,7 +33,9 @@ from forestadmin.datasource_toolkit.utils.schema import SchemaUtils
 class SchemaFieldGenerator:
     RELATION_MAPPING: Dict[FieldType, RelationServer] = {
         FieldType.ONE_TO_ONE: "HasOne",
+        FieldType.POLYMORPHIC_ONE_TO_ONE: "HasOne",
         FieldType.ONE_TO_MANY: "HasMany",
+        FieldType.POLYMORPHIC_ONE_TO_MANY: "HasMany",
         FieldType.MANY_TO_ONE: "BelongsTo",
         FieldType.POLYMORPHIC_MANY_TO_ONE: "BelongsTo",
         FieldType.MANY_TO_MANY: "BelongsToMany",
@@ -49,6 +53,8 @@ class SchemaFieldGenerator:
             or is_one_to_many(field_schema)
             or is_many_to_one(field_schema)
             or is_many_to_many(field_schema)
+            or is_polymorphic_one_to_many(field_schema)
+            or is_polymorphic_one_to_one(field_schema)
         ):
             schema = cls.build_relation_schema(collection, field_name, field_schema)
         elif is_polymorphic_many_to_one(field_schema):
@@ -141,7 +147,7 @@ class SchemaFieldGenerator:
         foreign_collection: Collection,
         base_schema: ForestServerField,
     ) -> ForestServerField:
-        if is_one_to_many(relation):
+        if is_one_to_many(relation) or is_polymorphic_one_to_many(relation):
             key = relation["origin_key_target"]
             key_schema = cast(Column, collection.get_field(key))
         else:
@@ -196,9 +202,9 @@ class SchemaFieldGenerator:
             "inverseOf": CollectionUtils.get_inverse_relation(cast(Collection, collection), field_name),
             "relationship": cls.RELATION_MAPPING[field_schema["type"]],
         }
-        if is_many_to_many(field_schema) or is_one_to_many(field_schema):
+        if is_many_to_many(field_schema) or is_one_to_many(field_schema) or is_polymorphic_one_to_many(field_schema):
             res = cls.build_to_many_relation_schema(field_schema, collection, foreign_collection, relation_schema)
-        elif is_one_to_one(field_schema):
+        elif is_one_to_one(field_schema) or is_polymorphic_one_to_one(field_schema):
             res = cls.build_one_to_one_schema(field_schema, collection, foreign_collection, relation_schema)
         else:
             res = cls.build_many_to_one_schema(
