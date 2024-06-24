@@ -10,6 +10,8 @@ from forestadmin.datasource_toolkit.interfaces.fields import (
     is_one_to_many,
     is_one_to_one,
     is_polymorphic_many_to_one,
+    is_polymorphic_one_to_many,
+    is_polymorphic_one_to_one,
 )
 from forestadmin.datasource_toolkit.interfaces.models.collections import BoundCollection, CollectionSchema, Datasource
 from forestadmin.datasource_toolkit.interfaces.query.aggregation import AggregateResult, Aggregation
@@ -172,7 +174,7 @@ class RenameFieldCollectionDecorator(CollectionDecorator):
             elif is_many_to_many(schema) or is_many_to_one(schema) or is_one_to_many(schema) or is_one_to_one(schema):
                 relation = datasource.get_collection(schema["foreign_collection"])
                 new_record[new_field_name] = relation._record_from_child_collection(value)
-            elif is_polymorphic_many_to_one(schema):
+            elif is_polymorphic_many_to_one(schema) or is_polymorphic_one_to_one(schema):
                 new_record[new_field_name] = value
         return new_record
 
@@ -184,7 +186,14 @@ class RenameFieldCollectionDecorator(CollectionDecorator):
             related_field = ":".join(related_field)
         if related_field is not None:
             schema = self.schema["fields"][field_name]
-            if is_many_to_many(schema) or is_one_to_many(schema) or is_one_to_one(schema) or is_many_to_one(schema):
+            if (
+                is_many_to_many(schema)
+                or is_one_to_many(schema)
+                or is_one_to_one(schema)
+                or is_many_to_one(schema)
+                or is_polymorphic_one_to_many(schema)
+                or is_polymorphic_one_to_one(schema)
+            ):
                 relation = datasource.get_collection(schema["foreign_collection"])
                 child_field = self._to_child_collection.get(field_name, field_name)
                 return f"{child_field}:{relation._path_to_child_collection(related_field)}"
