@@ -1,7 +1,13 @@
 from typing import List
 
 from forestadmin.datasource_toolkit.interfaces.collections import Collection
-from forestadmin.datasource_toolkit.interfaces.fields import is_column, is_many_to_one, is_one_to_one
+from forestadmin.datasource_toolkit.interfaces.fields import (
+    is_column,
+    is_many_to_one,
+    is_one_to_one,
+    is_polymorphic_one_to_many,
+    is_polymorphic_one_to_one,
+)
 from forestadmin.datasource_toolkit.interfaces.query.projections import Projection
 
 
@@ -12,7 +18,12 @@ class ProjectionFactory:
         for column_name, schema in collection.schema["fields"].items():
             if is_column(schema):
                 res.append(f"{prefix}{column_name}")
-            elif allow_nested and (is_one_to_one(schema) or is_many_to_one(schema)):
+            elif allow_nested and (
+                is_one_to_one(schema)
+                or is_many_to_one(schema)
+                or is_polymorphic_one_to_many(schema)
+                or is_polymorphic_one_to_one(schema)
+            ):
                 relation = collection.datasource.get_collection(schema["foreign_collection"])
                 res.extend(cls.all(relation, f"{column_name}:", False))
         return Projection(*res)
