@@ -62,14 +62,19 @@ class DjangoQueryBuilder:
             *cls._normalize_projection(Projection(*prefetch_related)),
         )
 
-        if filter_.condition_tree:
-            if DjangoPolymorphismUtil.is_polymorphism_implied(filter_.condition_tree.projection, collection):
-                print("should do something with polymorphism ???")
-                pass
+        condition_tree = filter_.condition_tree
+        if condition_tree:
+            if any(
+                [
+                    DjangoPolymorphismUtil.is_type_field_of_generic_fk(field, collection)
+                    for field in filter_.condition_tree.projection
+                ]
+            ):
+                condition_tree = DjangoPolymorphismUtil.replace_content_type_in_condition_tree(
+                    filter_.condition_tree, collection
+                )
 
-            print(filter_.condition_tree)
-
-        qs = qs.filter(DjangoQueryConditionTreeBuilder.build(filter_.condition_tree))
+        qs = qs.filter(DjangoQueryConditionTreeBuilder.build(condition_tree))
 
         if isinstance(filter_, PaginatedFilter):
             qs = qs.order_by(*DjangoQueryPaginationBuilder.get_order_by(filter_))
@@ -189,11 +194,13 @@ class DjangoQueryBuilder:
 
     @staticmethod
     def mk_create(collection: BaseDjangoCollection, data: List[RecordsDataAlias]) -> List[models.Model]:
-        ret = [collection.model.objects.create(**d) for d in data]
-        for instance in ret:
+        instances: List[models.Model] = [
+            collection.model(**DjangoPolymorphismUtil.replace_content_type_in_patch(d, collection)) for d in data
+        ]
+        for instance in instances:
             instance.refresh_from_db()
 
-        return ret
+        return instances
 
     @staticmethod
     def mk_update(
@@ -202,12 +209,20 @@ class DjangoQueryBuilder:
         patch: RecordsDataAlias,
     ):
         patch = DjangoPolymorphismUtil.replace_content_type_in_patch(patch, collection)
-        qs = collection.model.objects.filter(DjangoQueryConditionTreeBuilder.build(filter_.condition_tree))
+        qs = collection.model.objects.filter(
+            DjangoQueryConditionTreeBuilder.build(
+                DjangoPolymorphismUtil.replace_content_type_in_condition_tree(filter_.condition_tree, collection)
+            )
+        )
         qs.update(**{k.replace(":", "__"): v for k, v in patch.items()})
 
     @staticmethod
     def mk_delete(collection: BaseDjangoCollection, filter_: Optional[Filter]):
-        qs = collection.model.objects.filter(DjangoQueryConditionTreeBuilder.build(filter_.condition_tree))
+        qs = collection.model.objects.filter(
+            DjangoQueryConditionTreeBuilder.build(
+                DjangoPolymorphismUtil.replace_content_type_in_condition_tree(filter_.condition_tree, collection)
+            )
+        )
         qs.delete()
 
 
@@ -244,7 +259,7 @@ class DjangoQueryConditionTreeBuilder:
         return DjangoQueryConditionTreeBuilder._aggregate(branch.aggregator, conditions)
 
     @classmethod
-    def build(cls, condition_tree: ConditionTree) -> models.Q:
+    def build(cls, condition_tree: Optional[ConditionTree]) -> models.Q:
         if condition_tree is None:
             return models.Q()
         if isinstance(condition_tree, ConditionTreeLeaf):

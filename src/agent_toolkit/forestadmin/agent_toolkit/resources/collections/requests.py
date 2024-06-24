@@ -133,6 +133,8 @@ class RequestRelationCollection(RequestCollection):
             or is_one_to_one(related_field)
             or is_many_to_many(related_field)
             or is_one_to_many(related_field)
+            or is_polymorphic_one_to_many(related_field)
+            or is_polymorphic_one_to_one(related_field)
         ):
             try:
                 foreign_collection = datasource.get_collection(related_field["foreign_collection"])
