@@ -14,7 +14,6 @@ from django.db.models import (
     TimeField,
 )
 from django.db.models.fields import AutoFieldMixin
-from forestadmin.agent_toolkit.forest_logger import ForestLogger
 from forestadmin.datasource_django.utils.type_converter import FilterOperator, TypeConverter
 from forestadmin.datasource_toolkit.interfaces.fields import (
     Column,
