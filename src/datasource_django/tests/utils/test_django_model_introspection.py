@@ -6,7 +6,7 @@ from django.apps import apps
 from django.db import models
 from forestadmin.datasource_django.utils.model_introspection import DjangoCollectionFactory, FieldFactory
 from forestadmin.datasource_toolkit.interfaces.fields import FieldType, Operator, PrimitiveType
-from test_app.models import Book, Person, Rating
+from test_app.models import Book, Person
 
 
 class TestDjangoFieldFactory(TestCase):
