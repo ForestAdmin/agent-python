@@ -10,6 +10,8 @@ from forestadmin.datasource_toolkit.interfaces.fields import (
     is_many_to_one,
     is_one_to_one,
     is_polymorphic_many_to_one,
+    is_polymorphic_one_to_many,
+    is_polymorphic_one_to_one,
 )
 from forestadmin.datasource_toolkit.interfaces.models.collections import Collection
 from forestadmin.datasource_toolkit.validations.type_getter import TypeGetter
@@ -52,7 +54,12 @@ class FieldValidator:
                         f"Unexpected nested field {nested_field} under generic relation: {collection.name}.{field}"
                     )
 
-            elif not (is_many_to_one(schema) or is_one_to_one(schema)):
+            elif not (
+                is_many_to_one(schema)
+                or is_one_to_one(schema)
+                or is_polymorphic_one_to_one(schema)
+                or is_polymorphic_one_to_many(schema)
+            ):
                 raise FieldValidatorException(f'Unexpected field type {schema["type"]}: {collection.name}.{field}')
 
             if not is_polymorphic_many_to_one(schema):
@@ -75,11 +82,11 @@ class FieldValidator:
 
         type_ = TypeGetter.get(value, column_type)
 
-        if column_type == PrimitiveType.ENUM:
-            cls.check_enum_value(type_, schema, value)
-
         if value is None and {"operator": Operator.PRESENT} not in schema["validations"]:
             return
+
+        if column_type == PrimitiveType.ENUM:
+            cls.check_enum_value(type_, schema, value)
 
         if allowed_types:
             if type_ not in allowed_types:
