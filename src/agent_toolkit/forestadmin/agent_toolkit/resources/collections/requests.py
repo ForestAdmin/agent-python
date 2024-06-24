@@ -1,7 +1,6 @@
 from typing import Any, Dict, Optional, TypedDict, TypeVar, Union
 
 from forestadmin.agent_toolkit.exceptions import AgentToolkitException
-from forestadmin.agent_toolkit.forest_logger import ForestLogger
 from forestadmin.agent_toolkit.resources.collections.exceptions import CollectionResourceException
 from forestadmin.agent_toolkit.utils.context import Request, RequestMethod, User
 from forestadmin.datasource_toolkit.collections import Collection, CollectionException
