@@ -1,7 +1,10 @@
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, cast
 
 from forestadmin.datasource_django.interface import BaseDjangoCollection
 from forestadmin.datasource_toolkit.interfaces.fields import is_polymorphic_many_to_one
+from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.base import ConditionTree
+from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.branch import ConditionTreeBranch
+from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.leaf import ConditionTreeLeaf
 from forestadmin.datasource_toolkit.interfaces.query.projections import Projection
 from forestadmin.datasource_toolkit.interfaces.records import RecordsDataAlias
 
@@ -41,6 +44,10 @@ class DjangoPolymorphismUtil:
         for field_name, field_schema in collection.schema["fields"].items():
             if f"{field_name}:" in projection and is_polymorphic_many_to_one(field_schema):
                 return True
+            if is_polymorphic_many_to_one(field_schema):
+                for proj in projection:
+                    if proj in [field_schema["foreign_key"], field_schema["foreign_key_type_field"]]:
+                        return True
         return False
 
     @classmethod
@@ -63,28 +70,39 @@ class DjangoPolymorphismUtil:
                     content_types = cls._get_content_types()
                 if field_schema["foreign_key_type_field"] in patch.keys():
                     content_type_field = field_schema["foreign_key_type_field"]
-                    patch[content_type_field] = content_types[patch[content_type_field]]
+                    patch[content_type_field] = content_types.get(patch[content_type_field])
         return patch
 
-    # @classmethod
-    # def replace_content_type_in_result(
-    #     cls, result: List[RecordsDataAlias], projection: Projection, collection: BaseDjangoCollection
-    # ) -> List[RecordsDataAlias]:
-    #     content_types = None
-    #     if content_types is None:
-    #         content_types = cls._get_content_types()
-    #         reversed_content_type_map = {ct.id: collection_name for collection_name, ct in content_types.items()}
+    @classmethod
+    def replace_content_type_in_condition_tree(
+        cls, condition_tree: Optional[ConditionTree], collection: BaseDjangoCollection
+    ) -> Optional[ConditionTree]:
+        if condition_tree is None:
+            return condition_tree
 
-    #     poly_fields = [f for f in projection if f[-1] == ":"]
+        if isinstance(condition_tree, ConditionTreeBranch):
+            return ConditionTreeBranch(
+                condition_tree.aggregator,
+                [
+                    cls.replace_content_type_in_condition_tree(ct, collection) for ct in condition_tree.conditions
+                ],  # type:ignore
+            )
 
-    #     for row in result:
-    #         for poly_field in poly_fields:
-    #             field_name = poly_field[:-1]
-    #             content_type_field = collection.schema["fields"][field_name]["foreign_key_type_field"]
+        condition_tree = cast(ConditionTreeLeaf, condition_tree)
+        if ":" in condition_tree.field:
+            relation = condition_tree.field.split(":")[0]
+            return cls.replace_content_type_in_condition_tree(
+                condition_tree.unnest(),
+                collection.datasource.get_collection(collection.schema["fields"][relation]),
+            ).nest(relation)
 
-    #             if getattr(row, content_type_field, None) is not None:
-    #                 setattr(row, content_type_field, reversed_content_type_map[getattr(row, content_type_field).id])
-    #     return result
+        if cls.is_type_field_of_generic_fk(condition_tree.field, collection):
+            return ConditionTreeLeaf(
+                condition_tree.field,
+                condition_tree.operator,
+                cls._CONTENT_TYPE_CACHE[condition_tree.value],  # type:ignore
+            )
+        return condition_tree
 
     @classmethod
     def get_collection_name_from_content_type(cls, content_type) -> Optional[str]:

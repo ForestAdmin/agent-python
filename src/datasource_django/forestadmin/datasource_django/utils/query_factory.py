@@ -63,14 +63,19 @@ class DjangoQueryBuilder:
             *cls._normalize_projection(Projection(*prefetch_related)),
         )
 
-        if filter_.condition_tree:
-            if DjangoPolymorphismUtil.is_polymorphism_implied(filter_.condition_tree.projection, collection):
-                print("should do something with polymorphism ???")
-                pass
+        condition_tree = filter_.condition_tree
+        if condition_tree:
+            if any(
+                [
+                    DjangoPolymorphismUtil.is_type_field_of_generic_fk(field, collection)
+                    for field in filter_.condition_tree.projection
+                ]
+            ):
+                condition_tree = DjangoPolymorphismUtil.replace_content_type_in_condition_tree(
+                    filter_.condition_tree, collection
+                )
 
-            print(filter_.condition_tree)
-
-        qs = qs.filter(DjangoQueryConditionTreeBuilder.build(filter_.condition_tree))
+        qs = qs.filter(DjangoQueryConditionTreeBuilder.build(condition_tree))
 
         if isinstance(filter_, PaginatedFilter):
             qs = qs.order_by(*DjangoQueryPaginationBuilder.get_order_by(filter_))
@@ -114,7 +119,6 @@ class DjangoQueryBuilder:
         filter_: PaginatedFilter,
         projection: Projection,
     ) -> List[RecordsDataAlias]:
-        print(f"list on django; condition tree: {filter_.condition_tree} \n projection: {projection}")
         full_projection = projection
         if filter_.condition_tree:
             full_projection = full_projection.union(filter_.condition_tree.projection)
@@ -139,8 +143,6 @@ class DjangoQueryBuilder:
         qs = DjangoQueryPaginationBuilder.paginate_queryset(qs, filter_)
 
         result = await sync_to_async(list)(qs)
-        # if with_generic_fk:
-        #     result = await DjangoPolymorphismUtil.replace_content_type_in_result(result, projection, collection)
         return result
 
     @classmethod
@@ -202,17 +204,19 @@ class DjangoQueryBuilder:
         patch: RecordsDataAlias,
     ):
         qs = await sync_to_async(collection.model.objects.filter)(
-            DjangoQueryConditionTreeBuilder.build(filter_.condition_tree)
+            DjangoQueryConditionTreeBuilder.build(
+                DjangoPolymorphismUtil.replace_content_type_in_condition_tree(filter_.condition_tree, collection)
+            )
         )
-        # TODO: handle polymorphic
-        # DjangoPolymorphismHelper.is_polymorphism_implied(filter_.condition_tree.projection, collection)
         patch = DjangoPolymorphismUtil.replace_content_type_in_patch(patch, collection)
 
         await sync_to_async(qs.update)(**{k.replace(":", "__"): v for k, v in patch.items()})
 
     @staticmethod
     async def mk_create(collection: BaseDjangoCollection, data: List[RecordsDataAlias]) -> models.Model:
-        instances: List[models.Model] = [collection.model(**d) for d in data]
+        instances: List[models.Model] = [
+            collection.model(**DjangoPolymorphismUtil.replace_content_type_in_patch(d, collection)) for d in data
+        ]
         for i in instances:
             await sync_to_async(i.save)()
             await sync_to_async(i.refresh_from_db)()
@@ -221,7 +225,11 @@ class DjangoQueryBuilder:
 
     @staticmethod
     async def mk_delete(collection: BaseDjangoCollection, filter_: Optional[Filter]):
-        qs = collection.model.objects.filter(DjangoQueryConditionTreeBuilder.build(filter_.condition_tree))
+        qs = collection.model.objects.filter(
+            DjangoQueryConditionTreeBuilder.build(
+                DjangoPolymorphismUtil.replace_content_type_in_condition_tree(filter_.condition_tree, collection)
+            )
+        )
         await sync_to_async(qs.delete)()
 
 
@@ -258,7 +266,7 @@ class DjangoQueryConditionTreeBuilder:
         return DjangoQueryConditionTreeBuilder._aggregate(branch.aggregator, conditions)
 
     @classmethod
-    def build(cls, condition_tree: ConditionTree) -> models.Q:
+    def build(cls, condition_tree: Optional[ConditionTree]) -> models.Q:
         if condition_tree is None:
             return models.Q()
         if isinstance(condition_tree, ConditionTreeLeaf):

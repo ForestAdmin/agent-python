@@ -4,6 +4,7 @@ from typing import Any
 from django.db.models import Model
 from forestadmin.datasource_django.interface import BaseDjangoCollection
 from forestadmin.datasource_django.utils.polymorphic_util import DjangoPolymorphismUtil
+from forestadmin.datasource_toolkit.interfaces.fields import is_polymorphic_one_to_many, is_polymorphic_one_to_one
 from forestadmin.datasource_toolkit.interfaces.query.projections import Projection
 from forestadmin.datasource_toolkit.interfaces.query.projections.factory import ProjectionFactory
 from forestadmin.datasource_toolkit.interfaces.records import RecordsDataAlias
@@ -23,6 +24,11 @@ def instance_to_record_data(
 
     for relation_name, subfields in projection.relations.items():
         relation = getattr(instance, relation_name, None)
+        if is_polymorphic_one_to_many(collection.schema["fields"][relation_name]):
+            continue
+        if is_polymorphic_one_to_one(collection.schema["fields"][relation_name]):
+            relation = relation.first()
+
         if relation:
             foreign_collection = collection.datasource.get_collection(
                 collection.schema["fields"][relation_name]["foreign_collection"]
