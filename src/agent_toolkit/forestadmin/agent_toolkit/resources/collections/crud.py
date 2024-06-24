@@ -1,5 +1,5 @@
 import asyncio
-from typing import Any, Awaitable, Dict, List, Literal, Tuple, cast
+from typing import Any, Awaitable, Dict, List, Literal, Tuple, Union, cast
 from uuid import UUID
 
 from forestadmin.agent_toolkit.forest_logger import ForestLogger
@@ -33,12 +33,16 @@ from forestadmin.datasource_toolkit.interfaces.fields import (
     ManyToOne,
     OneToOne,
     Operator,
+    PolymorphicOneToOne,
     PrimitiveType,
     is_column,
     is_many_to_many,
     is_many_to_one,
     is_one_to_many,
     is_one_to_one,
+    is_polymorphic_many_to_one,
+    is_polymorphic_one_to_many,
+    is_polymorphic_one_to_one,
 )
 from forestadmin.datasource_toolkit.interfaces.query.aggregation import Aggregation
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.factory import ConditionTreeFactory
@@ -99,7 +103,7 @@ class CrudResource(BaseCollectionResource):
             return HttpResponseBuilder.build_unknown_response()
 
         for name, schema in collection.schema["fields"].items():
-            if is_many_to_many(schema) or is_one_to_many(schema):
+            if is_many_to_many(schema) or is_one_to_many(schema) or is_polymorphic_one_to_many(schema):
                 projections.append(f"{name}:id")  # type: ignore
                 records[0][name] = None
 
@@ -309,7 +313,11 @@ class CrudResource(BaseCollectionResource):
         await request.collection.delete(request.user, build_filter(request, ConditionTreeFactory.intersect(trees)))
 
     async def _link_one_to_one_relation(
-        self, request: RequestCollection, record: RecordsDataAlias, relation: OneToOne, linked: RecordsDataAlias
+        self,
+        request: RequestCollection,
+        record: RecordsDataAlias,
+        relation: Union[OneToOne, PolymorphicOneToOne],
+        linked: RecordsDataAlias,
     ):
         foreign_collection = self.datasource.get_collection(relation["foreign_collection"])
         scope = await self.permission.get_scope(request.user, foreign_collection)
@@ -328,12 +336,13 @@ class CrudResource(BaseCollectionResource):
         except FilterException as e:
             raise CollectionResourceException(str(e)[3:])
 
+        patch = {f'{relation["origin_key"]}': None}
+        if is_polymorphic_one_to_one(relation):
+            patch[relation["origin_type_field"]] = None
         await foreign_collection.update(
             request.user,
             Filter({"condition_tree": ConditionTreeFactory.intersect(trees), "timezone": tz}),
-            {
-                f'{relation["origin_key"]}': None,
-            },
+            patch,
         )
 
         # Create the new relation
@@ -341,13 +350,13 @@ class CrudResource(BaseCollectionResource):
         trees: List[ConditionTree] = [new_fk_owner]
         if scope:
             trees.append(scope)
-
+        patch = {f'{relation["origin_key"]}': origin_value}
+        if is_polymorphic_one_to_one(relation):
+            patch[relation["origin_type_field"]] = relation["origin_type_value"]
         await foreign_collection.update(
             request.user,
             Filter({"condition_tree": ConditionTreeFactory.intersect(trees), "timezone": tz}),
-            {
-                f'{relation["origin_key"]}': origin_value,
-            },
+            patch,
         )
 
     async def _link_one_to_one_relations(
@@ -370,13 +379,19 @@ class CrudResource(BaseCollectionResource):
                     record[field_name] = UUID(value)
                 else:
                     record[field_name] = value
-
-            elif is_many_to_one(field) or is_one_to_one(field):
+            elif (
+                is_many_to_one(field)
+                or is_one_to_one(field)
+                or is_polymorphic_one_to_one(field)
+                or is_polymorphic_many_to_one(field)
+            ):
                 foreign_collection = self.datasource.get_collection(field["foreign_collection"])
                 pk_names = SchemaUtils.get_primary_keys(foreign_collection.schema)
-                if is_one_to_one(field):
+                if is_one_to_one(field) or is_polymorphic_one_to_one(field):
                     one_to_one_relations.append((field, dict([(pk, value) for pk in pk_names])))
                     # one_to_one_relations.append((field, dict([(pk, value[i]) for i, pk in enumerate(pk_names)])))
+                elif is_polymorphic_one_to_one(field):
+                    one_to_one_relations.append((field, dict([(pk, value) for pk in pk_names])))
                 else:
                     field = cast(ManyToOne, field)
                     value = await CollectionUtils.get_value(
