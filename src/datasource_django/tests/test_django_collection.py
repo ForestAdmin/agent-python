@@ -55,7 +55,7 @@ class TestDjangoCollectionCRUDList(TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         super().setUpClass()
-        cls.datasource = Mock(DjangoDatasource)
+        cls.datasource = DjangoDatasource()
 
         cls.mocked_caller = User(
             rendering_id=1,
