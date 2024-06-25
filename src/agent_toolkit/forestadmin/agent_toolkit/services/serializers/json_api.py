@@ -156,8 +156,8 @@ class ForestRelationShip(fields.Relationship):
     def __init__(self, *args, **kwargs):  # type: ignore
         self.collection: Collection = kwargs.pop("collection")  # type: ignore
         self.related_collection_name = kwargs["type_"]
-        self.forest_is_polymorphic = kwargs.get("forest_is_polymorphic")
-        self.forest_relation = kwargs.get("forest_relation")
+        self.forest_is_polymorphic = kwargs.pop("forest_is_polymorphic", None)
+        self.forest_relation = kwargs.pop("forest_relation", None)
         self._forest_current_obj = None
         super(ForestRelationShip, self).__init__(*args, **kwargs)  # type: ignore
 
