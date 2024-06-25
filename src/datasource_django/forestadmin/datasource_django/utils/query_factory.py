@@ -7,7 +7,12 @@ from forestadmin.datasource_django.exception import DjangoDatasourceException
 from forestadmin.datasource_django.interface import BaseDjangoCollection
 from forestadmin.datasource_django.utils.polymorphic_util import DjangoPolymorphismUtil
 from forestadmin.datasource_django.utils.type_converter import FilterOperator
-from forestadmin.datasource_toolkit.interfaces.fields import is_many_to_one, is_one_to_one
+from forestadmin.datasource_toolkit.interfaces.fields import (
+    is_many_to_one,
+    is_one_to_one,
+    is_polymorphic_many_to_one,
+    is_polymorphic_one_to_one,
+)
 from forestadmin.datasource_toolkit.interfaces.query.aggregation import (
     AggregateResult,
     Aggregation,
@@ -56,6 +61,16 @@ class DjangoQueryBuilder:
         select_related, prefetch_related = DjangoQueryBuilder._find_related_in_projection(
             collection, largest_projection
         )
+
+        with_generic_fk = DjangoPolymorphismUtil.is_polymorphism_implied(largest_projection, collection)
+        if with_generic_fk:
+            select_related.union(
+                [
+                    collection.schema["fields"][generic_fk]["foreign_key_type_field"]  # type:ignore
+                    for generic_fk in DjangoPolymorphismUtil.get_polymorphism_relations(largest_projection, collection)
+                ]
+            )
+
         qs = qs.select_related(
             *cls._normalize_projection(Projection(*select_related)),
         ).prefetch_related(
@@ -93,7 +108,11 @@ class DjangoQueryBuilder:
         for relation_name, subfields in projection.relations.items():
             field_schema = collection.schema["fields"][relation_name]
             if not break_select_related[relation_name] and (
-                is_many_to_one(field_schema) or is_one_to_one(field_schema)
+                is_many_to_one(field_schema)
+                or is_one_to_one(field_schema)
+                # TODO: validate manyToOne here
+                or is_polymorphic_many_to_one(field_schema)
+                or is_polymorphic_one_to_one(field_schema)
             ):
                 select_related.add(relation_name)
             else:
@@ -125,19 +144,11 @@ class DjangoQueryBuilder:
             full_projection = full_projection.union(filter_.sort.projection)
         qs = cls._mk_base_queryset(collection, full_projection, filter_)
 
-        with_generic_fk = DjangoPolymorphismUtil.is_polymorphism_implied(projection, collection)
-        if with_generic_fk:
-            content_types_to_prefetch = [
-                collection.schema["fields"][generic_fk]["foreign_key_type_field"]
-                # generic_fk
-                for generic_fk in DjangoPolymorphismUtil.get_polymorphism_relations(projection, collection)
-            ]
-            qs = qs.select_related(*content_types_to_prefetch)
-
         # only raise errors when trying to get a field by a to_many relation
         # or in other words if we have something to pass to prefetch_related
         _, prefetch = cls._find_related_in_projection(collection, full_projection)
-        if len(prefetch) == 0 and not with_generic_fk:
+
+        if len(prefetch) == 0 and not DjangoPolymorphismUtil.is_polymorphism_implied(projection, collection):
             qs = qs.only(*cls._normalize_projection(full_projection))
         qs = DjangoQueryPaginationBuilder.paginate_queryset(qs, filter_)
 
