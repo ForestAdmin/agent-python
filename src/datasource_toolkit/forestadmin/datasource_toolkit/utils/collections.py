@@ -11,6 +11,7 @@ from forestadmin.datasource_toolkit.interfaces.fields import (
     is_many_to_one,
     is_one_to_many,
     is_one_to_one,
+    is_polymorphic_many_to_one,
     is_relation,
 )
 from forestadmin.datasource_toolkit.interfaces.models.collections import Collection as CollectionModel
@@ -139,7 +140,9 @@ class CollectionUtils:
         foreign_collection = collection.datasource.get_collection(relation["foreign_collection"])
         inverse: Optional[str] = None
         for name, field_schema in foreign_collection.schema["fields"].items():
-            if not is_relation(field_schema) or field_schema["foreign_collection"] != collection.name:
+            if not is_relation(field_schema) or (
+                not is_polymorphic_many_to_one(field_schema) and field_schema["foreign_collection"] != collection.name
+            ):
                 continue
 
             if (

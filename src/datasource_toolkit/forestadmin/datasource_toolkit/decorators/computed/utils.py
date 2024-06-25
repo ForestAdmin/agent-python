@@ -65,6 +65,11 @@ def unflatten(flats: FlatRecordList, projection: Projection) -> List[Optional[Re
         for idx in range(len(records)):
             records[idx][relation] = sub_records[idx]
 
+    poly_relations = [p for p in projection if p[-1] == ":"]
+    for poly_relation in poly_relations:
+        for idx in range(len(records)):
+            records[idx][poly_relation] = flats[projection.index(poly_relation)][idx]
+
     res: List[Optional[RecordsDataAlias]] = []
     for record in records:
         if any(record.values()):

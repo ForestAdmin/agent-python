@@ -4,7 +4,7 @@ from typing import Any, List, Tuple, cast
 from forestadmin.datasource_toolkit.context.collection_context import CollectionCustomizationContext
 from forestadmin.datasource_toolkit.decorators.computed.types import ComputedDefinition
 from forestadmin.datasource_toolkit.decorators.computed.utils import Output, flatten, transform_unique_values, unflatten
-from forestadmin.datasource_toolkit.interfaces.fields import RelationAlias
+from forestadmin.datasource_toolkit.interfaces.fields import RelationAlias, is_polymorphic_many_to_one
 from forestadmin.datasource_toolkit.interfaces.query.projections import Projection
 from forestadmin.datasource_toolkit.interfaces.records import RecordsDataAlias
 from forestadmin.datasource_toolkit.utils.user_callable import call_user_function
@@ -14,6 +14,9 @@ def rewrite_fields(collection: Any, path: str) -> Projection:
     if ":" in path:
         prefix = path.split(":")[0]
         schema = cast(RelationAlias, collection.get_field(prefix))
+        if is_polymorphic_many_to_one(schema):
+            return Projection(path)
+
         association = collection.datasource.get_collection(schema["foreign_collection"])
         return Projection(path).unnest().replace(lambda sub_path: rewrite_fields(association, sub_path)).nest(prefix)
 

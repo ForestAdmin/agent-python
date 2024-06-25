@@ -6,8 +6,14 @@ from asgiref.sync import sync_to_async
 from django.db import models
 from forestadmin.datasource_django.exception import DjangoDatasourceException
 from forestadmin.datasource_django.interface import BaseDjangoCollection
+from forestadmin.datasource_django.utils.polymorphic_util import DjangoPolymorphismUtil
 from forestadmin.datasource_django.utils.type_converter import FilterOperator
-from forestadmin.datasource_toolkit.interfaces.fields import is_many_to_one, is_one_to_one
+from forestadmin.datasource_toolkit.interfaces.fields import (
+    is_many_to_one,
+    is_one_to_one,
+    is_polymorphic_many_to_one,
+    is_polymorphic_one_to_one,
+)
 from forestadmin.datasource_toolkit.interfaces.query.aggregation import (
     AggregateResult,
     Aggregation,
@@ -51,18 +57,40 @@ class DjangoQueryBuilder:
         largest_projection: Projection,
         filter_: BaseFilter,
     ) -> models.QuerySet:
-        qs: models.QuerySet = collection.model.objects.all()
+        qs: models.QuerySet = collection.model.objects.all()  # type:ignore
 
         select_related, prefetch_related = DjangoQueryBuilder._find_related_in_projection(
             collection, largest_projection
         )
+
+        with_generic_fk = DjangoPolymorphismUtil.is_polymorphism_implied(largest_projection, collection)
+        if with_generic_fk:
+            select_related.union(
+                [
+                    collection.schema["fields"][generic_fk]["foreign_key_type_field"]  # type:ignore
+                    for generic_fk in DjangoPolymorphismUtil.get_polymorphism_relations(largest_projection, collection)
+                ]
+            )
+
         qs = qs.select_related(
             *cls._normalize_projection(Projection(*select_related)),
         ).prefetch_related(
             *cls._normalize_projection(Projection(*prefetch_related)),
         )
 
-        qs = qs.filter(DjangoQueryConditionTreeBuilder.build(filter_.condition_tree))
+        condition_tree = filter_.condition_tree
+        if condition_tree:
+            if any(
+                [
+                    DjangoPolymorphismUtil.is_type_field_of_generic_fk(field, collection)
+                    for field in filter_.condition_tree.projection
+                ]
+            ):
+                condition_tree = DjangoPolymorphismUtil.replace_content_type_in_condition_tree(
+                    filter_.condition_tree, collection
+                )
+
+        qs = qs.filter(DjangoQueryConditionTreeBuilder.build(condition_tree))
 
         if isinstance(filter_, PaginatedFilter):
             qs = qs.order_by(*DjangoQueryPaginationBuilder.get_order_by(filter_))
@@ -81,7 +109,11 @@ class DjangoQueryBuilder:
         for relation_name, subfields in projection.relations.items():
             field_schema = collection.schema["fields"][relation_name]
             if not break_select_related[relation_name] and (
-                is_many_to_one(field_schema) or is_one_to_one(field_schema)
+                is_many_to_one(field_schema)
+                or is_one_to_one(field_schema)
+                # TODO: validate manyToOne here
+                or is_polymorphic_many_to_one(field_schema)
+                or is_polymorphic_one_to_one(field_schema)
             ):
                 select_related.add(relation_name)
             else:
@@ -116,11 +148,13 @@ class DjangoQueryBuilder:
         # only raise errors when trying to get a field by a to_many relation
         # or in other words if we have something to pass to prefetch_related
         _, prefetch = cls._find_related_in_projection(collection, full_projection)
-        if len(prefetch) == 0:
+
+        if len(prefetch) == 0 and not DjangoPolymorphismUtil.is_polymorphism_implied(projection, collection):
             qs = qs.only(*cls._normalize_projection(full_projection))
         qs = DjangoQueryPaginationBuilder.paginate_queryset(qs, filter_)
 
-        return await sync_to_async(list)(qs)
+        result = await sync_to_async(list)(qs)
+        return result
 
     @classmethod
     async def mk_aggregate(
@@ -181,13 +215,19 @@ class DjangoQueryBuilder:
         patch: RecordsDataAlias,
     ):
         qs = await sync_to_async(collection.model.objects.filter)(
-            DjangoQueryConditionTreeBuilder.build(filter_.condition_tree)
+            DjangoQueryConditionTreeBuilder.build(
+                DjangoPolymorphismUtil.replace_content_type_in_condition_tree(filter_.condition_tree, collection)
+            )
         )
+        patch = DjangoPolymorphismUtil.replace_content_type_in_patch(patch, collection)
+
         await sync_to_async(qs.update)(**{k.replace(":", "__"): v for k, v in patch.items()})
 
     @staticmethod
     async def mk_create(collection: BaseDjangoCollection, data: List[RecordsDataAlias]) -> models.Model:
-        instances: List[models.Model] = [collection.model(**d) for d in data]
+        instances: List[models.Model] = [
+            collection.model(**DjangoPolymorphismUtil.replace_content_type_in_patch(d, collection)) for d in data
+        ]
         for i in instances:
             await sync_to_async(i.save)()
             await sync_to_async(i.refresh_from_db)()
@@ -196,7 +236,11 @@ class DjangoQueryBuilder:
 
     @staticmethod
     async def mk_delete(collection: BaseDjangoCollection, filter_: Optional[Filter]):
-        qs = collection.model.objects.filter(DjangoQueryConditionTreeBuilder.build(filter_.condition_tree))
+        qs = collection.model.objects.filter(
+            DjangoQueryConditionTreeBuilder.build(
+                DjangoPolymorphismUtil.replace_content_type_in_condition_tree(filter_.condition_tree, collection)
+            )
+        )
         await sync_to_async(qs.delete)()
 
 
@@ -233,7 +277,7 @@ class DjangoQueryConditionTreeBuilder:
         return DjangoQueryConditionTreeBuilder._aggregate(branch.aggregator, conditions)
 
     @classmethod
-    def build(cls, condition_tree: ConditionTree) -> models.Q:
+    def build(cls, condition_tree: Optional[ConditionTree]) -> models.Q:
         if condition_tree is None:
             return models.Q()
         if isinstance(condition_tree, ConditionTreeLeaf):

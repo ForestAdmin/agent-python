@@ -31,7 +31,7 @@ class Projection(list):  # type: ignore
         for path in self:
             splited = path.split(":")
             field = splited[0]
-            if len(splited) > 1:
+            if len(splited) > 1 and splited[-1] != "":
                 relation = splited[1:]
                 relations[field] = Projection(*relations[field], ":".join(relation))
         return relations

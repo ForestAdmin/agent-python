@@ -7,6 +7,7 @@ from forestadmin.agent_toolkit.utils.context import User
 from forestadmin.datasource_django.interface import BaseDjangoCollection
 from forestadmin.datasource_django.utils.model_introspection import DjangoCollectionFactory
 from forestadmin.datasource_django.utils.native_driver_wrapper import NativeDriverWrapper, get_db_for_native_driver
+from forestadmin.datasource_django.utils.polymorphic_util import DjangoPolymorphismUtil
 from forestadmin.datasource_django.utils.query_factory import DjangoQueryBuilder
 from forestadmin.datasource_django.utils.record_serializer import instance_to_record_data
 from forestadmin.datasource_toolkit.datasources import Datasource
@@ -30,25 +31,31 @@ class DjangoCollection(BaseDjangoCollection):
         return self._model
 
     async def list(self, caller: User, filter_: PaginatedFilter, projection: Projection) -> List[RecordsDataAlias]:
+        await sync_to_async(DjangoPolymorphismUtil.request_content_type)()
+
         return [
-            await sync_to_async(instance_to_record_data)(item, projection)
+            await sync_to_async(instance_to_record_data)(item, projection, self)
             for item in await DjangoQueryBuilder.mk_list(self, filter_, projection)
         ]
 
     async def aggregate(
         self, caller: User, filter_: Optional[Filter], aggregation: Aggregation, limit: Optional[int] = None
     ) -> List[AggregateResult]:
+        await sync_to_async(DjangoPolymorphismUtil.request_content_type)()
         return await DjangoQueryBuilder.mk_aggregate(self, filter_, aggregation, limit)
 
     async def create(self, caller: User, data: List[RecordsDataAlias]) -> List[RecordsDataAlias]:
+        await sync_to_async(DjangoPolymorphismUtil.request_content_type)()
         instances = await DjangoQueryBuilder.mk_create(self, data)
         projection = Projection(*[k for k in self.schema["fields"].keys() if is_column(self.schema["fields"][k])])
-        return [await sync_to_async(instance_to_record_data)(item, projection) for item in instances]
+        return [await sync_to_async(instance_to_record_data)(item, projection, self) for item in instances]
 
     async def update(self, caller: User, filter_: Optional[Filter], patch: RecordsDataAlias) -> None:
+        await sync_to_async(DjangoPolymorphismUtil.request_content_type)()
         await DjangoQueryBuilder.mk_update(self, filter_, patch)
 
     async def delete(self, caller: User, filter_: Optional[Filter]) -> None:
+        await sync_to_async(DjangoPolymorphismUtil.request_content_type)()
         await DjangoQueryBuilder.mk_delete(self, filter_)
 
     def get_native_driver(self) -> NativeDriverWrapper:
