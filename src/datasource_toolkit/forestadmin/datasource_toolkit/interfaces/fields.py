@@ -208,6 +208,7 @@ class ManyToMany(TypedDict):
 
 
 ColumnAlias = Union[PrimitiveType, PrimitiveTypeLiteral, Dict[str, "ColumnAlias"], List["ColumnAlias"]]
+StraightRelationAlias = Union[ManyToMany, ManyToOne, OneToOne, OneToMany]
 RelationAlias = Union[
     ManyToMany, ManyToOne, OneToOne, OneToMany, PolymorphicManyToOne, PolymorphicOneToOne, PolymorphicOneToMany
 ]
@@ -247,8 +248,17 @@ def is_many_to_many(field: "FieldAlias") -> TypeGuard[ManyToMany]:
     return field["type"] == FieldType.MANY_TO_MANY
 
 
-def is_poly_relation(field: "FieldAlias") -> TypeGuard[PolyRelationAlias]:
-    return is_polymorphic_many_to_one(field) or is_polymorphic_one_to_many(field) or is_polymorphic_one_to_one(field)
+# not used
+# def is_polymorphic_relation(field: "FieldAlias") -> TypeGuard[PolyRelationAlias]:
+#     return is_polymorphic_many_to_one(field) or is_polymorphic_one_to_many(field) or is_polymorphic_one_to_one(field)
+
+
+def is_reverse_polymorphic_relation(field: "FieldAlias") -> TypeGuard[Union[PolymorphicOneToMany, PolymorphicOneToOne]]:
+    return is_polymorphic_one_to_many(field) or is_polymorphic_one_to_one(field)
+
+
+def is_straight_relation(field: "FieldAlias") -> TypeGuard[StraightRelationAlias]:
+    return is_many_to_one(field) or is_one_to_many(field) or is_one_to_one(field) or is_many_to_many(field)
 
 
 def is_relation(field: "FieldAlias") -> TypeGuard[RelationAlias]:

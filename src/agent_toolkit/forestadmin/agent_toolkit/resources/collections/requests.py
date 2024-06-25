@@ -12,13 +12,9 @@ from forestadmin.datasource_toolkit.interfaces.fields import (
     ManyToOne,
     OneToMany,
     OneToOne,
-    is_many_to_many,
-    is_many_to_one,
-    is_one_to_many,
-    is_one_to_one,
     is_polymorphic_many_to_one,
-    is_polymorphic_one_to_many,
-    is_polymorphic_one_to_one,
+    is_reverse_polymorphic_relation,
+    is_straight_relation,
 )
 from typing_extensions import Self
 
@@ -129,14 +125,7 @@ class RequestRelationCollection(RequestCollection):
                 f"{relation_name} is an unknown relation for the collection {kwargs['collection'].name}"
             )
 
-        if (
-            is_many_to_one(related_field)
-            or is_one_to_one(related_field)
-            or is_many_to_many(related_field)
-            or is_one_to_many(related_field)
-            or is_polymorphic_one_to_many(related_field)
-            or is_polymorphic_one_to_one(related_field)
-        ):
+        if is_straight_relation(related_field) or is_reverse_polymorphic_relation(related_field):
             try:
                 foreign_collection = datasource.get_collection(related_field["foreign_collection"])
             except DatasourceException:
