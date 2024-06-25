@@ -41,11 +41,18 @@ class DjangoPolymorphismUtil:
 
     @classmethod
     def is_polymorphism_implied(cls, projection: Projection, collection: BaseDjangoCollection) -> bool:
+        fields_schema = collection.schema["fields"]
         for field in projection:
-            if field[-1] == ":" and is_polymorphic_many_to_one(collection.schema["fields"][field[:-1]]):
+            if field[-1] == ":" and is_polymorphic_many_to_one(fields_schema[field[:-1]]):
                 return True
-            elif is_reverse_polymorphic_relation(collection.schema["fields"][field]):
+            elif ":" not in field and is_reverse_polymorphic_relation(fields_schema[field]):
                 return True
+            elif ":" in field:
+                foreign_collection = collection.datasource.get_collection(
+                    fields_schema[field.split(":")[0]]["foreign_collection"]
+                )
+                if cls.is_polymorphism_implied(field.split(":", 1)[1], foreign_collection):
+                    return True
         return False
 
     @classmethod
