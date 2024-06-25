@@ -10,8 +10,9 @@ from forestadmin.datasource_toolkit.interfaces.fields import (
     is_one_to_many,
     is_one_to_one,
     is_polymorphic_many_to_one,
-    is_polymorphic_one_to_many,
     is_polymorphic_one_to_one,
+    is_reverse_polymorphic_relation,
+    is_straight_relation,
 )
 from forestadmin.datasource_toolkit.interfaces.models.collections import BoundCollection, CollectionSchema, Datasource
 from forestadmin.datasource_toolkit.interfaces.query.aggregation import AggregateResult, Aggregation
@@ -171,7 +172,7 @@ class RenameFieldCollectionDecorator(CollectionDecorator):
             schema = self.schema["fields"][new_field_name]
             if is_column(schema) or value is None:
                 new_record[new_field_name] = value
-            elif is_many_to_many(schema) or is_many_to_one(schema) or is_one_to_many(schema) or is_one_to_one(schema):
+            elif is_straight_relation(schema):
                 relation = datasource.get_collection(schema["foreign_collection"])
                 new_record[new_field_name] = relation._record_from_child_collection(value)
             elif is_polymorphic_many_to_one(schema) or is_polymorphic_one_to_one(schema):
@@ -184,16 +185,10 @@ class RenameFieldCollectionDecorator(CollectionDecorator):
         if ":" in path:
             field_name, *related_field = path.split(":")
             related_field = ":".join(related_field)
+
         if related_field is not None:
             schema = self.schema["fields"][field_name]
-            if (
-                is_many_to_many(schema)
-                or is_one_to_many(schema)
-                or is_one_to_one(schema)
-                or is_many_to_one(schema)
-                or is_polymorphic_one_to_many(schema)
-                or is_polymorphic_one_to_one(schema)
-            ):
+            if is_straight_relation(schema) or is_reverse_polymorphic_relation(schema):
                 relation = datasource.get_collection(schema["foreign_collection"])
                 child_field = self._to_child_collection.get(field_name, field_name)
                 return f"{child_field}:{relation._path_to_child_collection(related_field)}"
