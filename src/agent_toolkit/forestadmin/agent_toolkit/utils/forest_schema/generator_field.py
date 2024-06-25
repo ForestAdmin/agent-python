@@ -19,7 +19,6 @@ from forestadmin.datasource_toolkit.interfaces.fields import (
     RelationAlias,
     is_column,
     is_many_to_many,
-    is_many_to_one,
     is_one_to_many,
     is_one_to_one,
     is_polymorphic_many_to_one,
