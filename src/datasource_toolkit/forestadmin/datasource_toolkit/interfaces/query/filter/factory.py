@@ -14,6 +14,7 @@ from forestadmin.datasource_toolkit.interfaces.fields import (
     ManyToMany,
     OneToMany,
     Operator,
+    is_one_to_many,
     is_polymorphic_one_to_many,
 )
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.factory import ConditionTreeFactory
@@ -145,7 +146,7 @@ class FilterFactory:
         # Compute condition tree to match parent record.
         origin_tree: ConditionTree
 
-        if relation["type"] == FieldType.ONE_TO_MANY:
+        if is_one_to_many(relation):
             # OneToMany case (can be done in one request all the time)
             origin_tree = ConditionTreeLeaf(relation["origin_key"], Operator.EQUAL, origin_value)
         elif is_polymorphic_one_to_many(relation):

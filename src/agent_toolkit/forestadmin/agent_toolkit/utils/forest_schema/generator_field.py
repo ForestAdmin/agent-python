@@ -25,6 +25,7 @@ from forestadmin.datasource_toolkit.interfaces.fields import (
     is_polymorphic_many_to_one,
     is_polymorphic_one_to_many,
     is_polymorphic_one_to_one,
+    is_straight_relation,
 )
 from forestadmin.datasource_toolkit.utils.collections import CollectionUtils
 from forestadmin.datasource_toolkit.utils.schema import SchemaUtils
@@ -49,10 +50,7 @@ class SchemaFieldGenerator:
         if is_column(field_schema):
             schema = cls.build_column_schema(field_name, collection)
         elif (
-            is_one_to_one(field_schema)
-            or is_one_to_many(field_schema)
-            or is_many_to_one(field_schema)
-            or is_many_to_many(field_schema)
+            is_straight_relation(field_schema)
             or is_polymorphic_one_to_many(field_schema)
             or is_polymorphic_one_to_one(field_schema)
         ):
