@@ -49,9 +49,9 @@ class DjangoPolymorphismUtil:
                 return True
             elif ":" in field:
                 foreign_collection = collection.datasource.get_collection(
-                    fields_schema[field.split(":")[0]]["foreign_collection"]
+                    fields_schema[field.split(":")[0]]["foreign_collection"]  # type:ignore
                 )
-                if cls.is_polymorphism_implied(field.split(":", 1)[1], foreign_collection):
+                if cls.is_polymorphism_implied(Projection(field.split(":", 1)[1]), foreign_collection):
                     return True
         return False
 
