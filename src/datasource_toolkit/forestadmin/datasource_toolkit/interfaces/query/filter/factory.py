@@ -82,11 +82,11 @@ class FilterFactory:
             foreign_key_schema = collection.datasource.get_collection(relation["through_collection"]).schema["fields"][
                 relation["foreign_key"]
             ]
-            base_through_filter = _base_foreign_key_filter.nest(foreign_relation)
+            base_through_filter = base_foreign_key_filter.nest(foreign_relation)
             condition_tree = ConditionTreeFactory.intersect(
                 [
                     ConditionTreeLeaf(relation["origin_key"], Operator.EQUAL, origin_value),
-                    base_foreign_key_filter.condition_tree,
+                    base_through_filter.condition_tree,
                 ]
             )
             if (
