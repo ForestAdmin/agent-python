@@ -14,6 +14,7 @@ from forestadmin.agent_toolkit.utils.id import unpack_id
 from forestadmin.datasource_toolkit.collections import Collection, CollectionException
 from forestadmin.datasource_toolkit.datasource_customizer.collection_customizer import CollectionCustomizer
 from forestadmin.datasource_toolkit.interfaces.fields import Column, ColumnAlias, Operator, PrimitiveType, is_column
+from forestadmin.datasource_toolkit.interfaces.models.collections import CollectionSchema
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.factory import (
     ConditionTreeFactory,
     ConditionTreeFactoryException,
@@ -81,7 +82,7 @@ def _subset_or_query(request: Request, key: str) -> Optional[str]:
     return res
 
 
-def parse_selection_ids(request: RequestCollection) -> Tuple[List[CompositeIdAlias], bool]:
+def parse_selection_ids(schema: CollectionSchema, request: RequestCollection) -> Tuple[List[CompositeIdAlias], bool]:
     if request.body:
         try:
             attributes: Dict[str, Any] = request.body.get("data", {}).get("attributes", {})  # type: ignore
@@ -90,12 +91,12 @@ def parse_selection_ids(request: RequestCollection) -> Tuple[List[CompositeIdAli
         exclude_ids = bool(attributes.get("all_records", False))  # type: ignore
 
         if exclude_ids is True:
-            ids = [unpack_id(request.collection.schema, pk) for pk in attributes.get("all_records_ids_excluded", [])]
+            ids = [unpack_id(schema, pk) for pk in attributes.get("all_records_ids_excluded", [])]
         else:
             if "ids" in attributes:
-                ids = [unpack_id(request.collection.schema, pk) for pk in attributes["ids"]]
+                ids = [unpack_id(schema, pk) for pk in attributes["ids"]]
             elif isinstance(request.body.get("data"), list):
-                ids = [unpack_id(request.collection.schema, pk["id"]) for pk in request.body["data"]]
+                ids = [unpack_id(schema, pk["id"]) for pk in request.body["data"]]
             else:
                 ids = []
         return ids, exclude_ids

@@ -153,7 +153,7 @@ class ActionResource(BaseCollectionResource):
 
         # Restrict the filter to the selected records for single or bulk actions.
         if request.collection.schema["actions"][request.action_name].scope != ActionsScope.GLOBAL:
-            selection_ids, exclude_ids = parse_selection_ids(request)
+            selection_ids, exclude_ids = parse_selection_ids(request.collection.schema, request)
             selected_ids = ConditionTreeFactory.match_ids(request.collection.schema, selection_ids)
             if exclude_ids:
                 selected_ids = selected_ids.inverse()

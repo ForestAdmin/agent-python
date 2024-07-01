@@ -288,7 +288,7 @@ class CrudResource(BaseCollectionResource):
     @authenticate
     @authorize("delete")
     async def delete_list(self, request: RequestCollection):
-        ids, exclude_ids = parse_selection_ids(request)
+        ids, exclude_ids = parse_selection_ids(request.collection.schema, request)
         await self._delete(request, ids, exclude_ids)
         return HttpResponseBuilder.build_no_content_response()
 
