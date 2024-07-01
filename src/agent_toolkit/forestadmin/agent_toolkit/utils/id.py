@@ -1,5 +1,6 @@
 from ast import literal_eval
 from typing import Any, List, cast
+from uuid import UUID
 
 from forestadmin.datasource_toolkit.collections import CollectionSchema
 from forestadmin.datasource_toolkit.interfaces.fields import Column, PrimitiveType
@@ -36,6 +37,8 @@ def unpack_id(schema: CollectionSchema, pks: str) -> CompositeIdAlias:
 
         if schema_field["column_type"] == PrimitiveType.NUMBER:
             value = literal_eval(str(value))
+        elif schema_field["column_type"] == PrimitiveType.UUID:
+            value = UUID(value)
         try:
             FieldValidator.validate_value(field_name, schema_field, value)
         except FieldValidatorException:
