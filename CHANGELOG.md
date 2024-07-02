@@ -1,3 +1,10 @@
+## [1.8.8](https://github.com/ForestAdmin/agent-python/compare/v1.8.7...v1.8.8) (2024-07-02)
+
+
+### Bug Fixes
+
+* **uuid:** uuid wasn't correctly handled by sqlalchemy 2.0 DS and agent ([#233](https://github.com/ForestAdmin/agent-python/issues/233)) ([5faa9fb](https://github.com/ForestAdmin/agent-python/commit/5faa9fbdae07fb6c2e8dc1933359176baeb047f9))
+
 ## [1.8.7](https://github.com/ForestAdmin/agent-python/compare/v1.8.6...v1.8.7) (2024-06-18)
 
 
