@@ -64,7 +64,7 @@ class FilterFactory:
         cls,
         caller: User,
         collection: Collection,
-        id: CompositeIdAlias,
+        id_: CompositeIdAlias,
         relation_name: str,
         _base_foreign_key_filter: Union[PaginatedFilter, Filter],
     ) -> PaginatedFilter:
@@ -77,16 +77,16 @@ class FilterFactory:
         foreign_relation = CollectionUtils.get_through_target(collection, relation_name)
 
         # Optimization for many to many when there is not search/segment (saves one query)
-        origin_value = await CollectionUtils.get_value(caller, collection, id, relation["origin_key_target"])
+        origin_value = await CollectionUtils.get_value(caller, collection, id_, relation["origin_key_target"])
         if foreign_relation and base_foreign_key_filter.is_nestable:
             foreign_key_schema = collection.datasource.get_collection(relation["through_collection"]).schema["fields"][
                 relation["foreign_key"]
             ]
-            base_through_filter = _base_foreign_key_filter.nest(foreign_relation)
+            base_through_filter = base_foreign_key_filter.nest(foreign_relation)
             condition_tree = ConditionTreeFactory.intersect(
                 [
                     ConditionTreeLeaf(relation["origin_key"], Operator.EQUAL, origin_value),
-                    base_foreign_key_filter.condition_tree,
+                    base_through_filter.condition_tree,
                 ]
             )
             if (
@@ -102,7 +102,7 @@ class FilterFactory:
         target = collection.datasource.get_collection(relation["foreign_collection"])
         records = await target.list(
             caller,
-            await cls.make_foreign_filter(caller, collection, id, relation, base_foreign_key_filter),
+            await cls.make_foreign_filter(caller, collection, id_, relation, base_foreign_key_filter),
             Projection(relation["foreign_key_target"]),
         )
 

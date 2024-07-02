@@ -326,7 +326,7 @@ class CrudRelatedResource(BaseCollectionResource):
             return HttpResponseBuilder.build_no_content_response()
 
     async def get_base_fk_filter(self, request: RequestRelationCollection):
-        ids, exclude_ids = parse_selection_ids(request)
+        ids, exclude_ids = parse_selection_ids(request.foreign_collection.schema, request)
 
         if len(ids) == 0 and not exclude_ids:
             raise CollectionResourceException("Unable to unpack the id")
