@@ -1,3 +1,10 @@
+## [1.8.9](https://github.com/ForestAdmin/agent-python/compare/v1.8.8...v1.8.9) (2024-07-02)
+
+
+### Bug Fixes
+
+* **relation:** many to may dissociation with composite foreign key now works ([#232](https://github.com/ForestAdmin/agent-python/issues/232)) ([0d43f74](https://github.com/ForestAdmin/agent-python/commit/0d43f7422451198912f79f3e61eb24c8a50c6442))
+
 ## [1.8.8](https://github.com/ForestAdmin/agent-python/compare/v1.8.7...v1.8.8) (2024-07-02)
 
 

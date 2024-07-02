@@ -4,7 +4,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 name = "forestadmin-datasource-django"
-version = "1.8.8"
+version = "1.8.9"
 description = "django datasource for forestadmin python agent"
 authors = [ "Julien Barreau <julien.barreau@forestadmin.com>",]
 readme = "README.md"
@@ -18,8 +18,8 @@ include = "forestadmin"
 python = ">=3.8,<3.13"
 typing-extensions = "~=4.2"
 django = ">=3.2,<6.0"
-forestadmin-datasource-toolkit = "1.8.8"
-forestadmin-agent-toolkit = "1.8.8"
+forestadmin-datasource-toolkit = "1.8.9"
+forestadmin-agent-toolkit = "1.8.9"
 
 [tool.pytest.ini_options]
 DJANGO_SETTINGS_MODULE = "test_project_datasource.settings"
