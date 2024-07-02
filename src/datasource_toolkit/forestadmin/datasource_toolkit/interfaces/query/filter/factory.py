@@ -145,7 +145,7 @@ class FilterFactory:
             # ManyToMany case (more complicated...)
             through = collection.datasource.get_collection(relation["through_collection"])
             foreign_key_schema = through.schema["fields"][relation["foreign_key"]]
-            through_tree = ConditionTreeLeaf(relation["origin_key"], Operator.EQUAL, str(origin_value))
+            through_tree = ConditionTreeLeaf(relation["origin_key"], Operator.EQUAL, origin_value)
 
             # Handle null foreign key case only when the datasource supports it.
             if (
@@ -165,7 +165,7 @@ class FilterFactory:
                 relation["foreign_key_target"],
                 Operator.IN,
                 # filter out null values in case the 'Present' operator was not supported
-                [str(record[relation["foreign_key"]]) for record in records if record.get(relation["foreign_key"])],
+                [record[relation["foreign_key"]] for record in records if record.get(relation["foreign_key"])],
             )
         trees: List[ConditionTree] = [origin_tree]
         if base_foreign_key_filter.condition_tree:

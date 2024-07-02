@@ -14,6 +14,14 @@ class ConverterException(DatasourceToolkitException):
     pass
 
 
+_UUID_TYPES = {
+    UUID: PrimitiveType.UUID,
+}
+if getattr(sqltypes, "Uuid", None):
+    _UUID_TYPES[sqltypes.Uuid] = PrimitiveType.UUID
+    _UUID_TYPES[sqltypes.UUID] = PrimitiveType.UUID
+
+
 class Converter:
     TYPES: Dict[Type[sqltypes.TypeEngine], PrimitiveType] = {
         sqltypes.BigInteger: PrimitiveType.NUMBER,
@@ -37,7 +45,7 @@ class Converter:
         sqltypes.LargeBinary: PrimitiveType.BINARY,
         sqltypes.BINARY: PrimitiveType.BINARY,
         sqltypes.PickleType: PrimitiveType.BINARY,
-        UUID: PrimitiveType.UUID,
+        **_UUID_TYPES,
     }
 
     @classmethod
