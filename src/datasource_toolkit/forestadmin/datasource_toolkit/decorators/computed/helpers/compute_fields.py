@@ -1,27 +1,13 @@
 import copy
-from typing import Any, List, Tuple, cast
+from typing import Any, List, Tuple
 
 from forestadmin.datasource_toolkit.context.collection_context import CollectionCustomizationContext
 from forestadmin.datasource_toolkit.decorators.computed.types import ComputedDefinition
-from forestadmin.datasource_toolkit.decorators.computed.utils import Output, flatten, transform_unique_values, unflatten
-from forestadmin.datasource_toolkit.interfaces.fields import RelationAlias
+from forestadmin.datasource_toolkit.decorators.computed.utils.deduplication import Output, transform_unique_values
+from forestadmin.datasource_toolkit.decorators.computed.utils.flattener import flatten, unflatten
 from forestadmin.datasource_toolkit.interfaces.query.projections import Projection
 from forestadmin.datasource_toolkit.interfaces.records import RecordsDataAlias
 from forestadmin.datasource_toolkit.utils.user_callable import call_user_function
-
-
-def rewrite_fields(collection: Any, path: str) -> Projection:
-    if ":" in path:
-        prefix = path.split(":")[0]
-        schema = cast(RelationAlias, collection.get_field(prefix))
-        association = collection.datasource.get_collection(schema["foreign_collection"])
-        return Projection(path).unnest().replace(lambda sub_path: rewrite_fields(association, sub_path)).nest(prefix)
-
-    computed = collection.get_computed(path)
-    if computed is None:
-        return Projection(path)
-    else:
-        return Projection(*computed["dependencies"]).replace(lambda dep_path: rewrite_fields(collection, dep_path))
 
 
 async def compute_field(
@@ -70,7 +56,7 @@ async def compute_from_records(
     paths: List[str] = [*records_projection]
     paths.sort()
     desired_projections.sort()
-    flatten_records = flatten(records, paths)
+    flatten_records = flatten(records, paths)  # type:ignore
     add_operations: List[Tuple[int, Any]] = []
     delete_operations: List[int] = []
 
