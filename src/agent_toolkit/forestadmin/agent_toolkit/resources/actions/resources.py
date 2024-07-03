@@ -84,7 +84,12 @@ class ActionResource(BaseCollectionResource):
                 }
             )
         elif result["type"] == ResultBuilder.FILE:
-            response = FileResponse(result["stream"], result["name"], result["mimeType"])
+            response = FileResponse(
+                result["stream"],
+                result["name"],
+                result["mimeType"],
+                {"Access-Control-Expose-Headers": "Content-Disposition"},
+            )
 
         elif result["type"] == ResultBuilder.REDIRECT:
             response = HttpResponseBuilder.build_success_response({"redirectTo": result["path"]})

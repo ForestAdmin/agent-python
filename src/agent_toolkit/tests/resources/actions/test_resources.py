@@ -694,6 +694,7 @@ class TestExecuteActionResource(BaseTestActionResource):
         self.assertEqual(response.name, "testFile.txt")
         self.assertEqual(response.mimetype, "text/plain;charset=UTF-8")
         self.assertEqual(response.file.read(), "bla bla")
+        self.assertIn(("Access-Control-Expose-Headers", "Content-Disposition"), response.headers.items())
 
     def test_execute_should_return_correctly_formatted_redirect_on_redirect_response(self):
         self.decorated_collection_book.add_action(
