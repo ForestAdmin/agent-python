@@ -1,3 +1,10 @@
+## [1.8.10](https://github.com/ForestAdmin/agent-python/compare/v1.8.9...v1.8.10) (2024-07-03)
+
+
+### Bug Fixes
+
+* attach a many to many record during creation ([#234](https://github.com/ForestAdmin/agent-python/issues/234)) ([cd07f67](https://github.com/ForestAdmin/agent-python/commit/cd07f673b1b6aef4e6f9f0f8ae0949968c14a777))
+
 ## [1.8.9](https://github.com/ForestAdmin/agent-python/compare/v1.8.8...v1.8.9) (2024-07-02)
 
 
