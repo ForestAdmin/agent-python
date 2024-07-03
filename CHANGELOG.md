@@ -1,3 +1,10 @@
+## [1.8.11](https://github.com/ForestAdmin/agent-python/compare/v1.8.10...v1.8.11) (2024-07-03)
+
+
+### Bug Fixes
+
+* **action_result_file:** filename is now functional ([#235](https://github.com/ForestAdmin/agent-python/issues/235)) ([1e7fa1b](https://github.com/ForestAdmin/agent-python/commit/1e7fa1b8bbd5da4bd09b10d27abf25bac6ef115f))
+
 ## [1.8.10](https://github.com/ForestAdmin/agent-python/compare/v1.8.9...v1.8.10) (2024-07-03)
 
 
