@@ -94,6 +94,32 @@ class TestActionResultBuilder(TestCase):
             "response_headers": {},
         }
 
+    def test_file_should_work_with_bytes(self):
+        result = ResultBuilder().file(b"id,name,email", "test.csv", "text/csv")
+        stream = result.pop("stream")
+
+        assert stream.read() == b"id,name,email"
+        assert result == {
+            "type": "File",
+            "name": "test.csv",
+            "mimeType": "text/csv",
+            # "stream": BytesIO(b"id,name,email"),
+            "response_headers": {},
+        }
+
+    def test_file_should_work_with_str(self):
+        result = ResultBuilder().file("id,name,email", "test.csv", "text/csv")
+        stream = result.pop("stream")
+
+        assert stream.read() == "id,name,email"
+        assert result == {
+            "type": "File",
+            "name": "test.csv",
+            "mimeType": "text/csv",
+            # "stream": BytesIO(b"id,name,email"),
+            "response_headers": {},
+        }
+
     def test_redirect_should_work(self):
         result = ResultBuilder().redirect("test.com")
         assert result == {

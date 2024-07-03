@@ -1,5 +1,5 @@
-from io import IOBase
-from typing import Any, Dict, List, Literal, Optional
+from io import BytesIO, IOBase, StringIO
+from typing import Any, Dict, List, Literal, Optional, Union
 
 from forestadmin.datasource_toolkit.interfaces.actions import ActionResult
 from forestadmin.datasource_toolkit.interfaces.records import RecordsDataAlias
@@ -108,7 +108,7 @@ class ResultBuilder:
             "response_headers": self.response_headers,
         }
 
-    def file(self, file: IOBase, name: str = "file", mime_type: str = "text/plain") -> ActionResult:
+    def file(self, file: Union[IOBase, str, bytes], name: str = "file", mime_type: str = "text/plain") -> ActionResult:
         """Returns a file that will be downloaded
 
         Args:
@@ -119,11 +119,17 @@ class ResultBuilder:
         Example:
             .file("This is my file content", "download.txt", "text/plain")
         """
+        if isinstance(file, str):
+            stream = StringIO(file)
+        elif isinstance(file, bytes):
+            stream = BytesIO(file)
+        else:
+            stream = file
         return {
             "type": self.FILE,
             "name": name,
             "mimeType": mime_type,
-            "stream": file,
+            "stream": stream,
             "response_headers": self.response_headers,
         }
 
