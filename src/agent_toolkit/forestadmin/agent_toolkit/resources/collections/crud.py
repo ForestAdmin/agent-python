@@ -1,5 +1,6 @@
 import asyncio
 from typing import Any, Awaitable, Dict, List, Literal, Tuple, cast
+from uuid import UUID
 
 from forestadmin.agent_toolkit.forest_logger import ForestLogger
 from forestadmin.agent_toolkit.resources.collections.base_collection_resource import BaseCollectionResource
@@ -32,6 +33,7 @@ from forestadmin.datasource_toolkit.interfaces.fields import (
     ManyToOne,
     OneToOne,
     Operator,
+    PrimitiveType,
     is_column,
     is_many_to_many,
     is_many_to_one,
@@ -364,7 +366,11 @@ class CrudResource(BaseCollectionResource):
         for field_name, value in data.items():
             field = collection.get_field(field_name)
             if is_column(field):
-                record[field_name] = value
+                if field["column_type"] == PrimitiveType.UUID:
+                    record[field_name] = UUID(value)
+                else:
+                    record[field_name] = value
+
             elif is_many_to_one(field) or is_one_to_one(field):
                 foreign_collection = self.datasource.get_collection(field["foreign_collection"])
                 pk_names = SchemaUtils.get_primary_keys(foreign_collection.schema)
