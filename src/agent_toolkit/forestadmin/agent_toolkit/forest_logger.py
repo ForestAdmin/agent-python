@@ -25,7 +25,7 @@ class ForestLogger:
     @classmethod
     def log(cls, level, message):
         if not cls._logger_instance:
-            # we shouldn't pass here is agent is created
+            # we shouldn't pass here if agent is created
             cls._logger_instance = _ForestLogger(
                 OptionValidator.DEFAULT_OPTIONS["logger_level"], ForestLogger.default_logger_function
             )
