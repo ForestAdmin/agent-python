@@ -1,3 +1,10 @@
+## [1.8.12](https://github.com/ForestAdmin/agent-python/compare/v1.8.11...v1.8.12) (2024-07-04)
+
+
+### Bug Fixes
+
+* **introspection:** ignore polymorphic fields log is now info ([#236](https://github.com/ForestAdmin/agent-python/issues/236)) ([64ff619](https://github.com/ForestAdmin/agent-python/commit/64ff619f7190f078df0e7d3152ea2b1382f4cc70))
+
 ## [1.8.11](https://github.com/ForestAdmin/agent-python/compare/v1.8.10...v1.8.11) (2024-07-03)
 
 
