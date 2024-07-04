@@ -3,6 +3,8 @@ import sys
 import traceback
 from typing import Callable
 
+from forestadmin.agent_toolkit.options import OptionValidator
+
 logger = logging.getLogger("forestadmin")
 
 
@@ -23,7 +25,10 @@ class ForestLogger:
     @classmethod
     def log(cls, level, message):
         if not cls._logger_instance:
-            cls._logger_instance = _ForestLogger(logging.WARNING, ForestLogger.default_logger_function)
+            # we shouldn't pass here is agent is created
+            cls._logger_instance = _ForestLogger(
+                OptionValidator.DEFAULT_OPTIONS["logger_level"], ForestLogger.default_logger_function
+            )
         cls._logger_instance.log(level, message)
 
     @staticmethod
