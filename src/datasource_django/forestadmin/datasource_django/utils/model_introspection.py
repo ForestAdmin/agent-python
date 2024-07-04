@@ -158,7 +158,7 @@ class DjangoCollectionFactory:
             else:
                 if generic_foreign_key(field) or is_generic_rel(field) or is_generic_relation(field):
                     ForestLogger.log(
-                        "warning",
+                        "info",
                         f"Ignoring {model._meta.db_table}.{field.name} because polymorphic relation is not supported.",
                     )
                     continue

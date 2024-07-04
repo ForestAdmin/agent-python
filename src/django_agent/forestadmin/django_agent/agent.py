@@ -29,6 +29,7 @@ class DjangoAgent(BaseAgent):
         super(DjangoAgent, self).__init__(config)
 
     def __parse_config(self) -> Options:
+        django_only_settings = ["FOREST_CUSTOMIZE_FUNCTION"]
         if getattr(settings, "BASE_DIR", None) is not None:
             base_dir = settings.BASE_DIR
         else:
@@ -38,6 +39,9 @@ class DjangoAgent(BaseAgent):
         options: Options = {"schema_path": os.path.join(base_dir, ".forestadmin-schema.json")}
         for setting_name in dir(settings):
             if not setting_name.upper().startswith("FOREST_"):
+                continue
+
+            if setting_name in django_only_settings:
                 continue
 
             forest_key = setting_name.lower().replace("forest_", "")

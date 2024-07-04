@@ -268,11 +268,11 @@ class TestDjangoCollectionFactory(TestCase):
         self.assertEqual(book_schema["fields"]["author_id"]["column_type"], PrimitiveType.NUMBER)
         self.assertEqual(book_schema["fields"]["author_id"]["type"], FieldType.COLUMN)
 
-    def test_polymorphic_relation_should_be_ignored_with_warning(self):
-        with self.assertLogs("forestadmin", level="WARNING") as cm:
+    def test_polymorphic_relation_should_be_ignored_with_info(self):
+        with self.assertLogs("forestadmin", level="INFO") as cm:
             rating_schema = DjangoCollectionFactory.build(Rating)
             self.assertIn(
-                "WARNING:forestadmin:Ignoring test_app_rating.content_object "
+                "INFO:forestadmin:Ignoring test_app_rating.content_object "
                 "because polymorphic relation is not supported.",
                 cm.output,
             )
