@@ -1,7 +1,6 @@
 import sys
 from typing import Any, Dict, List, Optional, Union
 
-from forestadmin.datasource_toolkit.interfaces.query.projections import Projection
 from forestadmin.datasource_toolkit.interfaces.records import RecordsDataAlias
 
 if sys.version_info >= (3, 10):
@@ -28,31 +27,34 @@ _MARKER_NAME = "__nullMarker"
 
 
 # class created to impersonate the comportment of javascript undefined, and '?.' use
-class Undefined:
+class _Undefined:
     def get(self, *args, **kwargs):
         return self
 
+    def __eq__(self, value: object) -> bool:
+        return isinstance(value, _Undefined)
+
+    # for debugging
     def __str__(self) -> str:
         return "<undefined>"
 
     def __repr__(self) -> str:
-        return "<undefined>"
+        return str(self)
 
 
 def with_null_markers(projection: List[str]) -> List[str]:
-    set_ = set()
-    [set_.add(p) for p in projection]
-    # ret_list = [*set_]
+    ret = projection[:]
 
     for path in projection:
         parts = path.split(":")
         for i in range(1, len(parts)):
             value = f"{':'.join(parts[0:i])}:{_MARKER_NAME}"
-            set_.add(value)
-    return [*set_]
+            if value not in ret:
+                ret.append(value)
+    return ret
 
 
-def unflatten(flats: FlatRecordList, projection: Projection) -> List[RecordsDataAlias]:
+def unflatten(flats: FlatRecordList, projection: List[str]) -> List[RecordsDataAlias]:
     try:
         num_records = len(flats[0])
     except IndexError:
@@ -67,7 +69,7 @@ def unflatten(flats: FlatRecordList, projection: Projection) -> List[RecordsData
             value = flats[path_index][record_index]
 
             # ignore undefined value # but no undefined in python
-            if isinstance(value, Undefined):
+            if isinstance(value, _Undefined):
                 continue
 
             # set all others (including null)
@@ -86,20 +88,20 @@ def flatten(records: List[RecordsDataAlias], paths: List[str]) -> FlatRecordList
     for field in paths:
         parts = field.split(":")
 
-        values: List[Optional[Union[str, Undefined]]] = []
+        values: List[Optional[Union[str, _Undefined]]] = []
         for record in records:
             value = record
             for part in parts[:-1]:
                 if value is None:
-                    value = Undefined()
+                    value = _Undefined()
                 else:
-                    value = value.get(part, Undefined())
+                    value = value.get(part, _Undefined())
 
             # for markers, the value tells us which fields are null so that we can set them.
             if parts[-1] == _MARKER_NAME:
-                values.append(None if value is None else Undefined())
+                values.append(None if value is None else _Undefined())
                 continue
 
-            values.append((value or {}).get(parts[len(parts) - 1], Undefined()))
+            values.append((value or {}).get(parts[len(parts) - 1], _Undefined()))
         ret.append(values)
     return ret
