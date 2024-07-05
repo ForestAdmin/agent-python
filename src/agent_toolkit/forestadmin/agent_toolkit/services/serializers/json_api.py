@@ -224,10 +224,14 @@ class ForestSchema(Schema):
         item["type"] = self.opts.type_  # type: ignore
         for name, relationships in item.get("relationships", {}).items():  # type: ignore
             relation_field = self.Meta.fcollection.get_field(name)  # type: ignore
-            for relationship_data in relationships["data"]:
-                # and same on relationships
-                if is_many_to_many(relation_field):
+            if isinstance(relationships["data"], list):  # many to many
+                for relationship_data in relationships["data"]:
                     relationship_data["type"] = relation_field["foreign_collection"]  # type: ignore
+            else:
+                for name, relationship in item.get("relationships", {}).items():  # type: ignore
+                    relation_field = self.Meta.fcollection.get_field(name)  # type: ignore
+                    relationship["data"]["type"] = relation_field["foreign_collection"]  # type: ignore
+                    item["relationships"][name] = relationship
 
         return super(ForestSchema, self).unwrap_item(item)  # type: ignore
 
