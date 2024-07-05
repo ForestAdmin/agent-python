@@ -81,6 +81,7 @@ class TestUnflatten(TestCase):
 
     def test_round_trip_with_marker_should_conserve_null_values(self):
         records = [
+            {"id": 0, "book": {"author": {"firstname": None, "lastname": None}}},
             {"id": 1, "book": {"author": {"firstname": "Isaac", "lastname": "Asimov"}}},
             {"id": 2, "book": {"author": None}},
             {"id": 3, "book": None},
@@ -105,11 +106,11 @@ class TestUnflatten(TestCase):
         self.assertEqual(
             flat_list,
             [
-                [1, 2, 3, 4],  # id
-                ["Isaac", _Undefined(), _Undefined(), _Undefined()],  # book:author:firstname
-                ["Asimov", _Undefined(), _Undefined(), _Undefined()],  # book:author:lastname
-                [_Undefined(), _Undefined(), None, _Undefined()],  # book:__nullMaker
-                [_Undefined(), None, _Undefined(), _Undefined()],  # book:author:__nullMaker
+                [0, 1, 2, 3, 4],  # id
+                [None, "Isaac", _Undefined(), _Undefined(), _Undefined()],  # book:author:firstname
+                [None, "Asimov", _Undefined(), _Undefined(), _Undefined()],  # book:author:lastname
+                [_Undefined(), _Undefined(), _Undefined(), None, _Undefined()],  # book:__nullMaker
+                [_Undefined(), _Undefined(), None, _Undefined(), _Undefined()],  # book:author:__nullMaker
             ],
         )
         self.assertEqual(records, unflat)
