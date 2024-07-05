@@ -23,6 +23,7 @@ async def transform_unique_values(inputs: Input, callback: Callable[[List[Input]
                 hsh = hash(json.dumps(_input, default=str))
             else:
                 hsh = hash(_input)
+
             if hsh not in indexes:
                 indexes[hsh] = len(unique_inputs)
                 unique_inputs.append(_input)

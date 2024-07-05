@@ -1,10 +1,10 @@
 import copy
-from typing import Any, List, Tuple
+from typing import Any, List
 
 from forestadmin.datasource_toolkit.context.collection_context import CollectionCustomizationContext
 from forestadmin.datasource_toolkit.decorators.computed.types import ComputedDefinition
 from forestadmin.datasource_toolkit.decorators.computed.utils.deduplication import Output, transform_unique_values
-from forestadmin.datasource_toolkit.decorators.computed.utils.flattener import flatten, unflatten
+from forestadmin.datasource_toolkit.decorators.computed.utils.flattener import flatten, unflatten, with_null_markers
 from forestadmin.datasource_toolkit.interfaces.query.projections import Projection
 from forestadmin.datasource_toolkit.interfaces.records import RecordsDataAlias
 from forestadmin.datasource_toolkit.utils.user_callable import call_user_function
@@ -33,16 +33,20 @@ async def queue_field(
     # Skip double computations (we're not checking before adding to queue).
     if new_path not in paths:
         computed = collection.get_computed(new_path)
-        dependencies = Projection(*computed["dependencies"])
-        if ":" in new_path:
-            nested_field = new_path.split(":")[0]
-            dependencies = dependencies.nest(nested_field)
-        for path in dependencies:
+        computed_dependencies = with_null_markers(computed["dependencies"])
+        nested_dependencies = Projection(*computed_dependencies).nest(
+            new_path.rsplit(":", 1)[0] if ":" in new_path else None
+        )
+
+        for path in nested_dependencies:
             await queue_field(ctx, collection, path, paths, flatten_records.copy())
-        dependency_values = [flatten_records[paths.index(path)] for path in dependencies]
+
+        dependency_values = [flatten_records[paths.index(path)] for path in nested_dependencies]
         paths.append(new_path)
 
-        return await compute_field(ctx, computed, computed["dependencies"], copy.deepcopy(dependency_values)) or []
+        flatten_records.append(
+            await compute_field(ctx, computed, computed_dependencies, copy.deepcopy(dependency_values)) or []
+        )
 
 
 async def compute_from_records(
@@ -52,29 +56,16 @@ async def compute_from_records(
     desired_projections: Projection,
     records: List[RecordsDataAlias],
 ) -> List[RecordsDataAlias]:
+    # As there is nothing to compute let's return
+    if len(records) == 0:
+        return []
 
-    paths: List[str] = [*records_projection]
-    paths.sort()
-    desired_projections.sort()
-    flatten_records = flatten(records, paths)  # type:ignore
-    add_operations: List[Tuple[int, Any]] = []
-    delete_operations: List[int] = []
+    # Format data for easy computation (one cell per path, with all values).
+    paths = with_null_markers(records_projection)
+    flatten_records = flatten(records, paths)
 
-    for i, path in enumerate(desired_projections):
-        value = await queue_field(ctx, collection, path, paths, copy.deepcopy(flatten_records))
-        if value is not None:
-            add_operations.append((i, value))
+    final_projection = with_null_markers(desired_projections)
+    for path in final_projection:
+        await queue_field(ctx, collection, path, paths, flatten_records)
 
-    for path in paths:
-        if path not in desired_projections:
-            delete_operations.append(paths.index(path))
-
-    delete_operations.sort(key=lambda o: o, reverse=True)
-    add_operations.sort(key=lambda o: o[0])
-    for i in delete_operations:
-        del flatten_records[i]
-
-    for i, value in add_operations:
-        flatten_records.insert(i, value)
-
-    return [u for u in unflatten(flatten_records, desired_projections) if u]
+    return unflatten([flatten_records[paths.index(path)] for path in final_projection], Projection(*final_projection))
