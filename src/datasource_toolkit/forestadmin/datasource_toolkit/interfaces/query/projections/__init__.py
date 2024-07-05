@@ -75,7 +75,7 @@ class Projection(list):  # type: ignore
                     result.append(field)  # type: ignore
         return result
 
-    def nest(self, prefix: str) -> "Projection":
+    def nest(self, prefix: Optional[str]) -> "Projection":
         if prefix:
             return Projection(*map(lambda path: f"{prefix}:{path}", self))  # type: ignore
         return self
