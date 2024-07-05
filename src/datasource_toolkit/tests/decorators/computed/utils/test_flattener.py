@@ -33,7 +33,6 @@ class TestFlatten(TestCase):
 
         assert results[marked_projection.index("id")] == [1, 2, 3]
         assert results[marked_projection.index("book:author:first_name")] == ["Romain", _Undefined(), "Ana"]
-        assert results[marked_projection.index("book:author:first_name")] == ["Romain", _Undefined(), "Ana"]
 
 
 class TestUnflatten(TestCase):
