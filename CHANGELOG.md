@@ -1,3 +1,10 @@
+## [1.8.13](https://github.com/ForestAdmin/agent-python/compare/v1.8.12...v1.8.13) (2024-07-08)
+
+
+### Bug Fixes
+
+* **computed:** falsy dependency records were not passed to user function ([#237](https://github.com/ForestAdmin/agent-python/issues/237)) ([c8d683e](https://github.com/ForestAdmin/agent-python/commit/c8d683e1612df2586ca229a386a56e8f192a1c00))
+
 ## [1.8.12](https://github.com/ForestAdmin/agent-python/compare/v1.8.11...v1.8.12) (2024-07-04)
 
 
