@@ -4,7 +4,8 @@ from forestadmin.agent_toolkit.utils.context import User
 from forestadmin.datasource_toolkit.context.collection_context import CollectionCustomizationContext
 from forestadmin.datasource_toolkit.decorators.collection_decorator import CollectionDecorator
 from forestadmin.datasource_toolkit.decorators.computed.exceptions import ComputedDecoratorException
-from forestadmin.datasource_toolkit.decorators.computed.helpers import compute_from_records, rewrite_fields
+from forestadmin.datasource_toolkit.decorators.computed.helpers.compute_fields import compute_from_records
+from forestadmin.datasource_toolkit.decorators.computed.helpers.rewrite_projection import rewrite_fields
 from forestadmin.datasource_toolkit.decorators.computed.types import ComputedDefinition
 from forestadmin.datasource_toolkit.interfaces.collections import Collection
 from forestadmin.datasource_toolkit.interfaces.fields import ColumnAlias, FieldType, PrimitiveType, RelationAlias
@@ -65,8 +66,11 @@ class ComputedCollectionDecorator(CollectionDecorator):
         if not any([self.get_computed(field) for field in aggregation.projection]):
             return await self.child_collection.aggregate(caller, _filter, aggregation, limit)
 
-        records = await self.list(caller, PaginatedFilter.from_base_filter(_filter), aggregation.projection)
-        return aggregation.apply(records, str(caller.timezone), limit)
+        return aggregation.apply(
+            await self.list(caller, PaginatedFilter.from_base_filter(_filter), aggregation.projection),
+            str(caller.timezone),
+            limit,
+        )
 
     def _refine_schema(self, sub_schema: CollectionSchema) -> CollectionSchema:
         computed_fields_schema = {**sub_schema["fields"]}
@@ -88,6 +92,7 @@ class ComputedCollectionDecorator(CollectionDecorator):
     def _cast_column_type(
         column_type_input: ColumnAlias,
     ) -> Union[PrimitiveType, Dict[str, PrimitiveType], List[PrimitiveType], List[Dict[str, PrimitiveType]]]:
+        """to allow user to declare column type as string instead of PrimitiveType enum"""
         if isinstance(column_type_input, dict):
             column_type = {k: ComputedCollectionDecorator._cast_column_type(t) for k, t in column_type_input.items()}
         elif isinstance(column_type_input, list):
