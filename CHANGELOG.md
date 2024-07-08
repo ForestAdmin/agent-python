@@ -1,3 +1,10 @@
+## [1.8.14](https://github.com/ForestAdmin/agent-python/compare/v1.8.13...v1.8.14) (2024-07-08)
+
+
+### Bug Fixes
+
+* **json_api:** regression inserted in 'many to many attachment during creation' ([#238](https://github.com/ForestAdmin/agent-python/issues/238)) ([36ce8a7](https://github.com/ForestAdmin/agent-python/commit/36ce8a7608f7ab2eb45542ebd7d3033f446dc7e4))
+
 ## [1.8.13](https://github.com/ForestAdmin/agent-python/compare/v1.8.12...v1.8.13) (2024-07-08)
 
 
