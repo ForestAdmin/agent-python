@@ -2,11 +2,12 @@ import enum
 import os
 
 import sqlalchemy  # type: ignore
-from sqlalchemy import Boolean, Column, DateTime, Enum, ForeignKey, Integer, LargeBinary, String, func
+from sqlalchemy import Boolean, Column, DateTime, Enum, ForeignKey, Integer, LargeBinary, String, Uuid, func
 from sqlalchemy.orm import relationship
 
 sqlite_path = os.path.abspath(os.path.join(__file__, "..", "..", "..", "db.sql"))
-SQLITE_URI = f"sqlite:///{sqlite_path}"
+DB_URI = f"sqlite:///{sqlite_path}"
+# DB_URI = "postgresql://flask:flask@127.0.0.1:5432/flask_scratch"
 
 
 use_sqlalchemy_2 = sqlalchemy.__version__.split(".")[0] == "2"
@@ -24,7 +25,7 @@ else:
 
     Base = declarative_base()
 
-engine = create_engine(SQLITE_URI, echo=False)
+engine = create_engine(DB_URI, echo=False)
 
 
 class ORDER_STATUS(enum.Enum):

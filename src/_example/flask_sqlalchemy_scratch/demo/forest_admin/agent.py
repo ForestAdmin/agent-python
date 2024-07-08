@@ -76,6 +76,7 @@ def customize_agent(agent: FlaskAgent):
             "dependencies": ["zip_code"],
         },
     )
+
     # customers_addresses
     # smart relations
     agent.customize_collection("customers_addresses").add_many_to_one_relation(
@@ -94,7 +95,7 @@ def customize_agent(agent: FlaskAgent):
     ).add_action(
         # # action single with form
         "Age operation dict",
-        age_operation_action_dict
+        age_operation_action_dict,
         # computed field
     ).add_field(
         "TotalSpending", customer_spending_computed()
@@ -104,7 +105,7 @@ def customize_agent(agent: FlaskAgent):
     ).replace_field_writing(
         # custom write on computed
         "full_name",
-        customer_full_name_write
+        customer_full_name_write,
         # custom operators for computed fields
     ).replace_field_operator(
         "full_name",
@@ -166,11 +167,11 @@ def customize_agent(agent: FlaskAgent):
         "Suspicious order", suspicious_order_segment
     ).add_segment(
         "newly_created",
-        lambda context: ConditionTreeLeaf("created_at", Operator.AFTER, "2023-01-01")
+        lambda context: ConditionTreeLeaf("created_at", Operator.AFTER, "2023-01-01"),
         # # rename
     ).rename_field(
         "amount",
-        "cost"
+        "cost",
         # # action file global
     ).add_action(
         "Export json", export_orders_json
@@ -190,6 +191,7 @@ def customize_agent(agent: FlaskAgent):
     )
 
     # cart
+
     agent.customize_collection("cart").replace_field_writing("name", cart_update_name).add_segment(
         "No order", lambda ctx: ConditionTreeLeaf("order_id", Operator.EQUAL, None)
     )
