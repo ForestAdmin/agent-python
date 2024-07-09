@@ -128,12 +128,35 @@ class TestDjangoFieldFactory(TestCase):
                 Operator.PRESENT,
                 Operator.CONTAINS,
                 Operator.ENDS_WITH,
-                Operator.LIKE,
                 Operator.STARTS_WITH,
                 Operator.IN,
                 Operator.NOT_IN,
             },
         )
+
+    def test_introspected_field_should_respect_django_capabilities(self):
+        field = models.TextField()
+        field_schema = FieldFactory.build(field, None)
+        self.assertEqual(field_schema["column_type"], PrimitiveType.STRING)
+        self.assertEqual(
+            field_schema["filter_operators"],
+            {
+                Operator.BLANK,
+                Operator.EQUAL,
+                Operator.MISSING,
+                Operator.NOT_EQUAL,
+                Operator.PRESENT,
+                Operator.CONTAINS,
+                Operator.NOT_CONTAINS,
+                Operator.ENDS_WITH,
+                Operator.STARTS_WITH,
+                Operator.IN,
+                Operator.NOT_IN,
+            },
+        )
+        self.assertNotIn(Operator.SHORTER_THAN, field_schema["filter_operators"])
+        self.assertNotIn(Operator.LIKE, field_schema["filter_operators"])
+        self.assertNotIn(Operator.LONGER_THAN, field_schema["filter_operators"])
 
 
 class TestDjangoCollectionFactory(TestCase):

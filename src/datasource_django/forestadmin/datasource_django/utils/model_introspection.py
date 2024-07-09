@@ -90,7 +90,7 @@ class FieldFactory:
             "default_value": default_value,
             "is_sortable": True,
             "validations": cls._build_validations(field),
-            "filter_operators": FilterOperator.get_for_type(column_type),
+            "filter_operators": FilterOperator.get_operators_for_field(field),
             "enum_values": cls._build_enum_values(field),
             "type": FieldType.COLUMN,
         }
