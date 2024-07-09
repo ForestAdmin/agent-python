@@ -102,6 +102,7 @@ class TestCrudResource(TestCase):
                     "column_type": PrimitiveType.NUMBER,
                     "is_primary_key": False,
                     "type": FieldType.ONE_TO_MANY,
+                    "foreign_collection": "product",
                 },
                 "status": {
                     "column_type": PrimitiveType.NUMBER,
@@ -140,6 +141,15 @@ class TestCrudResource(TestCase):
             },
         )
 
+        # product
+        cls.collection_product = cls._create_collection(
+            "product",
+            {
+                "id": {"column_type": PrimitiveType.NUMBER, "is_primary_key": True, "type": FieldType.COLUMN},
+                "name": {"column_type": PrimitiveType.STRING, "is_primary_key": False, "type": FieldType.COLUMN},
+            },
+        )
+
     @classmethod
     def setUpClass(cls) -> None:
         cls.loop = asyncio.new_event_loop()
@@ -158,6 +168,7 @@ class TestCrudResource(TestCase):
             "order": cls.collection_order,
             "status": cls.collection_status,
             "cart": cls.collection_cart,
+            "product": cls.collection_product,
         }
 
     def setUp(self):
