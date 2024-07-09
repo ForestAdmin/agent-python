@@ -351,5 +351,5 @@ async def customer_delete_override(context: DeleteOverrideCustomizationContext):
 async def customer_update_override(context: UpdateOverrideCustomizationContext):
     logger = logging.getLogger("forestadmin")
 
-    logger.info(f"Making the customer {context.patch['id']} prettier")
+    logger.info(f"Making the customer {context.patch.get('id')} prettier")
     await context.collection.update(context.caller, context.filter, context.patch)
