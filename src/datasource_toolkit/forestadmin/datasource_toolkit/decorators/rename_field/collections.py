@@ -186,7 +186,6 @@ class RenameFieldCollectionDecorator(CollectionDecorator):
             field_name, *related_field = path.split(":")
             related_field = ":".join(related_field)
 
-        if related_field is not None:
             schema = self.schema["fields"][field_name]
             if is_straight_relation(schema) or is_reverse_polymorphic_relation(schema):
                 relation = datasource.get_collection(schema["foreign_collection"])

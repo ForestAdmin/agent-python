@@ -33,7 +33,7 @@ class DjangoPolymorphismUtil:
     def get_polymorphism_relations(cls, projection: Projection, collection: BaseDjangoCollection) -> List[str]:
         ret = []
         for field_name, field_schema in collection.schema["fields"].items():
-            if (f"{field_name}:" in projection or field_name in projection) and is_polymorphic_many_to_one(
+            if (f"{field_name}:*" in projection or field_name in projection) and is_polymorphic_many_to_one(
                 field_schema
             ):
                 ret.append(field_name)
@@ -42,16 +42,16 @@ class DjangoPolymorphismUtil:
     @classmethod
     def is_polymorphism_implied(cls, projection: Projection, collection: BaseDjangoCollection) -> bool:
         fields_schema = collection.schema["fields"]
-        for field in projection:
-            if field[-1] == ":" and is_polymorphic_many_to_one(fields_schema[field[:-1]]):
+        for field, subfields in projection.relations.items():
+            if subfields == ["*"] and is_polymorphic_many_to_one(fields_schema[field]):
                 return True
-            elif ":" not in field and is_reverse_polymorphic_relation(fields_schema[field]):
+            elif "*" not in subfields and is_reverse_polymorphic_relation(fields_schema[field]):
                 return True
-            elif ":" in field:
+            elif "*" in subfields:
                 foreign_collection = collection.datasource.get_collection(
-                    fields_schema[field.split(":")[0]]["foreign_collection"]  # type:ignore
+                    fields_schema[field]["foreign_collection"]  # type:ignore
                 )
-                if cls.is_polymorphism_implied(Projection(field.split(":", 1)[1]), foreign_collection):
+                if cls.is_polymorphism_implied(Projection(subfields), foreign_collection):
                     return True
         return False
 
@@ -91,7 +91,7 @@ class DjangoPolymorphismUtil:
             )
 
         condition_tree = cast(ConditionTreeLeaf, condition_tree)
-        if ":" in condition_tree.field:
+        if ":*" in condition_tree.field:
             relation = condition_tree.field.split(":")[0]
             return cls.replace_content_type_in_condition_tree(
                 condition_tree.unnest(),

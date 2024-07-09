@@ -7,12 +7,7 @@ from forestadmin.datasource_django.exception import DjangoDatasourceException
 from forestadmin.datasource_django.interface import BaseDjangoCollection
 from forestadmin.datasource_django.utils.polymorphic_util import DjangoPolymorphismUtil
 from forestadmin.datasource_django.utils.type_converter import FilterOperator
-from forestadmin.datasource_toolkit.interfaces.fields import (
-    is_many_to_one,
-    is_one_to_one,
-    is_polymorphic_many_to_one,
-    is_polymorphic_one_to_one,
-)
+from forestadmin.datasource_toolkit.interfaces.fields import is_many_to_one, is_one_to_one, is_polymorphic_one_to_one
 from forestadmin.datasource_toolkit.interfaces.query.aggregation import (
     AggregateResult,
     Aggregation,
@@ -107,21 +102,25 @@ class DjangoQueryBuilder:
 
         for relation_name, subfields in projection.relations.items():
             field_schema = collection.schema["fields"][relation_name]
-            if not break_select_related[relation_name] and (
-                is_many_to_one(field_schema)
-                or is_one_to_one(field_schema)
-                # TODO: validate manyToOne here
-                or is_polymorphic_many_to_one(field_schema)
-                or is_polymorphic_one_to_one(field_schema)
-            ):
-                select_related.add(relation_name)
-            else:
-                break_select_related[relation_name] = True
-                prefetch_related.add(relation_name)
+            if not break_select_related[relation_name]:
+                if (
+                    is_many_to_one(field_schema)
+                    or is_one_to_one(field_schema)
+                    or is_polymorphic_one_to_one(field_schema)
+                ):
+                    select_related.add(relation_name)
+                else:
+                    break_select_related[relation_name] = True
+                    prefetch_related.add(relation_name)
 
-            sub_select, sub_prefetch = cls._find_related_in_projection(
-                collection.datasource.get_collection(field_schema["foreign_collection"]), subfields
+            sub_select, sub_prefetch = (
+                cls._find_related_in_projection(
+                    collection.datasource.get_collection(field_schema["foreign_collection"]), subfields
+                )
+                if subfields != ["*"]
+                else ([], [])
             )
+
             if not break_select_related[relation_name]:
                 select_related = select_related.union(Projection(*sub_select).nest(relation_name))
             else:

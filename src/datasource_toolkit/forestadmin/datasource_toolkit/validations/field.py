@@ -49,7 +49,7 @@ class FieldValidator:
                     cls.validate_value(field, schema, value)
         else:
             if is_polymorphic_many_to_one(schema):
-                if nested_field != "":
+                if nested_field != "*":
                     raise FieldValidatorException(
                         f"Unexpected nested field {nested_field} under generic relation: {collection.name}.{field}"
                     )

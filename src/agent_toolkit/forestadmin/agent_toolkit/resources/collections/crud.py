@@ -104,7 +104,11 @@ class CrudResource(BaseCollectionResource):
 
         for name, schema in collection.schema["fields"].items():
             if is_many_to_many(schema) or is_one_to_many(schema) or is_polymorphic_one_to_many(schema):
-                projections.append(f"{name}:id")  # type: ignore
+                pks = SchemaUtils.get_primary_keys(
+                    collection.datasource.get_collection(schema["foreign_collection"]).schema
+                )
+                for pk in pks:
+                    projections.append(f"{name}:{pk}")
                 records[0][name] = None
 
         schema = JsonApiSerializer.get(collection)

@@ -4,7 +4,11 @@ from typing import Any
 from django.db.models import Model
 from forestadmin.datasource_django.interface import BaseDjangoCollection
 from forestadmin.datasource_django.utils.polymorphic_util import DjangoPolymorphismUtil
-from forestadmin.datasource_toolkit.interfaces.fields import is_polymorphic_one_to_many, is_polymorphic_one_to_one
+from forestadmin.datasource_toolkit.interfaces.fields import (
+    is_polymorphic_many_to_one,
+    is_polymorphic_one_to_many,
+    is_polymorphic_one_to_one,
+)
 from forestadmin.datasource_toolkit.interfaces.query.projections import Projection
 from forestadmin.datasource_toolkit.interfaces.query.projections.factory import ProjectionFactory
 from forestadmin.datasource_toolkit.interfaces.records import RecordsDataAlias
@@ -24,12 +28,14 @@ def instance_to_record_data(
 
     for relation_name, subfields in projection.relations.items():
         relation = getattr(instance, relation_name, None)
-        if is_polymorphic_one_to_many(collection.schema["fields"][relation_name]):
+        relation_schema = collection.schema["fields"][relation_name]
+        if is_polymorphic_one_to_many(relation_schema) or is_polymorphic_many_to_one(relation_schema):
             continue
-        if is_polymorphic_one_to_one(collection.schema["fields"][relation_name]):
+        if is_polymorphic_one_to_one(relation_schema):
             relation = relation.first()
 
         if relation:
+
             foreign_collection = collection.datasource.get_collection(
                 collection.schema["fields"][relation_name]["foreign_collection"]
             )
@@ -41,18 +47,18 @@ def instance_to_record_data(
         else:
             record_data[relation_name] = None
 
-    poly_relations = [p for p in projection if p[-1] == ":"]
+    poly_relations = [p for p in projection if p.endswith(":*")]
     for poly_relation in poly_relations:
-        record_data[poly_relation[:-1]] = None
+        record_data[poly_relation[:-2]] = None
 
-        target_type = record_data[collection.schema["fields"][poly_relation[:-1]]["foreign_key_type_field"]]
+        target_type = record_data[collection.schema["fields"][poly_relation[:-2]]["foreign_key_type_field"]]
         if target_type is None:
             continue
 
         foreign_collection = collection.datasource.get_collection(target_type)
-        value = getattr(instance, poly_relation[:-1], None)
+        value = getattr(instance, poly_relation[:-2], None)
         if value is not None:
-            record_data[poly_relation[:-1]] = instance_to_record_data(
+            record_data[poly_relation[:-2]] = instance_to_record_data(
                 value,
                 ProjectionFactory.all(foreign_collection),
                 foreign_collection,

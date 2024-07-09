@@ -65,7 +65,7 @@ def unflatten(flats: FlatRecordList, projection: List[str]) -> List[RecordsDataA
     for record_index in range(num_records):
         for path_index, path in enumerate(projection):
             # When a marker is found, the parent is null.
-            parts = [*filter(lambda part: part != _MARKER_NAME, path.split(":"))]
+            parts = [*filter(lambda part: part not in (_MARKER_NAME, "*"), path.split(":"))]
             value = flats[path_index][record_index]
 
             # ignore undefined value # but no undefined in python
@@ -94,7 +94,7 @@ def unflatten(flats: FlatRecordList, projection: List[str]) -> List[RecordsDataA
 def flatten(records: List[RecordsDataAlias], paths: List[str]) -> FlatRecordList:
     ret: FlatRecordList = []
     for field in paths:
-        parts = field.split(":")
+        parts = [*filter(lambda p: p != "*", field.split(":"))]
 
         values: List[Optional[Union[str, _Undefined]]] = []
         for record in records:

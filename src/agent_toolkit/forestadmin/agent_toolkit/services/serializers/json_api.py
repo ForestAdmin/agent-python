@@ -222,7 +222,7 @@ class ForestSchema(Schema):
         include_data: Set[str] = set()
         for projection in cast(List[str], projections):
             if ":" in projection:
-                only.add(projection.replace(":", "."))
+                only.add(projection.replace(":*", ":").replace(":", "."))
                 include_data.add(projection.split(":")[0])
             else:
                 only.add(projection)

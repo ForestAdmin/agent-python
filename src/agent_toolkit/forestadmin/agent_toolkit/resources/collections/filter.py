@@ -316,7 +316,7 @@ def parse_projection(request: Union[RequestCollection, RequestRelationCollection
         if is_column(schema["fields"][_field]):
             explicit_request.append(_field)
         elif is_polymorphic_many_to_one(schema["fields"][_field]):
-            explicit_request.append(f"{_field}:")
+            explicit_request.append(f"{_field}:*")
         else:
             query_params = f"fields[{_field}]"
             explicit_request.append(f"{_field}:{request.query[query_params]}")
