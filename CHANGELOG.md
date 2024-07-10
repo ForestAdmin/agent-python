@@ -1,3 +1,10 @@
+## [1.8.15](https://github.com/ForestAdmin/agent-python/compare/v1.8.14...v1.8.15) (2024-07-10)
+
+
+### Bug Fixes
+
+* **django_introspection:** supported operators are compliant to django capabilities ([#240](https://github.com/ForestAdmin/agent-python/issues/240)) ([c5cfedf](https://github.com/ForestAdmin/agent-python/commit/c5cfedfa58e4ffa2af6f695f2632b71e285c53df))
+
 ## [1.8.14](https://github.com/ForestAdmin/agent-python/compare/v1.8.13...v1.8.14) (2024-07-08)
 
 
