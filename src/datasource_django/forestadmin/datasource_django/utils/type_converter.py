@@ -1,4 +1,4 @@
-from typing import Dict, Tuple
+from typing import Dict, Set, Tuple
 
 from django.db import models
 from forestadmin.datasource_django.exception import DjangoDatasourceException
@@ -103,8 +103,8 @@ class TypeConverter:
 class FilterOperator(BaseFilterOperator):
     OPERATORS = {
         # operator:  (lookup_expr, negate needed)
-        Operator.EQUAL: ("", False),
-        Operator.NOT_EQUAL: ("", True),
+        Operator.EQUAL: ("__exact", False),
+        Operator.NOT_EQUAL: ("__exact", True),
         Operator.BLANK: ("__isnull", False),
         Operator.CONTAINS: ("__icontains", False),
         Operator.NOT_CONTAINS: ("__icontains", True),
@@ -119,7 +119,7 @@ class FilterOperator(BaseFilterOperator):
         Operator.IN: ("__in", False),
         Operator.NOT_IN: ("__in", True),
         Operator.INCLUDES_ALL: ("__contains", False),
-        Operator.MATCH: ("regex", False),
+        Operator.MATCH: ("__regex", False),
     }
 
     @classmethod
@@ -129,3 +129,15 @@ class FilterOperator(BaseFilterOperator):
             return cls.OPERATORS[operator]
         except KeyError:
             raise ConverterException(f"Unable to handle the operator {operator}")
+
+    @classmethod
+    def get_operators_for_field(cls, field: models.Field) -> Set[Operator]:
+        _type = TypeConverter.convert(field)
+        wanted_operators = cls.get_for_type(_type)
+        lookup_names = field.get_lookups().keys()
+        unavailable_operators = []
+        for wanted_operator in wanted_operators:
+            if cls.OPERATORS.get(wanted_operator, ("",))[0].replace("__", "") not in lookup_names:
+                unavailable_operators.append(wanted_operator)
+
+        return set([operator for operator in wanted_operators if operator not in unavailable_operators])
