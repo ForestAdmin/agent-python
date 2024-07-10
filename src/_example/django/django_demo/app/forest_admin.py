@@ -83,7 +83,7 @@ def customize_forest(agent: DjangoAgent):
         {
             "column_type": "Number",
             "dependencies": ["order:customer_id"],
-            "get_values": lambda records, context: [rec["order"]["customer_id"] for rec in records],
+            "get_values": lambda records, context: [rec.get("order", {}).get("customer_id") for rec in records],
         },
     ).emulate_field_operator("customer_id", "in").replace_field_writing("name", cart_update_name).add_segment(
         "No order", lambda ctx: ConditionTreeLeaf("order_id", "equal", None)
