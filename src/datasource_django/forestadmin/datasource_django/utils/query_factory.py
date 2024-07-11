@@ -4,6 +4,7 @@ from typing import Any, Dict, List, Optional, Set, Tuple
 
 from asgiref.sync import sync_to_async
 from django.db import models
+from forestadmin.agent_toolkit.forest_logger import ForestLogger
 from forestadmin.datasource_django.exception import DjangoDatasourceException
 from forestadmin.datasource_django.interface import BaseDjangoCollection
 from forestadmin.datasource_django.utils.type_converter import FilterOperator
