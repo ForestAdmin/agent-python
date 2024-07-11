@@ -182,11 +182,7 @@ class DjangoQueryBuilder:
 
     @staticmethod
     def mk_create(collection: BaseDjangoCollection, data: List[RecordsDataAlias]) -> List[models.Model]:
-        instances: List[models.Model] = [collection.model(**d) for d in data]
-        for i in instances:
-            i.save()
-            i.refresh_from_db()
-
+        instances: List[models.Model] = [collection.model.objects.create(**d) for d in data]
         return instances
 
     @staticmethod
