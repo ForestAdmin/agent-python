@@ -30,26 +30,32 @@ class DjangoCollection(BaseDjangoCollection):
         return self._model
 
     async def list(self, caller: User, filter_: PaginatedFilter, projection: Projection) -> List[RecordsDataAlias]:
-        return [
-            await sync_to_async(instance_to_record_data)(item, projection)
-            for item in await DjangoQueryBuilder.mk_list(self, filter_, projection)
-        ]
+        def _list():
+            return [
+                instance_to_record_data(item, projection)
+                for item in DjangoQueryBuilder.mk_list(self, filter_, projection)
+            ]
+
+        return await sync_to_async(_list)()
 
     async def aggregate(
         self, caller: User, filter_: Optional[Filter], aggregation: Aggregation, limit: Optional[int] = None
     ) -> List[AggregateResult]:
-        return await DjangoQueryBuilder.mk_aggregate(self, filter_, aggregation, limit)
+        return await sync_to_async(DjangoQueryBuilder.mk_aggregate)(self, filter_, aggregation, limit)
 
     async def create(self, caller: User, data: List[RecordsDataAlias]) -> List[RecordsDataAlias]:
-        instances = await DjangoQueryBuilder.mk_create(self, data)
         projection = Projection(*[k for k in self.schema["fields"].keys() if is_column(self.schema["fields"][k])])
-        return [await sync_to_async(instance_to_record_data)(item, projection) for item in instances]
+
+        def _create():
+            return [instance_to_record_data(item, projection) for item in DjangoQueryBuilder.mk_create(self, data)]
+
+        return await sync_to_async(_create)()
 
     async def update(self, caller: User, filter_: Optional[Filter], patch: RecordsDataAlias) -> None:
-        await DjangoQueryBuilder.mk_update(self, filter_, patch)
+        await sync_to_async(DjangoQueryBuilder.mk_update)(self, filter_, patch)
 
     async def delete(self, caller: User, filter_: Optional[Filter]) -> None:
-        await DjangoQueryBuilder.mk_delete(self, filter_)
+        await sync_to_async(DjangoQueryBuilder.mk_delete)(self, filter_)
 
     def get_native_driver(self) -> NativeDriverWrapper:
         db_name = get_db_for_native_driver(self.model)
