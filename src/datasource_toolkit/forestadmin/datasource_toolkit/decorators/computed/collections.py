@@ -1,5 +1,6 @@
 from typing import Any, Dict, List, Optional, Union, cast
 
+from forestadmin.agent_toolkit.forest_logger import ForestLogger
 from forestadmin.agent_toolkit.utils.context import User
 from forestadmin.datasource_toolkit.context.collection_context import CollectionCustomizationContext
 from forestadmin.datasource_toolkit.decorators.collection_decorator import CollectionDecorator
@@ -57,6 +58,9 @@ class ComputedCollectionDecorator(CollectionDecorator):
         if new_projection == projection:
             return records
 
+        ForestLogger.log("warning", f"projection: {projection}")
+        ForestLogger.log("warning", f"new_projection: {new_projection}")
+        ForestLogger.log("warning", f"records: {records}")
         context = CollectionCustomizationContext(cast(Collection, self), caller)
         return await compute_from_records(context, self, new_projection, projection, records)
 
