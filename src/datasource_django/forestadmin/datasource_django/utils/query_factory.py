@@ -182,7 +182,9 @@ class DjangoQueryBuilder:
 
     @staticmethod
     def mk_create(collection: BaseDjangoCollection, data: List[RecordsDataAlias]) -> List[models.Model]:
+        ForestLogger.log("warning", f"before model.create, data: {data}")
         instances: List[models.Model] = [collection.model.objects.create(**d) for d in data]
+        ForestLogger.log("warning", f"after model.create, instances: {[i.__dict__ for i in instances]}")
         return instances
 
     @staticmethod
