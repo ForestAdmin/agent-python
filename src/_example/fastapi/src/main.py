@@ -8,7 +8,7 @@ from forestadmin.datasource_sqlalchemy.datasource import SqlAlchemyDatasource
 from forestadmin.fastapi_agent.agent import create_agent
 from src.config import forest_settings, settings
 from src.custom_logs import ColorizedFormatter
-from src.forest_admin import customize_forest
+from src.forest.agent import customize_forest
 from src.sql_alchemy.models import Base
 
 forest_logger = logging.getLogger("forestadmin")
