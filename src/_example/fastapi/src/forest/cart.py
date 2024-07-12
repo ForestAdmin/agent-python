@@ -126,7 +126,7 @@ widget_action_form: ActionDict = {
             "type": ActionFieldType.DATE_ONLY,
             "widget": "",
             "min": date(2023, 10, 1),
-            "max": date.today(),
+            "max": date(2025, 12, 31),
             # "max": lambda ctx: date.today(),
             "format": "YYYY/MM/DD",
         },
