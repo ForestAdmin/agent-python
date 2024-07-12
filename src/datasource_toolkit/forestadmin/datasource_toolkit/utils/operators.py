@@ -23,7 +23,7 @@ class BaseFilterOperator:
                 Operator.NOT_IN,
             }
         elif _type == PrimitiveType.BOOLEAN:
-            operators = cls.COMMON_OPERATORS
+            operators = {*cls.COMMON_OPERATORS}
         elif _type == PrimitiveType.UUID:
             operators = {
                 *cls.COMMON_OPERATORS,
@@ -31,6 +31,8 @@ class BaseFilterOperator:
                 Operator.ENDS_WITH,
                 Operator.LIKE,
                 Operator.STARTS_WITH,
+                Operator.IN,
+                Operator.NOT_IN,
             }
         elif _type == PrimitiveType.NUMBER:
             operators = {
@@ -64,13 +66,18 @@ class BaseFilterOperator:
                 Operator.LESS_THAN,
             }
         elif _type == PrimitiveType.ENUM:
-            operators = {*cls.COMMON_OPERATORS, Operator.IN, Operator.NOT_IN}
+            operators = {
+                *cls.COMMON_OPERATORS,
+                Operator.IN,
+                Operator.NOT_IN,
+            }
         elif _type == PrimitiveType.JSON:
-            operators = cls.COMMON_OPERATORS
+            operators = {*cls.COMMON_OPERATORS}
         elif _type == PrimitiveType.BINARY:
             operators = {
                 *cls.COMMON_OPERATORS,
                 Operator.IN,
+                Operator.NOT_IN,
             }
 
         return operators

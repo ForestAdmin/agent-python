@@ -21,6 +21,7 @@ class Options(TypedDict):
     customize_error_message: Callable[[Exception], str]
     instant_cache_refresh: Optional[bool]
     skip_schema_update: Optional[bool]
+    verify_ssl: Optional[bool]
 
 
 class OptionValidator:
@@ -33,6 +34,7 @@ class OptionValidator:
         "customize_error_message": None,
         "permissions_cache_duration_in_seconds": 15 * 60,
         "skip_schema_update": False,
+        "verify_ssl": os.environ.get("FOREST_VERIFY_SSL", "True").lower() == "true",
     }
 
     @classmethod

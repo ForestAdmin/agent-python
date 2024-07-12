@@ -2,16 +2,17 @@ import enum
 import os
 
 import sqlalchemy  # type: ignore
-from sqlalchemy import Boolean, Column, DateTime, Enum, ForeignKey, Integer, LargeBinary, String, func
+from sqlalchemy import Boolean, Column, DateTime, Enum, ForeignKey, Integer, LargeBinary, String, Uuid, func
 from sqlalchemy.orm import relationship
 
 sqlite_path = os.path.abspath(os.path.join(__file__, "..", "..", "..", "db.sql"))
-SQLITE_URI = f"sqlite:///{sqlite_path}"
+DB_URI = f"sqlite:///{sqlite_path}"
+# DB_URI = "postgresql://flask:flask@127.0.0.1:5432/flask_scratch"
 
 
 use_sqlalchemy_2 = sqlalchemy.__version__.split(".")[0] == "2"
 if use_sqlalchemy_2:
-    from sqlalchemy import create_engine
+    from sqlalchemy import Uuid, create_engine
     from sqlalchemy.orm import DeclarativeBase
 
     class Base(DeclarativeBase):
@@ -19,11 +20,12 @@ if use_sqlalchemy_2:
 
 else:
     from sqlalchemy import create_engine
+    from sqlalchemy.dialects.postgresql import UUID as Uuid
     from sqlalchemy.orm import declarative_base
 
     Base = declarative_base()
 
-engine = create_engine(SQLITE_URI, echo=False)
+engine = create_engine(DB_URI, echo=False)
 
 
 class ORDER_STATUS(enum.Enum):
@@ -46,7 +48,7 @@ class Address(Base):
 
 class Customer(Base):
     __tablename__ = "customer"
-    pk = Column(LargeBinary, primary_key=True)
+    pk = Column(Uuid, primary_key=True)
     first_name = Column(String(254), nullable=False)
     last_name = Column(String(254), nullable=False)
     age = Column(Integer, nullable=True)
@@ -62,7 +64,7 @@ class Order(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     amount = Column(Integer, nullable=False)
     customer = relationship("Customer", backref="orders")
-    customer_id = Column(LargeBinary, ForeignKey("customer.pk"))
+    customer_id = Column(Uuid, ForeignKey("customer.pk"))
     billing_address_id = Column(Integer, ForeignKey("address.pk"))
     billing_address = relationship("Address", foreign_keys=[billing_address_id], backref="billing_orders")
     delivering_address_id = Column(Integer, ForeignKey("address.pk"))
@@ -85,5 +87,5 @@ class Cart(Base):
 
 class CustomersAddresses(Base):
     __tablename__ = "customers_addresses"
-    customer_id = Column(LargeBinary, ForeignKey("customer.pk"), primary_key=True)
+    customer_id = Column(Uuid, ForeignKey("customer.pk"), primary_key=True)
     address_id = Column(Integer, ForeignKey("address.pk"), primary_key=True)

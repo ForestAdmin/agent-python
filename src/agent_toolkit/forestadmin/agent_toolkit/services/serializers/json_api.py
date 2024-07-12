@@ -88,10 +88,8 @@ def _create_relationship(collection: CollectionAlias, field_name: str, relation:
         "related_url_kwargs": {f"{collection.name.lower()}_id": "<__forest_id__>"},
         "collection": collection,
     }
-    if is_many_to_many(relation):
-        type_ = relation["through_collection"]
-    else:
-        type_ = relation["foreign_collection"]
+    type_ = relation["foreign_collection"]
+    if not is_many_to_many(relation):
         kwargs["id_field"] = SchemaUtils.get_primary_keys(collection.datasource.get_collection(type_).schema)[0]
 
     kwargs.update(
@@ -224,10 +222,16 @@ class ForestSchema(Schema):
     def unwrap_item(self, item):  # type: ignore
         # needed to avoid an issue introduced by the front (type are pluralize for add and update)
         item["type"] = self.opts.type_  # type: ignore
-        for name, relationship in item.get("relationships", {}).items():  # type: ignore
+        for name, relationships in item.get("relationships", {}).items():  # type: ignore
             relation_field = self.Meta.fcollection.get_field(name)  # type: ignore
-            relationship["data"]["type"] = relation_field["foreign_collection"]  # type: ignore
-            item["relationships"][name] = relationship
+            if isinstance(relationships["data"], list):  # many to many
+                for relationship_data in relationships["data"]:
+                    relationship_data["type"] = relation_field["foreign_collection"]  # type: ignore
+            else:
+                relation_field = self.Meta.fcollection.get_field(name)  # type: ignore
+                relationships["data"]["type"] = relation_field["foreign_collection"]  # type: ignore
+                item["relationships"][name] = relationships
+
         return super(ForestSchema, self).unwrap_item(item)  # type: ignore
 
 

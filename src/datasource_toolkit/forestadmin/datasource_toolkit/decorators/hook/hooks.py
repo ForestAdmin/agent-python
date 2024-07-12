@@ -1,7 +1,6 @@
-from typing import Awaitable
-
 from forestadmin.datasource_toolkit.decorators.hook.context.hooks import HookContext
 from forestadmin.datasource_toolkit.decorators.hook.types import HookHandler, Position
+from forestadmin.datasource_toolkit.utils.user_callable import call_user_function
 
 
 class Hooks:
@@ -17,12 +16,8 @@ class Hooks:
 
     async def execute_before(self, context: HookContext):
         for hook in self.before:
-            result = hook(context)
-            if isinstance(result, Awaitable):
-                await result
+            await call_user_function(hook, context)
 
     async def execute_after(self, context: HookContext):
         for hook in self.after:
-            result = hook(context)
-            if isinstance(result, Awaitable):
-                await result
+            await call_user_function(hook, context)

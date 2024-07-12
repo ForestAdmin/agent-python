@@ -2,7 +2,7 @@ import pytest
 from forestadmin.datasource_toolkit.interfaces.actions import ActionFieldType, ActionsScope
 
 
-@pytest.mark.parametrize("key,value", (("SINGLE", "single"), ("BULK", "bulk"), ("GLOBAL", "global")))
+@pytest.mark.parametrize("key,value", (("SINGLE", "Single"), ("BULK", "Bulk"), ("GLOBAL", "Global")))
 def test_action_scope(key: str, value: str):
     assert ActionsScope[key].value == value
 

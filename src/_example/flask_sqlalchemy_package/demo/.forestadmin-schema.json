@@ -2,14 +2,9 @@
     "collections": [
         {
             "name": "address",
-            "isVirtual": false,
-            "icon": null,
             "isReadOnly": false,
-            "integration": null,
             "isSearchable": true,
-            "onlyForRelationships": false,
             "paginationType": "page",
-            "searchField": null,
             "actions": [],
             "segments": [
                 {
@@ -28,7 +23,6 @@
                     "isReadOnly": false,
                     "isRequired": false,
                     "isSortable": true,
-                    "isVirtual": false,
                     "reference": "order.pk",
                     "relationship": "HasMany",
                     "type": [
@@ -40,14 +34,12 @@
                     "defaultValue": null,
                     "enums": null,
                     "field": "city",
-                    "integration": null,
                     "inverseOf": null,
                     "isFilterable": true,
                     "isPrimaryKey": false,
                     "isReadOnly": false,
                     "isRequired": true,
                     "isSortable": true,
-                    "isVirtual": false,
                     "reference": null,
                     "type": "String",
                     "validations": [
@@ -62,14 +54,12 @@
                     "defaultValue": null,
                     "enums": null,
                     "field": "complete_address",
-                    "integration": null,
                     "inverseOf": null,
                     "isFilterable": false,
                     "isPrimaryKey": false,
                     "isReadOnly": true,
                     "isRequired": false,
                     "isSortable": true,
-                    "isVirtual": false,
                     "reference": null,
                     "type": "String",
                     "validations": []
@@ -84,11 +74,10 @@
                     "isReadOnly": false,
                     "isRequired": false,
                     "isSortable": true,
-                    "isVirtual": false,
                     "reference": "customer.pk",
                     "relationship": "BelongsToMany",
                     "type": [
-                        "String"
+                        "Uuid"
                     ],
                     "validations": []
                 },
@@ -102,7 +91,6 @@
                     "isReadOnly": false,
                     "isRequired": false,
                     "isSortable": true,
-                    "isVirtual": false,
                     "reference": "order.pk",
                     "relationship": "HasMany",
                     "type": [
@@ -114,14 +102,12 @@
                     "defaultValue": "France",
                     "enums": null,
                     "field": "pays",
-                    "integration": null,
                     "inverseOf": null,
                     "isFilterable": true,
                     "isPrimaryKey": false,
                     "isReadOnly": false,
                     "isRequired": false,
                     "isSortable": true,
-                    "isVirtual": false,
                     "reference": null,
                     "type": "String",
                     "validations": []
@@ -130,14 +116,12 @@
                     "defaultValue": null,
                     "enums": null,
                     "field": "pk",
-                    "integration": null,
                     "inverseOf": null,
                     "isFilterable": true,
                     "isPrimaryKey": true,
                     "isReadOnly": true,
                     "isRequired": false,
                     "isSortable": true,
-                    "isVirtual": false,
                     "reference": null,
                     "type": "Number",
                     "validations": []
@@ -146,14 +130,12 @@
                     "defaultValue": null,
                     "enums": null,
                     "field": "postal_code",
-                    "integration": null,
                     "inverseOf": null,
                     "isFilterable": false,
                     "isPrimaryKey": false,
                     "isReadOnly": true,
                     "isRequired": false,
                     "isSortable": false,
-                    "isVirtual": false,
                     "reference": null,
                     "type": [
                         {
@@ -183,14 +165,12 @@
                     "defaultValue": null,
                     "enums": null,
                     "field": "street",
-                    "integration": null,
                     "inverseOf": null,
                     "isFilterable": true,
                     "isPrimaryKey": false,
                     "isReadOnly": false,
                     "isRequired": true,
                     "isSortable": true,
-                    "isVirtual": false,
                     "reference": null,
                     "type": "String",
                     "validations": [
@@ -205,14 +185,12 @@
                     "defaultValue": "75009",
                     "enums": null,
                     "field": "zip_code",
-                    "integration": null,
                     "inverseOf": null,
                     "isFilterable": true,
                     "isPrimaryKey": false,
                     "isReadOnly": false,
                     "isRequired": false,
                     "isSortable": true,
-                    "isVirtual": false,
                     "reference": null,
                     "type": "String",
                     "validations": []
@@ -221,23 +199,15 @@
         },
         {
             "name": "cart",
-            "isVirtual": false,
-            "icon": null,
             "isReadOnly": false,
-            "integration": null,
             "isSearchable": true,
-            "onlyForRelationships": false,
             "paginationType": "page",
-            "searchField": null,
             "actions": [
                 {
                     "id": "cart-0-test_widget",
                     "name": "test_widget",
                     "type": "global",
-                    "baseUrl": null,
                     "endpoint": "/forest/_actions/cart/0/test_widget",
-                    "httpMethod": "POST",
-                    "redirect": null,
                     "download": false,
                     "fields": [
                         {
@@ -251,7 +221,6 @@
                             "isRequired": false,
                             "reference": null,
                             "type": "String",
-                            "widget": null,
                             "widgetEdit": {
                                 "name": "color editor",
                                 "parameters": {
@@ -275,7 +244,6 @@
                             "isRequired": false,
                             "reference": null,
                             "type": "String",
-                            "widget": null,
                             "widgetEdit": {
                                 "name": "text editor",
                                 "parameters": {
@@ -294,7 +262,6 @@
                             "isRequired": false,
                             "reference": null,
                             "type": "String",
-                            "widget": null,
                             "widgetEdit": {
                                 "name": "text area editor",
                                 "parameters": {
@@ -314,7 +281,6 @@
                             "isRequired": false,
                             "reference": null,
                             "type": "String",
-                            "widget": null,
                             "widgetEdit": {
                                 "name": "rich text",
                                 "parameters": {
@@ -333,7 +299,6 @@
                             "isRequired": false,
                             "reference": null,
                             "type": "String",
-                            "widget": null,
                             "widgetEdit": {
                                 "name": "address editor",
                                 "parameters": {
@@ -354,7 +319,6 @@
                             "type": [
                                 "String"
                             ],
-                            "widget": null,
                             "widgetEdit": {
                                 "name": "input array",
                                 "parameters": {
@@ -376,7 +340,6 @@
                             "isRequired": false,
                             "reference": null,
                             "type": "Number",
-                            "widget": null,
                             "widgetEdit": {
                                 "name": "number input",
                                 "parameters": {
@@ -400,7 +363,6 @@
                             "type": [
                                 "Number"
                             ],
-                            "widget": null,
                             "widgetEdit": {
                                 "name": "input array",
                                 "parameters": {
@@ -424,7 +386,6 @@
                             "isRequired": false,
                             "reference": null,
                             "type": "Json",
-                            "widget": null,
                             "widgetEdit": {
                                 "name": "json code editor",
                                 "parameters": {}
@@ -441,7 +402,6 @@
                             "isRequired": false,
                             "reference": null,
                             "type": "Number",
-                            "widget": null,
                             "widgetEdit": {
                                 "name": "price editor",
                                 "parameters": {
@@ -457,7 +417,7 @@
                         {
                             "field": "file list",
                             "value": [],
-                            "defaultValue": null,
+                            "defaultValue": [],
                             "description": "",
                             "enums": null,
                             "hook": null,
@@ -467,7 +427,6 @@
                             "type": [
                                 "File"
                             ],
-                            "widget": null,
                             "widgetEdit": {
                                 "name": "file picker",
                                 "parameters": {
@@ -491,14 +450,13 @@
                             "isRequired": false,
                             "reference": null,
                             "type": "Date",
-                            "widget": null,
                             "widgetEdit": {
                                 "name": "date editor",
                                 "parameters": {
                                     "format": "YYYY-MM-DD HH:mm",
                                     "placeholder": null,
                                     "minDate": "2023-10-01T00:00:00+00:00",
-                                    "maxDate": "2024-01-12T14:32:00.117383+00:00"
+                                    "maxDate": "2024-07-01T15:54:56.104618+00:00"
                                 }
                             }
                         },
@@ -513,7 +471,6 @@
                             "isRequired": false,
                             "reference": null,
                             "type": "Dateonly",
-                            "widget": null,
                             "widgetEdit": null
                         },
                         {
@@ -527,7 +484,6 @@
                             "isRequired": false,
                             "reference": null,
                             "type": "Time",
-                            "widget": null,
                             "widgetEdit": null
                         },
                         {
@@ -541,7 +497,6 @@
                             "isRequired": false,
                             "reference": null,
                             "type": "Boolean",
-                            "widget": null,
                             "widgetEdit": {
                                 "name": "boolean editor",
                                 "parameters": {}
@@ -558,7 +513,6 @@
                             "isRequired": false,
                             "reference": null,
                             "type": "Number",
-                            "widget": null,
                             "widgetEdit": {
                                 "name": "radio button",
                                 "parameters": {
@@ -590,7 +544,6 @@
                             "type": [
                                 "Number"
                             ],
-                            "widget": null,
                             "widgetEdit": {
                                 "name": "checkboxes",
                                 "parameters": {
@@ -622,7 +575,6 @@
                             "type": [
                                 "Number"
                             ],
-                            "widget": null,
                             "widgetEdit": {
                                 "name": "dropdown",
                                 "parameters": {
@@ -657,7 +609,6 @@
                             "type": [
                                 "String"
                             ],
-                            "widget": null,
                             "widgetEdit": {
                                 "name": "assignee editor",
                                 "parameters": {
@@ -685,14 +636,12 @@
                     "defaultValue": null,
                     "enums": null,
                     "field": "created_at",
-                    "integration": null,
                     "inverseOf": null,
                     "isFilterable": true,
                     "isPrimaryKey": false,
                     "isReadOnly": false,
                     "isRequired": false,
                     "isSortable": true,
-                    "isVirtual": false,
                     "reference": null,
                     "type": "Date",
                     "validations": []
@@ -701,30 +650,26 @@
                     "defaultValue": null,
                     "enums": null,
                     "field": "customer_id",
-                    "integration": null,
                     "inverseOf": null,
                     "isFilterable": false,
                     "isPrimaryKey": false,
                     "isReadOnly": true,
                     "isRequired": false,
                     "isSortable": false,
-                    "isVirtual": false,
                     "reference": null,
-                    "type": "String",
+                    "type": "Uuid",
                     "validations": []
                 },
                 {
                     "defaultValue": null,
                     "enums": null,
                     "field": "name",
-                    "integration": null,
                     "inverseOf": null,
                     "isFilterable": true,
                     "isPrimaryKey": false,
                     "isReadOnly": false,
                     "isRequired": true,
                     "isSortable": true,
-                    "isVirtual": false,
                     "reference": null,
                     "type": "String",
                     "validations": [
@@ -745,7 +690,6 @@
                     "isReadOnly": false,
                     "isRequired": false,
                     "isSortable": true,
-                    "isVirtual": false,
                     "reference": "order.pk",
                     "relationship": "BelongsTo",
                     "type": "Number",
@@ -755,14 +699,12 @@
                     "defaultValue": null,
                     "enums": null,
                     "field": "pk",
-                    "integration": null,
                     "inverseOf": null,
                     "isFilterable": true,
                     "isPrimaryKey": true,
                     "isReadOnly": true,
                     "isRequired": false,
                     "isSortable": true,
-                    "isVirtual": false,
                     "reference": null,
                     "type": "Number",
                     "validations": []
@@ -771,23 +713,15 @@
         },
         {
             "name": "customer",
-            "isVirtual": false,
-            "icon": null,
             "isReadOnly": false,
-            "integration": null,
             "isSearchable": true,
-            "onlyForRelationships": false,
             "paginationType": "page",
-            "searchField": null,
             "actions": [
                 {
                     "id": "customer-0-export json",
                     "name": "Export json",
                     "type": "bulk",
-                    "baseUrl": null,
                     "endpoint": "/forest/_actions/customer/0/export json",
-                    "httpMethod": "POST",
-                    "redirect": null,
                     "download": true,
                     "fields": [],
                     "hooks": {
@@ -801,10 +735,7 @@
                     "id": "customer-1-age operation",
                     "name": "Age operation",
                     "type": "single",
-                    "baseUrl": null,
                     "endpoint": "/forest/_actions/customer/1/age operation",
-                    "httpMethod": "POST",
-                    "redirect": null,
                     "download": false,
                     "fields": [
                         {
@@ -818,7 +749,7 @@
                             "hook": null,
                             "isRequired": false,
                             "reference": null,
-                            "widget": null
+                            "widgetEdit": null
                         }
                     ],
                     "hooks": {
@@ -844,14 +775,12 @@
                     "defaultValue": null,
                     "enums": null,
                     "field": "TotalSpending",
-                    "integration": null,
                     "inverseOf": null,
                     "isFilterable": false,
                     "isPrimaryKey": false,
                     "isReadOnly": true,
                     "isRequired": false,
                     "isSortable": false,
-                    "isVirtual": false,
                     "reference": null,
                     "type": "Number",
                     "validations": []
@@ -866,7 +795,6 @@
                     "isReadOnly": false,
                     "isRequired": false,
                     "isSortable": true,
-                    "isVirtual": false,
                     "reference": "address.pk",
                     "relationship": "BelongsToMany",
                     "type": [
@@ -878,14 +806,12 @@
                     "defaultValue": null,
                     "enums": null,
                     "field": "age",
-                    "integration": null,
                     "inverseOf": null,
                     "isFilterable": true,
                     "isPrimaryKey": false,
                     "isReadOnly": false,
                     "isRequired": false,
                     "isSortable": true,
-                    "isVirtual": false,
                     "reference": null,
                     "type": "Number",
                     "validations": [
@@ -900,14 +826,12 @@
                     "defaultValue": null,
                     "enums": null,
                     "field": "avatar",
-                    "integration": null,
                     "inverseOf": null,
                     "isFilterable": false,
                     "isPrimaryKey": false,
                     "isReadOnly": false,
                     "isRequired": false,
                     "isSortable": true,
-                    "isVirtual": false,
                     "reference": null,
                     "type": "String",
                     "validations": []
@@ -916,14 +840,12 @@
                     "defaultValue": null,
                     "enums": null,
                     "field": "birthday_date",
-                    "integration": null,
                     "inverseOf": null,
                     "isFilterable": true,
                     "isPrimaryKey": false,
                     "isReadOnly": false,
                     "isRequired": false,
                     "isSortable": true,
-                    "isVirtual": false,
                     "reference": null,
                     "type": "Date",
                     "validations": []
@@ -932,14 +854,12 @@
                     "defaultValue": null,
                     "enums": null,
                     "field": "first_name",
-                    "integration": null,
                     "inverseOf": null,
                     "isFilterable": true,
                     "isPrimaryKey": false,
                     "isReadOnly": false,
                     "isRequired": true,
                     "isSortable": true,
-                    "isVirtual": false,
                     "reference": null,
                     "type": "String",
                     "validations": [
@@ -954,14 +874,12 @@
                     "defaultValue": null,
                     "enums": null,
                     "field": "full_name",
-                    "integration": null,
                     "inverseOf": null,
                     "isFilterable": true,
                     "isPrimaryKey": false,
                     "isReadOnly": false,
                     "isRequired": false,
                     "isSortable": false,
-                    "isVirtual": false,
                     "reference": null,
                     "type": "String",
                     "validations": []
@@ -970,14 +888,12 @@
                     "defaultValue": false,
                     "enums": null,
                     "field": "is_vip",
-                    "integration": null,
                     "inverseOf": null,
                     "isFilterable": true,
                     "isPrimaryKey": false,
                     "isReadOnly": false,
                     "isRequired": false,
                     "isSortable": true,
-                    "isVirtual": false,
                     "reference": null,
                     "type": "Boolean",
                     "validations": []
@@ -986,14 +902,12 @@
                     "defaultValue": null,
                     "enums": null,
                     "field": "last_name",
-                    "integration": null,
                     "inverseOf": null,
                     "isFilterable": true,
                     "isPrimaryKey": false,
                     "isReadOnly": false,
                     "isRequired": true,
                     "isSortable": true,
-                    "isVirtual": false,
                     "reference": null,
                     "type": "String",
                     "validations": [
@@ -1014,11 +928,10 @@
                     "isReadOnly": false,
                     "isRequired": false,
                     "isSortable": true,
-                    "isVirtual": false,
                     "reference": "order.pk",
                     "relationship": "HasMany",
                     "type": [
-                        "String"
+                        "Uuid"
                     ],
                     "validations": []
                 },
@@ -1026,16 +939,14 @@
                     "defaultValue": null,
                     "enums": null,
                     "field": "pk",
-                    "integration": null,
                     "inverseOf": null,
-                    "isFilterable": false,
+                    "isFilterable": true,
                     "isPrimaryKey": true,
                     "isReadOnly": true,
                     "isRequired": false,
                     "isSortable": true,
-                    "isVirtual": false,
                     "reference": null,
-                    "type": "String",
+                    "type": "Uuid",
                     "validations": []
                 },
                 {
@@ -1048,7 +959,6 @@
                     "isReadOnly": false,
                     "isRequired": false,
                     "isSortable": true,
-                    "isVirtual": false,
                     "reference": "address.pk",
                     "relationship": "BelongsToMany",
                     "type": [
@@ -1066,11 +976,10 @@
                     "isReadOnly": false,
                     "isRequired": false,
                     "isSortable": true,
-                    "isVirtual": false,
                     "reference": "cart.pk",
                     "relationship": "HasMany",
                     "type": [
-                        "String"
+                        "Uuid"
                     ],
                     "validations": []
                 },
@@ -1084,7 +993,6 @@
                     "isReadOnly": false,
                     "isRequired": false,
                     "isSortable": true,
-                    "isVirtual": false,
                     "reference": "address.pk",
                     "relationship": "BelongsToMany",
                     "type": [
@@ -1096,28 +1004,50 @@
         },
         {
             "name": "customers_addresses",
-            "isVirtual": false,
-            "icon": null,
             "isReadOnly": false,
-            "integration": null,
             "isSearchable": true,
-            "onlyForRelationships": false,
             "paginationType": "page",
-            "searchField": null,
             "actions": [],
             "segments": [],
             "fields": [
                 {
                     "defaultValue": null,
                     "enums": null,
-                    "field": "smart_addresses",
+                    "field": "address_id",
                     "inverseOf": null,
                     "isFilterable": true,
                     "isPrimaryKey": true,
+                    "isReadOnly": true,
+                    "isRequired": false,
+                    "isSortable": true,
+                    "reference": null,
+                    "type": "Number",
+                    "validations": []
+                },
+                {
+                    "defaultValue": null,
+                    "enums": null,
+                    "field": "customer_id",
+                    "inverseOf": null,
+                    "isFilterable": true,
+                    "isPrimaryKey": true,
+                    "isReadOnly": true,
+                    "isRequired": false,
+                    "isSortable": true,
+                    "reference": null,
+                    "type": "Uuid",
+                    "validations": []
+                },
+                {
+                    "defaultValue": null,
+                    "enums": null,
+                    "field": "smart_addresses",
+                    "inverseOf": null,
+                    "isFilterable": true,
+                    "isPrimaryKey": false,
                     "isReadOnly": false,
                     "isRequired": false,
                     "isSortable": true,
-                    "isVirtual": false,
                     "reference": "address.pk",
                     "relationship": "BelongsTo",
                     "type": "Number",
@@ -1129,37 +1059,28 @@
                     "field": "smart_customers",
                     "inverseOf": null,
                     "isFilterable": true,
-                    "isPrimaryKey": true,
+                    "isPrimaryKey": false,
                     "isReadOnly": false,
                     "isRequired": false,
                     "isSortable": true,
-                    "isVirtual": false,
                     "reference": "customer.pk",
                     "relationship": "BelongsTo",
-                    "type": "String",
+                    "type": "Uuid",
                     "validations": []
                 }
             ]
         },
         {
             "name": "order",
-            "isVirtual": false,
-            "icon": null,
             "isReadOnly": false,
-            "integration": null,
             "isSearchable": true,
-            "onlyForRelationships": false,
             "paginationType": "page",
-            "searchField": null,
             "actions": [
                 {
                     "id": "order-0-export json",
                     "name": "Export json",
                     "type": "global",
-                    "baseUrl": null,
                     "endpoint": "/forest/_actions/order/0/export json",
-                    "httpMethod": "POST",
-                    "redirect": null,
                     "download": true,
                     "fields": [
                         {
@@ -1173,7 +1094,6 @@
                             "isRequired": false,
                             "reference": null,
                             "type": "String",
-                            "widget": null,
                             "widgetEdit": null
                         },
                         {
@@ -1186,8 +1106,7 @@
                             "isReadOnly": false,
                             "isRequired": true,
                             "reference": "customer.pk",
-                            "type": "String",
-                            "widget": null,
+                            "type": "Uuid",
                             "widgetEdit": null
                         }
                     ],
@@ -1202,10 +1121,7 @@
                     "id": "order-1-refund order(s)",
                     "name": "Refund order(s)",
                     "type": "bulk",
-                    "baseUrl": null,
                     "endpoint": "/forest/_actions/order/1/refund order(s)",
-                    "httpMethod": "POST",
-                    "redirect": null,
                     "download": false,
                     "fields": [
                         {
@@ -1219,7 +1135,6 @@
                             "isRequired": false,
                             "reference": null,
                             "type": "String",
-                            "widget": null,
                             "widgetEdit": null
                         }
                     ],
@@ -1268,7 +1183,6 @@
                     "isReadOnly": false,
                     "isRequired": false,
                     "isSortable": true,
-                    "isVirtual": false,
                     "reference": "address.pk",
                     "relationship": "BelongsTo",
                     "type": "Number",
@@ -1284,8 +1198,7 @@
                     "isReadOnly": false,
                     "isRequired": false,
                     "isSortable": true,
-                    "isVirtual": false,
-                    "reference": "cart.pk",
+                    "reference": "cart.order_id",
                     "relationship": "HasOne",
                     "type": "Number",
                     "validations": []
@@ -1294,14 +1207,12 @@
                     "defaultValue": null,
                     "enums": null,
                     "field": "cost",
-                    "integration": null,
                     "inverseOf": null,
                     "isFilterable": true,
                     "isPrimaryKey": false,
                     "isReadOnly": false,
                     "isRequired": true,
                     "isSortable": true,
-                    "isVirtual": false,
                     "reference": null,
                     "type": "Number",
                     "validations": [
@@ -1326,14 +1237,12 @@
                     "defaultValue": null,
                     "enums": null,
                     "field": "created_at",
-                    "integration": null,
                     "inverseOf": null,
                     "isFilterable": true,
                     "isPrimaryKey": false,
                     "isReadOnly": false,
                     "isRequired": false,
                     "isSortable": true,
-                    "isVirtual": false,
                     "reference": null,
                     "type": "Date",
                     "validations": []
@@ -1348,24 +1257,21 @@
                     "isReadOnly": false,
                     "isRequired": false,
                     "isSortable": true,
-                    "isVirtual": false,
                     "reference": "customer.pk",
                     "relationship": "BelongsTo",
-                    "type": "String",
+                    "type": "Uuid",
                     "validations": []
                 },
                 {
                     "defaultValue": null,
                     "enums": null,
                     "field": "customer_first_name",
-                    "integration": null,
                     "inverseOf": null,
                     "isFilterable": true,
                     "isPrimaryKey": false,
                     "isReadOnly": false,
                     "isRequired": false,
                     "isSortable": true,
-                    "isVirtual": false,
                     "reference": null,
                     "type": "String",
                     "validations": []
@@ -1374,14 +1280,12 @@
                     "defaultValue": null,
                     "enums": null,
                     "field": "customer_full_name",
-                    "integration": null,
                     "inverseOf": null,
                     "isFilterable": false,
                     "isPrimaryKey": false,
                     "isReadOnly": true,
                     "isRequired": false,
                     "isSortable": false,
-                    "isVirtual": false,
                     "reference": null,
                     "type": "String",
                     "validations": []
@@ -1396,7 +1300,6 @@
                     "isReadOnly": false,
                     "isRequired": false,
                     "isSortable": true,
-                    "isVirtual": false,
                     "reference": "address.pk",
                     "relationship": "BelongsTo",
                     "type": "Number",
@@ -1406,14 +1309,12 @@
                     "defaultValue": null,
                     "enums": null,
                     "field": "pk",
-                    "integration": null,
                     "inverseOf": null,
                     "isFilterable": true,
                     "isPrimaryKey": true,
                     "isReadOnly": true,
                     "isRequired": false,
                     "isSortable": true,
-                    "isVirtual": false,
                     "reference": null,
                     "type": "Number",
                     "validations": []
@@ -1421,20 +1322,18 @@
                 {
                     "defaultValue": null,
                     "enums": [
-                        "PENDING",
-                        "DISPATCHED",
                         "DELIVERED",
+                        "DISPATCHED",
+                        "PENDING",
                         "REJECTED"
                     ],
                     "field": "status",
-                    "integration": null,
                     "inverseOf": null,
                     "isFilterable": true,
                     "isPrimaryKey": false,
                     "isReadOnly": false,
                     "isRequired": false,
                     "isSortable": true,
-                    "isVirtual": false,
                     "reference": null,
                     "type": "Enum",
                     "validations": []
@@ -1444,11 +1343,10 @@
     ],
     "meta": {
         "liana": "agent-python",
-        "liana_version": "1.2.0",
+        "liana_version": "1.5.3",
         "stack": {
             "engine": "python",
-            "engine_version": "3.8.16"
-        },
-        "schemaFileHash": "375d7a8126f487911d66e7e344da3b39e09fc747"
+            "engine_version": "3.10.11"
+        }
     }
 }

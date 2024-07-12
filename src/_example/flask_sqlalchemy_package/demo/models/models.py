@@ -1,7 +1,7 @@
 import enum
 
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import Boolean, Column, DateTime, Enum, ForeignKey, Integer, LargeBinary, String, func
+from sqlalchemy import Boolean, Column, DateTime, Enum, ForeignKey, Integer, LargeBinary, String, Uuid, func
 from sqlalchemy.orm import relationship
 
 db = SQLAlchemy()
@@ -27,7 +27,7 @@ class Address(db.Model):
 
 class Customer(db.Model):
     __tablename__ = "customer"
-    pk = Column(LargeBinary, primary_key=True)
+    pk = Column(Uuid, primary_key=True)
     first_name = Column(String(254), nullable=False)
     last_name = Column(String(254), nullable=False)
     birthday_date = Column(DateTime(timezone=True), default=func.now())
@@ -43,7 +43,7 @@ class Order(db.Model):
     created_at = Column(DateTime(timezone=True), default=func.now())
     amount = Column(Integer, nullable=False)
     customer = relationship("Customer", backref="orders")
-    customer_id = Column(LargeBinary, ForeignKey("customer.pk"))
+    customer_id = Column(Uuid, ForeignKey("customer.pk"))
     billing_address_id = Column(Integer, ForeignKey("address.pk"))
     billing_address = relationship("Address", foreign_keys=[billing_address_id], backref="billing_orders")
     delivering_address_id = Column(Integer, ForeignKey("address.pk"))
@@ -63,5 +63,5 @@ class Cart(db.Model):
 
 class CustomersAddresses(db.Model):
     __tablename__ = "customers_addresses"
-    customer_id = Column(LargeBinary, ForeignKey("customer.pk"), primary_key=True)
+    customer_id = Column(Uuid, ForeignKey("customer.pk"), primary_key=True)
     address_id = Column(Integer, ForeignKey("address.pk"), primary_key=True)

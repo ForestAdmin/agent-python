@@ -32,9 +32,6 @@ class SortCollectionDecorator(CollectionDecorator):
     def __replace_or_emulate_field_sorting(self, name: str, equivalent_sort: Optional[List[PlainSortClause]]):
         FieldValidator.validate(self, name)
 
-        if self.child_collection.schema["fields"].get(name) is None:
-            raise ForestException("Cannot replace sort on relation")
-
         self._sorts[name] = Sort(equivalent_sort) if equivalent_sort else None
         self.mark_schema_as_dirty()
 

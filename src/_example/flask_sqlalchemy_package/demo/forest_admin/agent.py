@@ -28,7 +28,7 @@ from demo.forest_admin.smart.order import (
     get_customer_full_name_field,
     nb_order_per_week,
     pending_order_segment,
-    refound_order_action,
+    refund_order_action,
     rejected_order_segment,
     suspicious_order_segment,
     total_order_chart,
@@ -141,7 +141,7 @@ def customize_agent(agent: FlaskAgent):
     agent.customize_collection("cart").add_field(
         "customer_id",
         ComputedDefinition(
-            column_type=PrimitiveType.BINARY,
+            column_type=PrimitiveType.UUID,
             dependencies=["order:customer_id"],
             get_values=lambda records, context: [rec["order"]["customer_id"] for rec in records],
         ),
@@ -174,7 +174,7 @@ def customize_agent(agent: FlaskAgent):
         "Export json",
         export_orders_json,
     ).add_action(
-        "Refund order(s)", refound_order_action
+        "Refund order(s)", refund_order_action
     ).add_field_validation(
         # validation
         "amount",

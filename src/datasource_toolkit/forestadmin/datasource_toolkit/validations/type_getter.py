@@ -27,6 +27,7 @@ class TypeGetter:
             float: lambda: PrimitiveType.NUMBER,
             int: lambda: PrimitiveType.NUMBER,
             dict: lambda: PrimitiveType.JSON if type_context == PrimitiveType.JSON else ValidationPrimaryType.NULL,
+            uuid.UUID: lambda: PrimitiveType.UUID,
         }
         for type_, ret_lambda in return_mapper.items():
             if isinstance(value, type_):

@@ -15,6 +15,7 @@ from forestadmin.datasource_toolkit.decorators.computed.collections import Compu
 from forestadmin.datasource_toolkit.decorators.computed.exceptions import ComputedDecoratorException
 from forestadmin.datasource_toolkit.decorators.computed.types import ComputedDefinition
 from forestadmin.datasource_toolkit.decorators.datasource_decorator import DatasourceDecorator
+from forestadmin.datasource_toolkit.exceptions import DatasourceToolkitException
 from forestadmin.datasource_toolkit.interfaces.fields import Column, FieldType, ManyToOne, OneToOne, PrimitiveType
 from forestadmin.datasource_toolkit.interfaces.query.aggregation import Aggregation, PlainAggregation
 from forestadmin.datasource_toolkit.interfaces.query.filter.paginated import PaginatedFilter
@@ -107,11 +108,11 @@ class TestComputedCollectionDecorator(TestCase):
             ComputedDefinition(column_type=PrimitiveType.STRING, dependencies=[], get_values=lambda x: x),
         )
 
-    def test_create_wit_missing_dependencies(self):
+    def test_create_with_missing_dependencies(self):
         decorated_collection_book = self.datasource_decorator.get_collection("Book")
         self.assertRaisesRegex(
-            ComputedDecoratorException,
-            r"🌳🌳🌳The dependency __nonExisting__ of the computed field new_field is unknown in the collection Book",
+            DatasourceToolkitException,
+            r"🌳🌳Column not found: Book\.__nonExisting__\. Fields in Book are id, author_id, author, title, sub_title",
             decorated_collection_book.register_computed,
             "new_field",
             ComputedDefinition(
@@ -119,11 +120,11 @@ class TestComputedCollectionDecorator(TestCase):
             ),
         )
 
-    def test_create_wit_wrong_dependencies(self):
+    def test_create_with_wrong_dependencies(self):
         decorated_collection_book = self.datasource_decorator.get_collection("Book")
         self.assertRaisesRegex(
-            ComputedDecoratorException,
-            r"🌳🌳🌳The dependency author of the computed field new_field is unknown in the collection Book",
+            DatasourceToolkitException,
+            r"🌳🌳🌳Unexpected field type: Book\.author \(found FieldType\.MANY_TO_ONE expected Column\)",
             decorated_collection_book.register_computed,
             "new_field",
             ComputedDefinition(column_type=PrimitiveType.STRING, dependencies=["author"], get_values=lambda x: x),

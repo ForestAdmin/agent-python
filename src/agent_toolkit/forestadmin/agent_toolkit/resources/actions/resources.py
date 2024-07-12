@@ -1,5 +1,6 @@
 from typing import Any, Dict, List, Literal, Optional, Union
 
+import jwt
 from forestadmin.agent_toolkit.forest_logger import ForestLogger
 from forestadmin.agent_toolkit.resources.actions.requests import ActionRequest, RequestActionException
 from forestadmin.agent_toolkit.resources.collections.base_collection_resource import BaseCollectionResource
@@ -22,7 +23,6 @@ from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.base i
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.branch import Aggregator, ConditionTreeBranch
 from forestadmin.datasource_toolkit.interfaces.query.filter.factory import FilterFactory
 from forestadmin.datasource_toolkit.interfaces.query.filter.unpaginated import Filter
-from jose import jwt
 
 LiteralMethod = Literal["execute", "hook"]
 
@@ -66,14 +66,14 @@ class ActionResource(BaseCollectionResource):
         result = await request.collection.execute(request.user, request.action_name, data, filter_)
 
         if result["type"] == ResultBuilder.ERROR:
-            return HttpResponseBuilder.build_json_response(400, {"error": result["message"]})
+            response = HttpResponseBuilder.build_json_response(400, {"error": result["message"]})
         elif result["type"] == ResultBuilder.SUCCESS:
             key = "success"
             if result["format"] == "html":
                 key = "html"
-            return HttpResponseBuilder.build_success_response({key: result["message"]})
+            response = HttpResponseBuilder.build_success_response({key: result["message"]})
         elif result["type"] == ResultBuilder.WEBHOOK:
-            return HttpResponseBuilder.build_success_response(
+            response = HttpResponseBuilder.build_success_response(
                 {
                     "webhook": {
                         "url": result["url"],
@@ -84,10 +84,20 @@ class ActionResource(BaseCollectionResource):
                 }
             )
         elif result["type"] == ResultBuilder.FILE:
-            return FileResponse(result["stream"], result["name"], result["mimeType"])
+            response = FileResponse(
+                result["stream"],
+                result["name"],
+                result["mimeType"],
+                {"Access-Control-Expose-Headers": "Content-Disposition"},
+            )
 
         elif result["type"] == ResultBuilder.REDIRECT:
-            return HttpResponseBuilder.build_success_response({"redirectTo": result["path"]})
+            response = HttpResponseBuilder.build_success_response({"redirectTo": result["path"]})
+
+        if "response_headers" in result:
+            response.headers.update(result["response_headers"])
+
+        return response
 
     @check_method(RequestMethod.POST)
     @authenticate
@@ -148,7 +158,7 @@ class ActionResource(BaseCollectionResource):
 
         # Restrict the filter to the selected records for single or bulk actions.
         if request.collection.schema["actions"][request.action_name].scope != ActionsScope.GLOBAL:
-            selection_ids, exclude_ids = parse_selection_ids(request)
+            selection_ids, exclude_ids = parse_selection_ids(request.collection.schema, request)
             selected_ids = ConditionTreeFactory.match_ids(request.collection.schema, selection_ids)
             if exclude_ids:
                 selected_ids = selected_ids.inverse()
@@ -182,4 +192,4 @@ class ActionResource(BaseCollectionResource):
         return request
 
     def _decode_signed_approval_request(self, signed_approval_request):
-        return jwt.decode(signed_approval_request, self.option["env_secret"])
+        return jwt.decode(signed_approval_request, self.option["env_secret"], algorithms=["HS256"])

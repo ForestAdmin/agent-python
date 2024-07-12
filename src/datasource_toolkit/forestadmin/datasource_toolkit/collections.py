@@ -88,9 +88,9 @@ class Collection(CollectionInterface):
         self,
         caller: User,
         name: str,
-        data: Optional[RecordsDataAlias],
-        filter_: Optional[Filter],
-        meta: Optional[Dict[str, Any]],
+        data: Optional[RecordsDataAlias] = None,
+        filter_: Optional[Filter] = None,
+        meta: Optional[Dict[str, Any]] = None,
     ) -> List[ActionField]:
         """to get the form of an action"""
         return []

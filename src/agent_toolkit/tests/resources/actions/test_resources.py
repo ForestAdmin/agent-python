@@ -13,6 +13,7 @@ else:
 
 import forestadmin.agent_toolkit.resources.actions.resources
 import forestadmin.agent_toolkit.resources.collections.charts_collection
+import jwt
 from forestadmin.agent_toolkit.forest_logger import ForestLogger
 from forestadmin.agent_toolkit.options import Options
 from forestadmin.agent_toolkit.resources.actions.requests import ActionRequest
@@ -30,7 +31,6 @@ from forestadmin.datasource_toolkit.exceptions import ForbiddenError
 from forestadmin.datasource_toolkit.interfaces.actions import ActionFieldType, ActionsScope
 from forestadmin.datasource_toolkit.interfaces.fields import FieldType, Operator, PrimitiveType
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.leaf import ConditionTreeLeaf
-from jose import jwt
 
 
 def authenticate_mock(fn):
@@ -488,7 +488,6 @@ class TestHookActionResource(BaseTestActionResource):
                     "isRequired": False,
                     "reference": None,
                     "type": "Number",
-                    "widget": None,
                     "widgetEdit": None,
                 },
                 {
@@ -502,7 +501,6 @@ class TestHookActionResource(BaseTestActionResource):
                     "isRequired": False,
                     "reference": None,
                     "type": "String",
-                    "widget": None,
                     "widgetEdit": None,
                 },
             ],
@@ -581,7 +579,7 @@ class TestExecuteActionResource(BaseTestActionResource):
             self.decorated_collection_book,
             "execute",
             new_callable=AsyncMock,
-            return_value=ResultBuilder.success("bravo"),
+            return_value=ResultBuilder().success("bravo"),
         ) as mocked_execute:
             response = self.loop.run_until_complete(self.action_resource.execute(request))
             mocked_execute.assert_awaited_once_with(
@@ -696,6 +694,7 @@ class TestExecuteActionResource(BaseTestActionResource):
         self.assertEqual(response.name, "testFile.txt")
         self.assertEqual(response.mimetype, "text/plain;charset=UTF-8")
         self.assertEqual(response.file.read(), "bla bla")
+        self.assertIn(("Access-Control-Expose-Headers", "Content-Disposition"), response.headers.items())
 
     def test_execute_should_return_correctly_formatted_redirect_on_redirect_response(self):
         self.decorated_collection_book.add_action(
@@ -798,3 +797,29 @@ class TestExecuteActionResource(BaseTestActionResource):
         self.assertEqual(request_arg_body["data"]["attributes"]["all_records_ids_excluded"], [])
         self.assertEqual(request_arg_body["data"]["attributes"]["all_records_subset_query"]["timezone"], "Europe/Paris")
         self.assertIsNotNone(request_arg_body["data"]["attributes"]["signed_approval_request"])
+
+    def test_execute_should_handle_response_headers(self):
+        def execute(ctx, result_builder):
+            result_builder.set_header("headerOne", "valueOne")
+            return result_builder.success()
+
+        self.decorated_collection_book.add_action(
+            "test_action_global", {"scope": ActionsScope.GLOBAL, "execute": execute}
+        )
+
+        request = ActionRequest(
+            method=RequestMethod.POST,
+            action_name="test_action_global",
+            collection=self.decorated_collection_book,
+            body=self.body_params,
+            query={
+                "timezone": "Europe/Paris",
+                "collection_name": "Book",
+                "action_name": 0,
+                "slug": "test_action_global",
+            },
+            headers={},
+            user=self.mocked_caller,
+        )
+        response = self.loop.run_until_complete(self.action_resource.execute(request))
+        self.assertEqual(response.headers["headerOne"], "valueOne")

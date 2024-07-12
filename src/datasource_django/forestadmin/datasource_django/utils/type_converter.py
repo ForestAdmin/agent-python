@@ -1,20 +1,37 @@
-from typing import Dict, Tuple
+from typing import Dict, Set, Tuple
 
-from django.contrib.postgres import fields as postgres_fields
 from django.db import models
 from forestadmin.datasource_django.exception import DjangoDatasourceException
 from forestadmin.datasource_toolkit.interfaces.fields import ColumnAlias, Operator, PrimitiveType
 from forestadmin.datasource_toolkit.utils.operators import BaseFilterOperator
 
 try:
+    # if postgres driver is installed
+    from django.contrib.postgres import fields as postgres_fields
+except ImportError:
+    postgres_fields = None
+
+try:
     # GeneratedField is available since django 5
     from django.db.models import GeneratedField
-except Exception:
+except ImportError:
     GeneratedField = None
 
 
 class ConverterException(DjangoDatasourceException):
     pass
+
+
+if postgres_fields is not None:
+    POSTGRES_TYPE: Dict[type, PrimitiveType] = {
+        # specific postgres fields
+        postgres_fields.CIText: PrimitiveType.STRING,
+        postgres_fields.CIEmailField: PrimitiveType.STRING,
+        postgres_fields.HStoreField: PrimitiveType.JSON,
+        # postgres_fields.RangeField and subclassed ones not handles
+    }
+else:
+    POSTGRES_TYPE: Dict[type, PrimitiveType] = {}
 
 
 class TypeConverter:
@@ -56,11 +73,7 @@ class TypeConverter:
         # uuid
         models.UUIDField: PrimitiveType.UUID,
         #
-        # specific fields
-        postgres_fields.CIText: PrimitiveType.STRING,
-        postgres_fields.CIEmailField: PrimitiveType.STRING,
-        postgres_fields.HStoreField: PrimitiveType.JSON,
-        # postgres_fields.RangeField and subclassed ones not handles
+        **POSTGRES_TYPE,
     }
 
     @classmethod
@@ -77,7 +90,7 @@ class TypeConverter:
         if field.__class__ in cls.TYPES:
             return cls.TYPES[field.__class__]
 
-        if isinstance(field, postgres_fields.ArrayField):
+        if postgres_fields is not None and isinstance(field, postgres_fields.ArrayField):
             return [cls.convert(field.base_field)]
 
         for model_type, primitive_type in cls.TYPES.items():
@@ -90,8 +103,8 @@ class TypeConverter:
 class FilterOperator(BaseFilterOperator):
     OPERATORS = {
         # operator:  (lookup_expr, negate needed)
-        Operator.EQUAL: ("", False),
-        Operator.NOT_EQUAL: ("", True),
+        Operator.EQUAL: ("__exact", False),
+        Operator.NOT_EQUAL: ("__exact", True),
         Operator.BLANK: ("__isnull", False),
         Operator.CONTAINS: ("__icontains", False),
         Operator.NOT_CONTAINS: ("__icontains", True),
@@ -106,7 +119,7 @@ class FilterOperator(BaseFilterOperator):
         Operator.IN: ("__in", False),
         Operator.NOT_IN: ("__in", True),
         Operator.INCLUDES_ALL: ("__contains", False),
-        Operator.MATCH: ("regex", False),
+        Operator.MATCH: ("__regex", False),
     }
 
     @classmethod
@@ -116,3 +129,15 @@ class FilterOperator(BaseFilterOperator):
             return cls.OPERATORS[operator]
         except KeyError:
             raise ConverterException(f"Unable to handle the operator {operator}")
+
+    @classmethod
+    def get_operators_for_field(cls, field: models.Field) -> Set[Operator]:
+        _type = TypeConverter.convert(field)
+        wanted_operators = cls.get_for_type(_type)
+        lookup_names = field.get_lookups().keys()
+        unavailable_operators = []
+        for wanted_operator in wanted_operators:
+            if cls.OPERATORS.get(wanted_operator, ("",))[0].replace("__", "") not in lookup_names:
+                unavailable_operators.append(wanted_operator)
+
+        return set([operator for operator in wanted_operators if operator not in unavailable_operators])

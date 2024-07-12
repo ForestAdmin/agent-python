@@ -12,9 +12,13 @@ from forestadmin.django_agent.agent import DjangoAgent, create_agent
 
 
 def is_launch_as_server() -> bool:
-    is_manage_py = any(arg.casefold().endswith("manage.py") or arg.casefold().endswith("pytest") for arg in sys.argv)
+    launchers_to_ignore = ["pytest", "mypy"]
+    is_manage_py = any(arg.casefold().endswith("manage.py") for arg in sys.argv)
+    is_a_launcher_to_ignore = any(
+        [arg.casefold().endswith(launcher) for arg in sys.argv for launcher in launchers_to_ignore]
+    )
     is_runserver = any(arg.casefold() == "runserver" for arg in sys.argv)
-    return (is_manage_py and is_runserver) or (not is_manage_py)
+    return (is_manage_py and is_runserver) or (not is_manage_py and not is_a_launcher_to_ignore)
 
 
 def init_app_agent() -> Optional[DjangoAgent]:

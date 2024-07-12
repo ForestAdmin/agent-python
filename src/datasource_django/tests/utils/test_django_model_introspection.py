@@ -114,6 +114,50 @@ class TestDjangoFieldFactory(TestCase):
             [{"operator": Operator.PRESENT}, {"operator": Operator.SHORTER_THAN, "value": 254}],
         )
 
+    def test_build_should_correctly_introspect_uuid(self):
+        field = models.UUIDField()
+        field_schema = FieldFactory.build(field, None)
+        self.assertEqual(field_schema["column_type"], PrimitiveType.UUID)
+        self.assertEqual(
+            field_schema["filter_operators"],
+            {
+                Operator.BLANK,
+                Operator.EQUAL,
+                Operator.MISSING,
+                Operator.NOT_EQUAL,
+                Operator.PRESENT,
+                Operator.CONTAINS,
+                Operator.ENDS_WITH,
+                Operator.STARTS_WITH,
+                Operator.IN,
+                Operator.NOT_IN,
+            },
+        )
+
+    def test_introspected_field_should_respect_django_capabilities(self):
+        field = models.TextField()
+        field_schema = FieldFactory.build(field, None)
+        self.assertEqual(field_schema["column_type"], PrimitiveType.STRING)
+        self.assertEqual(
+            field_schema["filter_operators"],
+            {
+                Operator.BLANK,
+                Operator.EQUAL,
+                Operator.MISSING,
+                Operator.NOT_EQUAL,
+                Operator.PRESENT,
+                Operator.CONTAINS,
+                Operator.NOT_CONTAINS,
+                Operator.ENDS_WITH,
+                Operator.STARTS_WITH,
+                Operator.IN,
+                Operator.NOT_IN,
+            },
+        )
+        self.assertNotIn(Operator.SHORTER_THAN, field_schema["filter_operators"])
+        self.assertNotIn(Operator.LIKE, field_schema["filter_operators"])
+        self.assertNotIn(Operator.LONGER_THAN, field_schema["filter_operators"])
+
 
 class TestDjangoCollectionFactory(TestCase):
     @staticmethod
@@ -247,11 +291,11 @@ class TestDjangoCollectionFactory(TestCase):
         self.assertEqual(book_schema["fields"]["author_id"]["column_type"], PrimitiveType.NUMBER)
         self.assertEqual(book_schema["fields"]["author_id"]["type"], FieldType.COLUMN)
 
-    def test_polymorphic_relation_should_be_ignored_with_warning(self):
-        with self.assertLogs("forestadmin", level="WARNING") as cm:
+    def test_polymorphic_relation_should_be_ignored_with_info(self):
+        with self.assertLogs("forestadmin", level="INFO") as cm:
             rating_schema = DjangoCollectionFactory.build(Rating)
             self.assertIn(
-                "WARNING:forestadmin:Ignoring test_app_rating.content_object "
+                "INFO:forestadmin:Ignoring test_app_rating.content_object "
                 "because polymorphic relation is not supported.",
                 cm.output,
             )

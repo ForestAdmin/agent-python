@@ -2,7 +2,7 @@ import asyncio
 import sys
 from typing import Any
 from unittest import TestCase
-from unittest.mock import patch
+from unittest.mock import ANY, AsyncMock, patch
 
 if sys.version_info >= (3, 9):
     import zoneinfo
@@ -438,3 +438,68 @@ class TestSearchCollectionDecorator(TestCase):
                 "segment": None,
             }
         )
+
+    def test_default_search_is_not_call_when_search_was_replaced(self):
+        filter_ = Filter({"search": "something"})
+
+        async def replacer_fn(value, extended, context):
+            return ConditionTreeBranch(
+                aggregator=Aggregator.AND,
+                conditions=[
+                    ConditionTreeLeaf(field="id", operator=Operator.EQUAL, value=context.caller.user_id),
+                    ConditionTreeLeaf(field="foo", operator=Operator.EQUAL, value=value),
+                ],
+            )
+
+        spy_replacer_fn = AsyncMock(wraps=replacer_fn)
+        self.decorated_collection_person.replace_search(spy_replacer_fn)
+
+        with patch.object(
+            self.decorated_collection_person,
+            "_default_replacer",
+            wraps=self.decorated_collection_person._default_replacer,
+        ) as spy_default_replacer:
+            self.loop.run_until_complete(self.decorated_collection_person._refine_filter(self.mocked_caller, filter_))
+            spy_default_replacer.assert_not_called()
+            spy_replacer_fn.assert_awaited_with("something", False, ANY)
+
+    def test_extended_search_should_be_correctly_given_to_default_replacer(self):
+        filter_ = Filter({"search": "something"})
+
+        with patch.object(
+            self.decorated_collection_person,
+            "_default_replacer",
+            wraps=self.decorated_collection_person._default_replacer,
+        ) as spy_default_replacer:
+            self.loop.run_until_complete(self.decorated_collection_person._refine_filter(self.mocked_caller, filter_))
+            spy_default_replacer.assert_called_with("something", False)
+
+        filter_ = Filter({"search": "something", "search_extended": True})
+        with patch.object(
+            self.decorated_collection_person,
+            "_default_replacer",
+            wraps=self.decorated_collection_person._default_replacer,
+        ) as spy_default_replacer:
+            self.loop.run_until_complete(self.decorated_collection_person._refine_filter(self.mocked_caller, filter_))
+            spy_default_replacer.assert_called_with("something", True)
+
+    def test_extended_search_should_be_correctly_given_to_override_replacer(self):
+        async def replacer_fn(value, extended, context):
+            return ConditionTreeBranch(
+                aggregator=Aggregator.AND,
+                conditions=[
+                    ConditionTreeLeaf(field="id", operator=Operator.EQUAL, value=context.caller.user_id),
+                    ConditionTreeLeaf(field="foo", operator=Operator.EQUAL, value=value),
+                ],
+            )
+
+        spy_replacer_fn = AsyncMock(wraps=replacer_fn)
+        self.decorated_collection_person.replace_search(spy_replacer_fn)
+
+        filter_ = Filter({"search": "something"})
+        self.loop.run_until_complete(self.decorated_collection_person._refine_filter(self.mocked_caller, filter_))
+        spy_replacer_fn.assert_awaited_with("something", False, ANY)
+
+        filter_ = Filter({"search": "something", "search_extended": True})
+        self.loop.run_until_complete(self.decorated_collection_person._refine_filter(self.mocked_caller, filter_))
+        spy_replacer_fn.assert_awaited_with("something", True, ANY)

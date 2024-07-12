@@ -90,7 +90,7 @@ class FieldFactory:
             "default_value": default_value,
             "is_sortable": True,
             "validations": cls._build_validations(field),
-            "filter_operators": FilterOperator.get_for_type(column_type),
+            "filter_operators": FilterOperator.get_operators_for_field(field),
             "enum_values": cls._build_enum_values(field),
             "type": FieldType.COLUMN,
         }
@@ -158,7 +158,7 @@ class DjangoCollectionFactory:
             else:
                 if generic_foreign_key(field) or is_generic_rel(field) or is_generic_relation(field):
                     ForestLogger.log(
-                        "warning",
+                        "info",
                         f"Ignoring {model._meta.db_table}.{field.name} because polymorphic relation is not supported.",
                     )
                     continue

@@ -4,9 +4,11 @@ from app.forest.address import address_full_name_computed, get_postal_code, high
 from app.forest.cart import cart_update_name
 from app.forest.customer import (
     age_operation_action_dict,
+    customer_delete_override,
     customer_full_name,
     customer_full_name_write,
     customer_spending_computed,
+    customer_update_override,
     export_json_action_dict,
     french_address_segment,
     full_name_contains,
@@ -20,6 +22,7 @@ from app.forest.customer import (
     hook_customer_after_list,
     hook_customer_before_create,
     order_details,
+    time_order_number_chart,
     total_orders_customer_chart,
 )
 from app.forest.order import (
@@ -29,19 +32,20 @@ from app.forest.order import (
     get_customer_full_name_field,
     nb_order_per_week,
     pending_order_segment,
-    refound_order_action,
+    refund_order_action,
     rejected_order_segment,
     suspicious_order_segment,
-    total_order_chart,
 )
-from forestadmin.datasource_toolkit.decorators.computed.types import ComputedDefinition
-from forestadmin.datasource_toolkit.interfaces.fields import Operator, PrimitiveType
+from demo.forest_admin.smart.order import total_order_chart
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.leaf import ConditionTreeLeaf
 from forestadmin.django_agent.agent import DjangoAgent
+
+# from forestadmin.datasource_django.datasource import DjangoDatasource
 
 
 def customize_forest(agent: DjangoAgent):
     # customize_forest_logging()
+    # agent.add_datasource(DjangoDatasource())
 
     # # ## ADDRESS
     agent.customize_collection("app_address").add_segment(
@@ -63,10 +67,10 @@ def customize_forest(agent: DjangoAgent):
         "postal_code",
         {
             "schema": {
-                "codePostal": PrimitiveType.STRING,
-                "codeCommune": PrimitiveType.STRING,
-                "nomCommune": PrimitiveType.STRING,
-                "libelleAcheminement": PrimitiveType.STRING,
+                "codePostal": "String",
+                "codeCommune": "String",
+                "nomCommune": "String",
+                "libelleAcheminement": "String",
             },
             "list_records": get_postal_code,
             "dependencies": ["zip_code"],
@@ -76,24 +80,15 @@ def customize_forest(agent: DjangoAgent):
     # cart
     agent.customize_collection("app_cart").add_field(
         "customer_id",
-        ComputedDefinition(
-            column_type=PrimitiveType.NUMBER,
-            dependencies=["order:customer_id"],
-            get_values=lambda records, context: [rec["order"]["customer_id"] for rec in records],
-        ),
-    ).add_field(
-        "customer_id",
-        ComputedDefinition(
-            column_type=PrimitiveType.NUMBER,
-            dependencies=["order:customer_id"],
-            get_values=lambda records, context: [rec["order"]["customer_id"] for rec in records],
-        ),
-    ).emulate_field_operator(
-        "customer_id", Operator.IN
-    ).replace_field_writing(
-        "name", cart_update_name
-    ).add_segment(
-        "No order", lambda ctx: ConditionTreeLeaf("order_id", Operator.EQUAL, None)
+        {
+            "column_type": "Number",
+            "dependencies": ["order:customer_id"],
+            "get_values": lambda records, context: [rec.get("order", {}).get("customer_id") for rec in records],
+        },
+    ).emulate_field_operator("customer_id", "in").replace_field_writing("name", cart_update_name).add_segment(
+        "No order", lambda ctx: ConditionTreeLeaf("order_id", "equal", None)
+    ).emulate_field_filtering(
+        "customer_id"
     )
 
     # # ## CUSTOMERS
@@ -101,7 +96,7 @@ def customize_forest(agent: DjangoAgent):
     agent.customize_collection("app_customer").add_field(
         "age",
         {
-            "column_type": PrimitiveType.NUMBER,
+            "column_type": "Number",
             "dependencies": ["birthday_date"],
             "get_values": lambda records, ctx: [
                 int((datetime.date.today() - r["birthday_date"]).days / 365) for r in records
@@ -109,7 +104,7 @@ def customize_forest(agent: DjangoAgent):
         },
     ).add_segment("with french address", french_address_segment).add_segment(
         "VIP customers",
-        lambda context: ConditionTreeLeaf("is_vip", Operator.EQUAL, True)
+        lambda context: ConditionTreeLeaf("is_vip", "equal", True),
         # add actions
     ).add_action(
         "Export json", export_json_action_dict
@@ -126,28 +121,28 @@ def customize_forest(agent: DjangoAgent):
     ).replace_field_operator(
         # custom operators for computed fields
         "full_name",
-        Operator.EQUAL,
+        "equal",
         full_name_equal,
     ).replace_field_operator(
-        "full_name", Operator.IN, full_name_in
+        "full_name", "in", full_name_in
     ).replace_field_operator(
-        "full_name", Operator.NOT_IN, full_name_not_in
+        "full_name", "not_in", full_name_not_in
     ).replace_field_operator(
-        "full_name", Operator.LESS_THAN, full_name_less_than
+        "full_name", "less_than", full_name_less_than
     ).replace_field_operator(
-        "full_name", Operator.GREATER_THAN, full_name_greater_than
+        "full_name", "greater_than", full_name_greater_than
     ).replace_field_operator(
-        "full_name", Operator.LIKE, full_name_like
+        "full_name", "like", full_name_like
     ).replace_field_operator(
-        "full_name", Operator.CONTAINS, full_name_contains
+        "full_name", "contains", full_name_contains
     ).replace_field_operator(
-        "full_name", Operator.NOT_CONTAINS, full_name_not_contains
+        "full_name", "not_contains", full_name_not_contains
     ).emulate_field_filtering(
         # emulate others operators
         "full_name"
     ).add_field(
         "TotalSpending",
-        customer_spending_computed()
+        customer_spending_computed(),
         # validation
         # ).add_field_validation(
         #     "age", Operator.GREATER_THAN, 0
@@ -175,6 +170,12 @@ def customize_forest(agent: DjangoAgent):
         hook_customer_before_create,
     ).add_hook(
         "After", "List", hook_customer_after_list
+    ).add_chart(
+        "nb_order_week", time_order_number_chart
+    ).override_delete(
+        customer_delete_override
+    ).override_update(
+        customer_update_override
     )
 
     # # ## ORDERS
@@ -187,7 +188,7 @@ def customize_forest(agent: DjangoAgent):
     ).add_segment(
         "Suspicious order", suspicious_order_segment
     ).add_segment(
-        "newly_created", lambda context: ConditionTreeLeaf("created_at", Operator.AFTER, "2023-01-01")
+        "newly_created", lambda context: ConditionTreeLeaf("ordered_at", "after", "2023-01-01")
     ).rename_field(
         # rename
         "amount",
@@ -197,11 +198,11 @@ def customize_forest(agent: DjangoAgent):
         "Export json",
         export_orders_json,
     ).add_action(
-        "Refund order(s)", refound_order_action
+        "Refund order(s)", refund_order_action
     ).add_field_validation(
         # validation
         "amount",
-        Operator.GREATER_THAN,
+        "greater_than",
         0,
     ).add_field(
         # # computed
@@ -209,6 +210,13 @@ def customize_forest(agent: DjangoAgent):
         get_customer_full_name_field(),
     ).import_field(
         "customer_first_name", {"path": "customer:first_name"}
+    ).add_field(
+        "ordered_date",
+        {
+            "column_type": "Date",
+            "dependencies": ["ordered_at"],
+            "get_values": lambda records, cts: [r["ordered_at"] for r in records],
+        },
     )
 
     # general
@@ -218,4 +226,5 @@ def customize_forest(agent: DjangoAgent):
             [{"username": "Darth Vador", "points": 1500000}, {"username": "Luke Skywalker", "points": 2}]
         ),
     ).add_chart("total_order_week", nb_order_per_week)
+
     return agent
