@@ -2,6 +2,8 @@ import json
 import sys
 from typing import Any, Awaitable, Callable, Dict, List
 
+from forestadmin.agent_toolkit.forest_logger import ForestLogger
+
 if sys.version_info >= (3, 10):
     from typing import TypeAlias
 else:
@@ -31,6 +33,8 @@ async def transform_unique_values(inputs: Input, callback: Callable[[List[Input]
         else:
             mapping.append(-1)
 
+    ForestLogger.log("warning", f"computed field inputs: {inputs}")
+    ForestLogger.log("warning", f"computed field unique_inputs: {unique_inputs}")
     unique_outputs = await callback(unique_inputs)
     outputs: List[Output] = []
 

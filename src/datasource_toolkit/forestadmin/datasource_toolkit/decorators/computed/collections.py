@@ -58,9 +58,9 @@ class ComputedCollectionDecorator(CollectionDecorator):
         if new_projection == projection:
             return records
 
-        ForestLogger.log("warning", f"projection: {projection}")
-        ForestLogger.log("warning", f"new_projection: {new_projection}")
-        ForestLogger.log("warning", f"records: {records}")
+        # ForestLogger.log("warning", f"projection: {projection}")
+        # ForestLogger.log("warning", f"new_projection: {new_projection}")
+        # ForestLogger.log("warning", f"records: {records}")
         context = CollectionCustomizationContext(cast(Collection, self), caller)
         return await compute_from_records(context, self, new_projection, projection, records)
 

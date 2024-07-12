@@ -1,6 +1,7 @@
 import copy
 from typing import Any, List
 
+from forestadmin.agent_toolkit.forest_logger import ForestLogger
 from forestadmin.datasource_toolkit.context.collection_context import CollectionCustomizationContext
 from forestadmin.datasource_toolkit.decorators.computed.types import ComputedDefinition
 from forestadmin.datasource_toolkit.decorators.computed.utils.deduplication import Output, transform_unique_values
@@ -17,6 +18,7 @@ async def compute_field(
     dependency_values: List[List[Any]],
 ) -> List[Output]:
     async def _compute_field_cb(unique_partials: List[RecordsDataAlias]) -> Output:
+        ForestLogger.log("warning", f"computed field dependencies: {computed['dependencies']}")
         ret = await call_user_function(computed["get_values"], unique_partials, context)
         return ret
 
