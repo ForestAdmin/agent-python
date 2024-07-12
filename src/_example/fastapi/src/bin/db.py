@@ -11,7 +11,7 @@ from faker import Faker
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from src.config import settings
-from src.with_sql_alchemy.models import ORDER_STATUS, Address, Base, Cart, Customer, Order
+from src.sql_alchemy.models import ORDER_STATUS, Address, Base, Cart, Customer, Order
 
 if sys.version_info >= (3, 9):
     import zoneinfo

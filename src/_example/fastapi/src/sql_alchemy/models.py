@@ -2,8 +2,11 @@ import enum
 from typing import Any, Dict
 
 from sqlalchemy import Boolean, Column, DateTime, Enum, ForeignKey, Integer, LargeBinary, String, func
-from sqlalchemy.orm import relationship
-from src.database import Base
+from sqlalchemy.orm import DeclarativeBase, relationship
+
+
+class Base(DeclarativeBase):
+    pass
 
 
 class ORDER_STATUS(enum.Enum):

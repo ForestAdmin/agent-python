@@ -9,7 +9,7 @@ from forestadmin.fastapi_agent.agent import create_agent
 from src.config import forest_settings, settings
 from src.custom_logs import ColorizedFormatter
 from src.forest_admin import customize_forest
-from src.with_sql_alchemy.models import Base
+from src.sql_alchemy.models import Base
 
 forest_logger = logging.getLogger("forestadmin")
 
@@ -26,6 +26,7 @@ app.add_middleware(
 agent = create_agent(app, forest_settings)
 agent.add_datasource(SqlAlchemyDatasource(Base, settings.db_uri))
 customize_forest(agent)
+# asyncio.run(agent.start())  # agent.start is launch by fastapi (app.add_event_handler("startup", agent.start))
 
 forest_logger.setLevel(logging.DEBUG)
 
