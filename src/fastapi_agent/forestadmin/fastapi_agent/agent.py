@@ -25,13 +25,6 @@ class FastAPIAgent(BaseAgent):
         self._app.add_event_handler("startup", self.start)
         super().__init__(self.__parse_config(settings))
 
-        # TODO: check for:
-        # * csrf
-        # self._blueprint: Optional[Blueprint] = build_blueprint(self)
-        # if "csrf" in self._app.extensions:
-        #     self._blueprint = self._app.extensions["csrf"].exempt(self._blueprint)
-        # self._app.register_blueprint(self.blueprint, url_prefix=f'{self.options["prefix"]}/forest')
-
     def __parse_config(self, fast_api_settings: ForestFastAPISettings) -> Options:
         # it's not possible to get root path of a fastapi project, so let's the user fill this setting
         settings: Options = {}  # type:ignore
