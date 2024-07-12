@@ -15,13 +15,13 @@ class Options(TypedDict):
     server_url: str
     is_production: bool
     schema_path: str
-    logger: Callable[[str, str], None]
+    logger: Optional[Callable[[str, str], None]]
     logger_level: int
     permissions_cache_duration_in_seconds: int
-    customize_error_message: Callable[[Exception], str]
+    customize_error_message: Optional[Callable[[Exception], str]]
     instant_cache_refresh: Optional[bool]
-    skip_schema_update: Optional[bool]
-    verify_ssl: Optional[bool]
+    skip_schema_update: bool
+    verify_ssl: bool
 
 
 class OptionValidator:
@@ -38,8 +38,8 @@ class OptionValidator:
     }
 
     @classmethod
-    def with_defaults(cls, options: Options):
-        return_options = {**cls.DEFAULT_OPTIONS}
+    def with_defaults(cls, options: Options) -> Options:
+        return_options: Options = {**cls.DEFAULT_OPTIONS}
         return_options.update({k: v for k, v in options.items() if v is not None})
 
         if return_options.get("instant_cache_refresh") is None:
@@ -48,7 +48,7 @@ class OptionValidator:
         return return_options
 
     @staticmethod
-    def validate_options(options: Options):
+    def validate_options(options: Options) -> Options:
         OptionValidator._check_forest_server_options(options)
         OptionValidator._check_auth_options(options)
         OptionValidator._check_other_option(options)

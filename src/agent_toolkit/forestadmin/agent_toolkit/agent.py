@@ -109,7 +109,7 @@ class Agent:
             ),
         }
 
-    async def get_resources(self):
+    async def get_resources(self) -> Resources:
         if self._resources is None:
             await self.__mk_resources()
         return self._resources

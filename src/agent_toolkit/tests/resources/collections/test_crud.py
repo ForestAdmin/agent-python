@@ -3,6 +3,7 @@ import csv
 import importlib
 import json
 import sys
+from io import StringIO
 from unittest import TestCase
 from unittest.mock import AsyncMock, Mock, patch
 
@@ -1069,7 +1070,7 @@ class TestCrudResource(TestCase):
 
         assert response.status == 200
         self.collection_order.list.assert_awaited()
-        csv_reader = csv.DictReader(response.body)
+        csv_reader = csv.DictReader(StringIO(response.body))
         response_content = [row for row in csv_reader]
         assert isinstance(response_content, list)
         assert len(response_content) == 2

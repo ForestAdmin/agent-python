@@ -1,4 +1,4 @@
-from typing import Literal
+from typing import Literal, Optional
 
 from forestadmin.agent_toolkit.forest_logger import ForestLogger
 from forestadmin.agent_toolkit.resources.collections.base_collection_resource import BaseCollectionResource
@@ -12,7 +12,7 @@ from forestadmin.datasource_toolkit.exceptions import ForestException
 
 class ChartsCollectionResource(BaseCollectionResource):
     @ip_white_list
-    async def dispatch(self, request: Request, method_name: Literal["add"]) -> Response:
+    async def dispatch(self, request: Request, method_name: Optional[Literal["useless"]] = None) -> Response:
         try:
             request_collection = RequestCollection.from_request(request, self.datasource)
         except RequestCollectionException as e:
