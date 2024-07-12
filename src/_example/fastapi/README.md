@@ -47,20 +47,20 @@ poetry install
 ## Init your database
 
 ```bash
-python ./bin/db.py create
+poetry run poe init-db
 ```
 
 ## Populate your database with fake data
 
 ```bash
-python ./bin/db.py seed
+poetry run poe populate-db
 
 ```
 
 ## Run the server
 
 ```bash
-python ./main.py
+poetry run poe runserver
 ```
 
 ## Next step
