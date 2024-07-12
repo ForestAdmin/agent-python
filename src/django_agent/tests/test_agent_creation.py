@@ -95,6 +95,9 @@ class TestDjangoAgentLaunchAsServer(TestCase):
         with patch("forestadmin.django_agent.apps.sys.argv", ["pytest"]):
             self.assertFalse(is_launch_as_server())
 
+        with patch("forestadmin.django_agent.apps.sys.argv", ["mypy"]):
+            self.assertFalse(is_launch_as_server())
+
     def test_is_launch_as_server_should_return_True_on_no_pytest_and_other_runserver_manage_command(self):
         with patch("forestadmin.django_agent.apps.sys.argv", ["manage.py", "runserver"]):
             self.assertTrue(is_launch_as_server())
