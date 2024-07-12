@@ -1,3 +1,10 @@
+## [1.8.16](https://github.com/ForestAdmin/agent-python/compare/v1.8.15...v1.8.16) (2024-07-12)
+
+
+### Bug Fixes
+
+* **django:** don't create agent when django is launch by mypy ([#242](https://github.com/ForestAdmin/agent-python/issues/242)) ([368cf7c](https://github.com/ForestAdmin/agent-python/commit/368cf7c08cdcd37faddd4159f28a44f109b39d50))
+
 ## [1.8.15](https://github.com/ForestAdmin/agent-python/compare/v1.8.14...v1.8.15) (2024-07-10)
 
 
