@@ -1,3 +1,10 @@
+# [1.9.0-beta.2](https://github.com/ForestAdmin/agent-python/compare/v1.9.0-beta.1...v1.9.0-beta.2) (2024-07-12)
+
+
+### Bug Fixes
+
+* fix version issue ([#246](https://github.com/ForestAdmin/agent-python/issues/246)) ([a7c7664](https://github.com/ForestAdmin/agent-python/commit/a7c76644d331c28601bff9b1228a614a4b545f73))
+
 # [1.9.0-beta.1](https://github.com/ForestAdmin/agent-python/compare/v1.8.16...v1.9.0-beta.1) (2024-07-12)
 
 
