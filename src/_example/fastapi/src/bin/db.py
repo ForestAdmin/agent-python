@@ -57,7 +57,7 @@ def _populate_customers(session, nb: int = 500) -> List[Customer]:
     for _ in range(0, nb):
         customers.append(
             Customer(
-                pk=str(uuid4()).encode("utf-8"),
+                pk=uuid4(),
                 first_name=fake.first_name(),
                 last_name=fake.last_name(),
                 birthday_date=fake.date_of_birth(),

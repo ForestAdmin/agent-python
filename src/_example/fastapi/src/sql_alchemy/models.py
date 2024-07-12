@@ -1,19 +1,12 @@
 import enum
 from typing import Any, Dict
 
-from sqlalchemy import Boolean, Column, DateTime, Enum, ForeignKey, Integer, LargeBinary, String, func
+from sqlalchemy import Boolean, Column, DateTime, Enum, ForeignKey, Integer, LargeBinary, String, Uuid, func
 from sqlalchemy.orm import DeclarativeBase, relationship
 
 
 class Base(DeclarativeBase):
     pass
-
-
-class ORDER_STATUS(enum.Enum):
-    PENDING = "Pending"
-    DISPATCHED = "Dispatched"
-    DELIVERED = "Delivered"
-    REJECTED = "Rejected"
 
 
 class Address(Base):
@@ -51,7 +44,7 @@ class Address(Base):
 
 class Customer(Base):
     __tablename__ = "customer"
-    pk = Column(LargeBinary, primary_key=True)
+    pk = Column(Uuid, primary_key=True)
     first_name = Column(String(254), nullable=False)
     last_name = Column(String(254), nullable=False)
     age = Column(Integer, nullable=True)
@@ -74,13 +67,20 @@ class Customer(Base):
         return ret
 
 
+class ORDER_STATUS(enum.Enum):
+    PENDING = "Pending"
+    DISPATCHED = "Dispatched"
+    DELIVERED = "Delivered"
+    REJECTED = "Rejected"
+
+
 class Order(Base):
     __tablename__ = "order"
     pk = Column(Integer, primary_key=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     amount = Column(Integer, nullable=False)
     customer = relationship("Customer", backref="orders")
-    customer_id = Column(LargeBinary, ForeignKey("customer.pk"))
+    customer_id = Column(Uuid, ForeignKey("customer.pk"))
     billing_address_id = Column(Integer, ForeignKey("address.pk"))
     billing_address = relationship("Address", foreign_keys=[billing_address_id], backref="billing_orders")
     delivering_address_id = Column(Integer, ForeignKey("address.pk"))
@@ -103,5 +103,5 @@ class Cart(Base):
 
 class CustomersAddresses(Base):
     __tablename__ = "customers_addresses"
-    customer_id = Column(LargeBinary, ForeignKey("customer.pk"), primary_key=True)
+    customer_id = Column(Uuid, ForeignKey("customer.pk"), primary_key=True)
     address_id = Column(Integer, ForeignKey("address.pk"), primary_key=True)
