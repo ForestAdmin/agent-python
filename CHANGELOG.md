@@ -1,3 +1,10 @@
+# [1.9.0-beta.1](https://github.com/ForestAdmin/agent-python/compare/v1.8.16...v1.9.0-beta.1) (2024-07-12)
+
+
+### Features
+
+* add new fastapi agent ([#245](https://github.com/ForestAdmin/agent-python/issues/245)) ([dbe3c50](https://github.com/ForestAdmin/agent-python/commit/dbe3c501217ca611ee9f8e4d2ef14c0f527bf84a))
+
 ## [1.8.16](https://github.com/ForestAdmin/agent-python/compare/v1.8.15...v1.8.16) (2024-07-12)
 
 
