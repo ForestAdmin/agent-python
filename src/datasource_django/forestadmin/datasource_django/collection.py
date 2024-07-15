@@ -36,7 +36,7 @@ class DjangoCollection(BaseDjangoCollection):
         def _list():
             DjangoPolymorphismUtil.request_content_type()
             ret = [
-                instance_to_record_data(item, projection)
+                instance_to_record_data(item, projection, self)
                 for item in DjangoQueryBuilder.mk_list(self, filter_, projection)
             ]
             if getattr(settings, "DEBUG"):
@@ -64,7 +64,7 @@ class DjangoCollection(BaseDjangoCollection):
 
         def _create():
             DjangoPolymorphismUtil.request_content_type()
-            ret = [instance_to_record_data(item, projection) for item in DjangoQueryBuilder.mk_create(self, data)]
+            ret = [instance_to_record_data(item, projection, self) for item in DjangoQueryBuilder.mk_create(self, data)]
 
             if getattr(settings, "DEBUG"):
                 ForestLogger.log(

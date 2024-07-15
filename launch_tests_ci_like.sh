@@ -2,11 +2,11 @@
 # set -x
 ARTIFACT_DIR="artifacts_coverages"
 
-PACKAGES=("agent_toolkit" "datasource_sqlalchemy" "datasource_toolkit" "flask_agent" "datasource_django" "django_agent")
-# PACKAGES=("datasource_sqlalchemy")
+PACKAGES=("agent_toolkit" "datasource_sqlalchemy" "datasource_toolkit" "flask_agent" "datasource_django" "django_agent" "fastapi_agent")
+PACKAGES=("agent_toolkit")
 PYTHON_VERSIONS=("3.8" "3.9" "3.10" "3.11" "3.12")
 # PYTHON_VERSIONS=("3.8" "3.11")
-# PYTHON_VERSIONS=("3.12")
+PYTHON_VERSIONS=("3.12")
 
 # flask related settings
 # https://pypi.org/project/Flask/#history
@@ -109,6 +109,7 @@ do
 
         else
             echo "# running tests"
+            pip install fastapi==0.110.0
             $(which poetry) run coverage run -m pytest  # run tests
         fi
 
