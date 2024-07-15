@@ -2,7 +2,6 @@ from collections import defaultdict
 from datetime import date, datetime
 from typing import Any, Dict, List, Optional, Set, Tuple
 
-from asgiref.sync import sync_to_async
 from django.db import models
 from forestadmin.datasource_django.exception import DjangoDatasourceException
 from forestadmin.datasource_django.interface import BaseDjangoCollection
