@@ -18,11 +18,14 @@ async def compute_field(
     dependency_values: List[List[Any]],
 ) -> List[Output]:
     async def _compute_field_cb(unique_partials: List[RecordsDataAlias]) -> Output:
-        ForestLogger.log("warning", f"computed field dependencies: {computed['dependencies']}")
         ret = await call_user_function(computed["get_values"], unique_partials, context)
         return ret
 
-    return await transform_unique_values(unflatten(dependency_values, Projection(*paths)), _compute_field_cb)
+    ForestLogger.log("warning", f"computed field dependency_values: {dependency_values}")
+    ForestLogger.log("warning", f"computed field paths: {Projection(*paths)}")
+    unflattened = unflatten(dependency_values, Projection(*paths))
+    ForestLogger.log("warning", f"computed field unflattened dependency_values: {unflattened}")
+    return await transform_unique_values(unflattened, _compute_field_cb)
 
 
 async def queue_field(
