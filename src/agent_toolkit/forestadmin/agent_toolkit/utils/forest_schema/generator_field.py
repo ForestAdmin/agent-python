@@ -170,7 +170,7 @@ class SchemaFieldGenerator:
         return {
             **base_schema,
             "type": cls.build_column_type(key_schema["column_type"]),
-            "defaultValue": key_schema["default_value"],
+            "defaultValue": None,
             "isFilterable": cls.is_foreign_collection_filterable(foreign_collection),
             "isPrimaryKey": False,
             "isRequired": any([v["operator"] == Operator.PRESENT for v in validations]),

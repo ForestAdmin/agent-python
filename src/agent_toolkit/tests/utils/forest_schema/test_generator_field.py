@@ -45,7 +45,7 @@ class TestGeneratorField(TestCase):
                     "column_type": PrimitiveType.UUID,
                     "filter_operators": set(MAP_ALLOWED_OPERATORS_FOR_COLUMN_TYPE[PrimitiveType.UUID]),
                     "validations": [],
-                    "default_value": None,
+                    "default_value": "c24303f2-ff83-4dc2-ae7b-4f7a8ee62f2b",
                     "enum_values": None,
                     "is_sortable": True,
                     "is_read_only": False,
@@ -70,7 +70,30 @@ class TestGeneratorField(TestCase):
             }
         )
 
+        cls.author_collection = Collection("Author", cls.datasource)
+        cls.author_collection.add_fields(
+            {
+                "primary_id": {
+                    "is_primary_key": True,
+                    "type": FieldType.COLUMN,
+                    "column_type": PrimitiveType.UUID,
+                    "filter_operators": set(MAP_ALLOWED_OPERATORS_FOR_COLUMN_TYPE[PrimitiveType.UUID]),
+                    "validations": [],
+                    "default_value": None,
+                    "enum_values": None,
+                    "is_sortable": True,
+                    "is_read_only": True,
+                }
+            }
+        )
+        cls.datasource.add_collection(cls.book_collection)
+        cls.datasource.add_collection(cls.author_collection)
+
     def test_should_sort_enum_values(self):
         schema_field = SchemaFieldGenerator.build(self.book_collection, "state")
 
         self.assertEqual(schema_field["enums"], ["CANCELED", "CENSURED", "PUBLISH"])
+
+    def test_relations_should_not_have_default_values(self):
+        schema_field = SchemaFieldGenerator.build(self.book_collection, "author")
+        self.assertIsNone(schema_field["defaultValue"])
