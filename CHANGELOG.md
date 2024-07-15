@@ -1,3 +1,10 @@
+## [1.8.17](https://github.com/ForestAdmin/agent-python/compare/v1.8.16...v1.8.17) (2024-07-15)
+
+
+### Bug Fixes
+
+* **schema:** default_value of a relation is always null ([#249](https://github.com/ForestAdmin/agent-python/issues/249)) ([d37bd8a](https://github.com/ForestAdmin/agent-python/commit/d37bd8a9cf9f52aad73f960f4c5751c787001c17))
+
 ## [1.8.16](https://github.com/ForestAdmin/agent-python/compare/v1.8.15...v1.8.16) (2024-07-12)
 
 
