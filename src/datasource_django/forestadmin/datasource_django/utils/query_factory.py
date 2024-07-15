@@ -7,7 +7,12 @@ from forestadmin.datasource_django.exception import DjangoDatasourceException
 from forestadmin.datasource_django.interface import BaseDjangoCollection
 from forestadmin.datasource_django.utils.polymorphic_util import DjangoPolymorphismUtil
 from forestadmin.datasource_django.utils.type_converter import FilterOperator
-from forestadmin.datasource_toolkit.interfaces.fields import is_many_to_one, is_one_to_one, is_polymorphic_one_to_one
+from forestadmin.datasource_toolkit.interfaces.fields import (
+    is_many_to_one,
+    is_one_to_one,
+    is_polymorphic_many_to_one,
+    is_polymorphic_one_to_one,
+)
 from forestadmin.datasource_toolkit.interfaces.query.aggregation import (
     AggregateResult,
     Aggregation,
@@ -103,12 +108,16 @@ class DjangoQueryBuilder:
         for relation_name, subfields in projection.relations.items():
             field_schema = collection.schema["fields"][relation_name]
             if not break_select_related[relation_name]:
-                if (
-                    is_many_to_one(field_schema)
-                    or is_one_to_one(field_schema)
-                    or is_polymorphic_one_to_one(field_schema)
-                ):
+                if is_many_to_one(field_schema) or is_one_to_one(field_schema):
                     select_related.add(relation_name)
+                elif is_polymorphic_many_to_one(field_schema):
+                    select_related.add(field_schema["foreign_key_type_field"])
+                    break_select_related[relation_name] = True
+                    prefetch_related.add(relation_name)
+                elif is_polymorphic_one_to_one(field_schema):
+                    break_select_related[relation_name] = True
+                    prefetch_related.add(relation_name)
+
                 else:
                     break_select_related[relation_name] = True
                     prefetch_related.add(relation_name)
@@ -149,9 +158,7 @@ class DjangoQueryBuilder:
 
         if len(prefetch) == 0 and not DjangoPolymorphismUtil.is_polymorphism_implied(projection, collection):
             qs = qs.only(*cls._normalize_projection(full_projection))
-        qs = DjangoQueryPaginationBuilder.paginate_queryset(qs, filter_)
-
-        return qs
+        return DjangoQueryPaginationBuilder.paginate_queryset(qs, filter_)
 
     @classmethod
     def mk_aggregate(

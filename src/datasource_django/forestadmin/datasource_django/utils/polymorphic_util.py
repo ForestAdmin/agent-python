@@ -109,9 +109,9 @@ class DjangoPolymorphismUtil:
         return condition_tree
 
     @classmethod
-    def get_collection_name_from_content_type(cls, content_type) -> Optional[str]:
+    def get_collection_name_from_content_type(cls, content_type) -> str:
         if content_type is None:
-            return None
+            return None  # type:ignre
 
         for collection_name, ct in cls._CONTENT_TYPE_CACHE.items():
             if ct.id == content_type.id:

@@ -29,41 +29,36 @@ def instance_to_record_data(
     for relation_name, subfields in projection.relations.items():
         relation = getattr(instance, relation_name, None)
         relation_schema = collection.schema["fields"][relation_name]
-        if is_polymorphic_one_to_many(relation_schema) or is_polymorphic_many_to_one(relation_schema):
-            continue
-        if is_polymorphic_one_to_one(relation_schema):
-            relation = relation.first()
+
+        _projection = subfields
+        foreign_collection_name = relation_schema.get("foreign_collection")
+        if is_polymorphic_one_to_many(relation_schema):
+            continue  # never, on * to many, a separate http request is done
+        elif is_polymorphic_one_to_one(relation_schema):
+            relation = relation.all()  #  type:ignore
+            # when using relation.first, django make a request for ordering, so we avoid this extra request by using all
+            if relation.exists():
+                relation = relation[0]
+        elif is_polymorphic_many_to_one(relation_schema):
+            target_type = getattr(instance, relation_schema["foreign_key_type_field"], None)
+            if target_type is None:
+                record_data[relation_name] = None
+                continue
+
+            target_type = DjangoPolymorphismUtil.get_collection_name_from_content_type(target_type)
+            foreign_collection = collection.datasource.get_collection(target_type)
+            _projection = ProjectionFactory.all(foreign_collection, allow_nested=False)
+            foreign_collection_name = foreign_collection.name
 
         if relation:
-
-            foreign_collection = collection.datasource.get_collection(
-                collection.schema["fields"][relation_name]["foreign_collection"]
-            )
+            foreign_collection = collection.datasource.get_collection(foreign_collection_name)  # type:ignore
             record_data[relation_name] = instance_to_record_data(
                 relation,
-                subfields,
+                _projection,
                 foreign_collection,
             )
         else:
             record_data[relation_name] = None
-
-    poly_relations = [p for p in projection if p.endswith(":*")]
-    for poly_relation in poly_relations:
-        record_data[poly_relation[:-2]] = None
-
-        target_type = record_data[collection.schema["fields"][poly_relation[:-2]]["foreign_key_type_field"]]
-        if target_type is None:
-            continue
-
-        foreign_collection = collection.datasource.get_collection(target_type)
-        value = getattr(instance, poly_relation[:-2], None)
-        if value is not None:
-            record_data[poly_relation[:-2]] = instance_to_record_data(
-                value,
-                ProjectionFactory.all(foreign_collection),
-                foreign_collection,
-            )
-
     return record_data
 
 
