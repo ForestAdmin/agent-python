@@ -172,7 +172,11 @@ class DjangoQueryBuilder:
 
     @staticmethod
     def mk_create(collection: BaseDjangoCollection, data: List[RecordsDataAlias]) -> List[models.Model]:
-        return [collection.model.objects.create(**d) for d in data]
+        ret = [collection.model.objects.create(**d) for d in data]
+        for instance in ret:
+            instance.refresh_from_db()
+
+        return ret
 
     @staticmethod
     def mk_update(
