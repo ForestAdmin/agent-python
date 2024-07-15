@@ -1,8 +1,10 @@
 from typing import List, Optional
 
 from asgiref.sync import sync_to_async
-from django.db import connections
+from django.conf import settings
+from django.db import connection, connections
 from django.db.models import Model
+from forestadmin.agent_toolkit.forest_logger import ForestLogger
 from forestadmin.agent_toolkit.utils.context import User
 from forestadmin.datasource_django.interface import BaseDjangoCollection
 from forestadmin.datasource_django.utils.model_introspection import DjangoCollectionFactory
@@ -30,26 +32,63 @@ class DjangoCollection(BaseDjangoCollection):
         return self._model
 
     async def list(self, caller: User, filter_: PaginatedFilter, projection: Projection) -> List[RecordsDataAlias]:
-        return [
-            await sync_to_async(instance_to_record_data)(item, projection)
-            for item in await DjangoQueryBuilder.mk_list(self, filter_, projection)
-        ]
+        def _list():
+            ret = [
+                instance_to_record_data(item, projection)
+                for item in DjangoQueryBuilder.mk_list(self, filter_, projection)
+            ]
+            if getattr(settings, "DEBUG"):
+                ForestLogger.log("debug", f"SQL queries for list({len(connection.queries)}):{str(connection.queries)}")
+            return ret
+
+        return await sync_to_async(_list)()
 
     async def aggregate(
         self, caller: User, filter_: Optional[Filter], aggregation: Aggregation, limit: Optional[int] = None
     ) -> List[AggregateResult]:
-        return await DjangoQueryBuilder.mk_aggregate(self, filter_, aggregation, limit)
+        def _aggregate():
+            ret = DjangoQueryBuilder.mk_aggregate(self, filter_, aggregation, limit)
+            if getattr(settings, "DEBUG"):
+                ForestLogger.log(
+                    "debug", f"SQL queries for aggregate({len(connection.queries)}):{str(connection.queries)}"
+                )
+            return ret
+
+        return await sync_to_async(_aggregate)()
 
     async def create(self, caller: User, data: List[RecordsDataAlias]) -> List[RecordsDataAlias]:
-        instances = await DjangoQueryBuilder.mk_create(self, data)
         projection = Projection(*[k for k in self.schema["fields"].keys() if is_column(self.schema["fields"][k])])
-        return [await sync_to_async(instance_to_record_data)(item, projection) for item in instances]
+
+        def _create():
+            ret = [instance_to_record_data(item, projection) for item in DjangoQueryBuilder.mk_create(self, data)]
+
+            if getattr(settings, "DEBUG"):
+                ForestLogger.log(
+                    "debug", f"SQL queries for create({len(connection.queries)}):{str(connection.queries)}"
+                )
+            return ret
+
+        return await sync_to_async(_create)()
 
     async def update(self, caller: User, filter_: Optional[Filter], patch: RecordsDataAlias) -> None:
-        await DjangoQueryBuilder.mk_update(self, filter_, patch)
+        def _update():
+            DjangoQueryBuilder.mk_update(self, filter_, patch)
+            if getattr(settings, "DEBUG"):
+                ForestLogger.log(
+                    "debug", f"SQL queries for update({len(connection.queries)}):{str(connection.queries)}"
+                )
+
+        await sync_to_async(_update)()
 
     async def delete(self, caller: User, filter_: Optional[Filter]) -> None:
-        await DjangoQueryBuilder.mk_delete(self, filter_)
+        def _delete():
+            DjangoQueryBuilder.mk_delete(self, filter_)
+            if getattr(settings, "DEBUG"):
+                ForestLogger.log(
+                    "debug", f"SQL queries for delete({len(connection.queries)}):{str(connection.queries)}"
+                )
+
+        await sync_to_async(_delete)()
 
     def get_native_driver(self) -> NativeDriverWrapper:
         db_name = get_db_for_native_driver(self.model)

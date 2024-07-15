@@ -2,7 +2,6 @@ from collections import defaultdict
 from datetime import date, datetime
 from typing import Any, Dict, List, Optional, Set, Tuple
 
-from asgiref.sync import sync_to_async
 from django.db import models
 from forestadmin.datasource_django.exception import DjangoDatasourceException
 from forestadmin.datasource_django.interface import BaseDjangoCollection
@@ -100,12 +99,12 @@ class DjangoQueryBuilder:
         return select_related, prefetch_related
 
     @classmethod
-    async def mk_list(
+    def mk_list(
         cls,
         collection: BaseDjangoCollection,
         filter_: PaginatedFilter,
         projection: Projection,
-    ) -> List[RecordsDataAlias]:
+    ) -> models.QuerySet:
         full_projection = projection
         if filter_.condition_tree:
             full_projection = full_projection.union(filter_.condition_tree.projection)
@@ -120,10 +119,10 @@ class DjangoQueryBuilder:
             qs = qs.only(*cls._normalize_projection(full_projection))
         qs = DjangoQueryPaginationBuilder.paginate_queryset(qs, filter_)
 
-        return await sync_to_async(list)(qs)
+        return qs
 
     @classmethod
-    async def mk_aggregate(
+    def mk_aggregate(
         cls,
         collection: BaseDjangoCollection,
         filter_: Optional[Filter],
@@ -147,7 +146,7 @@ class DjangoQueryBuilder:
                     aggregated_field: cls.AGGREGATION_FUNC_MAPPING[aggregation.operation](aggregation.field)
                 }
 
-            qs = await sync_to_async(qs.aggregate)(**aggregate_kwargs)
+            qs = qs.aggregate(**aggregate_kwargs)
             value = float(qs[aggregated_field])
             return [{"value": value, "group": {}}]
 
@@ -169,35 +168,29 @@ class DjangoQueryBuilder:
             if limit:
                 qs = qs[0:limit]
 
-            return [
-                DjangoQueryGroupByHelper.parse_groupby_row(row, aggregation.groups, aggregated_field)
-                for row in await sync_to_async(list)(qs)
-            ]
+            return [DjangoQueryGroupByHelper.parse_groupby_row(row, aggregation.groups, aggregated_field) for row in qs]
 
     @staticmethod
-    async def mk_update(
+    def mk_create(collection: BaseDjangoCollection, data: List[RecordsDataAlias]) -> List[models.Model]:
+        ret = [collection.model.objects.create(**d) for d in data]
+        for instance in ret:
+            instance.refresh_from_db()
+
+        return ret
+
+    @staticmethod
+    def mk_update(
         collection: BaseDjangoCollection,
         filter_: Optional[Filter],
         patch: RecordsDataAlias,
     ):
-        qs = await sync_to_async(collection.model.objects.filter)(
-            DjangoQueryConditionTreeBuilder.build(filter_.condition_tree)
-        )
-        await sync_to_async(qs.update)(**{k.replace(":", "__"): v for k, v in patch.items()})
-
-    @staticmethod
-    async def mk_create(collection: BaseDjangoCollection, data: List[RecordsDataAlias]) -> models.Model:
-        instances: List[models.Model] = [collection.model(**d) for d in data]
-        for i in instances:
-            await sync_to_async(i.save)()
-            await sync_to_async(i.refresh_from_db)()
-
-        return instances
-
-    @staticmethod
-    async def mk_delete(collection: BaseDjangoCollection, filter_: Optional[Filter]):
         qs = collection.model.objects.filter(DjangoQueryConditionTreeBuilder.build(filter_.condition_tree))
-        await sync_to_async(qs.delete)()
+        qs.update(**{k.replace(":", "__"): v for k, v in patch.items()})
+
+    @staticmethod
+    def mk_delete(collection: BaseDjangoCollection, filter_: Optional[Filter]):
+        qs = collection.model.objects.filter(DjangoQueryConditionTreeBuilder.build(filter_.condition_tree))
+        qs.delete()
 
 
 class DjangoQueryConditionTreeBuilder:
