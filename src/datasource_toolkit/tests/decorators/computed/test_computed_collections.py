@@ -34,7 +34,7 @@ class TestComputedCollectionDecorator(TestCase):
         cls.collection_book.add_fields(
             {
                 "id": Column(column_type=PrimitiveType.NUMBER, is_primary_key=True, type=FieldType.COLUMN),
-                "author_id": Column(column_type=PrimitiveType.STRING, type=FieldType.COLUMN),
+                "author_id": Column(column_type=PrimitiveType.NUMBER, type=FieldType.COLUMN),
                 "author": ManyToOne(
                     foreign_collection="Person",
                     foreign_key="author_id",
@@ -55,10 +55,25 @@ class TestComputedCollectionDecorator(TestCase):
                 "first_name": Column(column_type=PrimitiveType.STRING, type=FieldType.COLUMN),
                 "last_name": Column(column_type=PrimitiveType.STRING, type=FieldType.COLUMN),
                 "book": OneToOne(origin_key="author_id", origin_key_target="id", foreign_collection="Book"),
+                "family_id": Column(column_type=PrimitiveType.NUMBER, type=FieldType.COLUMN),
+                "family": ManyToOne(
+                    origin_key="family_id",
+                    origin_key_target="id",
+                    foreign_collection="Family",
+                    type=FieldType.MANY_TO_ONE,
+                ),
+            }
+        )
+        cls.collection_family = Collection("Family", cls.datasource)
+        cls.collection_family.add_fields(
+            {
+                "id": Column(column_type=PrimitiveType.NUMBER, is_primary_key=True, type=FieldType.COLUMN),
+                "label": Column(column_type=PrimitiveType.STRING, type=FieldType.COLUMN),
             }
         )
         cls.datasource.add_collection(cls.collection_book)
         cls.datasource.add_collection(cls.collection_person)
+        cls.datasource.add_collection(cls.collection_family)
 
         cls.mocked_caller = User(
             rendering_id=1,
@@ -97,6 +112,26 @@ class TestComputedCollectionDecorator(TestCase):
                 "title": "Beat the dealer",
             },
         ]
+
+    def test_manual(self):
+        decorated_collection_book = self.datasource_decorator.get_collection("Book")
+
+        async def get_values(records, context):
+            return records
+
+        decorated_collection_book.register_computed(
+            "test",
+            ComputedDefinition(
+                column_type=PrimitiveType.STRING, dependencies=["author:family:id"], get_values=get_values
+            ),
+        )
+        with patch.object(
+            self.collection_book, "list", new_callable=AsyncMock, return_value=[{"author": {"family": {"id": 1}}}]
+        ):
+            results = self.loop.run_until_complete(
+                decorated_collection_book.list(self.mocked_caller, PaginatedFilter({}), Projection("test"))
+            )
+        pass
 
     def test_create_without_dependencies(self):
         decorated_collection_book = self.datasource_decorator.get_collection("Book")

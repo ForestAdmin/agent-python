@@ -21,10 +21,10 @@ async def compute_field(
         ret = await call_user_function(computed["get_values"], unique_partials, context)
         return ret
 
-    ForestLogger.log("warning", f"computed field dependency_values: {dependency_values}")
-    ForestLogger.log("warning", f"computed field paths: {Projection(*paths)}")
     unflattened = unflatten(dependency_values, Projection(*paths))
-    ForestLogger.log("warning", f"computed field unflattened dependency_values: {unflattened}")
+    ForestLogger.log("warning", f"compute_field dependency_values: {dependency_values}")
+    ForestLogger.log("warning", f"compute_field paths: {Projection(*paths)}")
+    ForestLogger.log("warning", f"compute_field unflattened dependency_values: {unflattened}")
     return await transform_unique_values(unflattened, _compute_field_cb)
 
 
@@ -38,7 +38,11 @@ async def queue_field(
     # Skip double computations (we're not checking before adding to queue).
     if new_path not in paths:
         computed = collection.get_computed(new_path)
+        ForestLogger.log("warning", f"queue_field new_path: {new_path}")
         computed_dependencies = with_null_markers(computed["dependencies"])
+        ForestLogger.log("warning", f"queue_field computed_dependencies: {computed['dependencies']}")
+        ForestLogger.log("warning", f"queue_field computed_dependencies_with_marker: {computed_dependencies}")
+
         nested_dependencies = Projection(*computed_dependencies).nest(
             new_path.rsplit(":", 1)[0] if ":" in new_path else None
         )
@@ -70,6 +74,11 @@ async def compute_from_records(
     flatten_records = flatten(records, paths)
 
     final_projection = with_null_markers(desired_projections)
+
+    ForestLogger.log("warning", f"compute_from_records records: {records}")
+    ForestLogger.log("warning", f"compute_from_records paths: {paths}")
+    ForestLogger.log("warning", f"compute_from_records flatten_records: {flatten_records}")
+    ForestLogger.log("warning", f"compute_from_records final_projection: {final_projection}")
     for path in final_projection:
         await queue_field(ctx, collection, path, paths, flatten_records)
 
