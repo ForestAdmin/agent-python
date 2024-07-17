@@ -1,3 +1,10 @@
+## [1.8.18](https://github.com/ForestAdmin/agent-python/compare/v1.8.17...v1.8.18) (2024-07-17)
+
+
+### Bug Fixes
+
+* **computed:** computed field as dependency of another works ([#250](https://github.com/ForestAdmin/agent-python/issues/250)) ([d8474d7](https://github.com/ForestAdmin/agent-python/commit/d8474d7a04818786c7b0d1279a2649236be73b52))
+
 ## [1.8.17](https://github.com/ForestAdmin/agent-python/compare/v1.8.16...v1.8.17) (2024-07-15)
 
 
