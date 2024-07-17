@@ -215,9 +215,6 @@ class DjangoQueryBuilder:
             collection.model.objects.create(**DjangoPolymorphismUtil.replace_content_type_in_patch(d, collection))
             for d in data
         ]
-        for instance in instances:
-            instance.refresh_from_db()
-
         return instances
 
     @staticmethod
