@@ -39,7 +39,7 @@ async def queue_field(
         )
 
         for path in nested_dependencies:
-            await queue_field(ctx, collection, path, paths, flatten_records.copy())
+            await queue_field(ctx, collection, path, paths, flatten_records)
 
         dependency_values = [flatten_records[paths.index(path)] for path in nested_dependencies]
         paths.append(new_path)

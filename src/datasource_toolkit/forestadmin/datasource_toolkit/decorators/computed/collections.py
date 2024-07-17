@@ -43,7 +43,7 @@ class ComputedCollectionDecorator(CollectionDecorator):
         FieldValidator.validate_name(self.name, name)
 
         for field in computed["dependencies"]:
-            FieldValidator.validate(self.child_collection, field)
+            FieldValidator.validate(self, field)
 
         # cast
         column_type = ComputedCollectionDecorator._cast_column_type(computed["column_type"])
