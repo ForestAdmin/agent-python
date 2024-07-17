@@ -53,7 +53,7 @@ class Command(BaseCommand):
                 "orders_carts": 3000000,
             }
 
-        if not options["all_databases"] and not options["only_other_database"]:
+        if not options["only_other_database"]:
             users, groups = create_users_groups(numbers["groups"], numbers["users"])
             if options["verbosity"] != 0:
                 print(f"users({numbers['users']}) and groups({numbers['groups']}) created ")
