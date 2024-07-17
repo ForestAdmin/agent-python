@@ -30,7 +30,7 @@ class Command(BaseCommand):
             action="store_true",
         )
         parser.add_argument(
-            "--only-default-database",
+            "--all-databases",
             help="don't populate 'other' database",
             action="store_true",
         )
@@ -53,7 +53,7 @@ class Command(BaseCommand):
                 "orders_carts": 3000000,
             }
 
-        if options["only_default_database"] or not options["only_other_database"]:
+        if not options["all_databases"] and not options["only_other_database"]:
             users, groups = create_users_groups(numbers["groups"], numbers["users"])
             if options["verbosity"] != 0:
                 print(f"users({numbers['users']}) and groups({numbers['groups']}) created ")
@@ -70,7 +70,7 @@ class Command(BaseCommand):
             if options["verbosity"] != 0:
                 print(f"orders and carts ({numbers['orders_carts']}) created")
 
-        if not options["only_default_database"] or options["only_other_database"]:
+        if options["all_databases"] or options["only_other_database"]:
             customers = populate_flask_customers(numbers["customers"])
             addresses = populate_flask_addresses(customers)
             populate_orders(addresses)
