@@ -83,7 +83,7 @@ def test_compare_replacer(mock_format: mock.MagicMock, mock_get_now: mock.MagicM
         mock_override.return_value = "fake_override"
         assert compare_replacer(leaf, tz) == "fake_override"
         mock_override.assert_called_once_with({"operator": Operator.GREATER_THAN, "value": "fake_format"})
-        mock_format.assert_called_once_with(datetime(2000, 12, 12, tzinfo=tz))
+        mock_format.assert_called_once_with(datetime(2000, 12, 12, tzinfo=tz), as_date=False)
         date_callback.assert_called_once_with("fake_now", leaf.value)
 
 
@@ -405,6 +405,8 @@ def test_previous_interval(mock_interval: mock.MagicMock):
 def test_format():
     dt = datetime(2000, 10, 10, 5, 12, 43, 150, tzinfo=zoneinfo.ZoneInfo("Europe/Paris"))
     assert format(dt) == "2000-10-10T03:12:43+00:00"
+    dt = datetime(2000, 10, 10, 5, 12, 43, 150, tzinfo=zoneinfo.ZoneInfo("Europe/Paris"))
+    assert format(dt, as_date=True) == "2000-10-10"
 
 
 @freezegun.freeze_time("2022-01-01")

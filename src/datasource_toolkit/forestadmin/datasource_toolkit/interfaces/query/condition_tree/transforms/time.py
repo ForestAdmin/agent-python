@@ -1,7 +1,7 @@
 # pyright: reportMissingModuleSource=false
 import enum
 import sys
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 from typing import Any, Callable, Dict, List, NamedTuple, Optional, Set, cast
 
 import pandas as pd
@@ -48,13 +48,18 @@ def _start_of(dt: datetime, hour: bool = True) -> datetime:
     return dt.replace(**kwargs)
 
 
-def _compare_replacer(operator: Operator, date: DateCallback) -> ReplacerAlias:
+def _compare_replacer(operator: Operator, date_: DateCallback) -> ReplacerAlias:
     def replacer(leaf: ConditionTreeLeaf, tz: zoneinfo.ZoneInfo) -> ConditionTreeLeaf:
         now = _get_now()
+        try:
+            date.fromisoformat(leaf.value)  # type:ignore
+            is_date = True
+        except Exception:
+            is_date = False
         return leaf.override(
             {
                 "operator": operator,
-                "value": format(date(now, leaf.value).astimezone(tz)),  # type: ignore
+                "value": format(date_(now, leaf.value).astimezone(tz), as_date=is_date),  # type: ignore
             }
         )
 
@@ -175,9 +180,12 @@ def previous_interval(
     return interval(frequency, 2 + shift, frequency_prefix, end)
 
 
-def format(value: datetime) -> str:
+def format(value: datetime, as_date=False) -> str:
     utc_datetime: datetime = value.astimezone(tz=zoneinfo.ZoneInfo("UTC"))
-    return utc_datetime.isoformat(timespec="seconds")
+    if as_date:
+        return utc_datetime.date().isoformat()
+    else:
+        return utc_datetime.isoformat(timespec="seconds")
 
 
 def time_transforms(shift: int = 0) -> Dict[Operator, List[Alternative]]:
