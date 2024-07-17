@@ -240,3 +240,37 @@ class TestComputedCollectionDecorator(TestCase):
         assert "group" in result[0]
         assert result[0]["value"] == "Edward O. Thorp"
         assert result[0]["group"] == {}
+
+    def test_computed_field_dependency_computed_field(self):
+        async def get_fullname(records, context):
+            return [f"{record['first_name']} {record['last_name']}" for record in records]
+
+        async def get_fullname_no_spaces(records, context):
+            return [f"{record['full_name'].replace(' ', '')}" for record in records]
+
+        self.datasource_decorator.get_collection("Person").register_computed(
+            "full_name",
+            ComputedDefinition(
+                column_type=PrimitiveType.STRING, dependencies=["first_name", "last_name"], get_values=get_fullname
+            ),
+        )
+        self.datasource_decorator.get_collection("Person").register_computed(
+            "full_name_no_spaces",
+            ComputedDefinition(
+                column_type=PrimitiveType.STRING,
+                dependencies=["full_name"],
+                get_values=get_fullname_no_spaces,
+            ),
+        )
+        book_decorated = self.datasource_decorator.get_collection("Book")
+        with patch.object(self.collection_book, "list", new_callable=AsyncMock, return_value=self.book_records):
+            results = self.loop.run_until_complete(
+                book_decorated.list(
+                    self.mocked_caller, PaginatedFilter({}), Projection("title", "author:full_name_no_spaces")
+                )
+            )
+
+        self.assertEqual(results[0]["title"], self.book_records[0]["title"])
+        self.assertEqual(results[0]["author"]["full_name_no_spaces"], "IsaacAsimov")
+        self.assertEqual(results[1]["title"], self.book_records[1]["title"])
+        self.assertEqual(results[1]["author"]["full_name_no_spaces"], "EdwardO.Thorp")
