@@ -98,10 +98,11 @@ def _interval_replacer(
             frequency_value = f"{leaf.value}{frequency_value}"
 
         interval = _build_interval(end=end, frequency=frequency_value, periods=periods, tz=tz)
+        as_date = frequency != Frequency.HOUR
         return ConditionTreeFactory.intersect(
             [
-                leaf.override({"operator": Operator.GREATER_THAN, "value": format(interval.start)}),
-                leaf.override({"operator": Operator.LESS_THAN, "value": format(interval.end)}),
+                leaf.override({"operator": Operator.GREATER_THAN, "value": format(interval.start, as_date=as_date)}),
+                leaf.override({"operator": Operator.LESS_THAN, "value": format(interval.end, as_date=as_date)}),
             ]
         )
 

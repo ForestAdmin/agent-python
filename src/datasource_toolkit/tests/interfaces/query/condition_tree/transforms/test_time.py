@@ -270,12 +270,12 @@ def test_interval_replacer(mock_build_interval: mock.MagicMock):
             ConditionTreeLeaf(
                 field="test",
                 operator=Operator.GREATER_THAN,
-                value=datetime(2000, 1, 1, tzinfo=zoneinfo.ZoneInfo("UTC")).isoformat(timespec="seconds"),
+                value=datetime(2000, 1, 1, tzinfo=zoneinfo.ZoneInfo("UTC")).date().isoformat(),
             ),
             ConditionTreeLeaf(
                 field="test",
                 operator=Operator.LESS_THAN,
-                value=datetime(2001, 1, 1, tzinfo=zoneinfo.ZoneInfo("UTC")).isoformat(timespec="seconds"),
+                value=datetime(2001, 1, 1, tzinfo=zoneinfo.ZoneInfo("UTC")).date().isoformat(),
             ),
         ],
     )
@@ -297,18 +297,45 @@ def test_interval_replacer(mock_build_interval: mock.MagicMock):
             ConditionTreeLeaf(
                 field="test",
                 operator=Operator.GREATER_THAN,
-                value=datetime(2000, 1, 1, tzinfo=zoneinfo.ZoneInfo("UTC")).isoformat(timespec="seconds"),
+                value=datetime(2000, 1, 1, tzinfo=zoneinfo.ZoneInfo("UTC")).date().isoformat(),
             ),
             ConditionTreeLeaf(
                 field="test",
                 operator=Operator.LESS_THAN,
-                value=datetime(2001, 1, 1, tzinfo=zoneinfo.ZoneInfo("UTC")).isoformat(timespec="seconds"),
+                value=datetime(2001, 1, 1, tzinfo=zoneinfo.ZoneInfo("UTC")).date().isoformat(),
             ),
         ],
     )
     mock_build_interval.assert_called_once_with(
         end=datetime(2020, 1, 1, tzinfo=zoneinfo.ZoneInfo("Europe/Paris")),
         frequency=f"15{Frequency.YEAR.value}",
+        periods=2,
+        tz=zoneinfo.ZoneInfo("Europe/Paris"),
+    )
+
+    mock_build_interval.reset_mock()
+
+    tree = ConditionTreeLeaf(field="test", operator=Operator.BEFORE_X_HOURS_AGO, value=6)
+    replacer = _interval_replacer(Frequency.HOUR, 2, True, datetime(2020, 1, 1))
+    res = replacer(tree, zoneinfo.ZoneInfo("Europe/Paris"))
+    assert res == ConditionTreeBranch(
+        Aggregator.AND,
+        [
+            ConditionTreeLeaf(
+                field="test",
+                operator=Operator.GREATER_THAN,
+                value=datetime(2000, 1, 1, 0, 0, 0, tzinfo=zoneinfo.ZoneInfo("UTC")).isoformat(timespec="seconds"),
+            ),
+            ConditionTreeLeaf(
+                field="test",
+                operator=Operator.LESS_THAN,
+                value=datetime(2001, 1, 1, 0, 0, 0, tzinfo=zoneinfo.ZoneInfo("UTC")).isoformat(timespec="seconds"),
+            ),
+        ],
+    )
+    mock_build_interval.assert_called_once_with(
+        end=datetime(2020, 1, 1, tzinfo=zoneinfo.ZoneInfo("Europe/Paris")),
+        frequency=f"6{Frequency.HOUR.value}",
         periods=2,
         tz=zoneinfo.ZoneInfo("Europe/Paris"),
     )
