@@ -212,7 +212,8 @@ class DjangoQueryBuilder:
     @staticmethod
     def mk_create(collection: BaseDjangoCollection, data: List[RecordsDataAlias]) -> List[models.Model]:
         instances: List[models.Model] = [
-            collection.model(**DjangoPolymorphismUtil.replace_content_type_in_patch(d, collection)) for d in data
+            collection.model.objects.create(**DjangoPolymorphismUtil.replace_content_type_in_patch(d, collection))
+            for d in data
         ]
         for instance in instances:
             instance.refresh_from_db()
