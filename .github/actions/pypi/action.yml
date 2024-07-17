@@ -30,10 +30,13 @@ runs:
       id: read_name
       with:
         file: '${{ inputs.current_package }}pyproject.toml'
-        field: 'tool.poetry.name' 
+        field: 'tool.poetry.name'
     - name: publish
       working-directory: ${{ inputs.current_package }}
       shell: bash
+      env:
+        # https://github.com/python-poetry/poetry/pull/7081/files
+        POETRY_REQUESTS_TIMEOUT: 30
       run: |
         git pull
         poetry build
