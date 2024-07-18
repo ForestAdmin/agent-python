@@ -68,7 +68,7 @@ class ConditionTreeValidator:
         if condition_tree.operator not in allowed_operators:
             raise ConditionTreeValidatorException(
                 f"The given operator {condition_tree.operator} is not allowed with the "
-                'column_type schema {column_schema["column_type"]}. \n The allowed types are: [{allowed_operators}]'
+                f'column_type schema {column_schema["column_type"]}. \n The allowed types are: [{allowed_operators}]'
             )
 
     @staticmethod
