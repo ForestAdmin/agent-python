@@ -1,10 +1,19 @@
 from typing import Dict, Union, cast
 
-from forestadmin.agent_toolkit.utils.forest_schema.filterable import FrontendFilterableUtils
-from forestadmin.agent_toolkit.utils.forest_schema.type import ForestServerField, RelationServer
-from forestadmin.agent_toolkit.utils.forest_schema.validation import FrontendValidationUtils
+from forestadmin.agent_toolkit.utils.forest_schema.filterable import (
+    FrontendFilterableUtils,
+)
+from forestadmin.agent_toolkit.utils.forest_schema.type import (
+    ForestServerField,
+    RelationServer,
+)
+from forestadmin.agent_toolkit.utils.forest_schema.validation import (
+    FrontendValidationUtils,
+)
 from forestadmin.datasource_toolkit.collections import Collection
-from forestadmin.datasource_toolkit.datasource_customizer.collection_customizer import CollectionCustomizer
+from forestadmin.datasource_toolkit.datasource_customizer.collection_customizer import (
+    CollectionCustomizer,
+)
 from forestadmin.datasource_toolkit.interfaces.fields import (
     Column,
     ColumnAlias,
@@ -230,7 +239,7 @@ class SchemaFieldGenerator:
             "isFilterable": False,
             "isPrimaryKey": False,
             "isRequired": any([v["operator"] == Operator.PRESENT for v in validations]),
-            "isSortable": bool(key_schema["is_sortable"]),
+            "isSortable": False,
             "validations": FrontendValidationUtils.convert_validation_list(validations),
             "reference": f"{field_name}.id",
             "polymorphic_referenced_models": field_schema["foreign_collections"],
