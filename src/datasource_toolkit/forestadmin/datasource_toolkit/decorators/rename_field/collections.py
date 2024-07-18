@@ -192,7 +192,8 @@ class RenameFieldCollectionDecorator(CollectionDecorator):
                 child_field = self._to_child_collection.get(field_name, field_name)
                 return f"{child_field}:{relation._path_to_child_collection(related_field)}"
             elif is_polymorphic_many_to_one(schema):
-                return path
+                relation_name = self._to_child_collection.get(field_name, field_name)
+                return f"{relation_name}:{related_field}"
             else:
                 raise RenameCollectionException(f"The field {field_name} is not a relation")
         return self._to_child_collection.get(field_name, field_name)
