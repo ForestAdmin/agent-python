@@ -1,3 +1,10 @@
+## [1.8.19](https://github.com/ForestAdmin/agent-python/compare/v1.8.18...v1.8.19) (2024-07-18)
+
+
+### Bug Fixes
+
+* filters on dateonly ([#251](https://github.com/ForestAdmin/agent-python/issues/251)) ([1626308](https://github.com/ForestAdmin/agent-python/commit/1626308241b4937b8f1230d64869c606b80837ba))
+
 ## [1.8.18](https://github.com/ForestAdmin/agent-python/compare/v1.8.17...v1.8.18) (2024-07-17)
 
 
