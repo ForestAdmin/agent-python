@@ -147,18 +147,19 @@ class BinaryCollectionDecorator(CollectionDecorator):
         suffix = field_name.split(":", 1)[1] if ":" in field_name else None
         schema = self.child_collection.schema["fields"][prefix]
 
-        if not is_column(schema) and not is_polymorphic_many_to_one(schema):
+        if is_polymorphic_many_to_one(schema):
+            # the next lines worked, but certainly hazardously
+            # binary_mode = self._should_use_hex(field_name[:-1])
+            # return self._convert_value_helper(to_backend, field_name, binary_mode, value)
+            return value
+
+        if not is_column(schema):
             foreign_collection = self.datasource.get_collection(schema["foreign_collection"])
             return (
                 foreign_collection._convert_value(to_backend, suffix, value)
                 if suffix
                 else foreign_collection._convert_record(to_backend, value)
             )
-        elif is_polymorphic_many_to_one(schema):
-            return value
-            # the next lines worked, but certainly hazardously
-            # binary_mode = self._should_use_hex(field_name[:-1])
-            # return self._convert_value_helper(to_backend, field_name, binary_mode, value)
         binary_mode = self._should_use_hex(field_name)
 
         return self._convert_value_helper(to_backend, field_name, binary_mode, value)

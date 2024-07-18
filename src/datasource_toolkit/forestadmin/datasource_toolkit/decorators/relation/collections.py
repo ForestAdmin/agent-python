@@ -166,7 +166,7 @@ class RelationCollectionDecorator(CollectionDecorator):
     def _rewrite_field(self, field: str) -> List[str]:
         prefix = field.split(":")[0]
         schema: FieldAlias = self.schema["fields"][prefix]
-        if schema["type"] == FieldType.COLUMN or schema["type"] == FieldType.POLYMORPHIC_MANY_TO_ONE:
+        if schema["type"] in [FieldType.COLUMN, FieldType.POLYMORPHIC_MANY_TO_ONE]:
             return [field]
 
         relation = self.datasource.get_collection(schema["foreign_collection"])
