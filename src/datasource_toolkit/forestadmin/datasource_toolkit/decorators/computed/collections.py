@@ -33,15 +33,14 @@ class ComputedCollectionDecorator(CollectionDecorator):
 
     def get_computed(self, path_p: str) -> Union[ComputedDefinition, None]:
         if ":" not in path_p:
-            try:
-                return self._computeds[path_p]
-            except KeyError:
-                return None
+            return self._computeds.get(path_p)
 
         related_field, path = path_p.split(":", 1)
         field = cast(RelationAlias, self.get_field(related_field))
         if is_polymorphic_many_to_one(field):
-            ForestLogger.log("info", f"Cannot compute field over polymorphic relation {self.name}.{related_field}.")
+            ForestLogger.log(
+                "info", f"Cannot compute computed fields over polymorphic relation {self.name}.{related_field}."
+            )
             return None
 
         foreign_collection: Self = self.datasource.get_collection(field["foreign_collection"])
