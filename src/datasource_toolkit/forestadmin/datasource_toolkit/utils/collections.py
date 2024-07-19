@@ -12,6 +12,8 @@ from forestadmin.datasource_toolkit.interfaces.fields import (
     is_one_to_many,
     is_one_to_one,
     is_polymorphic_many_to_one,
+    is_polymorphic_one_to_many,
+    is_polymorphic_one_to_one,
     is_relation,
 )
 from forestadmin.datasource_toolkit.interfaces.models.collections import Collection as CollectionModel
@@ -149,9 +151,22 @@ class CollectionUtils:
                 CollectionUtils.is_many_to_many_inverse(field_schema, relation)
                 or CollectionUtils.is_many_to_one_inverse(field_schema, relation)
                 or CollectionUtils.is_other_inverse(field_schema, relation)
+                or CollectionUtils.is_polymorphic_many_to_one_inverse(field_schema, relation)
             ):
                 inverse = name
         return inverse
+
+    @staticmethod
+    def is_polymorphic_many_to_one_inverse(field: RelationAlias, relation_field: RelationAlias) -> bool:
+        if (
+            is_polymorphic_many_to_one(field)
+            and (is_polymorphic_one_to_one(relation_field) or is_polymorphic_one_to_many(relation_field))
+            and field["foreign_key"] == relation_field["origin_key"]
+            and field["foreign_key_type_field"] == relation_field["origin_type_field"]
+            and relation_field["origin_type_value"] in field["foreign_collections"]
+        ):
+            return True
+        return False
 
     @staticmethod
     def is_many_to_many_inverse(field: RelationAlias, relation_field: RelationAlias) -> bool:
