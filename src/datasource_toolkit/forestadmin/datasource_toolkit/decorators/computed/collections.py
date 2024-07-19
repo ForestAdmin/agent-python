@@ -53,11 +53,11 @@ class ComputedCollectionDecorator(CollectionDecorator):
         FieldValidator.validate_name(self.name, name)
 
         for field in computed["dependencies"]:
-            FieldValidator.validate(self.child_collection, field)
             if ":" in field and is_polymorphic_many_to_one(self.schema["fields"][field.split(":")[0]]):
                 raise ComputedDecoratorException(
-                    f"Dependencies over a polymorphic relations({self.name}.{field.split(':')[0]}) is forbidden."
+                    f"Dependencies over a polymorphic relations({self.name}.{field.split(':')[0]}) are forbidden."
                 )
+            FieldValidator.validate(self.child_collection, field)
 
         # cast
         column_type = ComputedCollectionDecorator._cast_column_type(computed["column_type"])
