@@ -1,5 +1,6 @@
 from typing import Any, Dict, List, Optional, Union, cast
 
+from forestadmin.agent_toolkit.forest_logger import ForestLogger
 from forestadmin.agent_toolkit.utils.context import User
 from forestadmin.datasource_toolkit.context.collection_context import CollectionCustomizationContext
 from forestadmin.datasource_toolkit.decorators.collection_decorator import CollectionDecorator
@@ -52,7 +53,11 @@ class ComputedCollectionDecorator(CollectionDecorator):
         FieldValidator.validate_name(self.name, name)
 
         for field in computed["dependencies"]:
-            FieldValidator.validate(self, field)
+            FieldValidator.validate(self.child_collection, field)
+            if ":" in field and is_polymorphic_many_to_one(self.schema["fields"][field.split(":")[0]]):
+                raise ComputedDecoratorException(
+                    f"Dependencies over a polymorphic relations({self.name}.{field.split(':')[0]}) is forbidden."
+                )
 
         # cast
         column_type = ComputedCollectionDecorator._cast_column_type(computed["column_type"])
