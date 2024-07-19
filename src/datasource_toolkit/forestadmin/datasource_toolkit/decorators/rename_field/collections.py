@@ -43,9 +43,17 @@ class RenameFieldCollectionDecorator(CollectionDecorator):
                 f"No such field '{self.name}.{current_name}', choices are {', '.join(available_fields)}"
             )
 
-        initial_name = current_name
-
         FieldValidator.validate_name(self.name, new_name)
+
+        for field_name, field_schema in self.child_collection.schema["fields"].items():
+            if is_polymorphic_many_to_one(field_schema):
+                if current_name in [field_schema["foreign_key"], field_schema["foreign_key_type_field"]]:
+                    raise RenameCollectionException(
+                        f"Cannot rename '{self.name}.{current_name}', because it's implied "
+                        f" in a polymorphic relation '{self.name}.{field_name}'"
+                    )
+
+        initial_name = current_name
 
         # Revert previous renaming (avoids conflicts and need to recurse on this.toSubCollection).
         if current_name in self._to_child_collection:
