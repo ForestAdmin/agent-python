@@ -45,7 +45,7 @@ class CollectionUtils:
         except KeyError:
             kind = "Relation" if sub_path else "Column"
             raise CollectionUtilsException(
-                f"{kind} not found {collection.name}.{field_name}. Felds are {','.join(fields.keys())}"
+                f"{kind} not found {collection.name}.{field_name}. Fields are {','.join(fields.keys())}"
             )
 
         if not sub_path:
@@ -139,6 +139,10 @@ class CollectionUtils:
     @staticmethod
     def get_inverse_relation(collection: Collection, relation_name: str) -> Optional[str]:
         relation = cast(RelationAlias, collection.get_field(relation_name))
+        if is_polymorphic_many_to_one(relation):
+            raise CollectionUtilsException(
+                f"A polymorphic many to one ({collection.name}.{relation_name}) have many reverse relations"
+            )
         foreign_collection = collection.datasource.get_collection(relation["foreign_collection"])
         inverse: Optional[str] = None
         for name, field_schema in foreign_collection.schema["fields"].items():
