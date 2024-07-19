@@ -19,6 +19,7 @@ from forestadmin.datasource_toolkit.interfaces.fields import (
     is_polymorphic_one_to_many,
 )
 from forestadmin.datasource_toolkit.interfaces.query.projections import Projection
+from forestadmin.datasource_toolkit.interfaces.query.projections.factory import ProjectionFactory
 from forestadmin.datasource_toolkit.utils.schema import SchemaUtils
 from marshmallow.exceptions import MarshmallowError
 from marshmallow.schema import SchemaMeta
@@ -178,12 +179,14 @@ class ForestRelationShip(fields.Relationship):
     def handle_polymorphism(self):
         target_collection_field = cast(PolymorphicManyToOne, self.forest_relation)["foreign_key_type_field"]
         target_collection = self._forest_current_obj[target_collection_field]
+
         self.type_ = target_collection
-        if "" in self.only:
-            self.only.remove("")
+        self._old_only = self.only
+        self.only = None
 
     def teardown_polymorphism(self):
         self.__schema = None  # this is a cache variable, so it's preferable to clean it after
+        self.only = self._old_only
 
     def serialize(self, attr, obj, accessor=None):
         self._forest_current_obj = obj
