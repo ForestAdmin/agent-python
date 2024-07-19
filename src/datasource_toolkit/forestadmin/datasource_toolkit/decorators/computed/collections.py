@@ -41,7 +41,8 @@ class ComputedCollectionDecorator(CollectionDecorator):
         related_field, path = path_p.split(":", 1)
         field = cast(RelationAlias, self.get_field(related_field))
         if is_polymorphic_many_to_one(field):
-            return self._computeds[path]
+            ForestLogger.log("info", f"Cannot compute field over polymorphic relation {self.name}.{related_field}.")
+            return None
 
         foreign_collection: Self = self.datasource.get_collection(field["foreign_collection"])
         return foreign_collection.get_computed(path)
