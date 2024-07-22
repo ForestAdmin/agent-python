@@ -6,8 +6,6 @@ import sys
 from unittest import TestCase
 from unittest.mock import ANY, AsyncMock, Mock, patch
 
-from forestadmin.datasource_toolkit.interfaces.query.filter.unpaginated import Filter
-
 if sys.version_info >= (3, 9):
     import zoneinfo
 else:
@@ -797,7 +795,7 @@ class TestCrudRelatedResource(TestCase):
         )
 
         with patch.object(self.collection_tag, "update", new_callable=AsyncMock) as mock_collection_update:
-            response = self.loop.run_until_complete(crud_related_resource.add(request))
+            self.loop.run_until_complete(crud_related_resource.add(request))
             mock_collection_update.assert_awaited_once()
             self.assertIn(
                 ConditionTreeLeaf("id", "equal", 201),

@@ -6,8 +6,6 @@ import sys
 from unittest import TestCase
 from unittest.mock import ANY, AsyncMock, Mock, patch
 
-from forestadmin.datasource_toolkit.interfaces.query.filter.paginated import PaginatedFilter
-
 if sys.version_info >= (3, 9):
     import zoneinfo
 else:
@@ -481,7 +479,7 @@ class TestCrudResource(TestCase):
                 {"id": 10, "taggable_id": 10, "taggable_type": "product", "taggable": {"id": 10, "name": "my product"}}
             ],
         ) as mock_list:
-            response = self.loop.run_until_complete(crud_resource.get(request))
+            self.loop.run_until_complete(crud_resource.get(request))
 
             mock_list.assert_awaited_with(ANY, ANY, ["id", "taggable_id", "taggable_type", "taggable:*"])
 
@@ -808,7 +806,7 @@ class TestCrudResource(TestCase):
                 {"id": 1, "taggable_id": 11, "taggable_type": "order", "taggable": {}},
             ],
         ) as mock_list:
-            response = self.loop.run_until_complete(crud_resource.list(request))
+            self.loop.run_until_complete(crud_resource.list(request))
             mock_list.assert_awaited_once()
             list_args = mock_list.await_args_list[0].args
             self.assertIn("taggable:*", list_args[2])

@@ -19,7 +19,6 @@ from forestadmin.datasource_toolkit.interfaces.fields import (
     is_polymorphic_one_to_many,
 )
 from forestadmin.datasource_toolkit.interfaces.query.projections import Projection
-from forestadmin.datasource_toolkit.interfaces.query.projections.factory import ProjectionFactory
 from forestadmin.datasource_toolkit.utils.schema import SchemaUtils
 from marshmallow.exceptions import MarshmallowError
 from marshmallow.schema import SchemaMeta
