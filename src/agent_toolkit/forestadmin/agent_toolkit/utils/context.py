@@ -32,6 +32,7 @@ class User:
     last_name: str
     team: str
     timezone: ZoneInfo
+    context_url: Optional[str] = None
     # permission_level
     # role
 
