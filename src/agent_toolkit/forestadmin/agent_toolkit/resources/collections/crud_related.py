@@ -120,7 +120,11 @@ class CrudRelatedResource(BaseCollectionResource):
     @authorize("export")
     @check_method(RequestMethod.GET)
     async def csv(self, request: RequestRelationCollection) -> Response:
-        if not (is_one_to_many(request.relation) or is_many_to_many(request.relation)):
+        if not (
+            is_one_to_many(request.relation)
+            or is_many_to_many(request.relation)
+            or is_polymorphic_one_to_many(request.relation)
+        ):
             ForestLogger.log("error", "Unhandled relation type")
             return HttpResponseBuilder.build_client_error_response([ForestException("Unhandled relation type")])
         try:

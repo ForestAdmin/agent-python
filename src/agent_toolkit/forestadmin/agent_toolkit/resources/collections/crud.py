@@ -394,8 +394,6 @@ class CrudResource(BaseCollectionResource):
                 if is_one_to_one(field) or is_polymorphic_one_to_one(field):
                     one_to_one_relations.append((field, dict([(pk, value) for pk in pk_names])))
                     # one_to_one_relations.append((field, dict([(pk, value[i]) for i, pk in enumerate(pk_names)])))
-                elif is_polymorphic_one_to_one(field):
-                    one_to_one_relations.append((field, dict([(pk, value) for pk in pk_names])))
                 else:
                     field = cast(ManyToOne, field)
                     value = await CollectionUtils.get_value(
