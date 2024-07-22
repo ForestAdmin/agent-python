@@ -39,7 +39,7 @@ class ComputedCollectionDecorator(CollectionDecorator):
         field = cast(RelationAlias, self.get_field(related_field))
         if is_polymorphic_many_to_one(field):
             ForestLogger.log(
-                "info", f"Cannot compute computed fields over polymorphic relation {self.name}.{related_field}."
+                "debug", f"Cannot compute computed fields over polymorphic relation {self.name}.{related_field}."
             )
             return None
 
