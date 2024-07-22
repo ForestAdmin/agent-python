@@ -1,15 +1,8 @@
-from unittest import TestCase, mock
+from unittest import TestCase
 
 from forestadmin.datasource_toolkit.collections import Collection
 from forestadmin.datasource_toolkit.datasources import Datasource
-from forestadmin.datasource_toolkit.interfaces.fields import (
-    Column,
-    FieldType,
-    ManyToOne,
-    OneToMany,
-    OneToOne,
-    PrimitiveType,
-)
+from forestadmin.datasource_toolkit.interfaces.fields import Column, FieldType, ManyToOne, OneToMany, PrimitiveType
 from forestadmin.datasource_toolkit.utils.collections import CollectionUtils, CollectionUtilsException
 
 
