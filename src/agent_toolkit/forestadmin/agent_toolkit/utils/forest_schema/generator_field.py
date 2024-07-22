@@ -1,19 +1,10 @@
 from typing import Dict, Union, cast
 
-from forestadmin.agent_toolkit.utils.forest_schema.filterable import (
-    FrontendFilterableUtils,
-)
-from forestadmin.agent_toolkit.utils.forest_schema.type import (
-    ForestServerField,
-    RelationServer,
-)
-from forestadmin.agent_toolkit.utils.forest_schema.validation import (
-    FrontendValidationUtils,
-)
+from forestadmin.agent_toolkit.utils.forest_schema.filterable import FrontendFilterableUtils
+from forestadmin.agent_toolkit.utils.forest_schema.type import ForestServerField, RelationServer
+from forestadmin.agent_toolkit.utils.forest_schema.validation import FrontendValidationUtils
 from forestadmin.datasource_toolkit.collections import Collection
-from forestadmin.datasource_toolkit.datasource_customizer.collection_customizer import (
-    CollectionCustomizer,
-)
+from forestadmin.datasource_toolkit.datasource_customizer.collection_customizer import CollectionCustomizer
 from forestadmin.datasource_toolkit.interfaces.fields import (
     Column,
     ColumnAlias,
@@ -64,7 +55,7 @@ class SchemaFieldGenerator:
         ):
             schema = cls.build_relation_schema(collection, field_name, field_schema)
         elif is_polymorphic_many_to_one(field_schema):
-            schema = cls.build_polymorphic_relation_schema(collection, field_name, field_schema)
+            schema = cls.build_polymorphic_many_to_one(collection, field_name, field_schema)
         else:
             raise
         return cast(ForestServerField, dict(sorted(schema.items())))
@@ -219,7 +210,7 @@ class SchemaFieldGenerator:
         return res
 
     @classmethod
-    def build_polymorphic_relation_schema(
+    def build_polymorphic_many_to_one(
         cls, collection: Union[Collection, CollectionCustomizer], field_name: str, field_schema: PolymorphicManyToOne
     ) -> ForestServerField:
 
