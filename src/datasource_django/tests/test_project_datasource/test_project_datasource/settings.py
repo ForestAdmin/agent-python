@@ -22,7 +22,7 @@ DATABASES = {
     },
     "other": {
         "ENGINE": "django.db.backends.sqlite3",
-        "NAME": os.path.abspath(os.path.join(__file__, "..", "..", "test_db.sqlite")),
-        "TEST": {"NAME": os.path.abspath(os.path.join(__file__, "..", "..", "other_test_db.sqlite"))},
+        "NAME": ":memory:",
+        "TEST": {"NAME": ":memory:"},
     },
 }

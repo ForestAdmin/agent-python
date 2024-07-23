@@ -47,6 +47,7 @@ class TestDjangoDatasource(TestCase):
                     "test_app_book",
                     "test_app_person",
                     "test_app_rating",
+                    "test_app_tag",
                     "auth_permission",
                     "auth_group_permissions",
                     "auth_group",

@@ -6,7 +6,7 @@ from django.apps import apps
 from django.db import models
 from forestadmin.datasource_django.utils.model_introspection import DjangoCollectionFactory, FieldFactory
 from forestadmin.datasource_toolkit.interfaces.fields import FieldType, Operator, PrimitiveType
-from test_app.models import Book, Person
+from test_app.models import Book, Person, Rating
 
 
 class TestDjangoFieldFactory(TestCase):
@@ -183,6 +183,7 @@ class TestDjangoCollectionFactory(TestCase):
         cls.field_only_model = TestDjangoCollectionFactory.build_model_class(
             "FieldOnly", {"name": models.CharField(max_length=254)}
         )
+        super().setUpClass()
 
     def test_build_should_call_field_factory_for_non_relational_fields(self):
         with patch(
@@ -290,3 +291,47 @@ class TestDjangoCollectionFactory(TestCase):
         self.assertEqual(book_schema["fields"]["author_id"]["validations"], [])
         self.assertEqual(book_schema["fields"]["author_id"]["column_type"], PrimitiveType.NUMBER)
         self.assertEqual(book_schema["fields"]["author_id"]["type"], FieldType.COLUMN)
+
+    def test_build_should_handle_polymorphic_many_to_one(self):
+        rating_schema = DjangoCollectionFactory.build(Rating)
+
+        self.assertEqual(
+            rating_schema["fields"]["content_object"],
+            {
+                "foreign_collections": ["test_app_book", "test_app_person"],
+                "foreign_key": "content_id",
+                "foreign_key_type_field": "content_type",
+                "foreign_key_targets": {"test_app_book": "id", "test_app_person": "id"},
+                "type": FieldType.POLYMORPHIC_MANY_TO_ONE,
+            },
+        )
+
+    def test_build_should_handle_polymorphic_one_to_many(self):
+        book_schema = DjangoCollectionFactory.build(Book)
+
+        self.assertEqual(
+            book_schema["fields"]["ratings"],
+            {
+                "foreign_collection": "test_app_rating",
+                "origin_key": "content_id",
+                "origin_key_target": "id",
+                "origin_type_field": "content_type",
+                "origin_type_value": "test_app_book",
+                "type": FieldType.POLYMORPHIC_ONE_TO_MANY,
+            },
+        )
+
+    def test_build_should_handle_polymorphic_one_to_one(self):
+        book_schema = DjangoCollectionFactory.build(Book)
+
+        self.assertEqual(
+            book_schema["fields"]["tags"],
+            {
+                "foreign_collection": "test_app_tag",
+                "origin_key": "content_id",
+                "origin_key_target": "id",
+                "origin_type_field": "content_type",
+                "origin_type_value": "test_app_book",
+                "type": FieldType.POLYMORPHIC_ONE_TO_ONE,
+            },
+        )
