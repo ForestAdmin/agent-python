@@ -58,7 +58,6 @@ class ComputedCollectionDecorator(CollectionDecorator):
                 raise ComputedDecoratorException(
                     f"Dependencies over a polymorphic relations({self.name}.{field.split(':')[0]}) are forbidden."
                 )
-            FieldValidator.validate(self.child_collection, field)
 
         # cast
         column_type = ComputedCollectionDecorator._cast_column_type(computed["column_type"])
