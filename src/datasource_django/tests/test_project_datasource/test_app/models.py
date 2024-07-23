@@ -35,7 +35,7 @@ class Rating(models.Model):
     commenter = models.ForeignKey(Person, on_delete=models.CASCADE)
     book = models.ForeignKey(Book, on_delete=models.CASCADE)
     rating = models.IntegerField(choices=RATE_CHOICES)
-    rated_at = models.DateField()
+    rated_at = models.DateTimeField()
     # polymorphic relation
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, null=True)
     object_id = models.PositiveIntegerField(null=True)

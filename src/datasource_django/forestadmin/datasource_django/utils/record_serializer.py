@@ -1,10 +1,13 @@
+from datetime import date, datetime
 from decimal import Decimal
-from typing import Any
+from typing import Any, cast
 
 from django.db.models import Model
 from forestadmin.datasource_django.interface import BaseDjangoCollection
 from forestadmin.datasource_django.utils.polymorphic_util import DjangoPolymorphismUtil
 from forestadmin.datasource_toolkit.interfaces.fields import (
+    Column,
+    PrimitiveType,
     is_polymorphic_many_to_one,
     is_polymorphic_one_to_many,
     is_polymorphic_one_to_one,
@@ -24,7 +27,9 @@ def instance_to_record_data(
                 getattr(instance, field_name)
             )
         else:
-            record_data[field_name] = serialize_value(getattr(instance, field_name))
+            record_data[field_name] = serialize_value(
+                getattr(instance, field_name), cast(Column, collection.schema["fields"][field_name])
+            )
 
     for relation_name, subfields in projection.relations.items():
         relation = getattr(instance, relation_name, None)
@@ -62,8 +67,17 @@ def instance_to_record_data(
     return record_data
 
 
-def serialize_value(value: Any):
-    if isinstance(value, Decimal):
-        return float(value)
+def serialize_value(value: Any, column_schema: Column):
+    if column_schema["column_type"] == PrimitiveType.NUMBER:
+        if isinstance(value, Decimal):
+            return float(value)
+        else:
+            return value
+
+    # Do we want to return date and datetime as object or isoformat ??
+    elif column_schema["column_type"] == PrimitiveType.DATE_ONLY:
+        return value if isinstance(value, date) else date.fromisoformat(value)
+    elif column_schema["column_type"] == PrimitiveType.DATE:
+        return value if isinstance(value, datetime) else datetime.fromisoformat(value)
 
     return value

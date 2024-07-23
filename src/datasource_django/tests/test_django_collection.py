@@ -50,7 +50,7 @@ class TestDjangoCollectionCreation(TestCase):
 
 
 class TestDjangoCollectionCRUDList(TestCase):
-    fixtures = ["person.json", "book.json"]
+    fixtures = ["person.json", "book.json", "rating.json"]
 
     @classmethod
     def setUpClass(cls) -> None:
@@ -70,6 +70,7 @@ class TestDjangoCollectionCRUDList(TestCase):
 
     def setUp(self) -> None:
         self.book_collection = DjangoCollection(self.datasource, Book)
+        self.rating_collection = DjangoCollection(self.datasource, Rating)
 
     async def test_list_should_list_all_records_of_a_collection(self):
         ret = await self.book_collection.list(self.mocked_caller, PaginatedFilter({}), Projection("id", "name"))
@@ -151,6 +152,25 @@ class TestDjangoCollectionCRUDList(TestCase):
             ret,
             [
                 {"id": 3, "name": "Unknown Book", "price": 3.45},
+            ],
+        )
+
+    async def test_datetime_and_date_should_be_correctly_serialized(self):
+        ret = await self.rating_collection.list(
+            self.mocked_caller,
+            PaginatedFilter({"condition_tree": ConditionTreeLeaf("id", Operator.EQUAL, 1)}),
+            Projection("id", "rated_at", "rating", "book:author:birth_date"),
+        )
+
+        self.assertEqual(
+            ret,
+            [
+                {
+                    "id": 1,
+                    "rating": 1,
+                    "rated_at": datetime.datetime(2022, 12, 25, 10, 10, 10, tzinfo=datetime.timezone.utc),
+                    "book": {"author": {"birth_date": datetime.date(1920, 2, 1)}},
+                },
             ],
         )
 
