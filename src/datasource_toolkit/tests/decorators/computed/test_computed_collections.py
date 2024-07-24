@@ -1,4 +1,5 @@
 import asyncio
+import logging
 import sys
 from unittest import TestCase
 from unittest.mock import AsyncMock, patch
@@ -16,7 +17,14 @@ from forestadmin.datasource_toolkit.decorators.computed.exceptions import Comput
 from forestadmin.datasource_toolkit.decorators.computed.types import ComputedDefinition
 from forestadmin.datasource_toolkit.decorators.datasource_decorator import DatasourceDecorator
 from forestadmin.datasource_toolkit.exceptions import DatasourceToolkitException
-from forestadmin.datasource_toolkit.interfaces.fields import Column, FieldType, ManyToOne, OneToOne, PrimitiveType
+from forestadmin.datasource_toolkit.interfaces.fields import (
+    Column,
+    FieldType,
+    ManyToOne,
+    OneToOne,
+    PolymorphicManyToOne,
+    PrimitiveType,
+)
 from forestadmin.datasource_toolkit.interfaces.query.aggregation import Aggregation, PlainAggregation
 from forestadmin.datasource_toolkit.interfaces.query.filter.paginated import PaginatedFilter
 from forestadmin.datasource_toolkit.interfaces.query.filter.unpaginated import Filter
@@ -34,7 +42,7 @@ class TestComputedCollectionDecorator(TestCase):
         cls.collection_book.add_fields(
             {
                 "id": Column(column_type=PrimitiveType.NUMBER, is_primary_key=True, type=FieldType.COLUMN),
-                "author_id": Column(column_type=PrimitiveType.STRING, type=FieldType.COLUMN),
+                "author_id": Column(column_type=PrimitiveType.NUMBER, type=FieldType.COLUMN),
                 "author": ManyToOne(
                     foreign_collection="Person",
                     foreign_key="author_id",
@@ -57,8 +65,25 @@ class TestComputedCollectionDecorator(TestCase):
                 "book": OneToOne(origin_key="author_id", origin_key_target="id", foreign_collection="Book"),
             }
         )
+        cls.collection_rating = Collection("Rating", cls.datasource)
+        cls.collection_rating.add_fields(
+            {
+                "id": Column(column_type=PrimitiveType.NUMBER, is_primary_key=True, type=FieldType.COLUMN),
+                "rating": Column(column_type=PrimitiveType.NUMBER, type=FieldType.COLUMN),
+                "target_id": Column(column_type=PrimitiveType.NUMBER, type=FieldType.COLUMN),
+                "target_type": Column(column_type=PrimitiveType.STRING, type=FieldType.COLUMN),
+                "target": PolymorphicManyToOne(
+                    foreign_collections=["Book", "Person"],
+                    foreign_key="target_id",
+                    foreign_key_targets={"Book": "id", "Person": "id"},
+                    foreign_key_type_field="target_type",
+                    type=FieldType.POLYMORPHIC_MANY_TO_ONE,
+                ),
+            }
+        )
         cls.datasource.add_collection(cls.collection_book)
         cls.datasource.add_collection(cls.collection_person)
+        cls.datasource.add_collection(cls.collection_rating)
 
         cls.mocked_caller = User(
             rendering_id=1,
@@ -128,6 +153,18 @@ class TestComputedCollectionDecorator(TestCase):
             decorated_collection_book.register_computed,
             "new_field",
             ComputedDefinition(column_type=PrimitiveType.STRING, dependencies=["author"], get_values=lambda x: x),
+        )
+
+    def test_create_with_dependency_over_polymorphic_relation(self):
+        decorated_collection_rating = self.datasource_decorator.get_collection("Rating")
+        self.assertRaisesRegex(
+            DatasourceToolkitException,
+            r"Unexpected nested field id under generic relation: Rating\.target",
+            decorated_collection_rating.register_computed,
+            "new_field",
+            ComputedDefinition(
+                column_type=PrimitiveType.STRING, dependencies=["target:id"], get_values=lambda records, ctx: records
+            ),
         )
 
     def test_schema_contains_computed_field(self):
@@ -274,3 +311,19 @@ class TestComputedCollectionDecorator(TestCase):
         self.assertEqual(results[0]["author"]["full_name_no_spaces"], "IsaacAsimov")
         self.assertEqual(results[1]["title"], self.book_records[1]["title"])
         self.assertEqual(results[1]["author"]["full_name_no_spaces"], "EdwardO.Thorp")
+
+    def test_should_debug_log_when_dont_compute_fields_on_polymorphic_relation(self):
+        decorated_collection_rating = self.datasource_decorator.get_collection("Rating")
+        with patch.dict(
+            "forestadmin.agent_toolkit.forest_logger.OptionValidator.DEFAULT_OPTIONS", {"logger_level": logging.DEBUG}
+        ):
+            with self.assertLogs("forestadmin", level=logging.DEBUG) as logger:
+                self.loop.run_until_complete(
+                    decorated_collection_rating.list(
+                        self.mocked_caller, PaginatedFilter({}), Projection("first_name", "target:*")
+                    )
+                )
+                self.assertEqual(
+                    logger.output[0],
+                    "DEBUG:forestadmin:Cannot compute computed fields over polymorphic relation Rating.target.",
+                )
