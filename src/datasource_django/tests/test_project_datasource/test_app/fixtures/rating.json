@@ -6,6 +6,7 @@
       "comment": "",
       "commenter": 1,
       "book": 1,
+      "content_type": ["test_app", "person"], "content_id": 1,
       "rating": 1,
       "rated_at": "2022-12-25T10:10:10:000000+00:00"
     }
@@ -17,6 +18,7 @@
       "comment": null,
       "commenter": 1,
       "book": 1,
+      "content_type": ["test_app", "book"], "content_id": 1,
       "rating": 1,
       "rated_at": "2023-01-12T10:10:10:000000+00:00"
     }
@@ -29,6 +31,7 @@
       "commenter": 1,
       "book": 1,
       "rating": 5,
+      "content_type": ["test_app", "book"], "content_id": 1,
       "rated_at": "2023-02-02T10:10:10:000000+00:00"
     }
   },
@@ -40,6 +43,7 @@
       "commenter": 1,
       "book": 1,
       "rating": 5,
+      "content_type": ["test_app", "book"], "content_id": 1,
       "rated_at": "2023-02-25T10:10:10:000000+00:00"
     }
   },
@@ -51,6 +55,7 @@
       "commenter": 2,
       "book": 2,
       "rating": 5,
+      "content_type": ["test_app", "book"], "content_id": 2,
       "rated_at": "2023-03-02T10:10:10:000000+00:00"
     }
   }

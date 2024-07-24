@@ -305,6 +305,35 @@ class TestDjangoCollectionFactory(TestCase):
                 "type": FieldType.POLYMORPHIC_MANY_TO_ONE,
             },
         )
+        self.assertEqual(
+            rating_schema["fields"]["content_type"],
+            {
+                "column_type": PrimitiveType.ENUM,
+                "is_primary_key": False,
+                "is_read_only": False,
+                "default_value": None,
+                "is_sortable": True,
+                "validations": [],
+                "filter_operators": {
+                    Operator.NOT_EQUAL,
+                    Operator.ENDS_WITH,
+                    Operator.PRESENT,
+                    Operator.BLANK,
+                    Operator.EQUAL,
+                    Operator.NOT_IN,
+                    Operator.IN,
+                    Operator.MISSING,
+                    Operator.NOT_CONTAINS,
+                    Operator.SHORTER_THAN,
+                    Operator.STARTS_WITH,
+                    Operator.CONTAINS,
+                    Operator.LIKE,
+                    Operator.LONGER_THAN,
+                },
+                "enum_values": ["test_app_book", "test_app_person"],
+                "type": FieldType.COLUMN,
+            },
+        )
 
     def test_build_should_handle_polymorphic_one_to_many(self):
         book_schema = DjangoCollectionFactory.build(Book)
@@ -325,7 +354,7 @@ class TestDjangoCollectionFactory(TestCase):
         book_schema = DjangoCollectionFactory.build(Book)
 
         self.assertEqual(
-            book_schema["fields"]["tags"],
+            book_schema["fields"]["tag"],
             {
                 "foreign_collection": "test_app_tag",
                 "origin_key": "content_id",

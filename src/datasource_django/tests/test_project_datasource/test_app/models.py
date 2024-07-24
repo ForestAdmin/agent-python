@@ -19,7 +19,7 @@ class Book(models.Model):
         object_id_field="content_id",
         related_query_name="books",
     )
-    tags = GenericRelation(
+    tag = GenericRelation(
         "Tag",
         content_type_field="content_type",
         object_id_field="content_id",
@@ -40,7 +40,7 @@ class Person(models.Model):
         object_id_field="content_id",
         related_query_name="persons",
     )
-    tags = GenericRelation(
+    tag = GenericRelation(
         "Tag",
         content_type_field="content_type",
         object_id_field="content_id",

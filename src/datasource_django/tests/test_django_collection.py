@@ -3,8 +3,6 @@ import os
 import sys
 from unittest.mock import Mock, patch
 
-from forestadmin.datasource_django.exception import DjangoNativeDriver
-
 if sys.version_info >= (3, 9):
     import zoneinfo
 else:
@@ -14,6 +12,7 @@ from django.test import TestCase, override_settings
 from forestadmin.agent_toolkit.utils.context import User
 from forestadmin.datasource_django.collection import DjangoCollection
 from forestadmin.datasource_django.datasource import DjangoDatasource
+from forestadmin.datasource_django.exception import DjangoNativeDriver
 from forestadmin.datasource_toolkit.interfaces.fields import Operator
 from forestadmin.datasource_toolkit.interfaces.query.aggregation import Aggregation, DateOperation
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.branch import (
@@ -28,7 +27,7 @@ from forestadmin.datasource_toolkit.interfaces.query.filter.unpaginated import F
 from forestadmin.datasource_toolkit.interfaces.query.page import Page
 from forestadmin.datasource_toolkit.interfaces.query.projections import Projection
 from forestadmin.datasource_toolkit.interfaces.query.sort import Sort
-from test_app.models import Book, Person, Rating
+from test_app.models import Book, Person, Rating, Tag
 from test_project_datasource.db_router import DbRouter
 
 
@@ -50,7 +49,7 @@ class TestDjangoCollectionCreation(TestCase):
 
 
 class TestDjangoCollectionCRUDList(TestCase):
-    fixtures = ["person.json", "book.json", "rating.json"]
+    fixtures = ["person.json", "book.json", "rating.json", "tag.json"]
 
     @classmethod
     def setUpClass(cls) -> None:
@@ -70,7 +69,9 @@ class TestDjangoCollectionCRUDList(TestCase):
 
     def setUp(self) -> None:
         self.book_collection = DjangoCollection(self.datasource, Book)
+        self.person_collection = DjangoCollection(self.datasource, Person)
         self.rating_collection = DjangoCollection(self.datasource, Rating)
+        self.tag_collection = DjangoCollection(self.datasource, Tag)
 
     async def test_list_should_list_all_records_of_a_collection(self):
         ret = await self.book_collection.list(self.mocked_caller, PaginatedFilter({}), Projection("id", "name"))
@@ -171,6 +172,110 @@ class TestDjangoCollectionCRUDList(TestCase):
                     "rated_at": datetime.datetime(2022, 12, 25, 10, 10, 10, tzinfo=datetime.timezone.utc),
                     "book": {"author": {"birth_date": datetime.date(1920, 2, 1)}},
                 },
+            ],
+        )
+
+    async def test_should_correctly_serialized_polymorphic_relation(self):
+        """which mean all columns and no relations"""
+        ret = await self.rating_collection.list(
+            self.mocked_caller,
+            PaginatedFilter(
+                {
+                    "condition_tree": ConditionTreeLeaf("id", "in", [1, 2]),
+                    "page": Page(skip=0, limit=10),
+                    "sort": Sort([{"field": "id", "ascending": True}]),
+                }
+            ),
+            Projection("id", "content_object:*"),
+        )
+
+        self.assertEqual(
+            ret,
+            [
+                {
+                    "id": 1,
+                    "content_object": {
+                        "id": 1,
+                        "first_name": "Isaac",
+                        "last_name": "Asimov",
+                        "birth_date": datetime.date(1920, 2, 1),
+                        "auth_user_id": None,
+                    },
+                },
+                {
+                    "id": 2,
+                    "content_object": {"id": 1, "name": "Foundation", "author_id": 1, "price": 1.23},
+                },
+            ],
+        )
+
+    async def test_should_correctly_replace_content_type_relation_by_str(self):
+        """which mean all columns and no relations"""
+        ret = await self.rating_collection.list(
+            self.mocked_caller,
+            PaginatedFilter(
+                {
+                    "condition_tree": ConditionTreeLeaf("id", "in", [1, 2]),
+                    "page": Page(skip=0, limit=10),
+                    "sort": Sort([{"field": "id", "ascending": True}]),
+                }
+            ),
+            Projection("id", "content_type", "content_id"),
+        )
+
+        self.assertEqual(
+            ret,
+            [
+                {
+                    "id": 1,
+                    "content_type": "test_app_person",
+                    "content_id": 1,
+                },
+                {
+                    "id": 2,
+                    "content_type": "test_app_book",
+                    "content_id": 1,
+                },
+            ],
+        )
+
+    async def test_should_correctly_handle_content_type_as_str_in_condition_tree(self):
+        ret = await self.rating_collection.list(
+            self.mocked_caller,
+            PaginatedFilter(
+                {
+                    "condition_tree": ConditionTreeLeaf("content_type", "equal", "test_app_person"),
+                    "page": Page(skip=0, limit=10),
+                    "sort": Sort([{"field": "id", "ascending": True}]),
+                }
+            ),
+            Projection("id", "content_type", "content_id"),
+        )
+
+        self.assertEqual(
+            ret,
+            [
+                {
+                    "id": 1,
+                    "content_type": "test_app_person",
+                    "content_id": 1,
+                }
+            ],
+        )
+
+    async def test_should_correctly_serialized_list_polymorphic_one_to_one(self):
+        ret = await self.book_collection.list(
+            self.mocked_caller,
+            PaginatedFilter({"sort": Sort([{"field": "id", "ascending": True}])}),
+            Projection("id", "tag:tag"),
+        )
+
+        self.assertEqual(
+            ret,
+            [
+                {"id": 1, "tag": {"tag": "best book"}},
+                {"id": 2, "tag": None},
+                {"id": 3, "tag": None},
             ],
         )
 
@@ -475,6 +580,129 @@ class TestDjangoCollectionCRUDCreateUpdateDelete(TestDjangoCollectionCRUDAggrega
         )
 
         self.assertEqual(len(tolkiens), 4)
+
+    async def test_create_polymorphic_many_to_one_should_work(self):
+        ret = await self.rating_collection.create(
+            self.mocked_caller,
+            [
+                {
+                    "comment": "super comment",
+                    "commenter_id": 1,
+                    "book_id": 1,
+                    "rating": 3,
+                    "rated_at": "2024-01-01T10:10:10:000000+00:00",
+                    "content_type": "test_app_book",
+                    "content_id": 1,
+                }
+            ],
+        )
+        self.assertEqual(
+            ret,
+            [
+                {
+                    "id": ret[0]["id"],
+                    "comment": "super comment",
+                    "commenter_id": 1,
+                    "book_id": 1,
+                    "rating": 3,
+                    "rated_at": datetime.datetime(2024, 1, 1, 10, 10, 10, tzinfo=datetime.timezone.utc),
+                    "content_type_id": 1,
+                    "content_type": "test_app_book",
+                    "content_id": 1,
+                }
+            ],
+        )
+
+        retrieved = await self.rating_collection.list(
+            self.mocked_caller,
+            PaginatedFilter({"condition_tree": ConditionTreeLeaf("id", Operator.EQUAL, ret[0]["id"])}),
+            Projection("id", "comment", "rating", "rated_at", "content_object:*"),
+        )
+        self.assertEqual(
+            retrieved,
+            [
+                {
+                    "id": ret[0]["id"],
+                    "comment": ret[0]["comment"],
+                    "rating": ret[0]["rating"],
+                    "rated_at": ret[0]["rated_at"],
+                    "content_object": {"id": 1, "name": "Foundation", "author_id": 1, "price": 1.23},
+                },
+            ],
+        )
+
+    async def test_update_polymorphic_many_to_one_should_work(self):
+        records_before = await self.rating_collection.list(
+            self.mocked_caller,
+            PaginatedFilter(
+                {
+                    "condition_tree": ConditionTreeBranch(
+                        "and",
+                        [
+                            ConditionTreeLeaf("content_id", "equal", 1),
+                            ConditionTreeLeaf("content_type", "equal", "test_app_person"),
+                        ],
+                    )
+                }
+            ),
+            Projection("id", "content_type", "content_id", "content_object:*"),
+        )
+        # set to None
+        await self.rating_collection.update(
+            self.mocked_caller,
+            Filter(
+                {
+                    "condition_tree": ConditionTreeBranch(
+                        "and",
+                        [
+                            ConditionTreeLeaf("content_id", "equal", 1),
+                            ConditionTreeLeaf("content_type", "equal", "test_app_person"),
+                        ],
+                    )
+                },
+            ),
+            {
+                "content_type": None,
+                "content_id": None,
+            },
+        )
+
+        # set to old value
+        await self.rating_collection.update(
+            self.mocked_caller,
+            Filter(
+                {
+                    "condition_tree": ConditionTreeBranch(
+                        "and",
+                        [
+                            ConditionTreeLeaf("content_id", "equal", None),
+                            ConditionTreeLeaf("content_type", "equal", None),
+                        ],
+                    )
+                },
+            ),
+            {
+                "content_type": "test_app_person",
+                "content_id": 1,
+            },
+        )
+        # compare records
+        records_after = await self.rating_collection.list(
+            self.mocked_caller,
+            PaginatedFilter(
+                {
+                    "condition_tree": ConditionTreeBranch(
+                        "and",
+                        [
+                            ConditionTreeLeaf("content_id", "equal", 1),
+                            ConditionTreeLeaf("content_type", "equal", "test_app_person"),
+                        ],
+                    )
+                }
+            ),
+            Projection("id", "content_type", "content_id", "content_object:*"),
+        )
+        self.assertEqual(records_before, records_after)
 
 
 class TestDjangoCollectionNativeDriver(TestDjangoCollectionCRUDAggregateBase):
