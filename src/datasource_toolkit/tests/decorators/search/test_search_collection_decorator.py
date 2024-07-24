@@ -1,5 +1,4 @@
 import asyncio
-import logging
 import sys
 from typing import Any
 from unittest import TestCase
@@ -10,7 +9,6 @@ if sys.version_info >= (3, 9):
 else:
     from backports import zoneinfo
 
-from forestadmin.agent_toolkit.options import OptionValidator
 from forestadmin.agent_toolkit.utils.context import User
 from forestadmin.datasource_toolkit.collections import Collection
 from forestadmin.datasource_toolkit.context.collection_context import CollectionCustomizationContext

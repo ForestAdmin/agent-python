@@ -1,5 +1,4 @@
 import asyncio
-import logging
 import sys
 from unittest import TestCase
 from unittest.mock import AsyncMock, patch
@@ -9,7 +8,6 @@ if sys.version_info >= (3, 9):
 else:
     from backports import zoneinfo
 
-from forestadmin.agent_toolkit.options import OptionValidator
 from forestadmin.agent_toolkit.utils.context import User
 from forestadmin.datasource_toolkit.collections import Collection
 from forestadmin.datasource_toolkit.datasources import Datasource
