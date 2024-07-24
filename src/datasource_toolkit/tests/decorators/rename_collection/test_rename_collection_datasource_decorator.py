@@ -19,6 +19,9 @@ from forestadmin.datasource_toolkit.interfaces.fields import (
     ManyToOne,
     OneToOne,
     Operator,
+    PolymorphicManyToOne,
+    PolymorphicOneToMany,
+    PolymorphicOneToOne,
     PrimitiveType,
 )
 
@@ -59,9 +62,58 @@ class TestRenameCollectionDatasourceDecorator(TestCase):
                 "first_name": Column(column_type=PrimitiveType.STRING, type=FieldType.COLUMN),
             }
         )
+        cls.collection_rating = Collection("Rating", cls.datasource)
+        cls.collection_rating.add_fields(
+            {
+                "id": Column(column_type=PrimitiveType.NUMBER, is_primary_key=True, type=FieldType.COLUMN),
+                "rating": Column(column_type=PrimitiveType.NUMBER, type=FieldType.COLUMN),
+                "target_id": Column(column_type=PrimitiveType.NUMBER, type=FieldType.COLUMN),
+                "target_type": Column(column_type=PrimitiveType.STRING, type=FieldType.COLUMN),
+                "target": PolymorphicManyToOne(
+                    foreign_collections=["Bar", "Restaurant"],
+                    foreign_key="target_id",
+                    foreign_key_targets={"Bar": "id", "Restaurant": "id"},
+                    foreign_key_type_field="target_type",
+                    type=FieldType.POLYMORPHIC_MANY_TO_ONE,
+                ),
+            }
+        )
+        cls.collection_bar = Collection("Bar", cls.datasource)
+        cls.collection_bar.add_fields(
+            {
+                "id": Column(column_type=PrimitiveType.NUMBER, is_primary_key=True, type=FieldType.COLUMN),
+                "name": Column(column_type=PrimitiveType.NUMBER, type=FieldType.COLUMN),
+                "ratings": PolymorphicOneToMany(
+                    foreign_collection="Rating",
+                    origin_key="target_id",
+                    origin_key_target="id",
+                    origin_type_field="target_type",
+                    origin_type_value="Bar",
+                    type=FieldType.POLYMORPHIC_ONE_TO_MANY,
+                ),
+            }
+        )
+        cls.collection_restaurant = Collection("Restaurant", cls.datasource)
+        cls.collection_restaurant.add_fields(
+            {
+                "id": Column(column_type=PrimitiveType.NUMBER, is_primary_key=True, type=FieldType.COLUMN),
+                "name": Column(column_type=PrimitiveType.NUMBER, type=FieldType.COLUMN),
+                "ratings": PolymorphicOneToOne(
+                    foreign_collection="Rating",
+                    origin_key="target_id",
+                    origin_key_target="id",
+                    origin_type_field="target_type",
+                    origin_type_value="Restaurant",
+                    type=FieldType.POLYMORPHIC_ONE_TO_ONE,
+                ),
+            }
+        )
 
         cls.datasource.add_collection(cls.collection_book)
         cls.datasource.add_collection(cls.collection_person)
+        cls.datasource.add_collection(cls.collection_rating)
+        cls.datasource.add_collection(cls.collection_bar)
+        cls.datasource.add_collection(cls.collection_restaurant)
 
         cls.mocked_caller = User(
             rendering_id=1,
@@ -115,3 +167,22 @@ class TestRenameCollectionDatasourceDecorator(TestCase):
             self.decorated_datasource.rename_collections,
             {"User": "User2"},
         )
+
+    def test_rename_collection_should_throw_if_try_to_rename_a_collection_which_is_target_of_polymorphic_relation(self):
+        self.assertRaisesRegex(
+            ForestException,
+            r"🌳🌳🌳Cannot rename collection Bar because it's a target of a polymorphic relation 'Rating.target'",
+            self.decorated_datasource.rename_collections,
+            {"Bar": "Whatever"},
+        )
+
+        self.assertRaisesRegex(
+            ForestException,
+            r"🌳🌳🌳Cannot rename collection Restaurant because it's a target of a polymorphic relation 'Rating.target'",
+            self.decorated_datasource.rename_collections,
+            {"Restaurant": "Whatever"},
+        )
+
+    def test_rename_collection_should_rename_a_collection_owning_a_polymorphic_many_to_one(self):
+        self.decorated_datasource.rename_collections({"Rating": "Whatever"})
+        self.assertIsInstance(self.decorated_datasource.get_collection("Whatever"), RenameCollectionCollectionDecorator)
