@@ -138,7 +138,7 @@ class SearchCollectionDecorator(CollectionDecorator):
 
             if extended and is_polymorphic_many_to_one(field):
                 ForestLogger.log(
-                    "info",
+                    "debug",
                     f"We're not searching through {self.name}.{name} because it's a polymorphic relation. "
                     "You can override the default search behavior with 'replace_search'."
                     " See more: https://docs.forestadmin.com/developer-guide-agents-python/agent-customization/search",

@@ -344,6 +344,79 @@ class TestSearchCollectionDecorator(TestCase):
             }
         )
 
+    def test_search_extended_should_not_search_over_polymorphic_relations_and_show_a_debug_log(self):
+        collection_book = Collection("Book", self.datasource)
+        collection_book.add_fields(
+            {
+                "id": Column(
+                    column_type=PrimitiveType.UUID,
+                    filter_operators=[Operator.EQUAL],
+                    is_primary_key=True,
+                    type=FieldType.COLUMN,
+                ),
+            }
+        )
+        collection_rating = Collection("Rating", self.datasource)
+        collection_rating.add_fields(
+            {
+                "id": Column(
+                    column_type=PrimitiveType.UUID,
+                    is_primary_key=True,
+                    filter_operators=set([Operator.EQUAL, Operator.IN]),
+                    type=FieldType.COLUMN,
+                ),
+                "rating": Column(column_type=PrimitiveType.NUMBER, type=FieldType.COLUMN),
+                "target_id": Column(
+                    column_type=PrimitiveType.UUID,
+                    filter_operators=set([Operator.EQUAL, Operator.IN]),
+                    type=FieldType.COLUMN,
+                ),
+                "target_type": Column(column_type=PrimitiveType.STRING, type=FieldType.COLUMN),
+                "target": PolymorphicManyToOne(
+                    foreign_collections=["Book"],
+                    foreign_key="target_id",
+                    foreign_key_targets={"Book": "id"},
+                    foreign_key_type_field="target_type",
+                    type=FieldType.POLYMORPHIC_MANY_TO_ONE,
+                ),
+            }
+        )
+        self.datasource.add_collection(collection_rating)
+        filter_ = Filter({"search": "2d162303-78bf-599e-b197-93590ac3d315", "search_extended": True})
+
+        decorated_collection_rating = self.datasource_decorator.get_collection("Rating")
+        with patch.dict(
+            "forestadmin.agent_toolkit.forest_logger.OptionValidator.DEFAULT_OPTIONS", {"logger_level": logging.DEBUG}
+        ):
+            with self.assertLogs("forestadmin", level=logging.DEBUG) as logger:
+                returned_filter = self.loop.run_until_complete(
+                    decorated_collection_rating._refine_filter(self.mocked_caller, filter_)
+                )
+                self.assertEqual(
+                    logger.output[0],
+                    "DEBUG:forestadmin:We're not searching through Rating.target because it's a polymorphic relation. "
+                    "You can override the default search behavior with 'replace_search'. "
+                    "See more: https://docs.forestadmin.com/developer-guide-agents-python/agent-customization/search",
+                )
+
+        self.assertEqual(
+            returned_filter,
+            Filter(
+                {
+                    "condition_tree": ConditionTreeBranch(
+                        aggregator=Aggregator.OR,
+                        conditions=[
+                            ConditionTreeLeaf("id", Operator.EQUAL, "2d162303-78bf-599e-b197-93590ac3d315"),
+                            ConditionTreeLeaf("target_id", Operator.EQUAL, "2d162303-78bf-599e-b197-93590ac3d315"),
+                        ],
+                    ),
+                    "search": None,
+                    "search_extended": True,
+                    "segment": None,
+                }
+            ),
+        )
+
     def test_search_should_work_with_replacer(self):
         filter_ = Filter({"search": "something"})
 
