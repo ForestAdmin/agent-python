@@ -9,7 +9,6 @@ from forestadmin.datasource_toolkit.interfaces.fields import (
     Column,
     PrimitiveType,
     is_polymorphic_many_to_one,
-    is_polymorphic_one_to_many,
     is_polymorphic_one_to_one,
 )
 from forestadmin.datasource_toolkit.interfaces.query.projections import Projection
@@ -33,37 +32,35 @@ def instance_to_record_data(
 
     for relation_name, subfields in projection.relations.items():
         relation = getattr(instance, relation_name, None)
-        relation_schema = collection.schema["fields"][relation_name]
+        if relation is None:
+            record_data[relation_name] = None
+            continue
 
+        relation_schema = collection.schema["fields"][relation_name]
         _projection = subfields
         foreign_collection_name = relation_schema.get("foreign_collection")
-        if is_polymorphic_one_to_many(relation_schema):
-            continue  # never, on * to many, a separate http request is done
-        elif is_polymorphic_one_to_one(relation_schema):
+
+        if is_polymorphic_one_to_one(relation_schema):
             relation = relation.all()  #  type:ignore
             # when using relation.first, django make a request for ordering, so we avoid this extra request by using all
-            if relation.exists():
-                relation = relation[0]
-        elif is_polymorphic_many_to_one(relation_schema):
-            target_type = getattr(instance, relation_schema["foreign_key_type_field"], None)
-            if target_type is None:
+            if not relation.exists():
                 record_data[relation_name] = None
                 continue
+            relation = relation[0]
+        elif is_polymorphic_many_to_one(relation_schema):
+            target_type = getattr(instance, relation_schema["foreign_key_type_field"], None)
 
             target_type = DjangoPolymorphismUtil.get_collection_name_from_content_type(target_type)
             foreign_collection = collection.datasource.get_collection(target_type)
             _projection = ProjectionFactory.all(foreign_collection, allow_nested=False)
             foreign_collection_name = foreign_collection.name
 
-        if relation:
-            foreign_collection = collection.datasource.get_collection(foreign_collection_name)  # type:ignore
-            record_data[relation_name] = instance_to_record_data(
-                relation,
-                _projection,
-                foreign_collection,
-            )
-        else:
-            record_data[relation_name] = None
+        foreign_collection = collection.datasource.get_collection(foreign_collection_name)  # type:ignore
+        record_data[relation_name] = instance_to_record_data(
+            relation,
+            _projection,
+            foreign_collection,
+        )
     return record_data
 
 

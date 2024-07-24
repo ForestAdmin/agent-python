@@ -47,12 +47,6 @@ class DjangoPolymorphismUtil:
                 return True
             elif "*" not in subfields and is_reverse_polymorphic_relation(fields_schema[field]):
                 return True
-            elif "*" in subfields:
-                foreign_collection = collection.datasource.get_collection(
-                    fields_schema[field]["foreign_collection"]  # type:ignore
-                )
-                if cls.is_polymorphism_implied(Projection(subfields), foreign_collection):
-                    return True
         return False
 
     @classmethod
@@ -91,27 +85,18 @@ class DjangoPolymorphismUtil:
             )
 
         condition_tree = cast(ConditionTreeLeaf, condition_tree)
-        if ":*" in condition_tree.field:
-            relation = condition_tree.field.split(":")[0]
-            return cls.replace_content_type_in_condition_tree(
-                condition_tree.unnest(),
-                collection.datasource.get_collection(
-                    collection.schema["fields"][relation]["foreign_collection"]  #  type:ignore
-                ),
-            ).nest(relation)
-
         if cls.is_type_field_of_generic_fk(condition_tree.field, collection):
             return ConditionTreeLeaf(
                 condition_tree.field,
                 condition_tree.operator,
-                cls._CONTENT_TYPE_CACHE[condition_tree.value],  # type:ignore
+                cls._CONTENT_TYPE_CACHE.get(condition_tree.value),  # type:ignore
             )
         return condition_tree
 
     @classmethod
     def get_collection_name_from_content_type(cls, content_type) -> str:
         if content_type is None:
-            return None  # type:ignre
+            return None  # type:ignore
 
         for collection_name, ct in cls._CONTENT_TYPE_CACHE.items():
             if ct.id == content_type.id:

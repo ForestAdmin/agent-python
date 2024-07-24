@@ -71,9 +71,7 @@ class DjangoQueryBuilder:
                 ]
             )
 
-        qs = qs.select_related(
-            *cls._normalize_projection(Projection(*select_related)),
-        ).prefetch_related(
+        qs = qs.select_related(*cls._normalize_projection(Projection(*select_related))).prefetch_related(
             *cls._normalize_projection(Projection(*prefetch_related)),
         )
 
