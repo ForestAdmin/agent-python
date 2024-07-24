@@ -343,6 +343,8 @@ class CrudResource(BaseCollectionResource):
         patch = {f'{relation["origin_key"]}': None}
         if is_polymorphic_one_to_one(relation):
             patch[relation["origin_type_field"]] = None
+            trees.append(ConditionTreeLeaf(relation["origin_type_field"], "equal", relation["origin_type_value"]))
+
         await foreign_collection.update(
             request.user,
             Filter({"condition_tree": ConditionTreeFactory.intersect(trees), "timezone": tz}),
@@ -357,6 +359,7 @@ class CrudResource(BaseCollectionResource):
         patch = {f'{relation["origin_key"]}': origin_value}
         if is_polymorphic_one_to_one(relation):
             patch[relation["origin_type_field"]] = relation["origin_type_value"]
+
         await foreign_collection.update(
             request.user,
             Filter({"condition_tree": ConditionTreeFactory.intersect(trees), "timezone": tz}),

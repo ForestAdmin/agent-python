@@ -126,7 +126,7 @@ class TestCrudResource(TestCase):
                     "origin_key": "taggable_id",
                     "origin_key_target": "id",
                     "origin_type_field": "taggable_type",
-                    "origin_type_value": "cart",
+                    "origin_type_value": "order",
                 },
             },
         )
@@ -156,7 +156,7 @@ class TestCrudResource(TestCase):
                 "id": {"column_type": PrimitiveType.NUMBER, "is_primary_key": True, "type": FieldType.COLUMN},
                 "name": {"column_type": PrimitiveType.STRING, "is_primary_key": False, "type": FieldType.COLUMN},
                 "tags": {
-                    "type": FieldType.POLYMORPHIC_ONE_TO_ONE,
+                    "type": FieldType.POLYMORPHIC_ONE_TO_MANY,
                     "foreign_collection": ["tag"],
                     "origin_key": "taggable_id",
                     "origin_key_target": "id",
@@ -176,6 +176,7 @@ class TestCrudResource(TestCase):
                     "type": FieldType.COLUMN,
                     "filter_operators": {Operator.IN, Operator.EQUAL},
                 },
+                "tag": {"column_type": PrimitiveType.STRING, "is_primary_key": False, "type": FieldType.COLUMN},
                 "taggable_id": {"column_type": PrimitiveType.NUMBER, "type": FieldType.COLUMN},
                 "taggable_type": {
                     "column_type": PrimitiveType.STRING,
@@ -481,7 +482,7 @@ class TestCrudResource(TestCase):
         ) as mock_list:
             self.loop.run_until_complete(crud_resource.get(request))
 
-            mock_list.assert_awaited_with(ANY, ANY, ["id", "taggable_id", "taggable_type", "taggable:*"])
+            mock_list.assert_awaited_with(ANY, ANY, ["id", "tag", "taggable_id", "taggable_type", "taggable:*"])
 
     # add
     @patch("forestadmin.agent_toolkit.resources.collections.crud.RecordValidator.validate")
@@ -684,6 +685,100 @@ class TestCrudResource(TestCase):
             "detail": "🌳🌳🌳Missing timezone",
             "status": 500,
         }
+
+    @patch(
+        "forestadmin.agent_toolkit.resources.collections.crud.JsonApiSerializer.get",
+        return_value=Mock,
+    )
+    def test_add_should_create_and_associate_polymorphic_many_to_one(self, mocked_json_serializer_get: Mock):
+        request = RequestCollection(
+            RequestMethod.POST,
+            self.collection_tag,
+            {
+                "data": {
+                    "attributes": {"tag": "Good"},
+                    "relationships": {"taggable": {"data": [{"type": "order", "id": "14"}]}},
+                },
+            },  # body
+            {
+                "collection_name": "order",
+                "relation_name": "tags",
+                "timezone": "Europe/Paris",
+            },  # query
+            {},  # header
+            None,  # user
+        )
+        mocked_json_serializer_get.return_value.load = Mock(
+            return_value={"taggable_id": 14, "taggable_type": "order", "tag": "aaaaa"}
+        )
+        mocked_json_serializer_get.return_value.dump = Mock(return_value={})
+        crud_resource = CrudResource(self.datasource, self.permission_service, self.ip_white_list_service, self.options)
+
+        with patch.object(
+            self.collection_tag, "create", new_callable=AsyncMock, return_value=[{}]
+        ) as mock_collection_create:
+            self.loop.run_until_complete(crud_resource.add(request))
+            mock_collection_create.assert_awaited_once_with(
+                ANY, [{"taggable_id": 14, "taggable_type": "order", "tag": "aaaaa"}]
+            )
+
+    @patch(
+        "forestadmin.agent_toolkit.resources.collections.crud.JsonApiSerializer.get",
+        return_value=Mock,
+    )
+    def test_add_should_create_and_associate_polymorphic_one_to_one(self, mocked_json_serializer_get: Mock):
+        request = RequestCollection(
+            RequestMethod.POST,
+            self.collection_order,
+            {
+                "data": {
+                    "attributes": {"cost": 12.3, "important": True},
+                    "relationships": {"tags": {"data": {"type": "tag", "id": "22"}}},
+                },
+            },  # body
+            {
+                "collection_name": "order",
+                "relation_name": "tags",
+                "timezone": "Europe/Paris",
+            },  # query
+            {},  # header
+            None,  # user
+        )
+
+        mocked_json_serializer_get.return_value.load = Mock(return_value={"cost": 12.3, "important": True, "tags": 22})
+        mocked_json_serializer_get.return_value.dump = Mock(return_value={})
+
+        crud_resource = CrudResource(self.datasource, self.permission_service, self.ip_white_list_service, self.options)
+        with patch.object(
+            self.collection_order,
+            "create",
+            new_callable=AsyncMock,
+            return_value=[{"cost": 12.3, "important": True, "id": 12}],
+        ) as mock_collection_order_create:
+            with patch.object(self.collection_tag, "update", new_callable=AsyncMock) as mock_collection_tag_update:
+                self.loop.run_until_complete(crud_resource.add(request))
+                mock_collection_order_create.assert_awaited_once_with(ANY, [{"cost": 12.3, "important": True}])
+
+                # first update to break potential old link to current record (should do nothing)
+                first_call_update_args = mock_collection_tag_update.await_args_list[0].args
+                self.assertIn(
+                    ConditionTreeLeaf("taggable_id", "equal", 12),
+                    first_call_update_args[1].condition_tree.conditions,
+                )
+                self.assertIn(
+                    ConditionTreeLeaf("taggable_type", "equal", "order"),
+                    first_call_update_args[1].condition_tree.conditions,
+                )
+                self.assertEqual(first_call_update_args[2], {"taggable_id": None, "taggable_type": None})
+
+                # second update to link the 1 to 1
+                second_call_update_args = mock_collection_tag_update.await_args_list[1].args
+
+                self.assertIn(
+                    ConditionTreeLeaf("id", "equal", 22),
+                    second_call_update_args[1].condition_tree.conditions,
+                )
+                self.assertEqual(second_call_update_args[2], {"taggable_id": 12, "taggable_type": "order"})
 
     # list
     @patch(
