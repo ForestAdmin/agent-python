@@ -1,4 +1,5 @@
 import asyncio
+import logging
 import sys
 from typing import Any
 from unittest import TestCase
@@ -9,6 +10,7 @@ if sys.version_info >= (3, 9):
 else:
     from backports import zoneinfo
 
+from forestadmin.agent_toolkit.options import OptionValidator
 from forestadmin.agent_toolkit.utils.context import User
 from forestadmin.datasource_toolkit.collections import Collection
 from forestadmin.datasource_toolkit.context.collection_context import CollectionCustomizationContext
@@ -23,6 +25,7 @@ from forestadmin.datasource_toolkit.interfaces.fields import (
     OneToMany,
     OneToOne,
     Operator,
+    PolymorphicManyToOne,
     PrimitiveType,
 )
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.branch import Aggregator, ConditionTreeBranch
@@ -120,9 +123,6 @@ class TestSearchCollectionDecorator(TestCase):
                 "segment": None,
             }
         )
-
-    # missing test(php:147) because no ICONTAINS
-    # missing test(php:164) because no ICONTAINS
 
     def test_search_uuid(self):
         self.collection_person.add_field(
@@ -385,19 +385,16 @@ class TestSearchCollectionDecorator(TestCase):
         filter_ = Filter({"search": "2d162303-78bf-599e-b197-93590ac3d315", "search_extended": True})
 
         decorated_collection_rating = self.datasource_decorator.get_collection("Rating")
-        with patch.dict(
-            "forestadmin.agent_toolkit.forest_logger.OptionValidator.DEFAULT_OPTIONS", {"logger_level": logging.DEBUG}
-        ):
-            with self.assertLogs("forestadmin", level=logging.DEBUG) as logger:
-                returned_filter = self.loop.run_until_complete(
-                    decorated_collection_rating._refine_filter(self.mocked_caller, filter_)
-                )
-                self.assertEqual(
-                    logger.output[0],
-                    "DEBUG:forestadmin:We're not searching through Rating.target because it's a polymorphic relation. "
-                    "You can override the default search behavior with 'replace_search'. "
-                    "See more: https://docs.forestadmin.com/developer-guide-agents-python/agent-customization/search",
-                )
+        with patch("forestadmin.datasource_toolkit.decorators.search.collections.ForestLogger.log") as log_method:
+            returned_filter = self.loop.run_until_complete(
+                decorated_collection_rating._refine_filter(self.mocked_caller, filter_)
+            )
+            log_method.assert_called_once_with(
+                "debug",
+                "We're not searching through Rating.target because it's a polymorphic relation. "
+                "You can override the default search behavior with 'replace_search'. "
+                "See more: https://docs.forestadmin.com/developer-guide-agents-python/agent-customization/search",
+            )
 
         self.assertEqual(
             returned_filter,

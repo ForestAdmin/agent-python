@@ -9,6 +9,7 @@ if sys.version_info >= (3, 9):
 else:
     from backports import zoneinfo
 
+from forestadmin.agent_toolkit.options import OptionValidator
 from forestadmin.agent_toolkit.utils.context import User
 from forestadmin.datasource_toolkit.collections import Collection
 from forestadmin.datasource_toolkit.datasources import Datasource
@@ -314,16 +315,12 @@ class TestComputedCollectionDecorator(TestCase):
 
     def test_should_debug_log_when_dont_compute_fields_on_polymorphic_relation(self):
         decorated_collection_rating = self.datasource_decorator.get_collection("Rating")
-        with patch.dict(
-            "forestadmin.agent_toolkit.forest_logger.OptionValidator.DEFAULT_OPTIONS", {"logger_level": logging.DEBUG}
-        ):
-            with self.assertLogs("forestadmin", level=logging.DEBUG) as logger:
-                self.loop.run_until_complete(
-                    decorated_collection_rating.list(
-                        self.mocked_caller, PaginatedFilter({}), Projection("first_name", "target:*")
-                    )
+        with patch("forestadmin.datasource_toolkit.decorators.computed.collections.ForestLogger.log") as log_method:
+            self.loop.run_until_complete(
+                decorated_collection_rating.list(
+                    self.mocked_caller, PaginatedFilter({}), Projection("first_name", "target:*")
                 )
-                self.assertEqual(
-                    logger.output[0],
-                    "DEBUG:forestadmin:Cannot compute computed fields over polymorphic relation Rating.target.",
-                )
+            )
+            log_method.assert_called_once_with(
+                "debug", "Cannot compute computed fields over polymorphic relation Rating.target."
+            )
