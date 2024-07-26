@@ -94,6 +94,7 @@ def _create_relationship(collection: CollectionAlias, field_name: str, relation:
     }
     if is_many_to_many(relation):
         type_ = relation["foreign_collection"]
+        kwargs["id_field"] = SchemaUtils.get_primary_keys(collection.datasource.get_collection(type_).schema)[0]
     elif is_polymorphic_many_to_one(relation):
         kwargs["forest_is_polymorphic"] = True
         kwargs["forest_relation"] = relation
