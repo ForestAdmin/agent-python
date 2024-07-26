@@ -74,23 +74,28 @@ class TestDjangoCollectionCRUDList(TestCase):
         self.tag_collection = DjangoCollection(self.datasource, Tag)
 
     async def test_list_should_list_all_records_of_a_collection(self):
-        ret = await self.book_collection.list(self.mocked_caller, PaginatedFilter({}), Projection("id", "name"))
+        ret = await self.book_collection.list(self.mocked_caller, PaginatedFilter({}), Projection("book_pk", "name"))
 
         self.assertEqual(
-            ret, [{"id": 1, "name": "Foundation"}, {"id": 2, "name": "Harry Potter"}, {"id": 3, "name": "Unknown Book"}]
+            ret,
+            [
+                {"book_pk": 1, "name": "Foundation"},
+                {"book_pk": 2, "name": "Harry Potter"},
+                {"book_pk": 3, "name": "Unknown Book"},
+            ],
         )
 
     async def test_list_should_work_with_relation(self):
         ret = await self.book_collection.list(
-            self.mocked_caller, PaginatedFilter({}), Projection("id", "name", "author:first_name")
+            self.mocked_caller, PaginatedFilter({}), Projection("book_pk", "name", "author:first_name")
         )
 
         self.assertEqual(
             ret,
             [
-                {"id": 1, "name": "Foundation", "author": {"first_name": "Isaac"}},
-                {"id": 2, "name": "Harry Potter", "author": {"first_name": "J.K."}},
-                {"id": 3, "name": "Unknown Book", "author": None},
+                {"book_pk": 1, "name": "Foundation", "author": {"first_name": "Isaac"}},
+                {"book_pk": 2, "name": "Harry Potter", "author": {"first_name": "J.K."}},
+                {"book_pk": 3, "name": "Unknown Book", "author": None},
             ],
         )
 
@@ -114,31 +119,31 @@ class TestDjangoCollectionCRUDList(TestCase):
                     )
                 }
             ),
-            Projection("id", "name"),
+            Projection("book_pk", "name"),
         )
 
-        self.assertEqual(ret, [{"id": 1, "name": "Foundation"}, {"id": 2, "name": "Harry Potter"}])
+        self.assertEqual(ret, [{"book_pk": 1, "name": "Foundation"}, {"book_pk": 2, "name": "Harry Potter"}])
 
     async def test_list_should_work_with_pagination_and_sort(self):
         ret = await self.book_collection.list(
             self.mocked_caller,
-            PaginatedFilter({"page": Page(skip=0, limit=1), "sort": Sort([{"field": "id", "ascending": False}])}),
-            Projection("id", "name"),
+            PaginatedFilter({"page": Page(skip=0, limit=1), "sort": Sort([{"field": "book_pk", "ascending": False}])}),
+            Projection("book_pk", "name"),
         )
 
-        self.assertEqual(ret, [{"id": 3, "name": "Unknown Book"}])
+        self.assertEqual(ret, [{"book_pk": 3, "name": "Unknown Book"}])
 
     async def test_list_should_work_with_null_relations(self):
         ret = await self.book_collection.list(
             self.mocked_caller,
             PaginatedFilter({"condition_tree": ConditionTreeLeaf("name", Operator.EQUAL, "Unknown Book")}),
-            Projection("id", "name", "author:first_name"),
+            Projection("book_pk", "name", "author:first_name"),
         )
 
         self.assertEqual(
             ret,
             [
-                {"id": 3, "name": "Unknown Book", "author": None},
+                {"book_pk": 3, "name": "Unknown Book", "author": None},
             ],
         )
 
@@ -146,28 +151,28 @@ class TestDjangoCollectionCRUDList(TestCase):
         ret = await self.book_collection.list(
             self.mocked_caller,
             PaginatedFilter({"condition_tree": ConditionTreeLeaf("name", Operator.EQUAL, "Unknown Book")}),
-            Projection("id", "name", "price"),
+            Projection("book_pk", "name", "price"),
         )
 
         self.assertEqual(
             ret,
             [
-                {"id": 3, "name": "Unknown Book", "price": 3.45},
+                {"book_pk": 3, "name": "Unknown Book", "price": 3.45},
             ],
         )
 
     async def test_datetime_and_date_should_be_correctly_serialized(self):
         ret = await self.rating_collection.list(
             self.mocked_caller,
-            PaginatedFilter({"condition_tree": ConditionTreeLeaf("id", Operator.EQUAL, 1)}),
-            Projection("id", "rated_at", "rating", "book:author:birth_date"),
+            PaginatedFilter({"condition_tree": ConditionTreeLeaf("rating_pk", Operator.EQUAL, 1)}),
+            Projection("rating_pk", "rated_at", "rating", "book:author:birth_date"),
         )
 
         self.assertEqual(
             ret,
             [
                 {
-                    "id": 1,
+                    "rating_pk": 1,
                     "rating": 1,
                     "rated_at": datetime.datetime(2022, 12, 25, 10, 10, 10, tzinfo=datetime.timezone.utc),
                     "book": {"author": {"birth_date": datetime.date(1920, 2, 1)}},
@@ -181,21 +186,21 @@ class TestDjangoCollectionCRUDList(TestCase):
             self.mocked_caller,
             PaginatedFilter(
                 {
-                    "condition_tree": ConditionTreeLeaf("id", "in", [1, 2]),
+                    "condition_tree": ConditionTreeLeaf("rating_pk", "in", [1, 2]),
                     "page": Page(skip=0, limit=10),
-                    "sort": Sort([{"field": "id", "ascending": True}]),
+                    "sort": Sort([{"field": "rating_pk", "ascending": True}]),
                 }
             ),
-            Projection("id", "content_object:*"),
+            Projection("rating_pk", "content_object:*"),
         )
 
         self.assertEqual(
             ret,
             [
                 {
-                    "id": 1,
+                    "rating_pk": 1,
                     "content_object": {
-                        "id": 1,
+                        "person_pk": 1,
                         "first_name": "Isaac",
                         "last_name": "Asimov",
                         "birth_date": datetime.date(1920, 2, 1),
@@ -203,8 +208,8 @@ class TestDjangoCollectionCRUDList(TestCase):
                     },
                 },
                 {
-                    "id": 2,
-                    "content_object": {"id": 1, "name": "Foundation", "author_id": 1, "price": 1.23},
+                    "rating_pk": 2,
+                    "content_object": {"book_pk": 1, "name": "Foundation", "author_id": 1, "price": 1.23},
                 },
             ],
         )
@@ -215,24 +220,24 @@ class TestDjangoCollectionCRUDList(TestCase):
             self.mocked_caller,
             PaginatedFilter(
                 {
-                    "condition_tree": ConditionTreeLeaf("id", "in", [1, 2]),
+                    "condition_tree": ConditionTreeLeaf("rating_pk", "in", [1, 2]),
                     "page": Page(skip=0, limit=10),
-                    "sort": Sort([{"field": "id", "ascending": True}]),
+                    "sort": Sort([{"field": "rating_pk", "ascending": True}]),
                 }
             ),
-            Projection("id", "content_type", "content_id"),
+            Projection("rating_pk", "content_type", "content_id"),
         )
 
         self.assertEqual(
             ret,
             [
                 {
-                    "id": 1,
+                    "rating_pk": 1,
                     "content_type": "test_app_person",
                     "content_id": 1,
                 },
                 {
-                    "id": 2,
+                    "rating_pk": 2,
                     "content_type": "test_app_book",
                     "content_id": 1,
                 },
@@ -246,17 +251,17 @@ class TestDjangoCollectionCRUDList(TestCase):
                 {
                     "condition_tree": ConditionTreeLeaf("content_type", "equal", "test_app_person"),
                     "page": Page(skip=0, limit=10),
-                    "sort": Sort([{"field": "id", "ascending": True}]),
+                    "sort": Sort([{"field": "rating_pk", "ascending": True}]),
                 }
             ),
-            Projection("id", "content_type", "content_id"),
+            Projection("rating_pk", "content_type", "content_id"),
         )
 
         self.assertEqual(
             ret,
             [
                 {
-                    "id": 1,
+                    "rating_pk": 1,
                     "content_type": "test_app_person",
                     "content_id": 1,
                 }
@@ -266,16 +271,16 @@ class TestDjangoCollectionCRUDList(TestCase):
     async def test_should_correctly_serialized_list_polymorphic_one_to_one(self):
         ret = await self.book_collection.list(
             self.mocked_caller,
-            PaginatedFilter({"sort": Sort([{"field": "id", "ascending": True}])}),
-            Projection("id", "tag:tag"),
+            PaginatedFilter({"sort": Sort([{"field": "book_pk", "ascending": True}])}),
+            Projection("book_pk", "tag:tag"),
         )
 
         self.assertEqual(
             ret,
             [
-                {"id": 1, "tag": {"tag": "best book"}},
-                {"id": 2, "tag": None},
-                {"id": 3, "tag": None},
+                {"book_pk": 1, "tag": {"tag": "best book"}},
+                {"book_pk": 2, "tag": None},
+                {"book_pk": 3, "tag": None},
             ],
         )
 
@@ -515,7 +520,7 @@ class TestDjangoCollectionCRUDCreateUpdateDelete(TestDjangoCollectionCRUDAggrega
                     "first_name": "J. R. R.",
                     "last_name": "Tolkien",
                     "birth_date": datetime.date(1892, 1, 3),
-                    "id": ret[0]["id"],
+                    "person_pk": ret[0]["person_pk"],
                     "auth_user_id": None,
                 }
             ],
@@ -523,8 +528,8 @@ class TestDjangoCollectionCRUDCreateUpdateDelete(TestDjangoCollectionCRUDAggrega
 
         retrieved = await self.person_collection.list(
             self.mocked_caller,
-            PaginatedFilter({"condition_tree": ConditionTreeLeaf("id", Operator.EQUAL, ret[0]["id"])}),
-            Projection("id", "first_name", "last_name", "birth_date", "auth_user_id"),
+            PaginatedFilter({"condition_tree": ConditionTreeLeaf("person_pk", Operator.EQUAL, ret[0]["person_pk"])}),
+            Projection("person_pk", "first_name", "last_name", "birth_date", "auth_user_id"),
         )
         self.assertEqual(retrieved, ret)
 
@@ -540,7 +545,7 @@ class TestDjangoCollectionCRUDCreateUpdateDelete(TestDjangoCollectionCRUDAggrega
         entries = await self.person_collection.list(
             self.mocked_caller,
             PaginatedFilter({"condition_tree": ConditionTreeLeaf("last_name", Operator.EQUAL, "Tolkien")}),
-            Projection("id", "first_name", "last_name", "birth_date"),
+            Projection("person_pk", "first_name", "last_name", "birth_date"),
         )
         self.assertEqual(len(entries), 0)
 
@@ -576,7 +581,7 @@ class TestDjangoCollectionCRUDCreateUpdateDelete(TestDjangoCollectionCRUDAggrega
         tolkiens = await self.person_collection.list(
             self.mocked_caller,
             PaginatedFilter({"condition_tree": ConditionTreeLeaf("last_name", Operator.EQUAL, "Tolkien")}),
-            Projection("id", "last_name", "first_name"),
+            Projection("person_pk", "last_name", "first_name"),
         )
 
         self.assertEqual(len(tolkiens), 4)
@@ -600,7 +605,7 @@ class TestDjangoCollectionCRUDCreateUpdateDelete(TestDjangoCollectionCRUDAggrega
             ret,
             [
                 {
-                    "id": ret[0]["id"],
+                    "rating_pk": ret[0]["rating_pk"],
                     "comment": "super comment",
                     "commenter_id": 1,
                     "book_id": 1,
@@ -615,18 +620,18 @@ class TestDjangoCollectionCRUDCreateUpdateDelete(TestDjangoCollectionCRUDAggrega
 
         retrieved = await self.rating_collection.list(
             self.mocked_caller,
-            PaginatedFilter({"condition_tree": ConditionTreeLeaf("id", Operator.EQUAL, ret[0]["id"])}),
-            Projection("id", "comment", "rating", "rated_at", "content_object:*"),
+            PaginatedFilter({"condition_tree": ConditionTreeLeaf("rating_pk", Operator.EQUAL, ret[0]["rating_pk"])}),
+            Projection("rating_pk", "comment", "rating", "rated_at", "content_object:*"),
         )
         self.assertEqual(
             retrieved,
             [
                 {
-                    "id": ret[0]["id"],
+                    "rating_pk": ret[0]["rating_pk"],
                     "comment": ret[0]["comment"],
                     "rating": ret[0]["rating"],
                     "rated_at": ret[0]["rated_at"],
-                    "content_object": {"id": 1, "name": "Foundation", "author_id": 1, "price": 1.23},
+                    "content_object": {"book_pk": 1, "name": "Foundation", "author_id": 1, "price": 1.23},
                 },
             ],
         )
@@ -645,7 +650,7 @@ class TestDjangoCollectionCRUDCreateUpdateDelete(TestDjangoCollectionCRUDAggrega
                     )
                 }
             ),
-            Projection("id", "content_type", "content_id", "content_object:*"),
+            Projection("rating_pk", "content_type", "content_id", "content_object:*"),
         )
         # set to None
         await self.rating_collection.update(
@@ -700,7 +705,7 @@ class TestDjangoCollectionCRUDCreateUpdateDelete(TestDjangoCollectionCRUDAggrega
                     )
                 }
             ),
-            Projection("id", "content_type", "content_id", "content_object:*"),
+            Projection("rating_pk", "content_type", "content_id", "content_object:*"),
         )
         self.assertEqual(records_before, records_after)
 
@@ -710,7 +715,7 @@ class TestDjangoCollectionNativeDriver(TestDjangoCollectionCRUDAggregateBase):
 
     def test_native_driver_should_work(self):
         with self.book_collection.get_native_driver() as cursor:
-            cursor.execute("select id, name, author_id from test_app_book where id=1")
+            cursor.execute("select book_pk, name, author_id from test_app_book where book_pk=1")
             row = cursor.fetchone()
 
         self.assertEqual(row, (1, "Foundation", 1))
@@ -718,7 +723,7 @@ class TestDjangoCollectionNativeDriver(TestDjangoCollectionCRUDAggregateBase):
     def test_native_driver_should_work_and_restore_django_async_safe_variable(self):
         os.environ["DJANGO_ALLOW_ASYNC_UNSAFE"] = "false"
         with self.book_collection.get_native_driver() as cursor:
-            cursor.execute("select id, name, author_id from test_app_book where id=1")
+            cursor.execute("select book_pk, name, author_id from test_app_book where book_pk=1")
             row = cursor.fetchone()
             self.assertEqual(os.environ["DJANGO_ALLOW_ASYNC_UNSAFE"], "true")
 

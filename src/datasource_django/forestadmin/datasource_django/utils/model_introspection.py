@@ -131,7 +131,7 @@ class DjangoCollectionFactory:
         ret = {
             "foreign_collection": foreign_model._meta.db_table,  # app_addresses
             "origin_key": relation.object_id_field_name,  # addressable_id
-            "origin_key_target": relation.target_field.attname,  # id
+            "origin_key_target": model._meta.pk.name,  # id
             "origin_type_field": relation.content_type_field_name,  # addressable_type
             "origin_type_value": model._meta.db_table,  # app_customer
         }

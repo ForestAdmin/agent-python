@@ -171,11 +171,16 @@ class TestDjangoCollectionFactory(TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         cls.places_model = TestDjangoCollectionFactory.build_model_class(
-            "Place", {"name": models.CharField(max_length=254)}
+            "Place",
+            {
+                "place_pk": models.BigAutoField(primary_key=True),
+                "name": models.CharField(max_length=254),
+            },
         )
         cls.restaurant_model = TestDjangoCollectionFactory.build_model_class(
             "Restaurant",
             {
+                "restaurant_pk": models.BigAutoField(primary_key=True),
                 "name": models.CharField(max_length=254),
                 "place": models.OneToOneField("Place", related_name="restaurant", on_delete=models.CASCADE),
             },
@@ -208,7 +213,7 @@ class TestDjangoCollectionFactory(TestCase):
             {
                 "foreign_collection": "test_app_place",
                 "foreign_key": "place_id",
-                "foreign_key_target": "id",
+                "foreign_key_target": "place_pk",
                 "type": FieldType.MANY_TO_ONE,
             },
         )
@@ -217,7 +222,7 @@ class TestDjangoCollectionFactory(TestCase):
             {
                 "foreign_collection": "test_app_restaurant",
                 "origin_key": "place_id",
-                "origin_key_target": "id",
+                "origin_key_target": "place_pk",
                 "type": FieldType.ONE_TO_ONE,
             },
         )
@@ -280,7 +285,7 @@ class TestDjangoCollectionFactory(TestCase):
             {
                 "foreign_collection": "test_app_book",
                 "origin_key": "author_id",
-                "origin_key_target": "id",
+                "origin_key_target": "person_pk",
                 "type": FieldType.ONE_TO_MANY,
             },
         )
@@ -301,7 +306,7 @@ class TestDjangoCollectionFactory(TestCase):
                 "foreign_collections": ["test_app_book", "test_app_person"],
                 "foreign_key": "content_id",
                 "foreign_key_type_field": "content_type",
-                "foreign_key_targets": {"test_app_book": "id", "test_app_person": "id"},
+                "foreign_key_targets": {"test_app_book": "book_pk", "test_app_person": "person_pk"},
                 "type": FieldType.POLYMORPHIC_MANY_TO_ONE,
             },
         )
@@ -343,7 +348,7 @@ class TestDjangoCollectionFactory(TestCase):
             {
                 "foreign_collection": "test_app_rating",
                 "origin_key": "content_id",
-                "origin_key_target": "id",
+                "origin_key_target": "book_pk",
                 "origin_type_field": "content_type",
                 "origin_type_value": "test_app_book",
                 "type": FieldType.POLYMORPHIC_ONE_TO_MANY,
@@ -358,7 +363,7 @@ class TestDjangoCollectionFactory(TestCase):
             {
                 "foreign_collection": "test_app_tag",
                 "origin_key": "content_id",
-                "origin_key_target": "id",
+                "origin_key_target": "book_pk",
                 "origin_type_field": "content_type",
                 "origin_type_value": "test_app_book",
                 "type": FieldType.POLYMORPHIC_ONE_TO_ONE,
