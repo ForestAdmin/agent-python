@@ -884,7 +884,8 @@ class TestJsonApiSchemaDump(TestJsonApi):
                         "order_products": {
                             "links": {
                                 "related": {
-                                    "href": "/forest/Order/825dfdf9-1339-4373-af7b-261d99b09622/relationships/order_products"
+                                    "href": "/forest/Order/825dfdf9-1339-4373-af7b-261d99b09622/"
+                                    "relationships/order_products"
                                 }
                             },
                             "data": [],
@@ -918,7 +919,8 @@ class TestJsonApiSchemaDump(TestJsonApi):
                             "target_object": {
                                 "links": {
                                     "related": {
-                                        "href": "/forest/Comment/0b622590-c823-4d2f-84e6-bbbdd31c8af8/relationships/target_object"
+                                        "href": "/forest/Comment/0b622590-c823-4d2f-84e6-bbbdd31c8af8/"
+                                        "relationships/target_object"
                                     }
                                 },
                                 "data": {
@@ -942,7 +944,8 @@ class TestJsonApiSchemaDump(TestJsonApi):
                             "target_object": {
                                 "links": {
                                     "related": {
-                                        "href": "/forest/Comment/60908a3e-97d7-4518-a724-17359e05c9e2/relationships/target_object"
+                                        "href": "/forest/Comment/60908a3e-97d7-4518-a724-17359e05c9e2/"
+                                        "relationships/target_object"
                                     }
                                 },
                                 "data": {"type": "Profile", "id": "913b45d2-712e-4f93-a1e8-79519ef756bf"},
@@ -964,21 +967,24 @@ class TestJsonApiSchemaDump(TestJsonApi):
                             "orders": {
                                 "links": {
                                     "related": {
-                                        "href": "/forest/Product/8f6834d7-845f-421c-ac8a-76fd9b5895af/relationships/orders"
+                                        "href": "/forest/Product/8f6834d7-845f-421c-ac8a-76fd9b5895af/"
+                                        "relationships/orders"
                                     }
                                 }
                             },
                             "picture": {
                                 "links": {
                                     "related": {
-                                        "href": "/forest/Product/8f6834d7-845f-421c-ac8a-76fd9b5895af/relationships/picture"
+                                        "href": "/forest/Product/8f6834d7-845f-421c-ac8a-76fd9b5895af/"
+                                        "relationships/picture"
                                     }
                                 }
                             },
                             "comments": {
                                 "links": {
                                     "related": {
-                                        "href": "/forest/Product/8f6834d7-845f-421c-ac8a-76fd9b5895af/relationships/comments"
+                                        "href": "/forest/Product/8f6834d7-845f-421c-ac8a-76fd9b5895af/"
+                                        "relationships/comments"
                                     }
                                 }
                             },
@@ -998,21 +1004,24 @@ class TestJsonApiSchemaDump(TestJsonApi):
                             "person": {
                                 "links": {
                                     "related": {
-                                        "href": "/forest/Profile/913b45d2-712e-4f93-a1e8-79519ef756bf/relationships/person"
+                                        "href": "/forest/Profile/913b45d2-712e-4f93-a1e8-79519ef756bf/"
+                                        "relationships/person"
                                     }
                                 }
                             },
                             "picture": {
                                 "links": {
                                     "related": {
-                                        "href": "/forest/Profile/913b45d2-712e-4f93-a1e8-79519ef756bf/relationships/picture"
+                                        "href": "/forest/Profile/913b45d2-712e-4f93-a1e8-79519ef756bf/"
+                                        "relationships/picture"
                                     }
                                 }
                             },
                             "comments": {
                                 "links": {
                                     "related": {
-                                        "href": "/forest/Profile/913b45d2-712e-4f93-a1e8-79519ef756bf/relationships/comments"
+                                        "href": "/forest/Profile/913b45d2-712e-4f93-a1e8-79519ef756bf/"
+                                        "relationships/comments"
                                     }
                                 }
                             },
@@ -1061,7 +1070,7 @@ class TestJsonApiSchemaLoad(TestJsonApi):
                 "date_online": datetime(2023, 10, 10, 10, 10, 10, tzinfo=timezone.utc),
             },
         )
-        # as this line https://github.com/ForestAdmin/agent-python/blob/main/src/agent_toolkit/forestadmin/agent_toolkit/resources/collections/crud.py#L245C1-L246C1
+        # as this line agent_toolkit/forestadmin/agent_toolkit/resources/collections/crud.py#L245C1-L246C1
         # it seems normal json api doesn't load the primary key in another field than id
 
     def test_should_correctly_load_int_or_float_from_string_value(self):
