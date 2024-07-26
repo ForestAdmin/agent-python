@@ -65,6 +65,8 @@ def instance_to_record_data(
 
 
 def serialize_value(value: Any, column_schema: Column):
+    if value is None:
+        return value
     if column_schema["column_type"] == PrimitiveType.NUMBER:
         if isinstance(value, Decimal):
             return float(value)
