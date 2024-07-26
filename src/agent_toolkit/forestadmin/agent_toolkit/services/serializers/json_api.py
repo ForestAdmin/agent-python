@@ -197,6 +197,17 @@ class ForestRelationShip(fields.Relationship):
             self.teardown_polymorphism()
         return ret
 
+    def _get_id(self, value):
+        if self.forest_is_polymorphic:
+            type_field = self.forest_relation["foreign_key_type_field"]
+            type_value = self._forest_current_obj[type_field]
+            return value.get(
+                self.forest_relation["foreign_key_targets"][type_value],
+                value,
+            )
+        else:
+            return super()._get_id(value)
+
     def get_related_url(self, obj: Any):
         if "id" in obj:
             obj["__forest_id__"] = obj["id"]
