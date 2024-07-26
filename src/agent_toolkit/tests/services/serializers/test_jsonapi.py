@@ -1,4 +1,3 @@
-import asyncio
 from datetime import date, datetime, timezone
 from typing import cast
 from unittest import TestCase
@@ -6,7 +5,6 @@ from unittest.mock import patch
 
 from forestadmin.agent_toolkit.services.serializers.json_api import (
     JsonApiException,
-    JsonApiSchemaType,
     JsonApiSerializer,
     _create_relationship,
     _map_attribute_to_marshmallow,
@@ -44,7 +42,7 @@ class TestJsonApi(TestCase):
         cls.collection_person.add_fields(
             {
                 "person_pk": Column(
-                    column_type=PrimitiveType.UUID,
+                    column_type=PrimitiveType.NUMBER,
                     is_primary_key=True,
                     type=FieldType.COLUMN,
                     is_read_only=False,
@@ -117,7 +115,7 @@ class TestJsonApi(TestCase):
                     validations=[],
                 ),
                 "person_id": Column(
-                    column_type=PrimitiveType.UUID,
+                    column_type=PrimitiveType.NUMBER,
                     is_primary_key=False,
                     type=FieldType.COLUMN,
                     is_read_only=False,
@@ -178,7 +176,7 @@ class TestJsonApi(TestCase):
                     validations=[],
                 ),
                 "customer_id": Column(
-                    column_type=PrimitiveType.UUID,
+                    column_type=PrimitiveType.NUMBER,
                     is_primary_key=False,
                     type=FieldType.COLUMN,
                     is_read_only=False,
@@ -659,7 +657,7 @@ class TestJsonApiSchemaDump(TestJsonApi):
 
         cls.person_records = [
             {
-                "person_pk": "01f8caac-ff95-432f-89f4-5386644abf9b",
+                "person_pk": 12,
                 "first_name": "henry",
                 "last_name": "calvill",
                 "birthday": date(1974, 10, 1),
@@ -711,7 +709,7 @@ class TestJsonApiSchemaDump(TestJsonApi):
                 "target_object": {
                     "profile_pk": "913b45d2-712e-4f93-a1e8-79519ef756bf",
                     "data": {"my_custom_data": "value"},
-                    "person_id": "b7e9893d-4ed2-4537-89a0-120e9708c072",
+                    "person_id": 12,
                 },
             },
         ]
@@ -756,6 +754,48 @@ class TestJsonApiSchemaDump(TestJsonApi):
             },
         )
 
+    def test_should_correctly_dump_int_or_float_from_string_value(self):
+        projection = ProjectionFactory.all(self.collection_product, allow_nested=False)
+        schema = JsonApiSerializer.get(self.collection_product)(projections=projection)
+
+        records = [
+            {**self.product_records[0]},
+            {**self.product_records[1]},
+        ]
+        records[0]["price"] = "2.23"
+        records[1]["price"] = "10"
+
+        dumped = schema.dump(records, many=True)
+        self.assertEqual(
+            dumped,
+            {
+                "data": [
+                    {
+                        "type": "Product",
+                        "id": "8f6834d7-845f-421c-ac8a-76fd9b5895af",
+                        "attributes": {
+                            "product_pk": "8f6834d7-845f-421c-ac8a-76fd9b5895af",
+                            "price": 2.23,
+                            "label": "strawberries",
+                            "date_online": "2023-10-10T10:10:10+00:00",
+                        },
+                        "links": {"self": "/forest/Product/8f6834d7-845f-421c-ac8a-76fd9b5895af"},
+                    },
+                    {
+                        "type": "Product",
+                        "id": "d1b8d706-46fa-4ae6-8015-8240b0603dfe",
+                        "attributes": {
+                            "product_pk": "d1b8d706-46fa-4ae6-8015-8240b0603dfe",
+                            "price": 10,
+                            "label": "stick",
+                            "date_online": "2023-10-10T08:08:10+00:00",
+                        },
+                        "links": {"self": "/forest/Product/d1b8d706-46fa-4ae6-8015-8240b0603dfe"},
+                    },
+                ]
+            },
+        )
+
     def test_should_correctly_dump_many_to_one_according_to_projection(self):
         schema = JsonApiSerializer.get(self.collection_order)(
             projections=Projection("order_pk", "customer_id", "customer:person_pk", "customer:first_name")
@@ -774,7 +814,7 @@ class TestJsonApiSchemaDump(TestJsonApi):
                     "id": "825dfdf9-1339-4373-af7b-261d99b09622",
                     "attributes": {
                         "order_pk": "825dfdf9-1339-4373-af7b-261d99b09622",
-                        "customer_id": "01f8caac-ff95-432f-89f4-5386644abf9b",
+                        "customer_id": 12,
                     },
                     "relationships": {
                         "customer": {
@@ -783,7 +823,7 @@ class TestJsonApiSchemaDump(TestJsonApi):
                                     "href": "/forest/Order/825dfdf9-1339-4373-af7b-261d99b09622/relationships/customer"
                                 }
                             },
-                            "data": {"type": "Person", "id": "01f8caac-ff95-432f-89f4-5386644abf9b"},
+                            "data": {"type": "Person", "id": "12"},
                         }
                     },
                     "links": {"self": "/forest/Order/825dfdf9-1339-4373-af7b-261d99b09622"},
@@ -792,9 +832,9 @@ class TestJsonApiSchemaDump(TestJsonApi):
                 "included": [
                     {
                         "type": "Person",
-                        "attributes": {"person_pk": "01f8caac-ff95-432f-89f4-5386644abf9b", "first_name": "henry"},
-                        "id": "01f8caac-ff95-432f-89f4-5386644abf9b",
-                        "links": {"self": "/forest/Person/01f8caac-ff95-432f-89f4-5386644abf9b"},
+                        "attributes": {"person_pk": 12, "first_name": "henry"},
+                        "id": "12",
+                        "links": {"self": "/forest/Person/12"},
                     }
                 ],
             },
@@ -802,7 +842,7 @@ class TestJsonApiSchemaDump(TestJsonApi):
 
     def test_should_correctly_dump_to_many_according_to_projection(self):
         """
-        ( 1|many ) to many relations should not be serialize (and it's not by the datasource)
+        toMany relations should not be serialize (and it's not by the datasource)
         the only think to do is to fill [data/relationships/$relation/links/related/href]
         """
         schema = JsonApiSerializer.get(self.collection_order)(
@@ -830,7 +870,7 @@ class TestJsonApiSchemaDump(TestJsonApi):
                     "id": "825dfdf9-1339-4373-af7b-261d99b09622",
                     "attributes": {
                         "order_pk": "825dfdf9-1339-4373-af7b-261d99b09622",
-                        "customer_id": "01f8caac-ff95-432f-89f4-5386644abf9b",
+                        "customer_id": 12,
                     },
                     "relationships": {
                         "products": {
@@ -951,7 +991,7 @@ class TestJsonApiSchemaDump(TestJsonApi):
                         "id": "913b45d2-712e-4f93-a1e8-79519ef756bf",
                         "attributes": {
                             "profile_pk": "913b45d2-712e-4f93-a1e8-79519ef756bf",
-                            "person_id": "b7e9893d-4ed2-4537-89a0-120e9708c072",
+                            "person_id": 12,
                             "data": {"my_custom_data": "value"},
                         },
                         "relationships": {
@@ -980,5 +1020,176 @@ class TestJsonApiSchemaDump(TestJsonApi):
                         "links": {"self": "/forest/Profile/913b45d2-712e-4f93-a1e8-79519ef756bf"},
                     },
                 ],
+            },
+        )
+
+
+class TestJsonApiSchemaLoad(TestJsonApi):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        for collection in cls.datasource.collections:
+            create_json_api_schema(collection)
+
+    @classmethod
+    def tearDownClass(cls) -> None:
+        JsonApiSerializer.schema = dict()
+        return super().tearDownClass()
+
+    def test_should_correctly_load_attributes(self):
+        schema = JsonApiSerializer.get(self.collection_product)()
+
+        request_body = {
+            "data": {
+                "id": "43661dae-97c3-4ea9-bd43-a6d8ac3f4ca7",
+                "attributes": {
+                    "price": 2.23,
+                    "label": "strawberries",
+                    "date_online": "2023-10-10T10:10:10+00:00",
+                },
+                "type": "Product",
+            }
+        }
+
+        data = schema.load(request_body)
+        self.assertEqual(
+            data,
+            {
+                "id": "43661dae-97c3-4ea9-bd43-a6d8ac3f4ca7",
+                "price": 2.23,
+                "label": "strawberries",
+                "date_online": datetime(2023, 10, 10, 10, 10, 10, tzinfo=timezone.utc),
+            },
+        )
+        # as this line https://github.com/ForestAdmin/agent-python/blob/main/src/agent_toolkit/forestadmin/agent_toolkit/resources/collections/crud.py#L245C1-L246C1
+        # it seems normal json api doesn't load the primary key in another field than id
+
+    def test_should_correctly_load_int_or_float_from_string_value(self):
+        schema = JsonApiSerializer.get(self.collection_product)()
+
+        request_body = {
+            "data": {
+                "id": "43661dae-97c3-4ea9-bd43-a6d8ac3f4ca7",
+                "attributes": {
+                    "price": "2.23",
+                },
+                "type": "Product",
+            }
+        }
+
+        data = schema.load(request_body)
+        self.assertEqual(
+            data,
+            {
+                "id": "43661dae-97c3-4ea9-bd43-a6d8ac3f4ca7",
+                "price": 2.23,
+            },
+        )
+
+        request_body = {
+            "data": {
+                "id": "43661dae-97c3-4ea9-bd43-a6d8ac3f4ca7",
+                "attributes": {
+                    "price": "10",
+                },
+                "type": "Product",
+            }
+        }
+
+        data = schema.load(request_body)
+        self.assertEqual(
+            data,
+            {
+                "id": "43661dae-97c3-4ea9-bd43-a6d8ac3f4ca7",
+                "price": 10,
+            },
+        )
+
+    def test_should_correctly_load_many_to_one_relationship(self):
+        schema = JsonApiSerializer.get(self.collection_order)()
+
+        request_body = {
+            "data": {
+                "id": "43661dae-97c3-4ea9-bd43-a6d8ac3f4ca7",
+                "attributes": {},
+                "type": "Orders",
+                "relationships": {
+                    "customer": {"data": {"id": "12", "type": "Persons"}},
+                    "products": {"data": []},
+                    "order_products": {"data": []},
+                },
+            }
+        }
+        data = schema.load(request_body)
+        self.assertEqual(
+            data,
+            {
+                "customer": 12,
+                "products": [],
+                "order_products": [],
+                "id": "43661dae-97c3-4ea9-bd43-a6d8ac3f4ca7",
+            },
+        )
+
+    def test_should_correctly_load_to_many_relations(self):
+        schema = JsonApiSerializer.get(self.collection_order)()
+
+        request_body = {
+            "data": {
+                "id": "43661dae-97c3-4ea9-bd43-a6d8ac3f4ca7",
+                "attributes": {},
+                "type": "Orders",
+                "relationships": {
+                    "products": {
+                        "data": [
+                            {"type": "Products", "id": "0086ebe0-3452-4779-91de-26d14850998c"},
+                            {"type": "Products", "id": "68dcab0f-2dec-468f-8ebd-ff2752d24b81"},
+                        ]
+                    },
+                    "order_products": {
+                        "data": [
+                            {"type": "OrderProducts", "id": "833a6308-da81-4363-9448-d101eb593d94"},
+                            {"type": "OrderProducts", "id": "9f9348fe-3d2d-43be-b0be-ff58313b137e"},
+                        ]
+                    },
+                },
+            }
+        }
+        data = schema.load(request_body)
+        self.assertEqual(
+            data,
+            {
+                "products": ["0086ebe0-3452-4779-91de-26d14850998c", "68dcab0f-2dec-468f-8ebd-ff2752d24b81"],
+                "order_products": ["833a6308-da81-4363-9448-d101eb593d94", "9f9348fe-3d2d-43be-b0be-ff58313b137e"],
+                "id": "43661dae-97c3-4ea9-bd43-a6d8ac3f4ca7",
+            },
+        )
+
+    def test_should_correctly_load_polymorphic_many_to_one_relation(self):
+        schema = JsonApiSerializer.get(self.collection_comment)()
+        request_body = {
+            "data": {
+                "type": "Comments",
+                "attributes": {
+                    "comment": "I like it a lot.",
+                },
+                "relationships": {
+                    "target_object": {
+                        "data": {
+                            "type": "Product",
+                            "id": "1806bdb7-5db4-46a1-acca-9a00f8a670dd",
+                        },
+                    }
+                },
+            }
+        }
+
+        data = schema.load(request_body)
+        self.assertEqual(
+            data,
+            {
+                "target_id": "1806bdb7-5db4-46a1-acca-9a00f8a670dd",
+                "target_type": "Product",
+                "comment": "I like it a lot.",
             },
         )

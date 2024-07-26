@@ -278,7 +278,6 @@ class ForestSchema(Schema):
 
         for name, relationships in item.get("relationships", {}).items():
             relation_field = self.Meta.fcollection.get_field(name)  # type: ignore
-
             if isinstance(relationships["data"], list):
                 # for many to many and one to many relations
                 for relationship_data in relationships["data"]:
@@ -295,7 +294,6 @@ class ForestSchema(Schema):
                     item["attributes"][relation_field["foreign_key_type_field"]] = relationships["data"]["type"]
                     relationship_to_del.append(name)
                 else:
-                    relation_field = self.Meta.fcollection.get_field(name)  # type: ignore
                     relationships["data"]["type"] = relation_field["foreign_collection"]  # type: ignore
                     item["relationships"][name] = relationships
 
