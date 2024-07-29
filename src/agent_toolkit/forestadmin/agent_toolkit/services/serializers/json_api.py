@@ -2,6 +2,7 @@ from typing import Any, Dict, List, Optional, Set, Tuple, Type, Union, cast
 from uuid import uuid4
 
 from forestadmin.agent_toolkit.exceptions import AgentToolkitException
+from forestadmin.agent_toolkit.forest_logger import ForestLogger
 from forestadmin.agent_toolkit.utils.id import pack_id
 from forestadmin.datasource_toolkit.collections import Collection
 from forestadmin.datasource_toolkit.datasource_customizer.collection_customizer import CollectionCustomizer
@@ -113,6 +114,10 @@ def _create_relationship(collection: CollectionAlias, field_name: str, relation:
 
 def _create_schema_attributes(collection: CollectionAlias) -> Dict[str, Any]:
     attributes: Dict[str, Any] = {}
+    pks = SchemaUtils.get_primary_keys(collection.schema)
+    if len(pks) == 1:
+        attributes["id_field"] = pks[0]
+        attributes["default_id_field"] = pks[0]
 
     for name, field_schema in collection.schema["fields"].items():
         if is_column(field_schema):
@@ -161,6 +166,7 @@ class ForestRelationShip(fields.Relationship):
         self.forest_relation = kwargs.pop("forest_relation", None)
         self._forest_current_obj = None
         super(ForestRelationShip, self).__init__(*args, **kwargs)  # type: ignore
+        pass
 
     @property
     def schema(self) -> "ForestSchema":
@@ -176,9 +182,18 @@ class ForestRelationShip(fields.Relationship):
             only=getattr(self, "only", None), exclude=getattr(self, "exclude", ()), context=getattr(self, "context", {})
         )
 
-    def handle_polymorphism(self):
+    def handle_polymorphism(self, attr):
         target_collection_field = cast(PolymorphicManyToOne, self.forest_relation)["foreign_key_type_field"]
         target_collection = self._forest_current_obj[target_collection_field]
+
+        if target_collection is not None and target_collection not in self.forest_relation["foreign_collections"]:
+            ForestLogger.log(
+                "warning",
+                f"Trying to serialize a polymorphic relationship ({self.collection.name}.{attr} for record "
+                f"{self._forest_current_obj['id']}) of type {target_collection}; but this type is not known by forest."
+                " Ignoring and setting this relationship to None.",
+            )
+            self._forest_current_obj[attr] = None
 
         self.type_ = target_collection
         self._old_only = self.only
@@ -191,7 +206,7 @@ class ForestRelationShip(fields.Relationship):
     def serialize(self, attr, obj, accessor=None):
         self._forest_current_obj = obj
         if self.forest_is_polymorphic:
-            self.handle_polymorphism()
+            self.handle_polymorphism(attr)
         ret = super(ForestRelationShip, self).serialize(attr, obj, accessor)
         if self.forest_is_polymorphic:
             self.teardown_polymorphism()
@@ -230,6 +245,7 @@ class ForestSchema(Schema):
         if kwargs.get("only") is not None and "id" not in kwargs["only"]:
             kwargs["only"].add("id")
         super(ForestSchema, self).__init__(*args, **kwargs)  # type: ignore
+        pass
 
     def _build_only_included_data(self, projections: Projection):
         only: Set[str] = set()

@@ -1032,6 +1032,50 @@ class TestJsonApiSchemaDump(TestJsonApi):
             },
         )
 
+    def test_should_ignore_polymorphic_many_to_one_if_type_is_unknown(self):
+        schema = JsonApiSerializer.get(self.collection_comment)(
+            projections=Projection("comment_pk", "comment", "target_id", "target_type", "target_object:*")
+        )
+        records = [{**self.comments_records[0], "target_type": "Unknown"}]
+        with patch("forestadmin.agent_toolkit.services.serializers.json_api.ForestLogger.log") as log_method:
+            dumped = schema.dump(records, many=True)
+            log_method.assert_called_once_with(
+                "warning",
+                "Trying to serialize a polymorphic relationship (Comment.target_object for record "
+                "0b622590-c823-4d2f-84e6-bbbdd31c8af8) of type Unknown; but this type is not known by forest. "
+                "Ignoring and setting this relationship to None.",
+            )
+
+        self.assertEqual(
+            dumped,
+            {
+                "data": [
+                    {
+                        "type": "Comment",
+                        "id": "0b622590-c823-4d2f-84e6-bbbdd31c8af8",
+                        "attributes": {
+                            "comment_pk": "0b622590-c823-4d2f-84e6-bbbdd31c8af8",
+                            "target_type": "Unknown",
+                            "target_id": "8f6834d7-845f-421c-ac8a-76fd9b5895af",
+                            "comment": "very good",
+                        },
+                        "relationships": {
+                            "target_object": {
+                                "links": {
+                                    "related": {
+                                        "href": "/forest/Comment/0b622590-c823-4d2f-84e6-bbbdd31c8af8/"
+                                        "relationships/target_object"
+                                    }
+                                },
+                                "data": None,
+                            }
+                        },
+                        "links": {"self": "/forest/Comment/0b622590-c823-4d2f-84e6-bbbdd31c8af8"},
+                    },
+                ],
+            },
+        )
+
 
 class TestJsonApiSchemaLoad(TestJsonApi):
     @classmethod
