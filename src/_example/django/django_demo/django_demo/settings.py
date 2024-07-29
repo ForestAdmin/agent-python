@@ -15,6 +15,7 @@ import os
 from pathlib import Path
 
 import urllib3
+from django_demo.colorized_logging import ColorizedFormatter
 from dotenv import load_dotenv
 from str2bool import str2bool
 
@@ -51,6 +52,13 @@ FOREST_IS_PRODUCTION = str2bool(os.environ.get("FOREST_IS_PRODUCTION", "False"))
 FOREST_AUTO_ADD_DJANGO_DATASOURCE = False
 FOREST_VERIFY_SSL = False
 FOREST_LOGGER_LEVEL = logging.DEBUG
+
+forest_logger = logging.getLogger("forestadmin")
+handler = logging.StreamHandler()
+handler.setFormatter(ColorizedFormatter())
+handler.setLevel(logging.DEBUG)
+forest_logger.addHandler(handler)
+forest_logger.setLevel(logging.DEBUG)
 
 FOREST_CUSTOMIZE_FUNCTION = "app.forest_admin.customize_forest"
 # from app.forest_admin import customize_forest
