@@ -37,15 +37,15 @@ from app.forest.order import (
     suspicious_order_segment,
     total_order_chart,
 )
+from forestadmin.datasource_django.datasource import DjangoDatasource
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.leaf import ConditionTreeLeaf
 from forestadmin.django_agent.agent import DjangoAgent
-
-# from forestadmin.datasource_django.datasource import DjangoDatasource
 
 
 def customize_forest(agent: DjangoAgent):
     # customize_forest_logging()
-    # agent.add_datasource(DjangoDatasource()
+    agent.add_datasource(DjangoDatasource())  # , {"rename": {"app_order": "renamed_order"}})
+    # agent.remove_collections("app_order")
 
     # # ## ADDRESS
     agent.customize_collection("app_address").add_segment(
@@ -63,6 +63,8 @@ def customize_forest(agent: DjangoAgent):
         # changing visibility
         "number"
         # deactivate count
+    ).rename_field(
+        "addressable", "destination"
     ).disable_count().add_external_relation(
         "postal_code",
         {
@@ -107,8 +109,7 @@ def customize_forest(agent: DjangoAgent):
         lambda context: ConditionTreeLeaf("is_vip", "equal", True),
         # add actions
     ).add_action(
-        "Export json",
-        export_json_action_dict,
+        "Export json", export_json_action_dict
     ).add_action(
         "Age operation", age_operation_action_dict
     ).add_field(

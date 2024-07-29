@@ -228,25 +228,6 @@
                 {
                     "defaultValue": null,
                     "enums": null,
-                    "field": "addressable",
-                    "inverseOf": "app_address",
-                    "isFilterable": false,
-                    "isPrimaryKey": false,
-                    "isReadOnly": false,
-                    "isRequired": false,
-                    "isSortable": true,
-                    "polymorphic_referenced_models": [
-                        "app_customer",
-                        "app_order"
-                    ],
-                    "reference": "addressable.id",
-                    "relationship": "BelongsTo",
-                    "type": "Number",
-                    "validations": []
-                },
-                {
-                    "defaultValue": null,
-                    "enums": null,
                     "field": "addressable_id",
                     "inverseOf": null,
                     "isFilterable": true,
@@ -377,6 +358,25 @@
                     "type": [
                         "Number"
                     ],
+                    "validations": []
+                },
+                {
+                    "defaultValue": null,
+                    "enums": null,
+                    "field": "destination",
+                    "inverseOf": "app_address",
+                    "isFilterable": false,
+                    "isPrimaryKey": false,
+                    "isReadOnly": false,
+                    "isRequired": false,
+                    "isSortable": false,
+                    "polymorphic_referenced_models": [
+                        "app_customer",
+                        "app_order"
+                    ],
+                    "reference": "destination.id",
+                    "relationship": "BelongsTo",
+                    "type": "Number",
                     "validations": []
                 },
                 {
@@ -718,6 +718,23 @@
                 {
                     "defaultValue": null,
                     "enums": null,
+                    "field": "addresses",
+                    "inverseOf": "destination",
+                    "isFilterable": false,
+                    "isPrimaryKey": false,
+                    "isReadOnly": false,
+                    "isRequired": false,
+                    "isSortable": true,
+                    "reference": "app_address.id",
+                    "relationship": "HasMany",
+                    "type": [
+                        "Number"
+                    ],
+                    "validations": []
+                },
+                {
+                    "defaultValue": null,
+                    "enums": null,
                     "field": "age",
                     "inverseOf": null,
                     "isFilterable": false,
@@ -980,6 +997,21 @@
                     "type": [
                         "Number"
                     ],
+                    "validations": []
+                },
+                {
+                    "defaultValue": null,
+                    "enums": null,
+                    "field": "tags",
+                    "inverseOf": "tagged_item",
+                    "isFilterable": true,
+                    "isPrimaryKey": false,
+                    "isReadOnly": false,
+                    "isRequired": false,
+                    "isSortable": true,
+                    "reference": "app_tag.tagged_item_id",
+                    "relationship": "HasOne",
+                    "type": "Number",
                     "validations": []
                 },
                 {
@@ -1386,6 +1418,23 @@
                 {
                     "defaultValue": null,
                     "enums": null,
+                    "field": "addresses",
+                    "inverseOf": "destination",
+                    "isFilterable": false,
+                    "isPrimaryKey": false,
+                    "isReadOnly": false,
+                    "isRequired": false,
+                    "isSortable": true,
+                    "reference": "app_address.id",
+                    "relationship": "HasMany",
+                    "type": [
+                        "Number"
+                    ],
+                    "validations": []
+                },
+                {
+                    "defaultValue": null,
+                    "enums": null,
                     "field": "billing_address",
                     "inverseOf": "billing_orders_billing_address",
                     "isFilterable": true,
@@ -1602,6 +1651,21 @@
                 {
                     "defaultValue": null,
                     "enums": null,
+                    "field": "tags",
+                    "inverseOf": "tagged_item",
+                    "isFilterable": true,
+                    "isPrimaryKey": false,
+                    "isReadOnly": false,
+                    "isRequired": false,
+                    "isSortable": true,
+                    "reference": "app_tag.tagged_item_id",
+                    "relationship": "HasOne",
+                    "type": "Number",
+                    "validations": []
+                },
+                {
+                    "defaultValue": null,
+                    "enums": null,
                     "field": "updated_at",
                     "inverseOf": null,
                     "isFilterable": true,
@@ -1612,6 +1676,203 @@
                     "reference": null,
                     "type": "Date",
                     "validations": []
+                }
+            ]
+        },
+        {
+            "name": "app_record",
+            "isReadOnly": false,
+            "isSearchable": true,
+            "paginationType": "page",
+            "actions": [],
+            "segments": [],
+            "fields": [
+                {
+                    "defaultValue": null,
+                    "enums": null,
+                    "field": "name",
+                    "inverseOf": null,
+                    "isFilterable": true,
+                    "isPrimaryKey": false,
+                    "isReadOnly": false,
+                    "isRequired": true,
+                    "isSortable": true,
+                    "reference": null,
+                    "type": "String",
+                    "validations": [
+                        {
+                            "type": "is present",
+                            "value": null,
+                            "message": null
+                        },
+                        {
+                            "type": "is shorter than",
+                            "value": 254,
+                            "message": null
+                        }
+                    ]
+                },
+                {
+                    "defaultValue": null,
+                    "enums": null,
+                    "field": "record_pk",
+                    "inverseOf": null,
+                    "isFilterable": true,
+                    "isPrimaryKey": true,
+                    "isReadOnly": true,
+                    "isRequired": false,
+                    "isSortable": true,
+                    "reference": null,
+                    "type": "Number",
+                    "validations": []
+                },
+                {
+                    "defaultValue": null,
+                    "enums": null,
+                    "field": "tags",
+                    "inverseOf": "tagged_item",
+                    "isFilterable": true,
+                    "isPrimaryKey": false,
+                    "isReadOnly": false,
+                    "isRequired": false,
+                    "isSortable": true,
+                    "reference": "app_tag.tagged_item_id",
+                    "relationship": "HasOne",
+                    "type": "Number",
+                    "validations": []
+                }
+            ]
+        },
+        {
+            "name": "app_tag",
+            "isReadOnly": false,
+            "isSearchable": true,
+            "paginationType": "page",
+            "actions": [],
+            "segments": [],
+            "fields": [
+                {
+                    "defaultValue": null,
+                    "enums": null,
+                    "field": "id",
+                    "inverseOf": null,
+                    "isFilterable": true,
+                    "isPrimaryKey": true,
+                    "isReadOnly": true,
+                    "isRequired": false,
+                    "isSortable": true,
+                    "reference": null,
+                    "type": "Number",
+                    "validations": []
+                },
+                {
+                    "defaultValue": null,
+                    "enums": null,
+                    "field": "tag",
+                    "inverseOf": null,
+                    "isFilterable": true,
+                    "isPrimaryKey": false,
+                    "isReadOnly": false,
+                    "isRequired": true,
+                    "isSortable": true,
+                    "reference": null,
+                    "type": "String",
+                    "validations": [
+                        {
+                            "type": "is present",
+                            "value": null,
+                            "message": null
+                        },
+                        {
+                            "type": "is shorter than",
+                            "value": 255,
+                            "message": null
+                        }
+                    ]
+                },
+                {
+                    "defaultValue": null,
+                    "enums": null,
+                    "field": "tagged_item",
+                    "inverseOf": "app_tag",
+                    "isFilterable": false,
+                    "isPrimaryKey": false,
+                    "isReadOnly": false,
+                    "isRequired": true,
+                    "isSortable": false,
+                    "polymorphic_referenced_models": [
+                        "app_customer",
+                        "app_order",
+                        "app_record"
+                    ],
+                    "reference": "tagged_item.id",
+                    "relationship": "BelongsTo",
+                    "type": "Number",
+                    "validations": [
+                        {
+                            "type": "is present",
+                            "value": null,
+                            "message": null
+                        }
+                    ]
+                },
+                {
+                    "defaultValue": null,
+                    "enums": null,
+                    "field": "tagged_item_id",
+                    "inverseOf": null,
+                    "isFilterable": true,
+                    "isPrimaryKey": false,
+                    "isReadOnly": false,
+                    "isRequired": true,
+                    "isSortable": true,
+                    "reference": null,
+                    "type": "Number",
+                    "validations": [
+                        {
+                            "type": "is present",
+                            "value": null,
+                            "message": null
+                        }
+                    ]
+                },
+                {
+                    "defaultValue": null,
+                    "enums": [
+                        "app_customer",
+                        "app_order",
+                        "app_record"
+                    ],
+                    "field": "tagged_item_type",
+                    "inverseOf": null,
+                    "isFilterable": true,
+                    "isPrimaryKey": false,
+                    "isReadOnly": false,
+                    "isRequired": false,
+                    "isSortable": true,
+                    "reference": null,
+                    "type": "Enum",
+                    "validations": []
+                },
+                {
+                    "defaultValue": null,
+                    "enums": null,
+                    "field": "tagged_item_type_id",
+                    "inverseOf": null,
+                    "isFilterable": true,
+                    "isPrimaryKey": false,
+                    "isReadOnly": false,
+                    "isRequired": true,
+                    "isSortable": true,
+                    "reference": null,
+                    "type": "Number",
+                    "validations": [
+                        {
+                            "type": "is present",
+                            "value": null,
+                            "message": null
+                        }
+                    ]
                 }
             ]
         },
@@ -2974,6 +3235,23 @@
                         "Number"
                     ],
                     "validations": []
+                },
+                {
+                    "defaultValue": null,
+                    "enums": null,
+                    "field": "tag_tagged_item_type",
+                    "inverseOf": null,
+                    "isFilterable": false,
+                    "isPrimaryKey": false,
+                    "isReadOnly": false,
+                    "isRequired": false,
+                    "isSortable": true,
+                    "reference": "app_tag.id",
+                    "relationship": "HasMany",
+                    "type": [
+                        "Number"
+                    ],
+                    "validations": []
                 }
             ]
         },
@@ -3205,10 +3483,10 @@
     ],
     "meta": {
         "liana": "agent-python",
-        "liana_version": "1.7.0",
+        "liana_version": "1.5.6",
         "stack": {
             "engine": "python",
-            "engine_version": "3.10.11"
+            "engine_version": "3.11.3"
         }
     }
 }
