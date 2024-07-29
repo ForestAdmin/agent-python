@@ -227,11 +227,17 @@ class DjangoCollectionFactory:
                 elif field.many_to_one is True:
                     if is_generic_foreign_key(field):
                         fields[field.name] = DjangoCollectionFactory._build_many_to_one_polymorphic(field, model)
+                        # override fk field
+                        overrides[field.fk_field] = {
+                            **FieldFactory.build(model._meta.get_field(field.fk_field), model),
+                            "is_read_only": True,
+                        }
+                        # override ct field
                         type_field = model._meta.get_field(field.ct_field)
                         overrides[field.ct_field] = {
                             "column_type": PrimitiveType.ENUM,
                             "is_primary_key": type_field.primary_key,  # type: ignore
-                            "is_read_only": False,
+                            "is_read_only": True,
                             "default_value": None,
                             "is_sortable": True,
                             "validations": [],
@@ -239,13 +245,19 @@ class DjangoCollectionFactory:
                             "enum_values": fields[field.name]["foreign_collections"],
                             "type": FieldType.COLUMN,
                         }
+                        # override ct_id field
+                        overrides[type_field.column] = {
+                            **FieldFactory.build(model._meta.get_field(type_field.column), model),
+                            "is_read_only": True,
+                        }
                     else:
                         fields[field.name] = DjangoCollectionFactory._build_many_to_one(field)
 
                 elif field.many_to_many is True:
                     fields[field.name] = DjangoCollectionFactory._build_many_to_many(field)
 
-        fields.update(overrides)
+        if overrides:
+            fields.update(overrides)
         return {"actions": {}, "fields": fields, "searchable": False, "segments": [], "countable": True, "charts": []}
 
 

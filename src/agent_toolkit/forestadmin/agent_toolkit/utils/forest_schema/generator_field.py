@@ -123,7 +123,7 @@ class SchemaFieldGenerator:
         target_field = collection.schema["fields"][relation["origin_key_target"]]
         key_field = foreign_collection.schema["fields"][relation["origin_key"]]
 
-        return {
+        ret: ForestServerField = {
             **base_schema,
             "type": cls.build_column_type(key_field["column_type"]),
             "defaultValue": None,
@@ -135,6 +135,9 @@ class SchemaFieldGenerator:
             "validations": [],
             "reference": f"{foreign_collection.name}.{relation['origin_key']}",
         }
+        if is_polymorphic_one_to_one(relation):
+            ret["isReadOnly"] = False
+        return ret
 
     @classmethod
     def build_to_many_relation_schema(
@@ -144,9 +147,13 @@ class SchemaFieldGenerator:
         foreign_collection: Collection,
         base_schema: ForestServerField,
     ) -> ForestServerField:
-        if is_one_to_many(relation) or is_polymorphic_one_to_many(relation):
+        if is_one_to_many(relation):
             key = relation["origin_key_target"]
             key_schema = cast(Column, collection.get_field(key))
+        elif is_polymorphic_one_to_many(relation):
+            key = relation["origin_key_target"]
+            key_schema = cast(Column, collection.get_field(key))
+            base_schema["isReadOnly"] = False
         else:
             key = relation["foreign_key_target"]
             key_schema = cast(Column, foreign_collection.get_field(key))
