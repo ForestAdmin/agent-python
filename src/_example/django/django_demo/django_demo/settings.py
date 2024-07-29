@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
+import logging
 import os
 from pathlib import Path
 
@@ -47,8 +48,9 @@ FOREST_SERVER_URL = os.environ.get("FOREST_SERVER_URL")
 FOREST_IS_PRODUCTION = str2bool(os.environ.get("FOREST_IS_PRODUCTION", "False"))
 # if you want to manually add datasource with option you can set this var to True and
 # add a datasource in the 'FOREST_CUSTOMIZE_FUNCTION'
-# FOREST_AUTO_ADD_DJANGO_DATASOURCE = False
+FOREST_AUTO_ADD_DJANGO_DATASOURCE = False
 FOREST_VERIFY_SSL = False
+FOREST_LOGGER_LEVEL = logging.DEBUG
 
 FOREST_CUSTOMIZE_FUNCTION = "app.forest_admin.customize_forest"
 # from app.forest_admin import customize_forest
