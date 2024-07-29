@@ -9,6 +9,7 @@ from forestadmin.datasource_toolkit.interfaces.fields import (
     is_many_to_one,
     is_one_to_many,
     is_one_to_one,
+    is_polymorphic_many_to_one,
 )
 from forestadmin.datasource_toolkit.interfaces.models.collections import CollectionSchema
 from forestadmin.datasource_toolkit.interfaces.records import RecordsDataAlias
@@ -32,6 +33,14 @@ class PublicationCollectionDecorator(CollectionDecorator):
 
         if is_column(field) and field.get("is_primary_key", False):
             raise ForestException("Cannot hide primary key")
+
+        for field_name, field_schema in self.child_collection.schema["fields"].items():
+            if is_polymorphic_many_to_one(field_schema):
+                if name in [field_schema["foreign_key"], field_schema["foreign_key_type_field"]]:
+                    raise PublicationCollectionException(
+                        f"Cannot remove field '{self.name}.{name}', because it's implied "
+                        f"in a polymorphic relation '{self.name}.{field_name}'"
+                    )
 
         if visible is False:
             self._blacklist.add(name)
