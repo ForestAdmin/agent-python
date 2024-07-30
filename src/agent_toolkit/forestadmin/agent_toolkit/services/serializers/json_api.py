@@ -115,9 +115,9 @@ def _create_relationship(collection: CollectionAlias, field_name: str, relation:
 def _create_schema_attributes(collection: CollectionAlias) -> Dict[str, Any]:
     attributes: Dict[str, Any] = {}
     pks = SchemaUtils.get_primary_keys(collection.schema)
-    if len(pks) == 1:
-        attributes["id_field"] = pks[0]
-        attributes["default_id_field"] = pks[0]
+    pk_field = pks[0]
+    attributes["id_field"] = pk_field
+    attributes["default_id_field"] = pk_field
 
     for name, field_schema in collection.schema["fields"].items():
         if is_column(field_schema):
@@ -125,7 +125,7 @@ def _create_schema_attributes(collection: CollectionAlias) -> Dict[str, Any]:
         else:
             attributes[name] = _create_relationship(collection, name, cast(RelationAlias, field_schema))
     if "id" not in attributes:
-        attributes["id"] = fields.Str()
+        attributes["id"] = _map_primitive_type(pk_field["column_type"])()
     return attributes
 
 
