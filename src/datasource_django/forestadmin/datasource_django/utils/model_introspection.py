@@ -226,7 +226,7 @@ class DjangoCollectionFactory:
         return ManyToMany(type=FieldType.MANY_TO_MANY, foreign_relation=None, **kwargs)
 
     @staticmethod
-    def build(model: Model) -> CollectionSchema:
+    def build(model: Model) -> CollectionSchema:  # noqa:C901
         fields = {}
         overrides = {}
         for field in model._meta.get_fields(include_hidden=True):
