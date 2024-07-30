@@ -125,7 +125,7 @@ def _create_schema_attributes(collection: CollectionAlias) -> Dict[str, Any]:
         else:
             attributes[name] = _create_relationship(collection, name, cast(RelationAlias, field_schema))
     if "id" not in attributes:
-        attributes["id"] = _map_primitive_type(pk_field["column_type"])()
+        attributes["id"] = _map_primitive_type(collection.get_field(pk_field)["column_type"])()
     return attributes
 
 
