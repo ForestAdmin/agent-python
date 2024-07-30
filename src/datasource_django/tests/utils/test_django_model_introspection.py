@@ -315,7 +315,7 @@ class TestDjangoCollectionFactory(TestCase):
             {
                 "column_type": PrimitiveType.ENUM,
                 "is_primary_key": False,
-                "is_read_only": False,
+                "is_read_only": True,
                 "default_value": None,
                 "is_sortable": True,
                 "validations": [],
