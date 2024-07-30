@@ -145,6 +145,36 @@ class DjangoCollectionFactory:
         return ret  # type:ignore
 
     @staticmethod
+    def _build_field_override_for_many_to_one_polymorphic(
+        relation: "GenericForeignKey", model: Model, foreign_collections: List[str]  # noqa: F821  # type: ignore
+    ) -> Dict[str, Dict]:
+        overrides = {}
+        # override fk field
+        overrides[relation.fk_field] = {
+            **FieldFactory.build(model._meta.get_field(relation.fk_field), model),
+            "is_read_only": True,
+        }
+        # override ct field
+        type_field = model._meta.get_field(relation.ct_field)
+        overrides[relation.ct_field] = {
+            "column_type": PrimitiveType.ENUM,
+            "is_primary_key": type_field.primary_key,  # type: ignore
+            "is_read_only": True,
+            "default_value": None,
+            "is_sortable": True,
+            "validations": [],
+            "filter_operators": FilterOperator.get_for_type(PrimitiveType.STRING),
+            "enum_values": foreign_collections,
+            "type": FieldType.COLUMN,
+        }
+        # override ct_id field
+        overrides[type_field.column] = {
+            **FieldFactory.build(model._meta.get_field(type_field.column), model),
+            "is_read_only": True,
+        }
+        return overrides
+
+    @staticmethod
     def _build_many_to_one_polymorphic(
         relation: "GenericForeignKey", model: Model  # noqa: F821  # type: ignore
     ) -> PolymorphicManyToOne:
@@ -227,29 +257,11 @@ class DjangoCollectionFactory:
                 elif field.many_to_one is True:
                     if is_generic_foreign_key(field):
                         fields[field.name] = DjangoCollectionFactory._build_many_to_one_polymorphic(field, model)
-                        # override fk field
-                        overrides[field.fk_field] = {
-                            **FieldFactory.build(model._meta.get_field(field.fk_field), model),
-                            "is_read_only": True,
-                        }
-                        # override ct field
-                        type_field = model._meta.get_field(field.ct_field)
-                        overrides[field.ct_field] = {
-                            "column_type": PrimitiveType.ENUM,
-                            "is_primary_key": type_field.primary_key,  # type: ignore
-                            "is_read_only": True,
-                            "default_value": None,
-                            "is_sortable": True,
-                            "validations": [],
-                            "filter_operators": FilterOperator.get_for_type(PrimitiveType.STRING),
-                            "enum_values": fields[field.name]["foreign_collections"],
-                            "type": FieldType.COLUMN,
-                        }
-                        # override ct_id field
-                        overrides[type_field.column] = {
-                            **FieldFactory.build(model._meta.get_field(type_field.column), model),
-                            "is_read_only": True,
-                        }
+                        overrides.update(
+                            DjangoCollectionFactory._build_field_override_for_many_to_one_polymorphic(
+                                field, model, fields[field.name]["foreign_collections"]
+                            )
+                        )
                     else:
                         fields[field.name] = DjangoCollectionFactory._build_many_to_one(field)
 
