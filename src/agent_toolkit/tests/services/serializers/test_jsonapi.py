@@ -833,7 +833,7 @@ class TestJsonApiSchemaDump(TestJsonApi):
                     {
                         "type": "Person",
                         "attributes": {"person_pk": 12, "first_name": "henry"},
-                        "id": "12",
+                        "id": 12,
                         "links": {"self": "/forest/Person/12"},
                     }
                 ],
