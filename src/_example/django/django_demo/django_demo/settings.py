@@ -37,7 +37,8 @@ ALLOWED_HOSTS = os.environ.get("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1,[::1
 FOREST_AUTH_SECRET = os.environ.get("FOREST_AUTH_SECRET")
 FOREST_ENV_SECRET = os.environ.get("FOREST_ENV_SECRET")
 FOREST_SERVER_URL = os.environ.get("FOREST_SERVER_URL")
-FOREST_IS_PRODUCTION = str2bool(os.environ.get("FOREST_IS_PRODUCTION", "False"))
+# FOREST_IS_PRODUCTION = str2bool(os.environ.get("FOREST_IS_PRODUCTION", "False"))
+# FOREST_IS_PRODUCTION = True
 # if you want to manually add datasource with option you can set this var to True and
 # add a datasource in the 'FOREST_CUSTOMIZE_FUNCTION'
 # FOREST_AUTO_ADD_DJANGO_DATASOURCE = True
@@ -56,6 +57,7 @@ CORS_ALLOW_CREDENTIALS = True
 
 INSTALLED_APPS = [
     "app",
+    "big_ram",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -105,6 +107,14 @@ DATABASES = {
         "ENGINE": "django.db.backends.sqlite3",
         "NAME": os.path.join(BASE_DIR, "db.sqlite3"),
         "ATOMIC_REQUESTS": True,
+    },
+    "big_ram": {
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": "big_ram",
+        "USER": "example_django",
+        "PASSWORD": "example_django",
+        "HOST": "localhost",
+        "PORT": "5432",  # default PostgreSQL port
     },
     "other": {
         "ENGINE": "django.db.backends.sqlite3",
