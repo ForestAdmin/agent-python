@@ -3,6 +3,7 @@ import sys
 import traceback
 from typing import Callable
 
+import psutil
 from forestadmin.agent_toolkit.options import OptionValidator
 
 logger = logging.getLogger("forestadmin")
@@ -17,6 +18,19 @@ _LOG_LEVELS = {
     "EXCEPTION": logging.ERROR,
     "CRITICAL": logging.CRITICAL,
 }
+
+
+def log_current_ram(message):
+    units = ["B", "KB", "MB", "GB"]
+    process = psutil.Process()
+    current_ram = process.memory_info().rss
+    unit_idx = 0
+    while current_ram >= 1024:
+        current_ram = current_ram / 1024
+        unit_idx += 1
+
+    ram_str = f"{current_ram:.3f} {units[unit_idx]}"
+    ForestLogger.log("warning", f"-- {message}: {ram_str}.")
 
 
 class ForestLogger:
