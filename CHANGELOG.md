@@ -1,3 +1,10 @@
+## [1.8.20](https://github.com/ForestAdmin/agent-python/compare/v1.8.19...v1.8.20) (2024-07-31)
+
+
+### Bug Fixes
+
+* set many to one relation to null ([#252](https://github.com/ForestAdmin/agent-python/issues/252)) ([546c3df](https://github.com/ForestAdmin/agent-python/commit/546c3dff8bf8721d59d90227d183a39edb4f3725))
+
 ## [1.8.19](https://github.com/ForestAdmin/agent-python/compare/v1.8.18...v1.8.19) (2024-07-18)
 
 
