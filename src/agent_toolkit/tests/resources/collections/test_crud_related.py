@@ -36,8 +36,9 @@ from forestadmin.datasource_toolkit.interfaces.fields import (
     Operator,
     PrimitiveType,
 )
-from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.branch import Aggregator
+from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.branch import Aggregator, ConditionTreeBranch
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.leaf import ConditionTreeLeaf
+from forestadmin.datasource_toolkit.interfaces.query.filter.unpaginated import Filter
 
 
 def authenticate_mock(fn):
@@ -145,7 +146,7 @@ class TestCrudRelatedResource(TestCase):
                     "column_type": PrimitiveType.NUMBER,
                     "is_primary_key": True,
                     "type": FieldType.COLUMN,
-                    "filter_operators": set([Operator.PRESENT]),
+                    "filter_operators": set([Operator.PRESENT, Operator.EQUAL, Operator.IN]),
                 },
                 "cost": {"column_type": PrimitiveType.NUMBER, "is_primary_key": False, "type": FieldType.COLUMN},
                 "products": {
@@ -928,6 +929,46 @@ class TestCrudRelatedResource(TestCase):
         assert response.status == 204
         self.collection_cart.update.assert_awaited()
 
+    def test_edit_relation_with_data_equal_none(self):
+        crud_related_resource = CrudRelatedResource(
+            self.datasource, self.permission_service, self.ip_white_list_service, self.options
+        )
+        query_get_params = {
+            "collection_name": "customer",
+            "relation_name": "order",
+            # "timezone": "Europe/Paris",
+            "pks": "2",  # customer id
+        }
+
+        request = RequestRelationCollection(
+            RequestMethod.PUT,
+            self.collection_order,
+            self.collection_customer,
+            ManyToOne(
+                {
+                    "type": FieldType.MANY_TO_ONE,
+                    "foreign_collection": "customer",
+                    "foreign_key": "customer_id",
+                    "foreign_key_target": "id",
+                }
+            ),
+            "orders",
+            {"data": None},  # body
+            query_get_params,  # query
+            {},  # header
+            None,  # user
+        )
+
+        with patch.object(self.collection_order, "update", new_callable=AsyncMock) as update_order:
+            response = self.loop.run_until_complete(crud_related_resource.update_list(request))
+            update_order_args = update_order.await_args.args
+            self.assertIn(ConditionTreeLeaf("id", "equal", 2), update_order_args[1].condition_tree.conditions)
+            self.assertEqual(update_order_args[2], {"customer_id": None})
+
+        self.permission_service.can.assert_awaited_with(ANY, request.collection, "edit")
+
+        self.assertEqual(response.status, 204)
+
     def test_edit_error(self):
         crud_related_resource = CrudRelatedResource(
             self.datasource, self.permission_service, self.ip_white_list_service, self.options
@@ -970,76 +1011,9 @@ class TestCrudRelatedResource(TestCase):
             "detail": "🌳🌳🌳primary keys are missing",
             "status": 500,
         }
-        # no id for relation
-        query_get_params["pks"] = "2"
-        request = RequestRelationCollection(
-            RequestMethod.PUT,
-            self.collection_order,
-            self.collection_customer,
-            ManyToOne(
-                {
-                    "type": FieldType.MANY_TO_ONE,
-                    "foreign_collection": "customer",
-                    "foreign_key": "customer_id",
-                    "foreign_key_target": "id",
-                }
-            ),
-            "orders",
-            {"data": {"__id": "201", "type": "customer"}},  # body
-            query_get_params,  # query
-            {},  # header
-            None,  # user
-        )
-        response = self.loop.run_until_complete(crud_related_resource.update_list(request))
-        self.permission_service.can.assert_not_awaited()
-
-        assert response.status == 500
-        response_content = json.loads(response.body)
-        assert response_content["errors"][0] == {
-            "name": "ForestException",
-            "detail": "🌳🌳🌳Relation id is missing",
-            "status": 500,
-        }
-
-        # unpack_id raises Exception
-        request = RequestRelationCollection(
-            RequestMethod.PUT,
-            self.collection_order,
-            self.collection_customer,
-            ManyToOne(
-                {
-                    "type": FieldType.MANY_TO_ONE,
-                    "foreign_collection": "customer",
-                    "foreign_key": "customer_id",
-                    "foreign_key_target": "id",
-                }
-            ),
-            "orders",
-            {"data": {"id": "201", "type": "customer"}},  # body
-            query_get_params,  # query
-            {},  # header
-            None,  # user
-        )
-
-        def mocked_unpack_id(schema, pk):
-            if pk != "201":
-                return unpack_id(schema, pk)
-            else:
-                raise CollectionResourceException()
-
-        with patch("forestadmin.agent_toolkit.resources.collections.crud_related.unpack_id", mocked_unpack_id):
-            response = self.loop.run_until_complete(crud_related_resource.update_list(request))
-        self.permission_service.can.assert_not_awaited()
-
-        assert response.status == 500
-        response_content = json.loads(response.body)
-        assert response_content["errors"][0] == {
-            "name": "CollectionResourceException",
-            "detail": "🌳🌳🌳",
-            "status": 500,
-        }
 
         # Error in update relation
+        query_get_params["pks"] = "2"
         request = RequestRelationCollection(
             RequestMethod.PUT,
             self.collection_order,
