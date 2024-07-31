@@ -8,7 +8,7 @@ from typing import Optional
 from django.conf import ENVIRONMENT_VARIABLE as DJANGO_SETTING_MODULE_ENV_VAR_NAME
 from django.conf import settings
 from forestadmin.agent_toolkit.agent import Agent as BaseAgent
-from forestadmin.agent_toolkit.forest_logger import ForestLogger
+from forestadmin.agent_toolkit.forest_logger import ForestLogger, log_current_ram
 from forestadmin.agent_toolkit.options import Options
 from forestadmin.agent_toolkit.utils.forest_schema.type import AgentMeta
 
@@ -63,8 +63,10 @@ class DjangoAgent(BaseAgent):
         return options
 
     def start(self):
+        log_current_ram("Memory at start of 'start'")
         self.loop.run_until_complete(self._start())
         ForestLogger.log("info", "Django agent initialized")
+        log_current_ram("Memory at end of 'start'")
 
 
 def create_agent(config: Optional[Options] = None):

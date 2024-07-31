@@ -1,3 +1,4 @@
+import sys
 from typing import Dict, Optional, TypedDict
 
 from forestadmin.agent_toolkit.exceptions import AgentToolkitException
@@ -13,7 +14,7 @@ from forestadmin.agent_toolkit.resources.security.resources import Authenticatio
 from forestadmin.agent_toolkit.services.permissions.ip_whitelist_service import IpWhiteListService
 from forestadmin.agent_toolkit.services.permissions.permission_service import PermissionService
 from forestadmin.agent_toolkit.services.permissions.sse_cache_invalidation import SSECacheInvalidation
-from forestadmin.agent_toolkit.services.serializers.json_api import create_json_api_schema
+from forestadmin.agent_toolkit.services.serializers.json_api import JsonApiSerializer, create_json_api_schema
 from forestadmin.agent_toolkit.utils.context import HttpResponseBuilder
 from forestadmin.agent_toolkit.utils.forest_schema.emitter import SchemaEmitter
 from forestadmin.agent_toolkit.utils.forest_schema.type import AgentMeta
@@ -24,6 +25,7 @@ from forestadmin.datasource_toolkit.datasource_customizer.types import DataSourc
 from forestadmin.datasource_toolkit.datasources import Datasource
 from forestadmin.datasource_toolkit.decorators.chart.types import DataSourceChartDefinition
 from forestadmin.datasource_toolkit.interfaces.models.collections import BoundCollection
+from memory_profiler import profile
 from typing_extensions import Self
 
 
@@ -114,6 +116,7 @@ class Agent:
             await self.__mk_resources()
         return self._resources
 
+    # @profile
     def add_datasource(self, datasource: Datasource[BoundCollection], options: Optional[DataSourceOptions] = None):
         """Add a datasource
 
@@ -192,6 +195,7 @@ class Agent:
             raise AgentToolkitException("The agent subclass should set the META attribute")
         return meta
 
+    @profile
     async def _start(self):
         if Agent.__IS_INITIALIZED is True:
             ForestLogger.log("debug", "Agent already started.")

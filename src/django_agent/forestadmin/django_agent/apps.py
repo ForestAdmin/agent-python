@@ -6,9 +6,10 @@ from typing import Callable, Optional, Union
 
 from django.apps import AppConfig, apps
 from django.conf import settings
-from forestadmin.agent_toolkit.forest_logger import ForestLogger
+from forestadmin.agent_toolkit.forest_logger import ForestLogger, log_current_ram
 from forestadmin.datasource_django.datasource import DjangoDatasource
 from forestadmin.django_agent.agent import DjangoAgent, create_agent
+from memory_profiler import profile
 
 
 def is_launch_as_server() -> bool:
@@ -21,6 +22,7 @@ def is_launch_as_server() -> bool:
     return (is_manage_py and is_runserver) or (not is_manage_py and not is_a_launcher_to_ignore)
 
 
+# @profile
 def init_app_agent() -> Optional[DjangoAgent]:
     if not is_launch_as_server():
         return None
@@ -84,6 +86,7 @@ class DjangoAgentApp(AppConfig):
         t = threading.Thread(name="forest.wait_and_launch_agent", target=self._wait_for_all_apps_ready_and_launch_agent)
         t.start()
 
+    # @profile
     def _wait_for_all_apps_ready_and_launch_agent(self):
         wait_delay = 0.1
         nb_retry = int(self._waiter_timeout / wait_delay)
@@ -102,4 +105,5 @@ class DjangoAgentApp(AppConfig):
                 "Trying to launch agent anyway.",
             )
 
+        log_current_ram("before agent creation")
         DjangoAgentApp._DJANGO_AGENT = init_app_agent()

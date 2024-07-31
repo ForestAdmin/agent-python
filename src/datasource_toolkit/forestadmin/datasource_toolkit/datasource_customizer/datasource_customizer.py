@@ -7,6 +7,7 @@ from forestadmin.datasource_toolkit.decorators.chart.types import DataSourceChar
 from forestadmin.datasource_toolkit.decorators.decorator_stack import DecoratorStack
 from forestadmin.datasource_toolkit.decorators.publication.datasource import PublicationDataSourceDecorator
 from forestadmin.datasource_toolkit.decorators.rename_collection.datasource import RenameCollectionDataSourceDecorator
+from memory_profiler import profile
 from typing_extensions import Self
 
 
@@ -20,6 +21,7 @@ class DatasourceCustomizer:
         """Retrieve schema of the agent"""
         return self.stack.validation.schema
 
+    # @profile
     async def get_datasource(self):
         await self.stack.apply_queue_customization()
         return self.stack.datasource

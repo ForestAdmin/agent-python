@@ -2,7 +2,7 @@ import asyncio
 from typing import Any, Awaitable, Dict, List, Literal, Tuple, cast
 from uuid import UUID
 
-from forestadmin.agent_toolkit.forest_logger import ForestLogger
+from forestadmin.agent_toolkit.forest_logger import ForestLogger, log_current_ram
 from forestadmin.agent_toolkit.resources.collections.base_collection_resource import BaseCollectionResource
 from forestadmin.agent_toolkit.resources.collections.decorators import (
     authenticate,
@@ -52,6 +52,7 @@ from forestadmin.datasource_toolkit.utils.collections import CollectionUtils
 from forestadmin.datasource_toolkit.utils.schema import SchemaUtils
 from forestadmin.datasource_toolkit.validations.field import FieldValidatorException
 from forestadmin.datasource_toolkit.validations.records import RecordValidator, RecordValidatorException
+from memory_profiler import profile
 
 LiteralMethod = Literal["list", "count", "add", "get", "delete_list", "csv"]
 
@@ -59,20 +60,24 @@ LiteralMethod = Literal["list", "count", "add", "get", "delete_list", "csv"]
 class CrudResource(BaseCollectionResource):
     @ip_white_list
     async def dispatch(self, request: Request, method_name: LiteralMethod) -> Response:
-        method = getattr(self, method_name)
         try:
-            request_collection = RequestCollection.from_request(request, self.datasource)
-        except RequestCollectionException as e:
-            ForestLogger.log("exception", e)
-            return HttpResponseBuilder.build_client_error_response([e])
+            log_current_ram(f"Memory at start of crud dispatch for '{method_name}'")
+            method = getattr(self, method_name)
+            try:
+                request_collection = RequestCollection.from_request(request, self.datasource)
+            except RequestCollectionException as e:
+                ForestLogger.log("exception", e)
+                return HttpResponseBuilder.build_client_error_response([e])
 
-        try:
-            return await method(request_collection)
-        except ForbiddenError as exc:
-            return HttpResponseBuilder.build_client_error_response([exc])
-        except Exception as e:
-            ForestLogger.log("exception", e)
-            return HttpResponseBuilder.build_client_error_response([e])
+            try:
+                return await method(request_collection)
+            except ForbiddenError as exc:
+                return HttpResponseBuilder.build_client_error_response([exc])
+            except Exception as e:
+                ForestLogger.log("exception", e)
+                return HttpResponseBuilder.build_client_error_response([e])
+        finally:
+            log_current_ram(f"Memory at end of crud dispatch for '{method_name}'")
 
     @check_method(RequestMethod.GET)
     @authenticate
@@ -151,6 +156,7 @@ class CrudResource(BaseCollectionResource):
     @check_method(RequestMethod.GET)
     @authenticate
     @authorize("browse")
+    # @profile
     async def list(self, request: RequestCollection) -> Response:
         scope_tree = await self.permission.get_scope(request.user, request.collection)
         try:
