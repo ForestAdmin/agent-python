@@ -15,6 +15,7 @@ forestadmin-datasource-toolkit = {path = "../../datasource_toolkit", develop = t
 forestadmin-agent-toolkit = {path = "../../agent_toolkit", develop = true}
 forestadmin-agent-django = {path = "../../django_agent", develop = true}
 forestadmin-datasource-django = {path = "../../datasource_django", develop = true}
+memory_profiler = ">0.57.0"
 
 [tool.poetry.group.linter.dependencies]
 [[tool.poetry.group.linter.dependencies.flake8]]
