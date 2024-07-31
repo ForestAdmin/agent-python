@@ -36,9 +36,8 @@ from forestadmin.datasource_toolkit.interfaces.fields import (
     Operator,
     PrimitiveType,
 )
-from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.branch import Aggregator, ConditionTreeBranch
+from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.branch import Aggregator
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.leaf import ConditionTreeLeaf
-from forestadmin.datasource_toolkit.interfaces.query.filter.unpaginated import Filter
 
 
 def authenticate_mock(fn):
