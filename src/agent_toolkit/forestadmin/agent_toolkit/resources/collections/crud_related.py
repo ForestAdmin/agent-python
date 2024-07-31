@@ -196,14 +196,15 @@ class CrudRelatedResource(BaseCollectionResource):
         except (FieldValidatorException, CollectionResourceException) as e:
             ForestLogger.log("exception", e)
             return HttpResponseBuilder.build_client_error_response([e])
-        if not request.body or not request.body.get("data") or "id" not in request.body["data"]:
-            ForestLogger.log("error", "Relation id is missing")
-            return HttpResponseBuilder.build_client_error_response([ForestException("Relation id is missing")])
-        try:
+
+        if not request.body or "data" not in request.body:
+            ForestLogger.log("error", "Relation data is missing")
+            return HttpResponseBuilder.build_client_error_response([ForestException("Relation data is missing")])
+
+        if request.body["data"] is not None and "id" in request.body["data"]:
             linked_id = unpack_id(request.foreign_collection.schema, request.body["data"]["id"])
-        except (FieldValidatorException, CollectionResourceException) as e:
-            ForestLogger.log("exception", e)
-            return HttpResponseBuilder.build_client_error_response([e])
+        else:
+            linked_id = None
 
         if is_many_to_one(request.relation) or is_one_to_one(request.relation):
             if is_many_to_one(request.relation):
@@ -452,11 +453,15 @@ class CrudRelatedResource(BaseCollectionResource):
         scope = await self.permission.get_scope(request.user, request.collection)
         await self.permission.can(request.user, request.collection, "edit")
 
-        foreign_value = await CollectionUtils.get_value(
-            request.user,
-            cast(Collection, request.foreign_collection),
-            linked_id,
-            request.relation["foreign_key_target"],
+        foreign_value = (
+            await CollectionUtils.get_value(
+                request.user,
+                cast(Collection, request.foreign_collection),
+                linked_id,
+                request.relation["foreign_key_target"],
+            )
+            if linked_id is not None
+            else None
         )
 
         trees = [ConditionTreeFactory.match_ids(request.collection.schema, [parent_id])]

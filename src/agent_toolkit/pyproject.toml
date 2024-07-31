@@ -26,11 +26,11 @@ sseclient-py = "^1.5"
 forestadmin-datasource-toolkit = "1.8.19"
 pandas = ">=1.4.0"
 [[tool.poetry.dependencies.numpy]]
-version = ">=1.26.0,!=2.0.0"
+version = ">=1.26.0,<2.0.0"
 python = ">=3.12.0"
 
 [[tool.poetry.dependencies.numpy]]
-version = "!=2.0.0"
+version = "<2.0.0"
 python = "<3.12.0"
 
 [tool.poetry.dependencies."backports.zoneinfo"]
