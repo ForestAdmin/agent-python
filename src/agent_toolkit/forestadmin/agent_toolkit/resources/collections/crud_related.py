@@ -426,19 +426,20 @@ class CrudRelatedResource(BaseCollectionResource):
         )
 
         # Create new relation (will update exactly one record).
-        trees = [ConditionTreeFactory.match_ids(request.foreign_collection.schema, [linked_id])]
-        if scope:
-            trees.append(scope)
-        await request.foreign_collection.update(
-            request.user,
-            Filter(
-                {
-                    "condition_tree": ConditionTreeFactory.intersect(trees),
-                    "timezone": timezone,
-                }
-            ),
-            {request.relation["origin_key"]: origin_value},
-        )
+        if linked_id:
+            trees = [ConditionTreeFactory.match_ids(request.foreign_collection.schema, [linked_id])]
+            if scope:
+                trees.append(scope)
+            await request.foreign_collection.update(
+                request.user,
+                Filter(
+                    {
+                        "condition_tree": ConditionTreeFactory.intersect(trees),
+                        "timezone": timezone,
+                    }
+                ),
+                {request.relation["origin_key"]: origin_value},
+            )
 
     async def _update_many_to_one(
         self,
