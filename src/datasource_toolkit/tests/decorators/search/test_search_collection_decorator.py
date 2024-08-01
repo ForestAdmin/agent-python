@@ -220,7 +220,7 @@ class TestSearchCollectionDecorator(TestCase):
         )
         filter_ = Filter(
             {
-                "search": "1584",
+                "search": "0001584",
             }
         )
         returned_filter = self.loop.run_until_complete(
