@@ -1774,6 +1774,47 @@ class TestCrudRelatedResource(TestCase):
         self.permission_service.can.assert_not_awaited()
         self.permission_service.can.reset_mock()
 
+    def test_update_one_to_one_should_not_call_update_a_second_time_if_value_is_null(self):
+        crud_related_resource = CrudRelatedResource(
+            self.datasource, self.permission_service, self.ip_white_list_service, self.options
+        )
+
+        query_get_params = {
+            "collection_name": "order",
+            "relation_name": "cart",
+            "timezone": "Europe/Paris",
+            "pks": "2",  # order id
+        }
+        request = RequestRelationCollection(
+            RequestMethod.PUT,
+            self.collection_order,
+            self.collection_cart,
+            OneToOne(
+                {
+                    "type": FieldType.ONE_TO_ONE,
+                    "foreign_collection": "cart",
+                    "origin_key": "order_id",
+                    "origin_key_target": "id",
+                }
+            ),
+            "orders",
+            {"data": None},  # body
+            query_get_params,  # query
+            {},  # header
+            None,  # user
+        )
+
+        with patch.object(self.collection_cart, "update", new_callable=AsyncMock) as mock_update:
+            self.loop.run_until_complete(
+                crud_related_resource._update_one_to_one(request, [2], None, zoneinfo.ZoneInfo("Europe/Paris"))
+            )
+            self.assertIn(
+                ConditionTreeLeaf("order_id", "equal", 2), mock_update.await_args.args[1].condition_tree.conditions
+            )
+            self.assertEqual(mock_update.await_args.args[2], {"order_id": None})
+
+            self.assertEqual(mock_update.await_count, 1)
+
     @patch(
         "forestadmin.agent_toolkit.resources.collections.crud_related.ConditionTreeFactory.match_ids",
         return_value=ConditionTreeLeaf("id", Operator.EQUAL, 201),
