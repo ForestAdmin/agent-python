@@ -42,7 +42,7 @@ class ConditionTreeFactory:
         for name in primary_key_names:
             operators = cast(Column, schema["fields"][name])["filter_operators"]
             if not operators or not (Operator.EQUAL in operators or Operator.IN in operators):
-                raise ConditionTreeFactoryException(f"Field {name} must support opperators: [equal, in]")
+                raise ConditionTreeFactoryException(f"Field {name} must support operators: [equal, in]")
         res = cls._match_fields(primary_key_names, ids)
         return res
 
