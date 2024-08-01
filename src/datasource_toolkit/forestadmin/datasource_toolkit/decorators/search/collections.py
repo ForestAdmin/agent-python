@@ -80,7 +80,10 @@ class SearchCollectionDecorator(CollectionDecorator):
             and search.isnumeric()
             and Operator.EQUAL in schema.get("filter_operators", [])
         ):
-            value = literal_eval(str(search))
+            try:
+                value = int(search)
+            except ValueError:
+                value = float(search)
             return ConditionTreeLeaf(field, Operator.EQUAL, value)
 
         if schema["column_type"] == PrimitiveType.ENUM and Operator.EQUAL in schema.get("filter_operators", []):
