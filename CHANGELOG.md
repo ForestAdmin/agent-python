@@ -1,3 +1,10 @@
+## [1.8.22](https://github.com/ForestAdmin/agent-python/compare/v1.8.21...v1.8.22) (2024-08-01)
+
+
+### Bug Fixes
+
+* **search:** fix parsing number from string in search ([#254](https://github.com/ForestAdmin/agent-python/issues/254)) ([6062cc7](https://github.com/ForestAdmin/agent-python/commit/6062cc73448538744b06aeec5f4d7a1ddd13b95c))
+
 ## [1.8.21](https://github.com/ForestAdmin/agent-python/compare/v1.8.20...v1.8.21) (2024-08-01)
 
 
