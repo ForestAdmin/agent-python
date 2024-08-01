@@ -19,3 +19,13 @@ async def cart_update_name(value, context: WriteCustomizationContext):
     else:
         ret = {"name": value, "order": {"amount": amount}}
     return ret
+
+
+async def cart_get_customer_id(records, context):
+    ret = []
+    for rec in records:
+        if rec.get("order") is not None:
+            ret.append(rec["order"].get("customer_id"))
+        else:
+            ret.append(None)
+    return ret

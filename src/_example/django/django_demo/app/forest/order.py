@@ -70,7 +70,13 @@ def get_customer_full_name_field() -> ComputedDefinition:
     async def get_customer_full_name_value(
         records: List[RecordsDataAlias], context: CollectionCustomizationContext
     ) -> List[str]:
-        return [f"{record['customer']['first_name']} {record['customer']['last_name']}" for record in records]
+        ret = []
+        for record in records:
+            if record.get("customer"):
+                ret.append(f"{record['customer']['first_name']} {record['customer']['last_name']}")
+            else:
+                ret.append(None)
+        return ret
 
     return {
         "column_type": "String",

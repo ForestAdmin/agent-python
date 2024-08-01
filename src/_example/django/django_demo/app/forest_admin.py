@@ -1,7 +1,7 @@
 import datetime
 
 from app.forest.address import address_full_name_computed, get_postal_code, high_delivery_address_segment
-from app.forest.cart import cart_update_name
+from app.forest.cart import cart_get_customer_id, cart_update_name
 from app.forest.customer import (
     age_operation_action_dict,
     customer_delete_override,
@@ -83,7 +83,7 @@ def customize_forest(agent: DjangoAgent):
         {
             "column_type": "Number",
             "dependencies": ["order:customer_id"],
-            "get_values": lambda records, context: [rec.get("order", {}).get("customer_id") for rec in records],
+            "get_values": cart_get_customer_id,
         },
     ).emulate_field_operator("customer_id", "in").replace_field_writing("name", cart_update_name).add_segment(
         "No order", lambda ctx: ConditionTreeLeaf("order_id", "equal", None)
