@@ -78,7 +78,7 @@ def test_match_ids(match_field_mock: mock.Mock, get_pk_mock: mock.Mock):
     with pytest.raises(ConditionTreeFactoryException) as e:
         ConditionTreeFactory.match_ids(schema, [[1]])
 
-    assert str(e.value) == "🌳🌳🌳Field id must support opperators: [equal, in]"
+    assert str(e.value) == "🌳🌳🌳Field id must support operators: [equal, in]"
 
     PRIMARY_KEY_FIELD["is_primary_key"] = True
     PRIMARY_KEY_FIELD["filter_operators"] = {Operator.IN}
