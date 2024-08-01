@@ -1,3 +1,10 @@
+## [1.8.21](https://github.com/ForestAdmin/agent-python/compare/v1.8.20...v1.8.21) (2024-08-01)
+
+
+### Bug Fixes
+
+* **one_to_one:** no more error when setting the relation to null ([#253](https://github.com/ForestAdmin/agent-python/issues/253)) ([d091f76](https://github.com/ForestAdmin/agent-python/commit/d091f76b59b7134b93af6ea104946798bfa38c4a))
+
 ## [1.8.20](https://github.com/ForestAdmin/agent-python/compare/v1.8.19...v1.8.20) (2024-07-31)
 
 
