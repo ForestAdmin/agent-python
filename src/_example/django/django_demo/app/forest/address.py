@@ -24,7 +24,13 @@ async def high_delivery_address_segment(context: CollectionCustomizationContext)
 # computed fields
 def address_full_name_computed(country_field_name: str) -> ComputedDefinition:
     async def _get_full_address_values(records: List[RecordsDataAlias], _: CollectionCustomizationContext):
-        return [f"{record['street']} {record['city']} {record[country_field_name]}" for record in records]
+        ret = []
+        for record in records:
+            if record != {}:
+                ret.append(f"{record.get('street')} {record.get('city')} {record.get(country_field_name)}")
+            else:
+                ret.append("")
+        return ret
 
     return {
         "column_type": "String",
@@ -44,7 +50,7 @@ def computed_full_address_caps():
 async def get_postal_code(record: RecordsDataAlias, context: CollectionCustomizationContext) -> Any:
     async with ClientSession() as session:
         async with session.get(
-            f"https://apicarto.ign.fr/api/codes-postaux/communes/{record['zip_code']}", verify_ssl=False
+            f"https://apicarto.ign.fr/api/codes-postaux/communes/{record.get('zip_code')}", verify_ssl=False
         ) as response:
             if response.status == 200:
                 return await response.json()
