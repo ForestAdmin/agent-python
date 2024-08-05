@@ -224,23 +224,25 @@ class ForestSchema(Schema):
         relationship_to_del = []
         item["type"] = self.opts.type_  # type: ignore
 
-        for name, relationships in item.get("relationships", {}).items():  # type: ignore
+        for name, relationships in item.get("relationships", {}).items():
             relation_field = self.Meta.fcollection.get_field(name)  # type: ignore
-            if isinstance(relationships["data"], list):  # many to many
+
+            if isinstance(relationships["data"], list):
+                # for many to many and one to many relations
                 for relationship_data in relationships["data"]:
-                    relationship_data["type"] = relation_field["foreign_collection"]  # type: ignore
+                    relationship_data["type"] = relation_field["foreign_collection"]
             else:
-                relation_field = self.Meta.fcollection.get_field(name)  # type: ignore
-                if relationships is None or relationships.get("data") is None:
+                # for many to one and one to one relations
+                if relationships is None or relationships.get("data") in [None, {}]:
                     relationship_to_del.append(name)
                     continue
-                relationships["data"]["type"] = relation_field["foreign_collection"]  # type: ignore
+                relationships["data"]["type"] = relation_field["foreign_collection"]
                 item["relationships"][name] = relationships
 
         for name in relationship_to_del:
             del item["relationships"][name]
 
-        return super(ForestSchema, self).unwrap_item(item)  # type: ignore
+        return super(ForestSchema, self).unwrap_item(item)
 
 
 def refresh_json_api_schema(collection: CollectionAlias, ignores: Optional[List[CollectionAlias]] = None):
