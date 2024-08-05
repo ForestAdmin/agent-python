@@ -220,8 +220,10 @@ class ForestSchema(Schema):
             raise JsonApiException(str(e))
 
     def unwrap_item(self, item):  # type: ignore
-        # needed to avoid an issue introduced by the front (type are pluralize for add and update)
+        """needed to avoid an issue introduced by the front (type are pluralize for add and update)"""
+        relationship_to_del = []
         item["type"] = self.opts.type_  # type: ignore
+
         for name, relationships in item.get("relationships", {}).items():  # type: ignore
             relation_field = self.Meta.fcollection.get_field(name)  # type: ignore
             if isinstance(relationships["data"], list):  # many to many
@@ -229,8 +231,14 @@ class ForestSchema(Schema):
                     relationship_data["type"] = relation_field["foreign_collection"]  # type: ignore
             else:
                 relation_field = self.Meta.fcollection.get_field(name)  # type: ignore
+                if relationships is None or relationships.get("data") is None:
+                    relationship_to_del.append(name)
+                    continue
                 relationships["data"]["type"] = relation_field["foreign_collection"]  # type: ignore
                 item["relationships"][name] = relationships
+
+        for name in relationship_to_del:
+            del item["relationships"][name]
 
         return super(ForestSchema, self).unwrap_item(item)  # type: ignore
 
