@@ -10,6 +10,8 @@ from forestadmin.datasource_toolkit.interfaces.fields import (
     is_one_to_many,
     is_one_to_one,
     is_polymorphic_many_to_one,
+    is_polymorphic_one_to_many,
+    is_polymorphic_one_to_one,
 )
 from forestadmin.datasource_toolkit.interfaces.models.collections import CollectionSchema
 from forestadmin.datasource_toolkit.interfaces.records import RecordsDataAlias
@@ -77,7 +79,12 @@ class PublicationCollectionDecorator(CollectionDecorator):
                 )
             )
 
-        if is_one_to_one(field) or is_one_to_many(field):
+        if (
+            is_one_to_one(field)
+            or is_one_to_many(field)
+            or is_polymorphic_one_to_one(field)
+            or is_polymorphic_one_to_many(field)
+        ):
             return (
                 self.datasource.is_published(field["foreign_collection"])
                 and self.datasource.get_collection(field["foreign_collection"])._is_published(field["origin_key"])
