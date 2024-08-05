@@ -1,6 +1,6 @@
 from datetime import date, datetime, timezone
 from typing import cast
-from unittest import TestCase, skip
+from unittest import TestCase
 from unittest.mock import patch
 
 from forestadmin.agent_toolkit.services.serializers.json_api import (
@@ -1247,10 +1247,8 @@ class TestJsonApiSchemaLoad(TestJsonApi):
             },
         )
 
-    @skip("the fix of this error should be rebase first")
     def test_should_ignore_null_many_to_one_relations(self):
         schema = JsonApiSerializer.get(self.collection_order)()
-
         request_body = {
             "data": {
                 "id": "43661dae-97c3-4ea9-bd43-a6d8ac3f4ca7",
@@ -1259,10 +1257,8 @@ class TestJsonApiSchemaLoad(TestJsonApi):
                 "relationships": {"customer": {"data": None}},
             }
         }
-        # TODO: https://github.com/ForestAdmin/agent-python/pull/256 is reproduced; finish this after rebase.
         data = schema.load(request_body)
-
-        schema = JsonApiSerializer.get(self.collection_order)()
+        self.assertEqual(data, {"id": "43661dae-97c3-4ea9-bd43-a6d8ac3f4ca7"})
 
         request_body = {
             "data": {
@@ -1272,5 +1268,5 @@ class TestJsonApiSchemaLoad(TestJsonApi):
                 "relationships": {"customer": {"data": {}}},
             }
         }
-        # TODO: https://github.com/ForestAdmin/agent-python/pull/256 is reproduced; finish this after rebase.
         data = schema.load(request_body)
+        self.assertEqual(data, {"id": "43661dae-97c3-4ea9-bd43-a6d8ac3f4ca7"})
