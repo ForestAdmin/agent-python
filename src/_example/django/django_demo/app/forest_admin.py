@@ -44,8 +44,7 @@ from forestadmin.django_agent.agent import DjangoAgent
 
 def customize_forest(agent: DjangoAgent):
     # customize_forest_logging()
-    agent.add_datasource(DjangoDatasource())  # , {"rename": {"app_order": "renamed_order"}})
-    # agent.remove_collections("app_order")
+    agent.add_datasource(DjangoDatasource(support_polymorphic_relations=True))
 
     # # ## ADDRESS
     agent.customize_collection("app_address").add_segment(
