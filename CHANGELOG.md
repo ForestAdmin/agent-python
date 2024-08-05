@@ -1,3 +1,10 @@
+## [1.8.23](https://github.com/ForestAdmin/agent-python/compare/v1.8.22...v1.8.23) (2024-08-05)
+
+
+### Bug Fixes
+
+* **jsonapi:** ignore empty relationships for creation and edition ([#256](https://github.com/ForestAdmin/agent-python/issues/256)) ([7767e70](https://github.com/ForestAdmin/agent-python/commit/7767e7091cc38a96d492621795cb087e5654695a))
+
 ## [1.8.22](https://github.com/ForestAdmin/agent-python/compare/v1.8.21...v1.8.22) (2024-08-01)
 
 
