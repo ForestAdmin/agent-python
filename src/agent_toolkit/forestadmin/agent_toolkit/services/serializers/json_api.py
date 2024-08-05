@@ -186,7 +186,10 @@ class ForestRelationShip(fields.Relationship):
         target_collection_field = cast(PolymorphicManyToOne, self.forest_relation)["foreign_key_type_field"]
         target_collection = self._forest_current_obj[target_collection_field]
 
-        if target_collection is not None and target_collection not in self.forest_relation["foreign_collections"]:
+        if target_collection is not None and (
+            target_collection not in self.forest_relation["foreign_collections"]
+            or target_collection not in [c.name for c in self.collection.datasource.collections]
+        ):
             ForestLogger.log(
                 "warning",
                 f"Trying to serialize a polymorphic relationship ({self.collection.name}.{attr} for record "
@@ -196,12 +199,14 @@ class ForestRelationShip(fields.Relationship):
             self._forest_current_obj[attr] = None
 
         self.type_ = target_collection
-        self._old_only = self.only
-        self.only = None
+        if getattr(self, "only", False):
+            self._old_only = self.only
+            self.only = None
 
     def teardown_polymorphism(self):
         self.__schema = None  # this is a cache variable, so it's preferable to clean it after
-        self.only = self._old_only
+        if getattr(self, "only", False):
+            self.only = self._old_only
 
     def serialize(self, attr, obj, accessor=None):
         self._forest_current_obj = obj
