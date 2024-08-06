@@ -298,7 +298,7 @@ class TestDjangoCollectionFactory(TestCase):
         self.assertEqual(book_schema["fields"]["author_id"]["type"], FieldType.COLUMN)
 
     def test_build_should_handle_polymorphic_many_to_one(self):
-        rating_schema = DjangoCollectionFactory.build(Rating)
+        rating_schema = DjangoCollectionFactory.build(Rating, True)
 
         self.assertEqual(
             rating_schema["fields"]["content_object"],
@@ -341,7 +341,7 @@ class TestDjangoCollectionFactory(TestCase):
         )
 
     def test_build_should_handle_polymorphic_one_to_many(self):
-        book_schema = DjangoCollectionFactory.build(Book)
+        book_schema = DjangoCollectionFactory.build(Book, True)
 
         self.assertEqual(
             book_schema["fields"]["ratings"],
@@ -356,7 +356,7 @@ class TestDjangoCollectionFactory(TestCase):
         )
 
     def test_build_should_handle_polymorphic_one_to_one(self):
-        book_schema = DjangoCollectionFactory.build(Book)
+        book_schema = DjangoCollectionFactory.build(Book, True)
 
         self.assertEqual(
             book_schema["fields"]["tag"],

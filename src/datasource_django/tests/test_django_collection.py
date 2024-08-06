@@ -180,6 +180,14 @@ class TestDjangoCollectionCRUDList(TestCase):
             ],
         )
 
+
+class TestDjangoCollectionCRUDListPolymorphism(TestDjangoCollectionCRUDList):
+    def setUp(self) -> None:
+        self.book_collection = DjangoCollection(self.datasource, Book, True)
+        self.person_collection = DjangoCollection(self.datasource, Person, True)
+        self.rating_collection = DjangoCollection(self.datasource, Rating, True)
+        self.tag_collection = DjangoCollection(self.datasource, Tag, True)
+
     async def test_should_correctly_serialized_polymorphic_relation(self):
         """which mean all columns and no relations"""
         ret = await self.rating_collection.list(
@@ -585,6 +593,13 @@ class TestDjangoCollectionCRUDCreateUpdateDelete(TestDjangoCollectionCRUDAggrega
         )
 
         self.assertEqual(len(tolkiens), 4)
+
+
+class TestDjangoCollectionCRUDCreateUpdateDeletePolymorphism(TestDjangoCollectionCRUDCreateUpdateDelete):
+    def setUp(self) -> None:
+        self.book_collection = DjangoCollection(self.datasource, Book, True)
+        self.person_collection = DjangoCollection(self.datasource, Person, True)
+        self.rating_collection = DjangoCollection(self.datasource, Rating, True)
 
     async def test_create_polymorphic_many_to_one_should_work(self):
         ret = await self.rating_collection.create(
