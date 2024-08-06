@@ -14,6 +14,7 @@ from django.db.models import (
     TimeField,
 )
 from django.db.models.fields import AutoFieldMixin
+from forestadmin.agent_toolkit.forest_logger import ForestLogger
 from forestadmin.datasource_django.utils.type_converter import FilterOperator, TypeConverter
 from forestadmin.datasource_toolkit.interfaces.fields import (
     Column,
@@ -226,7 +227,7 @@ class DjangoCollectionFactory:
         return ManyToMany(type=FieldType.MANY_TO_MANY, foreign_relation=None, **kwargs)
 
     @staticmethod
-    def build(model: Model) -> CollectionSchema:  # noqa:C901
+    def build(model: Model, introspect_polymorphic_relations: bool) -> CollectionSchema:  # noqa:C901
         fields = {}
         overrides = {}
         for field in model._meta.get_fields(include_hidden=True):
@@ -248,7 +249,14 @@ class DjangoCollectionFactory:
 
                 elif field.one_to_many is True:
                     if is_generic_relation(field):
-                        fields[field.name] = DjangoCollectionFactory._build_one_to_polymorphic(field, model)
+                        if introspect_polymorphic_relations:
+                            fields[field.name] = DjangoCollectionFactory._build_one_to_polymorphic(field, model)
+                        else:
+                            ForestLogger.log(
+                                "info",
+                                f"Ignoring {model._meta.db_table}.{field.name} "
+                                "because polymorphic relation is not supported.",
+                            )
                     else:
                         fields[f"{field.name}_{field.remote_field.name}"] = DjangoCollectionFactory._build_one_to_many(
                             field
@@ -256,12 +264,20 @@ class DjangoCollectionFactory:
 
                 elif field.many_to_one is True:
                     if is_generic_foreign_key(field):
-                        fields[field.name] = DjangoCollectionFactory._build_many_to_one_polymorphic(field, model)
-                        overrides.update(
-                            DjangoCollectionFactory._build_field_override_for_many_to_one_polymorphic(
-                                field, model, fields[field.name]["foreign_collections"]
+                        if introspect_polymorphic_relations:
+                            fields[field.name] = DjangoCollectionFactory._build_many_to_one_polymorphic(field, model)
+                            overrides.update(
+                                DjangoCollectionFactory._build_field_override_for_many_to_one_polymorphic(
+                                    field, model, fields[field.name]["foreign_collections"]
+                                )
                             )
-                        )
+                        else:
+                            ForestLogger.log(
+                                "info",
+                                f"Ignoring {model._meta.db_table}.{field.name} "
+                                "because polymorphic relation is not supported.",
+                            )
+
                     else:
                         fields[field.name] = DjangoCollectionFactory._build_many_to_one(field)
 

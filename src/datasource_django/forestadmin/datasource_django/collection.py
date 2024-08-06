@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import List, Optional, TypedDict
 
 from asgiref.sync import sync_to_async
 from django.conf import settings
@@ -22,10 +22,11 @@ from forestadmin.datasource_toolkit.interfaces.records import RecordsDataAlias
 
 
 class DjangoCollection(BaseDjangoCollection):
-    def __init__(self, datasource: Datasource, model: Model):
+    def __init__(self, datasource: Datasource, model: Model, support_polymorphic_relations: bool):
         super().__init__(model._meta.db_table, datasource)
         self._model = model
-        schema = DjangoCollectionFactory.build(model)
+        self.support_polymorphic_relations = support_polymorphic_relations
+        schema = DjangoCollectionFactory.build(model, support_polymorphic_relations)
         self.add_fields(schema["fields"])
 
     @property
