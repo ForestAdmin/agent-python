@@ -33,6 +33,6 @@ faker = "^15.3.4"
 type = "simple"
 
 [tool.poe.tasks]
-init-db = { shell = "cd django_demo && python manage.py migrate" }
-populate-db = { shell = "cd django_demo && python manage.py populate-db" }
+init-db  = { shell = "cd django_demo && python manage.py migrate" }
+populate-db  = { shell = "cd django_demo && python manage.py populate-db" }
 runserver = { shell = "cd django_demo && python manage.py runserver" }

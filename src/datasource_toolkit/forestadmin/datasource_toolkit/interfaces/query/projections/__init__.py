@@ -67,6 +67,8 @@ class Projection(list):  # type: ignore
                 result.append(pk)  # type: ignore
 
         for relation, projection in self.relations.items():
+            if projection == "*":
+                continue
             schema = cast(RelationAlias, collection.schema["fields"][relation])
             association = collection.datasource.get_collection(schema["foreign_collection"])
             projection_with_pk: Projection = projection.with_pks(association).nest(relation)

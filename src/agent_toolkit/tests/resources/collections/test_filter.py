@@ -6,7 +6,14 @@ from forestadmin.agent_toolkit.resources.collections.requests import RequestColl
 from forestadmin.agent_toolkit.utils.context import RequestMethod
 from forestadmin.datasource_toolkit.collections import Collection, CollectionException
 from forestadmin.datasource_toolkit.datasources import Datasource
-from forestadmin.datasource_toolkit.interfaces.fields import Column, FieldType, ManyToOne, Operator, PrimitiveType
+from forestadmin.datasource_toolkit.interfaces.fields import (
+    Column,
+    FieldType,
+    ManyToOne,
+    Operator,
+    PolymorphicManyToOne,
+    PrimitiveType,
+)
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.branch import Aggregator
 from forestadmin.datasource_toolkit.validations.projection import ProjectionValidator
 
@@ -66,8 +73,44 @@ class TestFilter(TestCase):
                 ),
             }
         )
+
+        cls.collection_tag = Collection("Tag", cls.datasource)
+        cls.collection_tag.add_fields(
+            {
+                "id": Column(
+                    column_type=PrimitiveType.NUMBER,
+                    is_primary_key=True,
+                    type=FieldType.COLUMN,
+                    filter_operators=set([Operator.IN, Operator.EQUAL]),
+                ),
+                "tag": Column(
+                    column_type=PrimitiveType.STRING,
+                    filter_operators=set([Operator.IN, Operator.EQUAL, Operator.STARTS_WITH]),
+                    type=FieldType.COLUMN,
+                ),
+                "taggable_id": Column(
+                    column_type=PrimitiveType.NUMBER,
+                    filter_operators=set([Operator.IN, Operator.EQUAL]),
+                    type=FieldType.COLUMN,
+                ),
+                "taggable_type": Column(
+                    column_type=PrimitiveType.STRING,
+                    filter_operators=set([Operator.IN, Operator.EQUAL, Operator.STARTS_WITH]),
+                    type=FieldType.COLUMN,
+                ),
+                "taggable": PolymorphicManyToOne(
+                    foreign_collections=["Book", "Person"],
+                    foreign_key="taggable_id",
+                    foreign_key_targets={"Book": "id", "Person": "id"},
+                    foreign_key_type_field="taggable_type",
+                    type=FieldType.POLYMORPHIC_MANY_TO_ONE,
+                ),
+            }
+        )
+
         cls.datasource.add_collection(cls.collection_book)
         cls.datasource.add_collection(cls.collection_person)
+        cls.datasource.add_collection(cls.collection_tag)
 
 
 class TestFilterConditionTree(TestFilter):
@@ -201,6 +244,20 @@ class TestFilterProjection(TestFilter):
         )
 
         self.assertRaisesRegex(CollectionException, r"Field not found 'Book.blabedoubla'", parse_projection, request)
+
+    def test_parse_projection_should_add_a_star_to_polymorphic_many_to_one(self):
+        request = RequestCollection(
+            method=RequestMethod.GET,
+            body=None,
+            query={
+                "collection_name": "Tag",
+            },
+            collection=self.collection_tag,
+        )
+        expected_projection = ["id", "tag", "taggable_id", "taggable_type", "taggable:*"]
+
+        projection = parse_projection(request)
+        self.assertEqual(sorted(projection), sorted(expected_projection))
 
 
 class TestFilterSort(TestFilter):

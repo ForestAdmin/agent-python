@@ -8,6 +8,7 @@ from forestadmin.datasource_toolkit.interfaces.fields import (
     is_many_to_many,
     is_many_to_one,
     is_one_to_many,
+    is_polymorphic_one_to_many,
 )
 from forestadmin.datasource_toolkit.interfaces.models.collections import CollectionSchema
 
@@ -48,7 +49,11 @@ class SchemaUtils:
         except KeyError:
             raise SchemaUtilsException(f"Relation {relation_name} not found")
 
-        if not is_many_to_many(relation_field) and not is_one_to_many(relation_field):
+        if (
+            not is_many_to_many(relation_field)
+            and not is_one_to_many(relation_field)
+            and not is_polymorphic_one_to_many(relation_field)
+        ):
             raise SchemaUtilsException(
                 f"Relation {relation_name} has invalid type should be one of OneToMany or ManyToMany"
             )

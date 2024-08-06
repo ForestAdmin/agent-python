@@ -5,8 +5,14 @@ from typing import Any, Dict, List, Optional, Set, Tuple
 from django.db import models
 from forestadmin.datasource_django.exception import DjangoDatasourceException
 from forestadmin.datasource_django.interface import BaseDjangoCollection
+from forestadmin.datasource_django.utils.polymorphic_util import DjangoPolymorphismUtil
 from forestadmin.datasource_django.utils.type_converter import FilterOperator
-from forestadmin.datasource_toolkit.interfaces.fields import is_many_to_one, is_one_to_one
+from forestadmin.datasource_toolkit.interfaces.fields import (
+    is_many_to_one,
+    is_one_to_one,
+    is_polymorphic_many_to_one,
+    is_polymorphic_one_to_one,
+)
 from forestadmin.datasource_toolkit.interfaces.query.aggregation import (
     AggregateResult,
     Aggregation,
@@ -50,18 +56,38 @@ class DjangoQueryBuilder:
         largest_projection: Projection,
         filter_: BaseFilter,
     ) -> models.QuerySet:
-        qs: models.QuerySet = collection.model.objects.all()
+        qs: models.QuerySet = collection.model.objects.all()  # type:ignore
 
         select_related, prefetch_related = DjangoQueryBuilder._find_related_in_projection(
             collection, largest_projection
         )
-        qs = qs.select_related(
-            *cls._normalize_projection(Projection(*select_related)),
-        ).prefetch_related(
+
+        with_generic_fk = DjangoPolymorphismUtil.is_polymorphism_implied(largest_projection, collection)
+        if with_generic_fk:
+            select_related.union(
+                [
+                    collection.schema["fields"][generic_fk]["foreign_key_type_field"]  # type:ignore
+                    for generic_fk in DjangoPolymorphismUtil.get_polymorphism_relations(largest_projection, collection)
+                ]
+            )
+
+        qs = qs.select_related(*cls._normalize_projection(Projection(*select_related))).prefetch_related(
             *cls._normalize_projection(Projection(*prefetch_related)),
         )
 
-        qs = qs.filter(DjangoQueryConditionTreeBuilder.build(filter_.condition_tree))
+        condition_tree = filter_.condition_tree
+        if condition_tree:
+            if any(
+                [
+                    DjangoPolymorphismUtil.is_type_field_of_generic_fk(field, collection)
+                    for field in filter_.condition_tree.projection
+                ]
+            ):
+                condition_tree = DjangoPolymorphismUtil.replace_content_type_in_condition_tree(
+                    filter_.condition_tree, collection
+                )
+
+        qs = qs.filter(DjangoQueryConditionTreeBuilder.build(condition_tree))
 
         if isinstance(filter_, PaginatedFilter):
             qs = qs.order_by(*DjangoQueryPaginationBuilder.get_order_by(filter_))
@@ -79,17 +105,29 @@ class DjangoQueryBuilder:
 
         for relation_name, subfields in projection.relations.items():
             field_schema = collection.schema["fields"][relation_name]
-            if not break_select_related[relation_name] and (
-                is_many_to_one(field_schema) or is_one_to_one(field_schema)
-            ):
-                select_related.add(relation_name)
-            else:
-                break_select_related[relation_name] = True
-                prefetch_related.add(relation_name)
+            if not break_select_related[relation_name]:
+                if is_many_to_one(field_schema) or is_one_to_one(field_schema):
+                    select_related.add(relation_name)
+                elif is_polymorphic_many_to_one(field_schema):
+                    select_related.add(field_schema["foreign_key_type_field"])
+                    break_select_related[relation_name] = True
+                    prefetch_related.add(relation_name)
+                elif is_polymorphic_one_to_one(field_schema):
+                    break_select_related[relation_name] = True
+                    prefetch_related.add(relation_name)
 
-            sub_select, sub_prefetch = cls._find_related_in_projection(
-                collection.datasource.get_collection(field_schema["foreign_collection"]), subfields
+                else:
+                    break_select_related[relation_name] = True
+                    prefetch_related.add(relation_name)
+
+            sub_select, sub_prefetch = (
+                cls._find_related_in_projection(
+                    collection.datasource.get_collection(field_schema["foreign_collection"]), subfields
+                )
+                if subfields != ["*"]
+                else ([], [])
             )
+
             if not break_select_related[relation_name]:
                 select_related = select_related.union(Projection(*sub_select).nest(relation_name))
             else:
@@ -115,11 +153,10 @@ class DjangoQueryBuilder:
         # only raise errors when trying to get a field by a to_many relation
         # or in other words if we have something to pass to prefetch_related
         _, prefetch = cls._find_related_in_projection(collection, full_projection)
-        if len(prefetch) == 0:
-            qs = qs.only(*cls._normalize_projection(full_projection))
-        qs = DjangoQueryPaginationBuilder.paginate_queryset(qs, filter_)
 
-        return qs
+        if len(prefetch) == 0 and not DjangoPolymorphismUtil.is_polymorphism_implied(projection, collection):
+            qs = qs.only(*cls._normalize_projection(full_projection))
+        return DjangoQueryPaginationBuilder.paginate_queryset(qs, filter_)
 
     @classmethod
     def mk_aggregate(
@@ -172,11 +209,11 @@ class DjangoQueryBuilder:
 
     @staticmethod
     def mk_create(collection: BaseDjangoCollection, data: List[RecordsDataAlias]) -> List[models.Model]:
-        ret = [collection.model.objects.create(**d) for d in data]
-        for instance in ret:
-            instance.refresh_from_db()
-
-        return ret
+        instances: List[models.Model] = [
+            collection.model.objects.create(**DjangoPolymorphismUtil.replace_content_type_in_patch(d, collection))
+            for d in data
+        ]
+        return instances
 
     @staticmethod
     def mk_update(
@@ -184,12 +221,21 @@ class DjangoQueryBuilder:
         filter_: Optional[Filter],
         patch: RecordsDataAlias,
     ):
-        qs = collection.model.objects.filter(DjangoQueryConditionTreeBuilder.build(filter_.condition_tree))
+        patch = DjangoPolymorphismUtil.replace_content_type_in_patch(patch, collection)
+        qs = collection.model.objects.filter(
+            DjangoQueryConditionTreeBuilder.build(
+                DjangoPolymorphismUtil.replace_content_type_in_condition_tree(filter_.condition_tree, collection)
+            )
+        )
         qs.update(**{k.replace(":", "__"): v for k, v in patch.items()})
 
     @staticmethod
     def mk_delete(collection: BaseDjangoCollection, filter_: Optional[Filter]):
-        qs = collection.model.objects.filter(DjangoQueryConditionTreeBuilder.build(filter_.condition_tree))
+        qs = collection.model.objects.filter(
+            DjangoQueryConditionTreeBuilder.build(
+                DjangoPolymorphismUtil.replace_content_type_in_condition_tree(filter_.condition_tree, collection)
+            )
+        )
         qs.delete()
 
 
@@ -226,7 +272,7 @@ class DjangoQueryConditionTreeBuilder:
         return DjangoQueryConditionTreeBuilder._aggregate(branch.aggregator, conditions)
 
     @classmethod
-    def build(cls, condition_tree: ConditionTree) -> models.Q:
+    def build(cls, condition_tree: Optional[ConditionTree]) -> models.Q:
         if condition_tree is None:
             return models.Q()
         if isinstance(condition_tree, ConditionTreeLeaf):

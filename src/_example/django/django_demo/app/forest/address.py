@@ -23,7 +23,7 @@ async def high_delivery_address_segment(context: CollectionCustomizationContext)
 
 # computed fields
 def address_full_name_computed(country_field_name: str) -> ComputedDefinition:
-    async def _get_full_address_values(records: List[RecordsDataAlias], _: CollectionCustomizationContext):
+    async def _get_full_address_values(records: List[RecordsDataAlias], context: CollectionCustomizationContext):
         ret = []
         for record in records:
             if record != {}:

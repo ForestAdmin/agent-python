@@ -23,6 +23,8 @@ from forestadmin.datasource_toolkit.interfaces.fields import (
     ManyToOne,
     OneToOne,
     Operator,
+    PolymorphicManyToOne,
+    PolymorphicOneToMany,
     PrimitiveType,
 )
 from forestadmin.datasource_toolkit.interfaces.query.aggregation import Aggregation, PlainAggregation
@@ -103,12 +105,38 @@ class TestRenameFieldCollectionDecorator(TestCase):
                     type=FieldType.MANY_TO_MANY,
                 ),
                 "first_name": Column(column_type=PrimitiveType.STRING, type=FieldType.COLUMN),
+                "ratings": PolymorphicOneToMany(
+                    foreign_collection="Rating",
+                    origin_key="target_id",
+                    origin_key_target="id",
+                    origin_type_field="target_type",
+                    origin_type_value="Bar",
+                    type=FieldType.POLYMORPHIC_ONE_TO_MANY,
+                ),
+            }
+        )
+
+        cls.collection_rating = Collection("Rating", cls.datasource)
+        cls.collection_rating.add_fields(
+            {
+                "id": Column(column_type=PrimitiveType.NUMBER, is_primary_key=True, type=FieldType.COLUMN),
+                "rating": Column(column_type=PrimitiveType.NUMBER, type=FieldType.COLUMN),
+                "target_id": Column(column_type=PrimitiveType.NUMBER, type=FieldType.COLUMN),
+                "target_type": Column(column_type=PrimitiveType.STRING, type=FieldType.COLUMN),
+                "target": PolymorphicManyToOne(
+                    foreign_collections=["Person"],
+                    foreign_key="target_id",
+                    foreign_key_targets={"Person": "id"},
+                    foreign_key_type_field="target_type",
+                    type=FieldType.POLYMORPHIC_MANY_TO_ONE,
+                ),
             }
         )
 
         cls.datasource.add_collection(cls.collection_book)
         cls.datasource.add_collection(cls.collection_book_person)
         cls.datasource.add_collection(cls.collection_person)
+        cls.datasource.add_collection(cls.collection_rating)
 
         cls.mocked_caller = User(
             rendering_id=1,
@@ -127,6 +155,7 @@ class TestRenameFieldCollectionDecorator(TestCase):
         self.decorated_collection_person = self.datasource_decorator.get_collection("Person")
         self.decorated_collection_person_book = self.datasource_decorator.get_collection("BookPerson")
         self.decorated_collection_book = self.datasource_decorator.get_collection("Book")
+        self.decorated_collection_rating = self.datasource_decorator.get_collection("Rating")
 
     def test_rename_unexistent_field(self):
         self.assertRaisesRegex(
@@ -157,6 +186,22 @@ class TestRenameFieldCollectionDecorator(TestCase):
         self.decorated_collection_book.rename_field("primary_id", "id")
 
         assert self.decorated_collection_book.schema == self.collection_book.schema
+
+    def test_should_raise_if_renaming_a_field_referenced_in_a_polymorphic_relation(self):
+        self.assertRaisesRegex(
+            RenameCollectionException,
+            r"🌳🌳🌳Cannot rename 'Rating.target_type', because it's implied  in a polymorphic relation 'Rating.target'",
+            self.decorated_collection_rating.rename_field,
+            "target_type",
+            "whatever",
+        )
+        self.assertRaisesRegex(
+            RenameCollectionException,
+            r"🌳🌳🌳Cannot rename 'Rating.target_id', because it's implied  in a polymorphic relation 'Rating.target'",
+            self.decorated_collection_rating.rename_field,
+            "target_id",
+            "whatever",
+        )
 
     def test_create_should_work_as_passthrough_without_renaming(self):
         record = {"id": 1, "author_id": 1, "title": "foundation"}

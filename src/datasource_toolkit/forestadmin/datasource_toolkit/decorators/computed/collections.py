@@ -1,5 +1,6 @@
 from typing import Any, Dict, List, Optional, Union, cast
 
+from forestadmin.agent_toolkit.forest_logger import ForestLogger
 from forestadmin.agent_toolkit.utils.context import User
 from forestadmin.datasource_toolkit.context.collection_context import CollectionCustomizationContext
 from forestadmin.datasource_toolkit.decorators.collection_decorator import CollectionDecorator
@@ -8,7 +9,13 @@ from forestadmin.datasource_toolkit.decorators.computed.helpers.compute_fields i
 from forestadmin.datasource_toolkit.decorators.computed.helpers.rewrite_projection import rewrite_fields
 from forestadmin.datasource_toolkit.decorators.computed.types import ComputedDefinition
 from forestadmin.datasource_toolkit.interfaces.collections import Collection
-from forestadmin.datasource_toolkit.interfaces.fields import ColumnAlias, FieldType, PrimitiveType, RelationAlias
+from forestadmin.datasource_toolkit.interfaces.fields import (
+    ColumnAlias,
+    FieldType,
+    PrimitiveType,
+    RelationAlias,
+    is_polymorphic_many_to_one,
+)
 from forestadmin.datasource_toolkit.interfaces.models.collections import CollectionSchema
 from forestadmin.datasource_toolkit.interfaces.query.aggregation import AggregateResult, Aggregation
 from forestadmin.datasource_toolkit.interfaces.query.filter.paginated import PaginatedFilter
@@ -24,15 +31,18 @@ class ComputedCollectionDecorator(CollectionDecorator):
         super().__init__(*args, **kwargs)
         self._computeds: Dict[str, ComputedDefinition] = {}
 
-    def get_computed(self, path: str) -> Union[ComputedDefinition, None]:
-        if ":" not in path:
-            try:
-                return self._computeds[path]
-            except KeyError:
-                return None
+    def get_computed(self, path_p: str) -> Union[ComputedDefinition, None]:
+        if ":" not in path_p:
+            return self._computeds.get(path_p)
 
-        related_field, path = path.split(":", 1)
+        related_field, path = path_p.split(":", 1)
         field = cast(RelationAlias, self.get_field(related_field))
+        if is_polymorphic_many_to_one(field):
+            ForestLogger.log(
+                "debug", f"Cannot compute computed fields over polymorphic relation {self.name}.{related_field}."
+            )
+            return None
+
         foreign_collection: Self = self.datasource.get_collection(field["foreign_collection"])
         return foreign_collection.get_computed(path)
 
@@ -44,6 +54,10 @@ class ComputedCollectionDecorator(CollectionDecorator):
 
         for field in computed["dependencies"]:
             FieldValidator.validate(self, field)
+            if ":" in field and is_polymorphic_many_to_one(self.schema["fields"][field.split(":")[0]]):
+                raise ComputedDecoratorException(
+                    f"Dependencies over a polymorphic relations({self.name}.{field.split(':')[0]}) are forbidden."
+                )
 
         # cast
         column_type = ComputedCollectionDecorator._cast_column_type(computed["column_type"])

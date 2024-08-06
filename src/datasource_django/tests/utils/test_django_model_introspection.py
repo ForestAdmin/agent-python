@@ -171,11 +171,16 @@ class TestDjangoCollectionFactory(TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         cls.places_model = TestDjangoCollectionFactory.build_model_class(
-            "Place", {"name": models.CharField(max_length=254)}
+            "Place",
+            {
+                "place_pk": models.BigAutoField(primary_key=True),
+                "name": models.CharField(max_length=254),
+            },
         )
         cls.restaurant_model = TestDjangoCollectionFactory.build_model_class(
             "Restaurant",
             {
+                "restaurant_pk": models.BigAutoField(primary_key=True),
                 "name": models.CharField(max_length=254),
                 "place": models.OneToOneField("Place", related_name="restaurant", on_delete=models.CASCADE),
             },
@@ -183,12 +188,13 @@ class TestDjangoCollectionFactory(TestCase):
         cls.field_only_model = TestDjangoCollectionFactory.build_model_class(
             "FieldOnly", {"name": models.CharField(max_length=254)}
         )
+        super().setUpClass()
 
     def test_build_should_call_field_factory_for_non_relational_fields(self):
         with patch(
             "forestadmin.datasource_django.utils.model_introspection.FieldFactory.build", wraps=FieldFactory.build
         ) as spy_field_factory_build:
-            schema = DjangoCollectionFactory.build(self.field_only_model)
+            schema = DjangoCollectionFactory.build(self.field_only_model, False)
             for name, field_schema in schema["fields"].items():
                 spy_field_factory_build.assert_any_call(
                     self.field_only_model._meta.get_field(name), self.field_only_model
@@ -196,8 +202,8 @@ class TestDjangoCollectionFactory(TestCase):
         self.assertEqual(set(schema["fields"].keys()), set(["id", "name"]))
 
     def test_build_should_handle_one_to_one_relations(self):
-        places_schema = DjangoCollectionFactory.build(self.places_model)
-        restaurant_schema = DjangoCollectionFactory.build(self.restaurant_model)
+        places_schema = DjangoCollectionFactory.build(self.places_model, False)
+        restaurant_schema = DjangoCollectionFactory.build(self.restaurant_model, False)
 
         self.assertIn("place", restaurant_schema["fields"].keys())
         self.assertIn("restaurant", places_schema["fields"].keys())
@@ -207,7 +213,7 @@ class TestDjangoCollectionFactory(TestCase):
             {
                 "foreign_collection": "test_app_place",
                 "foreign_key": "place_id",
-                "foreign_key_target": "id",
+                "foreign_key_target": "place_pk",
                 "type": FieldType.MANY_TO_ONE,
             },
         )
@@ -216,7 +222,7 @@ class TestDjangoCollectionFactory(TestCase):
             {
                 "foreign_collection": "test_app_restaurant",
                 "origin_key": "place_id",
-                "origin_key_target": "id",
+                "origin_key_target": "place_pk",
                 "type": FieldType.ONE_TO_ONE,
             },
         )
@@ -225,8 +231,8 @@ class TestDjangoCollectionFactory(TestCase):
         user_model = apps.get_model("auth", "user")
         group_model = apps.get_model("auth", "group")
 
-        user_schema = DjangoCollectionFactory.build(user_model)
-        group_schema = DjangoCollectionFactory.build(group_model)
+        user_schema = DjangoCollectionFactory.build(user_model, False)
+        group_schema = DjangoCollectionFactory.build(group_model, False)
 
         self.assertEqual(
             user_schema["fields"]["groups"],
@@ -259,7 +265,7 @@ class TestDjangoCollectionFactory(TestCase):
     def test_build_should_handle_many_to_one_relations(self):
         user_groups_model = apps.get_model("auth", "user_groups")
 
-        user_groups_schema = DjangoCollectionFactory.build(user_groups_model)
+        user_groups_schema = DjangoCollectionFactory.build(user_groups_model, False)
 
         self.assertEqual(
             user_groups_schema["fields"]["group"],
@@ -272,88 +278,117 @@ class TestDjangoCollectionFactory(TestCase):
         )
 
     def test_build_should_handle_one_to_many_relations(self):
-        person_schema = DjangoCollectionFactory.build(Person)
+        person_schema = DjangoCollectionFactory.build(Person, False)
 
         self.assertEqual(
             person_schema["fields"]["books_author"],
             {
                 "foreign_collection": "test_app_book",
                 "origin_key": "author_id",
-                "origin_key_target": "id",
+                "origin_key_target": "person_pk",
                 "type": FieldType.ONE_TO_MANY,
             },
         )
 
     def test_build_should_handle_also_generate_foreign_key_fields_next_to_relations(self):
-        book_schema = DjangoCollectionFactory.build(Book)
+        book_schema = DjangoCollectionFactory.build(Book, False)
 
         self.assertEqual(book_schema["fields"]["author_id"]["validations"], [])
         self.assertEqual(book_schema["fields"]["author_id"]["column_type"], PrimitiveType.NUMBER)
         self.assertEqual(book_schema["fields"]["author_id"]["type"], FieldType.COLUMN)
 
-    def test_polymorphic_relation_should_be_ignored_with_info(self):
-        with self.assertLogs("forestadmin", level="INFO") as cm:
-            rating_schema = DjangoCollectionFactory.build(Rating)
-            self.assertIn(
-                "INFO:forestadmin:Ignoring test_app_rating.content_object "
-                "because polymorphic relation is not supported.",
-                cm.output,
-            )
-        self.assertNotIn("content_object", rating_schema["fields"].keys())
+    def test_build_should_handle_polymorphic_many_to_one(self):
+        rating_schema = DjangoCollectionFactory.build(Rating, True)
+
+        self.assertEqual(
+            rating_schema["fields"]["content_object"],
+            {
+                "foreign_collections": ["test_app_book", "test_app_person"],
+                "foreign_key": "content_id",
+                "foreign_key_type_field": "content_type",
+                "foreign_key_targets": {"test_app_book": "book_pk", "test_app_person": "person_pk"},
+                "type": FieldType.POLYMORPHIC_MANY_TO_ONE,
+            },
+        )
         self.assertEqual(
             rating_schema["fields"]["content_type"],
             {
-                "foreign_collection": "django_content_type",
-                "foreign_key": "content_type_id",
-                "foreign_key_target": "id",
-                "type": FieldType.MANY_TO_ONE,
-            },
-        )
-        self.assertEqual(
-            rating_schema["fields"]["content_type_id"],
-            {
-                "column_type": PrimitiveType.NUMBER,
+                "column_type": PrimitiveType.ENUM,
                 "is_primary_key": False,
-                "is_read_only": False,
+                "is_read_only": True,
                 "default_value": None,
                 "is_sortable": True,
                 "validations": [],
                 "filter_operators": {
-                    Operator.MISSING,
-                    Operator.PRESENT,
-                    Operator.GREATER_THAN,
-                    Operator.BLANK,
-                    Operator.NOT_IN,
-                    Operator.EQUAL,
-                    Operator.LESS_THAN,
                     Operator.NOT_EQUAL,
+                    Operator.ENDS_WITH,
+                    Operator.PRESENT,
+                    Operator.BLANK,
+                    Operator.EQUAL,
+                    Operator.NOT_IN,
                     Operator.IN,
+                    Operator.MISSING,
+                    Operator.NOT_CONTAINS,
+                    Operator.SHORTER_THAN,
+                    Operator.STARTS_WITH,
+                    Operator.CONTAINS,
+                    Operator.LIKE,
+                    Operator.LONGER_THAN,
                 },
-                "enum_values": None,
+                "enum_values": ["test_app_book", "test_app_person"],
                 "type": FieldType.COLUMN,
             },
         )
+
+    def test_build_should_handle_polymorphic_one_to_many(self):
+        book_schema = DjangoCollectionFactory.build(Book, True)
+
         self.assertEqual(
-            rating_schema["fields"]["object_id"],
+            book_schema["fields"]["ratings"],
             {
-                "column_type": PrimitiveType.NUMBER,
-                "is_primary_key": False,
-                "is_read_only": False,
-                "default_value": None,
-                "is_sortable": True,
-                "validations": [],
-                "filter_operators": {
-                    Operator.MISSING,
-                    Operator.PRESENT,
-                    Operator.GREATER_THAN,
-                    Operator.BLANK,
-                    Operator.NOT_IN,
-                    Operator.EQUAL,
-                    Operator.LESS_THAN,
-                    Operator.NOT_EQUAL,
-                    Operator.IN,
-                },
-                "enum_values": None,
-                "type": FieldType.COLUMN,
+                "foreign_collection": "test_app_rating",
+                "origin_key": "content_id",
+                "origin_key_target": "book_pk",
+                "origin_type_field": "content_type",
+                "origin_type_value": "test_app_book",
+                "type": FieldType.POLYMORPHIC_ONE_TO_MANY,
             },
         )
+
+    def test_build_should_handle_polymorphic_one_to_one(self):
+        book_schema = DjangoCollectionFactory.build(Book, True)
+
+        self.assertEqual(
+            book_schema["fields"]["tag"],
+            {
+                "foreign_collection": "test_app_tag",
+                "origin_key": "content_id",
+                "origin_key_target": "book_pk",
+                "origin_type_field": "content_type",
+                "origin_type_value": "test_app_book",
+                "type": FieldType.POLYMORPHIC_ONE_TO_ONE,
+            },
+        )
+
+    def test_build_should_log_when_polymorphism_support_is_disabled(self):
+        with patch("forestadmin.datasource_django.utils.model_introspection.ForestLogger.log") as mock_logger_fn:
+            rating_schema = DjangoCollectionFactory.build(Rating, False)
+            mock_logger_fn.assert_called_once_with(
+                "info",
+                "Ignoring test_app_rating.content_object because polymorphic relation is not supported.",
+            )
+            self.assertEqual(mock_logger_fn.call_count, 1)
+        self.assertNotIn("content_object", rating_schema["fields"].keys())
+
+        with patch("forestadmin.datasource_django.utils.model_introspection.ForestLogger.log") as mock_logger_fn:
+            rating_schema = DjangoCollectionFactory.build(Person, False)
+            mock_logger_fn.assert_any_call(
+                "info",
+                "Ignoring test_app_person.ratings because polymorphic relation is not supported.",
+            )
+            mock_logger_fn.assert_any_call(
+                "info",
+                "Ignoring test_app_person.tag because polymorphic relation is not supported.",
+            )
+            self.assertEqual(mock_logger_fn.call_count, 2)
+        self.assertNotIn("content_object", rating_schema["fields"].keys())
