@@ -1,4 +1,4 @@
-from typing import List, Optional, TypedDict
+from typing import List, Optional
 
 from asgiref.sync import sync_to_async
 from django.conf import settings
