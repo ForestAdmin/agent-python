@@ -24,11 +24,11 @@ class TestFilter(TestCase):
                     column_type=PrimitiveType.NUMBER,
                     is_primary_key=True,
                     type=FieldType.COLUMN,
-                    filter_operators=set([Operator.IN, Operator.EQUAL]),
+                    filter_operators=set([Operator.IN, Operator.EQUAL, Operator.NOT_IN]),
                 ),
                 "title": Column(
                     column_type=PrimitiveType.STRING,
-                    filter_operators=[Operator.IN, Operator.EQUAL],
+                    filter_operators=[Operator.IN, Operator.EQUAL, Operator.NOT_IN],
                     type=FieldType.COLUMN,
                 ),
                 "author": ManyToOne(
@@ -83,6 +83,21 @@ class TestFilterConditionTree(TestFilter):
         )
         condition_tree = parse_condition_tree(request)
         self.assertEqual(condition_tree.value, ["Foundation", "Harry Potter"])
+        self.assertEqual(condition_tree.operator, Operator.IN)
+
+    def test_parse_condition_tree_should_parse_array_when_NOT_IN_operator_str(self):
+        request = RequestCollection(
+            method=RequestMethod.GET,
+            body=None,
+            query={
+                "filters": '{"field":"title","operator":"not_in","value":"Foundation,Harry Potter"}',
+                "collection_name": "Book",
+            },
+            collection=self.collection_book,
+        )
+        condition_tree = parse_condition_tree(request)
+        self.assertEqual(condition_tree.value, ["Foundation", "Harry Potter"])
+        self.assertEqual(condition_tree.operator, Operator.NOT_IN)
 
     def test_parse_condition_tree_should_parse_array_when_IN_operator_int(self):
         request = RequestCollection(
@@ -96,6 +111,21 @@ class TestFilterConditionTree(TestFilter):
         )
         condition_tree = parse_condition_tree(request)
         self.assertEqual(condition_tree.value, [1, 2])
+        self.assertEqual(condition_tree.operator, Operator.IN)
+
+    def test_parse_condition_tree_should_parse_array_when_NOT_IN_operator_int(self):
+        request = RequestCollection(
+            method=RequestMethod.GET,
+            body=None,
+            query={
+                "filters": '{"field":"id","operator":"not_in","value": [1,2]}',
+                "collection_name": "Book",
+            },
+            collection=self.collection_book,
+        )
+        condition_tree = parse_condition_tree(request)
+        self.assertEqual(condition_tree.value, [1, 2])
+        self.assertEqual(condition_tree.operator, Operator.NOT_IN)
 
     def test_parse_condition_tree_should_parse_complex_condition_tree(self):
         request = RequestCollection(

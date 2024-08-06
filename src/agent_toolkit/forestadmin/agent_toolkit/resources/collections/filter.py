@@ -288,7 +288,7 @@ def _get_expected_type_for_condition(
     if operator in operators_expecting_number:
         return PrimitiveType.NUMBER
 
-    if operator == Operator.IN:
+    if operator in [Operator.IN, Operator.NOT_IN]:
         return [cast(PrimitiveType, field_schema["column_type"])]  # type:ignore
 
     return cast(PrimitiveType, field_schema["column_type"])
