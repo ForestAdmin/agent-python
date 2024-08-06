@@ -369,3 +369,26 @@ class TestDjangoCollectionFactory(TestCase):
                 "type": FieldType.POLYMORPHIC_ONE_TO_ONE,
             },
         )
+
+    def test_build_should_log_when_polymorphism_support_is_disabled(self):
+        with patch("forestadmin.datasource_django.utils.model_introspection.ForestLogger.log") as mock_logger_fn:
+            rating_schema = DjangoCollectionFactory.build(Rating, False)
+            mock_logger_fn.assert_called_once_with(
+                "info",
+                "Ignoring test_app_rating.content_object because polymorphic relation is not supported.",
+            )
+            self.assertEqual(mock_logger_fn.call_count, 1)
+        self.assertNotIn("content_object", rating_schema["fields"].keys())
+
+        with patch("forestadmin.datasource_django.utils.model_introspection.ForestLogger.log") as mock_logger_fn:
+            rating_schema = DjangoCollectionFactory.build(Person, False)
+            mock_logger_fn.assert_any_call(
+                "info",
+                "Ignoring test_app_person.ratings because polymorphic relation is not supported.",
+            )
+            mock_logger_fn.assert_any_call(
+                "info",
+                "Ignoring test_app_person.tag because polymorphic relation is not supported.",
+            )
+            self.assertEqual(mock_logger_fn.call_count, 2)
+        self.assertNotIn("content_object", rating_schema["fields"].keys())
