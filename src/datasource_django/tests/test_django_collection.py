@@ -40,12 +40,12 @@ class TestDjangoCollectionCreation(TestCase):
             "forestadmin.datasource_django.collection.DjangoCollectionFactory.build",
             return_value={"actions": {}, "fields": {}, "searchable": False, "segments": []},
         ) as mock_factory_build:
-            DjangoCollection(self.datasource, Book)
-            mock_factory_build.assert_called_once_with(Book)
+            DjangoCollection(self.datasource, Book, False)
+            mock_factory_build.assert_called_once_with(Book, False)
 
     def test_model_property_should_return_model_instance(self):
-        collection = DjangoCollection(self.datasource, Book)
-        self.assertEqual(collection.model, Book)
+        collection = DjangoCollection(self.datasource, Book, False)
+        self.assertEqual(collection.model, Book, False)
 
 
 class TestDjangoCollectionCRUDList(TestCase):
@@ -68,10 +68,10 @@ class TestDjangoCollectionCRUDList(TestCase):
         )
 
     def setUp(self) -> None:
-        self.book_collection = DjangoCollection(self.datasource, Book)
-        self.person_collection = DjangoCollection(self.datasource, Person)
-        self.rating_collection = DjangoCollection(self.datasource, Rating)
-        self.tag_collection = DjangoCollection(self.datasource, Tag)
+        self.book_collection = DjangoCollection(self.datasource, Book, False)
+        self.person_collection = DjangoCollection(self.datasource, Person, False)
+        self.rating_collection = DjangoCollection(self.datasource, Rating, False)
+        self.tag_collection = DjangoCollection(self.datasource, Tag, False)
 
     async def test_list_should_list_all_records_of_a_collection(self):
         ret = await self.book_collection.list(self.mocked_caller, PaginatedFilter({}), Projection("book_pk", "name"))
@@ -305,9 +305,9 @@ class TestDjangoCollectionCRUDAggregateBase(TestCase):
         )
 
     def setUp(self) -> None:
-        self.book_collection = DjangoCollection(self.datasource, Book)
-        self.person_collection = DjangoCollection(self.datasource, Person)
-        self.rating_collection = DjangoCollection(self.datasource, Rating)
+        self.book_collection = DjangoCollection(self.datasource, Book, False)
+        self.person_collection = DjangoCollection(self.datasource, Person, False)
+        self.rating_collection = DjangoCollection(self.datasource, Rating, False)
 
 
 class TestDjangoCollectionCRUDAggregateNoGroupNoAggregateField(TestDjangoCollectionCRUDAggregateBase):

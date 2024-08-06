@@ -194,7 +194,7 @@ class TestDjangoCollectionFactory(TestCase):
         with patch(
             "forestadmin.datasource_django.utils.model_introspection.FieldFactory.build", wraps=FieldFactory.build
         ) as spy_field_factory_build:
-            schema = DjangoCollectionFactory.build(self.field_only_model)
+            schema = DjangoCollectionFactory.build(self.field_only_model, False)
             for name, field_schema in schema["fields"].items():
                 spy_field_factory_build.assert_any_call(
                     self.field_only_model._meta.get_field(name), self.field_only_model
@@ -202,8 +202,8 @@ class TestDjangoCollectionFactory(TestCase):
         self.assertEqual(set(schema["fields"].keys()), set(["id", "name"]))
 
     def test_build_should_handle_one_to_one_relations(self):
-        places_schema = DjangoCollectionFactory.build(self.places_model)
-        restaurant_schema = DjangoCollectionFactory.build(self.restaurant_model)
+        places_schema = DjangoCollectionFactory.build(self.places_model, False)
+        restaurant_schema = DjangoCollectionFactory.build(self.restaurant_model, False)
 
         self.assertIn("place", restaurant_schema["fields"].keys())
         self.assertIn("restaurant", places_schema["fields"].keys())
@@ -231,8 +231,8 @@ class TestDjangoCollectionFactory(TestCase):
         user_model = apps.get_model("auth", "user")
         group_model = apps.get_model("auth", "group")
 
-        user_schema = DjangoCollectionFactory.build(user_model)
-        group_schema = DjangoCollectionFactory.build(group_model)
+        user_schema = DjangoCollectionFactory.build(user_model, False)
+        group_schema = DjangoCollectionFactory.build(group_model, False)
 
         self.assertEqual(
             user_schema["fields"]["groups"],
@@ -265,7 +265,7 @@ class TestDjangoCollectionFactory(TestCase):
     def test_build_should_handle_many_to_one_relations(self):
         user_groups_model = apps.get_model("auth", "user_groups")
 
-        user_groups_schema = DjangoCollectionFactory.build(user_groups_model)
+        user_groups_schema = DjangoCollectionFactory.build(user_groups_model, False)
 
         self.assertEqual(
             user_groups_schema["fields"]["group"],
@@ -278,7 +278,7 @@ class TestDjangoCollectionFactory(TestCase):
         )
 
     def test_build_should_handle_one_to_many_relations(self):
-        person_schema = DjangoCollectionFactory.build(Person)
+        person_schema = DjangoCollectionFactory.build(Person, False)
 
         self.assertEqual(
             person_schema["fields"]["books_author"],
@@ -291,7 +291,7 @@ class TestDjangoCollectionFactory(TestCase):
         )
 
     def test_build_should_handle_also_generate_foreign_key_fields_next_to_relations(self):
-        book_schema = DjangoCollectionFactory.build(Book)
+        book_schema = DjangoCollectionFactory.build(Book, False)
 
         self.assertEqual(book_schema["fields"]["author_id"]["validations"], [])
         self.assertEqual(book_schema["fields"]["author_id"]["column_type"], PrimitiveType.NUMBER)

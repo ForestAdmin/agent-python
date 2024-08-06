@@ -23,7 +23,10 @@ class TestDjangoDatasource(TestCase):
     @patch(
         "forestadmin.datasource_django.datasource.apps.get_models", return_value=[mock_collection1, mock_collection2]
     )
-    @patch("forestadmin.datasource_django.datasource.DjangoCollection", side_effect=lambda datasource, model: model)
+    @patch(
+        "forestadmin.datasource_django.datasource.DjangoCollection",
+        side_effect=lambda datasource, model, support_polymorphic_relations: model,
+    )
     def test_create_collection_should_add_a_collection(self, mock_DjangoCollection: Mock, mock_get_models: Mock):
         with patch.object(DjangoDatasource, "_create_collections"):
             django_datasource = DjangoDatasource()
@@ -32,8 +35,8 @@ class TestDjangoDatasource(TestCase):
         mock_get_models.assert_called_once_with(include_auto_created=True)
         mock_DjangoCollection.assert_has_calls(
             [
-                call(django_datasource, mock_collection1),
-                call(django_datasource, mock_collection2),
+                call(django_datasource, mock_collection1, False),
+                call(django_datasource, mock_collection2, False),
             ]
         )
         self.assertEqual(set(django_datasource.collections), set([mock_collection1, mock_collection2]))
