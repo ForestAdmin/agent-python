@@ -250,14 +250,13 @@ class ForestSchema(Schema):
         if kwargs.get("only") is not None and "id" not in kwargs["only"]:
             kwargs["only"].add("id")
         super(ForestSchema, self).__init__(*args, **kwargs)  # type: ignore
-        pass
 
     def _build_only_included_data(self, projections: Projection):
         only: Set[str] = set()
         include_data: Set[str] = set()
         for projection in cast(List[str], projections):
             if ":" in projection:
-                only.add(projection.replace(":*", ":").replace(":", "."))
+                only.add(projection.replace(":*", "").replace(":", "."))
                 include_data.add(projection.split(":")[0])
             else:
                 only.add(projection)
@@ -299,6 +298,7 @@ class ForestSchema(Schema):
 
         for name, relationships in item.get("relationships", {}).items():
             relation_field = self.Meta.fcollection.get_field(name)  # type: ignore
+
             if isinstance(relationships["data"], list):
                 # for many to many and one to many relations
                 for relationship_data in relationships["data"]:

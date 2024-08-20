@@ -35,7 +35,8 @@ class DjangoCollection(BaseDjangoCollection):
 
     async def list(self, caller: User, filter_: PaginatedFilter, projection: Projection) -> List[RecordsDataAlias]:
         def _list():
-            DjangoPolymorphismUtil.request_content_type()
+            if self.support_polymorphic_relations:
+                DjangoPolymorphismUtil.request_content_type()
             ret = [
                 instance_to_record_data(item, projection, self)
                 for item in DjangoQueryBuilder.mk_list(self, filter_, projection)
@@ -50,7 +51,8 @@ class DjangoCollection(BaseDjangoCollection):
         self, caller: User, filter_: Optional[Filter], aggregation: Aggregation, limit: Optional[int] = None
     ) -> List[AggregateResult]:
         def _aggregate():
-            DjangoPolymorphismUtil.request_content_type()
+            if self.support_polymorphic_relations:
+                DjangoPolymorphismUtil.request_content_type()
             ret = DjangoQueryBuilder.mk_aggregate(self, filter_, aggregation, limit)
             if getattr(settings, "DEBUG"):
                 ForestLogger.log(
@@ -64,7 +66,8 @@ class DjangoCollection(BaseDjangoCollection):
         projection = Projection(*[k for k in self.schema["fields"].keys() if is_column(self.schema["fields"][k])])
 
         def _create():
-            DjangoPolymorphismUtil.request_content_type()
+            if self.support_polymorphic_relations:
+                DjangoPolymorphismUtil.request_content_type()
             ret = [instance_to_record_data(item, projection, self) for item in DjangoQueryBuilder.mk_create(self, data)]
 
             if getattr(settings, "DEBUG"):
@@ -77,7 +80,8 @@ class DjangoCollection(BaseDjangoCollection):
 
     async def update(self, caller: User, filter_: Optional[Filter], patch: RecordsDataAlias) -> None:
         def _update():
-            DjangoPolymorphismUtil.request_content_type()
+            if self.support_polymorphic_relations:
+                DjangoPolymorphismUtil.request_content_type()
             DjangoQueryBuilder.mk_update(self, filter_, patch)
             if getattr(settings, "DEBUG"):
                 ForestLogger.log(
@@ -88,7 +92,8 @@ class DjangoCollection(BaseDjangoCollection):
 
     async def delete(self, caller: User, filter_: Optional[Filter]) -> None:
         def _delete():
-            DjangoPolymorphismUtil.request_content_type()
+            if self.support_polymorphic_relations:
+                DjangoPolymorphismUtil.request_content_type()
             DjangoQueryBuilder.mk_delete(self, filter_)
             if getattr(settings, "DEBUG"):
                 ForestLogger.log(

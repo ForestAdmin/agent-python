@@ -231,7 +231,6 @@ class SchemaFieldGenerator:
             "isReadOnly": False,
             "inverseOf": collection.name,
             "relationship": cls.RELATION_MAPPING[field_schema["type"]],
-            #
             "type": cls.build_column_type(key_schema["column_type"]),
             "defaultValue": None,
             "isFilterable": False,

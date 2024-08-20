@@ -47,6 +47,7 @@ def instance_to_record_data(
                 record_data[relation_name] = None
                 continue
             relation = relation[0]
+
         elif is_polymorphic_many_to_one(relation_schema):
             target_type = getattr(instance, relation_schema["foreign_key_type_field"], None)
 

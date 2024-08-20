@@ -298,7 +298,7 @@ def is_generic_foreign_key(field) -> TypeGuard["GenericForeignKey"]:  # noqa: F8
     return isinstance(field, GenericForeignKey)
 
 
-def is_generic_relation(field):
+def is_generic_relation(field) -> TypeGuard["GenericRelation"]:  # noqa: F821 # type: ignore
     """return true if it is the reverse polymorphism relation"""
     # when imported at top level (before app.Ready):
     # it raise django.core.exceptions.AppRegistryNotReady: Apps aren't loaded yet.
@@ -307,7 +307,7 @@ def is_generic_relation(field):
     return isinstance(field, GenericRelation)
 
 
-def is_generic_rel(field):
+def is_generic_rel(field) -> TypeGuard["GenericRel"]:  # noqa: F821 # type: ignore
     """return true if it is a potential relation of the polymorphism relation"""
     # when imported at top level (before app.Ready):
     # it raise django.core.exceptions.AppRegistryNotReady: Apps aren't loaded yet.
