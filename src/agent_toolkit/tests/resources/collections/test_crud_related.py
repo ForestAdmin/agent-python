@@ -149,7 +149,6 @@ class TestCrudRelatedResource(TestCase):
                 },
                 "cost": {"column_type": PrimitiveType.NUMBER, "is_primary_key": False, "type": FieldType.COLUMN},
                 "products": {
-                    "column_type": PrimitiveType.NUMBER,
                     "type": FieldType.MANY_TO_MANY,
                     "through_collection": "product_order",
                     "foreign_collection": "product",
@@ -160,8 +159,6 @@ class TestCrudRelatedResource(TestCase):
                     "origin_key_target": "id",
                 },
                 "customer": {
-                    "column_type": PrimitiveType.NUMBER,
-                    "is_primary_key": False,
                     "type": FieldType.MANY_TO_ONE,
                     "foreign_collection": "customer",
                     "foreign_key_target": "id",
@@ -173,8 +170,6 @@ class TestCrudRelatedResource(TestCase):
                     "type": FieldType.COLUMN,
                 },
                 "cart": {
-                    "column_type": PrimitiveType.NUMBER,
-                    "is_primary_key": False,
                     "type": FieldType.ONE_TO_ONE,
                     "foreign_collection": "cart",
                     "origin_key_target": "id",
@@ -257,8 +252,6 @@ class TestCrudRelatedResource(TestCase):
                     "filter_operators": set([Operator.PRESENT]),
                 },
                 "order": {
-                    "column_type": PrimitiveType.NUMBER,
-                    "is_primary_key": False,
                     "type": FieldType.ONE_TO_MANY,
                     "foreign_collection": "order",
                     "origin_key": "customer_id",
