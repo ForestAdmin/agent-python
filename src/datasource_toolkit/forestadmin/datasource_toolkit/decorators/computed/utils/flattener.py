@@ -66,6 +66,8 @@ def unflatten(flats: FlatRecordList, projection: List[str]) -> List[RecordsDataA
         for path_index, path in enumerate(projection):
             # When a marker is found, the parent is null.
             parts = [*filter(lambda part: part not in (_MARKER_NAME, "*"), path.split(":"))]
+            # because we don't compute computed fields over polymorphic relation (only usage of *), we decide to
+            # consider the all record as a value instead of a relation
             value = flats[path_index][record_index]
 
             # ignore undefined value # but no undefined in python
@@ -87,6 +89,8 @@ def unflatten(flats: FlatRecordList, projection: List[str]) -> List[RecordsDataA
 def flatten(records: List[RecordsDataAlias], paths: List[str]) -> FlatRecordList:
     ret: FlatRecordList = []
     for field in paths:
+        # because we don't compute computed fields over polymorphic relation (only usage of *), we decide to consider
+        # the all record as a value instead of a relation
         parts = [*filter(lambda p: p != "*", field.split(":"))]
 
         values: List[Optional[Union[str, _Undefined]]] = []
@@ -103,6 +107,6 @@ def flatten(records: List[RecordsDataAlias], paths: List[str]) -> FlatRecordList
                 values.append(None if value is None else _Undefined())
                 continue
 
-            values.append((value or {}).get(parts[len(parts) - 1], _Undefined()))
+            values.append((value or {}).get(parts[-1], _Undefined()))
         ret.append(values)
     return ret

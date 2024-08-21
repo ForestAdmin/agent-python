@@ -14,6 +14,7 @@ from forestadmin.datasource_toolkit.interfaces.fields import (
     ManyToMany,
     OneToMany,
     Operator,
+    PolymorphicOneToMany,
     is_one_to_many,
     is_polymorphic_one_to_many,
 )
@@ -134,7 +135,7 @@ class FilterFactory:
         caller: User,
         collection: Collection,
         id: CompositeIdAlias,
-        relation: Union[ManyToMany, OneToMany],
+        relation: Union[ManyToMany, OneToMany, PolymorphicOneToMany],
         _base_foreign_key_filter: Union[PaginatedFilter, Filter],
     ) -> PaginatedFilter:
         if is_filter(_base_foreign_key_filter):

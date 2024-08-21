@@ -46,12 +46,14 @@ class RenameFieldCollectionDecorator(CollectionDecorator):
         FieldValidator.validate_name(self.name, new_name)
 
         for field_name, field_schema in self.child_collection.schema["fields"].items():
-            if is_polymorphic_many_to_one(field_schema):
-                if current_name in [field_schema["foreign_key"], field_schema["foreign_key_type_field"]]:
-                    raise RenameCollectionException(
-                        f"Cannot rename '{self.name}.{current_name}', because it's implied "
-                        f" in a polymorphic relation '{self.name}.{field_name}'"
-                    )
+            if is_polymorphic_many_to_one(field_schema) and current_name in [
+                field_schema["foreign_key"],
+                field_schema["foreign_key_type_field"],
+            ]:
+                raise RenameCollectionException(
+                    f"Cannot rename '{self.name}.{current_name}', because it's implied "
+                    f" in a polymorphic relation '{self.name}.{field_name}'"
+                )
 
         initial_name = current_name
 
@@ -95,7 +97,7 @@ class RenameFieldCollectionDecorator(CollectionDecorator):
     async def list(self, caller: User, _filter: PaginatedFilter, projection: Projection) -> List[RecordsDataAlias]:
         child_projection = projection.replace(lambda field_name: self._path_to_child_collection(field_name))
         records: List[RecordsDataAlias] = await super().list(caller, _filter, child_projection)  # type: ignore
-        if sorted(child_projection) == sorted(projection):
+        if child_projection == projection:
             return records
 
         return [self._record_from_child_collection(record) for record in records]
@@ -146,6 +148,8 @@ class RenameFieldCollectionDecorator(CollectionDecorator):
                 field_schema["origin_key"] = through._from_child_collection.get(
                     field_schema["origin_key"], field_schema["origin_key"]
                 )
+            # we don't handle schema modification for polymorphic many to one and reverse relations because
+            # we forbid to rename foreign key and type fields on polymorphic many to one
 
             new_fields_schema[self._from_child_collection.get(old_field_name, old_field_name)] = field_schema
         return {**sub_schema, "fields": new_fields_schema}
