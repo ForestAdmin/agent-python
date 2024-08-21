@@ -63,11 +63,9 @@ class PublicationDataSourceDecorator(DatasourceDecorator):
 
     def _validate_is_removable(self, collection: Collection):
         for field_name, field_schema in collection.schema["fields"].items():
-            # if is_polymorphic_many_to_one(field_schema):
-            #     exc = ""
             if is_polymorphic_one_to_one(field_schema) or is_polymorphic_one_to_many(field_schema):
                 inverse = CollectionUtils.get_inverse_relation(collection, field_name)
                 raise PublicationDatasourceException(
-                    f"Cannot remove {collection.name} because it's a potential target of polymorphic relation "
-                    f"{field_schema['foreign_collection']}.{inverse}"
+                    f"Cannot remove collection {collection.name} because it's a potential target of polymorphic "
+                    f"relation {field_schema['foreign_collection']}.{inverse}"
                 )
