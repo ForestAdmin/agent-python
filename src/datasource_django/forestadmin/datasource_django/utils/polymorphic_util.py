@@ -13,22 +13,7 @@ from forestadmin.datasource_toolkit.interfaces.query.projections import Projecti
 from forestadmin.datasource_toolkit.interfaces.records import RecordsDataAlias
 
 
-class DjangoPolymorphismUtil:
-    _CONTENT_TYPE_CACHE: Optional[Dict[str, "ContentType"]] = None  # noqa:F821 # type:ignore
-
-    @classmethod
-    def request_content_type(cls):
-        if cls._CONTENT_TYPE_CACHE is not None:
-            return
-        from django.contrib.contenttypes.models import ContentType
-
-        cls._CONTENT_TYPE_CACHE = {}
-        qs = ContentType.objects.all()
-        for ct in qs:  # type: ignore
-            model = ct.model_class()
-            if model is not None:
-                cls._CONTENT_TYPE_CACHE[model._meta.db_table] = ct
-
+class DjangoPolymorphismProjectionUtil:
     @classmethod
     def get_polymorphism_relations(cls, projection: Projection, collection: BaseDjangoCollection) -> List[str]:
         ret = []
@@ -58,6 +43,8 @@ class DjangoPolymorphismUtil:
                 return True
         return False
 
+
+class DjangoPolymorphismPatchUtil:
     @classmethod
     def replace_content_type_in_patch(
         cls, patch: RecordsDataAlias, collection: BaseDjangoCollection
@@ -69,6 +56,8 @@ class DjangoPolymorphismUtil:
                     patch[content_type_field] = cls._CONTENT_TYPE_CACHE.get(patch[content_type_field])
         return patch
 
+
+class DjangoPolymorphismConditionTreeUtil:
     @classmethod
     def replace_content_type_in_condition_tree(
         cls, condition_tree: Optional[ConditionTree], collection: BaseDjangoCollection
@@ -92,6 +81,25 @@ class DjangoPolymorphismUtil:
                 cls._CONTENT_TYPE_CACHE.get(condition_tree.value),  # type:ignore
             )
         return condition_tree
+
+
+class DjangoPolymorphismUtil(
+    DjangoPolymorphismProjectionUtil, DjangoPolymorphismPatchUtil, DjangoPolymorphismConditionTreeUtil
+):
+    _CONTENT_TYPE_CACHE: Optional[Dict[str, "ContentType"]] = None  # noqa:F821 # type:ignore
+
+    @classmethod
+    def request_content_type(cls):
+        if cls._CONTENT_TYPE_CACHE is not None:
+            return
+        from django.contrib.contenttypes.models import ContentType
+
+        cls._CONTENT_TYPE_CACHE = {}
+        qs = ContentType.objects.all()
+        for ct in qs:  # type: ignore
+            model = ct.model_class()
+            if model is not None:
+                cls._CONTENT_TYPE_CACHE[model._meta.db_table] = ct
 
     @classmethod
     def get_collection_name_from_content_type(cls, content_type) -> str:
