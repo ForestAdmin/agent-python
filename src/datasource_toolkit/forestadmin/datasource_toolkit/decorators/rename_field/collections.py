@@ -162,9 +162,12 @@ class RenameFieldCollectionDecorator(CollectionDecorator):
         self_field = self._from_child_collection.get(field, field)
         if related_field:
             schema = self.schema["fields"][self_field]
-            if is_many_to_many(schema) or is_one_to_many(schema) or is_one_to_one(schema) or is_many_to_one(schema):
+            if is_straight_relation(schema) or is_reverse_polymorphic_relation(schema):
                 relation = datasource.get_collection(schema["foreign_collection"])
                 return f"{self_field}:{relation._path_from_child_collection(':'.join(related_field))}"
+            # elif is_polymorphic_many_to_one(schema):
+            #     # we can't group by a polymorphic relation
+            #     pass
             else:
                 raise RenameCollectionException(f"The field {self_field} is not a relation")
         return self_field
@@ -182,13 +185,16 @@ class RenameFieldCollectionDecorator(CollectionDecorator):
             new_field_name = self._from_child_collection.get(field_name, field_name)
             new_field_name, *_ = new_field_name.split(":")
             schema = self.schema["fields"][new_field_name]
-            if is_column(schema) or value is None:
+            if (
+                is_column(schema)
+                or is_polymorphic_many_to_one(schema)
+                or is_polymorphic_one_to_one(schema)
+                or value is None
+            ):
                 new_record[new_field_name] = value
             elif is_straight_relation(schema):
                 relation = datasource.get_collection(schema["foreign_collection"])
                 new_record[new_field_name] = relation._record_from_child_collection(value)
-            elif is_polymorphic_many_to_one(schema) or is_polymorphic_one_to_one(schema):
-                new_record[new_field_name] = value
         return new_record
 
     def _path_to_child_collection(self, path: str) -> str:
