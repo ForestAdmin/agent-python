@@ -3,6 +3,7 @@ from unittest import mock
 
 import pytest
 from forestadmin.datasource_toolkit.collections import Collection
+from forestadmin.datasource_toolkit.interfaces.fields import FieldType
 from forestadmin.datasource_toolkit.interfaces.query.projections import Projection, ProjectionException
 
 
@@ -68,7 +69,12 @@ def test_with_pks(mock_get_collection: mock.MagicMock, mock_get_pk: mock.MagicMo
     projection = Projection("c1", "r1:c1")
     with mock.patch.object(Collection, "__abstractmethods__", new_callable=set):
         collection = Collection(name="t", datasource=mock.MagicMock())  # type: ignore
-        collection.schema["fields"] = {"r1": {"foreign_collection": "t2"}}  # type: ignore
+        collection.schema["fields"] = {
+            "r1": {
+                "foreign_collection": "t2",
+                "type": FieldType.MANY_TO_ONE,
+            }
+        }  # type: ignore
         collection2 = Collection(name="t2", datasource=mock.MagicMock())  # type: ignore
         collection2.schema["fields"] = {}
         mock_get_pk.return_value = ["cid"]
