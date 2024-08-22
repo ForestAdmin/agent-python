@@ -62,8 +62,6 @@ def customize_forest(agent: DjangoAgent):
         # changing visibility
         "number"
         # deactivate count
-    ).rename_field(
-        "addressable", "destination"
     ).disable_count().add_external_relation(
         "postal_code",
         {
@@ -219,6 +217,7 @@ def customize_forest(agent: DjangoAgent):
             "get_values": lambda records, cts: [r["ordered_at"] for r in records],
         },
     )
+    agent.customize_collection("app_tag").rename_field("tagged_item", "item")
 
     # general
     agent.add_chart("total_order", total_order_chart).add_chart(

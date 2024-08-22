@@ -1,12 +1,13 @@
 from datetime import date
 
+# uncomment this to reenable "other" database
+from app.flask_models import *  # noqa:F401,F403
+
 # from django.db.models.functions import Concat
 from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
 
-# uncomment this to reenable "other" database
-# from app.flask_models import *  # noqa:F401,F403
 """
 checklist:
 * data types:
@@ -65,10 +66,6 @@ class Address(models.Model):
     country = models.CharField(max_length=254, default="France")
     zip_code = models.CharField(max_length=5, default="75009")
 
-    addressable_id = models.PositiveIntegerField(null=True)
-    addressable_type = models.ForeignKey(ContentType, on_delete=models.PROTECT, null=True)
-    addressable = GenericForeignKey("addressable_type", "addressable_id")
-
     # test with django 5 ; if enable, don't forget to make migration and migrate
     # full_text_address = models.GeneratedField(
     #     expression=Concat(
@@ -86,9 +83,9 @@ class Address(models.Model):
     #     db_persist=False,
     # )
 
-    # customers = models.ManyToManyField(
-    #     "Customer", related_name="addresses", through="CustomerAddress", through_fields=("address", "customer")
-    # )
+    customers = models.ManyToManyField(
+        "Customer", related_name="addresses", through="CustomerAddress", through_fields=("address", "customer")
+    )
 
 
 class CustomerAddress(models.Model):
@@ -108,12 +105,6 @@ class Customer(AutoUpdatedCreatedAt):
 
     blocked_customer = models.ManyToManyField("self", blank=True, related_name="block_by_users", symmetrical=False)
 
-    addresses = GenericRelation(
-        "Address",
-        content_type_field="addressable_type",
-        object_id_field="addressable_id",
-        related_query_name="customers",
-    )
     tags = GenericRelation(
         "Tag",
         content_type_field="tagged_item_type",
@@ -137,10 +128,6 @@ class Order(AutoUpdatedCreatedAt):
     status = models.CharField(max_length=10, choices=OrderStatus.choices)
     ordered_at = models.DateTimeField(null=True)
     # cart
-
-    addresses = GenericRelation(
-        "Address", content_type_field="addressable_type", object_id_field="addressable_id"
-    )  # OneToOne
 
     tags = GenericRelation(
         "Tag",
@@ -169,7 +156,7 @@ class DiscountCart(models.Model):
 
 
 class Tag(models.Model):
-    # this uniqueness ensure uniqueness, so a one to one
+    # comment this to set the reverse relations to oneToMany
     class Meta:
         unique_together = ("tagged_item_type", "tagged_item_id")
 
@@ -177,14 +164,3 @@ class Tag(models.Model):
     tagged_item_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
     tagged_item = GenericForeignKey("tagged_item_type", "tagged_item_id")
     tag = models.CharField(max_length=255)
-
-
-class Record(models.Model):
-    record_pk = models.BigAutoField(primary_key=True)
-    name = models.CharField(max_length=254)
-    tags = GenericRelation(
-        "Tag",
-        content_type_field="tagged_item_type",
-        object_id_field="tagged_item_id",
-        related_query_name="records",
-    )
