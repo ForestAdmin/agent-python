@@ -1,3 +1,10 @@
+# [1.9.0](https://github.com/ForestAdmin/agent-python/compare/v1.8.23...v1.9.0) (2024-08-22)
+
+
+### Features
+
+* add polymophism support ([#231](https://github.com/ForestAdmin/agent-python/issues/231)) ([950aed2](https://github.com/ForestAdmin/agent-python/commit/950aed2243e584ee027508db38393912ead32dc1))
+
 ## [1.8.23](https://github.com/ForestAdmin/agent-python/compare/v1.8.22...v1.8.23) (2024-08-05)
 
 
