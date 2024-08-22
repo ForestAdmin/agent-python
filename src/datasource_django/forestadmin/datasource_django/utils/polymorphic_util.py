@@ -50,10 +50,9 @@ class DjangoPolymorphismPatchUtil:
         cls, patch: RecordsDataAlias, collection: BaseDjangoCollection
     ) -> RecordsDataAlias:
         for field_name, field_schema in collection.schema["fields"].items():
-            if is_polymorphic_many_to_one(field_schema):
-                if field_schema["foreign_key_type_field"] in patch.keys():
-                    content_type_field = field_schema["foreign_key_type_field"]
-                    patch[content_type_field] = cls._CONTENT_TYPE_CACHE.get(patch[content_type_field])
+            if is_polymorphic_many_to_one(field_schema) and field_schema["foreign_key_type_field"] in patch.keys():
+                content_type_field = field_schema["foreign_key_type_field"]
+                patch[content_type_field] = DjangoPolymorphismUtil._CONTENT_TYPE_CACHE.get(patch[content_type_field])
         return patch
 
 
@@ -74,11 +73,11 @@ class DjangoPolymorphismConditionTreeUtil:
             )
 
         condition_tree = cast(ConditionTreeLeaf, condition_tree)
-        if cls.is_type_field_of_generic_fk(condition_tree.field, collection):
+        if DjangoPolymorphismProjectionUtil.is_type_field_of_generic_fk(condition_tree.field, collection):
             return ConditionTreeLeaf(
                 condition_tree.field,
                 condition_tree.operator,
-                cls._CONTENT_TYPE_CACHE.get(condition_tree.value),  # type:ignore
+                DjangoPolymorphismUtil._CONTENT_TYPE_CACHE.get(condition_tree.value),  # type:ignore
             )
         return condition_tree
 
