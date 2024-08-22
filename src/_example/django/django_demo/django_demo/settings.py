@@ -10,11 +10,20 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
+import logging
 import os
 from pathlib import Path
 
+import urllib3
+from django_demo.colorized_logging import ColorizedFormatter
 from dotenv import load_dotenv
 from str2bool import str2bool
+
+# or if this does not work with the previous import:
+# from requests.packages import urllib3
+
+# Suppress only the single warning from urllib3.
+urllib3.disable_warnings(category=urllib3.exceptions.InsecureRequestWarning)
 
 load_dotenv()  # load .env file into environ variables
 
@@ -40,8 +49,16 @@ FOREST_SERVER_URL = os.environ.get("FOREST_SERVER_URL")
 FOREST_IS_PRODUCTION = str2bool(os.environ.get("FOREST_IS_PRODUCTION", "False"))
 # if you want to manually add datasource with option you can set this var to True and
 # add a datasource in the 'FOREST_CUSTOMIZE_FUNCTION'
-# FOREST_AUTO_ADD_DJANGO_DATASOURCE = True
+FOREST_AUTO_ADD_DJANGO_DATASOURCE = False
 FOREST_VERIFY_SSL = False
+FOREST_LOGGER_LEVEL = logging.DEBUG
+
+forest_logger = logging.getLogger("forestadmin")
+handler = logging.StreamHandler()
+handler.setFormatter(ColorizedFormatter())
+handler.setLevel(logging.DEBUG)
+forest_logger.addHandler(handler)
+forest_logger.setLevel(logging.DEBUG)
 
 FOREST_CUSTOMIZE_FUNCTION = "app.forest_admin.customize_forest"
 # from app.forest_admin import customize_forest
@@ -106,10 +123,10 @@ DATABASES = {
         "NAME": os.path.join(BASE_DIR, "db.sqlite3"),
         "ATOMIC_REQUESTS": True,
     },
-    "other": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": os.path.join(BASE_DIR, "db_flask_example.sqlite"),
-    },
+    # "other": {
+    #     "ENGINE": "django.db.backends.sqlite3",
+    #     "NAME": os.path.join(BASE_DIR, "db_flask_example.sqlite"),
+    # },
 }
 
 DATABASE_ROUTERS = ["django_demo.db_router.DBRouter"]

@@ -14,13 +14,17 @@ from forestadmin.datasource_toolkit.interfaces.fields import (
     OneToMany,
     OneToOne,
     Operator,
+    PolymorphicManyToOne,
     PrimitiveType,
     RelationAlias,
     is_column,
     is_many_to_many,
-    is_many_to_one,
     is_one_to_many,
     is_one_to_one,
+    is_polymorphic_many_to_one,
+    is_polymorphic_one_to_many,
+    is_polymorphic_one_to_one,
+    is_straight_relation,
 )
 from forestadmin.datasource_toolkit.utils.collections import CollectionUtils
 from forestadmin.datasource_toolkit.utils.schema import SchemaUtils
@@ -29,8 +33,11 @@ from forestadmin.datasource_toolkit.utils.schema import SchemaUtils
 class SchemaFieldGenerator:
     RELATION_MAPPING: Dict[FieldType, RelationServer] = {
         FieldType.ONE_TO_ONE: "HasOne",
+        FieldType.POLYMORPHIC_ONE_TO_ONE: "HasOne",
         FieldType.ONE_TO_MANY: "HasMany",
+        FieldType.POLYMORPHIC_ONE_TO_MANY: "HasMany",
         FieldType.MANY_TO_ONE: "BelongsTo",
+        FieldType.POLYMORPHIC_MANY_TO_ONE: "BelongsTo",
         FieldType.MANY_TO_MANY: "BelongsToMany",
     }
 
@@ -42,12 +49,13 @@ class SchemaFieldGenerator:
         if is_column(field_schema):
             schema = cls.build_column_schema(field_name, collection)
         elif (
-            is_one_to_one(field_schema)
-            or is_one_to_many(field_schema)
-            or is_many_to_one(field_schema)
-            or is_many_to_many(field_schema)
+            is_straight_relation(field_schema)
+            or is_polymorphic_one_to_many(field_schema)
+            or is_polymorphic_one_to_one(field_schema)
         ):
             schema = cls.build_relation_schema(collection, field_name, field_schema)
+        elif is_polymorphic_many_to_one(field_schema):
+            schema = cls.build_polymorphic_many_to_one(collection, field_name, field_schema)
         else:
             raise
         return cast(ForestServerField, dict(sorted(schema.items())))
@@ -115,7 +123,7 @@ class SchemaFieldGenerator:
         target_field = collection.schema["fields"][relation["origin_key_target"]]
         key_field = foreign_collection.schema["fields"][relation["origin_key"]]
 
-        return {
+        ret: ForestServerField = {
             **base_schema,
             "type": cls.build_column_type(key_field["column_type"]),
             "defaultValue": None,
@@ -127,6 +135,9 @@ class SchemaFieldGenerator:
             "validations": [],
             "reference": f"{foreign_collection.name}.{relation['origin_key']}",
         }
+        if is_polymorphic_one_to_one(relation):
+            ret["isReadOnly"] = False
+        return ret
 
     @classmethod
     def build_to_many_relation_schema(
@@ -139,6 +150,10 @@ class SchemaFieldGenerator:
         if is_one_to_many(relation):
             key = relation["origin_key_target"]
             key_schema = cast(Column, collection.get_field(key))
+        elif is_polymorphic_one_to_many(relation):
+            key = relation["origin_key_target"]
+            key_schema = cast(Column, collection.get_field(key))
+            base_schema["isReadOnly"] = False
         else:
             key = relation["foreign_key_target"]
             key_schema = cast(Column, foreign_collection.get_field(key))
@@ -191,12 +206,39 @@ class SchemaFieldGenerator:
             "inverseOf": CollectionUtils.get_inverse_relation(cast(Collection, collection), field_name),
             "relationship": cls.RELATION_MAPPING[field_schema["type"]],
         }
-        if is_many_to_many(field_schema) or is_one_to_many(field_schema):
+        if is_many_to_many(field_schema) or is_one_to_many(field_schema) or is_polymorphic_one_to_many(field_schema):
             res = cls.build_to_many_relation_schema(field_schema, collection, foreign_collection, relation_schema)
-        elif is_one_to_one(field_schema):
+        elif is_one_to_one(field_schema) or is_polymorphic_one_to_one(field_schema):
             res = cls.build_one_to_one_schema(field_schema, collection, foreign_collection, relation_schema)
         else:
             res = cls.build_many_to_one_schema(
                 cast(ManyToOne, field_schema), collection, foreign_collection, relation_schema
             )
         return res
+
+    @classmethod
+    def build_polymorphic_many_to_one(
+        cls, collection: Union[Collection, CollectionCustomizer], field_name: str, field_schema: PolymorphicManyToOne
+    ) -> ForestServerField:
+
+        key = field_schema["foreign_key"]
+        key_schema = cast(Column, collection.get_field(key))
+        validations = key_schema["validations"] or []
+
+        relation_schema: ForestServerField = {
+            "field": field_name,
+            "enums": None,
+            "isReadOnly": False,
+            "inverseOf": collection.name,
+            "relationship": cls.RELATION_MAPPING[field_schema["type"]],
+            "type": cls.build_column_type(key_schema["column_type"]),
+            "defaultValue": None,
+            "isFilterable": False,
+            "isPrimaryKey": False,
+            "isRequired": any([v["operator"] == Operator.PRESENT for v in validations]),
+            "isSortable": False,
+            "validations": FrontendValidationUtils.convert_validation_list(validations),
+            "reference": f"{field_name}.id",
+            "polymorphic_referenced_models": field_schema["foreign_collections"],
+        }
+        return relation_schema

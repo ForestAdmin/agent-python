@@ -3,8 +3,15 @@ from typing import List, Optional, Set, Union
 from forestadmin.datasource_toolkit.datasources import Datasource
 from forestadmin.datasource_toolkit.decorators.datasource_decorator import DatasourceDecorator
 from forestadmin.datasource_toolkit.decorators.publication.collections import PublicationCollectionDecorator
-from forestadmin.datasource_toolkit.exceptions import ForestException
+from forestadmin.datasource_toolkit.exceptions import DatasourceToolkitException, ForestException
+from forestadmin.datasource_toolkit.interfaces.collections import Collection
+from forestadmin.datasource_toolkit.interfaces.fields import is_polymorphic_one_to_many, is_polymorphic_one_to_one
 from forestadmin.datasource_toolkit.interfaces.models.collections import BoundCollection
+from forestadmin.datasource_toolkit.utils.collections import CollectionUtils
+
+
+class PublicationDatasourceException(DatasourceToolkitException):
+    pass
 
 
 class PublicationDataSourceDecorator(DatasourceDecorator):
@@ -37,6 +44,7 @@ class PublicationDataSourceDecorator(DatasourceDecorator):
 
     def remove_collection(self, collection_name: str):
         self._validate_collection_name([collection_name])
+        self._validate_is_removable(self.get_collection(collection_name))
 
         # Delete the collection
         self._blacklist.add(collection_name)
@@ -52,3 +60,12 @@ class PublicationDataSourceDecorator(DatasourceDecorator):
 
     def is_published(self, collection_name: str) -> bool:
         return collection_name not in self._blacklist
+
+    def _validate_is_removable(self, collection: Collection):
+        for field_name, field_schema in collection.schema["fields"].items():
+            if is_polymorphic_one_to_one(field_schema) or is_polymorphic_one_to_many(field_schema):
+                inverse = CollectionUtils.get_inverse_relation(collection, field_name)
+                raise PublicationDatasourceException(
+                    f"Cannot remove collection {collection.name} because it's a potential target of polymorphic "
+                    f"relation {field_schema['foreign_collection']}.{inverse}"
+                )

@@ -3,7 +3,7 @@ from datetime import datetime, timezone
 from uuid import uuid4
 
 from app.flask_models import FlaskAddress, FlaskCart, FlaskCustomer, FlaskCustomersAddresses, FlaskOrder
-from app.models import Address, Cart, Customer, CustomerAddress, Order
+from app.models import Address, Cart, Customer, CustomerAddress, Order, Tag
 from django.contrib.auth.models import Group, User
 from django.core.management.base import BaseCommand
 from django.db import transaction
@@ -43,6 +43,7 @@ class Command(BaseCommand):
             "customers": 500,
             "addresses": 500,
             "orders_carts": 1000,
+            "tags": 500,
         }
         if options["big_data"]:
             numbers = {
@@ -51,6 +52,7 @@ class Command(BaseCommand):
                 "customers": 500000,
                 "addresses": 1000000,
                 "orders_carts": 3000000,
+                "tags": 5000000,
             }
 
         if not options["only_other_database"]:
@@ -69,6 +71,10 @@ class Command(BaseCommand):
             orders, carts = create_orders_cart(customers, addresses, numbers["orders_carts"])
             if options["verbosity"] != 0:
                 print(f"orders and carts ({numbers['orders_carts']}) created")
+
+            tags = create_tags(customers, orders, numbers["tags"])
+            if options["verbosity"] != 0:
+                print(f"tags ({numbers['tags']}) created")
 
         if options["all_databases"] or options["only_other_database"]:
             customers = populate_flask_customers(numbers["customers"])
@@ -168,6 +174,17 @@ def create_orders_cart(customers, addresses, nb_order=1000):
     Cart.objects.bulk_create(carts)
     carts = Cart.objects.all()
     return orders, carts
+
+
+def create_tags(customer, orders, nb_tags=1000):
+    taggable = [*customer, *orders]
+    tags = []
+    for i in range(nb_tags):
+        t = Tag(tag=fake.word(), tagged_item=random.choice(taggable))
+        taggable.remove(t.tagged_item)
+        tags.append(t)
+    Tag.objects.bulk_create(tags)
+    return tags
 
 
 # other db

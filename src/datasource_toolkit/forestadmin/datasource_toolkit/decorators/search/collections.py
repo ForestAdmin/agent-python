@@ -1,5 +1,6 @@
 from typing import Any, Callable, List, Optional, Tuple, Union
 
+from forestadmin.agent_toolkit.forest_logger import ForestLogger
 from forestadmin.agent_toolkit.utils.context import User
 from forestadmin.datasource_toolkit.context.collection_context import CollectionCustomizationContext
 from forestadmin.datasource_toolkit.decorators.collection_decorator import CollectionDecorator
@@ -12,6 +13,8 @@ from forestadmin.datasource_toolkit.interfaces.fields import (
     is_column,
     is_many_to_one,
     is_one_to_one,
+    is_polymorphic_many_to_one,
+    is_polymorphic_one_to_one,
     is_valid_uuid,
 )
 from forestadmin.datasource_toolkit.interfaces.models.collections import BoundCollection, CollectionSchema, Datasource
@@ -126,10 +129,19 @@ class SearchCollectionDecorator(CollectionDecorator):
             if is_column(field):
                 fields.append((name, field))
 
-            if extended and (is_many_to_one(field) or is_one_to_one(field)):
+            if extended and (is_many_to_one(field) or is_one_to_one(field) or is_polymorphic_one_to_one(field)):
                 related = collection.datasource.get_collection(field["foreign_collection"])
 
                 for sub_name, sub_field in related.schema["fields"].items():
                     if is_column(sub_field):
                         fields.append((f"{name}:{sub_name}", sub_field))
+
+            if extended and is_polymorphic_many_to_one(field):
+                ForestLogger.log(
+                    "debug",
+                    f"We're not searching through {self.name}.{name} because it's a polymorphic relation. "
+                    "You can override the default search behavior with 'replace_search'."
+                    " See more: https://docs.forestadmin.com/developer-guide-agents-python/agent-customization/search",
+                )
+
         return fields

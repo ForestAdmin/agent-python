@@ -11,6 +11,9 @@ from forestadmin.datasource_toolkit.interfaces.fields import (
     is_many_to_one,
     is_one_to_many,
     is_one_to_one,
+    is_polymorphic_many_to_one,
+    is_polymorphic_one_to_many,
+    is_polymorphic_one_to_one,
     is_relation,
 )
 from forestadmin.datasource_toolkit.interfaces.models.collections import Collection as CollectionModel
@@ -42,7 +45,7 @@ class CollectionUtils:
         except KeyError:
             kind = "Relation" if sub_path else "Column"
             raise CollectionUtilsException(
-                f"{kind} not found {collection.name}.{field_name}. Felds are {','.join(fields.keys())}"
+                f"{kind} not found {collection.name}.{field_name}. Fields are {','.join(fields.keys())}"
             )
 
         if not sub_path:
@@ -136,19 +139,38 @@ class CollectionUtils:
     @staticmethod
     def get_inverse_relation(collection: Collection, relation_name: str) -> Optional[str]:
         relation = cast(RelationAlias, collection.get_field(relation_name))
+        if is_polymorphic_many_to_one(relation):
+            raise CollectionUtilsException(
+                f"A polymorphic many to one ({collection.name}.{relation_name}) have many reverse relations"
+            )
         foreign_collection = collection.datasource.get_collection(relation["foreign_collection"])
         inverse: Optional[str] = None
         for name, field_schema in foreign_collection.schema["fields"].items():
-            if not is_relation(field_schema) or field_schema["foreign_collection"] != collection.name:
+            if not is_relation(field_schema) or (
+                not is_polymorphic_many_to_one(field_schema) and field_schema["foreign_collection"] != collection.name
+            ):
                 continue
 
             if (
                 CollectionUtils.is_many_to_many_inverse(field_schema, relation)
                 or CollectionUtils.is_many_to_one_inverse(field_schema, relation)
                 or CollectionUtils.is_other_inverse(field_schema, relation)
+                or CollectionUtils.is_polymorphic_many_to_one_inverse(field_schema, relation)
             ):
                 inverse = name
         return inverse
+
+    @staticmethod
+    def is_polymorphic_many_to_one_inverse(field: RelationAlias, relation_field: RelationAlias) -> bool:
+        if (
+            is_polymorphic_many_to_one(field)
+            and (is_polymorphic_one_to_one(relation_field) or is_polymorphic_one_to_many(relation_field))
+            and field["foreign_key"] == relation_field["origin_key"]
+            and field["foreign_key_type_field"] == relation_field["origin_type_field"]
+            and relation_field["origin_type_value"] in field["foreign_collections"]
+        ):
+            return True
+        return False
 
     @staticmethod
     def is_many_to_many_inverse(field: RelationAlias, relation_field: RelationAlias) -> bool:

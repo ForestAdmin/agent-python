@@ -1,0 +1,20 @@
+[
+  {
+    "model": "test_app.tag",
+    "pk": 1,
+    "fields": {
+      "tag": "best book",
+      "content_type": ["test_app", "book"],
+      "content_id": 1
+    }
+  },
+  {
+    "model": "test_app.tag",
+    "pk": 2,
+    "fields": {
+      "tag": "best author",
+      "content_type": ["test_app", "person"],
+      "content_id": 1
+    }
+  }
+]

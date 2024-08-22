@@ -3,7 +3,7 @@ from functools import reduce
 from typing import Any, Callable, DefaultDict, Dict, List, Optional, Union, cast
 
 from forestadmin.datasource_toolkit.exceptions import DatasourceToolkitException
-from forestadmin.datasource_toolkit.interfaces.fields import RelationAlias
+from forestadmin.datasource_toolkit.interfaces.fields import RelationAlias, is_polymorphic_many_to_one
 from forestadmin.datasource_toolkit.interfaces.models.collections import Collection
 from forestadmin.datasource_toolkit.interfaces.records import RecordsDataAlias
 from forestadmin.datasource_toolkit.utils.schema import SchemaUtils
@@ -67,6 +67,8 @@ class Projection(list):  # type: ignore
                 result.append(pk)  # type: ignore
 
         for relation, projection in self.relations.items():
+            if is_polymorphic_many_to_one(collection.schema["fields"][relation]):
+                continue
             schema = cast(RelationAlias, collection.schema["fields"][relation])
             association = collection.datasource.get_collection(schema["foreign_collection"])
             projection_with_pk: Projection = projection.with_pks(association).nest(relation)

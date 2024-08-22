@@ -4,7 +4,7 @@ import importlib
 import json
 import sys
 from unittest import TestCase
-from unittest.mock import AsyncMock, Mock, patch
+from unittest.mock import ANY, AsyncMock, Mock, patch
 
 if sys.version_info >= (3, 9):
     import zoneinfo
@@ -99,25 +99,30 @@ class TestCrudResource(TestCase):
                 "cost": {"column_type": PrimitiveType.NUMBER, "is_primary_key": False, "type": FieldType.COLUMN},
                 "important": {"column_type": PrimitiveType.BOOLEAN, "is_primary_key": False, "type": FieldType.COLUMN},
                 "products": {
-                    "column_type": PrimitiveType.NUMBER,
-                    "is_primary_key": False,
+                    "foreign_collection": "product",
+                    "origin_key": "order_id",
+                    "origin_key_target": "id",
                     "type": FieldType.ONE_TO_MANY,
                 },
                 "status": {
-                    "column_type": PrimitiveType.NUMBER,
-                    "is_primary_key": False,
                     "type": FieldType.MANY_TO_ONE,
                     "foreign_collection": "status",
                     "foreign_key_target": "id",
                     "foreign_key": "status",
                 },
                 "cart": {
-                    "column_type": PrimitiveType.NUMBER,
-                    "is_primary_key": False,
                     "type": FieldType.ONE_TO_ONE,
                     "foreign_collection": "cart",
                     "origin_key_target": "id",
                     "origin_key": "order_id",
+                },
+                "tags": {
+                    "type": FieldType.POLYMORPHIC_ONE_TO_ONE,
+                    "foreign_collection": "tag",
+                    "origin_key": "taggable_id",
+                    "origin_key_target": "id",
+                    "origin_type_field": "taggable_type",
+                    "origin_type_value": "order",
                 },
             },
         )
@@ -140,6 +145,50 @@ class TestCrudResource(TestCase):
             },
         )
 
+        # product
+        cls.collection_product = cls._create_collection(
+            "product",
+            {
+                "id": {"column_type": PrimitiveType.NUMBER, "is_primary_key": True, "type": FieldType.COLUMN},
+                "name": {"column_type": PrimitiveType.STRING, "is_primary_key": False, "type": FieldType.COLUMN},
+                "tags": {
+                    "type": FieldType.POLYMORPHIC_ONE_TO_MANY,
+                    "foreign_collection": ["tag"],
+                    "origin_key": "taggable_id",
+                    "origin_key_target": "id",
+                    "origin_type_field": "taggable_type",
+                    "origin_type_value": "product",
+                },
+            },
+        )
+
+        # tag
+        cls.collection_tag = cls._create_collection(
+            "tag",
+            {
+                "id": {
+                    "column_type": PrimitiveType.NUMBER,
+                    "is_primary_key": True,
+                    "type": FieldType.COLUMN,
+                    "filter_operators": {Operator.IN, Operator.EQUAL},
+                },
+                "tag": {"column_type": PrimitiveType.STRING, "is_primary_key": False, "type": FieldType.COLUMN},
+                "taggable_id": {"column_type": PrimitiveType.NUMBER, "type": FieldType.COLUMN},
+                "taggable_type": {
+                    "column_type": PrimitiveType.STRING,
+                    "type": FieldType.COLUMN,
+                    "enum_values": ["product", "order"],
+                },
+                "taggable": {
+                    "type": FieldType.POLYMORPHIC_MANY_TO_ONE,
+                    "foreign_collections": ["product", "order"],
+                    "foreign_key_target": {"order": "id", "product": "id"},
+                    "foreign_key": "taggable_id",
+                    "foreign_type_field": "taggable_type",
+                },
+            },
+        )
+
     @classmethod
     def setUpClass(cls) -> None:
         cls.loop = asyncio.new_event_loop()
@@ -158,6 +207,8 @@ class TestCrudResource(TestCase):
             "order": cls.collection_order,
             "status": cls.collection_status,
             "cart": cls.collection_cart,
+            "product": cls.collection_product,
+            "tag": cls.collection_tag,
         }
 
     def setUp(self):
@@ -402,6 +453,33 @@ class TestCrudResource(TestCase):
         }
         mocked_unpack_id.assert_called_once()
 
+    @patch(
+        "forestadmin.agent_toolkit.resources.collections.crud.JsonApiSerializer.get",
+        return_value=Mock,
+    )
+    def test_get_with_polymorphic_relation_should_add_projection_star(self, mocked_json_serializer_get: Mock):
+        request = RequestCollection(
+            RequestMethod.GET, self.collection_tag, None, {"collection_name": "tag", "pks": "10"}, {}, None
+        )
+        crud_resource = CrudResource(self.datasource, self.permission_service, self.ip_white_list_service, self.options)
+        mocked_json_serializer_get.return_value.dump = Mock(
+            return_value={
+                "data": {"type": "tag", "attributes": {"id": 10, "taggable_id": 10, "taggable_type": "product"}},
+                "included": [{"id": 10, "attributes": {"name": "my product"}}],
+            }
+        )
+        with patch.object(
+            self.collection_tag,
+            "list",
+            new_callable=AsyncMock,
+            return_value=[
+                {"id": 10, "taggable_id": 10, "taggable_type": "product", "taggable": {"id": 10, "name": "my product"}}
+            ],
+        ) as mock_list:
+            self.loop.run_until_complete(crud_resource.get(request))
+
+            mock_list.assert_awaited_with(ANY, ANY, ["id", "tag", "taggable_id", "taggable_type", "taggable:*"])
+
     # add
     @patch("forestadmin.agent_toolkit.resources.collections.crud.RecordValidator.validate")
     @patch(
@@ -604,6 +682,100 @@ class TestCrudResource(TestCase):
             "status": 500,
         }
 
+    @patch(
+        "forestadmin.agent_toolkit.resources.collections.crud.JsonApiSerializer.get",
+        return_value=Mock,
+    )
+    def test_add_should_create_and_associate_polymorphic_many_to_one(self, mocked_json_serializer_get: Mock):
+        request = RequestCollection(
+            RequestMethod.POST,
+            self.collection_tag,
+            {
+                "data": {
+                    "attributes": {"tag": "Good"},
+                    "relationships": {"taggable": {"data": [{"type": "order", "id": "14"}]}},
+                },
+            },  # body
+            {
+                "collection_name": "order",
+                "relation_name": "tags",
+                "timezone": "Europe/Paris",
+            },  # query
+            {},  # header
+            None,  # user
+        )
+        mocked_json_serializer_get.return_value.load = Mock(
+            return_value={"taggable_id": 14, "taggable_type": "order", "tag": "aaaaa"}
+        )
+        mocked_json_serializer_get.return_value.dump = Mock(return_value={})
+        crud_resource = CrudResource(self.datasource, self.permission_service, self.ip_white_list_service, self.options)
+
+        with patch.object(
+            self.collection_tag, "create", new_callable=AsyncMock, return_value=[{}]
+        ) as mock_collection_create:
+            self.loop.run_until_complete(crud_resource.add(request))
+            mock_collection_create.assert_awaited_once_with(
+                ANY, [{"taggable_id": 14, "taggable_type": "order", "tag": "aaaaa"}]
+            )
+
+    @patch(
+        "forestadmin.agent_toolkit.resources.collections.crud.JsonApiSerializer.get",
+        return_value=Mock,
+    )
+    def test_add_should_create_and_associate_polymorphic_one_to_one(self, mocked_json_serializer_get: Mock):
+        request = RequestCollection(
+            RequestMethod.POST,
+            self.collection_order,
+            {
+                "data": {
+                    "attributes": {"cost": 12.3, "important": True},
+                    "relationships": {"tags": {"data": {"type": "tag", "id": "22"}}},
+                },
+            },  # body
+            {
+                "collection_name": "order",
+                "relation_name": "tags",
+                "timezone": "Europe/Paris",
+            },  # query
+            {},  # header
+            None,  # user
+        )
+
+        mocked_json_serializer_get.return_value.load = Mock(return_value={"cost": 12.3, "important": True, "tags": 22})
+        mocked_json_serializer_get.return_value.dump = Mock(return_value={})
+
+        crud_resource = CrudResource(self.datasource, self.permission_service, self.ip_white_list_service, self.options)
+        with patch.object(
+            self.collection_order,
+            "create",
+            new_callable=AsyncMock,
+            return_value=[{"cost": 12.3, "important": True, "id": 12}],
+        ) as mock_collection_order_create:
+            with patch.object(self.collection_tag, "update", new_callable=AsyncMock) as mock_collection_tag_update:
+                self.loop.run_until_complete(crud_resource.add(request))
+                mock_collection_order_create.assert_awaited_once_with(ANY, [{"cost": 12.3, "important": True}])
+
+                # first update to break potential old link to current record (should do nothing)
+                first_call_update_args = mock_collection_tag_update.await_args_list[0].args
+                self.assertIn(
+                    ConditionTreeLeaf("taggable_id", "equal", 12),
+                    first_call_update_args[1].condition_tree.conditions,
+                )
+                self.assertIn(
+                    ConditionTreeLeaf("taggable_type", "equal", "order"),
+                    first_call_update_args[1].condition_tree.conditions,
+                )
+                self.assertEqual(first_call_update_args[2], {"taggable_id": None, "taggable_type": None})
+
+                # second update to link the 1 to 1
+                second_call_update_args = mock_collection_tag_update.await_args_list[1].args
+
+                self.assertIn(
+                    ConditionTreeLeaf("id", "equal", 22),
+                    second_call_update_args[1].condition_tree.conditions,
+                )
+                self.assertEqual(second_call_update_args[2], {"taggable_id": 12, "taggable_type": "order"})
+
     # list
     @patch(
         "forestadmin.agent_toolkit.resources.collections.crud.JsonApiSerializer.get",
@@ -653,6 +825,82 @@ class TestCrudResource(TestCase):
 
         assert response_content["meta"]["decorators"]["0"] == {"id": 10, "search": ["cost"]}
         assert response_content["meta"]["decorators"]["1"] == {"id": 11, "search": ["cost"]}
+
+    @patch(
+        "forestadmin.agent_toolkit.resources.collections.crud.JsonApiSerializer.get",
+        return_value=Mock,
+    )
+    def test_list_with_polymorphic_many_to_one_should_query_all_relation_record_columns(
+        self, mocked_json_serializer_get: Mock
+    ):
+        crud_resource = CrudResource(self.datasource, self.permission_service, self.ip_white_list_service, self.options)
+        mocked_json_serializer_get.return_value.dump = Mock(
+            return_value={
+                "data": [
+                    {
+                        "type": "tag",
+                        "attributes": {
+                            "taggable_id": 11,
+                            "taggable_type": "order",
+                        },
+                        "id": 1,
+                        "relationships": {
+                            "taggable": {
+                                "data": {
+                                    "id": 10,
+                                    "type": "order",
+                                },
+                                "links": {"related": {"href": "/forest/tag/1/relationships/taggable"}},
+                            }
+                        },
+                    },
+                ],
+                "included": [
+                    {
+                        "type": "order",
+                        "id": 11,
+                        "attributes": {
+                            "id": 11,
+                            "cost": 201,
+                            "important": True,
+                        },
+                        "relationships": [
+                            {
+                                "tags": {"link": {"related": {"href": "/forest/order/11/relationships/tags"}}},
+                                "cart": {"link": {"related": {"href": "/forest/order/11/relationships/cart"}}},
+                                "status": {"link": {"related": {"href": "/forest/order/11/relationships/status"}}},
+                                "products": {"link": {"related": {"href": "/forest/order/11/relationships/products"}}},
+                            }
+                        ],
+                    }
+                ],
+            }
+        )
+        request = RequestCollection(
+            RequestMethod.GET,
+            self.collection_tag,
+            None,
+            {
+                "collection_name": "tag",
+                "fields[tags]": "id,taggable,taggable_id,taggable_type",
+                "timezone": "Europe/Paris",
+            },
+            {},
+            None,
+        )
+
+        with patch.object(
+            self.collection_tag,
+            "list",
+            new_callable=AsyncMock,
+            return_value=[
+                {"id": 1, "taggable_id": 11, "taggable_type": "order", "taggable": {}},
+            ],
+        ) as mock_list:
+            self.loop.run_until_complete(crud_resource.list(request))
+            mock_list.assert_awaited_once()
+            list_args = mock_list.await_args_list[0].args
+            self.assertIn("taggable:*", list_args[2])
 
     @patch(
         "forestadmin.agent_toolkit.resources.collections.crud.JsonApiSerializer.get",

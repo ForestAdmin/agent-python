@@ -149,7 +149,6 @@ class TestCrudRelatedResource(TestCase):
                 },
                 "cost": {"column_type": PrimitiveType.NUMBER, "is_primary_key": False, "type": FieldType.COLUMN},
                 "products": {
-                    "column_type": PrimitiveType.NUMBER,
                     "type": FieldType.MANY_TO_MANY,
                     "through_collection": "product_order",
                     "foreign_collection": "product",
@@ -160,8 +159,6 @@ class TestCrudRelatedResource(TestCase):
                     "origin_key_target": "id",
                 },
                 "customer": {
-                    "column_type": PrimitiveType.NUMBER,
-                    "is_primary_key": False,
                     "type": FieldType.MANY_TO_ONE,
                     "foreign_collection": "customer",
                     "foreign_key_target": "id",
@@ -173,12 +170,18 @@ class TestCrudRelatedResource(TestCase):
                     "type": FieldType.COLUMN,
                 },
                 "cart": {
-                    "column_type": PrimitiveType.NUMBER,
-                    "is_primary_key": False,
                     "type": FieldType.ONE_TO_ONE,
                     "foreign_collection": "cart",
                     "origin_key_target": "id",
                     "origin_key": "order_id",
+                },
+                "tags": {
+                    "type": FieldType.POLYMORPHIC_ONE_TO_MANY,
+                    "foreign_collection": "tag",
+                    "origin_key": "taggable_id",
+                    "origin_key_target": "id",
+                    "origin_type_field": "taggable_type",
+                    "origin_type_value": "order",
                 },
             },
         )
@@ -205,7 +208,6 @@ class TestCrudRelatedResource(TestCase):
         )
 
         # product
-
         cls.collection_product = cls._create_collection(
             "product",
             {
@@ -232,8 +234,8 @@ class TestCrudRelatedResource(TestCase):
                 "name": {"column_type": PrimitiveType.STRING, "is_primary_key": False, "type": FieldType.COLUMN},
             },
         )
-        # customers
 
+        # customers
         cls.collection_customer = cls._create_collection(
             "customer",
             {
@@ -250,12 +252,36 @@ class TestCrudRelatedResource(TestCase):
                     "filter_operators": set([Operator.PRESENT]),
                 },
                 "order": {
-                    "column_type": PrimitiveType.NUMBER,
-                    "is_primary_key": False,
                     "type": FieldType.ONE_TO_MANY,
                     "foreign_collection": "order",
                     "origin_key": "customer_id",
                     "origin_key_target": "id",
+                },
+            },
+        )
+
+        # tag
+        cls.collection_tag = cls._create_collection(
+            "tag",
+            {
+                "id": {
+                    "column_type": PrimitiveType.NUMBER,
+                    "is_primary_key": True,
+                    "type": FieldType.COLUMN,
+                    "filter_operators": {Operator.IN, Operator.EQUAL},
+                },
+                "taggable_id": {"column_type": PrimitiveType.NUMBER, "type": FieldType.COLUMN},
+                "taggable_type": {
+                    "column_type": PrimitiveType.STRING,
+                    "type": FieldType.COLUMN,
+                    "enum_values": ["customer", "order"],
+                },
+                "taggable": {
+                    "type": FieldType.POLYMORPHIC_MANY_TO_ONE,
+                    "foreign_collections": ["customer", "order"],
+                    "foreign_key_target": {"order": "id", "customer": "id"},
+                    "foreign_key": "taggable_id",
+                    "foreign_type_field": "taggable_type",
                 },
             },
         )
@@ -739,6 +765,38 @@ class TestCrudRelatedResource(TestCase):
         self.permission_service.can.reset_mock()
 
         assert response.status == 204
+
+    def test_add_should_associate_polymorphic_one_to_many(self):
+        request = RequestRelationCollection(
+            RequestMethod.POST,
+            self.collection_order,
+            self.collection_tag,
+            self.collection_order.get_field("tags"),
+            "tags",
+            {"data": [{"id": "201", "type": "tag"}]},  # body
+            {
+                "collection_name": "order",
+                "relation_name": "tags",
+                "timezone": "Europe/Paris",
+                "pks": "2",  # customer id
+            },  # query
+            {},  # header
+            None,  # user
+        )
+        crud_related_resource = CrudRelatedResource(
+            self.datasource, self.permission_service, self.ip_white_list_service, self.options
+        )
+
+        with patch.object(self.collection_tag, "update", new_callable=AsyncMock) as mock_collection_update:
+            self.loop.run_until_complete(crud_related_resource.add(request))
+            mock_collection_update.assert_awaited_once()
+            self.assertIn(
+                ConditionTreeLeaf("id", "equal", 201),
+                mock_collection_update.await_args_list[0].args[1].condition_tree.conditions,
+            )
+            self.assertEqual(
+                mock_collection_update.await_args_list[0].args[2], {"taggable_id": 2, "taggable_type": "order"}
+            )
 
     @patch(
         "forestadmin.agent_toolkit.resources.collections.crud_related.JsonApiSerializer.get",

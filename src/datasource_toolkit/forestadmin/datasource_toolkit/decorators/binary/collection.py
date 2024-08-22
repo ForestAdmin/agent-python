@@ -14,6 +14,7 @@ from forestadmin.datasource_toolkit.interfaces.fields import (
     PrimitiveType,
     Validation,
     is_column,
+    is_polymorphic_many_to_one,
 )
 from forestadmin.datasource_toolkit.interfaces.models.collections import CollectionSchema, Datasource
 from forestadmin.datasource_toolkit.interfaces.query.aggregation import AggregateResult, Aggregation
@@ -145,6 +146,9 @@ class BinaryCollectionDecorator(CollectionDecorator):
         prefix = field_name.split(":")[0]
         suffix = field_name.split(":", 1)[1] if ":" in field_name else None
         schema = self.child_collection.schema["fields"][prefix]
+
+        if is_polymorphic_many_to_one(schema):
+            return value
 
         if not is_column(schema):
             foreign_collection = self.datasource.get_collection(schema["foreign_collection"])

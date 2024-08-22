@@ -40,6 +40,9 @@ from forestadmin.datasource_toolkit.interfaces.fields import (
     is_many_to_one,
     is_one_to_many,
     is_one_to_one,
+    is_polymorphic_many_to_one,
+    is_polymorphic_one_to_many,
+    is_polymorphic_one_to_one,
 )
 from forestadmin.datasource_toolkit.interfaces.query.aggregation import Aggregation
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.factory import ConditionTreeFactory
@@ -76,7 +79,11 @@ class CrudRelatedResource(BaseCollectionResource):
     @authorize("browse")
     @check_method(RequestMethod.GET)
     async def list(self, request: RequestRelationCollection) -> Response:
-        if not (is_one_to_many(request.relation) or is_many_to_many(request.relation)):
+        if not (
+            is_one_to_many(request.relation)
+            or is_many_to_many(request.relation)
+            or is_polymorphic_one_to_many(request.relation)
+        ):
             ForestLogger.log("error", "Unhandled relation type")
             return HttpResponseBuilder.build_client_error_response([ForestException("Unhandled relation type")])
         try:
@@ -113,7 +120,11 @@ class CrudRelatedResource(BaseCollectionResource):
     @authorize("export")
     @check_method(RequestMethod.GET)
     async def csv(self, request: RequestRelationCollection) -> Response:
-        if not (is_one_to_many(request.relation) or is_many_to_many(request.relation)):
+        if not (
+            is_one_to_many(request.relation)
+            or is_many_to_many(request.relation)
+            or is_polymorphic_one_to_many(request.relation)
+        ):
             ForestLogger.log("error", "Unhandled relation type")
             return HttpResponseBuilder.build_client_error_response([ForestException("Unhandled relation type")])
         try:
@@ -174,7 +185,11 @@ class CrudRelatedResource(BaseCollectionResource):
             ForestLogger.log("exception", e)
             return HttpResponseBuilder.build_client_error_response([e])
 
-        if not (is_one_to_many(request.relation) or is_many_to_many(request.relation)):
+        if not (
+            is_one_to_many(request.relation)
+            or is_many_to_many(request.relation)
+            or is_polymorphic_one_to_many(request.relation)
+        ):
             ForestLogger.log("error", "Unhandled relation type")
             return HttpResponseBuilder.build_client_error_response([ForestException("Unhandled relation type")])
 
@@ -182,7 +197,7 @@ class CrudRelatedResource(BaseCollectionResource):
         value = await CollectionUtils.get_value(
             request.user, cast(Collection, request.foreign_collection), targeted_relation_ids, pks
         )
-        if is_one_to_many(request.relation):
+        if is_one_to_many(request.relation) or is_polymorphic_one_to_many(request.relation):
             return await self._associate_one_to_many(request, parent_ids, value)
         else:
             return await self._associate_many_to_many(request, parent_ids, value)
@@ -206,8 +221,13 @@ class CrudRelatedResource(BaseCollectionResource):
         else:
             linked_id = None
 
-        if is_many_to_one(request.relation) or is_one_to_one(request.relation):
-            if is_many_to_one(request.relation):
+        if (
+            is_many_to_one(request.relation)
+            or is_one_to_one(request.relation)
+            or is_polymorphic_many_to_one(request.relation)
+            or is_polymorphic_one_to_one(request.relation)
+        ):
+            if is_many_to_one(request.relation) or is_polymorphic_many_to_one(request.relation):
                 meth = self._update_many_to_one
             else:
                 meth = self._update_one_to_one
@@ -263,8 +283,12 @@ class CrudRelatedResource(BaseCollectionResource):
 
         filter = await self.get_base_fk_filter(request)
 
-        if is_one_to_many(request.relation) or is_many_to_many(request.relation):
-            if is_one_to_many(request.relation):
+        if (
+            is_one_to_many(request.relation)
+            or is_many_to_many(request.relation)
+            or is_polymorphic_one_to_many(request.relation)
+        ):
+            if is_one_to_many(request.relation) or is_polymorphic_one_to_many(request.relation):
                 meth = self._delete_one_to_many
             else:
                 meth = self._delete_many_to_many
@@ -281,7 +305,7 @@ class CrudRelatedResource(BaseCollectionResource):
     async def _associate_one_to_many(
         self, request: RequestRelationCollection, parent_ids: CompositeIdAlias, id_value: Union[str, int]
     ) -> Response:
-        if not is_one_to_many(request.relation):
+        if not is_one_to_many(request.relation) and not is_polymorphic_one_to_many(request.relation):
             return HttpResponseBuilder.build_client_error_response([ForestException("Unhandled relation type")])
         scope_tree = await self.permission.get_scope(request.user, request.foreign_collection)
         filter = build_filter(request, scope_tree)
@@ -295,7 +319,10 @@ class CrudRelatedResource(BaseCollectionResource):
             request.user, cast(Collection, request.collection), parent_ids, request.relation["origin_key_target"]
         )
         try:
-            await request.foreign_collection.update(request.user, filter, {f"{request.relation['origin_key']}": value})
+            patch = {f"{request.relation['origin_key']}": value}
+            if is_polymorphic_one_to_many(request.relation):
+                patch[request.relation["origin_type_field"]] = request.relation["origin_type_value"]
+            await request.foreign_collection.update(request.user, filter, patch)
         except DatasourceException as e:
             ForestLogger.log("exception", e)
             return HttpResponseBuilder.build_client_error_response([e])
@@ -354,7 +381,7 @@ class CrudRelatedResource(BaseCollectionResource):
         is_delete: bool,
         base_target_filter: Filter,
     ):
-        if not is_one_to_many(request.relation):
+        if not is_one_to_many(request.relation) and not is_polymorphic_one_to_many(request.relation):
             raise CollectionResourceException("Unhandled relation type")
         foreign_paginated_filter = await FilterFactory.make_foreign_filter(
             request.user, cast(Collection, request.collection), parent_id, request.relation, base_target_filter
@@ -363,9 +390,10 @@ class CrudRelatedResource(BaseCollectionResource):
         if is_delete:
             await request.foreign_collection.delete(request.user, foreign_filter)
         else:
-            await request.foreign_collection.update(
-                request.user, foreign_filter, {f"{request.relation['origin_key']}": None}
-            )
+            patch = {request.relation["origin_key"]: None}
+            if is_polymorphic_one_to_many(request.relation):
+                patch[request.relation["origin_type_field"]] = None
+            await request.foreign_collection.update(request.user, foreign_filter, patch)
 
     async def _delete_many_to_many(
         self,
@@ -406,7 +434,7 @@ class CrudRelatedResource(BaseCollectionResource):
         linked_id: CompositeIdAlias,
         timezone: zoneinfo.ZoneInfo,
     ):
-        if not is_one_to_one(request.relation):
+        if not is_one_to_one(request.relation) and not is_polymorphic_one_to_one(request.relation):
             raise CollectionResourceException("Unhandled relation type")
 
         scope = await self.permission.get_scope(request.user, request.foreign_collection)
@@ -419,10 +447,15 @@ class CrudRelatedResource(BaseCollectionResource):
         trees: List[ConditionTree] = [ConditionTreeLeaf(request.relation["origin_key"], Operator.EQUAL, origin_value)]
         if scope:
             trees.append(scope)
+
+        patch = {request.relation["origin_key"]: None}
+        if is_polymorphic_one_to_one(request.relation):
+            patch[request.relation["origin_type_field"]] = None
+
         await request.foreign_collection.update(
             request.user,
             Filter({"condition_tree": ConditionTreeFactory.intersect(trees), "timezone": timezone}),
-            {request.relation["origin_key"]: None},
+            patch,
         )
 
         # Create new relation (will update exactly one record).
@@ -430,6 +463,11 @@ class CrudRelatedResource(BaseCollectionResource):
             trees = [ConditionTreeFactory.match_ids(request.foreign_collection.schema, [linked_id])]
             if scope:
                 trees.append(scope)
+
+            patch = {request.relation["origin_key"]: origin_value}
+            if is_polymorphic_one_to_one(request.relation):
+                patch[request.relation["origin_type_field"]] = request.relation["origin_type_value"]
+
             await request.foreign_collection.update(
                 request.user,
                 Filter(
@@ -438,7 +476,7 @@ class CrudRelatedResource(BaseCollectionResource):
                         "timezone": timezone,
                     }
                 ),
-                {request.relation["origin_key"]: origin_value},
+                patch,
             )
 
     async def _update_many_to_one(
@@ -448,22 +486,30 @@ class CrudRelatedResource(BaseCollectionResource):
         linked_id: CompositeIdAlias,
         timezone: zoneinfo.ZoneInfo,
     ):
-        if not is_many_to_one(request.relation):
+        if not is_many_to_one(request.relation) and not is_polymorphic_many_to_one(request.relation):
             raise CollectionResourceException("Unhandled relation type")
 
         scope = await self.permission.get_scope(request.user, request.collection)
         await self.permission.can(request.user, request.collection, "edit")
+
+        patch = {}
+        if is_many_to_one(request.relation):
+            field = request.relation["foreign_key_target"]
+        elif is_polymorphic_many_to_one(request.relation):
+            field = request.relation["foreign_key_targets"][request.foreign_collection.name]
+            patch[request.relation["foreign_key_type_field"]] = request.foreign_collection.name
 
         foreign_value = (
             await CollectionUtils.get_value(
                 request.user,
                 cast(Collection, request.foreign_collection),
                 linked_id,
-                request.relation["foreign_key_target"],
+                field,
             )
             if linked_id is not None
             else None
         )
+        patch[request.relation["foreign_key"]] = foreign_value
 
         trees = [ConditionTreeFactory.match_ids(request.collection.schema, [parent_id])]
         if scope:
@@ -472,5 +518,5 @@ class CrudRelatedResource(BaseCollectionResource):
         await request.collection.update(
             request.user,
             Filter({"condition_tree": ConditionTreeFactory.intersect(trees), "timezone": timezone}),
-            {f"{request.relation['foreign_key']}": foreign_value},
+            patch,
         )

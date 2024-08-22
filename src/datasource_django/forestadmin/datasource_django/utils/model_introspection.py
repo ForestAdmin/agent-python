@@ -24,9 +24,14 @@ from forestadmin.datasource_toolkit.interfaces.fields import (
     OneToMany,
     OneToOne,
     Operator,
+    PolymorphicManyToOne,
+    PolymorphicOneToMany,
+    PolymorphicOneToOne,
+    PrimitiveType,
     Validation,
 )
 from forestadmin.datasource_toolkit.interfaces.models.collections import CollectionSchema
+from typing_extensions import TypeGuard
 
 try:
     # GeneratedField is available since django 5
@@ -98,7 +103,7 @@ class FieldFactory:
 
 class DjangoCollectionFactory:
     @staticmethod
-    def _build_one_to_many(relation: ManyToOneRel) -> Optional[OneToMany]:
+    def _build_one_to_many(relation: ManyToOneRel) -> OneToMany:
         return {
             "foreign_collection": relation.target_field.model._meta.db_table,
             "origin_key": relation.field.attname,
@@ -107,7 +112,7 @@ class DjangoCollectionFactory:
         }
 
     @staticmethod
-    def _build_many_to_one(relation: Union[OneToOneField, ForeignKey, ManyToOneRel]) -> Optional[ManyToOne]:
+    def _build_many_to_one(relation: Union[OneToOneField, ForeignKey, ManyToOneRel]) -> ManyToOne:
         if isinstance(relation, ManyToOneRel):
             foreign_key = relation.field.attname
         elif isinstance(relation, ForeignKey) or isinstance(relation, OneToOneField):
@@ -117,6 +122,78 @@ class DjangoCollectionFactory:
             "foreign_key": foreign_key,
             "foreign_key_target": relation.target_field.attname,
             "type": FieldType.MANY_TO_ONE,
+        }
+
+    @staticmethod
+    def _build_one_to_polymorphic(
+        relation: "GenericRelation", model: Model  # noqa: F821  # type: ignore
+    ) -> Union[PolymorphicOneToMany, PolymorphicOneToOne]:
+        foreign_model = relation.target_field.model
+        ret = {
+            "foreign_collection": foreign_model._meta.db_table,  # app_addresses
+            "origin_key": relation.object_id_field_name,  # addressable_id
+            "origin_key_target": model._meta.pk.name,  # id
+            "origin_type_field": relation.content_type_field_name,  # addressable_type
+            "origin_type_value": model._meta.db_table,  # app_customer
+        }
+
+        for uniqueness in relation.target_field.model._meta.unique_together:
+            if len(uniqueness) == 2 and ret["origin_type_field"] in uniqueness and ret["origin_key"] in uniqueness:
+                ret["type"] = FieldType.POLYMORPHIC_ONE_TO_ONE
+                break
+        else:
+            ret["type"] = FieldType.POLYMORPHIC_ONE_TO_MANY
+        return ret  # type:ignore
+
+    @staticmethod
+    def _build_field_override_for_many_to_one_polymorphic(
+        relation: "GenericForeignKey", model: Model, foreign_collections: List[str]  # noqa: F821  # type: ignore
+    ) -> Dict[str, Dict]:
+        overrides = {}
+        # override fk field
+        overrides[relation.fk_field] = {
+            **FieldFactory.build(model._meta.get_field(relation.fk_field), model),
+            "is_read_only": True,
+        }
+        # override ct field
+        type_field = model._meta.get_field(relation.ct_field)
+        overrides[relation.ct_field] = {
+            "column_type": PrimitiveType.ENUM,
+            "is_primary_key": type_field.primary_key,  # type: ignore
+            "is_read_only": True,
+            "default_value": None,
+            "is_sortable": True,
+            "validations": [],
+            "filter_operators": FilterOperator.get_for_type(PrimitiveType.STRING),
+            "enum_values": foreign_collections,
+            "type": FieldType.COLUMN,
+        }
+        # override ct_id field
+        overrides[type_field.column] = {
+            **FieldFactory.build(model._meta.get_field(type_field.column), model),
+            "is_read_only": True,
+        }
+        return overrides
+
+    @staticmethod
+    def _build_many_to_one_polymorphic(
+        relation: "GenericForeignKey", model: Model  # noqa: F821  # type: ignore
+    ) -> PolymorphicManyToOne:
+        targets = {}
+        for field in model._meta.get_fields(include_hidden=True):
+            if (
+                not is_generic_rel(field)
+                or field.remote_field.content_type_field_name != relation.ct_field  # type:ignore
+                or field.remote_field.object_id_field_name != relation.fk_field  # type:ignore
+            ):
+                continue
+            targets[field.remote_field.model._meta.db_table] = field.remote_field.model._meta.pk.name  # type:ignore
+        return {
+            "foreign_collections": [*targets.keys()],
+            "foreign_key": relation.fk_field,
+            "foreign_key_type_field": relation.ct_field,
+            "foreign_key_targets": targets,
+            "type": FieldType.POLYMORPHIC_MANY_TO_ONE,
         }
 
     @staticmethod
@@ -150,18 +227,15 @@ class DjangoCollectionFactory:
         return ManyToMany(type=FieldType.MANY_TO_MANY, foreign_relation=None, **kwargs)
 
     @staticmethod
-    def build(model: Model) -> CollectionSchema:
+    def build(model: Model, introspect_polymorphic_relations: bool) -> CollectionSchema:  # noqa:C901
         fields = {}
+        overrides = {}
         for field in model._meta.get_fields(include_hidden=True):
             if not field.is_relation:
                 fields[field.name] = FieldFactory.build(field, model)
             else:
-                if generic_foreign_key(field) or is_generic_rel(field) or is_generic_relation(field):
-                    ForestLogger.log(
-                        "info",
-                        f"Ignoring {model._meta.db_table}.{field.name} because polymorphic relation is not supported.",
-                    )
-                    continue
+                if is_generic_rel(field):
+                    continue  # will be handled during is_generic_foreign_key
 
                 # get_fields with include hidden doesn't include autogenerated foreign key fields (ending with _id)
                 if isinstance(field, ForeignKey):
@@ -174,20 +248,49 @@ class DjangoCollectionFactory:
                         fields[field.name] = DjangoCollectionFactory._build_one_to_one(field)
 
                 elif field.one_to_many is True:
-                    fields[f"{field.name}_{field.remote_field.name}"] = DjangoCollectionFactory._build_one_to_many(
-                        field
-                    )
+                    if is_generic_relation(field):
+                        if introspect_polymorphic_relations:
+                            fields[field.name] = DjangoCollectionFactory._build_one_to_polymorphic(field, model)
+                        else:
+                            ForestLogger.log(
+                                "info",
+                                f"Ignoring {model._meta.db_table}.{field.name} "
+                                "because polymorphic relation is not supported.",
+                            )
+                    else:
+                        fields[f"{field.name}_{field.remote_field.name}"] = DjangoCollectionFactory._build_one_to_many(
+                            field
+                        )
 
                 elif field.many_to_one is True:
-                    fields[field.name] = DjangoCollectionFactory._build_many_to_one(field)
+                    if is_generic_foreign_key(field):
+                        if introspect_polymorphic_relations:
+                            fields[field.name] = DjangoCollectionFactory._build_many_to_one_polymorphic(field, model)
+                            overrides.update(
+                                DjangoCollectionFactory._build_field_override_for_many_to_one_polymorphic(
+                                    field, model, fields[field.name]["foreign_collections"]
+                                )
+                            )
+                        else:
+                            ForestLogger.log(
+                                "info",
+                                f"Ignoring {model._meta.db_table}.{field.name} "
+                                "because polymorphic relation is not supported.",
+                            )
+
+                    else:
+                        fields[field.name] = DjangoCollectionFactory._build_many_to_one(field)
 
                 elif field.many_to_many is True:
                     fields[field.name] = DjangoCollectionFactory._build_many_to_many(field)
 
-        return {"actions": {}, "fields": fields, "searchable": False, "segments": []}
+        if overrides:
+            fields.update(overrides)
+        return {"actions": {}, "fields": fields, "searchable": False, "segments": [], "countable": True, "charts": []}
 
 
-def generic_foreign_key(field):
+def is_generic_foreign_key(field) -> TypeGuard["GenericForeignKey"]:  # noqa: F821 # type: ignore
+    """return true if it is the polymorphism relation"""
     # when imported at top level (before app.Ready):
     # it raise django.core.exceptions.AppRegistryNotReady: Apps aren't loaded yet.
     from django.contrib.contenttypes.fields import GenericForeignKey
@@ -195,7 +298,8 @@ def generic_foreign_key(field):
     return isinstance(field, GenericForeignKey)
 
 
-def is_generic_relation(field):
+def is_generic_relation(field) -> TypeGuard["GenericRelation"]:  # noqa: F821 # type: ignore
+    """return true if it is the reverse polymorphism relation"""
     # when imported at top level (before app.Ready):
     # it raise django.core.exceptions.AppRegistryNotReady: Apps aren't loaded yet.
     from django.contrib.contenttypes.fields import GenericRelation
@@ -203,7 +307,8 @@ def is_generic_relation(field):
     return isinstance(field, GenericRelation)
 
 
-def is_generic_rel(field):
+def is_generic_rel(field) -> TypeGuard["GenericRel"]:  # noqa: F821 # type: ignore
+    """return true if it is a potential relation of the polymorphism relation"""
     # when imported at top level (before app.Ready):
     # it raise django.core.exceptions.AppRegistryNotReady: Apps aren't loaded yet.
     from django.contrib.contenttypes.fields import GenericRel

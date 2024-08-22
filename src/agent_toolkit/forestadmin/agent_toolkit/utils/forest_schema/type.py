@@ -2,7 +2,7 @@ import enum
 from typing import Any, Dict, Generic, List, Literal, Optional, TypeVar, Union
 
 from forestadmin.datasource_toolkit.interfaces.fields import ColumnAlias
-from typing_extensions import TypedDict
+from typing_extensions import NotRequired, TypedDict
 
 Number = Union[int, float]
 TValue = TypeVar("TValue")
@@ -62,6 +62,7 @@ class ForestServerField(TypedDict, total=False):
     inverseOf: Optional[str]
     relationship: RelationServer
     validations: List[ServerValidationType]
+    polymorphic_referenced_models: NotRequired[List[str]]
 
 
 LiteralPage = Literal["page"]

@@ -37,15 +37,14 @@ from app.forest.order import (
     suspicious_order_segment,
     total_order_chart,
 )
+from forestadmin.datasource_django.datasource import DjangoDatasource
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.leaf import ConditionTreeLeaf
 from forestadmin.django_agent.agent import DjangoAgent
-
-# from forestadmin.datasource_django.datasource import DjangoDatasource
 
 
 def customize_forest(agent: DjangoAgent):
     # customize_forest_logging()
-    # agent.add_datasource(DjangoDatasource())
+    agent.add_datasource(DjangoDatasource(support_polymorphic_relations=True))
 
     # # ## ADDRESS
     agent.customize_collection("app_address").add_segment(
@@ -218,6 +217,7 @@ def customize_forest(agent: DjangoAgent):
             "get_values": lambda records, cts: [r["ordered_at"] for r in records],
         },
     )
+    agent.customize_collection("app_tag").rename_field("tagged_item", "item")
 
     # general
     agent.add_chart("total_order", total_order_chart).add_chart(

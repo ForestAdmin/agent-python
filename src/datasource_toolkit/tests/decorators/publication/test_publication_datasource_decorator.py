@@ -10,7 +10,10 @@ else:
 from forestadmin.agent_toolkit.utils.context import User
 from forestadmin.datasource_toolkit.collections import Collection
 from forestadmin.datasource_toolkit.datasources import Datasource
-from forestadmin.datasource_toolkit.decorators.publication.datasource import PublicationDataSourceDecorator
+from forestadmin.datasource_toolkit.decorators.publication.datasource import (
+    PublicationDataSourceDecorator,
+    PublicationDatasourceException,
+)
 from forestadmin.datasource_toolkit.exceptions import ForestException
 from forestadmin.datasource_toolkit.interfaces.fields import (
     Column,
@@ -19,6 +22,8 @@ from forestadmin.datasource_toolkit.interfaces.fields import (
     ManyToOne,
     OneToOne,
     Operator,
+    PolymorphicManyToOne,
+    PolymorphicOneToMany,
     PrimitiveType,
 )
 
@@ -96,9 +101,63 @@ class TestPublicationDatasourceDecorator(TestCase):
             }
         )
 
+        cls.collection_tag = Collection("Tag", cls.datasource)
+        cls.collection_tag.add_fields(
+            {
+                "id": Column(
+                    column_type=PrimitiveType.NUMBER,
+                    is_primary_key=True,
+                    type=FieldType.COLUMN,
+                    filter_operators=set([Operator.IN, Operator.EQUAL]),
+                ),
+                "tag": Column(
+                    column_type=PrimitiveType.STRING,
+                    filter_operators=set([Operator.IN, Operator.EQUAL, Operator.STARTS_WITH]),
+                    type=FieldType.COLUMN,
+                ),
+                "taggable_id": Column(
+                    column_type=PrimitiveType.NUMBER,
+                    filter_operators=set([Operator.IN, Operator.EQUAL]),
+                    type=FieldType.COLUMN,
+                ),
+                "taggable_type": Column(
+                    column_type=PrimitiveType.STRING,
+                    filter_operators=set([Operator.IN, Operator.EQUAL, Operator.STARTS_WITH]),
+                    type=FieldType.COLUMN,
+                ),
+                "taggable": PolymorphicManyToOne(
+                    foreign_collections=["Taggable"],
+                    foreign_key="taggable_id",
+                    foreign_key_targets={"Taggable": "id"},
+                    foreign_key_type_field="taggable_type",
+                    type=FieldType.POLYMORPHIC_MANY_TO_ONE,
+                ),
+            }
+        )
+        cls.collection_taggable = Collection("Taggable", cls.datasource)
+        cls.collection_taggable.add_fields(
+            {
+                "id": Column(
+                    column_type=PrimitiveType.NUMBER,
+                    is_primary_key=True,
+                    type=FieldType.COLUMN,
+                    filter_operators=set([Operator.IN, Operator.EQUAL]),
+                ),
+                "tags": PolymorphicOneToMany(
+                    foreign_collection="Tag",
+                    origin_key="taggable_id",
+                    origin_key_target="id",
+                    origin_type_field="taggable_type",
+                    origin_type_value="Taggable",
+                    type=FieldType.POLYMORPHIC_ONE_TO_MANY,
+                ),
+            }
+        )
         cls.datasource.add_collection(cls.collection_book)
         cls.datasource.add_collection(cls.collection_book_person)
         cls.datasource.add_collection(cls.collection_person)
+        cls.datasource.add_collection(cls.collection_tag)
+        cls.datasource.add_collection(cls.collection_taggable)
 
         cls.mocked_caller = User(
             rendering_id=1,
@@ -161,3 +220,16 @@ class TestPublicationDatasourceDecorator(TestCase):
 
         self.assertNotIn("book", decorated_datasource.get_collection("BookPerson").schema["fields"].keys())
         self.assertNotIn("book", decorated_datasource.get_collection("Person").schema["fields"].keys())
+
+    def test_cannot_remove_collection_target_of_a_polymorphic_relation(self):
+        decorated_datasource = PublicationDataSourceDecorator(self.datasource)
+
+        self.assertRaisesRegex(
+            PublicationDatasourceException,
+            "🌳🌳🌳Cannot remove collection Taggable because it's a potential target of polymorphic relation "
+            "Tag.taggable",
+            decorated_datasource.keep_collections_matching,
+            [],
+            ["Taggable"],
+        )
+        decorated_datasource.get_collection("Taggable")

@@ -1,9 +1,12 @@
 from datetime import date
 
+# uncomment this to reenable "other" database
 from app.flask_models import *  # noqa:F401,F403
-from django.db import models
 
 # from django.db.models.functions import Concat
+from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
+from django.contrib.contenttypes.models import ContentType
+from django.db import models
 
 """
 checklist:
@@ -102,6 +105,13 @@ class Customer(AutoUpdatedCreatedAt):
 
     blocked_customer = models.ManyToManyField("self", blank=True, related_name="block_by_users", symmetrical=False)
 
+    tags = GenericRelation(
+        "Tag",
+        content_type_field="tagged_item_type",
+        object_id_field="tagged_item_id",
+        related_query_name="customers",
+    )
+
 
 class Order(AutoUpdatedCreatedAt):
     class OrderStatus(models.TextChoices):
@@ -119,6 +129,13 @@ class Order(AutoUpdatedCreatedAt):
     ordered_at = models.DateTimeField(null=True)
     # cart
 
+    tags = GenericRelation(
+        "Tag",
+        content_type_field="tagged_item_type",
+        object_id_field="tagged_item_id",
+        related_query_name="orders",
+    )
+
 
 class Cart(models.Model):
     # pk = models.BigAutoField(primary_key=True)
@@ -130,11 +147,20 @@ class Cart(models.Model):
 
 class ExtendedCart(models.Model):
     cart = models.OneToOneField(Cart, primary_key=True, on_delete=models.CASCADE)
-
     color = models.CharField(max_length=20)
-
     discount = models.OneToOneField("DiscountCart", on_delete=models.CASCADE, null=True)
 
 
 class DiscountCart(models.Model):
     discount = models.FloatField()
+
+
+class Tag(models.Model):
+    # comment this to set the reverse relations to oneToMany
+    class Meta:
+        unique_together = ("tagged_item_type", "tagged_item_id")
+
+    tagged_item_id = models.IntegerField()
+    tagged_item_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    tagged_item = GenericForeignKey("tagged_item_type", "tagged_item_id")
+    tag = models.CharField(max_length=255)

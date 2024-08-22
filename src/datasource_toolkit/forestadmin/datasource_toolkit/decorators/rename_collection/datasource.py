@@ -4,7 +4,9 @@ from forestadmin.datasource_toolkit.datasources import Datasource
 from forestadmin.datasource_toolkit.decorators.datasource_decorator import DatasourceDecorator
 from forestadmin.datasource_toolkit.decorators.rename_collection.collection import RenameCollectionCollectionDecorator
 from forestadmin.datasource_toolkit.exceptions import ForestException
+from forestadmin.datasource_toolkit.interfaces.fields import is_polymorphic_one_to_many, is_polymorphic_one_to_one
 from forestadmin.datasource_toolkit.interfaces.models.collections import BoundCollection
+from forestadmin.datasource_toolkit.utils.collections import CollectionUtils
 
 
 class RenameCollectionDataSourceDecorator(DatasourceDecorator):
@@ -54,6 +56,17 @@ class RenameCollectionDataSourceDecorator(DatasourceDecorator):
                 raise ForestException(
                     f"Cannot rename a collection twice: {self._to_child_name[current_name]}->{current_name}->{new_name}"
                 )
+
+            # check collection is not a potential target of a polymorphic relation
+            for field_name, field_schema in self.get_collection(current_name).schema["fields"].items():
+                if is_polymorphic_one_to_one(field_schema) or is_polymorphic_one_to_many(field_schema):
+                    reverse_relation_name = CollectionUtils.get_inverse_relation(
+                        self.get_collection(current_name), field_name  # type:ignore
+                    )
+                    raise ForestException(
+                        f"Cannot rename collection {current_name} because it's a target of a polymorphic relation "
+                        f"'{field_schema['foreign_collection']}.{reverse_relation_name}'"
+                    )
 
             self._from_child_name[current_name] = new_name
             self._to_child_name[new_name] = current_name

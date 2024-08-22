@@ -9,9 +9,18 @@ else:
 from forestadmin.agent_toolkit.utils.context import User
 from forestadmin.datasource_toolkit.collections import Collection
 from forestadmin.datasource_toolkit.exceptions import DatasourceToolkitException
-from forestadmin.datasource_toolkit.interfaces.fields import FieldType, ManyToMany, OneToMany, Operator
+from forestadmin.datasource_toolkit.interfaces.fields import (
+    FieldType,
+    ManyToMany,
+    OneToMany,
+    Operator,
+    PolymorphicOneToMany,
+    is_one_to_many,
+    is_polymorphic_one_to_many,
+)
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.factory import ConditionTreeFactory
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.base import ConditionTree
+from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.branch import ConditionTreeBranch
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.leaf import ConditionTreeLeaf
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.transforms.comparison import Alternative
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.transforms.time import (
@@ -126,7 +135,7 @@ class FilterFactory:
         caller: User,
         collection: Collection,
         id: CompositeIdAlias,
-        relation: Union[ManyToMany, OneToMany],
+        relation: Union[ManyToMany, OneToMany, PolymorphicOneToMany],
         _base_foreign_key_filter: Union[PaginatedFilter, Filter],
     ) -> PaginatedFilter:
         if is_filter(_base_foreign_key_filter):
@@ -138,9 +147,17 @@ class FilterFactory:
         # Compute condition tree to match parent record.
         origin_tree: ConditionTree
 
-        if relation["type"] == FieldType.ONE_TO_MANY:
+        if is_one_to_many(relation):
             # OneToMany case (can be done in one request all the time)
             origin_tree = ConditionTreeLeaf(relation["origin_key"], Operator.EQUAL, origin_value)
+        elif is_polymorphic_one_to_many(relation):
+            origin_tree = ConditionTreeBranch(
+                "and",
+                [
+                    ConditionTreeLeaf(relation["origin_key"], Operator.EQUAL, origin_value),
+                    ConditionTreeLeaf(relation["origin_type_field"], Operator.EQUAL, relation["origin_type_value"]),
+                ],
+            )
         else:
             # ManyToMany case (more complicated...)
             through = collection.datasource.get_collection(relation["through_collection"])
