@@ -49,9 +49,29 @@ def customize_forest(agent: DjangoAgent):
     agent.add_datasource(TypicodeDatasource())
 
     # # ## ADDRESS
-    agent.customize_collection("app_address").add_segment(
-        "highOrderDelivery", high_delivery_address_segment
-    ).rename_field("country", "pays").add_field("full_address", address_full_name_computed("country")).rename_field(
+    agent.customize_collection("app_address").add_action(
+        "form_multipage",
+        {
+            "scope": "Bulk",
+            "execute": lambda ctx, result_builder: result_builder.success("bla"),
+            "description": "First forest multi page form 🎉",
+            "submit_button_label": "Click here to submit your entire form",
+            "pages": [
+                {
+                    "next_button_label": "==>",
+                    "back_button_label": "<==",
+                    "form": [{"type": "String", "label": "first_name"}],
+                },
+                {
+                    "next_button_label": "==>",
+                    "back_button_label": "<==",
+                    "form": [{"type": "String", "label": "last_name"}],
+                },
+            ],
+        },
+    ).add_segment("highOrderDelivery", high_delivery_address_segment).rename_field("country", "pays").add_field(
+        "full_address", address_full_name_computed("country")
+    ).rename_field(
         "full_address", "complete_address"
     ).replace_field_sorting(
         "full_address",
