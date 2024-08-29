@@ -60,7 +60,7 @@ class PlainField(TypedDict):
 
 
 class BaseDynamicField(Generic[Result]):
-    ATTR_TO_EVALUATE = ("is_required", "is_read_only", "if_", "value", "default_value")
+    ATTR_TO_EVALUATE = ("is_required", "is_read_only", "if_", "value", "default_value", "description")
     WIDGET_ATTR_TO_EVALUATE = ("min", "max", "step", "base", "extensions", "max_size_mb", "max_count", "options")
     TYPE: ActionFieldType
 
@@ -76,7 +76,7 @@ class BaseDynamicField(Generic[Result]):
         **kwargs,
     ):
         self.label = label
-        self.description = description
+        self._description = description
         self._is_required = is_required
         self._is_read_only = is_read_only
         self._if_ = if_
@@ -107,7 +107,7 @@ class BaseDynamicField(Generic[Result]):
         field = ActionField(
             type=self.TYPE,
             label=self.label,
-            description=self.description,
+            description=await self.description(context),
             is_read_only=await self.is_read_only(context),
             is_required=await self.is_required(context),
             value=await self.value(context) or default_value,
@@ -123,6 +123,9 @@ class BaseDynamicField(Generic[Result]):
 
     async def default_value(self, context: Context) -> Result:
         return await self._evaluate(context, self._default_value)
+
+    async def description(self, context: Context) -> str:
+        return await self._evaluate(context, self._description)
 
     async def is_required(self, context: Context) -> bool:
         return await self._evaluate(context, self._is_required)

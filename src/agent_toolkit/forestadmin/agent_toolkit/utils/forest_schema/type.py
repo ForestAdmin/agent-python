@@ -312,13 +312,22 @@ class ForestServerActionField(TypedDict):
     widgetEdit: Optional[WidgetEditConfiguration]
 
 
+class ForestServerActionPage(TypedDict):
+    nextButtonLabel: Optional[str]
+    backButtonLabel: Optional[str]
+    form: Optional[List[ForestServerActionField]]
+
+
 class ForestServerAction(TypedDict):
     id: str
     name: str
+    description: Optional[str]
+    submitButtonLabel: Optional[str]
     type: Literal["single", "bulk", "global"]
     endpoint: str
     download: bool
-    fields: List[ForestServerActionField]
+    fields: Optional[List[ForestServerActionField]]
+    pages: Optional[List[ForestServerActionPage]]
     hooks: ForestServerActionHooks
 
 

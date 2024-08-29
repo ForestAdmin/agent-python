@@ -27,6 +27,8 @@ class File:
 @dataclass
 class Action:
     scope: ActionsScope
+    description: Optional[str]
+    submit_button_label: Optional[str]
     generate_file: Optional[bool]
     static_form: Optional[bool]
 
@@ -118,6 +120,12 @@ class ActionField(TypedDict):
     max_count: NotRequired[int]
     search: NotRequired[Any]
     allow_empty_values: NotRequired[bool]
+
+
+class ActionPage(TypedDict):
+    next_button_label: Optional[str]
+    back_button_label: Optional[str]
+    form: List[ActionField]
 
 
 class SuccessResult(TypedDict):
