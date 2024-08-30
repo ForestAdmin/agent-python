@@ -77,7 +77,7 @@ def _map_attribute_to_marshmallow(column_alias: FieldAlias):
     else:
         type_ = fields.Raw
 
-    is_nullable = column_alias["is_read_only"] is True or (
+    is_nullable = column_alias.get("is_read_only", False) is True or (
         column_alias.get("validations") is not None
         and {"operator": Operator.PRESENT} not in column_alias["validations"]
     )
