@@ -16,15 +16,18 @@ class CollectionSchema(TypedDict):
 
 
 class Collection(abc.ABC):
-    @abc.abstractproperty
+    @property
+    @abc.abstractmethod
     def datasource(self) -> "Datasource[Self]":
         raise NotImplementedError
 
-    @abc.abstractproperty
+    @property
+    @abc.abstractmethod
     def name(self) -> str:
         raise NotImplementedError
 
-    @abc.abstractproperty
+    @property
+    @abc.abstractmethod
     def schema(self) -> CollectionSchema:
         raise NotImplementedError
 
@@ -34,7 +37,8 @@ BoundCollection = TypeVar("BoundCollection", bound=Collection)
 
 
 class Datasource(Generic[BoundCollection], abc.ABC):
-    @abc.abstractproperty
+    @property
+    @abc.abstractmethod
     def collections(self) -> List[BoundCollection]:
         raise NotImplementedError
 
