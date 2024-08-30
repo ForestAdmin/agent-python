@@ -265,3 +265,6 @@ class ConditionTreeLeaf(ConditionTree):
             operator=self.operator.value,  # type: ignore
             value=self.value,
         )
+
+    def for_each_leaf(self, handler: Callable[["ConditionTreeLeaf"], None]):
+        handler(self)

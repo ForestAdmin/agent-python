@@ -130,3 +130,7 @@ class ConditionTreeBranch(ConditionTree):
             aggregator=self.aggregator.value,
             conditions=[condition.to_plain_object() for condition in self.conditions],  # type: ignore
         )
+
+    def for_each_leaf(self, handler: Callable[[ConditionTreeLeaf], None]):
+        for leaf in self.conditions:
+            leaf.for_each_leaf(handler)
