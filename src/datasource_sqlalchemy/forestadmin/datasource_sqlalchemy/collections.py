@@ -87,6 +87,7 @@ class SqlAlchemyCollection(BaseSqlAlchemyCollection):
         self._aliases: Dict[str, Alias] = {}
         schema = CollectionFactory.build(self.table, self.mapper)
         self.add_fields(schema["fields"])
+        self.enable_count()
 
     @property
     def table(self) -> Table:

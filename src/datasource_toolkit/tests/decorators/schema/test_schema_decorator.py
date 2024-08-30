@@ -27,6 +27,7 @@ class TestSchemaCollectionDecorator(TestCase):
                 "sub_title": Column(column_type=PrimitiveType.STRING, type=FieldType.COLUMN),
             }
         )
+        cls.collection_book.enable_count()
 
         cls.datasource.add_collection(cls.collection_book)
         cls.datasource_decorator = DatasourceDecorator(cls.datasource, SchemaCollectionDecorator)
