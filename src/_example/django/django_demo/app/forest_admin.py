@@ -2,6 +2,7 @@ import datetime
 
 from app.forest.address import address_full_name_computed, get_postal_code, high_delivery_address_segment
 from app.forest.cart import cart_get_customer_id, cart_update_name
+from app.forest.custom_datasources.typicode import TypicodeDatasource
 from app.forest.customer import (
     age_operation_action_dict,
     customer_delete_override,
@@ -45,6 +46,7 @@ from forestadmin.django_agent.agent import DjangoAgent
 def customize_forest(agent: DjangoAgent):
     # customize_forest_logging()
     agent.add_datasource(DjangoDatasource(support_polymorphic_relations=True))
+    agent.add_datasource(TypicodeDatasource())
 
     # # ## ADDRESS
     agent.customize_collection("app_address").add_segment(
