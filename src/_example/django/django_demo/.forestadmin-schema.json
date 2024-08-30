@@ -221,54 +221,26 @@
                 {
                     "id": "app_address-0-form_multipage",
                     "name": "form_multipage",
-                    "description": "First forest multi page form \ud83c\udf89",
-                    "submitButtonLabel": "Click here to submit your entire form",
-                    "type": "bulk",
+                    "type": "global",
                     "endpoint": "/forest/_actions/app_address/0/form_multipage",
                     "download": false,
-                    "fields": null,
-                    "pages": [
+                    "fields": [
                         {
-                            "backButtonLabel": "<==",
-                            "nextButtonLabel": "==>",
-                            "form": [
-                                {
-                                    "field": "first_name",
-                                    "value": null,
-                                    "defaultValue": null,
-                                    "description": "",
-                                    "enums": null,
-                                    "hook": null,
-                                    "isReadOnly": false,
-                                    "isRequired": false,
-                                    "reference": null,
-                                    "type": "String",
-                                    "widgetEdit": null
-                                }
-                            ]
-                        },
-                        {
-                            "backButtonLabel": "<==",
-                            "nextButtonLabel": "==>",
-                            "form": [
-                                {
-                                    "field": "last_name",
-                                    "value": null,
-                                    "defaultValue": null,
-                                    "description": "",
-                                    "enums": null,
-                                    "hook": null,
-                                    "isReadOnly": false,
-                                    "isRequired": false,
-                                    "reference": null,
-                                    "type": "String",
-                                    "widgetEdit": null
-                                }
-                            ]
+                            "field": "Loading...",
+                            "type": "String",
+                            "isReadOnly": true,
+                            "defaultValue": "Form is loading",
+                            "value": null,
+                            "description": "",
+                            "enums": null,
+                            "hook": null,
+                            "isRequired": false,
+                            "reference": null,
+                            "widgetEdit": null
                         }
                     ],
                     "hooks": {
-                        "load": false,
+                        "load": true,
                         "change": [
                             "changeHook"
                         ]
@@ -626,13 +598,10 @@
                 {
                     "id": "app_customer-0-export json",
                     "name": "Export json",
-                    "description": null,
-                    "submitButtonLabel": null,
                     "type": "bulk",
                     "endpoint": "/forest/_actions/app_customer/0/export json",
                     "download": true,
-                    "fields": null,
-                    "pages": null,
+                    "fields": [],
                     "hooks": {
                         "load": false,
                         "change": [
@@ -643,8 +612,6 @@
                 {
                     "id": "app_customer-1-age operation",
                     "name": "Age operation",
-                    "description": null,
-                    "submitButtonLabel": null,
                     "type": "single",
                     "endpoint": "/forest/_actions/app_customer/1/age operation",
                     "download": false,
@@ -662,23 +629,6 @@
                             "reference": null,
                             "widgetEdit": null
                         }
-                    ],
-                    "pages": [
-                        [
-                            {
-                                "field": "Loading...",
-                                "type": "String",
-                                "isReadOnly": true,
-                                "defaultValue": "Form is loading",
-                                "value": null,
-                                "description": "",
-                                "enums": null,
-                                "hook": null,
-                                "isRequired": false,
-                                "reference": null,
-                                "widgetEdit": null
-                            }
-                        ]
                     ],
                     "hooks": {
                         "load": true,
@@ -1353,8 +1303,6 @@
                 {
                     "id": "app_order-0-export json",
                     "name": "Export json",
-                    "description": null,
-                    "submitButtonLabel": null,
                     "type": "global",
                     "endpoint": "/forest/_actions/app_order/0/export json",
                     "download": true,
@@ -1386,7 +1334,6 @@
                             "widgetEdit": null
                         }
                     ],
-                    "pages": null,
                     "hooks": {
                         "load": false,
                         "change": [
@@ -1397,8 +1344,6 @@
                 {
                     "id": "app_order-1-refund order(s)",
                     "name": "Refund order(s)",
-                    "description": null,
-                    "submitButtonLabel": null,
                     "type": "single",
                     "endpoint": "/forest/_actions/app_order/1/refund order(s)",
                     "download": false,
@@ -1417,7 +1362,6 @@
                             "widgetEdit": null
                         }
                     ],
-                    "pages": null,
                     "hooks": {
                         "load": false,
                         "change": [

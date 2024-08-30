@@ -9,13 +9,7 @@ from forestadmin.datasource_toolkit.decorators.action.result_builder import Resu
 from forestadmin.datasource_toolkit.decorators.action.types.actions import ActionDict
 from forestadmin.datasource_toolkit.decorators.action.types.fields import BaseDynamicField, DynamicField, FieldFactory
 from forestadmin.datasource_toolkit.decorators.collection_decorator import CollectionDecorator
-from forestadmin.datasource_toolkit.interfaces.actions import (
-    Action,
-    ActionField,
-    ActionPage,
-    ActionResult,
-    ActionsScope,
-)
+from forestadmin.datasource_toolkit.interfaces.actions import Action, ActionField, ActionResult, ActionsScope
 from forestadmin.datasource_toolkit.interfaces.models.collections import CollectionSchema
 from forestadmin.datasource_toolkit.interfaces.query.filter.unpaginated import Filter
 from forestadmin.datasource_toolkit.interfaces.records import RecordsDataAlias
@@ -75,15 +69,12 @@ class ActionCollectionDecorator(CollectionDecorator):
         data: Optional[RecordsDataAlias],
         filter_: Optional[Filter] = None,
         meta: Optional[Dict[str, Any]] = dict(),
-    ) -> List[Union[ActionField, ActionPage]]:
+    ) -> List[ActionField]:
         action = self._actions.get(name)
         if not action:
             return await super().get_form(caller, name, data, filter_, meta)  # type: ignore
-        elif "form" not in action and "pages" not in action:
+        elif "form" not in action:
             return []
-
-        if "pages" in action:
-            return await self._get_multipage_form(caller, name, data, filter_, meta)
 
         form_values = data or {}
         used: Set[str] = set()
@@ -101,55 +92,56 @@ class ActionCollectionDecorator(CollectionDecorator):
             context, form_fields, form_values, meta.get("search_values", {}).get(meta.get("search_field"))
         )
         for field in action_fields:
-            field["watch_changes"] = field["label"] in context.form_values.used_keys
+            if field["type"] != "layout":
+                field["watch_changes"] = field["label"] in context.form_values.used_keys
         return action_fields
 
-    async def _get_multipage_form(
-        self,
-        caller: User,
-        name: str,
-        data: Optional[RecordsDataAlias],
-        filter_: Optional[Filter] = None,
-        meta: Optional[Dict[str, Any]] = dict(),
-    ) -> List[ActionPage]:
-        action = self._actions.get(name)
-        form_values = data or {}
-        used: Set[str] = set()
-        context = self._get_context(caller, action, form_values, filter_, used, meta.get("changed_field"))
-        # TODO: need to know the structure in http request. For now let's consider it's like now, and the agent convert name into pages
-        form_fields: List[DynamicField] = cast(
-            List[DynamicField], [field for page in action.get("pages", []) for field in page.get("form", [])]
-        )
-        pages_fields = [[field for field in page.get("form", [])] for page in action.get("pages", [])]
-        if meta.get("search_field"):
-            # in the case of a search hook,
-            # we don't want to rebuild all the fields. only the one searched
-            form_fields = [field for field in form_fields if field.label == meta["search_field"]]
+    # async def _get_multipage_form(
+    #     self,
+    #     caller: User,
+    #     name: str,
+    #     data: Optional[RecordsDataAlias],
+    #     filter_: Optional[Filter] = None,
+    #     meta: Optional[Dict[str, Any]] = dict(),
+    # ) -> List[ActionPage]:
+    #     action = self._actions.get(name)
+    #     form_values = data or {}
+    #     used: Set[str] = set()
+    #     context = self._get_context(caller, action, form_values, filter_, used, meta.get("changed_field"))
+    #     # TODO: need to know the structure in http request. For now let's consider it's like now, and the agent convert name into pages
+    #     form_fields: List[DynamicField] = cast(
+    #         List[DynamicField], [field for page in action.get("pages", []) for field in page.get("form", [])]
+    #     )
+    #     pages_fields = [[field for field in page.get("form", [])] for page in action.get("pages", [])]
+    #     if meta.get("search_field"):
+    #         # in the case of a search hook,
+    #         # we don't want to rebuild all the fields. only the one searched
+    #         form_fields = [field for field in form_fields if field.label == meta["search_field"]]
 
-        form_values = await self._build_form_values(context, form_fields, form_values)
-        pages_fields: List[ActionPage] = []
-        for page in action.get("pages", []):
-            new_page: ActionPage = {
-                "next_button_label": page.get("next_button_label"),
-                "back_button_label": page.get("back_button_label"),
-                "form": [],
-            }  # type: ignore
+    #     form_values = await self._build_form_values(context, form_fields, form_values)
+    #     pages_fields: List[ActionPage] = []
+    #     for page in action.get("pages", []):
+    #         new_page: ActionPage = {
+    #             "next_button_label": page.get("next_button_label"),
+    #             "back_button_label": page.get("back_button_label"),
+    #             "form": [],
+    #         }  # type: ignore
 
-            for label in ["next_button_label", "back_button_label"]:
-                if callable(new_page[label]):
-                    new_page[label] = await call_user_function(new_page[label])
+    #         for label in ["next_button_label", "back_button_label"]:
+    #             if callable(new_page[label]):
+    #                 new_page[label] = await call_user_function(new_page[label])
 
-            fields_names = [f.label for f in page.get("form", [])]
-            new_page["form"] = await self._build_fields(
-                context,
-                [f for f in form_fields if f.label in fields_names],
-                form_values,
-                meta.get("search_values", {}).get(meta.get("search_field")),
-            )
-            for field in new_page["form"]:
-                field["watch_changes"] = field["label"] in context.form_values.used_keys
-            pages_fields.append(new_page)
-        return pages_fields
+    #         fields_names = [f.label for f in page.get("form", [])]
+    #         new_page["form"] = await self._build_fields(
+    #             context,
+    #             [f for f in form_fields if f.label in fields_names],
+    #             form_values,
+    #             meta.get("search_values", {}).get(meta.get("search_field")),
+    #         )
+    #         for field in new_page["form"]:
+    #             field["watch_changes"] = field["label"] in context.form_values.used_keys
+    #         pages_fields.append(new_page)
+    #     return pages_fields
 
     def _refine_schema(self, sub_schema: CollectionSchema) -> CollectionSchema:
         actions_schema = {}
@@ -157,10 +149,6 @@ class ActionCollectionDecorator(CollectionDecorator):
             dynamics: List[bool] = []
             for field in action.get("form", []):
                 dynamics.append(field.is_dynamic)
-
-            for page in action.get("pages", []):
-                for field in page.get("form", []):
-                    dynamics.append(field.is_dynamic)
 
             actions_schema[name] = Action(
                 scope=ActionsScope(action["scope"]),
@@ -213,12 +201,3 @@ class ActionCollectionDecorator(CollectionDecorator):
             if await field.if_(context):
                 action_fields.append(await field.to_action_field(context, form_values.get(field.label), search_value))
         return action_fields
-
-    # async def _build_fields_pages(
-    #     self,
-    #     context: ActionContext,
-    #     fields: List[DynamicField],
-    #     form_values: RecordsDataAlias,
-    #     search_value: Optional[str] = None,
-    # ) -> List[List[ActionField]]:
-    #     for

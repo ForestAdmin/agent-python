@@ -7,6 +7,9 @@ from forestadmin.datasource_toolkit.decorators.action.types.fields import (
     PlainFileDynamicFieldFilePickerWidget,
     PlainFileListDynamicFieldFilePickerWidget,
     PlainJsonDynamicFieldJsonEditorWidget,
+    PlainLayoutPageConfiguration,
+    PlainLayoutRowConfiguration,
+    PlainLayoutSeparatorConfiguration,
     PlainListNumberDynamicFieldNumberInputListWidget,
     PlainNumberDynamicFieldCurrencyInputWidget,
     PlainNumberDynamicFieldNumberInputWidget,
@@ -136,3 +139,15 @@ class ActionFields:
         ]
     ]:
         return field is not None and field.get("widget", "") == "UserDropdown"
+
+    @staticmethod
+    def is_row_field(field: ActionField) -> TypeGuard[PlainLayoutRowConfiguration]:
+        return field is not None and field.get("widget", "" == "") == "Row"
+
+    @staticmethod
+    def is_separator_field(field: ActionField) -> TypeGuard[PlainLayoutSeparatorConfiguration]:
+        return field is not None and field.get("widget", "" == "") == "Row"
+
+    @staticmethod
+    def is_page_field(field: ActionField) -> TypeGuard[PlainLayoutPageConfiguration]:
+        return field is not None and field.get("widget", "" == "") == "Page"

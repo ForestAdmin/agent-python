@@ -128,13 +128,29 @@ class ActionResource(BaseCollectionResource):
                 "search_field": request.body.get("data", {}).get("attributes", {}).get("search_field"),
             },
         )
+        elements = [
+            await SchemaActionGenerator.build_field_schema(request.collection.datasource, field) for field in fields
+        ]
+        for element in elements:
+            if element.get("widget", "") == "page":
+                new_element = []
+                for subelement in element.get("elements", []):
+                    new_element.append({"fieldName": subelement["field"]})
+                element["elements"] = new_element
 
+        new_fields = []
+        for field in fields:
+            if field["type"] == "layout":
+                [
+                    new_fields.append(await SchemaActionGenerator.build_field_schema(request.collection.datasource, f))
+                    for f in field["elements"]
+                ]
+            else:
+                new_fields.append(await SchemaActionGenerator.build_field_schema(request.collection.datasource, field))
         return HttpResponseBuilder.build_success_response(
             {
-                "fields": [
-                    await SchemaActionGenerator.build_field_schema(request.collection.datasource, field)
-                    for field in fields
-                ]
+                "fields": new_fields,
+                "formElements": elements,
             }
         )
 

@@ -1,9 +1,9 @@
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional
 
 from forestadmin.agent_toolkit.utils.context import User
 from forestadmin.datasource_toolkit.datasources import Datasource, DatasourceException
 from forestadmin.datasource_toolkit.exceptions import ForestException
-from forestadmin.datasource_toolkit.interfaces.actions import ActionField, ActionPage, ActionResult
+from forestadmin.datasource_toolkit.interfaces.actions import ActionField, ActionResult
 from forestadmin.datasource_toolkit.interfaces.chart import Chart
 from forestadmin.datasource_toolkit.interfaces.collections import Collection as CollectionInterface
 from forestadmin.datasource_toolkit.interfaces.fields import FieldAlias
@@ -94,7 +94,7 @@ class Collection(CollectionInterface):
         data: Optional[RecordsDataAlias] = None,
         filter_: Optional[Filter] = None,
         meta: Optional[Dict[str, Any]] = None,
-    ) -> List[Union[ActionField, ActionPage]]:
+    ) -> List[ActionField]:
         """to get the form of an action"""
         return []
 

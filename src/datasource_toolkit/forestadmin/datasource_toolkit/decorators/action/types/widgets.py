@@ -1,5 +1,5 @@
 from datetime import date
-from typing import Awaitable, Callable, Generic, List, Literal, Optional, Set, TypeVar, Union
+from typing import Awaitable, Callable, Dict, Generic, List, Literal, Optional, Set, TypeVar, Union
 
 from forestadmin.datasource_toolkit.decorators.action.context.base import ActionContext
 from forestadmin.datasource_toolkit.decorators.action.context.bulk import ActionContextBulk
@@ -161,6 +161,23 @@ class UserDropdownFieldConfiguration(TypedDict):
     placeholder: NotRequired[Optional[str]]
 
 
+class PageConfiguration(TypedDict):
+    widget: Literal["Page"]
+    elements: List[Dict]
+    next_button_label: Optional[str]
+    back_button_label: Optional[str]
+
+
+class RowConfiguration(TypedDict):
+    widget: Literal["Row"]
+    fields: List[Dict]
+    size: List[int]
+
+
+class SeparatorConfiguration(TypedDict):
+    widget: Literal["Separator"]
+
+
 WIDGET_ATTRIBUTES: Set[str] = set()
 for WidgetType in [
     ColorPickerFieldConfiguration,
@@ -183,5 +200,8 @@ for WidgetType in [
     DropdownDynamicFieldConfiguration,
     DropdownDynamicSearchFieldConfiguration,
     UserDropdownFieldConfiguration,
+    PageConfiguration,
+    RowConfiguration,
+    SeparatorConfiguration,
 ]:
     WIDGET_ATTRIBUTES = WIDGET_ATTRIBUTES.union(WidgetType.__annotations__.keys())

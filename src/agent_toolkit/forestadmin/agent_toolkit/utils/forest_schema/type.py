@@ -276,6 +276,31 @@ class ForestServerActionFieldUserDropdownOptions(TypedDict):
     parameters: ForestServerActionFieldUserDropdownOptionsParameters
 
 
+# layout
+# row
+class ForestServerActionFieldRowOptionsParameters(TypedDict):
+    size: Optional[List[int]]
+    fields: Optional[List]
+
+
+class ForestServerActionFieldRowOptions(TypedDict):
+    name: Literal["row"]
+    parameters: ForestServerActionFieldRowOptionsParameters
+
+
+# separator
+class ForestServerActionFieldSeparatorOptions(TypedDict):
+    name: Literal["separator"]
+
+
+# page
+class ForestServerActionFieldPageOptions(TypedDict):
+    name: Literal["page"]
+    backButtonLabel: Optional[str]
+    nextButtonLabel: Optional[str]
+    elements: List["WidgetEditConfiguration"]
+
+
 WidgetEditConfiguration = Union[
     ForestServerActionFieldColorPickerOptions,
     ForestServerActionFieldTextEditorOptions,
@@ -295,6 +320,9 @@ WidgetEditConfiguration = Union[
     ForestServerActionFieldCheckboxGroupOptions,
     ForestServerActionFieldDropdownOptions,
     ForestServerActionFieldUserDropdownOptions,
+    ForestServerActionFieldRowOptions,
+    ForestServerActionFieldSeparatorOptions,
+    ForestServerActionFieldPageOptions,
 ]
 
 
@@ -312,22 +340,15 @@ class ForestServerActionField(TypedDict):
     widgetEdit: Optional[WidgetEditConfiguration]
 
 
-class ForestServerActionPage(TypedDict):
-    nextButtonLabel: Optional[str]
-    backButtonLabel: Optional[str]
-    form: Optional[List[ForestServerActionField]]
-
-
 class ForestServerAction(TypedDict):
     id: str
     name: str
-    description: Optional[str]
-    submitButtonLabel: Optional[str]
+    # description: Optional[str]
+    # submitButtonLabel: Optional[str]
     type: Literal["single", "bulk", "global"]
     endpoint: str
     download: bool
-    fields: Optional[List[ForestServerActionField]]
-    pages: Optional[List[ForestServerActionPage]]
+    fields: List[ForestServerActionField]
     hooks: ForestServerActionHooks
 
 

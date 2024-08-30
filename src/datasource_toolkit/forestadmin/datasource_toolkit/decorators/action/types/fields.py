@@ -1,5 +1,5 @@
 from datetime import date, datetime
-from typing import Any, Awaitable, Callable, Generic, List, Literal, Optional, TypeVar, Union
+from typing import Any, Awaitable, Callable, Coroutine, Dict, Generic, List, Literal, Optional, TypeVar, Union
 
 from forestadmin.datasource_toolkit.decorators.action.context.base import ActionContext
 from forestadmin.datasource_toolkit.decorators.action.context.bulk import ActionContextBulk
@@ -20,8 +20,11 @@ from forestadmin.datasource_toolkit.decorators.action.types.widgets import (
     JsonEditorFieldConfiguration,
     NumberInputFieldConfiguration,
     NumberInputListFieldConfiguration,
+    PageConfiguration,
     RadioButtonFieldConfiguration,
     RichTextFieldConfiguration,
+    RowConfiguration,
+    SeparatorConfiguration,
     TextAreaFieldConfiguration,
     TextInputFieldConfiguration,
     TimePickerFieldConfiguration,
@@ -99,7 +102,10 @@ class BaseDynamicField(Generic[Result]):
 
     @property
     def is_dynamic(self) -> bool:
-        return any(map(lambda x: isinstance(x, Callable), self.dynamic_fields))
+        return (
+            any(map(lambda x: isinstance(x, Callable), self.dynamic_fields))
+            or self._widget_fields.get("widget", "") == "Page"
+        )
 
     async def to_action_field(
         self, context: Context, default_value: Result, search_value: Optional[str] = None
@@ -415,6 +421,49 @@ class PlainFileListDynamicField(PlainField):
     default_value: NotRequired[ValueOrHandler[List[File]]]
 
 
+# layout
+
+
+class LayoutDynamicField(BaseDynamicField[None]):
+    TYPE = ActionFieldType.LAYOUT
+
+    def __init__(
+        self,
+        if_: (
+            Callable[[ActionContext], Awaitable[bool] | bool]
+            | Callable[[ActionContextSingle], Awaitable[bool] | bool]
+            | Callable[[ActionContextBulk], Awaitable[bool] | bool]
+            | bool
+            | None
+        ) = None,
+        **kwargs,
+    ):
+        super().__init__(None, None, None, None, if_, None, None, **kwargs)
+
+    async def to_action_field(
+        self,
+        context: ActionContext | ActionContextSingle | ActionContextBulk,
+        default_value: None,
+        search_value: str | None = None,
+    ) -> Dict:
+        if self._widget_fields["widget"] == "Page":
+            return {
+                "type": "layout",
+                "widget": "page",
+                "elements": [
+                    await FieldFactory.build(element).to_action_field(context, default_value, search_value)
+                    for element in self._widget_fields["elements"]
+                ],
+            }
+        else:
+            # TODO: handle other type of layout items
+            pass
+
+
+class PlainLayoutDynamicField(PlainField):
+    type: Literal[ActionFieldType.LAYOUT, "Layout"]
+
+
 DynamicField = Union[
     BooleanDynamicField,
     CollectionDynamicField,
@@ -562,6 +611,18 @@ class PlainStringDynamicFieldUserDropdownFieldConfiguration(PlainStringDynamicFi
     pass
 
 
+class PlainLayoutRowConfiguration(PlainLayoutDynamicField, RowConfiguration):
+    pass
+
+
+class PlainLayoutSeparatorConfiguration(PlainLayoutDynamicField, SeparatorConfiguration):
+    pass
+
+
+class PlainLayoutPageConfiguration(PlainLayoutDynamicField, PageConfiguration):
+    pass
+
+
 class WidgetTyping(TypedDict):
     type: Union[ActionFieldType, ActionFieldTypeLiteral]
     widget: WidgetTypes
@@ -626,6 +687,10 @@ PlainDynamicField = Union[
     # time
     PlainTimeDynamicField,
     PlainTimeDynamicFieldTimePickerWidget,
+    # layout
+    PlainLayoutRowConfiguration,
+    PlainLayoutSeparatorConfiguration,
+    PlainLayoutPageConfiguration,
     # for autocompletion
     WidgetTyping,  # this one must be the latest by name class (alphabetic order)
 ]
@@ -651,6 +716,7 @@ class FieldFactory:
         ActionFieldType.TIME: TimeDynamicField,
         ActionFieldType.DATE: DateTimeDynamicField,
         ActionFieldType.DATE_ONLY: DateOnlyDynamicField,
+        ActionFieldType.LAYOUT: LayoutDynamicField,
     }
 
     @classmethod

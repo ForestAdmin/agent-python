@@ -3,15 +3,11 @@ from typing import List, Literal, Union, cast
 from forestadmin.agent_toolkit.utils.forest_schema.action_values import ForestValueConverter
 from forestadmin.agent_toolkit.utils.forest_schema.generator_action_field_widget import GeneratorActionFieldWidget
 from forestadmin.agent_toolkit.utils.forest_schema.generator_field import SchemaFieldGenerator
-from forestadmin.agent_toolkit.utils.forest_schema.type import (
-    ForestServerAction,
-    ForestServerActionField,
-    ForestServerActionPage,
-)
+from forestadmin.agent_toolkit.utils.forest_schema.type import ForestServerAction, ForestServerActionField
 from forestadmin.datasource_toolkit.collections import Collection
 from forestadmin.datasource_toolkit.datasource_customizer.collection_customizer import CollectionCustomizer
 from forestadmin.datasource_toolkit.datasources import Datasource
-from forestadmin.datasource_toolkit.interfaces.actions import Action, ActionField, ActionFieldType, ActionPage
+from forestadmin.datasource_toolkit.interfaces.actions import Action, ActionField, ActionFieldType
 from forestadmin.datasource_toolkit.interfaces.fields import Column, PrimitiveType
 from forestadmin.datasource_toolkit.utils.schema import SchemaUtils
 
@@ -43,21 +39,33 @@ class SchemaActionGenerator:
         return ForestServerAction(
             id=f"{collection.name}-{idx}-{slug}",
             name=name,
-            description=schema.description,
-            submitButtonLabel=schema.submit_button_label,
+            # description=schema.description,
+            # submitButtonLabel=schema.submit_button_label,
             type=cast(Literal["single", "bulk", "global"], schema.scope.value.lower()),
             endpoint=f"/forest/_actions/{collection.name}/{idx}/{slug}",
             download=bool(schema.generate_file),
-            fields=await cls.build_fields(collection, schema, name) or None,
-            pages=await cls.build_pages(collection, schema, name) or None,
+            fields=await cls.build_fields(collection, schema, name),
             # Always registering the change hook has no consequences, even if we don't use it.
             hooks={"load": not schema.static_form, "change": ["changeHook"]},
         )
 
     @classmethod
+    async def build_layout_schema(cls, datasource: Datasource[Collection], field: ActionField):
+        if field.get("widget") == "page":
+            elements = []
+            for element in field.get("elements", []):
+                if element["type"] == ActionFieldType.LAYOUT:
+                    elements.append(await cls.build_layout_schema(datasource, element))
+                else:
+                    elements.append(await cls.build_field_schema(datasource, element))
+            return {"type": "layout", "widget": "page", "elements": elements}
+
+    @classmethod
     async def build_field_schema(
         cls, datasource: Datasource[Collection], field: ActionField
     ) -> ForestServerActionField:
+        if field["type"] in [ActionFieldType.LAYOUT, "layout"]:
+            return await cls.build_layout_schema(datasource, field)
         value = ForestValueConverter.value_to_forest(field, field["value"])
         default_value = ForestValueConverter.value_to_forest(field, field["default_value"])
         output: ForestServerActionField = {
@@ -75,6 +83,7 @@ class SchemaActionGenerator:
             "type": PrimitiveType.STRING,
             "widgetEdit": GeneratorActionFieldWidget.build_widget_options(field),  # type:ignore
         }
+
         if field["type"] == ActionFieldType.COLLECTION:
             collection: Collection = datasource.get_collection(field["collection_name"])  # type: ignore
             pk = SchemaUtils.get_primary_keys(collection.schema)[0]
@@ -109,37 +118,7 @@ class SchemaActionGenerator:
             return cls.DUMMY_FIELDS
         fields = await collection.get_form(None, name, None, None)
 
-        if isinstance(fields, list) and len(fields) >= 1 and "form" in fields[0]:
-            # is multipage
-            return []
-
         new_fields: List[ForestServerActionField] = []
         for field in fields:
             new_fields.append(await cls.build_field_schema(collection.datasource, field))
         return new_fields
-
-    @classmethod
-    async def build_pages(
-        cls, collection: Union[Collection, CollectionCustomizer], action: Action, name: str
-    ) -> List[ForestServerActionPage]:
-        if not action.static_form:
-            return [cls.DUMMY_FIELDS]
-        pages: List[ActionPage] = await collection.get_form(None, name, None, None)
-
-        if isinstance(pages, list) and len(pages) >= 1 and "form" not in pages[0]:
-            # is not multi page
-            return []
-
-        new_pages: List[ForestServerActionPage] = []
-        for page in pages:
-            fields_page: List[ForestServerActionField] = []
-            for field in page.get("form", []):
-                fields_page.append(await cls.build_field_schema(collection.datasource, field))
-            new_pages.append(
-                {
-                    "backButtonLabel": page["back_button_label"],
-                    "nextButtonLabel": page["next_button_label"],
-                    "form": fields_page,
-                }
-            )
-        return new_pages

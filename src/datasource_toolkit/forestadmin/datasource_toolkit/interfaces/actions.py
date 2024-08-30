@@ -48,6 +48,7 @@ class ActionFieldType(enum.Enum):
     FILE_LIST = "FileList"
     NUMBER_LIST = "NumberList"
     STRING_LIST = "StringList"
+    LAYOUT = "Layout"
 
 
 ActionFieldTypeLiteral = Literal[
@@ -65,6 +66,7 @@ ActionFieldTypeLiteral = Literal[
     "FileList",
     "NumberList",
     "StringList",
+    "Layout",
 ]
 
 
@@ -120,12 +122,9 @@ class ActionField(TypedDict):
     max_count: NotRequired[int]
     search: NotRequired[Any]
     allow_empty_values: NotRequired[bool]
-
-
-class ActionPage(TypedDict):
-    next_button_label: Optional[str]
-    back_button_label: Optional[str]
-    form: List[ActionField]
+    elements: NotRequired[List]
+    back_button_text: NotRequired[str]
+    next_button_text: NotRequired[str]
 
 
 class SuccessResult(TypedDict):

@@ -52,20 +52,36 @@ def customize_forest(agent: DjangoAgent):
     agent.customize_collection("app_address").add_action(
         "form_multipage",
         {
-            "scope": "Bulk",
+            "scope": "Global",
             "execute": lambda ctx, result_builder: result_builder.success("bla"),
-            "description": "First forest multi page form 🎉",
-            "submit_button_label": "Click here to submit your entire form",
-            "pages": [
+            # "description": "First forest multi page form 🎉",
+            # "submit_button_label": "Click here to submit your entire form",
+            "form": [
                 {
+                    "type": "Layout",
+                    "widget": "Page",
                     "next_button_label": "==>",
                     "back_button_label": "<==",
-                    "form": [{"type": "String", "label": "first_name"}],
+                    "elements": [
+                        {"type": "String", "label": "first_name"},
+                        # {"type": "Layout", "widget": "Separator"},
+                        # {
+                        #     "type": "layout",
+                        #     "widget": "Row",
+                        #     "size": [70, 30],
+                        #     "fields": [
+                        #         {"type": "String", "label": "bli"},
+                        #         {"type": "String", "label": "bla"},
+                        #     ],
+                        # },
+                    ],
                 },
                 {
+                    "type": "Layout",
+                    "widget": "Page",
                     "next_button_label": "==>",
                     "back_button_label": "<==",
-                    "form": [{"type": "String", "label": "last_name"}],
+                    "elements": [{"type": "String", "label": "last_name"}],
                 },
             ],
         },

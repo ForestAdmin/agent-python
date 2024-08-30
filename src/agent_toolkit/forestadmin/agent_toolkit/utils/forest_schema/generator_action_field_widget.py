@@ -14,8 +14,11 @@ from forestadmin.agent_toolkit.utils.forest_schema.type import (
     ForestServerActionFieldJsonEditorEditorOptions,
     ForestServerActionFieldNumberInputEditorOptions,
     ForestServerActionFieldNumberInputListEditorOptions,
+    ForestServerActionFieldPageOptions,
     ForestServerActionFieldRadioGroupOptions,
     ForestServerActionFieldRichTextEditorOptions,
+    ForestServerActionFieldRowOptions,
+    ForestServerActionFieldSeparatorOptions,
     ForestServerActionFieldTextAreaEditorOptions,
     ForestServerActionFieldTextEditorOptions,
     ForestServerActionFieldTextListEditorOptions,
@@ -30,6 +33,9 @@ from forestadmin.datasource_toolkit.decorators.action.types.fields import (
     PlainFileDynamicFieldFilePickerWidget,
     PlainFileListDynamicFieldFilePickerWidget,
     PlainJsonDynamicFieldJsonEditorWidget,
+    PlainLayoutPageConfiguration,
+    PlainLayoutRowConfiguration,
+    PlainLayoutSeparatorConfiguration,
     PlainListNumberDynamicFieldNumberInputListWidget,
     PlainNumberDynamicFieldCurrencyInputWidget,
     PlainNumberDynamicFieldNumberInputWidget,
@@ -80,6 +86,9 @@ class GeneratorActionFieldWidget:
             ActionFields.is_checkbox_group_field: GeneratorActionFieldWidget.build_checkbox_group_widget_edit,
             ActionFields.is_dropdown_field: GeneratorActionFieldWidget.build_dropdown_widget_edit,
             ActionFields.is_user_dropdown_field: GeneratorActionFieldWidget.build_user_dropdown_widget_edit,
+            ActionFields.is_row_field: GeneratorActionFieldWidget.build_row_widget_edit,
+            ActionFields.is_separator_field: GeneratorActionFieldWidget.build_separator_widget_edit,
+            ActionFields.is_page_field: GeneratorActionFieldWidget.build_page_widget_edit,
         }
         for if_fn, return_fn in if_return_mapping.items():
             if if_fn(field):
@@ -343,4 +352,31 @@ class GeneratorActionFieldWidget:
             "parameters": {
                 "placeholder": field.get("placeholder"),
             },
+        }
+
+    @staticmethod
+    def build_row_widget_edit(field: PlainLayoutRowConfiguration) -> ForestServerActionFieldRowOptions:
+        return {
+            "name": "row",
+            "parameters": {
+                "fields": field["fields"],
+                "size": [field.get("size", [None, None])[0], field.get("size", [None, None])[1]],
+            },
+        }
+
+    @staticmethod
+    def build_separator_widget_edit(
+        field: PlainLayoutSeparatorConfiguration,
+    ) -> ForestServerActionFieldSeparatorOptions:
+        return {
+            "name": "separator",
+        }
+
+    @staticmethod
+    def build_page_widget_edit(field: PlainLayoutPageConfiguration) -> ForestServerActionFieldPageOptions:
+        return {
+            "name": "page",
+            "backButtonLabel": field.get("back_button_label"),
+            "nextButtonLabel": field.get("next_button_label"),
+            "elements": field.get("elements"),
         }
