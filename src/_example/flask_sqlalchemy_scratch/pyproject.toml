@@ -10,7 +10,7 @@ packages = [{include = "demo"}]
 python = ">=3.8,<3.13"
 sqlalchemy = ">=1.4.0"
 Flask = ">=2.0.0"
-flask-cors = ">=3.0.0"
+flask-cors = ">=5.0.0"
 python-dotenv = ">= 1.0.0"
 forestadmin-datasource-toolkit = {path = "../../datasource_toolkit", develop = true}
 forestadmin-agent-toolkit = {path = "../../agent_toolkit", develop = true}
