@@ -81,7 +81,7 @@ class SchemaFieldGenerator:
     def build_column_schema(cls, name: str, collection: Collection) -> ForestServerField:
         column: Column = collection.schema["fields"][name]  #  type:ignore
         validations = []
-        if column["validations"]:
+        if "validations" in column:
             validations = column["validations"]
 
         is_foreign_key = SchemaUtils.is_foreign_key(collection.schema, name)
@@ -89,17 +89,19 @@ class SchemaFieldGenerator:
         res = {
             "field": name,
             "type": cls.build_column_type(column["column_type"]),
-            "validations": FrontendValidationUtils.convert_validation_list(column["validations"]),
-            "defaultValue": column["default_value"],
+            "validations": FrontendValidationUtils.convert_validation_list(column.get("validations", [])),
+            "defaultValue": column.get("default_value"),
             "enums": sorted(column["enum_values"]) if column.get("enum_values") is not None else None,
             "inverseOf": None,
-            "isFilterable": FrontendFilterableUtils.is_filterable(column["column_type"], column["filter_operators"]),
-            "isPrimaryKey": bool(column["is_primary_key"]),
-            "isSortable": bool(column["is_sortable"]),
+            "isFilterable": FrontendFilterableUtils.is_filterable(
+                column["column_type"], column.get("filter_operators", set())
+            ),
+            "isPrimaryKey": bool(column.get("is_primary_key", False)),
+            "isSortable": bool(column.get("is_sortable", False)),
             # When a column is a foreign key, it is readonly.
             # This may sound counter-intuitive: it is so that the user don't have two fields which
             # allow updating the same foreign key in the detail-view form (fk + many to one)
-            "isReadOnly": is_foreign_key or bool(column["is_read_only"]),
+            "isReadOnly": is_foreign_key or bool(column.get("is_read_only", False)),
             "isRequired": any([v["operator"] == Operator.PRESENT for v in validations]),
             "reference": None,
         }

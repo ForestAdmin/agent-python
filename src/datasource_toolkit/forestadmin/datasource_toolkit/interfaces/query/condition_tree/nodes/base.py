@@ -65,6 +65,10 @@ class ConditionTree(abc.ABC):
     def to_plain_object(self) -> Dict[str, Any]:
         """return a component version of self. Inverse of ConditionTreeFactory.from_plain_object"""
 
+    @abc.abstractmethod
+    def for_each_leaf(self, handler: Callable[["ConditionTreeLeaf"], None]):  # type:ignore # noqa: F821
+        """call handler method for each leaf"""
+
 
 class ConditionTreeComponent(TypedDict):
     pass

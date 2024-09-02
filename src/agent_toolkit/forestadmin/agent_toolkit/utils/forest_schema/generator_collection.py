@@ -26,7 +26,10 @@ class SchemaCollectionGenerator:
         return {
             "name": collection.name,
             "isReadOnly": all(
-                [f["type"] == FieldType.COLUMN and f["is_read_only"] for f in collection.schema["fields"].values()]
+                [
+                    f["type"] == FieldType.COLUMN and f.get("is_read_only", False)
+                    for f in collection.schema["fields"].values()
+                ]
             ),
             "isSearchable": collection.schema["searchable"],
             "paginationType": "page",

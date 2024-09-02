@@ -29,7 +29,7 @@ class Collection(CollectionInterface):
             "fields": {},
             "searchable": False,
             "segments": [],
-            "countable": True,
+            "countable": False,
             "charts": {},
         }
 
@@ -72,7 +72,10 @@ class Collection(CollectionInterface):
         self.schema["segments"].extend(segments)
 
     def enable_search(self):
-        self.schema["searchable"] = False
+        self.schema["searchable"] = True
+
+    def enable_count(self):
+        self.schema["countable"] = True
 
     async def execute(
         self,

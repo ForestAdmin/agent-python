@@ -28,6 +28,7 @@ class DjangoCollection(BaseDjangoCollection):
         self.support_polymorphic_relations = support_polymorphic_relations
         schema = DjangoCollectionFactory.build(model, support_polymorphic_relations)
         self.add_fields(schema["fields"])
+        self.enable_count()
 
     @property
     def model(self) -> Model:
