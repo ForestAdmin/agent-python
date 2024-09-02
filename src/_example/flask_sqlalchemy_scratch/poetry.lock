@@ -730,13 +730,13 @@ dotenv = ["python-dotenv"]
 
 [[package]]
 name = "flask-cors"
-version = "4.0.1"
+version = "5.0.0"
 description = "A Flask extension adding a decorator for CORS support"
 optional = false
 python-versions = "*"
 files = [
-    {file = "Flask_Cors-4.0.1-py2.py3-none-any.whl", hash = "sha256:f2a704e4458665580c074b714c4627dd5a306b333deb9074d0b1794dfa2fb677"},
-    {file = "flask_cors-4.0.1.tar.gz", hash = "sha256:eeb69b342142fdbf4766ad99357a7f3876a2ceb77689dc10ff912aac06c389e4"},
+    {file = "Flask_Cors-5.0.0-py2.py3-none-any.whl", hash = "sha256:b9e307d082a9261c100d8fb0ba909eec6a228ed1b60a8315fd85f783d61910bc"},
+    {file = "flask_cors-5.0.0.tar.gz", hash = "sha256:5aadb4b950c4e93745034594d9f3ea6591f734bb3662e16e255ffbf5e89c88ef"},
 ]
 
 [package.dependencies]
@@ -744,7 +744,7 @@ Flask = ">=0.9"
 
 [[package]]
 name = "forestadmin-agent-flask"
-version = "1.8.23"
+version = "1.9.0"
 description = "flask agent for forestadmin python agent"
 optional = false
 python-versions = ">=3.8,<3.13"
@@ -755,8 +755,8 @@ develop = true
 "backports.zoneinfo" = {version = "~=0.2.1", extras = ["tzdata"], markers = "python_version < \"3.9\""}
 flask = {version = ">=2.0.0", extras = ["async"]}
 flask-cors = ">=3.0.0"
-forestadmin-agent-toolkit = "1.8.23"
-forestadmin-datasource-toolkit = "1.8.23"
+forestadmin-agent-toolkit = "1.9.0"
+forestadmin-datasource-toolkit = "1.9.0"
 typing-extensions = "~=4.2"
 
 [package.source]
@@ -765,7 +765,7 @@ url = "../../flask_agent"
 
 [[package]]
 name = "forestadmin-agent-toolkit"
-version = "1.8.23"
+version = "1.9.0"
 description = "agent toolkit for forestadmin python agent"
 optional = false
 python-versions = ">=3.8,<3.13"
@@ -776,7 +776,7 @@ develop = true
 aiohttp = "~=3.9"
 "backports.zoneinfo" = {version = "~0.2.1", extras = ["tzdata"], markers = "python_version < \"3.9\""}
 cachetools = "~=5.2"
-forestadmin-datasource-toolkit = "1.8.23"
+forestadmin-datasource-toolkit = "1.9.0"
 marshmallow-jsonapi = ">=0.24.0, <1.0"
 numpy = [
     {version = "<2.0.0", markers = "python_full_version < \"3.12.0\""},
@@ -794,7 +794,7 @@ url = "../../agent_toolkit"
 
 [[package]]
 name = "forestadmin-datasource-sqlalchemy"
-version = "1.8.23"
+version = "1.9.0"
 description = "sqlalchemy datasource for forestadmin python agent"
 optional = false
 python-versions = ">=3.8,<3.13"
@@ -803,8 +803,8 @@ develop = true
 
 [package.dependencies]
 "backports.zoneinfo" = {version = "~=0.2.1", extras = ["tzdata"], markers = "python_version < \"3.9\""}
-forestadmin-agent-toolkit = "1.8.23"
-forestadmin-datasource-toolkit = "1.8.23"
+forestadmin-agent-toolkit = "1.9.0"
+forestadmin-datasource-toolkit = "1.9.0"
 sqlalchemy = ">=1.4.0"
 typing-extensions = "~=4.2"
 
@@ -814,7 +814,7 @@ url = "../../datasource_sqlalchemy"
 
 [[package]]
 name = "forestadmin-datasource-toolkit"
-version = "1.8.23"
+version = "1.9.0"
 description = "datasource toolkit for forestadmin python agent"
 optional = false
 python-versions = ">=3.8,<3.13"
@@ -2315,4 +2315,4 @@ test = ["big-O", "importlib-resources", "jaraco.functools", "jaraco.itertools", 
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.8,<3.13"
-content-hash = "ea0458affeb68fdde9deb4d4e028b2d1150ea7308f9537b5a754717703a90c88"
+content-hash = "0f04aaa6ada4ead462a4d7d1784de086b31ea5dcded67486ec2abd50ffdd0083"
