@@ -33,19 +33,23 @@ class BaseSqlAlchemyCollection(Collection, abc.ABC):
     def get_columns(self, projection: Projection, level: int = 0) -> Tuple[List[SqlAlchemyColumn], Relationships]:
         """return (columns, relationships)"""
 
-    @abc.abstractproperty
+    @property
+    @abc.abstractmethod
     def table(self) -> Table:  # type: ignore
         """return table of this collection"""
 
-    @abc.abstractproperty
+    @property
+    @abc.abstractmethod
     def mapper(self) -> Optional[Mapper]:
         """return table mapper"""
 
-    @abc.abstractproperty
+    @property
+    @abc.abstractmethod
     def model(self) -> Optional[Callable[[Any], Any]]:
         """return model of the collection"""
 
-    @abc.abstractproperty
+    @property
+    @abc.abstractmethod
     def factory(self) -> BaseSqlAlchemyCollectionFactory:  # type: ignore
         """return collection factory"""
 
