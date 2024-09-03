@@ -1,5 +1,6 @@
+import abc
 from datetime import date, datetime
-from typing import Any, Awaitable, Callable, Coroutine, Dict, Generic, List, Literal, Optional, TypeVar, Union
+from typing import Any, Awaitable, Callable, Dict, Generic, List, Literal, Optional, TypeVar, Union
 
 from forestadmin.datasource_toolkit.decorators.action.context.base import ActionContext
 from forestadmin.datasource_toolkit.decorators.action.context.bulk import ActionContextBulk
@@ -35,6 +36,7 @@ from forestadmin.datasource_toolkit.interfaces.actions import (
     ActionField,
     ActionFieldType,
     ActionFieldTypeLiteral,
+    ActionLayoutItem,
     File,
     WidgetTypes,
 )
@@ -62,9 +64,128 @@ class PlainField(TypedDict):
     if_: NotRequired[ValueOrHandler[bool]]
 
 
-class BaseDynamicField(Generic[Result]):
-    ATTR_TO_EVALUATE = ("is_required", "is_read_only", "if_", "value", "default_value", "description")
-    WIDGET_ATTR_TO_EVALUATE = ("min", "max", "step", "base", "extensions", "max_size_mb", "max_count", "options")
+class FormElement:
+    ATTR_TO_EVALUATE = ("if_",)
+    WIDGET_ATTR_TO_EVALUATE = ()
+
+    def __init__(
+        self,
+        widget_fields: Dict,
+        if_: Optional[ValueOrHandler[bool]] = None,
+    ):
+        self._if_ = if_
+        unknown_keyword_args = [k for k in widget_fields.keys() if k not in WIDGET_ATTRIBUTES]
+        if any(unknown_keyword_args):
+            raise TypeError(
+                f"BaseDynamicField.__init__() got an unexpected keyword argument '{unknown_keyword_args[0]}'"
+            )
+        self._widget_fields = widget_fields
+
+    @abc.abstractmethod
+    async def to_action_field(
+        self, context: Context, default_value: Any, search_value: Optional[str] = None
+    ) -> Union[ActionField, ActionLayoutItem]:
+        pass
+
+    @property
+    def dynamic_fields(self):
+        ret = [getattr(self, f"_{field}") for field in self.ATTR_TO_EVALUATE]
+
+        if len(self._widget_fields) > 0:
+            # TODO: validate self.__class__
+            ret.extend(self._widget_fields.get(widget_attr) for widget_attr in self.__class__.WIDGET_ATTR_TO_EVALUATE)
+        return ret
+
+    async def if_(self, context: Context) -> Any:
+        return self._if_ is None or await self._evaluate(context, self._if_)
+
+    async def _evaluate(self, context: Context, attribute: ValueOrHandler[Any]):
+        if callable(attribute):
+            return await call_user_function(attribute, context)
+        else:
+            return attribute
+
+    @property
+    def is_dynamic(self) -> bool:
+        return any(map(lambda x: isinstance(x, Callable), self.dynamic_fields))
+
+
+class LayoutDynamicElement(FormElement):
+    TYPE = ActionFieldType.LAYOUT
+
+    WIDGET_ATTR_TO_EVALUATE = (
+        *FormElement.WIDGET_ATTR_TO_EVALUATE,
+        "content",
+    )
+
+    def __init__(
+        self,
+        if_: (
+            Callable[[ActionContext], Awaitable[bool] | bool]
+            | Callable[[ActionContextSingle], Awaitable[bool] | bool]
+            | Callable[[ActionContextBulk], Awaitable[bool] | bool]
+            | bool
+            | None
+        ) = None,
+        # content: Optional[str] = None,
+        # fields: Optional[str] = None,
+        # elements: Optional[str] = None,
+        # next_button_label: Optional[str] = None,
+        # previous_button_label: Optional[str] = None,
+        **kwargs,
+    ):
+        # self._content = content
+        # self._fields = fields
+        # self._elements = elements
+        # self._next_button_label = next_button_label
+        # self._previous_button_label = previous_button_label
+        super().__init__(kwargs, if_)
+
+    async def to_action_field(
+        self, context: Context, default_value: Any, search_value: Optional[str] = None
+    ) -> ActionLayoutItem:
+        widget = self._widget_fields["widget"]
+        output: ActionLayoutItem = {
+            "widget": widget,
+            "type": self.TYPE,
+        }
+        if widget == "Page":
+            output["elements"] = [
+                await FieldFactory.build(e).to_action_field(context, e.get("default_value"), search_value)
+                for e in self._widget_fields["elements"]
+            ]
+            output["next_button_label"] = self._widget_fields.get("next_button_label")
+            output["previous_button_label"] = self._widget_fields.get("previous_button_label")
+        elif widget == "Row":
+            output["fields"] = [
+                await FieldFactory.build(field).to_action_field(context, field.get("default_value"), search_value)
+                for field in self._widget_fields["fields"]
+            ]
+
+        return output
+
+
+class BaseDynamicField(FormElement, Generic[Result]):
+    ATTR_TO_EVALUATE = (
+        *FormElement.ATTR_TO_EVALUATE,
+        "is_required",
+        "is_read_only",
+        "if_",
+        "value",
+        "default_value",
+        "description",
+    )
+    WIDGET_ATTR_TO_EVALUATE = (
+        *FormElement.WIDGET_ATTR_TO_EVALUATE,
+        "min",
+        "max",
+        "step",
+        "base",
+        "extensions",
+        "max_size_mb",
+        "max_count",
+        "options",
+    )
     TYPE: ActionFieldType
 
     def __init__(
@@ -82,30 +203,9 @@ class BaseDynamicField(Generic[Result]):
         self._description = description
         self._is_required = is_required
         self._is_read_only = is_read_only
-        self._if_ = if_
         self._value = value
         self._default_value = default_value
-
-        unknown_keyword_args = [k for k in kwargs.keys() if k not in WIDGET_ATTRIBUTES]
-        if any(unknown_keyword_args):
-            raise TypeError(
-                f"BaseDynamicField.__init__() got an unexpected keyword argument '{unknown_keyword_args[0]}'"
-            )
-        self._widget_fields = kwargs
-
-    @property
-    def dynamic_fields(self):
-        ret = [getattr(self, f"_{field}") for field in BaseDynamicField.ATTR_TO_EVALUATE]
-        if len(self._widget_fields) > 0:
-            ret.extend(self._widget_fields.get(widget_attr) for widget_attr in BaseDynamicField.WIDGET_ATTR_TO_EVALUATE)
-        return ret
-
-    @property
-    def is_dynamic(self) -> bool:
-        return (
-            any(map(lambda x: isinstance(x, Callable), self.dynamic_fields))
-            or self._widget_fields.get("widget", "") == "Page"
-        )
+        super().__init__(kwargs, if_)
 
     async def to_action_field(
         self, context: Context, default_value: Result, search_value: Optional[str] = None
@@ -139,17 +239,8 @@ class BaseDynamicField(Generic[Result]):
     async def is_read_only(self, context: Context) -> bool:
         return await self._evaluate(context, self._is_read_only)
 
-    async def if_(self, context: Context) -> Any:
-        return self._if_ is None or await self._evaluate(context, self._if_)
-
     async def value(self, context: Context) -> Result:
         return await self._evaluate(context, self._value)
-
-    async def _evaluate(self, context: Context, attribute: ValueOrHandler[Any]):
-        if callable(attribute):
-            return await call_user_function(attribute, context)
-        else:
-            return attribute
 
     async def _evaluate_option(self, context: Context, attribute: ValueOrHandler[Any], search_value: Optional[str]):
         if self._widget_fields.get("search", "") == "dynamic":
@@ -424,40 +515,27 @@ class PlainFileListDynamicField(PlainField):
 # layout
 
 
-class LayoutDynamicField(BaseDynamicField[None]):
+class LayoutDynamicField(LayoutDynamicElement):
     TYPE = ActionFieldType.LAYOUT
 
-    def __init__(
-        self,
-        if_: (
-            Callable[[ActionContext], Awaitable[bool] | bool]
-            | Callable[[ActionContextSingle], Awaitable[bool] | bool]
-            | Callable[[ActionContextBulk], Awaitable[bool] | bool]
-            | bool
-            | None
-        ) = None,
-        **kwargs,
-    ):
-        super().__init__(None, None, None, None, if_, None, None, **kwargs)
-
-    async def to_action_field(
-        self,
-        context: ActionContext | ActionContextSingle | ActionContextBulk,
-        default_value: None,
-        search_value: str | None = None,
-    ) -> Dict:
-        if self._widget_fields["widget"] == "Page":
-            return {
-                "type": "layout",
-                "widget": "page",
-                "elements": [
-                    await FieldFactory.build(element).to_action_field(context, default_value, search_value)
-                    for element in self._widget_fields["elements"]
-                ],
-            }
-        else:
-            # TODO: handle other type of layout items
-            pass
+    # async def to_action_field(
+    #     self,
+    #     context: ActionContext | ActionContextSingle | ActionContextBulk,
+    #     default_value: None,
+    #     search_value: str | None = None,
+    # ) -> Dict:
+    #     if self._widget_fields["widget"] == "Page":
+    #         return {
+    #             "type": "layout",
+    #             "widget": "page",
+    #             "elements": [
+    #                 await FieldFactory.build(element).to_action_field(context, default_value, search_value)
+    #                 for element in self._widget_fields["elements"]
+    #             ],
+    #         }
+    #     else:
+    #         # TODO: handle other type of layout items
+    #         pass
 
 
 class PlainLayoutDynamicField(PlainField):

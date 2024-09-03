@@ -13,7 +13,7 @@ from forestadmin.agent_toolkit.resources.collections.filter import (
 from forestadmin.agent_toolkit.utils.context import FileResponse, HttpResponseBuilder, Request, RequestMethod, Response
 from forestadmin.agent_toolkit.utils.forest_schema.action_values import ForestValueConverter
 from forestadmin.agent_toolkit.utils.forest_schema.generator_action import SchemaActionGenerator
-from forestadmin.agent_toolkit.utils.forest_schema.type import ForestServerActionField
+from forestadmin.agent_toolkit.utils.forest_schema.type import ForestServerActionField, ForestServerActionFormElement
 from forestadmin.agent_toolkit.utils.id import unpack_id
 from forestadmin.datasource_toolkit.decorators.action.result_builder import ResultBuilder
 from forestadmin.datasource_toolkit.exceptions import BusinessError
@@ -128,31 +128,14 @@ class ActionResource(BaseCollectionResource):
                 "search_field": request.body.get("data", {}).get("attributes", {}).get("search_field"),
             },
         )
-        elements = [
-            await SchemaActionGenerator.build_field_schema(request.collection.datasource, field) for field in fields
-        ]
-        for element in elements:
-            if element.get("widget", "") == "page":
-                new_element = []
-                for subelement in element.get("elements", []):
-                    new_element.append({"fieldName": subelement["field"]})
-                element["elements"] = new_element
 
-        new_fields = []
+        new_fields: List[ForestServerActionFormElement] = []
         for field in fields:
-            if field["type"] == "layout":
-                [
-                    new_fields.append(await SchemaActionGenerator.build_field_schema(request.collection.datasource, f))
-                    for f in field["elements"]
-                ]
+            if field["type"] == "Layout":
+                new_fields.append(await SchemaActionGenerator.build_layout_schema(request.collection.datasource, field))
             else:
                 new_fields.append(await SchemaActionGenerator.build_field_schema(request.collection.datasource, field))
-        return HttpResponseBuilder.build_success_response(
-            {
-                "fields": new_fields,
-                "formElements": elements,
-            }
-        )
+        return HttpResponseBuilder.build_success_response({"fields": new_fields})
 
     async def _get_records_selection(self, request: ActionRequest) -> Filter:
         trees: List[ConditionTree] = []

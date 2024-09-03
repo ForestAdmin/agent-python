@@ -91,6 +91,8 @@ WidgetTypes = Literal[
     "UserDropdown",
 ]
 
+LayoutWidgetTypes = Literal["Separator", "Row", "Page"]
+
 
 class ActionField(TypedDict):
     type: ActionFieldType
@@ -122,9 +124,15 @@ class ActionField(TypedDict):
     max_count: NotRequired[int]
     search: NotRequired[Any]
     allow_empty_values: NotRequired[bool]
+
+
+class ActionLayoutItem(TypedDict):
+    type: ActionFieldType
+    widget: LayoutWidgetTypes
     elements: NotRequired[List]
-    back_button_text: NotRequired[str]
-    next_button_text: NotRequired[str]
+    fields: NotRequired[List]
+    previous_button_label: NotRequired[str]
+    next_button_label: NotRequired[str]
 
 
 class SuccessResult(TypedDict):

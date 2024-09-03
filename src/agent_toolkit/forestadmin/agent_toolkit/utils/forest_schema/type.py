@@ -1,5 +1,5 @@
 import enum
-from typing import Any, Dict, Generic, List, Literal, Optional, TypeVar, Union
+from typing import Any, Dict, Generic, List, Literal, Optional, Sequence, TypeVar, Union
 
 from forestadmin.datasource_toolkit.interfaces.fields import ColumnAlias
 from typing_extensions import NotRequired, TypedDict
@@ -279,7 +279,7 @@ class ForestServerActionFieldUserDropdownOptions(TypedDict):
 # layout
 # row
 class ForestServerActionFieldRowOptionsParameters(TypedDict):
-    size: Optional[List[int]]
+    # size: Optional[List[int]]
     fields: Optional[List]
 
 
@@ -294,11 +294,15 @@ class ForestServerActionFieldSeparatorOptions(TypedDict):
 
 
 # page
-class ForestServerActionFieldPageOptions(TypedDict):
-    name: Literal["page"]
+class ForestServerActionFieldPageOptionsParameter(TypedDict):
     backButtonLabel: Optional[str]
     nextButtonLabel: Optional[str]
-    elements: List["WidgetEditConfiguration"]
+    elements: Sequence[Union["WidgetEditConfiguration", "LayoutWidgetConfiguration"]]
+
+
+class ForestServerActionFieldPageOptions(TypedDict):
+    name: Literal["page"]
+    parameters: ForestServerActionFieldPageOptionsParameter
 
 
 WidgetEditConfiguration = Union[
@@ -320,6 +324,8 @@ WidgetEditConfiguration = Union[
     ForestServerActionFieldCheckboxGroupOptions,
     ForestServerActionFieldDropdownOptions,
     ForestServerActionFieldUserDropdownOptions,
+]
+LayoutWidgetConfiguration = Union[
     ForestServerActionFieldRowOptions,
     ForestServerActionFieldSeparatorOptions,
     ForestServerActionFieldPageOptions,
@@ -340,6 +346,14 @@ class ForestServerActionField(TypedDict):
     widgetEdit: Optional[WidgetEditConfiguration]
 
 
+class ForestServerActionLayout(TypedDict):
+    type: Literal["Layout"]
+    layoutWidget: Optional[LayoutWidgetConfiguration]
+
+
+ForestServerActionFormElement = Union[ForestServerActionField, ForestServerActionLayout]
+
+
 class ForestServerAction(TypedDict):
     id: str
     name: str
@@ -348,7 +362,7 @@ class ForestServerAction(TypedDict):
     type: Literal["single", "bulk", "global"]
     endpoint: str
     download: bool
-    fields: List[ForestServerActionField]
+    fields: List[ForestServerActionFormElement]
     hooks: ForestServerActionHooks
 
 

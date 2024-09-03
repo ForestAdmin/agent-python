@@ -7,9 +7,21 @@ from forestadmin.datasource_toolkit.decorators.action.context.bulk import Action
 from forestadmin.datasource_toolkit.decorators.action.context.single import ActionContextSingle
 from forestadmin.datasource_toolkit.decorators.action.result_builder import ResultBuilder
 from forestadmin.datasource_toolkit.decorators.action.types.actions import ActionDict
-from forestadmin.datasource_toolkit.decorators.action.types.fields import BaseDynamicField, DynamicField, FieldFactory
+from forestadmin.datasource_toolkit.decorators.action.types.fields import (
+    BaseDynamicField,
+    DynamicField,
+    FieldFactory,
+    FormElement,
+    LayoutDynamicField,
+)
 from forestadmin.datasource_toolkit.decorators.collection_decorator import CollectionDecorator
-from forestadmin.datasource_toolkit.interfaces.actions import Action, ActionField, ActionResult, ActionsScope
+from forestadmin.datasource_toolkit.interfaces.actions import (
+    Action,
+    ActionField,
+    ActionFieldType,
+    ActionResult,
+    ActionsScope,
+)
 from forestadmin.datasource_toolkit.interfaces.models.collections import CollectionSchema
 from forestadmin.datasource_toolkit.interfaces.query.filter.unpaginated import Filter
 from forestadmin.datasource_toolkit.interfaces.records import RecordsDataAlias
@@ -92,7 +104,7 @@ class ActionCollectionDecorator(CollectionDecorator):
             context, form_fields, form_values, meta.get("search_values", {}).get(meta.get("search_field"))
         )
         for field in action_fields:
-            if field["type"] != "layout":
+            if field["type"] != ActionFieldType.LAYOUT:
                 field["watch_changes"] = field["label"] in context.form_values.used_keys
         return action_fields
 
@@ -177,7 +189,7 @@ class ActionCollectionDecorator(CollectionDecorator):
         )
 
     async def _build_form_values(
-        self, context: ActionContext, fields: List[DynamicField], data: Optional[Dict[str, Any]]
+        self, context: ActionContext, fields: List[FormElement], data: Optional[Dict[str, Any]]
     ):
         if data is None:
             form_values: Dict[str, Any] = {}
@@ -185,7 +197,8 @@ class ActionCollectionDecorator(CollectionDecorator):
             form_values = {**data}
 
         for field in fields:
-            form_values[field.label] = form_values.get(field.label, await field.default_value(context))
+            if isinstance(field, DynamicField):
+                form_values[field.label] = form_values.get(field.label, await field.default_value(context))
 
         return form_values
 
@@ -199,5 +212,6 @@ class ActionCollectionDecorator(CollectionDecorator):
         action_fields: List[ActionField] = []
         for field in fields:
             if await field.if_(context):
-                action_fields.append(await field.to_action_field(context, form_values.get(field.label), search_value))
+                value = None if isinstance(field, LayoutDynamicField) else form_values.get(field.label)
+                action_fields.append(await field.to_action_field(context, value, search_value))
         return action_fields

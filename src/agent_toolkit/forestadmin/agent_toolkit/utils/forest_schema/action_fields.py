@@ -7,9 +7,6 @@ from forestadmin.datasource_toolkit.decorators.action.types.fields import (
     PlainFileDynamicFieldFilePickerWidget,
     PlainFileListDynamicFieldFilePickerWidget,
     PlainJsonDynamicFieldJsonEditorWidget,
-    PlainLayoutPageConfiguration,
-    PlainLayoutRowConfiguration,
-    PlainLayoutSeparatorConfiguration,
     PlainListNumberDynamicFieldNumberInputListWidget,
     PlainNumberDynamicFieldCurrencyInputWidget,
     PlainNumberDynamicFieldNumberInputWidget,
@@ -35,7 +32,7 @@ from typing_extensions import TypeGuard
 class ActionFields:
     @staticmethod
     def has_widget(field: ActionField) -> bool:
-        return field and field.get("widget") is not None
+        return field and field.get("widget") is not None  # type: ignore
 
     @staticmethod
     def is_color_picker_field(field: ActionField) -> TypeGuard[PlainStringDynamicFieldColorWidget]:
@@ -139,15 +136,3 @@ class ActionFields:
         ]
     ]:
         return field is not None and field.get("widget", "") == "UserDropdown"
-
-    @staticmethod
-    def is_row_field(field: ActionField) -> TypeGuard[PlainLayoutRowConfiguration]:
-        return field is not None and field.get("widget", "" == "") == "Row"
-
-    @staticmethod
-    def is_separator_field(field: ActionField) -> TypeGuard[PlainLayoutSeparatorConfiguration]:
-        return field is not None and field.get("widget", "" == "") == "Row"
-
-    @staticmethod
-    def is_page_field(field: ActionField) -> TypeGuard[PlainLayoutPageConfiguration]:
-        return field is not None and field.get("widget", "" == "") == "Page"

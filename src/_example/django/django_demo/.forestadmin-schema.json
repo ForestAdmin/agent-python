@@ -219,10 +219,10 @@
             "paginationType": "page",
             "actions": [
                 {
-                    "id": "app_address-0-form_multipage",
-                    "name": "form_multipage",
+                    "id": "app_address-0-bla",
+                    "name": "bla",
                     "type": "global",
-                    "endpoint": "/forest/_actions/app_address/0/form_multipage",
+                    "endpoint": "/forest/_actions/app_address/0/bla",
                     "download": false,
                     "fields": [
                         {
@@ -241,6 +241,113 @@
                     ],
                     "hooks": {
                         "load": true,
+                        "change": [
+                            "changeHook"
+                        ]
+                    }
+                },
+                {
+                    "id": "app_address-1-form_multipage",
+                    "name": "form_multipage",
+                    "type": "global",
+                    "endpoint": "/forest/_actions/app_address/1/form_multipage",
+                    "download": false,
+                    "fields": [
+                        {
+                            "type": "Layout",
+                            "layoutWidget": {
+                                "name": "page",
+                                "parameters": {
+                                    "previousButtonLabel": "<==",
+                                    "nextButtonLabel": "==>",
+                                    "elements": [
+                                        {
+                                            "field": "first_name",
+                                            "value": null,
+                                            "defaultValue": null,
+                                            "description": "",
+                                            "enums": null,
+                                            "hook": null,
+                                            "isReadOnly": false,
+                                            "isRequired": false,
+                                            "reference": null,
+                                            "type": "String",
+                                            "widgetEdit": null
+                                        },
+                                        {
+                                            "type": "Layout",
+                                            "layoutWidget": {
+                                                "name": "separator"
+                                            }
+                                        },
+                                        {
+                                            "type": "Layout",
+                                            "layoutWidget": {
+                                                "name": "row",
+                                                "parameters": {
+                                                    "fields": [
+                                                        {
+                                                            "field": "ping",
+                                                            "value": null,
+                                                            "defaultValue": null,
+                                                            "description": "",
+                                                            "enums": null,
+                                                            "hook": null,
+                                                            "isReadOnly": false,
+                                                            "isRequired": false,
+                                                            "reference": null,
+                                                            "type": "String",
+                                                            "widgetEdit": null
+                                                        },
+                                                        {
+                                                            "field": "pong",
+                                                            "value": null,
+                                                            "defaultValue": null,
+                                                            "description": "",
+                                                            "enums": null,
+                                                            "hook": null,
+                                                            "isReadOnly": false,
+                                                            "isRequired": false,
+                                                            "reference": null,
+                                                            "type": "String",
+                                                            "widgetEdit": null
+                                                        }
+                                                    ]
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        },
+                        {
+                            "type": "Layout",
+                            "layoutWidget": {
+                                "name": "page",
+                                "parameters": {
+                                    "previousButtonLabel": "<==",
+                                    "nextButtonLabel": "==>",
+                                    "elements": [
+                                        {
+                                            "field": "last_name",
+                                            "value": null,
+                                            "defaultValue": null,
+                                            "description": "",
+                                            "enums": null,
+                                            "hook": null,
+                                            "isReadOnly": false,
+                                            "isRequired": false,
+                                            "reference": null,
+                                            "type": "String",
+                                            "widgetEdit": null
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    ],
+                    "hooks": {
+                        "load": false,
                         "change": [
                             "changeHook"
                         ]

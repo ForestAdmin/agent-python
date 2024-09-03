@@ -165,7 +165,7 @@ class PageConfiguration(TypedDict):
     widget: Literal["Page"]
     elements: List[Dict]
     next_button_label: Optional[str]
-    back_button_label: Optional[str]
+    previous_button_label: Optional[str]
 
 
 class RowConfiguration(TypedDict):

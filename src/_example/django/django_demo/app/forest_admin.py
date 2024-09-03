@@ -48,6 +48,24 @@ def customize_forest(agent: DjangoAgent):
     agent.add_datasource(DjangoDatasource(support_polymorphic_relations=True))
     agent.add_datasource(TypicodeDatasource())
 
+    agent.customize_collection("app_address").add_action(
+        "bla",
+        {
+            "execute": lambda ctx, result_builder: result_builder.success(),
+            "scope": "Global",
+            "form": [
+                {
+                    "type": "String",
+                    "label": "The first one",
+                    "widget": "Dropdown",
+                    "options": lambda ctx: [
+                        "dummy",
+                        "good reason",
+                    ],
+                }
+            ],
+        },
+    )
     # # ## ADDRESS
     agent.customize_collection("app_address").add_action(
         "form_multipage",
@@ -61,26 +79,22 @@ def customize_forest(agent: DjangoAgent):
                     "type": "Layout",
                     "widget": "Page",
                     "next_button_label": "==>",
-                    "back_button_label": "<==",
+                    "previous_button_label": "<==",
                     "elements": [
                         {"type": "String", "label": "first_name"},
-                        # {"type": "Layout", "widget": "Separator"},
-                        # {
-                        #     "type": "layout",
-                        #     "widget": "Row",
-                        #     "size": [70, 30],
-                        #     "fields": [
-                        #         {"type": "String", "label": "bli"},
-                        #         {"type": "String", "label": "bla"},
-                        #     ],
-                        # },
+                        {"type": "Layout", "widget": "Separator"},
+                        {
+                            "type": "Layout",
+                            "widget": "Row",
+                            "fields": [{"type": "String", "label": "ping"}, {"type": "String", "label": "pong"}],
+                        },
                     ],
                 },
                 {
                     "type": "Layout",
                     "widget": "Page",
                     "next_button_label": "==>",
-                    "back_button_label": "<==",
+                    "previous_button_label": "<==",
                     "elements": [{"type": "String", "label": "last_name"}],
                 },
             ],

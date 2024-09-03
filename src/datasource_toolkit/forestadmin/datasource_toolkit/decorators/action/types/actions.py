@@ -31,7 +31,7 @@ ActionExecute = Union[
 class Pages(TypedDict):
     form: List[Union[PlainDynamicField, BaseDynamicField]]
     next_button_label: NotRequired[Optional[ValueOrHandler[str]]]
-    back_button_label: NotRequired[Optional[ValueOrHandler[str]]]
+    previous_button_label: NotRequired[Optional[ValueOrHandler[str]]]
 
 
 class ActionDict(TypedDict):
