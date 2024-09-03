@@ -85,9 +85,6 @@ class GeneratorActionFieldWidget:
             ActionFields.is_checkbox_group_field: GeneratorActionFieldWidget.build_checkbox_group_widget_edit,
             ActionFields.is_dropdown_field: GeneratorActionFieldWidget.build_dropdown_widget_edit,
             ActionFields.is_user_dropdown_field: GeneratorActionFieldWidget.build_user_dropdown_widget_edit,
-            ActionFields.is_row_field: GeneratorActionFieldWidget.build_row_widget_edit,
-            ActionFields.is_separator_field: GeneratorActionFieldWidget.build_separator_widget_edit,
-            ActionFields.is_page_field: GeneratorActionFieldWidget.build_page_widget_edit,
         }
         for if_fn, return_fn in if_return_mapping.items():
             if if_fn(field):
