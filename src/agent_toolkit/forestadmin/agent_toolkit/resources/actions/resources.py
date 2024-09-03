@@ -17,7 +17,7 @@ from forestadmin.agent_toolkit.utils.forest_schema.type import ForestServerActio
 from forestadmin.agent_toolkit.utils.id import unpack_id
 from forestadmin.datasource_toolkit.decorators.action.result_builder import ResultBuilder
 from forestadmin.datasource_toolkit.exceptions import BusinessError
-from forestadmin.datasource_toolkit.interfaces.actions import ActionsScope
+from forestadmin.datasource_toolkit.interfaces.actions import ActionFieldType, ActionsScope
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.factory import ConditionTreeFactory
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.base import ConditionTree
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.branch import Aggregator, ConditionTreeBranch
@@ -131,7 +131,7 @@ class ActionResource(BaseCollectionResource):
 
         new_fields: List[ForestServerActionFormElement] = []
         for field in fields:
-            if field["type"] == "Layout":
+            if field["type"] == ActionFieldType.LAYOUT:
                 new_fields.append(await SchemaActionGenerator.build_layout_schema(request.collection.datasource, field))
             else:
                 new_fields.append(await SchemaActionGenerator.build_field_schema(request.collection.datasource, field))

@@ -103,10 +103,18 @@ class ActionCollectionDecorator(CollectionDecorator):
         action_fields = await self._build_fields(
             context, form_fields, form_values, meta.get("search_values", {}).get(meta.get("search_field"))
         )
-        for field in action_fields:
+
+        self._add_hook_to_fields(context, action_fields)
+        return action_fields
+
+    def _add_hook_to_fields(self, context: ActionContext, fields: List[ActionField]):
+        for field in fields:
             if field["type"] != ActionFieldType.LAYOUT:
                 field["watch_changes"] = field["label"] in context.form_values.used_keys
-        return action_fields
+            elif field["widget"] == "Page":
+                self._add_hook_to_fields(context, field["elements"])
+            elif field["widget"] == "Row":
+                self._add_hook_to_fields(context, field["fields"])
 
     # async def _get_multipage_form(
     #     self,

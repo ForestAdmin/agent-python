@@ -127,42 +127,52 @@ class LayoutDynamicElement(FormElement):
             | bool
             | None
         ) = None,
-        # content: Optional[str] = None,
-        # fields: Optional[str] = None,
-        # elements: Optional[str] = None,
-        # next_button_label: Optional[str] = None,
-        # previous_button_label: Optional[str] = None,
         **kwargs,
     ):
-        # self._content = content
-        # self._fields = fields
-        # self._elements = elements
-        # self._next_button_label = next_button_label
-        # self._previous_button_label = previous_button_label
         super().__init__(kwargs, if_)
+        self.widget = self._widget_fields["widget"]
+
+        if self.widget == "Page":
+            self._widget_fields["elements"] = [FieldFactory.build(e) for e in self._widget_fields["elements"]]
+        elif self.widget == "Row":
+            self._widget_fields["fields"] = [FieldFactory.build(field) for field in self._widget_fields["fields"]]
+
+    async def if_(self, context: Context) -> Any:
+        return self._if_ is None or await self._evaluate(context, self._if_)
 
     async def to_action_field(
         self, context: Context, default_value: Any, search_value: Optional[str] = None
     ) -> ActionLayoutItem:
-        widget = self._widget_fields["widget"]
         output: ActionLayoutItem = {
-            "widget": widget,
+            "widget": self.widget,
             "type": self.TYPE,
         }
-        if widget == "Page":
+        if self.widget == "Page":
             output["elements"] = [
-                await FieldFactory.build(e).to_action_field(context, e.get("default_value"), search_value)
-                for e in self._widget_fields["elements"]
+                await element.to_action_field(context, getattr(element, "_default_value", None), search_value)
+                for element in self._widget_fields["elements"]
+                if await element.if_(context)
             ]
             output["next_button_label"] = self._widget_fields.get("next_button_label")
             output["previous_button_label"] = self._widget_fields.get("previous_button_label")
-        elif widget == "Row":
+        elif self.widget == "Row":
             output["fields"] = [
-                await FieldFactory.build(field).to_action_field(context, field.get("default_value"), search_value)
+                await field.to_action_field(context, field._default_value, search_value)
                 for field in self._widget_fields["fields"]
+                if await field.if_(field)
             ]
 
         return output
+
+    @property
+    def is_dynamic(self) -> bool:
+        sub_dynamic = False
+        if self.widget == "Page":
+            sub_dynamic = any(map(lambda x: x.is_dynamic, self._widget_fields["elements"]))
+        elif self.widget == "Row":
+            sub_dynamic = any(map(lambda x: x.is_dynamic, self._widget_fields["fields"]))
+
+        return sub_dynamic or any(map(lambda x: isinstance(x, Callable), self.dynamic_fields))
 
 
 class BaseDynamicField(FormElement, Generic[Result]):
@@ -517,25 +527,6 @@ class PlainFileListDynamicField(PlainField):
 
 class LayoutDynamicField(LayoutDynamicElement):
     TYPE = ActionFieldType.LAYOUT
-
-    # async def to_action_field(
-    #     self,
-    #     context: ActionContext | ActionContextSingle | ActionContextBulk,
-    #     default_value: None,
-    #     search_value: str | None = None,
-    # ) -> Dict:
-    #     if self._widget_fields["widget"] == "Page":
-    #         return {
-    #             "type": "layout",
-    #             "widget": "page",
-    #             "elements": [
-    #                 await FieldFactory.build(element).to_action_field(context, default_value, search_value)
-    #                 for element in self._widget_fields["elements"]
-    #             ],
-    #         }
-    #     else:
-    #         # TODO: handle other type of layout items
-    #         pass
 
 
 class PlainLayoutDynamicField(PlainField):
