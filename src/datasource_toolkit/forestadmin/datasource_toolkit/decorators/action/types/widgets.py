@@ -1,11 +1,17 @@
+from __future__ import annotations
+
 from datetime import date
-from typing import Awaitable, Callable, Generic, List, Literal, Optional, Set, TypeVar, Union
+from typing import TYPE_CHECKING, Awaitable, Callable, Generic, List, Literal, Optional, Set, TypeVar, Union
 
 from forestadmin.datasource_toolkit.decorators.action.context.base import ActionContext
 from forestadmin.datasource_toolkit.decorators.action.context.bulk import ActionContextBulk
 from forestadmin.datasource_toolkit.decorators.action.context.single import ActionContextSingle
-from forestadmin.datasource_toolkit.decorators.action.types.fields import PlainDynamicField, PlainDynamicFormElement
 from typing_extensions import NotRequired, TypedDict
+
+if TYPE_CHECKING:
+    # avoid circular import for typing (also with 'from __future__ import annotations')
+    # https://stackoverflow.com/questions/61544854/from-future-import-annotations
+    from forestadmin.datasource_toolkit.decorators.action.types.fields import PlainDynamicField, PlainDynamicFormElement
 
 Number = Union[int, float]
 
