@@ -48,6 +48,9 @@ def customize_forest(agent: DjangoAgent):
     agent.add_datasource(DjangoDatasource(support_polymorphic_relations=True))
     agent.add_datasource(TypicodeDatasource())
 
+    async def idd(ctx):
+        return ctx.form_values.get("zip", "") != "zip"
+
     # # ## ADDRESS
     agent.customize_collection("app_address").add_action(
         "form_multipage",
@@ -62,6 +65,7 @@ def customize_forest(agent: DjangoAgent):
                     "widget": "Page",
                     "next_button_label": "==>",
                     "previous_button_label": "<==",
+                    # "if_": lambda ctx: ctx.form_values.get("first_name", "") != "zzz",
                     "elements": [
                         {"type": "String", "label": "first_name"},
                         {
@@ -81,7 +85,6 @@ def customize_forest(agent: DjangoAgent):
                 },
                 {
                     "type": "Layout",
-                    "if_": lambda ctx: ctx.form_values.get("first_name", "") == "zzz",
                     "widget": "Page",
                     "elements": [
                         {"type": "String", "label": "last_name"},
@@ -94,7 +97,8 @@ def customize_forest(agent: DjangoAgent):
                                 {
                                     "type": "String",
                                     "label": "zop",
-                                    "if_": lambda ctx: ctx.form_values.get("zip", "") != "zip",
+                                    # "if_": lambda ctx: ctx.form_values.get("zip", "") != "zip",
+                                    "if_": idd,
                                 },
                             ],
                         },
@@ -109,7 +113,7 @@ def customize_forest(agent: DjangoAgent):
                         {
                             "type": "String",
                             "label": "address",
-                            "if_": lambda ctx: ctx.form_values.get("first_name", "") == "eee",
+                            # "if_": lambda ctx: ctx.form_values.get("first_name", "") == "eee",
                         }
                     ],
                     "next_button_label": "==>",
@@ -117,9 +121,10 @@ def customize_forest(agent: DjangoAgent):
                 },
             ],
         },
-    ).add_segment("highOrderDelivery", high_delivery_address_segment).rename_field("country", "pays").add_field(
-        "full_address", address_full_name_computed("country")
-    ).rename_field(
+    )
+    agent.customize_collection("app_address").add_segment(
+        "highOrderDelivery", high_delivery_address_segment
+    ).rename_field("country", "pays").add_field("full_address", address_full_name_computed("country")).rename_field(
         "full_address", "complete_address"
     ).replace_field_sorting(
         "full_address",
