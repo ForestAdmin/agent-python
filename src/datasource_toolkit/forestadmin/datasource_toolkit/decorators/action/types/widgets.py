@@ -1,9 +1,10 @@
 from datetime import date
-from typing import Awaitable, Callable, Dict, Generic, List, Literal, Optional, Set, TypeVar, Union
+from typing import Awaitable, Callable, Generic, List, Literal, Optional, Set, TypeVar, Union
 
 from forestadmin.datasource_toolkit.decorators.action.context.base import ActionContext
 from forestadmin.datasource_toolkit.decorators.action.context.bulk import ActionContextBulk
 from forestadmin.datasource_toolkit.decorators.action.context.single import ActionContextSingle
+from forestadmin.datasource_toolkit.decorators.action.types.fields import PlainDynamicField, PlainDynamicFormElement
 from typing_extensions import NotRequired, TypedDict
 
 Number = Union[int, float]
@@ -163,14 +164,14 @@ class UserDropdownFieldConfiguration(TypedDict):
 
 class PageConfiguration(TypedDict):
     widget: Literal["Page"]
-    elements: List[Dict]
-    next_button_label: Optional[str]
-    previous_button_label: Optional[str]
+    elements: List[PlainDynamicFormElement]
+    next_button_label: NotRequired[str]
+    previous_button_label: NotRequired[str]
 
 
 class RowConfiguration(TypedDict):
     widget: Literal["Row"]
-    fields: List[Dict]
+    fields: List[PlainDynamicField]
     size: List[int]
 
 

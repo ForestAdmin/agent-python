@@ -11,9 +11,8 @@ from forestadmin.agent_toolkit.utils.context import User
 from forestadmin.datasource_toolkit.collections import Collection
 from forestadmin.datasource_toolkit.datasources import Datasource
 from forestadmin.datasource_toolkit.decorators.action.context.base import ActionContext
+from forestadmin.datasource_toolkit.decorators.action.fields import FormElementFactory, FormElementFactoryException
 from forestadmin.datasource_toolkit.decorators.action.types.fields import (
-    FieldFactory,
-    FieldFactoryException,
     PlainCollectionDynamicField,
     PlainEnumDynamicField,
     PlainStringDynamicField,
@@ -21,7 +20,7 @@ from forestadmin.datasource_toolkit.decorators.action.types.fields import (
 from forestadmin.datasource_toolkit.interfaces.actions import ActionFieldType
 
 
-class TestActionFieldFactory(TestCase):
+class TestActionFormElementFactory(TestCase):
     def test_field_factory_should_raise_if_unknown_type(self):
         plain_field = PlainStringDynamicField(
             type="bla",
@@ -34,9 +33,9 @@ class TestActionFieldFactory(TestCase):
             default_value="10",
         )
         self.assertRaisesRegex(
-            FieldFactoryException,
+            FormElementFactoryException,
             r"🌳🌳🌳Unknown field type: 'bla'",
-            FieldFactory.build,
+            FormElementFactory.build,
             plain_field,
         )
 
@@ -53,10 +52,10 @@ class TestActionFieldFactory(TestCase):
             error="err",
         )
         self.assertRaisesRegex(
-            FieldFactoryException,
+            FormElementFactoryException,
             r"🌳🌳🌳Unable to build a field. cls: 'StringDynamicField', e: '(BaseDynamicField\.)?__init__\(\) "
             "got an unexpected keyword argument 'error''",
-            FieldFactory.build,
+            FormElementFactory.build,
             plain_field,
         )
 
@@ -121,7 +120,7 @@ class TestCollectionDynamicField(BaseTestDynamicField):
             default_value="10",
         )
 
-        self.dynamic_field = FieldFactory.build(self.plain_dynamic_field)
+        self.dynamic_field = FormElementFactory.build(self.plain_dynamic_field)
 
     def test_dynamic_field_should_also_return_collection_name(self):
         field = self.dynamic_field.dynamic_fields
@@ -145,7 +144,7 @@ class TestEnumDynamicField(BaseTestDynamicField):
             enum_values=[1, 2, 3, 4, 5],
         )
 
-        self.dynamic_field = FieldFactory.build(self.plain_dynamic_field)
+        self.dynamic_field = FormElementFactory.build(self.plain_dynamic_field)
 
     def test_dynamic_field_should_also_return_enum_values(self):
         field = self.dynamic_field.dynamic_fields
@@ -169,7 +168,7 @@ class TestEnumListDynamicField(BaseTestDynamicField):
             enum_values=[1, 2, 3, 4, 5],
         )
 
-        self.dynamic_field = FieldFactory.build(self.plain_dynamic_field)
+        self.dynamic_field = FormElementFactory.build(self.plain_dynamic_field)
 
     def test_dynamic_field_should_also_return_enum_values(self):
         field = self.dynamic_field.dynamic_fields

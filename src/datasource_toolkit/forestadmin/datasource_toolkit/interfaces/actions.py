@@ -89,6 +89,9 @@ WidgetTypes = Literal[
     "CheckboxGroup",
     "Dropdown",
     "UserDropdown",
+    "Separator",
+    "Row",
+    "Page",
 ]
 
 LayoutWidgetTypes = Literal["Separator", "Row", "Page"]
@@ -124,6 +127,8 @@ class ActionField(TypedDict):
     max_count: NotRequired[int]
     search: NotRequired[Any]
     allow_empty_values: NotRequired[bool]
+    elements: NotRequired[List["ActionField"]]
+    # rows: NotRequired[List]
 
 
 class ActionLayoutItem(TypedDict):
@@ -131,8 +136,8 @@ class ActionLayoutItem(TypedDict):
     widget: LayoutWidgetTypes
     elements: NotRequired[List]
     fields: NotRequired[List]
-    previous_button_label: NotRequired[str]
-    next_button_label: NotRequired[str]
+    previous_button_label: NotRequired[Optional[str]]
+    next_button_label: NotRequired[Optional[str]]
 
 
 class SuccessResult(TypedDict):

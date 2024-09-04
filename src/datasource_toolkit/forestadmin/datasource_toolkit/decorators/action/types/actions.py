@@ -3,12 +3,9 @@ from typing import Awaitable, Callable, List, Optional, Union
 from forestadmin.datasource_toolkit.decorators.action.context.base import ActionContext
 from forestadmin.datasource_toolkit.decorators.action.context.bulk import ActionContextBulk
 from forestadmin.datasource_toolkit.decorators.action.context.single import ActionContextSingle
+from forestadmin.datasource_toolkit.decorators.action.fields import BaseDynamicField
 from forestadmin.datasource_toolkit.decorators.action.result_builder import ResultBuilder
-from forestadmin.datasource_toolkit.decorators.action.types.fields import (
-    BaseDynamicField,
-    PlainDynamicField,
-    ValueOrHandler,
-)
+from forestadmin.datasource_toolkit.decorators.action.types.fields import PlainDynamicField
 from forestadmin.datasource_toolkit.interfaces.actions import ActionResult, ActionScopeLiteral, ActionsScope
 from typing_extensions import NotRequired, TypedDict
 
@@ -28,12 +25,6 @@ ActionExecute = Union[
 ]
 
 
-class Pages(TypedDict):
-    form: List[Union[PlainDynamicField, BaseDynamicField]]
-    next_button_label: NotRequired[Optional[ValueOrHandler[str]]]
-    previous_button_label: NotRequired[Optional[ValueOrHandler[str]]]
-
-
 class ActionDict(TypedDict):
     scope: Union[ActionsScope, ActionScopeLiteral]
     generate_file: NotRequired[bool]
@@ -41,4 +32,3 @@ class ActionDict(TypedDict):
     description: NotRequired[Optional[str]]
     submit_button_label: NotRequired[Optional[str]]
     form: NotRequired[List[Union[PlainDynamicField, BaseDynamicField]]]
-    pages: NotRequired[List[Pages]]
