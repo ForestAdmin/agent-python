@@ -172,7 +172,6 @@ class PageConfiguration(TypedDict):
 class RowConfiguration(TypedDict):
     widget: Literal["Row"]
     fields: List[PlainDynamicField]
-    size: List[int]
 
 
 class SeparatorConfiguration(TypedDict):

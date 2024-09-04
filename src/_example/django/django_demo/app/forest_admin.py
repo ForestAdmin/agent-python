@@ -82,20 +82,27 @@ def customize_forest(agent: DjangoAgent):
                     "previous_button_label": "<==",
                     "elements": [
                         {"type": "String", "label": "first_name"},
-                        {"type": "Layout", "widget": "Separator"},
+                        {
+                            "type": "Layout",
+                            "widget": "Separator",
+                            "if_": lambda ctx: ctx.form_values.get("first_name", "") == "aze",
+                        },
                         {
                             "type": "Layout",
                             "widget": "Row",
-                            "fields": [{"type": "String", "label": "ping"}, {"type": "String", "label": "pong"}],
+                            "fields": [
+                                {"type": "String", "label": "ping"},
+                                {"type": "String", "label": "pong"},
+                            ],
                         },
                     ],
                 },
                 {
                     "type": "Layout",
                     "widget": "Page",
+                    "elements": [{"type": "String", "label": "last_name"}],
                     "next_button_label": "==>",
                     "previous_button_label": "<==",
-                    "elements": [{"type": "String", "label": "last_name"}],
                 },
             ],
         },

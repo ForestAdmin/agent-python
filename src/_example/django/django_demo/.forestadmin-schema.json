@@ -258,90 +258,9 @@
                             "layoutWidget": {
                                 "name": "page",
                                 "parameters": {
-                                    "previousButtonLabel": "<==",
-                                    "nextButtonLabel": "==>",
-                                    "elements": [
-                                        {
-                                            "field": "first_name",
-                                            "value": null,
-                                            "defaultValue": null,
-                                            "description": "",
-                                            "enums": null,
-                                            "hook": null,
-                                            "isReadOnly": false,
-                                            "isRequired": false,
-                                            "reference": null,
-                                            "type": "String",
-                                            "widgetEdit": null
-                                        },
-                                        {
-                                            "type": "Layout",
-                                            "layoutWidget": {
-                                                "name": "separator"
-                                            }
-                                        },
-                                        {
-                                            "type": "Layout",
-                                            "layoutWidget": {
-                                                "name": "row",
-                                                "parameters": {
-                                                    "fields": [
-                                                        {
-                                                            "field": "ping",
-                                                            "value": null,
-                                                            "defaultValue": null,
-                                                            "description": "",
-                                                            "enums": null,
-                                                            "hook": null,
-                                                            "isReadOnly": false,
-                                                            "isRequired": false,
-                                                            "reference": null,
-                                                            "type": "String",
-                                                            "widgetEdit": null
-                                                        },
-                                                        {
-                                                            "field": "pong",
-                                                            "value": null,
-                                                            "defaultValue": null,
-                                                            "description": "",
-                                                            "enums": null,
-                                                            "hook": null,
-                                                            "isReadOnly": false,
-                                                            "isRequired": false,
-                                                            "reference": null,
-                                                            "type": "String",
-                                                            "widgetEdit": null
-                                                        }
-                                                    ]
-                                                }
-                                            }
-                                        }
-                                    ]
-                                }
-                            }
-                        },
-                        {
-                            "type": "Layout",
-                            "layoutWidget": {
-                                "name": "page",
-                                "parameters": {
-                                    "previousButtonLabel": "<==",
-                                    "nextButtonLabel": "==>",
-                                    "elements": [
-                                        {
-                                            "field": "last_name",
-                                            "value": null,
-                                            "defaultValue": null,
-                                            "description": "",
-                                            "enums": null,
-                                            "hook": null,
-                                            "isReadOnly": false,
-                                            "isRequired": false,
-                                            "reference": null,
-                                            "type": "String",
-                                            "widgetEdit": null
-                                        }
-                                    ]
+                                    "previousButtonLabel": null,
+                                    "nextButtonLabel": null,
+                                    "elements": []
                                 }
                             }
                         }
