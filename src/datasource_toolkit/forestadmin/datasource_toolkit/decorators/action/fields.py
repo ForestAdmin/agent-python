@@ -111,11 +111,10 @@ class LayoutDynamicElement(FormElement):
             output["elements"] = []
             for element in self._widget_fields["elements"]:
                 if await element.if_(context):
-                    output["elements"].append(
-                        await element.to_action_field(
-                            context, default_value.get(getattr(element, "label", ""), default_value), search_value
-                        )
+                    sub_default_value = (
+                        default_value if isinstance(element, LayoutDynamicElement) else default_value.get(element.label)
                     )
+                    output["elements"].append(await element.to_action_field(context, sub_default_value, search_value))
             output["next_button_label"] = self._widget_fields.get("next_button_label")
             output["previous_button_label"] = self._widget_fields.get("previous_button_label")
         elif self.widget == "Row":
