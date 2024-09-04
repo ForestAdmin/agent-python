@@ -168,6 +168,6 @@ class ActionCollectionDecorator(CollectionDecorator):
         action_fields: List[ActionField] = []
         for field in fields:
             if await field.if_(context):
-                value = None if isinstance(field, LayoutDynamicField) else form_values.get(field.label)
+                value = form_values if isinstance(field, LayoutDynamicField) else form_values.get(field.label)
                 action_fields.append(await field.to_action_field(context, value, search_value))
         return action_fields
