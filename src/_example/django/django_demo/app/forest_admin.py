@@ -48,24 +48,6 @@ def customize_forest(agent: DjangoAgent):
     agent.add_datasource(DjangoDatasource(support_polymorphic_relations=True))
     agent.add_datasource(TypicodeDatasource())
 
-    agent.customize_collection("app_address").add_action(
-        "bla",
-        {
-            "execute": lambda ctx, result_builder: result_builder.success(),
-            "scope": "Global",
-            "form": [
-                {
-                    "type": "String",
-                    "label": "The first one",
-                    "widget": "Dropdown",
-                    "options": lambda ctx: [
-                        "dummy",
-                        "good reason",
-                    ],
-                }
-            ],
-        },
-    )
     # # ## ADDRESS
     agent.customize_collection("app_address").add_action(
         "form_multipage",
@@ -85,7 +67,7 @@ def customize_forest(agent: DjangoAgent):
                         {
                             "type": "Layout",
                             "widget": "Separator",
-                            "if_": lambda ctx: ctx.form_values.get("first_name", "") == "aze",
+                            "if_": lambda ctx: ctx.form_values.get("first_name", "") == "aaa",
                         },
                         {
                             "type": "Layout",
@@ -99,8 +81,37 @@ def customize_forest(agent: DjangoAgent):
                 },
                 {
                     "type": "Layout",
+                    "if_": lambda ctx: ctx.form_values.get("first_name", "") == "zzz",
                     "widget": "Page",
-                    "elements": [{"type": "String", "label": "last_name"}],
+                    "elements": [
+                        {"type": "String", "label": "last_name"},
+                        {
+                            "type": "Layout",
+                            "widget": "Row",
+                            "if_": lambda ctx: ctx.form_values.get("last_name", "") != "lastName",
+                            "fields": [
+                                {"type": "String", "label": "zip"},
+                                {
+                                    "type": "String",
+                                    "label": "zop",
+                                    "if_": lambda ctx: ctx.form_values.get("zip", "") != "zip",
+                                },
+                            ],
+                        },
+                    ],
+                    "next_button_label": "==>",
+                    "previous_button_label": "<==",
+                },
+                {
+                    "type": "Layout",
+                    "widget": "Page",
+                    "elements": [
+                        {
+                            "type": "String",
+                            "label": "address",
+                            "if_": lambda ctx: ctx.form_values.get("first_name", "") == "eee",
+                        }
+                    ],
                     "next_button_label": "==>",
                     "previous_button_label": "<==",
                 },

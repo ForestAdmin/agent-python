@@ -219,10 +219,10 @@
             "paginationType": "page",
             "actions": [
                 {
-                    "id": "app_address-0-bla",
-                    "name": "bla",
+                    "id": "app_address-0-form_multipage",
+                    "name": "form_multipage",
                     "type": "global",
-                    "endpoint": "/forest/_actions/app_address/0/bla",
+                    "endpoint": "/forest/_actions/app_address/0/form_multipage",
                     "download": false,
                     "fields": [
                         {
@@ -241,32 +241,6 @@
                     ],
                     "hooks": {
                         "load": true,
-                        "change": [
-                            "changeHook"
-                        ]
-                    }
-                },
-                {
-                    "id": "app_address-1-form_multipage",
-                    "name": "form_multipage",
-                    "type": "global",
-                    "endpoint": "/forest/_actions/app_address/1/form_multipage",
-                    "download": false,
-                    "fields": [
-                        {
-                            "type": "Layout",
-                            "layoutWidget": {
-                                "name": "page",
-                                "parameters": {
-                                    "previousButtonLabel": null,
-                                    "nextButtonLabel": null,
-                                    "elements": []
-                                }
-                            }
-                        }
-                    ],
-                    "hooks": {
-                        "load": false,
                         "change": [
                             "changeHook"
                         ]
