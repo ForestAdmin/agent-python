@@ -129,13 +129,20 @@ class ActionResource(BaseCollectionResource):
             },
         )
 
-        new_fields: List[ForestServerActionFormElement] = []
+        # new_fields: List[ForestServerActionFormElement] = []
+        # for field in fields:
+        #     if field["type"] == ActionFieldType.LAYOUT:
+        #         new_fields.append(await SchemaActionGenerator.build_layout_schema(request.collection.datasource, field))
+        #     else:
+        #         new_fields.append(await SchemaActionGenerator.build_field_schema(request.collection.datasource, field))
+        # return HttpResponseBuilder.build_success_response({"fields": new_fields})
+        fields, layout = await SchemaActionGenerator.extract_fields_and_layout(fields)
+        ret = {"fields": [], "layout": []}
         for field in fields:
-            if field["type"] == ActionFieldType.LAYOUT:
-                new_fields.append(await SchemaActionGenerator.build_layout_schema(request.collection.datasource, field))
-            else:
-                new_fields.append(await SchemaActionGenerator.build_field_schema(request.collection.datasource, field))
-        return HttpResponseBuilder.build_success_response({"fields": new_fields})
+            ret["fields"].append(await SchemaActionGenerator.build_field_schema(request.collection.datasource, field))
+        for item in layout:
+            ret["layout"].append(await SchemaActionGenerator.build_layout_schema(request.collection.datasource, item))
+        return HttpResponseBuilder.build_success_response(ret)
 
     async def _get_records_selection(self, request: ActionRequest) -> Filter:
         trees: List[ConditionTree] = []
