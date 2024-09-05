@@ -226,21 +226,235 @@
                     "download": false,
                     "fields": [
                         {
-                            "field": "Loading...",
-                            "type": "String",
-                            "isReadOnly": true,
-                            "defaultValue": "Form is loading",
+                            "field": "first_name",
                             "value": null,
+                            "defaultValue": null,
                             "description": "",
                             "enums": null,
                             "hook": null,
+                            "isReadOnly": false,
                             "isRequired": false,
                             "reference": null,
+                            "type": "String",
                             "widgetEdit": null
+                        },
+                        {
+                            "field": "Gender",
+                            "value": null,
+                            "defaultValue": null,
+                            "description": "",
+                            "enums": [
+                                "M",
+                                "F",
+                                "other"
+                            ],
+                            "hook": null,
+                            "isReadOnly": false,
+                            "isRequired": false,
+                            "reference": null,
+                            "type": "Enum",
+                            "widgetEdit": null
+                        },
+                        {
+                            "field": "Gender_other",
+                            "value": null,
+                            "defaultValue": null,
+                            "description": "",
+                            "enums": null,
+                            "hook": null,
+                            "isReadOnly": false,
+                            "isRequired": false,
+                            "reference": null,
+                            "type": "String",
+                            "widgetEdit": null
+                        },
+                        {
+                            "field": "Number of children",
+                            "value": null,
+                            "defaultValue": null,
+                            "description": "",
+                            "enums": null,
+                            "hook": null,
+                            "isReadOnly": false,
+                            "isRequired": false,
+                            "reference": null,
+                            "type": "Number",
+                            "widgetEdit": null
+                        },
+                        {
+                            "field": "Age of older child",
+                            "value": null,
+                            "defaultValue": null,
+                            "description": "",
+                            "enums": null,
+                            "hook": null,
+                            "isReadOnly": false,
+                            "isRequired": false,
+                            "reference": null,
+                            "type": "Number",
+                            "widgetEdit": null
+                        },
+                        {
+                            "field": "Age of younger child",
+                            "value": null,
+                            "defaultValue": null,
+                            "description": "",
+                            "enums": null,
+                            "hook": null,
+                            "isReadOnly": false,
+                            "isRequired": false,
+                            "reference": null,
+                            "type": "Number",
+                            "widgetEdit": null
+                        },
+                        {
+                            "field": "Are they wise",
+                            "value": null,
+                            "defaultValue": null,
+                            "description": "",
+                            "enums": null,
+                            "hook": null,
+                            "isReadOnly": false,
+                            "isRequired": false,
+                            "reference": null,
+                            "type": "Boolean",
+                            "widgetEdit": null
+                        },
+                        {
+                            "field": "Why_its_your_fault",
+                            "value": null,
+                            "defaultValue": null,
+                            "description": "",
+                            "enums": null,
+                            "hook": null,
+                            "isReadOnly": false,
+                            "isRequired": false,
+                            "reference": null,
+                            "type": [
+                                "String"
+                            ],
+                            "widgetEdit": null
+                        },
+                        {
+                            "field": "Why_its_their_fault",
+                            "value": null,
+                            "defaultValue": null,
+                            "description": "",
+                            "enums": null,
+                            "hook": null,
+                            "isReadOnly": false,
+                            "isRequired": false,
+                            "reference": null,
+                            "type": "String",
+                            "widgetEdit": {
+                                "name": "text area editor",
+                                "parameters": {
+                                    "placeholder": null,
+                                    "rows": null
+                                }
+                            }
+                        }
+                    ],
+                    "layout": [
+                        {
+                            "type": "Layout",
+                            "layoutWidget": {
+                                "name": "page",
+                                "parameters": {
+                                    "previousButtonLabel": "<==",
+                                    "nextButtonLabel": "==>",
+                                    "elements": [
+                                        {
+                                            "type": "Layout",
+                                            "layoutWidget": {
+                                                "name": "separator"
+                                            }
+                                        },
+                                        {
+                                            "type": "Layout",
+                                            "layoutWidget": {
+                                                "name": "row",
+                                                "parameters": {
+                                                    "fields": [
+                                                        {
+                                                            "fieldName": "Gender"
+                                                        },
+                                                        {
+                                                            "fieldName": "Gender_other"
+                                                        }
+                                                    ]
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        },
+                        {
+                            "type": "Layout",
+                            "layoutWidget": {
+                                "name": "page",
+                                "parameters": {
+                                    "previousButtonLabel": "<==",
+                                    "nextButtonLabel": "==>",
+                                    "elements": [
+                                        {
+                                            "fieldName": "Number of children"
+                                        },
+                                        {
+                                            "type": "Layout",
+                                            "layoutWidget": {
+                                                "name": "row",
+                                                "parameters": {
+                                                    "fields": [
+                                                        {
+                                                            "fieldName": "Age of older child"
+                                                        },
+                                                        {
+                                                            "fieldName": "Age of younger child"
+                                                        }
+                                                    ]
+                                                }
+                                            }
+                                        },
+                                        {
+                                            "fieldName": "Are they wise"
+                                        }
+                                    ]
+                                }
+                            }
+                        },
+                        {
+                            "type": "Layout",
+                            "layoutWidget": {
+                                "name": "page",
+                                "parameters": {
+                                    "previousButtonLabel": "<==",
+                                    "nextButtonLabel": "==>",
+                                    "elements": [
+                                        {
+                                            "type": "Layout",
+                                            "layoutWidget": {
+                                                "name": "row",
+                                                "parameters": {
+                                                    "fields": [
+                                                        {
+                                                            "fieldName": "Why_its_your_fault"
+                                                        },
+                                                        {
+                                                            "fieldName": "Why_its_their_fault"
+                                                        }
+                                                    ]
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
                         }
                     ],
                     "hooks": {
-                        "load": true,
+                        "load": false,
                         "change": [
                             "changeHook"
                         ]
@@ -602,6 +816,7 @@
                     "endpoint": "/forest/_actions/app_customer/0/export json",
                     "download": true,
                     "fields": [],
+                    "layout": [],
                     "hooks": {
                         "load": false,
                         "change": [
@@ -630,6 +845,7 @@
                             "widgetEdit": null
                         }
                     ],
+                    "layout": [],
                     "hooks": {
                         "load": true,
                         "change": [
@@ -1334,6 +1550,14 @@
                             "widgetEdit": null
                         }
                     ],
+                    "layout": [
+                        {
+                            "fieldName": "dummy field"
+                        },
+                        {
+                            "fieldName": "customer"
+                        }
+                    ],
                     "hooks": {
                         "load": false,
                         "change": [
@@ -1360,6 +1584,11 @@
                             "reference": null,
                             "type": "String",
                             "widgetEdit": null
+                        }
+                    ],
+                    "layout": [
+                        {
+                            "fieldName": "reason"
                         }
                     ],
                     "hooks": {

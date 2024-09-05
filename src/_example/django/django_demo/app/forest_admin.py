@@ -48,9 +48,6 @@ def customize_forest(agent: DjangoAgent):
     agent.add_datasource(DjangoDatasource(support_polymorphic_relations=True))
     agent.add_datasource(TypicodeDatasource())
 
-    async def idd(ctx):
-        return ctx.form_values.get("zip", "") != "zip"
-
     # # ## ADDRESS
     agent.customize_collection("app_address").add_action(
         "form_multipage",
@@ -65,20 +62,22 @@ def customize_forest(agent: DjangoAgent):
                     "widget": "Page",
                     "next_button_label": "==>",
                     "previous_button_label": "<==",
-                    # "if_": lambda ctx: ctx.form_values.get("first_name", "") != "zzz",
                     "elements": [
                         {"type": "String", "label": "first_name"},
                         {
                             "type": "Layout",
                             "widget": "Separator",
-                            "if_": lambda ctx: ctx.form_values.get("first_name", "") == "aaa",
                         },
                         {
                             "type": "Layout",
                             "widget": "Row",
                             "fields": [
-                                {"type": "String", "label": "ping"},
-                                {"type": "String", "label": "pong"},
+                                {"type": "Enum", "label": "Gender", "enum_values": ["M", "F", "other"]},
+                                {
+                                    "type": "String",
+                                    "label": "Gender_other",
+                                    # "if_": lambda ctx: ctx.form_values.get("Gender", "") in ["other", ""],
+                                },
                             ],
                         },
                     ],
@@ -86,22 +85,18 @@ def customize_forest(agent: DjangoAgent):
                 {
                     "type": "Layout",
                     "widget": "Page",
+                    # "if_": lambda ctx: ctx.form_values.get("Number of children") != 0,
                     "elements": [
-                        {"type": "String", "label": "last_name"},
+                        {"type": "Number", "label": "Number of children"},
                         {
                             "type": "Layout",
                             "widget": "Row",
-                            "if_": lambda ctx: ctx.form_values.get("last_name", "") != "lastName",
                             "fields": [
-                                {"type": "String", "label": "zip"},
-                                {
-                                    "type": "String",
-                                    "label": "zop",
-                                    # "if_": lambda ctx: ctx.form_values.get("zip", "") != "zip",
-                                    "if_": idd,
-                                },
+                                {"type": "Number", "label": "Age of older child"},
+                                {"type": "Number", "label": "Age of younger child"},
                             ],
                         },
+                        {"type": "Boolean", "label": "Are they wise"},
                     ],
                     "next_button_label": "==>",
                     "previous_button_label": "<==",
@@ -109,12 +104,16 @@ def customize_forest(agent: DjangoAgent):
                 {
                     "type": "Layout",
                     "widget": "Page",
+                    # "if_": lambda ctx: ctx.form_values.get("Are they wise") is False,
                     "elements": [
                         {
-                            "type": "String",
-                            "label": "address",
-                            # "if_": lambda ctx: ctx.form_values.get("first_name", "") == "eee",
-                        }
+                            "type": "Layout",
+                            "widget": "Row",
+                            "fields": [
+                                {"type": "StringList", "label": "Why_its_your_fault"},
+                                {"type": "String", "label": "Why_its_their_fault", "widget": "TextArea"},
+                            ],
+                        },
                     ],
                     "next_button_label": "==>",
                     "previous_button_label": "<==",

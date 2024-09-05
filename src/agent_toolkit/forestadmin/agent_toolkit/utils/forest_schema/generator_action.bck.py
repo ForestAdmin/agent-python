@@ -51,8 +51,7 @@ class SchemaActionGenerator:
             type=cast(Literal["single", "bulk", "global"], schema.scope.value.lower()),
             endpoint=f"/forest/_actions/{collection.name}/{idx}/{slug}",
             download=bool(schema.generate_file),
-            fields=(await cls.build_form_elements(collection, schema, name))["fields"],
-            layout=(await cls.build_form_elements(collection, schema, name))["layout"],
+            fields=await cls.build_form_elements(collection, schema, name),
             # Always registering the change hook has no consequences, even if we don't use it.
             hooks={"load": not schema.static_form, "change": ["changeHook"]},
         )
@@ -63,14 +62,12 @@ class SchemaActionGenerator:
     ) -> List[Union[ForestServerActionLayout, ForestServerActionField]]:
         elements = []
         for element in field.get("elements", []):
-            if "field_name" not in element and element["type"] == ActionFieldType.LAYOUT:
+            if element["type"] == ActionFieldType.LAYOUT:
                 if element["widget"] == "Page":
                     raise Exception("Cannot have a page in a page")  # TODO
                 elements.append(await cls.build_layout_schema(datasource, element))
             else:
-                # elements.append(await cls.build_field_schema(datasource, element))
-                elements.append({"fieldName": element["field_name"]})
-
+                elements.append(await cls.build_field_schema(datasource, element))
         return elements
 
     @classmethod
@@ -79,11 +76,10 @@ class SchemaActionGenerator:
     ) -> List[ForestServerActionLayout]:
         elements = []
         for element in field.get("fields", []):
-            if "field_name" not in element and element["type"] == ActionFieldType.LAYOUT:
+            if element["type"] == ActionFieldType.LAYOUT:
                 raise Exception("Cannot have a page in a page")  # TODO
             else:
-                elements.append({"fieldName": element["field_name"]})
-                # elements.append(await cls.build_field_schema(datasource, element))
+                elements.append(await cls.build_field_schema(datasource, element))
         return elements
 
     @classmethod
@@ -91,9 +87,6 @@ class SchemaActionGenerator:
         cls, datasource: Datasource[Collection], field: ActionLayoutItem
     ) -> ForestServerActionLayout:
         new_field = deepcopy(field)
-        if "widget" not in new_field and "field_name" in new_field:
-            return {"fieldName": new_field["field_name"]}
-
         if new_field["widget"] == "Page":
             new_field["elements"] = await cls.build_page_elements(datasource, new_field)
         elif new_field.get("widget") == "Row":
@@ -157,43 +150,13 @@ class SchemaActionGenerator:
         cls, collection: Union[Collection, CollectionCustomizer], action: Action, name: str
     ) -> List[ForestServerActionFormElement]:
         if not action.static_form:
-            return {"fields": cls.DUMMY_FIELDS, "layout": []}
+            return cls.DUMMY_FIELDS
         fields = await collection.get_form(None, name, None, None)
-        fields, layout = await cls.extract_fields_and_layout(fields)
 
-        # new_fields: List[ForestServerActionFormElement] = []
-        ret = {"fields": [], "layout": []}
+        new_fields: List[ForestServerActionFormElement] = []
         for field in fields:
-            ret["fields"].append(await cls.build_field_schema(collection.datasource, field))
-        for item in layout:
-            ret["layout"].append(await cls.build_layout_schema(collection.datasource, item))
-        # for field in fields:
-        #     if field["type"] == ActionFieldType.LAYOUT:
-        #         new_fields.append(await cls.build_layout_schema(collection.datasource, field))
-        #     else:
-        #         new_fields.append(await cls.build_field_schema(collection.datasource, field))
-        return ret
-        # return new_fields
-
-    @classmethod
-    async def extract_fields_and_layout(cls, form):
-        fields = []
-        layout = []
-
-        for element in form:
-            if element["type"] != ActionFieldType.LAYOUT:
-                fields.append(element)
-                layout.append({"field_name": element["label"]})
+            if field["type"] == ActionFieldType.LAYOUT:
+                new_fields.append(await cls.build_layout_schema(collection.datasource, field))
             else:
-                if element["widget"] == "Row":
-                    sub_fields, sub_layout = await cls.extract_fields_and_layout(element["fields"])
-                    layout.append({**element, "fields": sub_layout})
-                    fields.extend(sub_fields)
-                elif element["widget"] == "Page":
-                    sub_fields, sub_layout = await cls.extract_fields_and_layout(element["elements"])
-                    fields.extend(sub_fields)
-                    layout.append({**element, "elements": sub_layout})
-                else:
-                    layout = [element]
-
-        return fields, layout
+                new_fields.append(await cls.build_field_schema(collection.datasource, field))
+        return new_fields
