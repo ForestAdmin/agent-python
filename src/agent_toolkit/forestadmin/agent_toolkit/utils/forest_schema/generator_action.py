@@ -67,9 +67,11 @@ class SchemaActionGenerator:
                 if element["widget"] == "Page":
                     raise Exception("Cannot have a page in a page")  # TODO
                 elements.append(await cls.build_layout_schema(datasource, element))
-            else:
+            elif "field_name" in element and element["type"] != ActionFieldType.LAYOUT:
                 # elements.append(await cls.build_field_schema(datasource, element))
                 elements.append({"fieldName": element["field_name"]})
+            else:
+                pass
 
         return elements
 
