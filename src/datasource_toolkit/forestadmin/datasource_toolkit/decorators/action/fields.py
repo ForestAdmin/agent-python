@@ -1,5 +1,6 @@
+import abc
 from datetime import date, datetime
-from typing import Any, Awaitable, Callable, Generic, List, Optional, TypeVar, Union
+from typing import Any, Awaitable, Callable, Dict, Generic, List, Optional, TypeVar, Union
 
 from forestadmin.datasource_toolkit.decorators.action.context.base import ActionContext
 from forestadmin.datasource_toolkit.decorators.action.context.bulk import ActionContextBulk
@@ -23,10 +24,72 @@ ValueOrHandler = Union[
 ]
 
 
-class BaseDynamicField(Generic[Result]):
-    ATTR_TO_EVALUATE = ("is_required", "is_read_only", "if_", "value", "default_value")
-    WIDGET_ATTR_TO_EVALUATE = ("min", "max", "step", "base", "extensions", "max_size_mb", "max_count", "options")
+class DynamicFormElement:
+    ATTR_TO_EVALUATE = ("if_",)
+    WIDGET_ATTR_TO_EVALUATE = ()
     TYPE: ActionFieldType
+
+    def __init__(
+        self,
+        if_: Optional[ValueOrHandler[bool]] = None,
+        **widget_fields: Dict[str, Any],
+    ):
+        self._if_ = if_
+        unknown_keyword_args = [k for k in widget_fields.keys() if k not in WIDGET_ATTRIBUTES]
+        if any(unknown_keyword_args):
+            raise TypeError(
+                f"{self.__class__.__name__}.__init__() got an unexpected keyword argument '{unknown_keyword_args[0]}'"
+            )
+        self._widget_fields = widget_fields
+
+    @abc.abstractmethod
+    async def to_action_field(
+        self, context: Context, default_value: Any, search_value: Optional[str] = None
+    ) -> ActionField:
+        pass
+
+    @property
+    def dynamic_fields(self):
+        ret = [getattr(self, f"_{field}") for field in self.__class__.ATTR_TO_EVALUATE]
+
+        if len(self._widget_fields) > 0:
+            ret.extend(self._widget_fields.get(widget_attr) for widget_attr in self.__class__.WIDGET_ATTR_TO_EVALUATE)
+        return ret
+
+    @property
+    def is_dynamic(self) -> bool:
+        """return True if this field is dynamic"""
+        return any(map(lambda x: callable(x), self.dynamic_fields))
+
+    async def if_(self, context: Context) -> Any:
+        return self._if_ is None or await self._evaluate(context, self._if_)
+
+    async def _evaluate(self, context: Context, attribute: ValueOrHandler[Any]):
+        if callable(attribute):
+            return await call_user_function(attribute, context)
+        else:
+            return attribute
+
+
+class BaseDynamicField(DynamicFormElement, Generic[Result]):
+    ATTR_TO_EVALUATE = (
+        *DynamicFormElement.ATTR_TO_EVALUATE,
+        "is_required",
+        "is_read_only",
+        "value",
+        "default_value",
+    )
+    WIDGET_ATTR_TO_EVALUATE = (
+        *DynamicFormElement.WIDGET_ATTR_TO_EVALUATE,
+        "min",
+        "max",
+        "step",
+        "base",
+        "extensions",
+        "max_size_mb",
+        "max_count",
+        "options",
+    )
 
     def __init__(
         self,
@@ -37,33 +100,16 @@ class BaseDynamicField(Generic[Result]):
         if_: Optional[ValueOrHandler[bool]] = None,
         value: Optional[ValueOrHandler[Result]] = None,
         default_value: Optional[ValueOrHandler[Result]] = None,
-        **kwargs,
+        **kwargs: Dict[str, Any],
     ):
         self.label = label
         self.description = description
         self._is_required = is_required
         self._is_read_only = is_read_only
-        self._if_ = if_
         self._value = value
         self._default_value = default_value
 
-        unknown_keyword_args = [k for k in kwargs.keys() if k not in WIDGET_ATTRIBUTES]
-        if any(unknown_keyword_args):
-            raise TypeError(
-                f"BaseDynamicField.__init__() got an unexpected keyword argument '{unknown_keyword_args[0]}'"
-            )
-        self._widget_fields = kwargs
-
-    @property
-    def dynamic_fields(self):
-        ret = [getattr(self, f"_{field}") for field in BaseDynamicField.ATTR_TO_EVALUATE]
-        if len(self._widget_fields) > 0:
-            ret.extend(self._widget_fields.get(widget_attr) for widget_attr in BaseDynamicField.WIDGET_ATTR_TO_EVALUATE)
-        return ret
-
-    @property
-    def is_dynamic(self) -> bool:
-        return any(map(lambda x: isinstance(x, Callable), self.dynamic_fields))
+        super().__init__(if_, **kwargs)
 
     async def to_action_field(
         self, context: Context, default_value: Result, search_value: Optional[str] = None
@@ -94,17 +140,8 @@ class BaseDynamicField(Generic[Result]):
     async def is_read_only(self, context: Context) -> bool:
         return await self._evaluate(context, self._is_read_only)
 
-    async def if_(self, context: Context) -> Any:
-        return self._if_ is None or await self._evaluate(context, self._if_)
-
     async def value(self, context: Context) -> Result:
         return await self._evaluate(context, self._value)
-
-    async def _evaluate(self, context: Context, attribute: ValueOrHandler[Any]):
-        if callable(attribute):
-            return await call_user_function(attribute, context)
-        else:
-            return attribute
 
     async def _evaluate_option(self, context: Context, attribute: ValueOrHandler[Any], search_value: Optional[str]):
         if self._widget_fields.get("search", "") == "dynamic":
@@ -289,11 +326,11 @@ DynamicField = Union[
 ]
 
 
-class FieldFactoryException(DatasourceToolkitException):
+class FormElementFactoryException(DatasourceToolkitException):
     pass
 
 
-class FieldFactory:
+class FormElementFactory:
     FIELD_FOR_TYPE: Any = {
         ActionFieldType.COLLECTION: CollectionDynamicField,
         ActionFieldType.NUMBER: NumberDynamicField,
@@ -316,11 +353,11 @@ class FieldFactory:
         try:
             cls_field = cls.FIELD_FOR_TYPE[ActionFieldType(plain_field["type"])]
         except (KeyError, ValueError):
-            raise FieldFactoryException(f"Unknown field type: '{plain_field['type']}'")
+            raise FormElementFactoryException(f"Unknown field type: '{plain_field['type']}'")
 
         _plain_field = {**plain_field}
         del _plain_field["type"]  # type: ignore
         try:
             return cls_field(**_plain_field)
         except (TypeError, AttributeError) as e:
-            raise FieldFactoryException(f"Unable to build a field. cls: '{cls_field.__name__}', e: '{e}'")
+            raise FormElementFactoryException(f"Unable to build a field. cls: '{cls_field.__name__}', e: '{e}'")

@@ -5,7 +5,7 @@ from forestadmin.datasource_toolkit.collections import Collection
 from forestadmin.datasource_toolkit.decorators.action.context.base import ActionContext
 from forestadmin.datasource_toolkit.decorators.action.context.bulk import ActionContextBulk
 from forestadmin.datasource_toolkit.decorators.action.context.single import ActionContextSingle
-from forestadmin.datasource_toolkit.decorators.action.fields import BaseDynamicField, DynamicField, FieldFactory
+from forestadmin.datasource_toolkit.decorators.action.fields import BaseDynamicField, DynamicField, FormElementFactory
 from forestadmin.datasource_toolkit.decorators.action.result_builder import ResultBuilder
 from forestadmin.datasource_toolkit.decorators.action.types.actions import ActionDict
 from forestadmin.datasource_toolkit.decorators.collection_decorator import CollectionDecorator
@@ -23,7 +23,7 @@ class ActionCollectionDecorator(CollectionDecorator):
 
     def add_action(self, name: str, action: ActionDict):
         action["form"] = [
-            FieldFactory.build(field) if not isinstance(field, BaseDynamicField) else field
+            FormElementFactory.build(field) if not isinstance(field, BaseDynamicField) else field
             for field in action.get("form", [])
         ]
         self._actions[name] = action
