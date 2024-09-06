@@ -5,9 +5,9 @@ from forestadmin.datasource_toolkit.collections import Collection
 from forestadmin.datasource_toolkit.decorators.action.context.base import ActionContext
 from forestadmin.datasource_toolkit.decorators.action.context.bulk import ActionContextBulk
 from forestadmin.datasource_toolkit.decorators.action.context.single import ActionContextSingle
+from forestadmin.datasource_toolkit.decorators.action.fields import BaseDynamicField, DynamicField, FieldFactory
 from forestadmin.datasource_toolkit.decorators.action.result_builder import ResultBuilder
 from forestadmin.datasource_toolkit.decorators.action.types.actions import ActionDict
-from forestadmin.datasource_toolkit.decorators.action.types.fields import BaseDynamicField, DynamicField, FieldFactory
 from forestadmin.datasource_toolkit.decorators.collection_decorator import CollectionDecorator
 from forestadmin.datasource_toolkit.interfaces.actions import Action, ActionField, ActionResult, ActionsScope
 from forestadmin.datasource_toolkit.interfaces.models.collections import CollectionSchema
