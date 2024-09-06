@@ -44,7 +44,7 @@ ValueOrHandler = Union[
 
 class PlainField(TypedDict):
     label: str
-    description: NotRequired[str]
+    description: NotRequired[ValueOrHandler[str]]
     is_required: NotRequired[ValueOrHandler[bool]]
     is_read_only: NotRequired[ValueOrHandler[bool]]
     if_: NotRequired[ValueOrHandler[bool]]

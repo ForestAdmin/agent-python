@@ -77,6 +77,7 @@ class BaseDynamicField(DynamicFormElement, Generic[Result]):
         "is_required",
         "is_read_only",
         "value",
+        "description",
         "default_value",
     )
     WIDGET_ATTR_TO_EVALUATE = (
@@ -94,7 +95,7 @@ class BaseDynamicField(DynamicFormElement, Generic[Result]):
     def __init__(
         self,
         label: str,
-        description: Optional[str] = "",
+        description: Optional[ValueOrHandler[str]] = "",
         is_required: Optional[ValueOrHandler[bool]] = False,
         is_read_only: Optional[ValueOrHandler[bool]] = False,
         if_: Optional[ValueOrHandler[bool]] = None,
@@ -103,7 +104,7 @@ class BaseDynamicField(DynamicFormElement, Generic[Result]):
         **kwargs: Dict[str, Any],
     ):
         self.label = label
-        self.description = description
+        self._description = description
         self._is_required = is_required
         self._is_read_only = is_read_only
         self._value = value
@@ -117,7 +118,7 @@ class BaseDynamicField(DynamicFormElement, Generic[Result]):
         field = ActionField(
             type=self.TYPE,
             label=self.label,
-            description=self.description,
+            description=await self.description(context),
             is_read_only=await self.is_read_only(context),
             is_required=await self.is_required(context),
             value=await self.value(context) or default_value,
@@ -136,6 +137,9 @@ class BaseDynamicField(DynamicFormElement, Generic[Result]):
 
     async def is_required(self, context: Context) -> bool:
         return await self._evaluate(context, self._is_required)
+
+    async def description(self, context: Context) -> str:
+        return await self._evaluate(context, self._description)
 
     async def is_read_only(self, context: Context) -> bool:
         return await self._evaluate(context, self._is_read_only)
