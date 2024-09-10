@@ -1,6 +1,6 @@
 import abc
 from datetime import date, datetime
-from typing import Any, Awaitable, Callable, Dict, Generic, List, Optional, TypeVar, Union
+from typing import Any, Awaitable, Callable, Dict, Generic, List, Optional, Type, TypeVar, Union
 
 from forestadmin.datasource_toolkit.decorators.action.context.base import ActionContext
 from forestadmin.datasource_toolkit.decorators.action.context.bulk import ActionContextBulk
@@ -370,7 +370,7 @@ class FormElementFactoryException(DatasourceToolkitException):
 
 
 class FormElementFactory:
-    FIELD_FOR_TYPE: Dict[ActionFieldType, type[DynamicFormElements]] = {
+    FIELD_FOR_TYPE: Dict[ActionFieldType, Type[DynamicFormElements]] = {
         ActionFieldType.COLLECTION: CollectionDynamicField,
         ActionFieldType.NUMBER: NumberDynamicField,
         ActionFieldType.NUMBER_LIST: NumberListDynamicField,
