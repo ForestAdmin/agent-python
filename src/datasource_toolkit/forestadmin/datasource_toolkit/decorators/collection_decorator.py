@@ -2,7 +2,7 @@ from typing import Any, Dict, List, Optional, Union, cast
 
 from forestadmin.agent_toolkit.utils.context import User
 from forestadmin.datasource_toolkit.collections import CollectionException
-from forestadmin.datasource_toolkit.interfaces.actions import ActionField, ActionResult
+from forestadmin.datasource_toolkit.interfaces.actions import ActionFormElement, ActionResult
 from forestadmin.datasource_toolkit.interfaces.chart import Chart
 from forestadmin.datasource_toolkit.interfaces.collections import Collection
 from forestadmin.datasource_toolkit.interfaces.models.collections import BoundCollection, CollectionSchema, Datasource
@@ -68,25 +68,25 @@ class CollectionDecorator(Collection):
     ) -> Union[Filter, PaginatedFilter, None]:
         return _filter
 
-    async def list(self, caller: User, _filter: PaginatedFilter, projection: Projection) -> List[RecordsDataAlias]:
-        refined_filter = cast(PaginatedFilter, await self._refine_filter(caller, _filter))
+    async def list(self, caller: User, filter_: PaginatedFilter, projection: Projection) -> List[RecordsDataAlias]:
+        refined_filter = cast(PaginatedFilter, await self._refine_filter(caller, filter_))
         return await self.child_collection.list(caller, refined_filter, projection)
 
     async def create(self, caller: User, data: List[RecordsDataAlias]) -> List[RecordsDataAlias]:
         return await self.child_collection.create(caller, data)
 
-    async def update(self, caller: User, _filter: Optional[Filter], patch: RecordsDataAlias) -> None:
-        refined_filter = cast(Optional[Filter], await self._refine_filter(caller, _filter))
+    async def update(self, caller: User, filter_: Optional[Filter], patch: RecordsDataAlias) -> None:
+        refined_filter = cast(Optional[Filter], await self._refine_filter(caller, filter_))
         return await self.child_collection.update(caller, refined_filter, patch)
 
-    async def delete(self, caller: User, _filter: Optional[Filter]) -> None:
-        refined_filter = cast(Optional[Filter], await self._refine_filter(caller, _filter))
+    async def delete(self, caller: User, filter_: Optional[Filter]) -> None:
+        refined_filter = cast(Optional[Filter], await self._refine_filter(caller, filter_))
         return await self.child_collection.delete(caller, refined_filter)
 
     async def aggregate(
-        self, caller: User, _filter: Optional[Filter], aggregation: Aggregation, limit: Optional[int] = None
+        self, caller: User, filter_: Optional[Filter], aggregation: Aggregation, limit: Optional[int] = None
     ) -> List[AggregateResult]:
-        refined_filter = cast(Optional[Filter], await self._refine_filter(caller, _filter))
+        refined_filter = cast(Optional[Filter], await self._refine_filter(caller, filter_))
         return await self.child_collection.aggregate(caller, refined_filter, aggregation, limit)
 
     async def execute(
@@ -94,9 +94,9 @@ class CollectionDecorator(Collection):
         caller: User,
         name: str,
         data: RecordsDataAlias,
-        _filter: Optional[Filter] = None,
+        filter_: Optional[Filter] = None,
     ) -> ActionResult:
-        refined_filter = cast(Filter, await self._refine_filter(caller, _filter))
+        refined_filter = cast(Filter, await self._refine_filter(caller, filter_))
         return await self.child_collection.execute(caller, name, data, refined_filter)
 
     async def get_form(
@@ -104,10 +104,10 @@ class CollectionDecorator(Collection):
         caller: User,
         name: str,
         data: Optional[RecordsDataAlias],
-        _filter: Optional[Filter] = None,
+        filter_: Optional[Filter] = None,
         meta: Optional[Dict[str, Any]] = dict(),
-    ) -> List[ActionField]:
-        refined_filter = cast(Optional[Filter], await self._refine_filter(caller, _filter))
+    ) -> List[ActionFormElement]:
+        refined_filter = cast(Optional[Filter], await self._refine_filter(caller, filter_))
         return await self.child_collection.get_form(caller, name, data, refined_filter, meta)
 
     async def render_chart(self, caller: User, name: str, record_id: List) -> Chart:

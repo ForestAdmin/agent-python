@@ -8,7 +8,14 @@ from forestadmin.datasource_toolkit.decorators.action.context.single import Acti
 from forestadmin.datasource_toolkit.decorators.action.types.fields import PlainDynamicField
 from forestadmin.datasource_toolkit.decorators.action.types.widgets import WIDGET_ATTRIBUTES
 from forestadmin.datasource_toolkit.exceptions import DatasourceToolkitException
-from forestadmin.datasource_toolkit.interfaces.actions import ActionField, ActionFieldType, File
+from forestadmin.datasource_toolkit.interfaces.actions import (
+    ActionField,
+    ActionFieldType,
+    ActionFormElement,
+    ActionLayoutElement,
+    File,
+    LayoutWidgetTypes,
+)
 from forestadmin.datasource_toolkit.interfaces.records import CompositeIdAlias
 from forestadmin.datasource_toolkit.utils.user_callable import call_user_function
 
@@ -24,7 +31,7 @@ ValueOrHandler = Union[
 ]
 
 
-class DynamicFormElement:
+class BaseDynamicFormElement:
     ATTR_TO_EVALUATE = ("if_",)
     WIDGET_ATTR_TO_EVALUATE = ()
     TYPE: ActionFieldType
@@ -45,11 +52,11 @@ class DynamicFormElement:
     @abc.abstractmethod
     async def to_action_field(
         self, context: Context, default_value: Any, search_value: Optional[str] = None
-    ) -> ActionField:
+    ) -> ActionFormElement:
         pass
 
     @property
-    def dynamic_fields(self):
+    def dynamic_fields(self) -> List[Any]:
         ret = [getattr(self, f"_{field}") for field in self.__class__.ATTR_TO_EVALUATE]
 
         if len(self._widget_fields) > 0:
@@ -64,16 +71,40 @@ class DynamicFormElement:
     async def if_(self, context: Context) -> Any:
         return self._if_ is None or await self._evaluate(context, self._if_)
 
-    async def _evaluate(self, context: Context, attribute: ValueOrHandler[Any]):
+    async def _evaluate(self, context: Context, attribute: ValueOrHandler[Any]) -> Any:
         if callable(attribute):
             return await call_user_function(attribute, context)
         else:
             return attribute
 
 
-class BaseDynamicField(DynamicFormElement, Generic[Result]):
+class DynamicLayoutElements(BaseDynamicFormElement):
+    TYPE = ActionFieldType.LAYOUT
+
+    def __init__(
+        self,
+        component: LayoutWidgetTypes,
+        if_: Optional[ValueOrHandler[bool]] = None,
+        **component_fields: Dict[str, Any],
+    ):
+        self._component: LayoutWidgetTypes = component
+        super().__init__(if_, **component_fields)
+
+    @property
+    def is_dynamic(self) -> bool:
+        # TODO: make a real computation for story#7
+        return True
+
+    async def to_action_field(
+        self, context: Context, default_value: Any, search_value: Optional[str] = None
+    ) -> ActionLayoutElement:
+        # here default value is the all form_values dict because of possible nested fields
+        return ActionLayoutElement(type=self.TYPE, component=self._component)
+
+
+class BaseDynamicField(BaseDynamicFormElement, Generic[Result]):
     ATTR_TO_EVALUATE = (
-        *DynamicFormElement.ATTR_TO_EVALUATE,
+        *BaseDynamicFormElement.ATTR_TO_EVALUATE,
         "is_required",
         "is_read_only",
         "value",
@@ -81,7 +112,7 @@ class BaseDynamicField(DynamicFormElement, Generic[Result]):
         "default_value",
     )
     WIDGET_ATTR_TO_EVALUATE = (
-        *DynamicFormElement.WIDGET_ATTR_TO_EVALUATE,
+        *BaseDynamicFormElement.WIDGET_ATTR_TO_EVALUATE,
         "min",
         "max",
         "step",
@@ -287,11 +318,11 @@ class TimeDynamicField(BaseDynamicField[str]):
     TYPE = ActionFieldType.TIME
 
 
-class NumberDynamicField(BaseDynamicField[Union[int, float]]):
+class NumberDynamicField(BaseDynamicField[Number]):
     TYPE = ActionFieldType.NUMBER
 
 
-class NumberListDynamicField(BaseDynamicField[List[Union[int, float]]]):
+class NumberListDynamicField(BaseDynamicField[List[Number]]):
     TYPE = ActionFieldType.NUMBER_LIST
 
 
@@ -315,7 +346,7 @@ class FileListDynamicField(BaseDynamicField[File]):
     TYPE = ActionFieldType.FILE_LIST
 
 
-DynamicField = Union[
+DynamicFields = Union[
     BooleanDynamicField,
     CollectionDynamicField,
     EnumDynamicField,
@@ -326,8 +357,12 @@ DynamicField = Union[
     StringListDynamicField,
     JsonDynamicField,
     FileDynamicField,
+    DateTimeDynamicField,
+    DateOnlyDynamicField,
+    TimeDynamicField,
     FileListDynamicField,
 ]
+DynamicFormElements = Union[DynamicFields, DynamicLayoutElements]
 
 
 class FormElementFactoryException(DatasourceToolkitException):
@@ -335,7 +370,7 @@ class FormElementFactoryException(DatasourceToolkitException):
 
 
 class FormElementFactory:
-    FIELD_FOR_TYPE: Any = {
+    FIELD_FOR_TYPE: Dict[ActionFieldType, type[DynamicFormElements]] = {
         ActionFieldType.COLLECTION: CollectionDynamicField,
         ActionFieldType.NUMBER: NumberDynamicField,
         ActionFieldType.NUMBER_LIST: NumberListDynamicField,
@@ -350,17 +385,18 @@ class FormElementFactory:
         ActionFieldType.TIME: TimeDynamicField,
         ActionFieldType.DATE: DateTimeDynamicField,
         ActionFieldType.DATE_ONLY: DateOnlyDynamicField,
+        ActionFieldType.LAYOUT: DynamicLayoutElements,
     }
 
     @classmethod
-    def build(cls, plain_field: PlainDynamicField) -> DynamicField:
+    def build(cls, plain_field: PlainDynamicField) -> DynamicFormElements:
         try:
             cls_field = cls.FIELD_FOR_TYPE[ActionFieldType(plain_field["type"])]
         except (KeyError, ValueError):
             raise FormElementFactoryException(f"Unknown field type: '{plain_field['type']}'")
 
-        _plain_field = {**plain_field}
-        del _plain_field["type"]  # type: ignore
+        _plain_field: Dict[str, Any] = {**plain_field}
+        del _plain_field["type"]
         try:
             return cls_field(**_plain_field)
         except (TypeError, AttributeError) as e:

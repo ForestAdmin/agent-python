@@ -298,6 +298,21 @@ WidgetEditConfiguration = Union[
 ]
 
 
+class ForestServerActionFormElementSeparator(TypedDict):
+    component: Literal["separator"]
+
+
+class ForestServerActionFormElementFieldReference(TypedDict):
+    component: Literal["input"]
+    fieldName: str
+
+
+ForestServerActionFormLayoutElement = Union[
+    ForestServerActionFormElementSeparator,
+    ForestServerActionFormElementFieldReference,
+]
+
+
 class ForestServerActionField(TypedDict):
     value: Any
     defaultValue: Any
@@ -319,6 +334,7 @@ class ForestServerAction(TypedDict):
     endpoint: str
     download: bool
     fields: List[ForestServerActionField]
+    layout: NotRequired[List[ForestServerActionFormLayoutElement]]
     hooks: ForestServerActionHooks
 
 

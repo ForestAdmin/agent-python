@@ -2,7 +2,7 @@ from typing import Any, Dict, List, Optional, Union, cast
 
 from forestadmin.agent_toolkit.utils.context import User
 from forestadmin.datasource_toolkit.datasources import DatasourceException
-from forestadmin.datasource_toolkit.interfaces.actions import ActionField, ActionResult
+from forestadmin.datasource_toolkit.interfaces.actions import ActionFormElement, ActionResult
 from forestadmin.datasource_toolkit.interfaces.chart import Chart
 from forestadmin.datasource_toolkit.interfaces.collections import Collection
 from forestadmin.datasource_toolkit.interfaces.models.collections import Datasource
@@ -62,7 +62,7 @@ class RelaxedCollection(Collection):
     @property
     def datasource(self) -> Datasource[Self]:
         self.collection.datasource
-        return RelaxedDatasource(self.collection.datasource)
+        return RelaxedDatasource(self.collection.datasource)  # type:ignore
 
     @property
     def name(self) -> str:
@@ -147,8 +147,8 @@ class RelaxedCollection(Collection):
         filter_instance = self._build_filter(filter_)
         return await self.collection.update(caller, filter_instance, patch)
 
-    async def delete(self, caller: User, filter: Optional[Union[Filter, PlainFilter]]) -> None:
-        filter_instance = self._build_filter(filter)
+    async def delete(self, caller: User, filter_: Optional[Union[Filter, PlainFilter]]) -> None:
+        filter_instance = self._build_filter(filter_)
         return await self.collection.delete(caller, filter_instance)
 
     async def aggregate(
@@ -172,7 +172,7 @@ class RelaxedCollection(Collection):
         data: Optional[RecordsDataAlias],
         filter_: Optional[Filter],
         meta: Optional[Dict[str, Any]],
-    ) -> List[ActionField]:
+    ) -> List[ActionFormElement]:
         filter_instance = self._build_filter(filter_)
         return await super().get_form(caller, name, data, filter_instance, meta)
 

@@ -11,7 +11,10 @@ from forestadmin.agent_toolkit.utils.context import User
 from forestadmin.datasource_toolkit.collections import Collection
 from forestadmin.datasource_toolkit.datasources import Datasource
 from forestadmin.datasource_toolkit.decorators.action.context.base import ActionContext
-from forestadmin.datasource_toolkit.decorators.action.fields import FormElementFactory, FormElementFactoryException
+from forestadmin.datasource_toolkit.decorators.action.form_elements import (
+    FormElementFactory,
+    FormElementFactoryException,
+)
 from forestadmin.datasource_toolkit.decorators.action.types.fields import (
     PlainCollectionDynamicField,
     PlainEnumDynamicField,

@@ -1,13 +1,21 @@
-from typing import List, Literal, Union, cast
+from typing import List, Literal, Tuple, cast
 
 from forestadmin.agent_toolkit.utils.forest_schema.action_values import ForestValueConverter
 from forestadmin.agent_toolkit.utils.forest_schema.generator_action_field_widget import GeneratorActionFieldWidget
 from forestadmin.agent_toolkit.utils.forest_schema.generator_field import SchemaFieldGenerator
-from forestadmin.agent_toolkit.utils.forest_schema.type import ForestServerAction, ForestServerActionField
+from forestadmin.agent_toolkit.utils.forest_schema.type import (
+    ForestServerAction,
+    ForestServerActionField,
+    ForestServerActionFormLayoutElement,
+)
 from forestadmin.datasource_toolkit.collections import Collection
-from forestadmin.datasource_toolkit.datasource_customizer.collection_customizer import CollectionCustomizer
 from forestadmin.datasource_toolkit.datasources import Datasource
-from forestadmin.datasource_toolkit.interfaces.actions import Action, ActionField, ActionFieldType
+from forestadmin.datasource_toolkit.interfaces.actions import (
+    ActionField,
+    ActionFieldType,
+    ActionFormElement,
+    ActionLayoutElement,
+)
 from forestadmin.datasource_toolkit.interfaces.fields import Column, PrimitiveType
 from forestadmin.datasource_toolkit.utils.schema import SchemaUtils
 
@@ -30,22 +38,49 @@ class SchemaActionGenerator:
     ]
 
     @classmethod
-    async def build(
-        cls, prefix: str, collection: Union[Collection, CollectionCustomizer], name: str
-    ) -> ForestServerAction:
+    async def build(cls, prefix: str, collection: Collection, name: str) -> ForestServerAction:
         schema = collection.schema["actions"][name]
         idx = list(collection.schema["actions"].keys()).index(name)
         slug = name.lower().replace(r"[^a-z0-9-]+", "-")
-        return ForestServerAction(
+
+        if not schema.static_form:
+            fields, layout = (cls.DUMMY_FIELDS, None)
+        else:
+            form = await collection.get_form(None, name, None, None)
+            fields, layout = SchemaActionGenerator.extract_fields_and_layout(form)
+            fields = [await SchemaActionGenerator.build_field_schema(collection.datasource, field) for field in fields]
+
+        ret = ForestServerAction(
             id=f"{collection.name}-{idx}-{slug}",
             name=name,
             type=cast(Literal["single", "bulk", "global"], schema.scope.value.lower()),
             endpoint=f"/forest/_actions/{collection.name}/{idx}/{slug}",
             download=bool(schema.generate_file),
-            fields=await cls.build_fields(collection, schema, name),
+            fields=fields,
+            layout=[],
+            # layout=await cls.build_fields(collection, schema, name),
             # Always registering the change hook has no consequences, even if we don't use it.
             hooks={"load": not schema.static_form, "change": ["changeHook"]},
         )
+        if layout:
+            # TODO: find a more elegant way to do this
+            ret["layout"] = [
+                await SchemaActionGenerator.build_layout_schema(collection.datasource, field) for field in layout
+            ]
+        else:
+            del ret["layout"]
+        return ret
+
+    @classmethod
+    async def build_layout_schema(
+        cls, datasource: Datasource[Collection], field: ActionFormElement
+    ) -> ForestServerActionFormLayoutElement:
+        field = cast(ActionLayoutElement, field)
+        component = field["component"].lower()
+        kwargs = {**field}
+        del kwargs["type"]
+
+        return {**kwargs, "component": component}  # type:ignore
 
     @classmethod
     async def build_field_schema(
@@ -95,13 +130,35 @@ class SchemaActionGenerator:
         return ForestServerActionField(**output)
 
     @classmethod
-    async def build_fields(
-        cls, collection: Union[Collection, CollectionCustomizer], action: Action, name: str
-    ) -> List[ForestServerActionField]:
-        if not action.static_form:
-            return cls.DUMMY_FIELDS
-        fields = await collection.get_form(None, name, None, None)
-        new_fields: List[ForestServerActionField] = []
-        for field in fields:
-            new_fields.append(await cls.build_field_schema(collection.datasource, field))
-        return new_fields
+    def extract_fields_and_layout(
+        cls, formElements: List[ActionFormElement]
+    ) -> Tuple[List[ActionField], List[ActionLayoutElement]]:
+        fields: List[ActionField] = []
+        layout: List[ActionLayoutElement] = []
+
+        for element in formElements:
+            if element["type"] != ActionFieldType.LAYOUT:
+                fields.append(cast(ActionField, element))
+                layout.append(
+                    {
+                        "type": ActionFieldType.LAYOUT,
+                        "component": "Input",
+                        "fieldName": cast(ActionField, element)["label"],
+                    }
+                )
+            else:
+                # if element["widget"] == "Row":
+                #     sub_fields, sub_layout = await cls.extract_fields_and_layout(element["fields"])
+                #     layout.append({**element, "fields": sub_layout})
+                #     fields.extend(sub_fields)
+                # elif element["widget"] == "Page":
+                #     sub_fields, sub_layout = await cls.extract_fields_and_layout(element["elements"])
+                #     fields.extend(sub_fields)
+                #     layout.append({**element, "elements": sub_layout})
+                # else:
+                layout.append(cast(ActionLayoutElement, element))
+
+        if len([*filter(lambda x: x["component"] != "Input", layout)]) == 0:
+            # TODO: find a better place to push this ??
+            layout = []
+        return fields, layout

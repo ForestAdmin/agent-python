@@ -21,6 +21,7 @@ from forestadmin.datasource_toolkit.decorators.action.types.widgets import (
     NumberInputListFieldConfiguration,
     RadioButtonFieldConfiguration,
     RichTextFieldConfiguration,
+    SeparatorConfiguration,
     TextAreaFieldConfiguration,
     TextInputFieldConfiguration,
     TimePickerFieldConfiguration,
@@ -42,12 +43,15 @@ ValueOrHandler = Union[
 ]
 
 
-class PlainField(TypedDict):
+class PlainFormElement(TypedDict):
+    if_: NotRequired[ValueOrHandler[bool]]
+
+
+class PlainField(PlainFormElement):
     label: str
     description: NotRequired[ValueOrHandler[str]]
     is_required: NotRequired[ValueOrHandler[bool]]
     is_read_only: NotRequired[ValueOrHandler[bool]]
-    if_: NotRequired[ValueOrHandler[bool]]
 
 
 class PlainCollectionDynamicField(PlainField):
@@ -150,6 +154,11 @@ class PlainFileListDynamicField(PlainField):
     type: Literal[ActionFieldType.FILE_LIST, "FileList"]
     value: NotRequired[ValueOrHandler[List[File]]]
     default_value: NotRequired[ValueOrHandler[List[File]]]
+
+
+# Layout
+class PlainLayoutDynamicFormElement(PlainFormElement):
+    type: Literal[ActionFieldType.LAYOUT, "Layout"]
 
 
 # declare widget for field types
@@ -284,6 +293,10 @@ class PlainStringDynamicFieldUserDropdownFieldConfiguration(PlainStringDynamicFi
     pass
 
 
+class PlainLayoutDynamicLayoutElementSeparator(PlainLayoutDynamicFormElement, SeparatorConfiguration):
+    pass
+
+
 class WidgetTyping(TypedDict):
     type: Union[ActionFieldType, ActionFieldTypeLiteral]
     widget: WidgetTypes
@@ -348,6 +361,8 @@ PlainDynamicField = Union[
     # time
     PlainTimeDynamicField,
     PlainTimeDynamicFieldTimePickerWidget,
+    # Layout
+    PlainLayoutDynamicLayoutElementSeparator,
     # for autocompletion
     WidgetTyping,  # this one must be the latest by name class (alphabetic order)
 ]

@@ -161,6 +161,10 @@ class UserDropdownFieldConfiguration(TypedDict):
     placeholder: NotRequired[Optional[str]]
 
 
+class SeparatorConfiguration(TypedDict):
+    component: Literal["Separator"]
+
+
 WIDGET_ATTRIBUTES: Set[str] = set()
 for WidgetType in [
     ColorPickerFieldConfiguration,
@@ -183,5 +187,6 @@ for WidgetType in [
     DropdownDynamicFieldConfiguration,
     DropdownDynamicSearchFieldConfiguration,
     UserDropdownFieldConfiguration,
+    SeparatorConfiguration,
 ]:
     WIDGET_ATTRIBUTES = WIDGET_ATTRIBUTES.union(WidgetType.__annotations__.keys())

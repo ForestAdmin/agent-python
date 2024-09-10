@@ -132,14 +132,20 @@ class ActionResource(BaseCollectionResource):
             },
         )
 
-        return HttpResponseBuilder.build_success_response(
-            {
-                "fields": [
-                    await SchemaActionGenerator.build_field_schema(request.collection.datasource, field)
-                    for field in fields
-                ]
-            }
-        )
+        fields, layout = SchemaActionGenerator.extract_fields_and_layout(fields)
+        ret = {
+            "fields": [
+                await SchemaActionGenerator.build_field_schema(request.collection.datasource, field) for field in fields
+            ],
+            "layout": [
+                await SchemaActionGenerator.build_layout_schema(request.collection.datasource, field)
+                for field in layout
+            ],
+        }
+        # if not ret["layout"]:
+        #     # TODO: is this necessary ?
+        #     del ret["layout"]
+        return HttpResponseBuilder.build_success_response(ret)
 
     async def _get_records_selection(self, request: ActionRequest) -> Filter:
         trees: List[ConditionTree] = []
