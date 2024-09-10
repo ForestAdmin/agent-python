@@ -61,7 +61,7 @@ class SchemaActionGenerator:
             # Always registering the change hook has no consequences, even if we don't use it.
             hooks={"load": not schema.static_form, "change": ["changeHook"]},
         )
-        if layout == []:
+        if layout != []:
             ret["layout"] = [
                 await SchemaActionGenerator.build_layout_schema(collection.datasource, field) for field in layout
             ]
