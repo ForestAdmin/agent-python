@@ -68,7 +68,7 @@ class ActionCollectionDecorator(CollectionDecorator):
         meta: Optional[Dict[str, Any]] = None,
     ) -> List[ActionFormElement]:
         if meta is None:
-            meta = None
+            meta = {}
         action = self._actions.get(name)
         if not action:
             return await super().get_form(caller, name, data, filter_, meta)  # type: ignore
