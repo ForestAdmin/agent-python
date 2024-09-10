@@ -91,7 +91,7 @@ class ActionCollectionDecorator(CollectionDecorator):
             context, form_fields, form_values, meta.get("search_values", {}).get(meta.get("search_field"))
         )
 
-        # TODO: handle recursively layout items
+        # TODO: handle recursively layout items (row and pages)
         for field in action_fields:
             if field["type"] not in [ActionFieldType.LAYOUT, "Layout"]:
                 field["watch_changes"] = field["label"] in context.form_values.used_keys

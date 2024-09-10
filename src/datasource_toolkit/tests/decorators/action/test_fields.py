@@ -202,7 +202,7 @@ class TestLayoutDynamicElement(BaseTestDynamicField):
         self.dynamic_field = FormElementFactory.build(self.plain_dynamic_layout)
 
     def test_should_always_been_dynamic(self):
-        # TODO: this one should be false at story#7
+        # TODO: this test must be remove at story#7
         field = FormElementFactory.build(PlainLayoutDynamicLayoutElementSeparator(type="Layout", component="Separator"))
         self.assertEqual(field.is_dynamic, True)
 

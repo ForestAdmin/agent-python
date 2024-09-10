@@ -92,7 +92,7 @@ class DynamicLayoutElements(BaseDynamicFormElement):
 
     @property
     def is_dynamic(self) -> bool:
-        # TODO: make a real computation for story#7
+        # TODO: restore the real computation for story#7
         return True
 
     async def to_action_field(

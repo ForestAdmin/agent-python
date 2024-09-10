@@ -44,7 +44,7 @@ class SchemaActionGenerator:
         slug = name.lower().replace(r"[^a-z0-9-]+", "-")
 
         if not schema.static_form:
-            fields, layout = (cls.DUMMY_FIELDS, None)
+            fields, layout = (cls.DUMMY_FIELDS, [])
         else:
             form = await collection.get_form(None, name, None, None)
             fields, layout = SchemaActionGenerator.extract_fields_and_layout(form)
@@ -57,18 +57,14 @@ class SchemaActionGenerator:
             endpoint=f"/forest/_actions/{collection.name}/{idx}/{slug}",
             download=bool(schema.generate_file),
             fields=fields,
-            layout=[],
             # layout=await cls.build_fields(collection, schema, name),
             # Always registering the change hook has no consequences, even if we don't use it.
             hooks={"load": not schema.static_form, "change": ["changeHook"]},
         )
-        if layout:
-            # TODO: find a more elegant way to do this
+        if layout == []:
             ret["layout"] = [
                 await SchemaActionGenerator.build_layout_schema(collection.datasource, field) for field in layout
             ]
-        else:
-            del ret["layout"]
         return ret
 
     @classmethod
@@ -131,12 +127,13 @@ class SchemaActionGenerator:
 
     @classmethod
     def extract_fields_and_layout(
-        cls, formElements: List[ActionFormElement]
+        cls, form_elements: List[ActionFormElement]
     ) -> Tuple[List[ActionField], List[ActionLayoutElement]]:
+        has_layout_item = False
         fields: List[ActionField] = []
         layout: List[ActionLayoutElement] = []
 
-        for element in formElements:
+        for element in form_elements:
             if element["type"] != ActionFieldType.LAYOUT:
                 fields.append(cast(ActionField, element))
                 layout.append(
@@ -147,6 +144,7 @@ class SchemaActionGenerator:
                     }
                 )
             else:
+                has_layout_item = True
                 # if element["widget"] == "Row":
                 #     sub_fields, sub_layout = await cls.extract_fields_and_layout(element["fields"])
                 #     layout.append({**element, "fields": sub_layout})
@@ -158,7 +156,6 @@ class SchemaActionGenerator:
                 # else:
                 layout.append(cast(ActionLayoutElement, element))
 
-        if len([*filter(lambda x: x["component"] != "Input", layout)]) == 0:
-            # TODO: find a better place to push this ??
+        if has_layout_item is False:
             layout = []
         return fields, layout
