@@ -1279,34 +1279,21 @@
                     "download": true,
                     "fields": [
                         {
-                            "field": "dummy field",
-                            "value": "",
-                            "defaultValue": "",
+                            "field": "Loading...",
+                            "type": "String",
+                            "isReadOnly": true,
+                            "defaultValue": "Form is loading",
+                            "value": null,
                             "description": "",
                             "enums": null,
                             "hook": null,
-                            "isReadOnly": false,
                             "isRequired": false,
                             "reference": null,
-                            "type": "String",
-                            "widgetEdit": null
-                        },
-                        {
-                            "field": "customer",
-                            "value": null,
-                            "defaultValue": null,
-                            "description": "",
-                            "enums": null,
-                            "hook": null,
-                            "isReadOnly": false,
-                            "isRequired": true,
-                            "reference": "app_customer.id",
-                            "type": "Number",
                             "widgetEdit": null
                         }
                     ],
                     "hooks": {
-                        "load": false,
+                        "load": true,
                         "change": [
                             "changeHook"
                         ]
