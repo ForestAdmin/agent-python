@@ -1,6 +1,7 @@
 import asyncio
 import sys
 from unittest import TestCase
+from unittest.mock import Mock
 
 if sys.version_info >= (3, 9):
     import zoneinfo
@@ -17,7 +18,9 @@ from forestadmin.datasource_toolkit.decorators.action.form_elements import (
 )
 from forestadmin.datasource_toolkit.decorators.action.types.fields import (
     PlainCollectionDynamicField,
+    PlainDynamicField,
     PlainEnumDynamicField,
+    PlainLayoutDynamicLayoutElementSeparator,
     PlainStringDynamicField,
 )
 from forestadmin.datasource_toolkit.interfaces.actions import ActionFieldType
@@ -81,6 +84,12 @@ class TestActionFieldFactory(TestCase):
         self.assertEqual(plain_field["placeholder"], "placeholder")
         self.assertEqual(plain_field["enable_opacity"], False)
         self.assertEqual(plain_field["quick_palette"], None)
+
+    def test_factory_should_create_layout(self):
+        plain_field: PlainDynamicField = {"type": "Layout", "component": "Separator"}
+        field = FormElementFactory.build(plain_field)
+        self.assertEqual(field._if_, None)
+        self.assertEqual(field._component, "Separator")
 
 
 class BaseTestDynamicField(TestCase):
@@ -184,4 +193,22 @@ class TestEnumListDynamicField(BaseTestDynamicField):
         assert action_field["enum_values"] == [1, 2, 3, 4, 5]
 
 
-# BaseDynamicField
+class TestLayoutDynamicElement(BaseTestDynamicField):
+    def setUp(self) -> None:
+        self.plain_dynamic_layout = PlainLayoutDynamicLayoutElementSeparator(
+            type="Layout", if_=lambda ctx: ctx.form_values.get("desired_value", False), component="Separator"
+        )
+
+        self.dynamic_field = FormElementFactory.build(self.plain_dynamic_layout)
+
+    def test_should_always_been_dynamic(self):
+        # TODO: this one should be false at story#7
+        field = FormElementFactory.build(PlainLayoutDynamicLayoutElementSeparator(type="Layout", component="Separator"))
+        self.assertEqual(field.is_dynamic, True)
+
+    def test_should_evaluate_if(self):
+        ctx = Mock()
+        ctx.form_values = {"desired_value": True}
+        self.assertEqual(self.loop.run_until_complete(self.dynamic_field.if_(ctx)), True)
+        ctx.form_values = {"desired_value": False}
+        self.assertEqual(self.loop.run_until_complete(self.dynamic_field.if_(ctx)), False)

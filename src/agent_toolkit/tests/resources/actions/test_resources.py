@@ -458,7 +458,7 @@ class TestHookActionResource(BaseTestActionResource):
             query={
                 "timezone": "Europe/Paris",
                 "collection_name": "Book",
-                "action_name": 1,
+                "action_name": "1",
                 "slug": "test_action_bulk",
             },
             headers={},
@@ -503,6 +503,107 @@ class TestHookActionResource(BaseTestActionResource):
                     "type": "String",
                     "widgetEdit": None,
                 },
+            ],
+        )
+        self.assertEqual(content["layout"], [])
+
+    def test_hook_should_return_layout_if_it_is_set(self):
+        test_action_single: ActionDict = {
+            "scope": "Global",
+            "execute": lambda ctx, result_builder: result_builder.success(),
+            "form": [
+                {"type": "String", "label": "firstname"},
+                {"type": "Layout", "component": "Separator", "if_": lambda ctx: True},
+                {"type": "String", "label": "lastname", "if_": lambda ctx: True},
+            ],
+        }
+
+        self.decorated_collection_book.add_action("test_action_with_layout", test_action_single)
+
+        request = ActionRequest(
+            method=RequestMethod.POST,
+            action_name="test_action_with_layout",
+            collection=self.decorated_collection_book,
+            query={
+                "timezone": "Europe/Paris",
+                "collection_name": "Book",
+                "action_name": "2",
+                "slug": "test_action_with_layout",
+            },
+            headers={},
+            user=self.mocked_caller,
+            body={
+                "data": {
+                    "attributes": {
+                        "ids": [],
+                        "collection_name": "Book",
+                        "parent_collection_name": None,
+                        "parent_collection_id": None,
+                        "parent_association_name": None,
+                        "all_records": False,
+                        "all_records_subset_query": {
+                            "fields[Book]": "id,name,cost",
+                            "page[number]": 1,
+                            "page[size]": 15,
+                            "sort": "-id",
+                            "timezone": "Europe/Paris",
+                            "filters": '{"field":"id","operator":"greater_than","value":-1}',
+                        },
+                        "all_records_ids_excluded": [],
+                        "smart_action_id": "Book-test_action_with_layout",
+                        "signed_approval_request": None,
+                    },
+                    "type": "action-requests",
+                }
+            },
+        )
+
+        with patch.object(
+            self.permission_service,
+            "get_scope",
+            new_callable=AsyncMock,
+            return_value=ConditionTreeLeaf(field="id", operator=Operator.GREATER_THAN, value=-2),
+        ):
+            response = self.loop.run_until_complete(self.action_resource.hook(request))
+        self.assertEqual(response.status, 200)
+        content = json.loads(response.body)
+        self.assertEqual(
+            content["fields"],
+            [
+                {
+                    "field": "firstname",
+                    "value": None,
+                    "defaultValue": None,
+                    "description": "",
+                    "enums": None,
+                    "hook": None,
+                    "isReadOnly": False,
+                    "isRequired": False,
+                    "reference": None,
+                    "type": "String",
+                    "widgetEdit": None,
+                },
+                {
+                    "field": "lastname",
+                    "value": None,
+                    "defaultValue": None,
+                    "description": "",
+                    "enums": None,
+                    "hook": None,
+                    "isReadOnly": False,
+                    "isRequired": False,
+                    "reference": None,
+                    "type": "String",
+                    "widgetEdit": None,
+                },
+            ],
+        )
+        self.assertEqual(
+            content["layout"],
+            [
+                {"component": "input", "fieldName": "firstname"},
+                {"component": "separator"},
+                {"component": "input", "fieldName": "lastname"},
             ],
         )
 
