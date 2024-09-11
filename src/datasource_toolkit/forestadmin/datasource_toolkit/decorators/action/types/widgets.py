@@ -165,6 +165,11 @@ class SeparatorConfiguration(TypedDict):
     component: Literal["Separator"]
 
 
+class HtmlBlockConfiguration(TypedDict):
+    component: Literal["HtmlBlock"]
+    content: ValueOrHandler[str]
+
+
 WIDGET_ATTRIBUTES: Set[str] = set()
 for WidgetType in [
     ColorPickerFieldConfiguration,

@@ -138,7 +138,7 @@ class SchemaActionGenerator:
                 layout.append(
                     {
                         "type": ActionFieldType.LAYOUT,
-                        "component": "Input",
+                        "component": "Input",  # type: ignore
                         "fieldId": cast(ActionField, element)["label"],
                     }
                 )
