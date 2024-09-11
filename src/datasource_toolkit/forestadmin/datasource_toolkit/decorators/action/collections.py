@@ -6,6 +6,7 @@ from forestadmin.datasource_toolkit.decorators.action.context.base import Action
 from forestadmin.datasource_toolkit.decorators.action.context.bulk import ActionContextBulk
 from forestadmin.datasource_toolkit.decorators.action.context.single import ActionContextSingle
 from forestadmin.datasource_toolkit.decorators.action.form_elements import (
+    BaseDynamicField,
     BaseDynamicFormElement,
     DynamicFormElements,
     DynamicLayoutElements,
@@ -84,7 +85,11 @@ class ActionCollectionDecorator(CollectionDecorator):
         if meta.get("search_field"):
             # in the case of a search hook,
             # we don't want to rebuild all the fields. only the one searched
-            form_fields = [field for field in form_fields if field.label == meta["search_field"]]
+            form_fields = [
+                field
+                for field in form_fields
+                if isinstance(field, BaseDynamicField) and field.label == meta["search_field"]
+            ]
 
         form_values = await self._build_form_values(context, form_fields, form_values)
         action_fields = await self._build_fields(
