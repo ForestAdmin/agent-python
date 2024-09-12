@@ -187,6 +187,11 @@ for WidgetType in [
     DropdownDynamicFieldConfiguration,
     DropdownDynamicSearchFieldConfiguration,
     UserDropdownFieldConfiguration,
-    SeparatorConfiguration,
 ]:
     WIDGET_ATTRIBUTES = WIDGET_ATTRIBUTES.union(WidgetType.__annotations__.keys())
+
+COMPONENT_ATTRIBUTES: Set[str] = set()
+for ComponentType in [
+    SeparatorConfiguration,
+]:
+    COMPONENT_ATTRIBUTES = COMPONENT_ATTRIBUTES.union(ComponentType.__annotations__.keys())

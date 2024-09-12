@@ -6,7 +6,7 @@ from forestadmin.datasource_toolkit.decorators.action.context.base import Action
 from forestadmin.datasource_toolkit.decorators.action.context.bulk import ActionContextBulk
 from forestadmin.datasource_toolkit.decorators.action.context.single import ActionContextSingle
 from forestadmin.datasource_toolkit.decorators.action.types.fields import PlainDynamicField
-from forestadmin.datasource_toolkit.decorators.action.types.widgets import WIDGET_ATTRIBUTES
+from forestadmin.datasource_toolkit.decorators.action.types.widgets import COMPONENT_ATTRIBUTES, WIDGET_ATTRIBUTES
 from forestadmin.datasource_toolkit.exceptions import DatasourceToolkitException
 from forestadmin.datasource_toolkit.interfaces.actions import (
     ActionField,
@@ -33,21 +33,16 @@ ValueOrHandler = Union[
 
 class BaseDynamicFormElement:
     ATTR_TO_EVALUATE = ("if_",)
-    WIDGET_ATTR_TO_EVALUATE = ()
+    EXTRA_ATTR_TO_EVALUATE = ()
     TYPE: ActionFieldType
 
     def __init__(
         self,
         if_: Optional[ValueOrHandler[bool]] = None,
-        **widget_fields: Dict[str, Any],
+        **extra_attr_fields: Dict[str, Any],
     ):
         self._if_ = if_
-        unknown_keyword_args = [k for k in widget_fields.keys() if k not in WIDGET_ATTRIBUTES]
-        if any(unknown_keyword_args):
-            raise TypeError(
-                f"{self.__class__.__name__}.__init__() got an unexpected keyword argument '{unknown_keyword_args[0]}'"
-            )
-        self._widget_fields = widget_fields
+        self.extra_attr_fields = extra_attr_fields
 
     @abc.abstractmethod
     async def to_action_field(
@@ -57,10 +52,10 @@ class BaseDynamicFormElement:
 
     @property
     def dynamic_fields(self) -> List[Any]:
-        ret = [getattr(self, f"_{field}") for field in self.__class__.ATTR_TO_EVALUATE]
+        ret = [getattr(self, f"_{field}") for field in self.ATTR_TO_EVALUATE]
 
-        if len(self._widget_fields) > 0:
-            ret.extend(self._widget_fields.get(widget_attr) for widget_attr in self.__class__.WIDGET_ATTR_TO_EVALUATE)
+        if len(self.extra_attr_fields) > 0:
+            ret.extend(self.extra_attr_fields.get(widget_attr) for widget_attr in self.EXTRA_ATTR_TO_EVALUATE)
         return ret
 
     @property
@@ -88,6 +83,12 @@ class DynamicLayoutElements(BaseDynamicFormElement):
         **component_fields: Dict[str, Any],
     ):
         self._component: LayoutWidgetTypes = component
+
+        unknown_keyword_args = [k for k in component_fields.keys() if k not in COMPONENT_ATTRIBUTES]
+        if any(unknown_keyword_args):
+            raise TypeError(
+                f"{self.__class__.__name__}.__init__() got an unexpected keyword argument '{unknown_keyword_args[0]}'"
+            )
         super().__init__(if_, **component_fields)
 
     @property
@@ -112,7 +113,7 @@ class BaseDynamicField(BaseDynamicFormElement, Generic[Result]):
         "default_value",
     )
     WIDGET_ATTR_TO_EVALUATE = (
-        *BaseDynamicFormElement.WIDGET_ATTR_TO_EVALUATE,
+        *BaseDynamicFormElement.EXTRA_ATTR_TO_EVALUATE,
         "min",
         "max",
         "step",
@@ -141,6 +142,11 @@ class BaseDynamicField(BaseDynamicFormElement, Generic[Result]):
         self._value = value
         self._default_value = default_value
 
+        unknown_keyword_args = [k for k in kwargs.keys() if k not in WIDGET_ATTRIBUTES]
+        if any(unknown_keyword_args):
+            raise TypeError(
+                f"{self.__class__.__name__}.__init__() got an unexpected keyword argument '{unknown_keyword_args[0]}'"
+            )
         super().__init__(if_, **kwargs)
 
     async def to_action_field(
@@ -157,10 +163,10 @@ class BaseDynamicField(BaseDynamicFormElement, Generic[Result]):
             collection_name=None,
             enum_values=None,
             watch_changes=False,
-            **{k: await self._evaluate(context, v) for k, v in self._widget_fields.items() if k != "options"},
+            **{k: await self._evaluate(context, v) for k, v in self.extra_attr_fields.items() if k != "options"},
         )
-        if "options" in self._widget_fields:
-            field["options"] = await self._evaluate_option(context, self._widget_fields["options"], search_value)
+        if "options" in self.extra_attr_fields:
+            field["options"] = await self._evaluate_option(context, self.extra_attr_fields["options"], search_value)
         return field
 
     async def default_value(self, context: Context) -> Result:
@@ -179,8 +185,8 @@ class BaseDynamicField(BaseDynamicFormElement, Generic[Result]):
         return await self._evaluate(context, self._value)
 
     async def _evaluate_option(self, context: Context, attribute: ValueOrHandler[Any], search_value: Optional[str]):
-        if self._widget_fields.get("search", "") == "dynamic":
-            return await call_user_function(self._widget_fields["options"], context, search_value)
+        if self.extra_attr_fields.get("search", "") == "dynamic":
+            return await call_user_function(self.extra_attr_fields["options"], context, search_value)
         else:
             return await self._evaluate(context, attribute)
 
