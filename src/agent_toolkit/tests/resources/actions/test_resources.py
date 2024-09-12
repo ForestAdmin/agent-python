@@ -613,6 +613,32 @@ class TestExecuteActionResource(BaseTestActionResource):
         self.assertEqual(response.status, 400)
         self.assertEqual(response.body, '{"error": "error message"}')
 
+    def test_execute_should_return_correctly_formatted_html_error_on_error_response(self):
+        self.decorated_collection_book.add_action(
+            "test_error_html",
+            {
+                "scope": ActionsScope.GLOBAL,
+                "execute": lambda ctx, rb: rb.error("<b>error message</b>", {"type": "html"}),
+            },
+        )
+        request = ActionRequest(
+            method=RequestMethod.POST,
+            action_name="test_error_html",
+            collection=self.decorated_collection_book,
+            body=self.body_params,
+            query={
+                "timezone": "Europe/Paris",
+                "collection_name": "Book",
+                "action_name": 0,
+                "slug": "test_error_html",
+            },
+            headers={},
+            user=self.mocked_caller,
+        )
+        response = self.loop.run_until_complete(self.action_resource.execute(request))
+        self.assertEqual(response.status, 400)
+        self.assertEqual(response.body, '{"html": "<b>error message</b>"}')
+
     def test_execute_should_return_correctly_formatted_success_on_success_response(self):
         self.decorated_collection_book.add_action(
             "test_action_global",
