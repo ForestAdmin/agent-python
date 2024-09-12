@@ -139,7 +139,7 @@ class SchemaActionGenerator:
                     {
                         "type": ActionFieldType.LAYOUT,
                         "component": "Input",
-                        "fieldName": cast(ActionField, element)["label"],
+                        "fieldId": cast(ActionField, element)["label"],
                     }
                 )
             else:

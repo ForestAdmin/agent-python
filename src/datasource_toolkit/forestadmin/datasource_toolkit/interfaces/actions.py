@@ -98,7 +98,7 @@ class BaseActionFormElement(TypedDict):
 
 class ActionLayoutElement(BaseActionFormElement):
     component: LayoutWidgetTypes
-    fieldName: NotRequired[str]
+    fieldId: NotRequired[str]
 
 
 class ActionField(BaseActionFormElement):
