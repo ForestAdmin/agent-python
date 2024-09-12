@@ -35,7 +35,8 @@ runs:
         msg: ${{ inputs.current_package }}
         separator: '/'
     - name: Archive code coverage results
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
         name: code-coverage-report.${{ steps.split.outputs._2 }}.${{ inputs.python-version }}
-        path: '${{ inputs.current_package }}/.coverage'
+        path: '${{ inputs.current_package }}.coverage'
+        include-hidden-files: 'true'

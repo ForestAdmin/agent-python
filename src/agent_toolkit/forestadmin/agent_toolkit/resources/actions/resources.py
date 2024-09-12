@@ -66,7 +66,10 @@ class ActionResource(BaseCollectionResource):
         result = await request.collection.execute(request.user, request.action_name, data, filter_)
 
         if result["type"] == ResultBuilder.ERROR:
-            response = HttpResponseBuilder.build_json_response(400, {"error": result["message"]})
+            key = "error"
+            if result["format"] == "html":
+                key = "html"
+            response = HttpResponseBuilder.build_json_response(400, {key: result["message"]})
         elif result["type"] == ResultBuilder.SUCCESS:
             key = "success"
             if result["format"] == "html":
