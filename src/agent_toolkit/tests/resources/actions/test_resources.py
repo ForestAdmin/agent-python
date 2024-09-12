@@ -601,9 +601,9 @@ class TestHookActionResource(BaseTestActionResource):
         self.assertEqual(
             content["layout"],
             [
-                {"component": "input", "fieldName": "firstname"},
+                {"component": "input", "fieldId": "firstname"},
                 {"component": "separator"},
-                {"component": "input", "fieldName": "lastname"},
+                {"component": "input", "fieldId": "lastname"},
             ],
         )
 
