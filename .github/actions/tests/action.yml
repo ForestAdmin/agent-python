@@ -39,3 +39,4 @@ runs:
       with:
         name: code-coverage-report.${{ steps.split.outputs._2 }}.${{ inputs.python-version }}
         path: '${{ inputs.current_package }}.coverage'
+        include-hidden-files: 'true'
