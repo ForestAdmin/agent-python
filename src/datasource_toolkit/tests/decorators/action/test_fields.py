@@ -22,6 +22,7 @@ from forestadmin.datasource_toolkit.decorators.action.types.fields import (
     PlainEnumDynamicField,
     PlainFileDynamicField,
     PlainFileListDynamicField,
+    PlainLayoutDynamicLayoutElementHtmlBlock,
     PlainLayoutDynamicLayoutElementSeparator,
     PlainStringDynamicField,
 )
@@ -217,7 +218,7 @@ class TestEnumListDynamicField(BaseTestDynamicField):
         assert action_field["enum_values"] == [1, 2, 3, 4, 5]
 
 
-class TestLayoutDynamicElement(BaseTestDynamicField):
+class TestLayoutDynamicElementSeparator(BaseTestDynamicField):
     def setUp(self) -> None:
         self.plain_dynamic_layout = PlainLayoutDynamicLayoutElementSeparator(
             type="Layout", if_=lambda ctx: ctx.form_values.get("desired_value", False), component="Separator"
@@ -236,3 +237,28 @@ class TestLayoutDynamicElement(BaseTestDynamicField):
         self.assertEqual(self.loop.run_until_complete(self.dynamic_field.if_(ctx)), True)
         ctx.form_values = {"desired_value": False}
         self.assertEqual(self.loop.run_until_complete(self.dynamic_field.if_(ctx)), False)
+
+    def test_should_generate_action_field(self):
+        ctx = Mock()
+        ctx.form_values = {"desired_value": True}
+
+        action_field = self.loop.run_until_complete(self.dynamic_field.to_action_field(ctx, ctx.form_values))
+        self.assertEqual(action_field, {"type": ActionFieldType.LAYOUT, "component": "Separator"})
+
+
+class TestLayoutDynamicElementHtmlBlock(BaseTestDynamicField):
+    def setUp(self) -> None:
+        self.plain_dynamic_layout = PlainLayoutDynamicLayoutElementHtmlBlock(
+            type="Layout", component="HtmlBlock", content=lambda ctx: f'<b>{ctx.form_values.get("desired_value")}</b>'
+        )
+
+        self.dynamic_field = FormElementFactory.build(self.plain_dynamic_layout)
+
+    def test_should_generate_action_field_with_evaluation(self):
+        ctx = Mock()
+        ctx.form_values = {"desired_value": True}
+
+        action_field = self.loop.run_until_complete(self.dynamic_field.to_action_field(ctx, ctx.form_values))
+        self.assertEqual(
+            action_field, {"type": ActionFieldType.LAYOUT, "component": "HtmlBlock", "content": "<b>True</b>"}
+        )

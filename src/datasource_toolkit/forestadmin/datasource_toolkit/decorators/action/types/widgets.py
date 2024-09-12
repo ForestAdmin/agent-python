@@ -198,5 +198,6 @@ for WidgetType in [
 COMPONENT_ATTRIBUTES: Set[str] = set()
 for ComponentType in [
     SeparatorConfiguration,
+    HtmlBlockConfiguration,
 ]:
     COMPONENT_ATTRIBUTES = COMPONENT_ATTRIBUTES.union(ComponentType.__annotations__.keys())
