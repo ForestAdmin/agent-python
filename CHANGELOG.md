@@ -1,3 +1,10 @@
+## [1.9.1](https://github.com/ForestAdmin/agent-python/compare/v1.9.0...v1.9.1) (2024-09-12)
+
+
+### Bug Fixes
+
+* **action_error_html:** html content when execute return error is now sent correctly ([#266](https://github.com/ForestAdmin/agent-python/issues/266)) ([121af4c](https://github.com/ForestAdmin/agent-python/commit/121af4ca4bbad37b159d7df464d673a7e4dde899))
+
 # [1.9.0](https://github.com/ForestAdmin/agent-python/compare/v1.8.23...v1.9.0) (2024-08-22)
 
 
