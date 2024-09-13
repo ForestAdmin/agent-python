@@ -89,7 +89,7 @@ WidgetTypes = Literal[
     "UserDropdown",
 ]
 
-LayoutWidgetTypes = Literal["Separator", "Input"]
+LayoutComponentTypes = Literal["Separator", "Input"]
 
 
 class BaseActionFormElement(TypedDict):
@@ -97,7 +97,7 @@ class BaseActionFormElement(TypedDict):
 
 
 class ActionLayoutElement(BaseActionFormElement):
-    component: LayoutWidgetTypes
+    component: LayoutComponentTypes
     fieldId: NotRequired[str]
 
 

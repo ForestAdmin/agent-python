@@ -14,7 +14,7 @@ from forestadmin.datasource_toolkit.interfaces.actions import (
     ActionFormElement,
     ActionLayoutElement,
     File,
-    LayoutWidgetTypes,
+    LayoutComponentTypes,
 )
 from forestadmin.datasource_toolkit.interfaces.records import CompositeIdAlias
 from forestadmin.datasource_toolkit.utils.user_callable import call_user_function
@@ -78,11 +78,11 @@ class DynamicLayoutElements(BaseDynamicFormElement):
 
     def __init__(
         self,
-        component: LayoutWidgetTypes,
+        component: LayoutComponentTypes,
         if_: Optional[ValueOrHandler[bool]] = None,
         **component_fields: Dict[str, Any],
     ):
-        self._component: LayoutWidgetTypes = component
+        self._component: LayoutComponentTypes = component
 
         unknown_keyword_args = [k for k in component_fields.keys() if k not in COMPONENT_ATTRIBUTES]
         if any(unknown_keyword_args):
