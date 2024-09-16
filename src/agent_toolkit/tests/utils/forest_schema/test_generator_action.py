@@ -1,5 +1,5 @@
 import asyncio
-from unittest import TestCase
+from unittest import TestCase, skip
 from unittest.mock import Mock
 
 from forestadmin.agent_toolkit.utils.forest_schema.generator_action import SchemaActionGenerator
@@ -304,4 +304,100 @@ class TestSchemaActionGenerator(TestCase):
                     "quickPalette": None,
                 },
             },
+        )
+
+    @skip("restore it for story#7")
+    def test_should_generate_layout_only_if_there_is_layout_elements(self):
+        self.book_collection_action.add_action(
+            "Send email",
+            {
+                "scope": ActionsScope.SINGLE,
+                "generate_file": False,
+                "execute": Mock(),
+                "form": [
+                    {"type": "String", "label": "firstname"},
+                    {"type": "Layout", "component": "Separator"},
+                    {"type": "String", "label": "lastname"},
+                ],
+            },
+        )
+
+        result = self.loop.run_until_complete(
+            SchemaActionGenerator.build("", self.book_collection_action, "Send email")
+        )
+        self.assertEqual(
+            result["fields"],
+            [
+                {
+                    "field": "firstname",
+                    "value": None,
+                    "defaultValue": None,
+                    "description": "",
+                    "enums": None,
+                    "hook": None,
+                    "isReadOnly": False,
+                    "isRequired": False,
+                    "reference": None,
+                    "type": "String",
+                    "widgetEdit": None,
+                },
+                {
+                    "field": "lastname",
+                    "value": None,
+                    "defaultValue": None,
+                    "description": "",
+                    "enums": None,
+                    "hook": None,
+                    "isReadOnly": False,
+                    "isRequired": False,
+                    "reference": None,
+                    "type": "String",
+                    "widgetEdit": None,
+                },
+            ],
+        )
+        self.assertEqual(
+            result.get("layout"),
+            [
+                {"component": "input", "fieldName": "firstname"},
+                {"component": "separator"},
+                {"component": "input", "fieldName": "lastname"},
+            ],
+        )
+
+    def test_should_generate_dynamic_form_if_there_is_layout_element(self):
+        self.book_collection_action.add_action(
+            "Send email",
+            {
+                "scope": ActionsScope.SINGLE,
+                "generate_file": False,
+                "execute": Mock(),
+                "form": [
+                    {"type": "String", "label": "firstname"},
+                    {"type": "Layout", "component": "Separator"},
+                    {"type": "String", "label": "lastname"},
+                ],
+            },
+        )
+
+        result = self.loop.run_until_complete(
+            SchemaActionGenerator.build("", self.book_collection_action, "Send email")
+        )
+        self.assertEqual(
+            result["fields"],
+            [
+                {
+                    "field": "Loading...",
+                    "type": "String",
+                    "isReadOnly": True,
+                    "defaultValue": "Form is loading",
+                    "value": None,
+                    "description": "",
+                    "enums": None,
+                    "hook": None,
+                    "isRequired": False,
+                    "reference": None,
+                    "widgetEdit": None,
+                }
+            ],
         )

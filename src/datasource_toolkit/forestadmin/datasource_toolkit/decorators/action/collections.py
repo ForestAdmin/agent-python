@@ -5,11 +5,24 @@ from forestadmin.datasource_toolkit.collections import Collection
 from forestadmin.datasource_toolkit.decorators.action.context.base import ActionContext
 from forestadmin.datasource_toolkit.decorators.action.context.bulk import ActionContextBulk
 from forestadmin.datasource_toolkit.decorators.action.context.single import ActionContextSingle
+from forestadmin.datasource_toolkit.decorators.action.form_elements import (
+    BaseDynamicField,
+    BaseDynamicFormElement,
+    DynamicFormElements,
+    DynamicLayoutElements,
+    FormElementFactory,
+)
 from forestadmin.datasource_toolkit.decorators.action.result_builder import ResultBuilder
 from forestadmin.datasource_toolkit.decorators.action.types.actions import ActionDict
-from forestadmin.datasource_toolkit.decorators.action.types.fields import BaseDynamicField, DynamicField, FieldFactory
 from forestadmin.datasource_toolkit.decorators.collection_decorator import CollectionDecorator
-from forestadmin.datasource_toolkit.interfaces.actions import Action, ActionField, ActionResult, ActionsScope
+from forestadmin.datasource_toolkit.interfaces.actions import (
+    Action,
+    ActionField,
+    ActionFieldType,
+    ActionFormElement,
+    ActionResult,
+    ActionsScope,
+)
 from forestadmin.datasource_toolkit.interfaces.models.collections import CollectionSchema
 from forestadmin.datasource_toolkit.interfaces.query.filter.unpaginated import Filter
 from forestadmin.datasource_toolkit.interfaces.records import RecordsDataAlias
@@ -23,7 +36,7 @@ class ActionCollectionDecorator(CollectionDecorator):
 
     def add_action(self, name: str, action: ActionDict):
         action["form"] = [
-            FieldFactory.build(field) if not isinstance(field, BaseDynamicField) else field
+            FormElementFactory.build(field) if not isinstance(field, BaseDynamicFormElement) else field
             for field in action.get("form", [])
         ]
         self._actions[name] = action
@@ -53,8 +66,10 @@ class ActionCollectionDecorator(CollectionDecorator):
         name: str,
         data: Optional[RecordsDataAlias],
         filter_: Optional[Filter] = None,
-        meta: Optional[Dict[str, Any]] = dict(),
-    ) -> List[ActionField]:
+        meta: Optional[Dict[str, Any]] = None,
+    ) -> List[ActionFormElement]:
+        if meta is None:
+            meta = {}
         action = self._actions.get(name)
         if not action:
             return await super().get_form(caller, name, data, filter_, meta)  # type: ignore
@@ -64,18 +79,27 @@ class ActionCollectionDecorator(CollectionDecorator):
         form_values = data or {}
         used: Set[str] = set()
         context = self._get_context(caller, action, form_values, filter_, used, meta.get("changed_field"))
-        form_fields: List[DynamicField] = cast(List[DynamicField], [field for field in action.get("form", [])])
+        form_fields: List[DynamicFormElements] = cast(
+            List[DynamicFormElements], [field for field in action.get("form", [])]
+        )
         if meta.get("search_field"):
             # in the case of a search hook,
             # we don't want to rebuild all the fields. only the one searched
-            form_fields = [field for field in form_fields if field.label == meta["search_field"]]
+            form_fields = [
+                field
+                for field in form_fields
+                if isinstance(field, BaseDynamicField) and field.label == meta["search_field"]
+            ]
 
         form_values = await self._build_form_values(context, form_fields, form_values)
         action_fields = await self._build_fields(
             context, form_fields, form_values, meta.get("search_values", {}).get(meta.get("search_field"))
         )
+
+        # TODO: handle recursively layout items (row and pages)
         for field in action_fields:
-            field["watch_changes"] = field["label"] in context.form_values.used_keys
+            if field["type"] not in [ActionFieldType.LAYOUT, "Layout"]:
+                field["watch_changes"] = field["label"] in context.form_values.used_keys
         return action_fields
 
     def _refine_schema(self, sub_schema: CollectionSchema) -> CollectionSchema:
@@ -104,12 +128,10 @@ class ActionCollectionDecorator(CollectionDecorator):
             ActionsScope.SINGLE: ActionContextSingle,
             ActionsScope.BULK: ActionContextBulk,
             ActionsScope.GLOBAL: ActionContext,
-        }[ActionsScope(action["scope"])](
-            cast(Collection, self), caller, form_values, filter_, used, changed_field  # type: ignore
-        )
+        }[ActionsScope(action["scope"])](cast(Collection, self), caller, form_values, filter_, used, changed_field)
 
     async def _build_form_values(
-        self, context: ActionContext, fields: List[DynamicField], data: Optional[Dict[str, Any]]
+        self, context: ActionContext, fields: List[DynamicFormElements], data: Optional[Dict[str, Any]]
     ):
         if data is None:
             form_values: Dict[str, Any] = {}
@@ -117,19 +139,21 @@ class ActionCollectionDecorator(CollectionDecorator):
             form_values = {**data}
 
         for field in fields:
-            form_values[field.label] = form_values.get(field.label, await field.default_value(context))
+            if not isinstance(field, DynamicLayoutElements):
+                form_values[field.label] = form_values.get(field.label, await field.default_value(context))
 
         return form_values
 
     async def _build_fields(
         self,
         context: ActionContext,
-        fields: List[DynamicField],
+        fields: List[DynamicFormElements],
         form_values: RecordsDataAlias,
         search_value: Optional[str] = None,
     ) -> List[ActionField]:
         action_fields: List[ActionField] = []
         for field in fields:
             if await field.if_(context):
-                action_fields.append(await field.to_action_field(context, form_values.get(field.label), search_value))
+                value = form_values if isinstance(field, DynamicLayoutElements) else form_values.get(field.label)
+                action_fields.append(await field.to_action_field(context, value, search_value))  # type:ignore
         return action_fields

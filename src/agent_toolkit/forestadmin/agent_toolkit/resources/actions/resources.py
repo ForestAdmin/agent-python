@@ -17,7 +17,7 @@ from forestadmin.agent_toolkit.utils.forest_schema.type import ForestServerActio
 from forestadmin.agent_toolkit.utils.id import unpack_id
 from forestadmin.datasource_toolkit.decorators.action.result_builder import ResultBuilder
 from forestadmin.datasource_toolkit.exceptions import BusinessError
-from forestadmin.datasource_toolkit.interfaces.actions import ActionsScope
+from forestadmin.datasource_toolkit.interfaces.actions import ActionFieldType, ActionsScope
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.factory import ConditionTreeFactory
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.base import ConditionTree
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.branch import Aggregator, ConditionTreeBranch
@@ -61,8 +61,11 @@ class ActionResource(BaseCollectionResource):
         unsafe_data = ForestValueConverter.make_form_unsafe_data(raw_data)
         fields = await request.collection.get_form(request.user, request.action_name, unsafe_data, filter_)
 
+        # TODO: we'll need to have a flat list of field for make_form_data
         # Now that we have the field list, we can parse the data again.
-        data = ForestValueConverter.make_form_data(request.collection.datasource, raw_data, fields)
+        data = ForestValueConverter.make_form_data(
+            request.collection.datasource, raw_data, filter(lambda f: f["type"] != ActionFieldType.LAYOUT, fields)
+        )
         result = await request.collection.execute(request.user, request.action_name, data, filter_)
 
         if result["type"] == ResultBuilder.ERROR:
@@ -132,14 +135,20 @@ class ActionResource(BaseCollectionResource):
             },
         )
 
-        return HttpResponseBuilder.build_success_response(
-            {
-                "fields": [
-                    await SchemaActionGenerator.build_field_schema(request.collection.datasource, field)
-                    for field in fields
-                ]
-            }
-        )
+        fields, layout = SchemaActionGenerator.extract_fields_and_layout(fields)
+        ret = {
+            "fields": [
+                await SchemaActionGenerator.build_field_schema(request.collection.datasource, field) for field in fields
+            ],
+            "layout": [
+                await SchemaActionGenerator.build_layout_schema(request.collection.datasource, field)
+                for field in layout
+            ],
+        }
+        # if not ret["layout"]:
+        #     # TODO: is this necessary ?
+        #     del ret["layout"]
+        return HttpResponseBuilder.build_success_response(ret)
 
     async def _get_records_selection(self, request: ActionRequest) -> Filter:
         trees: List[ConditionTree] = []

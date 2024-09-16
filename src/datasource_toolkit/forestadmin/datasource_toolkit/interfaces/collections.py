@@ -2,7 +2,7 @@ import abc
 from typing import Any, Dict, List, Optional
 
 from forestadmin.agent_toolkit.utils.context import User
-from forestadmin.datasource_toolkit.interfaces.actions import ActionField, ActionResult
+from forestadmin.datasource_toolkit.interfaces.actions import ActionFormElement, ActionResult
 from forestadmin.datasource_toolkit.interfaces.chart import Chart
 from forestadmin.datasource_toolkit.interfaces.models.collections import Collection as CollectionModel
 from forestadmin.datasource_toolkit.interfaces.query.aggregation import AggregateResult, Aggregation
@@ -35,7 +35,7 @@ class Collection(CollectionModel, abc.ABC):
         data: Optional[RecordsDataAlias],
         filter_: Optional[Filter],
         meta: Optional[Dict[str, Any]],
-    ) -> List[ActionField]:
+    ) -> List[ActionFormElement]:
         """to get the form of an action"""
 
     @abc.abstractmethod

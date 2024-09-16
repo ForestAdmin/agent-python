@@ -46,6 +46,7 @@ class ActionFieldType(enum.Enum):
     FILE_LIST = "FileList"
     NUMBER_LIST = "NumberList"
     STRING_LIST = "StringList"
+    LAYOUT = "Layout"
 
 
 ActionFieldTypeLiteral = Literal[
@@ -63,6 +64,7 @@ ActionFieldTypeLiteral = Literal[
     "FileList",
     "NumberList",
     "StringList",
+    "Layout",
 ]
 
 
@@ -87,9 +89,19 @@ WidgetTypes = Literal[
     "UserDropdown",
 ]
 
+LayoutComponentTypes = Literal["Separator", "Input"]
 
-class ActionField(TypedDict):
+
+class BaseActionFormElement(TypedDict):
     type: ActionFieldType
+
+
+class ActionLayoutElement(BaseActionFormElement):
+    component: LayoutComponentTypes
+    fieldId: NotRequired[str]
+
+
+class ActionField(BaseActionFormElement):
     label: str
     description: NotRequired[Optional[str]]
     is_required: NotRequired[Optional[bool]]
@@ -118,6 +130,9 @@ class ActionField(TypedDict):
     max_count: NotRequired[int]
     search: NotRequired[Any]
     allow_empty_values: NotRequired[bool]
+
+
+ActionFormElement = Union[ActionField, ActionLayoutElement]
 
 
 class SuccessResult(TypedDict):

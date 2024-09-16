@@ -116,6 +116,11 @@ export_orders_json: ActionDict = {
             "value": "",
         },
         {
+            "type": "Layout",
+            "component": "Separator",
+            # "if_": lambda ctx: ctx.form_values.get("dummy field", "") == "aaa",
+        },
+        {
             "type": "Collection",
             "collection_name": "app_customer",
             "label": "customer",

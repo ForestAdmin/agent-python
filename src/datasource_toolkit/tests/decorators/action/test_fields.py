@@ -1,6 +1,7 @@
 import asyncio
 import sys
 from unittest import TestCase
+from unittest.mock import Mock
 
 if sys.version_info >= (3, 9):
     import zoneinfo
@@ -11,11 +12,15 @@ from forestadmin.agent_toolkit.utils.context import User
 from forestadmin.datasource_toolkit.collections import Collection
 from forestadmin.datasource_toolkit.datasources import Datasource
 from forestadmin.datasource_toolkit.decorators.action.context.base import ActionContext
+from forestadmin.datasource_toolkit.decorators.action.form_elements import (
+    FormElementFactory,
+    FormElementFactoryException,
+)
 from forestadmin.datasource_toolkit.decorators.action.types.fields import (
-    FieldFactory,
-    FieldFactoryException,
     PlainCollectionDynamicField,
+    PlainDynamicField,
     PlainEnumDynamicField,
+    PlainLayoutDynamicLayoutElementSeparator,
     PlainStringDynamicField,
 )
 from forestadmin.datasource_toolkit.interfaces.actions import ActionFieldType
@@ -34,9 +39,9 @@ class TestActionFieldFactory(TestCase):
             default_value="10",
         )
         self.assertRaisesRegex(
-            FieldFactoryException,
+            FormElementFactoryException,
             r"🌳🌳🌳Unknown field type: 'bla'",
-            FieldFactory.build,
+            FormElementFactory.build,
             plain_field,
         )
 
@@ -53,10 +58,10 @@ class TestActionFieldFactory(TestCase):
             error="err",
         )
         self.assertRaisesRegex(
-            FieldFactoryException,
-            r"🌳🌳🌳Unable to build a field. cls: 'StringDynamicField', e: '(BaseDynamicField\.)?__init__\(\) "
+            FormElementFactoryException,
+            r"🌳🌳🌳Unable to build a field. cls: 'StringDynamicField', e: '(StringDynamicField\.)?__init__\(\) "
             "got an unexpected keyword argument 'error''",
-            FieldFactory.build,
+            FormElementFactory.build,
             plain_field,
         )
 
@@ -79,6 +84,12 @@ class TestActionFieldFactory(TestCase):
         self.assertEqual(plain_field["placeholder"], "placeholder")
         self.assertEqual(plain_field["enable_opacity"], False)
         self.assertEqual(plain_field["quick_palette"], None)
+
+    def test_factory_should_create_layout(self):
+        plain_field: PlainDynamicField = {"type": "Layout", "component": "Separator"}
+        field = FormElementFactory.build(plain_field)
+        self.assertEqual(field._if_, None)
+        self.assertEqual(field._component, "Separator")
 
 
 class BaseTestDynamicField(TestCase):
@@ -121,7 +132,7 @@ class TestCollectionDynamicField(BaseTestDynamicField):
             default_value="10",
         )
 
-        self.dynamic_field = FieldFactory.build(self.plain_dynamic_field)
+        self.dynamic_field = FormElementFactory.build(self.plain_dynamic_field)
 
     def test_dynamic_field_should_also_return_collection_name(self):
         field = self.dynamic_field.dynamic_fields
@@ -145,7 +156,7 @@ class TestEnumDynamicField(BaseTestDynamicField):
             enum_values=[1, 2, 3, 4, 5],
         )
 
-        self.dynamic_field = FieldFactory.build(self.plain_dynamic_field)
+        self.dynamic_field = FormElementFactory.build(self.plain_dynamic_field)
 
     def test_dynamic_field_should_also_return_enum_values(self):
         field = self.dynamic_field.dynamic_fields
@@ -169,7 +180,7 @@ class TestEnumListDynamicField(BaseTestDynamicField):
             enum_values=[1, 2, 3, 4, 5],
         )
 
-        self.dynamic_field = FieldFactory.build(self.plain_dynamic_field)
+        self.dynamic_field = FormElementFactory.build(self.plain_dynamic_field)
 
     def test_dynamic_field_should_also_return_enum_values(self):
         field = self.dynamic_field.dynamic_fields
@@ -182,4 +193,22 @@ class TestEnumListDynamicField(BaseTestDynamicField):
         assert action_field["enum_values"] == [1, 2, 3, 4, 5]
 
 
-# BaseDynamicField
+class TestLayoutDynamicElement(BaseTestDynamicField):
+    def setUp(self) -> None:
+        self.plain_dynamic_layout = PlainLayoutDynamicLayoutElementSeparator(
+            type="Layout", if_=lambda ctx: ctx.form_values.get("desired_value", False), component="Separator"
+        )
+
+        self.dynamic_field = FormElementFactory.build(self.plain_dynamic_layout)
+
+    def test_should_always_been_dynamic(self):
+        # TODO: this test must be remove at story#7
+        field = FormElementFactory.build(PlainLayoutDynamicLayoutElementSeparator(type="Layout", component="Separator"))
+        self.assertEqual(field.is_dynamic, True)
+
+    def test_should_evaluate_if(self):
+        ctx = Mock()
+        ctx.form_values = {"desired_value": True}
+        self.assertEqual(self.loop.run_until_complete(self.dynamic_field.if_(ctx)), True)
+        ctx.form_values = {"desired_value": False}
+        self.assertEqual(self.loop.run_until_complete(self.dynamic_field.if_(ctx)), False)
