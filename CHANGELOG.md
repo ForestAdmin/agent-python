@@ -1,3 +1,10 @@
+# [1.10.0](https://github.com/ForestAdmin/agent-python/compare/v1.9.1...v1.10.0) (2024-09-16)
+
+
+### Features
+
+* **form_customization:** add separators ([#265](https://github.com/ForestAdmin/agent-python/issues/265)) ([6947bc6](https://github.com/ForestAdmin/agent-python/commit/6947bc6bb399a50fd97bb283bdc66bd72c760f3c))
+
 ## [1.9.1](https://github.com/ForestAdmin/agent-python/compare/v1.9.0...v1.9.1) (2024-09-12)
 
 
