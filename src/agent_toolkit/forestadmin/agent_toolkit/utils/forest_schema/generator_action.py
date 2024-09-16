@@ -1,5 +1,6 @@
 from typing import List, Literal, Tuple, cast
 
+from forestadmin.agent_toolkit.exceptions import AgentToolkitException
 from forestadmin.agent_toolkit.utils.forest_schema.action_values import ForestValueConverter
 from forestadmin.agent_toolkit.utils.forest_schema.generator_action_field_widget import GeneratorActionFieldWidget
 from forestadmin.agent_toolkit.utils.forest_schema.generator_field import SchemaFieldGenerator
@@ -71,11 +72,14 @@ class SchemaActionGenerator:
         cls, datasource: Datasource[Collection], field: ActionFormElement
     ) -> ForestServerActionFormLayoutElement:
         field = cast(ActionLayoutElement, field)
-        component = field["component"].lower()
-        kwargs = {**field}
-        del kwargs["type"]
-
-        return {**kwargs, "component": component}  # type:ignore
+        if field["component"] == "Input":
+            return {"component": "input", "fieldId": field["fieldId"]}
+        elif field["component"] == "Separator":
+            return {"component": "separator"}
+        elif field["component"] == "HtmlBlock":
+            return {"component": "htmlBlock", "content": field["content"]}  # type:ignore
+        else:
+            raise AgentToolkitException(f"Unknown component '{field['component']}'")
 
     @classmethod
     async def build_field_schema(

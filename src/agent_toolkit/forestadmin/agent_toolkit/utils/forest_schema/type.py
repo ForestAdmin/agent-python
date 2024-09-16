@@ -304,12 +304,18 @@ class ForestServerActionFormElementSeparator(TypedDict):
 
 class ForestServerActionFormElementFieldReference(TypedDict):
     component: Literal["input"]
-    fieldName: str
+    fieldId: str
+
+
+class ForestServerActionFormElementHtmlBlock(TypedDict):
+    component: Literal["htmlBlock"]
+    content: str
 
 
 ForestServerActionFormLayoutElement = Union[
     ForestServerActionFormElementSeparator,
     ForestServerActionFormElementFieldReference,
+    ForestServerActionFormElementHtmlBlock,
 ]
 
 
