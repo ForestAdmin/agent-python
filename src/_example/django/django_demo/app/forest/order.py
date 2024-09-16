@@ -123,8 +123,21 @@ export_orders_json: ActionDict = {
         {
             "type": "Layout",
             "component": "HtmlBlock",
-            "content": lambda ctx: "<b>A problem ?</b><a href='https://www.youtube.com/watch?v=dQw4w9WgXcQ' "
+            "content": "<b>A problem ?</b><a href='https://www.youtube.com/watch?v=dQw4w9WgXcQ' "
+            # "content": lambda ctx: "<b>A problem ?</b><a href='https://www.youtube.com/watch?v=dQw4w9WgXcQ' "
             "target='_blank'>This movie</a> can help you to fill this form !",
+        },
+        {
+            "type": "Layout",
+            "component": "Row",
+            "fields": [
+                {"type": "String", "label": "firstname"},
+                {
+                    "type": "String",
+                    "label": "lastname",
+                    "value": lambda ctx: ctx.form_values.get("firstname", "zae"),
+                },
+            ],
         },
         {
             "type": "Collection",

@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Optional, Set, cast
+from typing import Any, Dict, List, Optional, Set, Union, cast
 
 from forestadmin.agent_toolkit.utils.context import User
 from forestadmin.datasource_toolkit.collections import Collection
@@ -20,6 +20,7 @@ from forestadmin.datasource_toolkit.interfaces.actions import (
     ActionField,
     ActionFieldType,
     ActionFormElement,
+    ActionLayoutElement,
     ActionResult,
     ActionsScope,
 )
@@ -96,11 +97,17 @@ class ActionCollectionDecorator(CollectionDecorator):
             context, form_fields, form_values, meta.get("search_values", {}).get(meta.get("search_field"))
         )
 
-        # TODO: handle recursively layout items (row and pages)
-        for field in action_fields:
-            if field["type"] not in [ActionFieldType.LAYOUT, "Layout"]:
-                field["watch_changes"] = field["label"] in context.form_values.used_keys
+        self._set_watch_changes_attr(action_fields, context)
         return action_fields
+
+    def _set_watch_changes_attr(
+        self, form_elements: List[Union[ActionLayoutElement, ActionField]], context: ActionContext
+    ):
+        for element in form_elements:
+            if element["type"] not in [ActionFieldType.LAYOUT, "Layout"]:
+                element["watch_changes"] = element["label"] in context.form_values.used_keys
+            elif element["component"] == "Row":
+                self._set_watch_changes_attr(element["fields"], context)
 
     def _refine_schema(self, sub_schema: CollectionSchema) -> CollectionSchema:
         actions_schema = {}
@@ -150,7 +157,7 @@ class ActionCollectionDecorator(CollectionDecorator):
         fields: List[DynamicFormElements],
         form_values: RecordsDataAlias,
         search_value: Optional[str] = None,
-    ) -> List[ActionField]:
+    ) -> List[Union[ActionLayoutElement, ActionField]]:
         action_fields: List[ActionField] = []
         for field in fields:
             if await field.if_(context):

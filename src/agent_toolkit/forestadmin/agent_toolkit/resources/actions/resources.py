@@ -145,9 +145,6 @@ class ActionResource(BaseCollectionResource):
                 for field in layout
             ],
         }
-        # if not ret["layout"]:
-        #     # TODO: is this necessary ?
-        #     del ret["layout"]
         return HttpResponseBuilder.build_success_response(ret)
 
     async def _get_records_selection(self, request: ActionRequest) -> Filter:

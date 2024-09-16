@@ -18,7 +18,7 @@ from forestadmin.datasource_toolkit.decorators.action.form_elements import (
 )
 from forestadmin.datasource_toolkit.decorators.action.types.fields import (
     PlainCollectionDynamicField,
-    PlainDynamicField,
+    PlainDynamicLayout,
     PlainEnumDynamicField,
     PlainFileDynamicField,
     PlainFileListDynamicField,
@@ -29,7 +29,7 @@ from forestadmin.datasource_toolkit.decorators.action.types.fields import (
 from forestadmin.datasource_toolkit.interfaces.actions import ActionFieldType, File
 
 
-class TestActionFieldFactory(TestCase):
+class TestActionFormElementFactory(TestCase):
     def test_field_factory_should_raise_if_unknown_type(self):
         plain_field = PlainStringDynamicField(
             type="bla",
@@ -89,7 +89,7 @@ class TestActionFieldFactory(TestCase):
         self.assertEqual(plain_field["quick_palette"], None)
 
     def test_factory_should_create_layout(self):
-        plain_field: PlainDynamicField = {"type": "Layout", "component": "Separator"}
+        plain_field: PlainDynamicLayout = {"type": "Layout", "component": "Separator"}
         field = FormElementFactory.build(plain_field)
         self.assertEqual(field._if_, None)
         self.assertEqual(field._component, "Separator")

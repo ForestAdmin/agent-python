@@ -1,10 +1,18 @@
+from __future__ import annotations
+
 from datetime import date
-from typing import Awaitable, Callable, Generic, List, Literal, Optional, Set, TypeVar, Union
+from typing import TYPE_CHECKING, Awaitable, Callable, Generic, List, Literal, Optional, Set, TypeVar, Union
 
 from forestadmin.datasource_toolkit.decorators.action.context.base import ActionContext
 from forestadmin.datasource_toolkit.decorators.action.context.bulk import ActionContextBulk
 from forestadmin.datasource_toolkit.decorators.action.context.single import ActionContextSingle
 from typing_extensions import NotRequired, TypedDict
+
+if TYPE_CHECKING:
+    # avoid circular import for typing (also with 'from __future__ import annotations')
+    # https://stackoverflow.com/questions/61544854/from-future-import-annotations
+    from forestadmin.datasource_toolkit.decorators.action.form_elements import BaseDynamicField
+    from forestadmin.datasource_toolkit.decorators.action.types.fields import PlainDynamicField
 
 Number = Union[int, float]
 
@@ -170,6 +178,11 @@ class HtmlBlockConfiguration(TypedDict):
     content: ValueOrHandler[str]
 
 
+class RowConfiguration(TypedDict):
+    component: Literal["Row"]
+    fields: List[Union[PlainDynamicField, BaseDynamicField]]
+
+
 WIDGET_ATTRIBUTES: Set[str] = set()
 for WidgetType in [
     ColorPickerFieldConfiguration,
@@ -199,5 +212,6 @@ COMPONENT_ATTRIBUTES: Set[str] = set()
 for ComponentType in [
     SeparatorConfiguration,
     HtmlBlockConfiguration,
+    RowConfiguration,
 ]:
     COMPONENT_ATTRIBUTES = COMPONENT_ATTRIBUTES.union(ComponentType.__annotations__.keys())

@@ -22,6 +22,7 @@ from forestadmin.datasource_toolkit.decorators.action.types.widgets import (
     NumberInputListFieldConfiguration,
     RadioButtonFieldConfiguration,
     RichTextFieldConfiguration,
+    RowConfiguration,
     SeparatorConfiguration,
     TextAreaFieldConfiguration,
     TextInputFieldConfiguration,
@@ -308,10 +309,18 @@ class PlainLayoutDynamicLayoutElementHtmlBlock(PlainLayoutDynamicFormElement, Ht
     pass
 
 
-class PlainTyping(TypedDict):
+class PlainLayoutDynamicLayoutElementRow(PlainLayoutDynamicFormElement, RowConfiguration):
+    pass
+
+
+class PlainFieldTyping(TypedDict):
     type: Union[ActionFieldType, ActionFieldTypeLiteral]
     widget: WidgetTypes
     search: Literal["static", "dynamic", "disabled"]
+
+
+class PlainLayoutTyping(TypedDict):
+    type: Union[ActionFieldType, Literal[ActionFieldType.LAYOUT]]
     component: LayoutComponentTypes
 
 
@@ -373,9 +382,15 @@ PlainDynamicField = Union[
     # time
     PlainTimeDynamicField,
     PlainTimeDynamicFieldTimePickerWidget,
+    # for autocompletion
+    PlainFieldTyping,  # this one must be the latest by name class (alphabetic order)
+]
+
+PlainDynamicLayout = Union[
     # Layout
     PlainLayoutDynamicLayoutElementSeparator,
     PlainLayoutDynamicLayoutElementHtmlBlock,
+    PlainLayoutDynamicLayoutElementRow,
     # for autocompletion
-    PlainTyping,  # this one must be the latest by name class (alphabetic order)
+    PlainLayoutTyping,  # this one must be the latest by name class (alphabetic order)
 ]

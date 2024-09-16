@@ -93,6 +93,7 @@ LayoutComponentTypes = Literal[
     "Separator",
     # "Input", # we don't want users to use this one
     "HtmlBlock",
+    "Row",
 ]
 
 
@@ -104,6 +105,7 @@ class ActionLayoutElement(BaseActionFormElement):
     component: LayoutComponentTypes
     fieldId: NotRequired[str]
     content: NotRequired[str]
+    fields: NotRequired[List["ActionField"]]
 
 
 class ActionField(BaseActionFormElement):

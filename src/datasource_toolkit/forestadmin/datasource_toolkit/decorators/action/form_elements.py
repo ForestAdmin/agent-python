@@ -1,11 +1,11 @@
 import abc
 from datetime import date, datetime
-from typing import Any, Awaitable, Callable, Dict, Generic, List, Optional, Type, TypeVar, Union
+from typing import Any, Awaitable, Callable, Dict, Generic, List, Optional, Type, TypeVar, Union, cast
 
 from forestadmin.datasource_toolkit.decorators.action.context.base import ActionContext
 from forestadmin.datasource_toolkit.decorators.action.context.bulk import ActionContextBulk
 from forestadmin.datasource_toolkit.decorators.action.context.single import ActionContextSingle
-from forestadmin.datasource_toolkit.decorators.action.types.fields import PlainDynamicField
+from forestadmin.datasource_toolkit.decorators.action.types.fields import PlainDynamicField, PlainDynamicLayout
 from forestadmin.datasource_toolkit.decorators.action.types.widgets import COMPONENT_ATTRIBUTES, WIDGET_ATTRIBUTES
 from forestadmin.datasource_toolkit.exceptions import DatasourceToolkitException
 from forestadmin.datasource_toolkit.interfaces.actions import (
@@ -29,6 +29,10 @@ ValueOrHandler = Union[
     Callable[[ActionContextBulk], Union[Awaitable[Result], Result]],
     Result,
 ]
+
+
+class DynamicFormElementException(DatasourceToolkitException):
+    pass
 
 
 class BaseDynamicFormElement:
@@ -94,6 +98,35 @@ class DynamicLayoutElements(BaseDynamicFormElement):
                 f"{self.__class__.__name__}.__init__() got an unexpected keyword argument '{unknown_keyword_args[0]}'"
             )
         super().__init__(if_, **component_fields)
+        self._row_subfields: Optional[List[BaseDynamicField]] = None
+
+        if self._component == "Row":
+            self._init_row()
+
+    def _init_row(self):
+        # validate there is subfields
+        if "fields" not in self.extra_attr_fields:
+            raise DynamicFormElementException("Using 'fields' in a 'Row' configuration is mandatory")
+
+        # validate sub elements are fields
+        for field in cast(List[Union[PlainDynamicField, BaseDynamicField]], self.extra_attr_fields.get("fields", [])):
+            if isinstance(field, BaseDynamicField):
+                if field.TYPE == ActionFieldType.LAYOUT:
+                    raise DynamicFormElementException("A 'Row' form element doesn't allow layout elements as subfields")
+            else:
+                if field.get("type") in [ActionFieldType.LAYOUT, "Layout"]:
+                    raise DynamicFormElementException("A 'Row' form element doesn't allow layout elements as subfields")
+
+        # init subfields
+        self._row_subfields = self._instantiate_subfields(self.extra_attr_fields["fields"])  # type: ignore
+
+    def _instantiate_subfields(self, subfields: List[Union["BaseDynamicField", PlainDynamicField]]):
+        return [
+            field if isinstance(field, BaseDynamicField) else cast(BaseDynamicField, FormElementFactory.build(field))
+            for field in cast(
+                List[Union[PlainDynamicField, BaseDynamicField]], self.extra_attr_fields.get("fields", [])
+            )
+        ]
 
     @property
     def is_dynamic(self) -> bool:
@@ -103,12 +136,21 @@ class DynamicLayoutElements(BaseDynamicFormElement):
     async def to_action_field(
         self, context: Context, default_value: Any, search_value: Optional[str] = None
     ) -> ActionLayoutElement:
-        # here default value is the all form_values dict because of possible nested fields
-        return ActionLayoutElement(
+        # here default_value is the all form_values dict because layout elements need form values only for nested fields
+        action_field = ActionLayoutElement(
             type=self.TYPE,
             component=self._component,
             **{k: await self._evaluate(context, v) for k, v in self.extra_attr_fields.items()},
         )
+
+        if self._component == "Row" and self._row_subfields:
+            action_field["fields"] = [
+                await field.to_action_field(context, default_value.get(field.label), search_value)
+                for field in self._row_subfields
+                if await field.if_(context)
+            ]
+
+        return action_field
 
 
 class BaseDynamicField(BaseDynamicFormElement, Generic[Result]):
@@ -411,7 +453,7 @@ class FormElementFactory:
     }
 
     @classmethod
-    def build(cls, plain_field: PlainDynamicField) -> DynamicFormElements:
+    def build(cls, plain_field: Union[PlainDynamicField, PlainDynamicLayout]) -> DynamicFormElements:
         try:
             cls_field = cls.FIELD_FOR_TYPE[ActionFieldType(plain_field["type"])]
         except (KeyError, ValueError):

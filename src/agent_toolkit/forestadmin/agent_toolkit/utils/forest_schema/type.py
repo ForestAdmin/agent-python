@@ -312,10 +312,16 @@ class ForestServerActionFormElementHtmlBlock(TypedDict):
     content: str
 
 
+class ForestServerActionFormElementRow(TypedDict):
+    component: Literal["row"]
+    fields: List["ForestServerActionField"]
+
+
 ForestServerActionFormLayoutElement = Union[
     ForestServerActionFormElementSeparator,
     ForestServerActionFormElementFieldReference,
     ForestServerActionFormElementHtmlBlock,
+    ForestServerActionFormElementRow,
 ]
 
 
