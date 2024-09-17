@@ -84,7 +84,7 @@ class SchemaActionGenerator:
         elif field["component"] == "Row":
             return {
                 "component": "row",
-                "fields": [await cls.build_field_schema(datasource, f) for f in field["fields"]],  # type:ignore
+                "fields": [await cls.build_layout_schema(datasource, f) for f in field["fields"]],  # type:ignore
             }
         else:
             raise AgentToolkitException(f"Unknown component '{field['component']}'")
@@ -149,7 +149,7 @@ class SchemaActionGenerator:
                 layout.append(
                     {
                         "type": ActionFieldType.LAYOUT,
-                        "component": "Input",  # type: ignore
+                        "component": "Input",
                         "fieldId": cast(ActionField, element)["label"],
                     }
                 )

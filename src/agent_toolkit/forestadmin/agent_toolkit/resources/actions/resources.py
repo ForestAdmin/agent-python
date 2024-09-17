@@ -61,11 +61,9 @@ class ActionResource(BaseCollectionResource):
         unsafe_data = ForestValueConverter.make_form_unsafe_data(raw_data)
         fields = await request.collection.get_form(request.user, request.action_name, unsafe_data, filter_)
 
-        # TODO: we'll need to have a flat list of field for make_form_data
+        fields = SchemaActionGenerator.extract_fields_and_layout(fields)[0]
         # Now that we have the field list, we can parse the data again.
-        data = ForestValueConverter.make_form_data(
-            request.collection.datasource, raw_data, filter(lambda f: f["type"] != ActionFieldType.LAYOUT, fields)
-        )
+        data = ForestValueConverter.make_form_data(request.collection.datasource, raw_data, fields)
         result = await request.collection.execute(request.user, request.action_name, data, filter_)
 
         if result["type"] == ResultBuilder.ERROR:
