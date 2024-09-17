@@ -363,9 +363,9 @@ class TestSchemaActionGeneratorLayout(BaseTestSchemaActionGenerator):
         self.assertEqual(
             result.get("layout"),
             [
-                {"component": "input", "fieldName": "firstname"},
+                {"component": "input", "fieldId": "firstname"},
                 {"component": "separator"},
-                {"component": "input", "fieldName": "lastname"},
+                {"component": "input", "fieldId": "lastname"},
             ],
         )
 
@@ -476,11 +476,7 @@ class TestSchemaActionGeneratorLayout(BaseTestSchemaActionGenerator):
         result = self.loop.run_until_complete(
             SchemaActionGenerator.build_layout_schema(
                 self.datasource,
-                {
-                    "type": ActionFieldType.LAYOUT,
-                    "component": "Input",  # type: ignore
-                    "fieldId": "firstname",
-                },
+                {"type": ActionFieldType.LAYOUT, "component": "Input", "fieldId": "firstname"},
             )
         )
         self.assertEqual(result, {"component": "input", "fieldId": "firstname"})

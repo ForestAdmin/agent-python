@@ -1,7 +1,7 @@
 import asyncio
 import sys
 from unittest import TestCase
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
 if sys.version_info >= (3, 9):
     import zoneinfo
@@ -13,6 +13,8 @@ from forestadmin.datasource_toolkit.collections import Collection
 from forestadmin.datasource_toolkit.datasources import Datasource
 from forestadmin.datasource_toolkit.decorators.action.context.base import ActionContext
 from forestadmin.datasource_toolkit.decorators.action.form_elements import (
+    DynamicFormElementException,
+    EnumListDynamicField,
     FormElementFactory,
     FormElementFactoryException,
 )
@@ -23,8 +25,11 @@ from forestadmin.datasource_toolkit.decorators.action.types.fields import (
     PlainFileDynamicField,
     PlainFileListDynamicField,
     PlainLayoutDynamicLayoutElementHtmlBlock,
+    PlainLayoutDynamicLayoutElementRow,
     PlainLayoutDynamicLayoutElementSeparator,
+    PlainListEnumDynamicField,
     PlainStringDynamicField,
+    PlainStringDynamicFieldColorWidget,
 )
 from forestadmin.datasource_toolkit.interfaces.actions import ActionFieldType, File
 
@@ -55,10 +60,10 @@ class TestActionFormElementFactory(TestCase):
             description="test",
             is_required=True,
             is_read_only=True,
-            if_=lambda ctx: "ok",
+            if_=lambda ctx: True,
             value="1",
             default_value="10",
-            error="err",
+            error="err",  # type:ignore
         )
         self.assertRaisesRegex(
             FormElementFactoryException,
@@ -69,13 +74,13 @@ class TestActionFormElementFactory(TestCase):
         )
 
     def test_field_factory_should_allow_widget_arguments(self):
-        plain_field = PlainStringDynamicField(
+        plain_field = PlainStringDynamicFieldColorWidget(
             type=ActionFieldType.STRING,
             label="amount X10",
             description="test",
             is_required=True,
             is_read_only=True,
-            if_=lambda ctx: "ok",
+            if_=lambda ctx: True,
             value="1",
             default_value="10",
             widget="ColorPicker",
@@ -196,13 +201,13 @@ class TestEnumDynamicField(BaseTestDynamicField):
 
 class TestEnumListDynamicField(BaseTestDynamicField):
     def setUp(self) -> None:
-        self.plain_dynamic_field = PlainEnumDynamicField(
+        self.plain_dynamic_field = PlainListEnumDynamicField(
             type=ActionFieldType.ENUM_LIST,
             label="raiting",
             is_required=True,
             is_read_only=True,
             if_=lambda ctx: True,
-            enum_values=[1, 2, 3, 4, 5],
+            enum_values=["1", "2", "3", "4", "5"],
         )
 
         self.dynamic_field = FormElementFactory.build(self.plain_dynamic_field)
@@ -261,4 +266,162 @@ class TestLayoutDynamicElementHtmlBlock(BaseTestDynamicField):
         action_field = self.loop.run_until_complete(self.dynamic_field.to_action_field(ctx, ctx.form_values))
         self.assertEqual(
             action_field, {"type": ActionFieldType.LAYOUT, "component": "HtmlBlock", "content": "<b>True</b>"}
+        )
+
+
+class TestLayoutDynamicElementRow(BaseTestDynamicField):
+    def test_should_generate_action_field(self):
+        plain_field = PlainLayoutDynamicLayoutElementRow(
+            type="Layout",
+            component="Row",
+            fields=[
+                {"type": "String", "label": "gender"},
+                {"type": "String", "label": "gender_other"},
+            ],
+        )
+        ctx = Mock()
+        ctx.form_values = {}
+        dynamic_field = FormElementFactory.build(plain_field)
+
+        action_field = self.loop.run_until_complete(dynamic_field.to_action_field(ctx, ctx.form_values))
+
+        self.assertEqual(
+            action_field,
+            {
+                "type": ActionFieldType.LAYOUT,
+                "component": "Row",
+                "fields": [
+                    {
+                        "type": ActionFieldType.STRING,
+                        "label": "gender",
+                        "description": "",
+                        "is_read_only": False,
+                        "is_required": False,
+                        "value": None,
+                        "default_value": None,
+                        "collection_name": None,
+                        "enum_values": None,
+                        "watch_changes": False,
+                    },
+                    {
+                        "type": ActionFieldType.STRING,
+                        "label": "gender_other",
+                        "description": "",
+                        "is_read_only": False,
+                        "is_required": False,
+                        "value": None,
+                        "default_value": None,
+                        "collection_name": None,
+                        "enum_values": None,
+                        "watch_changes": False,
+                    },
+                ],
+            },
+        )
+
+    def test_should_generate_action_field_with_evaluation(self):
+        plain_field = PlainLayoutDynamicLayoutElementRow(
+            type="Layout",
+            component="Row",
+            fields=[
+                {"type": "String", "label": "gender"},
+                {
+                    "type": "String",
+                    "label": "gender_other",
+                    "if_": lambda ctx: ctx.form_values.get("gender", "") == "other",
+                },
+            ],
+        )
+        dynamic_field = FormElementFactory.build(plain_field)
+        ctx = Mock()
+        ctx.form_values = {"gender": "other"}
+        action_field = self.loop.run_until_complete(dynamic_field.to_action_field(ctx, ctx.form_values))
+        self.assertEqual(
+            action_field,
+            {
+                "type": ActionFieldType.LAYOUT,
+                "component": "Row",
+                "fields": [
+                    {
+                        "type": ActionFieldType.STRING,
+                        "label": "gender",
+                        "description": "",
+                        "is_read_only": False,
+                        "is_required": False,
+                        "value": "other",
+                        "default_value": None,
+                        "collection_name": None,
+                        "enum_values": None,
+                        "watch_changes": False,
+                    },
+                    {
+                        "type": ActionFieldType.STRING,
+                        "label": "gender_other",
+                        "description": "",
+                        "is_read_only": False,
+                        "is_required": False,
+                        "value": None,
+                        "default_value": None,
+                        "collection_name": None,
+                        "enum_values": None,
+                        "watch_changes": False,
+                    },
+                ],
+            },
+        )
+
+    def test_should_recursively_call_form_element_builder(self):
+        plain_field = PlainLayoutDynamicLayoutElementRow(
+            type="Layout",
+            component="Row",
+            fields=[
+                {"type": "String", "label": "gender"},
+                {"type": "String", "label": "gender_other"},
+            ],
+        )
+        with patch(
+            "forestadmin.datasource_toolkit.decorators.action.form_elements.FormElementFactory.build",
+            side_effect=FormElementFactory.build,
+        ) as mock_build:
+            FormElementFactory.build(plain_field)
+            mock_build.assert_any_call(plain_field)
+            mock_build.assert_any_call(plain_field["fields"][0])
+
+    def test_should_not_be_generated_if_no_content(self):
+        plain_field = PlainLayoutDynamicLayoutElementRow(
+            type="Layout",
+            component="Row",
+            fields=[
+                {"type": "String", "label": "gender", "if_": lambda ctx: ctx.form_values.get("ask_gender") is True},
+                {
+                    "type": "String",
+                    "label": "gender_other",
+                    "if_": lambda ctx: ctx.form_values.get("gender", "") == "other",
+                },
+            ],
+        )
+        dynamic_field = FormElementFactory.build(plain_field)
+        ctx = Mock()
+        ctx.form_values = {}
+        action_field = self.loop.run_until_complete(dynamic_field.to_action_field(ctx, ctx.form_values))
+        self.assertEqual(action_field, None)
+
+    def test_should_raise_if_contains_layout(self):
+        plain_field = PlainLayoutDynamicLayoutElementRow(
+            type="Layout",
+            component="Row",
+            fields=[
+                {"type": "Layout", "component": "HtmlBlock", "content": "bla"},  # type: ignore
+                {
+                    "type": "String",
+                    "label": "gender_other",
+                    "if_": lambda ctx: ctx.form_values.get("gender", "") == "other",
+                },
+            ],
+        )
+        self.assertRaisesRegex(
+            DynamicFormElementException,
+            r"A 'Row' form element doesn't allow layout elements as subfields",
+            FormElementFactory.build,
+            plain_field,
         )

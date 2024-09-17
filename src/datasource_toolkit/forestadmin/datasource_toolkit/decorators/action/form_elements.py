@@ -123,9 +123,7 @@ class DynamicLayoutElements(BaseDynamicFormElement):
     def _instantiate_subfields(self, subfields: List[Union["BaseDynamicField", PlainDynamicField]]):
         return [
             field if isinstance(field, BaseDynamicField) else cast(BaseDynamicField, FormElementFactory.build(field))
-            for field in cast(
-                List[Union[PlainDynamicField, BaseDynamicField]], self.extra_attr_fields.get("fields", [])
-            )
+            for field in cast(List[Union[PlainDynamicField, BaseDynamicField]], subfields)
         ]
 
     @property
