@@ -102,7 +102,7 @@ class BaseActionFormElement(TypedDict):
 
 
 class ActionLayoutElement(BaseActionFormElement):
-    component: LayoutComponentTypes
+    component: Literal[LayoutComponentTypes, "Input"]
     fieldId: NotRequired[str]
     content: NotRequired[str]
     fields: NotRequired[List["ActionField"]]

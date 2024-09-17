@@ -106,7 +106,7 @@ class ActionCollectionDecorator(CollectionDecorator):
         for element in form_elements:
             if element["type"] not in [ActionFieldType.LAYOUT, "Layout"]:
                 element["watch_changes"] = element["label"] in context.form_values.used_keys
-            elif element["component"] == "Row":
+            elif element["component"] in ["Row"]:
                 self._set_watch_changes_attr(element["fields"], context)
 
     def _refine_schema(self, sub_schema: CollectionSchema) -> CollectionSchema:
@@ -158,9 +158,11 @@ class ActionCollectionDecorator(CollectionDecorator):
         form_values: RecordsDataAlias,
         search_value: Optional[str] = None,
     ) -> List[Union[ActionLayoutElement, ActionField]]:
-        action_fields: List[ActionField] = []
+        action_fields: List[Union[ActionLayoutElement, ActionField]] = []
         for field in fields:
             if await field.if_(context):
                 value = form_values if isinstance(field, DynamicLayoutElements) else form_values.get(field.label)
-                action_fields.append(await field.to_action_field(context, value, search_value))  # type:ignore
+                action_field = await field.to_action_field(context, value, search_value)  # type:ignore
+                if action_field is not None:
+                    action_fields.append(action_field)
         return action_fields

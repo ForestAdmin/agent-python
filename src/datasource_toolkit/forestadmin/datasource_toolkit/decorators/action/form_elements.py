@@ -51,7 +51,7 @@ class BaseDynamicFormElement:
     @abc.abstractmethod
     async def to_action_field(
         self, context: Context, default_value: Any, search_value: Optional[str] = None
-    ) -> ActionFormElement:
+    ) -> Optional[ActionFormElement]:
         pass
 
     @property
@@ -135,7 +135,7 @@ class DynamicLayoutElements(BaseDynamicFormElement):
 
     async def to_action_field(
         self, context: Context, default_value: Any, search_value: Optional[str] = None
-    ) -> ActionLayoutElement:
+    ) -> Optional[ActionLayoutElement]:
         # here default_value is the all form_values dict because layout elements need form values only for nested fields
         action_field = ActionLayoutElement(
             type=self.TYPE,
@@ -149,6 +149,8 @@ class DynamicLayoutElements(BaseDynamicFormElement):
                 for field in self._row_subfields
                 if await field.if_(context)
             ]
+            if len(action_field["fields"]) == 0:
+                return None
 
         return action_field
 
