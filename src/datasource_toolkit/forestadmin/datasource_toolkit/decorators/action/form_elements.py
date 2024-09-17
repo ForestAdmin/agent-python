@@ -5,7 +5,7 @@ from typing import Any, Awaitable, Callable, Dict, Generic, List, Optional, Type
 from forestadmin.datasource_toolkit.decorators.action.context.base import ActionContext
 from forestadmin.datasource_toolkit.decorators.action.context.bulk import ActionContextBulk
 from forestadmin.datasource_toolkit.decorators.action.context.single import ActionContextSingle
-from forestadmin.datasource_toolkit.decorators.action.types.fields import PlainDynamicField, PlainDynamicLayout
+from forestadmin.datasource_toolkit.decorators.action.types.fields import PlainDynamicField, PlainDynamicFormElement
 from forestadmin.datasource_toolkit.decorators.action.types.widgets import COMPONENT_ATTRIBUTES, WIDGET_ATTRIBUTES
 from forestadmin.datasource_toolkit.exceptions import DatasourceToolkitException
 from forestadmin.datasource_toolkit.interfaces.actions import (
@@ -453,7 +453,7 @@ class FormElementFactory:
     }
 
     @classmethod
-    def build(cls, plain_field: Union[PlainDynamicField, PlainDynamicLayout]) -> DynamicFormElements:
+    def build(cls, plain_field: PlainDynamicFormElement) -> DynamicFormElements:
         try:
             cls_field = cls.FIELD_FOR_TYPE[ActionFieldType(plain_field["type"])]
         except (KeyError, ValueError):

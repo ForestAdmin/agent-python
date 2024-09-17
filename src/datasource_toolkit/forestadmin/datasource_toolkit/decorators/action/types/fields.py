@@ -313,14 +313,12 @@ class PlainLayoutDynamicLayoutElementRow(PlainLayoutDynamicFormElement, RowConfi
     pass
 
 
-class PlainFieldTyping(TypedDict):
+# If I split PlainTyping into multiple ones, auto completion stop working.
+# I dunno why, but like this it works!!! So let's not touch it
+class PlainTyping(TypedDict):
     type: Union[ActionFieldType, ActionFieldTypeLiteral]
     widget: WidgetTypes
     search: Literal["static", "dynamic", "disabled"]
-
-
-class PlainLayoutTyping(TypedDict):
-    type: Union[ActionFieldType, Literal[ActionFieldType.LAYOUT]]
     component: LayoutComponentTypes
 
 
@@ -383,7 +381,7 @@ PlainDynamicField = Union[
     PlainTimeDynamicField,
     PlainTimeDynamicFieldTimePickerWidget,
     # for autocompletion
-    PlainFieldTyping,  # this one must be the latest by name class (alphabetic order)
+    PlainTyping,  # this one must be the latest by name class (alphabetic order)
 ]
 
 PlainDynamicLayout = Union[
@@ -392,5 +390,7 @@ PlainDynamicLayout = Union[
     PlainLayoutDynamicLayoutElementHtmlBlock,
     PlainLayoutDynamicLayoutElementRow,
     # for autocompletion
-    PlainLayoutTyping,  # this one must be the latest by name class (alphabetic order)
+    PlainTyping,  # this one must be the latest by name class (alphabetic order)
 ]
+
+PlainDynamicFormElement = Union[PlainDynamicField, PlainDynamicLayout]
