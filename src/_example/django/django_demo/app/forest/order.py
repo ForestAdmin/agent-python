@@ -118,7 +118,6 @@ export_orders_json: ActionDict = {
         {
             "type": "Layout",
             "component": "Separator",
-            # "if_": lambda ctx: ctx.form_values.get("dummy field", "") == "aaa",
         },
         {
             "type": "Layout",
@@ -131,11 +130,14 @@ export_orders_json: ActionDict = {
             "type": "Layout",
             "component": "Row",
             "fields": [
-                {"type": "String", "label": "firstname"},
                 {
                     "type": "String",
-                    "label": "lastname",
-                    "value": lambda ctx: ctx.form_values.get("firstname", "zae"),
+                    "label": "gender",
+                },
+                {
+                    "type": "String",
+                    "if_": lambda ctx: ctx.form_values.get("gender", "") == "other",
+                    "label": "gender_other",
                 },
             ],
         },
