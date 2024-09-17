@@ -475,7 +475,7 @@ class TestSchemaActionGeneratorLayout(BaseTestSchemaActionGenerator):
     def test_should_correctly_serialize_inputs_reference(self):
         result = self.loop.run_until_complete(
             SchemaActionGenerator.build_layout_schema(
-                self.datasource, {"type": ActionFieldType.LAYOUT, "component": "Input", "fieldId": "firstname"}  # type: ignore
+                self.datasource, {"type": ActionFieldType.LAYOUT, "component": "Input", "fieldId": "firstname"}
             )
         )
         self.assertEqual(result, {"component": "input", "fieldId": "firstname"})
