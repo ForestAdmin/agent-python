@@ -374,7 +374,7 @@ class TestActionCollectionCustomizer(TestCase):
                 {
                     "label": "rating",
                     "type": ActionFieldType.ENUM,
-                    "enum_values": [1, 2, 3, 4, 5],
+                    "enum_values": ["1", "2", "3", "4", "5"],
                 },
                 {
                     "label": "Put a comment",
@@ -399,7 +399,7 @@ class TestActionCollectionCustomizer(TestCase):
                 "value": None,
                 "default_value": None,
                 "collection_name": None,
-                "enum_values": [1, 2, 3, 4, 5],
+                "enum_values": ["1", "2", "3", "4", "5"],
                 "watch_changes": True,
             },
         ]
@@ -418,7 +418,7 @@ class TestActionCollectionCustomizer(TestCase):
                 "value": None,
                 "default_value": None,
                 "collection_name": None,
-                "enum_values": [1, 2, 3, 4, 5],
+                "enum_values": ["1", "2", "3", "4", "5"],
                 "watch_changes": True,
             },
             {
@@ -434,6 +434,102 @@ class TestActionCollectionCustomizer(TestCase):
                 "watch_changes": False,
             },
         ]
+
+    def test_get_form_should_make_dynamic_field_into_layout_elements_on_context_has_changed_field(self):
+        async def execute(context: ActionContextSingle, result_builder: ResultBuilder) -> Union[ActionResult, None]:
+            result_builder.success("Bravo !!!")
+
+        test_action: ActionDict = {
+            "scope": ActionsScope.SINGLE,
+            "execute": execute,
+            "form": [
+                {
+                    "type": "Layout",
+                    "component": "Row",
+                    "fields": [
+                        {
+                            "label": "rating",
+                            "type": ActionFieldType.ENUM,
+                            "enum_values": ["1", "2", "3", "4", "5"],
+                        },
+                        {
+                            "label": "Put a comment",
+                            "type": ActionFieldType.STRING,
+                            "if_": lambda context: context.has_field_changed("rating"),
+                        },
+                    ],
+                }
+            ],
+        }
+
+        self.product_collection.add_action("action_test", test_action)
+
+        result = self.loop.run_until_complete(
+            self.product_collection.get_form(self.mocked_caller, "action_test", {"first_name": "John"}, None, {})
+        )
+        self.assertEqual(
+            result,
+            [
+                {
+                    "type": ActionFieldType.LAYOUT,
+                    "component": "Row",
+                    "fields": [
+                        {
+                            "label": "rating",
+                            "type": ActionFieldType.ENUM,
+                            "description": "",
+                            "is_read_only": False,
+                            "is_required": False,
+                            "value": None,
+                            "default_value": None,
+                            "collection_name": None,
+                            "enum_values": ["1", "2", "3", "4", "5"],
+                            "watch_changes": True,
+                        }
+                    ],
+                },
+            ],
+        )
+        result = self.loop.run_until_complete(
+            self.product_collection.get_form(
+                self.mocked_caller, "action_test", {"first_name": "John"}, None, {"changed_field": "rating"}
+            )
+        )
+        self.assertEqual(
+            result,
+            [
+                {
+                    "type": ActionFieldType.LAYOUT,
+                    "component": "Row",
+                    "fields": [
+                        {
+                            "label": "rating",
+                            "type": ActionFieldType.ENUM,
+                            "description": "",
+                            "is_read_only": False,
+                            "is_required": False,
+                            "value": None,
+                            "default_value": None,
+                            "collection_name": None,
+                            "enum_values": ["1", "2", "3", "4", "5"],
+                            "watch_changes": True,
+                        },
+                        {
+                            "label": "Put a comment",
+                            "type": ActionFieldType.STRING,
+                            "description": "",
+                            "is_read_only": False,
+                            "is_required": False,
+                            "value": None,
+                            "default_value": None,
+                            "collection_name": None,
+                            "enum_values": None,
+                            "watch_changes": False,
+                        },
+                    ],
+                }
+            ],
+        )
 
     def test_get_form_can_handle_multiple_form_of_fn(self):
         def is_required(context):
