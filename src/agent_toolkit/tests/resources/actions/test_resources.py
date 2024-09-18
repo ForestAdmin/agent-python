@@ -505,7 +505,10 @@ class TestHookActionResource(BaseTestActionResource):
                 },
             ],
         )
-        self.assertEqual(content["layout"], [])
+        self.assertEqual(
+            content["layout"],
+            [{"component": "input", "fieldId": "Value"}, {"component": "input", "fieldId": "Summary"}],
+        )
 
     def test_hook_should_return_layout_if_it_is_set(self):
         test_action_single: ActionDict = {

@@ -101,11 +101,17 @@ class BaseActionFormElement(TypedDict):
     type: ActionFieldType
 
 
+class ActionLayoutInput(TypedDict):
+    type: Literal[ActionFieldType.LAYOUT]
+    component: Literal["Input"]
+    fieldId: str
+
+
 class ActionLayoutElement(BaseActionFormElement):
     component: Literal[LayoutComponentTypes, "Input"]
     fieldId: NotRequired[str]
     content: NotRequired[str]
-    fields: NotRequired[List["ActionField"]]
+    fields: NotRequired[List[Union["ActionField", ActionLayoutInput]]]
 
 
 class ActionField(BaseActionFormElement):

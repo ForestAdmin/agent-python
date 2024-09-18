@@ -76,7 +76,7 @@ class SchemaActionGenerator:
     ) -> ForestServerActionFormLayoutElement:
         field = cast(ActionLayoutElement, field)
         if field["component"] == "Input":
-            return {"component": "input", "fieldId": field["fieldId"]}
+            return {"component": "input", "fieldId": field["fieldId"]}  # type:ignore
         elif field["component"] == "Separator":
             return {"component": "separator"}
         elif field["component"] == "HtmlBlock":

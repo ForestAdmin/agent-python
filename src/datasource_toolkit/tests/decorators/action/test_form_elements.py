@@ -14,7 +14,7 @@ from forestadmin.datasource_toolkit.datasources import Datasource
 from forestadmin.datasource_toolkit.decorators.action.context.base import ActionContext
 from forestadmin.datasource_toolkit.decorators.action.form_elements import (
     DynamicFormElementException,
-    EnumListDynamicField,
+    DynamicLayoutElements,
     FormElementFactory,
     FormElementFactoryException,
 )
@@ -37,12 +37,12 @@ from forestadmin.datasource_toolkit.interfaces.actions import ActionFieldType, F
 class TestActionFormElementFactory(TestCase):
     def test_field_factory_should_raise_if_unknown_type(self):
         plain_field = PlainStringDynamicField(
-            type="bla",
+            type="bla",  # type:ignore
             label="amount X10",
             description="test",
             is_required=True,
             is_read_only=True,
-            if_=lambda ctx: "ok",
+            if_=lambda ctx: True,
             value="1",
             default_value="10",
         )
@@ -97,7 +97,7 @@ class TestActionFormElementFactory(TestCase):
         plain_field: PlainDynamicLayout = {"type": "Layout", "component": "Separator"}
         field = FormElementFactory.build(plain_field)
         self.assertEqual(field._if_, None)
-        self.assertEqual(field._component, "Separator")
+        self.assertEqual(field._component, "Separator")  # type:ignore
 
 
 class BaseTestDynamicField(TestCase):
@@ -106,9 +106,9 @@ class BaseTestDynamicField(TestCase):
         cls.loop = asyncio.new_event_loop()
 
         cls.datasource: Datasource = Datasource()
-        Collection.__abstractmethods__ = set()  # to instantiate abstract class
+        Collection.__abstractmethods__ = set()  # to instantiate abstract class  # type:ignore
 
-        cls.collection_product = Collection("Product", cls.datasource)
+        cls.collection_product = Collection("Product", cls.datasource)  # type:ignore
         cls.datasource.add_collection(cls.collection_product)
 
         cls.mocked_caller = User(
@@ -158,8 +158,8 @@ class TestCollectionDynamicField(BaseTestDynamicField):
             is_required=True,
             is_read_only=is_read_only,
             if_=True,
-            value="1",
-            default_value="10",
+            value=["1"],
+            default_value=["10"],
         )
 
         self.dynamic_field = FormElementFactory.build(self.plain_dynamic_field)
@@ -169,10 +169,10 @@ class TestCollectionDynamicField(BaseTestDynamicField):
         assert "Product" in field
 
     def test_to_action_field_should_set_collection_name(self):
-        context = ActionContext(self.collection_product, self.mocked_caller, {}, {}, set())
-        action_field = self.loop.run_until_complete(self.dynamic_field.to_action_field(context, "1"))
+        context = ActionContext(self.collection_product, self.mocked_caller, {}, {}, set())  # type:ignore
+        action_field = self.loop.run_until_complete(self.dynamic_field.to_action_field(context, "1"))  # type:ignore
 
-        assert action_field["collection_name"] == "Product"
+        assert action_field["collection_name"] == "Product"  # type:ignore
 
 
 class TestEnumDynamicField(BaseTestDynamicField):
@@ -183,20 +183,20 @@ class TestEnumDynamicField(BaseTestDynamicField):
             is_required=True,
             is_read_only=True,
             if_=lambda ctx: True,
-            enum_values=[1, 2, 3, 4, 5],
+            enum_values=["1", "2", "3", "4", "5"],
         )
 
         self.dynamic_field = FormElementFactory.build(self.plain_dynamic_field)
 
     def test_dynamic_field_should_also_return_enum_values(self):
         field = self.dynamic_field.dynamic_fields
-        assert [1, 2, 3, 4, 5] in field
+        assert ["1", "2", "3", "4", "5"] in field
 
     def test_to_action_field_should_set_collection_name(self):
-        context = ActionContext(self.collection_product, self.mocked_caller, {}, {}, set())
-        action_field = self.loop.run_until_complete(self.dynamic_field.to_action_field(context, "1"))
+        context = ActionContext(self.collection_product, self.mocked_caller, {}, {}, set())  # type:ignore
+        action_field = self.loop.run_until_complete(self.dynamic_field.to_action_field(context, "1"))  # type:ignore
 
-        assert action_field["enum_values"] == [1, 2, 3, 4, 5]
+        assert action_field["enum_values"] == ["1", "2", "3", "4", "5"]  # type:ignore
 
 
 class TestEnumListDynamicField(BaseTestDynamicField):
@@ -214,13 +214,13 @@ class TestEnumListDynamicField(BaseTestDynamicField):
 
     def test_dynamic_field_should_also_return_enum_values(self):
         field = self.dynamic_field.dynamic_fields
-        assert [1, 2, 3, 4, 5] in field
+        assert ["1", "2", "3", "4", "5"] in field
 
     def test_to_action_field_should_set_collection_name(self):
-        context = ActionContext(self.collection_product, self.mocked_caller, {}, {}, set())
-        action_field = self.loop.run_until_complete(self.dynamic_field.to_action_field(context, ["1"]))
+        context = ActionContext(self.collection_product, self.mocked_caller, {}, {}, set())  # type:ignore
+        action_field = self.loop.run_until_complete(self.dynamic_field.to_action_field(context, ["1"]))  # type:ignore
 
-        assert action_field["enum_values"] == [1, 2, 3, 4, 5]
+        assert action_field["enum_values"] == ["1", "2", "3", "4", "5"]  # type:ignore
 
 
 class TestLayoutDynamicElementSeparator(BaseTestDynamicField):
@@ -407,6 +407,7 @@ class TestLayoutDynamicElementRow(BaseTestDynamicField):
         self.assertEqual(action_field, None)
 
     def test_should_raise_if_contains_layout(self):
+        # with plain field
         plain_field = PlainLayoutDynamicLayoutElementRow(
             type="Layout",
             component="Row",
@@ -421,7 +422,38 @@ class TestLayoutDynamicElementRow(BaseTestDynamicField):
         )
         self.assertRaisesRegex(
             DynamicFormElementException,
-            r"A 'Row' form element doesn't allow layout elements as subfields",
+            r"A 'Row' form element doesn't allow layout elements as subfields.",
+            FormElementFactory.build,
+            plain_field,
+        )
+        # with dynamic field
+        plain_field = PlainLayoutDynamicLayoutElementRow(
+            type="Layout",
+            component="Row",
+            fields=[
+                DynamicLayoutElements("HtmlBlock", None, content="bla"),  # type: ignore
+                {
+                    "type": "String",
+                    "label": "gender_other",
+                    "if_": lambda ctx: ctx.form_values.get("gender", "") == "other",
+                },
+            ],
+        )
+        self.assertRaisesRegex(
+            DynamicFormElementException,
+            r"A 'Row' form element doesn't allow layout elements as subfields.",
+            FormElementFactory.build,
+            plain_field,
+        )
+
+    def test_should_raise_if_no_fields_present(self):
+        plain_field = PlainLayoutDynamicLayoutElementRow(
+            type="Layout",
+            component="Row",
+        )  # type:ignore
+        self.assertRaisesRegex(
+            DynamicFormElementException,
+            r"Using 'fields' in a 'Row' configuration is mandatory.",
             FormElementFactory.build,
             plain_field,
         )

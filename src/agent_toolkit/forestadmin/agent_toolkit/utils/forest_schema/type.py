@@ -314,7 +314,7 @@ class ForestServerActionFormElementHtmlBlock(TypedDict):
 
 class ForestServerActionFormElementRow(TypedDict):
     component: Literal["row"]
-    fields: List["ForestServerActionField"]
+    fields: List[ForestServerActionFormElementFieldReference]
 
 
 ForestServerActionFormLayoutElement = Union[
