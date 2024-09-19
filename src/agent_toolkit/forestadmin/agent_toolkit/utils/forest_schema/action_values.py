@@ -71,7 +71,7 @@ class ForestValueConverter:
         """
         data: Dict[str, Any] = {}
         for key, value in raw_data.items():
-            _fields = list(filter(lambda f: f["label"] == key, fields))  # type: ignore
+            _fields = list(filter(lambda f: f["id"] == key, fields))  # type: ignore
             if len(_fields) != 1:
                 continue
             field: ActionField = _fields[0]

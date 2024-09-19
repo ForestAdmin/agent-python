@@ -56,7 +56,8 @@ class PlainFormElement(TypedDict):
 
 
 class PlainField(PlainFormElement):
-    label: str
+    label: NotRequired[ValueOrHandler[str]]
+    id: NotRequired[str]
     description: NotRequired[ValueOrHandler[str]]
     is_required: NotRequired[ValueOrHandler[bool]]
     is_read_only: NotRequired[ValueOrHandler[bool]]

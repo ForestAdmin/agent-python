@@ -141,7 +141,7 @@ class DynamicLayoutElements(BaseDynamicFormElement):
 
         if self._component == "Row" and self._row_subfields:
             action_field["fields"] = [
-                await field.to_action_field(context, default_value.get(field.label), search_value)
+                await field.to_action_field(context, default_value.get(field.id), search_value)
                 for field in self._row_subfields
                 if await field.if_(context)
             ]
@@ -155,6 +155,7 @@ class BaseDynamicField(BaseDynamicFormElement, Generic[Result]):
     ATTR_TO_EVALUATE = (
         *BaseDynamicFormElement.ATTR_TO_EVALUATE,
         "is_required",
+        "label",
         "is_read_only",
         "value",
         "description",
@@ -174,7 +175,8 @@ class BaseDynamicField(BaseDynamicFormElement, Generic[Result]):
 
     def __init__(
         self,
-        label: str,
+        label: Optional[ValueOrHandler[str]] = None,
+        id: Optional[str] = None,
         description: Optional[ValueOrHandler[str]] = "",
         is_required: Optional[ValueOrHandler[bool]] = False,
         is_read_only: Optional[ValueOrHandler[bool]] = False,
@@ -183,7 +185,13 @@ class BaseDynamicField(BaseDynamicFormElement, Generic[Result]):
         default_value: Optional[ValueOrHandler[Result]] = None,
         **kwargs: Dict[str, Any],
     ):
-        self.label = label
+        if id is None and label is None:
+            raise DatasourceToolkitException("A field must have an 'id' or a 'label' defined.")
+        if id is None and callable(label):
+            raise DatasourceToolkitException("'label' cannot be a callable when 'id' is not defined.")
+
+        self._label = label if label is not None else id
+        self.id: str = id if id is not None else label  # type:ignore
         self._description = description
         self._is_required = is_required
         self._is_read_only = is_read_only
@@ -202,7 +210,8 @@ class BaseDynamicField(BaseDynamicFormElement, Generic[Result]):
     ) -> ActionField:
         field = ActionField(
             type=self.TYPE,
-            label=self.label,
+            id=self.id,
+            label=await self.label(context),
             description=await self.description(context),
             is_read_only=await self.is_read_only(context),
             is_required=await self.is_required(context),
@@ -222,6 +231,9 @@ class BaseDynamicField(BaseDynamicFormElement, Generic[Result]):
 
     async def is_required(self, context: Context) -> bool:
         return await self._evaluate(context, self._is_required)
+
+    async def label(self, context: Context) -> str:
+        return await self._evaluate(context, self._label)
 
     async def description(self, context: Context) -> str:
         return await self._evaluate(context, self._description)
@@ -245,7 +257,8 @@ class CollectionDynamicField(BaseDynamicField[CompositeIdAlias]):
     def __init__(
         self,
         collection_name: ValueOrHandler[str],
-        label: str,
+        label: Optional[ValueOrHandler[str]] = None,
+        id: Optional[str] = None,
         description: Optional[str] = "",
         is_required: Optional[ValueOrHandler[bool]] = False,
         is_read_only: Optional[ValueOrHandler[bool]] = False,
@@ -254,7 +267,7 @@ class CollectionDynamicField(BaseDynamicField[CompositeIdAlias]):
         default_value: Optional[ValueOrHandler[CompositeIdAlias]] = None,
     ):
         super(CollectionDynamicField, self).__init__(
-            label, description, is_required, is_read_only, if_, value, default_value
+            label, id, description, is_required, is_read_only, if_, value, default_value
         )
         self._collection_name = collection_name
 
@@ -285,7 +298,8 @@ class EnumDynamicField(BaseDynamicField[str]):
     def __init__(
         self,
         enum_values: ValueOrHandler[List[str]],
-        label: str,
+        label: Optional[ValueOrHandler[str]] = None,
+        id: Optional[str] = None,
         description: Optional[str] = "",
         is_required: Optional[ValueOrHandler[bool]] = False,
         is_read_only: Optional[ValueOrHandler[bool]] = False,
@@ -293,7 +307,7 @@ class EnumDynamicField(BaseDynamicField[str]):
         value: Optional[ValueOrHandler[str]] = None,
         default_value: Optional[ValueOrHandler[str]] = None,
     ):
-        super().__init__(label, description, is_required, is_read_only, if_, value, default_value)
+        super().__init__(label, id, description, is_required, is_read_only, if_, value, default_value)
         self._enum_values = enum_values
 
     @property
@@ -321,7 +335,8 @@ class EnumListDynamicField(BaseDynamicField[List[str]]):
     def __init__(
         self,
         enum_values: ValueOrHandler[List[str]],
-        label: str,
+        label: Optional[ValueOrHandler[str]] = None,
+        id: Optional[str] = None,
         description: Optional[str] = "",
         is_required: Optional[ValueOrHandler[bool]] = False,
         is_read_only: Optional[ValueOrHandler[bool]] = False,
@@ -330,7 +345,7 @@ class EnumListDynamicField(BaseDynamicField[List[str]]):
         default_value: Optional[ValueOrHandler[List[str]]] = None,
     ):
         super(EnumListDynamicField, self).__init__(
-            label, description, is_required, is_read_only, if_, value, default_value
+            label, id, description, is_required, is_read_only, if_, value, default_value
         )
         self._enum_values = enum_values
 

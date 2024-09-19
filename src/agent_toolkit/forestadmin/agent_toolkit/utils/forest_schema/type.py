@@ -331,6 +331,7 @@ class ForestServerActionField(TypedDict):
     description: Optional[str]
     enums: Optional[List[str]]
     field: str
+    label: str
     hook: Optional[str]
     isReadOnly: bool
     isRequired: bool
