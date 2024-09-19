@@ -504,8 +504,13 @@ class TestSchemaActionGeneratorLayout(BaseTestSchemaActionGenerator):
                     "type": ActionFieldType.LAYOUT,
                     "component": "Row",
                     "fields": [
-                        {"type": ActionFieldType.STRING, "label": "gender",  "id": "gender", "watch_changes": True},
-                        {"type": ActionFieldType.STRING, "label": "gender_other","id": "gender_other", "watch_changes": True},
+                        {"type": ActionFieldType.STRING, "label": "gender", "id": "gender", "watch_changes": True},
+                        {
+                            "type": ActionFieldType.STRING,
+                            "label": "gender_other",
+                            "id": "gender_other",
+                            "watch_changes": True,
+                        },
                     ],
                 }
             ],
