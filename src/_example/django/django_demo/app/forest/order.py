@@ -110,6 +110,7 @@ export_orders_json: ActionDict = {
         {
             "type": "String",
             "label": "dummy field",
+            "id": "dum",
             "is_required": False,
             "description": "",
             "default_value": "",
@@ -137,7 +138,7 @@ export_orders_json: ActionDict = {
                 {
                     "type": "String",
                     "if_": lambda ctx: ctx.form_values.get("gender", "") == "other",
-                    "label": "gender_other",
+                    "id": "gender_other",
                 },
             ],
         },
@@ -145,7 +146,8 @@ export_orders_json: ActionDict = {
             "type": "Collection",
             "collection_name": "app_customer",
             "label": "customer",
-            "is_required": True,
+            "id": "customer_ids",
+            # "is_required": True,
             "description": "",
             # "default_value": "",
             # "value": "",

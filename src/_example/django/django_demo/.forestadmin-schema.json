@@ -589,6 +589,7 @@
                     "fields": [
                         {
                             "field": "Loading...",
+                            "label": "Loading...",
                             "type": "String",
                             "isReadOnly": true,
                             "defaultValue": "Form is loading",
@@ -1280,6 +1281,7 @@
                     "fields": [
                         {
                             "field": "Loading...",
+                            "label": "Loading...",
                             "type": "String",
                             "isReadOnly": true,
                             "defaultValue": "Form is loading",
@@ -1308,6 +1310,7 @@
                     "fields": [
                         {
                             "field": "reason",
+                            "label": "reason",
                             "value": "",
                             "defaultValue": "",
                             "description": "",
