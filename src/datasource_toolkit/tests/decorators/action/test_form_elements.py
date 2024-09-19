@@ -3,6 +3,8 @@ import sys
 from unittest import TestCase
 from unittest.mock import Mock, patch
 
+from forestadmin.datasource_toolkit.exceptions import DatasourceToolkitException
+
 if sys.version_info >= (3, 9):
     import zoneinfo
 else:
@@ -20,6 +22,7 @@ from forestadmin.datasource_toolkit.decorators.action.form_elements import (
 )
 from forestadmin.datasource_toolkit.decorators.action.types.fields import (
     PlainCollectionDynamicField,
+    PlainDynamicField,
     PlainDynamicLayout,
     PlainEnumDynamicField,
     PlainFileDynamicField,
@@ -35,6 +38,10 @@ from forestadmin.datasource_toolkit.interfaces.actions import ActionFieldType, F
 
 
 class TestActionFormElementFactory(TestCase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.loop = asyncio.new_event_loop()
+
     def test_field_factory_should_raise_if_unknown_type(self):
         plain_field = PlainStringDynamicField(
             type="bla",  # type:ignore
@@ -98,6 +105,48 @@ class TestActionFormElementFactory(TestCase):
         field = FormElementFactory.build(plain_field)
         self.assertEqual(field._if_, None)
         self.assertEqual(field._component, "Separator")  # type:ignore
+
+    def test_should_create_id_in_copy_of_label(self):
+        plain_field: PlainDynamicField = {"type": "String", "label": "test"}
+        field = FormElementFactory.build(plain_field)
+        self.assertEqual(field.id, "test")
+
+    def test_should_create_label_in_copy_of_id(self):
+        plain_field: PlainDynamicField = {"type": "String", "id": "test"}
+        field = FormElementFactory.build(plain_field)
+        self.assertEqual(field._label, "test")
+
+    def test_should_create_with_label_and_id(self):
+        plain_field: PlainDynamicField = {"type": "String", "id": "test", "label": "this is a label"}
+        field = FormElementFactory.build(plain_field)
+        self.assertEqual(field._label, "this is a label")
+        self.assertEqual(field.id, "test")
+
+    def test_should_raise_if_none_of_id_and_label(self):
+        plain_field: PlainDynamicField = {"type": "String"}
+        self.assertRaisesRegex(
+            DatasourceToolkitException,
+            r"A field must have an 'id' or a 'label' defined.",
+            FormElementFactory.build,
+            plain_field,
+        )
+
+    def test_should_create_with_dynamic_label_and_id(self):
+        plain_field: PlainDynamicField = {"type": "String", "id": "test", "label": lambda ctx: "this is a label"}
+        field = FormElementFactory.build(plain_field)
+        self.assertEqual(field.id, "test")
+        self.assertEqual(field.is_dynamic, True)
+        ctx = Mock()
+        self.assertEqual(self.loop.run_until_complete(field.label(ctx)), "this is a label")
+
+    def test_should_raise_if_no_id_and_dynamic_label(self):
+        plain_field: PlainDynamicField = {"type": "String", "label": lambda ctx: "this is a label"}
+        self.assertRaisesRegex(
+            DatasourceToolkitException,
+            r"'label' cannot be a callable when 'id' is not defined.",
+            FormElementFactory.build,
+            plain_field,
+        )
 
 
 class BaseTestDynamicField(TestCase):

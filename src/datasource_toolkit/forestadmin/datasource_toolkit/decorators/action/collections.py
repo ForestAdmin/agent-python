@@ -59,7 +59,7 @@ class ActionCollectionDecorator(CollectionDecorator):
                 element = cast(BaseDynamicField, element)
                 if element.id in used:
                     raise DatasourceToolkitException(
-                        f"All field must have different 'id'. Conflict come from field '{element.id}"
+                        f"All field must have different 'id'. Conflict come from field '{element.id}'"
                     )
                 used.add(element.id)
 

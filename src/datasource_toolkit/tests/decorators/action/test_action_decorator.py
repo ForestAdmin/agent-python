@@ -2,7 +2,7 @@ import asyncio
 import sys
 from typing import Union
 from unittest import TestCase
-from unittest.mock import ANY, Mock
+from unittest.mock import ANY, Mock, patch
 
 if sys.version_info >= (3, 9):
     import zoneinfo
@@ -17,7 +17,7 @@ from forestadmin.datasource_toolkit.decorators.action.context.single import Acti
 from forestadmin.datasource_toolkit.decorators.action.result_builder import ResultBuilder
 from forestadmin.datasource_toolkit.decorators.action.types.actions import ActionDict
 from forestadmin.datasource_toolkit.decorators.datasource_decorator import DatasourceDecorator
-from forestadmin.datasource_toolkit.exceptions import ForestException
+from forestadmin.datasource_toolkit.exceptions import DatasourceToolkitException, ForestException
 from forestadmin.datasource_toolkit.interfaces.actions import ActionField, ActionFieldType, ActionResult, ActionsScope
 
 
@@ -59,6 +59,51 @@ class TestActionCollectionCustomizer(TestCase):
         self.product_collection.add_action("action_test", self.action_single)
 
         assert "action_test" in self.product_collection.schema["actions"]
+
+    def test_add_action_should_raise_if_multiple_field_with_same_id_are_provided(self):
+        self.assertRaisesRegex(
+            DatasourceToolkitException,
+            r"All field must have different 'id'. Conflict come from field 'id'",
+            self.product_collection.add_action,
+            "action_test",
+            {
+                "scope": ActionsScope.SINGLE,
+                "execute": lambda ctx, result_builder: result_builder.success(),
+                "form": [
+                    {"type": ActionFieldType.NUMBER, "label": "amount", "id": "id"},
+                    {"type": ActionFieldType.NUMBER, "label": "cost", "id": "id"},
+                ],
+            },
+        )
+
+    def test_add_action_should_raise_if_multiple_field_in_row_subfield_with_same_id_are_provided(self):
+        with patch.object(
+            self.product_collection,
+            "_validate_id_uniqueness",
+            side_effect=self.product_collection._validate_id_uniqueness,
+        ) as spy_validator:
+            self.assertRaisesRegex(
+                DatasourceToolkitException,
+                r"All field must have different 'id'. Conflict come from field 'id'",
+                self.product_collection.add_action,
+                "action_test",
+                {
+                    "scope": ActionsScope.SINGLE,
+                    "execute": lambda ctx, result_builder: result_builder.success(),
+                    "form": [
+                        {
+                            "type": "Layout",
+                            "component": "Row",
+                            "fields": [
+                                {"type": ActionFieldType.NUMBER, "label": "amount", "id": "id"},
+                                {"type": ActionFieldType.NUMBER, "label": "label", "id": "different_id"},
+                            ],
+                        },
+                        {"type": ActionFieldType.NUMBER, "label": "cost", "id": "id"},
+                    ],
+                },
+            )
+            self.assertEqual(spy_validator.call_count, 2)
 
     def test_execute_should_return_success_response(self):
         self.product_collection.add_action("action_test", self.action_single)
