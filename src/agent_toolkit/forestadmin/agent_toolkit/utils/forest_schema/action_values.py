@@ -23,7 +23,7 @@ class ForestValueConverter:
         form_data: Dict[str, Any] = {}
         for field in fields:
             if field["reference"] and field["value"]:
-                collection_name = field["reference"].split(":")[0]
+                collection_name = field["reference"].split(".")[0]
                 collection = datasource.get_collection(collection_name)
                 form_data[field["field"]] = unpack_id(collection.schema, field["value"])
             elif field["type"] == ActionFieldType.FILE.value:
