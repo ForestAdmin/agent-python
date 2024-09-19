@@ -153,6 +153,7 @@ class TestActionCollectionCustomizer(TestCase):
         assert result == [
             ActionField(
                 label="amount",
+                id="amount",
                 type=ActionFieldType.NUMBER,
                 description="",
                 is_read_only=False,
@@ -192,6 +193,7 @@ class TestActionCollectionCustomizer(TestCase):
         assert result == [
             {
                 "label": "first_name",
+                "id": "first_name",
                 "type": ActionFieldType.STRING,
                 "description": "",
                 "is_read_only": False,
@@ -204,6 +206,7 @@ class TestActionCollectionCustomizer(TestCase):
             },
             {
                 "label": "last_name",
+                "id": "last_name",
                 "type": ActionFieldType.STRING,
                 "description": "",
                 "is_read_only": False,
@@ -245,6 +248,7 @@ class TestActionCollectionCustomizer(TestCase):
         assert result == [
             {
                 "label": "first_name",
+                "id": "first_name",
                 "type": ActionFieldType.STRING,
                 "description": "",
                 "is_read_only": False,
@@ -257,6 +261,7 @@ class TestActionCollectionCustomizer(TestCase):
             },
             {
                 "label": "last_name",
+                "id": "last_name",
                 "type": ActionFieldType.STRING,
                 "description": "",
                 "is_read_only": False,
@@ -298,6 +303,7 @@ class TestActionCollectionCustomizer(TestCase):
         assert result == [
             {
                 "label": "first_name",
+                "id": "first_name",
                 "type": ActionFieldType.STRING,
                 "description": "",
                 "is_read_only": False,
@@ -310,6 +316,7 @@ class TestActionCollectionCustomizer(TestCase):
             },
             {
                 "label": "last_name",
+                "id": "last_name",
                 "type": ActionFieldType.STRING,
                 "description": "",
                 "is_read_only": True,
@@ -333,7 +340,7 @@ class TestActionCollectionCustomizer(TestCase):
                 {
                     "label": "rating",
                     "type": ActionFieldType.ENUM,
-                    "enum_values": [1, 2, 3, 4, 5],
+                    "enum_values": ["1", "2", "3", "4", "5"],
                 },
                 {
                     "label": "Put a comment",
@@ -351,6 +358,7 @@ class TestActionCollectionCustomizer(TestCase):
         assert result == [
             {
                 "label": "rating",
+                "id": "rating",
                 "type": ActionFieldType.ENUM,
                 "description": "",
                 "is_read_only": False,
@@ -358,7 +366,7 @@ class TestActionCollectionCustomizer(TestCase):
                 "value": None,
                 "default_value": None,
                 "collection_name": None,
-                "enum_values": [1, 2, 3, 4, 5],
+                "enum_values": ["1", "2", "3", "4", "5"],
                 "watch_changes": True,
             },
         ]
@@ -392,6 +400,7 @@ class TestActionCollectionCustomizer(TestCase):
         assert result == [
             {
                 "label": "rating",
+                "id": "rating",
                 "type": ActionFieldType.ENUM,
                 "description": "",
                 "is_read_only": False,
@@ -411,6 +420,7 @@ class TestActionCollectionCustomizer(TestCase):
         assert result == [
             {
                 "label": "rating",
+                "id": "rating",
                 "type": ActionFieldType.ENUM,
                 "description": "",
                 "is_read_only": False,
@@ -422,6 +432,7 @@ class TestActionCollectionCustomizer(TestCase):
                 "watch_changes": True,
             },
             {
+                "id": "Put a comment",
                 "label": "Put a comment",
                 "type": ActionFieldType.STRING,
                 "description": "",
@@ -476,6 +487,7 @@ class TestActionCollectionCustomizer(TestCase):
                     "fields": [
                         {
                             "label": "rating",
+                            "id": "rating",
                             "type": ActionFieldType.ENUM,
                             "description": "",
                             "is_read_only": False,
@@ -504,6 +516,7 @@ class TestActionCollectionCustomizer(TestCase):
                     "fields": [
                         {
                             "label": "rating",
+                            "id": "rating",
                             "type": ActionFieldType.ENUM,
                             "description": "",
                             "is_read_only": False,
@@ -516,6 +529,7 @@ class TestActionCollectionCustomizer(TestCase):
                         },
                         {
                             "label": "Put a comment",
+                            "id": "Put a comment",
                             "type": ActionFieldType.STRING,
                             "description": "",
                             "is_read_only": False,
@@ -569,6 +583,7 @@ class TestActionCollectionCustomizer(TestCase):
         assert result == [
             {
                 "label": "rating",
+                "id": "rating",
                 "type": ActionFieldType.ENUM,
                 "description": "",
                 "is_read_only": False,
@@ -581,6 +596,7 @@ class TestActionCollectionCustomizer(TestCase):
             },
             {
                 "label": "Put a comment",
+                "id": "Put a comment",
                 "type": ActionFieldType.STRING,
                 "description": "",
                 "is_read_only": True,
@@ -633,6 +649,7 @@ class TestActionCollectionCustomizer(TestCase):
                 {
                     "type": ActionFieldType.NUMBER,
                     "label": "Put a comment",
+                    "id": "Put a comment",
                     "description": "",
                     "is_read_only": True,
                     "is_required": False,

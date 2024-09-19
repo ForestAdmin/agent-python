@@ -293,6 +293,7 @@ class TestLayoutDynamicElementRow(BaseTestDynamicField):
                 "fields": [
                     {
                         "type": ActionFieldType.STRING,
+                        "id": "gender",
                         "label": "gender",
                         "description": "",
                         "is_read_only": False,
@@ -306,6 +307,7 @@ class TestLayoutDynamicElementRow(BaseTestDynamicField):
                     {
                         "type": ActionFieldType.STRING,
                         "label": "gender_other",
+                        "id": "gender_other",
                         "description": "",
                         "is_read_only": False,
                         "is_required": False,
@@ -345,6 +347,7 @@ class TestLayoutDynamicElementRow(BaseTestDynamicField):
                     {
                         "type": ActionFieldType.STRING,
                         "label": "gender",
+                        "id": "gender",
                         "description": "",
                         "is_read_only": False,
                         "is_required": False,
@@ -357,6 +360,7 @@ class TestLayoutDynamicElementRow(BaseTestDynamicField):
                     {
                         "type": ActionFieldType.STRING,
                         "label": "gender_other",
+                        "id": "gender_other",
                         "description": "",
                         "is_read_only": False,
                         "is_required": False,

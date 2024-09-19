@@ -479,6 +479,7 @@ class TestHookActionResource(BaseTestActionResource):
             [
                 {
                     "field": "Value",
+                    "label": "Value",
                     "value": 5,
                     "defaultValue": 0,
                     "description": "",
@@ -492,6 +493,7 @@ class TestHookActionResource(BaseTestActionResource):
                 },
                 {
                     "field": "Summary",
+                    "label": "Summary",
                     "value": "value is 5",
                     "defaultValue": "",
                     "description": "",
@@ -575,6 +577,7 @@ class TestHookActionResource(BaseTestActionResource):
             [
                 {
                     "field": "firstname",
+                    "label": "firstname",
                     "value": None,
                     "defaultValue": None,
                     "description": "",
@@ -588,6 +591,7 @@ class TestHookActionResource(BaseTestActionResource):
                 },
                 {
                     "field": "lastname",
+                    "label": "lastname",
                     "value": None,
                     "defaultValue": None,
                     "description": "",
