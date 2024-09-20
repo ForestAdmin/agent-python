@@ -17,9 +17,9 @@ include = "forestadmin"
 [tool.poetry.dependencies]
 python = ">=3.8,<3.13"
 typing-extensions = "~=4.2"
+django = ">=3.2,<5.2"
 forestadmin-agent-toolkit = "1.20.1"
 forestadmin-datasource-django = "1.20.1"
-django = ">=3.2,<6.0"
 django-cors-headers = ">=3.8"
 
 [tool.pytest.ini_options]
