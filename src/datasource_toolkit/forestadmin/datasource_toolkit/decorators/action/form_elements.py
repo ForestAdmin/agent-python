@@ -155,7 +155,6 @@ class BaseDynamicField(BaseDynamicFormElement, Generic[Result]):
     ATTR_TO_EVALUATE = (
         *BaseDynamicFormElement.ATTR_TO_EVALUATE,
         "is_required",
-        "label",
         "is_read_only",
         "value",
         "description",
@@ -175,7 +174,7 @@ class BaseDynamicField(BaseDynamicFormElement, Generic[Result]):
 
     def __init__(
         self,
-        label: Optional[ValueOrHandler[str]] = None,
+        label: str,
         id: Optional[str] = None,
         description: Optional[ValueOrHandler[str]] = "",
         is_required: Optional[ValueOrHandler[bool]] = False,
@@ -185,12 +184,7 @@ class BaseDynamicField(BaseDynamicFormElement, Generic[Result]):
         default_value: Optional[ValueOrHandler[Result]] = None,
         **kwargs: Dict[str, Any],
     ):
-        if id is None and label is None:
-            raise DatasourceToolkitException("A field must have an 'id' or a 'label' defined.")
-        if id is None and callable(label):
-            raise DatasourceToolkitException("'label' cannot be a callable when 'id' is not defined.")
-
-        self._label = label if label is not None else id
+        self.label: str = label if label is not None else id  # type:ignore
         self.id: str = id if id is not None else label  # type:ignore
         self._description = description
         self._is_required = is_required
@@ -211,7 +205,7 @@ class BaseDynamicField(BaseDynamicFormElement, Generic[Result]):
         field = ActionField(
             type=self.TYPE,
             id=self.id,
-            label=await self.label(context),
+            label=self.label,
             description=await self.description(context),
             is_read_only=await self.is_read_only(context),
             is_required=await self.is_required(context),
@@ -231,9 +225,6 @@ class BaseDynamicField(BaseDynamicFormElement, Generic[Result]):
 
     async def is_required(self, context: Context) -> bool:
         return await self._evaluate(context, self._is_required)
-
-    async def label(self, context: Context) -> str:
-        return await self._evaluate(context, self._label)
 
     async def description(self, context: Context) -> str:
         return await self._evaluate(context, self._description)
@@ -257,7 +248,7 @@ class CollectionDynamicField(BaseDynamicField[CompositeIdAlias]):
     def __init__(
         self,
         collection_name: ValueOrHandler[str],
-        label: Optional[ValueOrHandler[str]] = None,
+        label: str,
         id: Optional[str] = None,
         description: Optional[str] = "",
         is_required: Optional[ValueOrHandler[bool]] = False,
@@ -298,7 +289,7 @@ class EnumDynamicField(BaseDynamicField[str]):
     def __init__(
         self,
         enum_values: ValueOrHandler[List[str]],
-        label: Optional[ValueOrHandler[str]] = None,
+        label: str,
         id: Optional[str] = None,
         description: Optional[str] = "",
         is_required: Optional[ValueOrHandler[bool]] = False,
@@ -335,7 +326,7 @@ class EnumListDynamicField(BaseDynamicField[List[str]]):
     def __init__(
         self,
         enum_values: ValueOrHandler[List[str]],
-        label: Optional[ValueOrHandler[str]] = None,
+        label: str,
         id: Optional[str] = None,
         description: Optional[str] = "",
         is_required: Optional[ValueOrHandler[bool]] = False,

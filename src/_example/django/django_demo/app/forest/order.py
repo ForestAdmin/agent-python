@@ -137,7 +137,8 @@ export_orders_json: ActionDict = {
                 },
                 {
                     "type": "String",
-                    "if_": lambda ctx: ctx.form_values.get("gender", "") == "other",
+                    # "if_": lambda ctx: ctx.form_values.get("gender", "") == "other",
+                    "label": "gender_other",
                     "id": "gender_other",
                 },
             ],
