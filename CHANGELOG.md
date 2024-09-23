@@ -1,3 +1,10 @@
+## [1.10.2](https://github.com/ForestAdmin/agent-python/compare/v1.10.1...v1.10.2) (2024-09-23)
+
+
+### Bug Fixes
+
+* **action:** having a default value on file field make the form dynamic ([#270](https://github.com/ForestAdmin/agent-python/issues/270)) ([4dcf132](https://github.com/ForestAdmin/agent-python/commit/4dcf13265b65d4295a36758e3ff5169ba5330236))
+
 ## [1.10.1](https://github.com/ForestAdmin/agent-python/compare/v1.10.0...v1.10.1) (2024-09-23)
 
 
