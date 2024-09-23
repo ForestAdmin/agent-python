@@ -20,15 +20,19 @@ class ForestValueConverter:
     def make_form_data_from_fields(
         datasource: Datasource[Collection], fields: List[ForestServerActionField]
     ) -> Dict[str, Any]:
+        """
+        Form data parser which extracts the data from what is provided by the frontend when
+        change hooks are called.
+        """
         form_data: Dict[str, Any] = {}
         for field in fields:
             if field["reference"] and field["value"]:
-                collection_name = field["reference"].split(":")[0]
+                collection_name = field["reference"].split(".")[0]
                 collection = datasource.get_collection(collection_name)
                 form_data[field["field"]] = unpack_id(collection.schema, field["value"])
-            elif field["type"] == ActionFieldType.FILE.value:
+            elif field["type"] == ActionFieldType.FILE:
                 form_data[field["field"]] = ForestValueConverter._parse_data_uri(field["value"])
-            elif (isinstance(field["type"], list) and field["type"][0] == ActionFieldType.FILE.value) or (
+            elif (isinstance(field["type"], list) and field["type"][0] == ActionFieldType.FILE) or (
                 field["type"] == ActionFieldType.FILE_LIST
             ):
                 form_data[field["field"]] = [ForestValueConverter._parse_data_uri(value) for value in field["value"]]
@@ -61,6 +65,10 @@ class ForestValueConverter:
     def make_form_data(
         datasource: Datasource[Collection], raw_data: Dict[str, Any], fields: List[ActionField]
     ) -> Dict[str, Any]:
+        """
+        Proper form data parser which converts data from an action form result to the format
+        that is internally used in datasources.
+        """
         data: Dict[str, Any] = {}
         for key, value in raw_data.items():
             _fields = list(filter(lambda f: f["label"] == key, fields))  # type: ignore
