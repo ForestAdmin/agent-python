@@ -16,6 +16,7 @@ from forestadmin.datasource_toolkit.decorators.action.types.widgets import (
     DropdownDynamicSearchFieldConfiguration,
     FileListPickerFieldConfiguration,
     FilePickerFieldConfiguration,
+    HtmlBlockConfiguration,
     JsonEditorFieldConfiguration,
     NumberInputFieldConfiguration,
     NumberInputListFieldConfiguration,
@@ -27,7 +28,13 @@ from forestadmin.datasource_toolkit.decorators.action.types.widgets import (
     TimePickerFieldConfiguration,
     UserDropdownFieldConfiguration,
 )
-from forestadmin.datasource_toolkit.interfaces.actions import ActionFieldType, ActionFieldTypeLiteral, File, WidgetTypes
+from forestadmin.datasource_toolkit.interfaces.actions import (
+    ActionFieldType,
+    ActionFieldTypeLiteral,
+    File,
+    LayoutComponentTypes,
+    WidgetTypes,
+)
 from forestadmin.datasource_toolkit.interfaces.records import CompositeIdAlias
 from typing_extensions import NotRequired, TypedDict
 
@@ -297,10 +304,15 @@ class PlainLayoutDynamicLayoutElementSeparator(PlainLayoutDynamicFormElement, Se
     pass
 
 
-class WidgetTyping(TypedDict):
+class PlainLayoutDynamicLayoutElementHtmlBlock(PlainLayoutDynamicFormElement, HtmlBlockConfiguration):
+    pass
+
+
+class PlainTyping(TypedDict):
     type: Union[ActionFieldType, ActionFieldTypeLiteral]
     widget: WidgetTypes
     search: Literal["static", "dynamic", "disabled"]
+    component: LayoutComponentTypes
 
 
 PlainDynamicField = Union[
@@ -363,6 +375,7 @@ PlainDynamicField = Union[
     PlainTimeDynamicFieldTimePickerWidget,
     # Layout
     PlainLayoutDynamicLayoutElementSeparator,
+    PlainLayoutDynamicLayoutElementHtmlBlock,
     # for autocompletion
-    WidgetTyping,  # this one must be the latest by name class (alphabetic order)
+    PlainTyping,  # this one must be the latest by name class (alphabetic order)
 ]

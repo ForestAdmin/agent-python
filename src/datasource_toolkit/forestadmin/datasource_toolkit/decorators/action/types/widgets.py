@@ -165,6 +165,11 @@ class SeparatorConfiguration(TypedDict):
     component: Literal["Separator"]
 
 
+class HtmlBlockConfiguration(TypedDict):
+    component: Literal["HtmlBlock"]
+    content: ValueOrHandler[str]
+
+
 WIDGET_ATTRIBUTES: Set[str] = set()
 for WidgetType in [
     ColorPickerFieldConfiguration,
@@ -193,5 +198,6 @@ for WidgetType in [
 COMPONENT_ATTRIBUTES: Set[str] = set()
 for ComponentType in [
     SeparatorConfiguration,
+    HtmlBlockConfiguration,
 ]:
     COMPONENT_ATTRIBUTES = COMPONENT_ATTRIBUTES.union(ComponentType.__annotations__.keys())

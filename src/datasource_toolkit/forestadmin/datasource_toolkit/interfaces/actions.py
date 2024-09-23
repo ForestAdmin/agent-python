@@ -89,7 +89,11 @@ WidgetTypes = Literal[
     "UserDropdown",
 ]
 
-LayoutComponentTypes = Literal["Separator", "Input"]
+LayoutComponentTypes = Literal[
+    "Separator",
+    # "Input", # we don't want users to use this one
+    "HtmlBlock",
+]
 
 
 class BaseActionFormElement(TypedDict):
@@ -99,6 +103,7 @@ class BaseActionFormElement(TypedDict):
 class ActionLayoutElement(BaseActionFormElement):
     component: LayoutComponentTypes
     fieldId: NotRequired[str]
+    content: NotRequired[str]
 
 
 class ActionField(BaseActionFormElement):

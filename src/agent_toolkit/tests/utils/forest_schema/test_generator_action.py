@@ -12,7 +12,7 @@ from forestadmin.datasource_toolkit.interfaces.fields import FieldType, Primitiv
 from forestadmin.datasource_toolkit.validations.rules import MAP_ALLOWED_OPERATORS_FOR_COLUMN_TYPE
 
 
-class TestSchemaActionGenerator(TestCase):
+class BaseTestSchemaActionGenerator(TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         cls.loop = asyncio.new_event_loop()
@@ -37,6 +37,8 @@ class TestSchemaActionGenerator(TestCase):
         self.datasource_decorator = DatasourceDecorator(self.datasource, ActionCollectionDecorator)
         self.book_collection_action = self.datasource_decorator.get_collection("Book")
 
+
+class TestSchemaActionGenerator(BaseTestSchemaActionGenerator):
     def test_should_work_without_form(self):
         self.book_collection_action.add_action(
             "Send email",
@@ -306,6 +308,8 @@ class TestSchemaActionGenerator(TestCase):
             },
         )
 
+
+class TestSchemaActionGeneratorLayout(BaseTestSchemaActionGenerator):
     @skip("restore it for story#7")
     def test_should_generate_layout_only_if_there_is_layout_elements(self):
         self.book_collection_action.add_action(
@@ -365,6 +369,7 @@ class TestSchemaActionGenerator(TestCase):
             ],
         )
 
+    # TODO: remove after story#7
     def test_should_generate_dynamic_form_if_there_is_layout_element(self):
         self.book_collection_action.add_action(
             "Send email",
@@ -401,3 +406,84 @@ class TestSchemaActionGenerator(TestCase):
                 }
             ],
         )
+
+    def test_field_layout_separator_should_work_fine(self):
+        self.book_collection_action.add_action(
+            "test_extract",
+            {
+                "scope": ActionsScope.SINGLE,
+                "execute": Mock(),
+                "form": [
+                    {"type": "String", "label": "firstname"},
+                    {"type": "Layout", "component": "Separator"},
+                    {"type": "String", "label": "lastname"},
+                    {"type": "Layout", "component": "HtmlBlock", "content": "<b>my html</b>"},
+                ],
+            },
+        )
+
+        fields, layout = SchemaActionGenerator.extract_fields_and_layout(
+            self.loop.run_until_complete(self.book_collection_action.get_form(None, "test_extract", None))
+        )
+        self.assertEqual(
+            fields,
+            [
+                {
+                    "type": ActionFieldType.STRING,
+                    "label": "firstname",
+                    "description": "",
+                    "is_read_only": False,
+                    "is_required": False,
+                    "value": None,
+                    "default_value": None,
+                    "collection_name": None,
+                    "enum_values": None,
+                    "watch_changes": False,
+                },
+                {
+                    "type": ActionFieldType.STRING,
+                    "label": "lastname",
+                    "description": "",
+                    "is_read_only": False,
+                    "is_required": False,
+                    "value": None,
+                    "default_value": None,
+                    "collection_name": None,
+                    "enum_values": None,
+                    "watch_changes": False,
+                },
+            ],
+        )
+        self.assertEqual(
+            layout,
+            [
+                {"type": ActionFieldType.LAYOUT, "component": "Input", "fieldId": "firstname"},
+                {"type": ActionFieldType.LAYOUT, "component": "Separator"},
+                {"type": ActionFieldType.LAYOUT, "component": "Input", "fieldId": "lastname"},
+                {"type": ActionFieldType.LAYOUT, "component": "HtmlBlock", "content": "<b>my html</b>"},
+            ],
+        )
+
+    def test_should_correctly_serialize_separator(self):
+        result = self.loop.run_until_complete(
+            SchemaActionGenerator.build_layout_schema(
+                self.datasource, {"type": ActionFieldType.LAYOUT, "component": "Separator"}
+            )
+        )
+        self.assertEqual(result, {"component": "separator"})
+
+    def test_should_correctly_serialize_inputs_reference(self):
+        result = self.loop.run_until_complete(
+            SchemaActionGenerator.build_layout_schema(
+                self.datasource, {"type": ActionFieldType.LAYOUT, "component": "Input", "fieldId": "firstname"}
+            )
+        )
+        self.assertEqual(result, {"component": "input", "fieldId": "firstname"})
+
+    def test_should_correctly_serialize_field_htmlBlock(self):
+        result = self.loop.run_until_complete(
+            SchemaActionGenerator.build_layout_schema(
+                self.datasource, {"type": ActionFieldType.LAYOUT, "component": "HtmlBlock", "content": "<b>my html</b>"}
+            )
+        )
+        self.assertEqual(result, {"component": "htmlBlock", "content": "<b>my html</b>"})

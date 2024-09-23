@@ -75,6 +75,10 @@ class BaseDynamicFormElement:
 
 class DynamicLayoutElements(BaseDynamicFormElement):
     TYPE = ActionFieldType.LAYOUT
+    EXTRA_ATTR_TO_EVALUATE = (
+        *BaseDynamicFormElement.EXTRA_ATTR_TO_EVALUATE,
+        "content",
+    )
 
     def __init__(
         self,
@@ -100,7 +104,11 @@ class DynamicLayoutElements(BaseDynamicFormElement):
         self, context: Context, default_value: Any, search_value: Optional[str] = None
     ) -> ActionLayoutElement:
         # here default value is the all form_values dict because of possible nested fields
-        return ActionLayoutElement(type=self.TYPE, component=self._component)
+        return ActionLayoutElement(
+            type=self.TYPE,
+            component=self._component,
+            **{k: await self._evaluate(context, v) for k, v in self.extra_attr_fields.items()},
+        )
 
 
 class BaseDynamicField(BaseDynamicFormElement, Generic[Result]):
@@ -112,7 +120,7 @@ class BaseDynamicField(BaseDynamicFormElement, Generic[Result]):
         "description",
         "default_value",
     )
-    WIDGET_ATTR_TO_EVALUATE = (
+    EXTRA_ATTR_TO_EVALUATE = (
         *BaseDynamicFormElement.EXTRA_ATTR_TO_EVALUATE,
         "min",
         "max",

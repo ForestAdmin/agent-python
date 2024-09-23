@@ -121,6 +121,12 @@ export_orders_json: ActionDict = {
             # "if_": lambda ctx: ctx.form_values.get("dummy field", "") == "aaa",
         },
         {
+            "type": "Layout",
+            "component": "HtmlBlock",
+            "content": lambda ctx: "<b>A problem ?</b><a href='https://www.youtube.com/watch?v=dQw4w9WgXcQ' "
+            "target='_blank'>This movie</a> can help you to fill this form !",
+        },
+        {
             "type": "Collection",
             "collection_name": "app_customer",
             "label": "customer",
