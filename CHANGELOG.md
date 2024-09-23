@@ -1,3 +1,10 @@
+## [1.10.1](https://github.com/ForestAdmin/agent-python/compare/v1.10.0...v1.10.1) (2024-09-23)
+
+
+### Bug Fixes
+
+* **action:** load hook with collection field raise error ([#269](https://github.com/ForestAdmin/agent-python/issues/269)) ([c772d87](https://github.com/ForestAdmin/agent-python/commit/c772d87fbc64b318baa44ce3f471487bfab1a789))
+
 # [1.10.0](https://github.com/ForestAdmin/agent-python/compare/v1.9.1...v1.10.0) (2024-09-16)
 
 
