@@ -32,7 +32,7 @@ class ForestValueConverter:
                 form_data[field["field"]] = unpack_id(collection.schema, field["value"])
             elif field["type"] == ActionFieldType.FILE:
                 form_data[field["field"]] = ForestValueConverter._parse_data_uri(field["value"])
-            elif (isinstance(field["type"], list) and field["type"][0] == ActionFieldType.FILE.value) or (
+            elif (isinstance(field["type"], list) and field["type"][0] == ActionFieldType.FILE) or (
                 field["type"] == ActionFieldType.FILE_LIST
             ):
                 form_data[field["field"]] = [ForestValueConverter._parse_data_uri(value) for value in field["value"]]

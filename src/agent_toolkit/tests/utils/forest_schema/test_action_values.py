@@ -240,6 +240,13 @@ class BaseTestForestValueConverterMakeFormValuesFromField(BaseTestForestValueCon
                 "isRequired": False,
                 "type": ActionFieldType.FILE_LIST,
             },
+            {
+                "value": ["data:text/plain;name=bla.txt;base64,YWJj"],
+                "field": "filelist_2",
+                "reference": None,
+                "isRequired": False,
+                "type": [ActionFieldType.FILE],
+            },
         ]
         form_values = ForestValueConverter.make_form_data_from_fields(self.datasource, fields)
         self.assertEqual(
@@ -247,6 +254,7 @@ class BaseTestForestValueConverterMakeFormValuesFromField(BaseTestForestValueCon
             {
                 "file": File(mime_type="text/plain", buffer=b"abc", name="bla.txt", charset=None),
                 "filelist": [File(mime_type="text/plain", buffer=b"abc", name="bla.txt", charset=None)],
+                "filelist_2": [File(mime_type="text/plain", buffer=b"abc", name="bla.txt", charset=None)],
             },
         )
 
