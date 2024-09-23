@@ -110,16 +110,10 @@ class DynamicLayoutElements(BaseDynamicFormElement):
 
         # validate sub elements are fields
         for field in cast(List[Union[PlainDynamicField, BaseDynamicField]], self.extra_attr_fields.get("fields", [])):
-            if isinstance(field, BaseDynamicFormElement):
-                if field.TYPE == ActionFieldType.LAYOUT:
-                    raise DynamicFormElementException(
-                        "A 'Row' form element doesn't allow layout elements as subfields."
-                    )
-            else:
-                if field.get("type") in [ActionFieldType.LAYOUT, "Layout"]:
-                    raise DynamicFormElementException(
-                        "A 'Row' form element doesn't allow layout elements as subfields."
-                    )
+            if (isinstance(field, BaseDynamicFormElement) and field.TYPE == ActionFieldType.LAYOUT) or (
+                isinstance(field, dict) and field.get("type") in [ActionFieldType.LAYOUT, "Layout"]
+            ):
+                raise DynamicFormElementException("A 'Row' form element doesn't allow layout elements as subfields.")
 
         # init subfields
         self._row_subfields = self._instantiate_subfields(self.extra_attr_fields["fields"])  # type: ignore
