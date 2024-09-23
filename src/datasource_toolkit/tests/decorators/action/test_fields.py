@@ -20,10 +20,12 @@ from forestadmin.datasource_toolkit.decorators.action.types.fields import (
     PlainCollectionDynamicField,
     PlainDynamicField,
     PlainEnumDynamicField,
+    PlainFileDynamicField,
+    PlainFileListDynamicField,
     PlainLayoutDynamicLayoutElementSeparator,
     PlainStringDynamicField,
 )
-from forestadmin.datasource_toolkit.interfaces.actions import ActionFieldType
+from forestadmin.datasource_toolkit.interfaces.actions import ActionFieldType, File
 
 
 class TestActionFieldFactory(TestCase):
@@ -113,6 +115,28 @@ class BaseTestDynamicField(TestCase):
             team="operational",
             timezone=zoneinfo.ZoneInfo("Europe/Paris"),
         )
+
+
+class TestFileDynamicField(BaseTestDynamicField):
+    def test_when_having_default_value_field_should_be_dynamic(self):
+        plain_dynamic_field = PlainFileDynamicField(
+            type=ActionFieldType.FILE,
+            label="collection",
+            default_value=File("text/plain", b"dsqdsq", "test.txt"),
+        )
+        dynamic_field = FormElementFactory.build(plain_dynamic_field)
+        self.assertTrue(dynamic_field.is_dynamic)
+
+
+class TestFileListDynamicField(BaseTestDynamicField):
+    def test_when_having_default_value_field_should_be_dynamic(self):
+        plain_dynamic_field = PlainFileListDynamicField(
+            type=ActionFieldType.FILE_LIST,
+            label="collection",
+            default_value=[File("text/plain", b"dsqdsq", "test.txt")],
+        )
+        dynamic_field = FormElementFactory.build(plain_dynamic_field)
+        self.assertTrue(dynamic_field.is_dynamic)
 
 
 class TestCollectionDynamicField(BaseTestDynamicField):

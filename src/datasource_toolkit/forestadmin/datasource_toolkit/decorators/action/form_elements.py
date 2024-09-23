@@ -347,9 +347,17 @@ class JsonDynamicField(BaseDynamicField[str]):
 class FileDynamicField(BaseDynamicField[File]):
     TYPE = ActionFieldType.FILE
 
+    @property
+    def is_dynamic(self) -> bool:
+        return self._default_value is not None or super().is_dynamic
 
-class FileListDynamicField(BaseDynamicField[File]):
+
+class FileListDynamicField(BaseDynamicField[List[File]]):
     TYPE = ActionFieldType.FILE_LIST
+
+    @property
+    def is_dynamic(self) -> bool:
+        return self._default_value is not None or super().is_dynamic
 
 
 DynamicFields = Union[
