@@ -155,7 +155,6 @@ class BaseDynamicField(BaseDynamicFormElement, Generic[Result]):
     ATTR_TO_EVALUATE = (
         *BaseDynamicFormElement.ATTR_TO_EVALUATE,
         "is_required",
-        "label",
         "is_read_only",
         "value",
         "description",
