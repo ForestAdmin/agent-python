@@ -1,3 +1,10 @@
+# [1.11.0](https://github.com/ForestAdmin/agent-python/compare/v1.10.2...v1.11.0) (2024-09-23)
+
+
+### Features
+
+* **form_customization:** add html block layout element ([#267](https://github.com/ForestAdmin/agent-python/issues/267)) ([f250799](https://github.com/ForestAdmin/agent-python/commit/f250799b62164f2360e201a55e22a8004baf1977))
+
 ## [1.10.2](https://github.com/ForestAdmin/agent-python/compare/v1.10.1...v1.10.2) (2024-09-23)
 
 
