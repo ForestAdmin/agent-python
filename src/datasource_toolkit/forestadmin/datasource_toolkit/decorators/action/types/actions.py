@@ -27,6 +27,8 @@ ActionExecute = Union[
 
 class ActionDict(TypedDict):
     scope: Union[ActionsScope, ActionScopeLiteral]
+    description: NotRequired[str]
+    submit_button_label: NotRequired[str]
     generate_file: NotRequired[bool]
     execute: ActionExecute
     form: NotRequired[List[Union[PlainDynamicFormElement, BaseDynamicFormElement]]]

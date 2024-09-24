@@ -569,10 +569,12 @@
                 {
                     "id": "app_customer-0-export json",
                     "name": "Export json",
+                    "description": null,
                     "type": "bulk",
                     "endpoint": "/forest/_actions/app_customer/0/export json",
                     "download": true,
                     "fields": [],
+                    "submit_button_label": null,
                     "hooks": {
                         "load": false,
                         "change": [
@@ -583,6 +585,7 @@
                 {
                     "id": "app_customer-1-age operation",
                     "name": "Age operation",
+                    "description": null,
                     "type": "single",
                     "endpoint": "/forest/_actions/app_customer/1/age operation",
                     "download": false,
@@ -602,6 +605,7 @@
                             "widgetEdit": null
                         }
                     ],
+                    "submit_button_label": null,
                     "hooks": {
                         "load": true,
                         "change": [
@@ -1275,6 +1279,7 @@
                 {
                     "id": "app_order-0-export json",
                     "name": "Export json",
+                    "description": "Quick description of the action",
                     "type": "global",
                     "endpoint": "/forest/_actions/app_order/0/export json",
                     "download": true,
@@ -1294,6 +1299,7 @@
                             "widgetEdit": null
                         }
                     ],
+                    "submit_button_label": "Submit the action !!! \ud83e\udef5",
                     "hooks": {
                         "load": true,
                         "change": [
@@ -1304,6 +1310,7 @@
                 {
                     "id": "app_order-1-refund order(s)",
                     "name": "Refund order(s)",
+                    "description": null,
                     "type": "single",
                     "endpoint": "/forest/_actions/app_order/1/refund order(s)",
                     "download": false,
@@ -1323,6 +1330,7 @@
                             "widgetEdit": null
                         }
                     ],
+                    "submit_button_label": null,
                     "hooks": {
                         "load": false,
                         "change": [

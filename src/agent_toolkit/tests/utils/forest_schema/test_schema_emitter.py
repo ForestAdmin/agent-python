@@ -65,7 +65,16 @@ class TestSchemaEmitter(TestCase):
             }
         )
         cls.book_collection.add_segments([{"id": "Book.unsold", "name": "unsold books"}])
-        cls.book_collection.add_action("burn", Action(generate_file=False, scope=ActionsScope.SINGLE, static_form=True))
+        cls.book_collection.add_action(
+            "burn",
+            Action(
+                generate_file=False,
+                scope=ActionsScope.SINGLE,
+                static_form=True,
+                description=None,
+                submit_button_label=None,
+            ),
+        )
         cls.datasource.add_collection(cls.book_collection)
         cls.author_collection = Collection("Author", cls.datasource)
         cls.author_collection.add_fields(

@@ -29,6 +29,8 @@ class Action:
     scope: ActionsScope
     generate_file: Optional[bool]
     static_form: Optional[bool]
+    description: Optional[str]
+    submit_button_label: Optional[str]
 
 
 class ActionFieldType(enum.Enum):
