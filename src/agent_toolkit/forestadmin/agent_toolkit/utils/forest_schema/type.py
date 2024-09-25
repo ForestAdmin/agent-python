@@ -350,7 +350,7 @@ class ForestServerAction(TypedDict):
     layout: NotRequired[List[ForestServerActionFormLayoutElement]]
     hooks: ForestServerActionHooks
     description: Optional[str]
-    submit_button_label: Optional[str]
+    submitButtonLabel: Optional[str]
 
 
 class ForestServerSegment(TypedDict):

@@ -63,7 +63,7 @@ class TestSchemaActionGenerator(BaseTestSchemaActionGenerator):
                 "fields": [],
                 "hooks": {"load": False, "change": ["changeHook"]},
                 "description": None,
-                "submit_button_label": None,
+                "submitButtonLabel": None,
             },
         )
 
@@ -98,7 +98,7 @@ class TestSchemaActionGenerator(BaseTestSchemaActionGenerator):
                 "type": "single",
                 "endpoint": "/forest/_actions/Book/0/send email",
                 "description": None,
-                "submit_button_label": None,
+                "submitButtonLabel": None,
                 "download": False,
                 "fields": [
                     {

@@ -574,7 +574,7 @@
                     "endpoint": "/forest/_actions/app_customer/0/export json",
                     "download": true,
                     "fields": [],
-                    "submit_button_label": null,
+                    "submitButtonLabel": null,
                     "hooks": {
                         "load": false,
                         "change": [
@@ -605,7 +605,7 @@
                             "widgetEdit": null
                         }
                     ],
-                    "submit_button_label": null,
+                    "submitButtonLabel": null,
                     "hooks": {
                         "load": true,
                         "change": [
@@ -1299,7 +1299,7 @@
                             "widgetEdit": null
                         }
                     ],
-                    "submit_button_label": "Submit the action !!! \ud83e\udef5",
+                    "submitButtonLabel": "Submit the action !!! \ud83e\udef5",
                     "hooks": {
                         "load": true,
                         "change": [
@@ -1330,7 +1330,7 @@
                             "widgetEdit": null
                         }
                     ],
-                    "submit_button_label": null,
+                    "submitButtonLabel": null,
                     "hooks": {
                         "load": false,
                         "change": [

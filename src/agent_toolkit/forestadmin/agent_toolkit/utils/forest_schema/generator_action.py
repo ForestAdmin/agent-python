@@ -60,7 +60,7 @@ class SchemaActionGenerator:
             endpoint=f"/forest/_actions/{collection.name}/{idx}/{slug}",
             download=bool(schema.generate_file),
             fields=fields,
-            submit_button_label=schema.submit_button_label,
+            submitButtonLabel=schema.submit_button_label,
             # Always registering the change hook has no consequences, even if we don't use it.
             hooks={"load": not schema.static_form, "change": ["changeHook"]},
         )
