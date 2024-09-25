@@ -1,3 +1,10 @@
+# [1.12.0](https://github.com/ForestAdmin/agent-python/compare/v1.11.0...v1.12.0) (2024-09-25)
+
+
+### Features
+
+* **action_form:** add row layout customization ([#268](https://github.com/ForestAdmin/agent-python/issues/268)) ([972e445](https://github.com/ForestAdmin/agent-python/commit/972e445314584d8d265d5b76b4f380079490ce1f))
+
 # [1.11.0](https://github.com/ForestAdmin/agent-python/compare/v1.10.2...v1.11.0) (2024-09-23)
 
 
