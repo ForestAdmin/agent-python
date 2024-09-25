@@ -22,6 +22,7 @@ from forestadmin.datasource_toolkit.decorators.action.types.widgets import (
     NumberInputListFieldConfiguration,
     RadioButtonFieldConfiguration,
     RichTextFieldConfiguration,
+    RowConfiguration,
     SeparatorConfiguration,
     TextAreaFieldConfiguration,
     TextInputFieldConfiguration,
@@ -308,6 +309,12 @@ class PlainLayoutDynamicLayoutElementHtmlBlock(PlainLayoutDynamicFormElement, Ht
     pass
 
 
+class PlainLayoutDynamicLayoutElementRow(PlainLayoutDynamicFormElement, RowConfiguration):
+    pass
+
+
+# If I split PlainTyping into multiple ones, auto completion stop working.
+# I dunno why, but like this it works!!! So let's not touch it
 class PlainTyping(TypedDict):
     type: Union[ActionFieldType, ActionFieldTypeLiteral]
     widget: WidgetTypes
@@ -373,9 +380,17 @@ PlainDynamicField = Union[
     # time
     PlainTimeDynamicField,
     PlainTimeDynamicFieldTimePickerWidget,
-    # Layout
-    PlainLayoutDynamicLayoutElementSeparator,
-    PlainLayoutDynamicLayoutElementHtmlBlock,
     # for autocompletion
     PlainTyping,  # this one must be the latest by name class (alphabetic order)
 ]
+
+PlainDynamicLayout = Union[
+    # Layout
+    PlainLayoutDynamicLayoutElementSeparator,
+    PlainLayoutDynamicLayoutElementHtmlBlock,
+    PlainLayoutDynamicLayoutElementRow,
+    # for autocompletion
+    PlainTyping,  # this one must be the latest by name class (alphabetic order)
+]
+
+PlainDynamicFormElement = Union[PlainDynamicField, PlainDynamicLayout]

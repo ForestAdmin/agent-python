@@ -61,7 +61,10 @@ class SchemaActionGenerator:
             # Always registering the change hook has no consequences, even if we don't use it.
             hooks={"load": not schema.static_form, "change": ["changeHook"]},
         )
-        if layout != []:
+
+        # TODO: do we want after story #7 to have all the layout in the forestadminschema.json ?
+        # what about  when there is no layout customization
+        if any([item["component"] != "Input" for item in layout]):
             ret["layout"] = [
                 await SchemaActionGenerator.build_layout_schema(collection.datasource, field) for field in layout
             ]
@@ -73,11 +76,16 @@ class SchemaActionGenerator:
     ) -> ForestServerActionFormLayoutElement:
         field = cast(ActionLayoutElement, field)
         if field["component"] == "Input":
-            return {"component": "input", "fieldId": field["fieldId"]}
+            return {"component": "input", "fieldId": field["fieldId"]}  # type:ignore
         elif field["component"] == "Separator":
             return {"component": "separator"}
         elif field["component"] == "HtmlBlock":
             return {"component": "htmlBlock", "content": field["content"]}  # type:ignore
+        elif field["component"] == "Row":
+            return {
+                "component": "row",
+                "fields": [await cls.build_layout_schema(datasource, f) for f in field["fields"]],  # type:ignore
+            }
         else:
             raise AgentToolkitException(f"Unknown component '{field['component']}'")
 
@@ -132,7 +140,6 @@ class SchemaActionGenerator:
     def extract_fields_and_layout(
         cls, form_elements: List[ActionFormElement]
     ) -> Tuple[List[ActionField], List[ActionLayoutElement]]:
-        has_layout_item = False
         fields: List[ActionField] = []
         layout: List[ActionLayoutElement] = []
 
@@ -142,23 +149,20 @@ class SchemaActionGenerator:
                 layout.append(
                     {
                         "type": ActionFieldType.LAYOUT,
-                        "component": "Input",  # type: ignore
+                        "component": "Input",
                         "fieldId": cast(ActionField, element)["label"],
                     }
                 )
             else:
-                has_layout_item = True
-                # if element["widget"] == "Row":
-                #     sub_fields, sub_layout = await cls.extract_fields_and_layout(element["fields"])
-                #     layout.append({**element, "fields": sub_layout})
-                #     fields.extend(sub_fields)
+                if element["component"] == "Row":  # type: ignore
+                    sub_fields, sub_layout = cls.extract_fields_and_layout(element["fields"])  # type: ignore
+                    layout.append({**element, "fields": sub_layout})  # type: ignore
+                    fields.extend(sub_fields)
                 # elif element["widget"] == "Page":
                 #     sub_fields, sub_layout = await cls.extract_fields_and_layout(element["elements"])
                 #     fields.extend(sub_fields)
                 #     layout.append({**element, "elements": sub_layout})
-                # else:
-                layout.append(cast(ActionLayoutElement, element))
+                else:
+                    layout.append(cast(ActionLayoutElement, element))
 
-        if has_layout_item is False:
-            layout = []
         return fields, layout

@@ -363,9 +363,9 @@ class TestSchemaActionGeneratorLayout(BaseTestSchemaActionGenerator):
         self.assertEqual(
             result.get("layout"),
             [
-                {"component": "input", "fieldName": "firstname"},
+                {"component": "input", "fieldId": "firstname"},
                 {"component": "separator"},
-                {"component": "input", "fieldName": "lastname"},
+                {"component": "input", "fieldId": "lastname"},
             ],
         )
 
@@ -475,7 +475,8 @@ class TestSchemaActionGeneratorLayout(BaseTestSchemaActionGenerator):
     def test_should_correctly_serialize_inputs_reference(self):
         result = self.loop.run_until_complete(
             SchemaActionGenerator.build_layout_schema(
-                self.datasource, {"type": ActionFieldType.LAYOUT, "component": "Input", "fieldId": "firstname"}
+                self.datasource,
+                {"type": ActionFieldType.LAYOUT, "component": "Input", "fieldId": "firstname"},
             )
         )
         self.assertEqual(result, {"component": "input", "fieldId": "firstname"})
@@ -487,3 +488,64 @@ class TestSchemaActionGeneratorLayout(BaseTestSchemaActionGenerator):
             )
         )
         self.assertEqual(result, {"component": "htmlBlock", "content": "<b>my html</b>"})
+
+    def test_should_fields_and_layout_should_be_correctly_separated(self):
+        fields, layout = SchemaActionGenerator.extract_fields_and_layout(
+            [
+                {
+                    "type": ActionFieldType.LAYOUT,
+                    "component": "Row",
+                    "fields": [
+                        {"type": ActionFieldType.STRING, "label": "gender", "watch_changes": True},
+                        {"type": ActionFieldType.STRING, "label": "gender_other", "watch_changes": True},
+                    ],
+                }
+            ],
+        )
+        self.assertEqual(
+            fields,
+            [
+                {"type": ActionFieldType.STRING, "label": "gender", "watch_changes": True},
+                {"type": ActionFieldType.STRING, "label": "gender_other", "watch_changes": True},
+            ],
+        )
+
+        self.assertEqual(
+            layout,
+            [
+                {
+                    "type": ActionFieldType.LAYOUT,
+                    "component": "Row",
+                    "fields": [
+                        {"type": ActionFieldType.LAYOUT, "component": "Input", "fieldId": "gender"},
+                        {"type": ActionFieldType.LAYOUT, "component": "Input", "fieldId": "gender_other"},
+                    ],
+                }
+            ],
+        )
+
+    def test_should_correctly_serialize_row_layout_element(self):
+        result = self.loop.run_until_complete(
+            SchemaActionGenerator.build_layout_schema(
+                self.datasource,
+                {
+                    "type": ActionFieldType.LAYOUT,
+                    "component": "Row",
+                    "fields": [
+                        {"type": ActionFieldType.LAYOUT, "component": "Input", "fieldId": "gender"},
+                        {"type": ActionFieldType.LAYOUT, "component": "Input", "fieldId": "gender_other"},
+                    ],
+                },
+            )
+        )
+
+        self.assertEqual(
+            result,
+            {
+                "component": "row",
+                "fields": [
+                    {"component": "input", "fieldId": "gender"},
+                    {"component": "input", "fieldId": "gender_other"},
+                ],
+            },
+        )
