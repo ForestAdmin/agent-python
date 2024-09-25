@@ -569,14 +569,29 @@
                 {
                     "id": "app_customer-0-export json",
                     "name": "Export json",
-                    "description": null,
+                    "description": "test multipage",
                     "type": "bulk",
                     "endpoint": "/forest/_actions/app_customer/0/export json",
                     "download": true,
-                    "fields": [],
-                    "submitButtonLabel": null,
+                    "fields": [
+                        {
+                            "field": "Loading...",
+                            "label": "Loading...",
+                            "type": "String",
+                            "isReadOnly": true,
+                            "defaultValue": "Form is loading",
+                            "value": null,
+                            "description": "",
+                            "enums": null,
+                            "hook": null,
+                            "isRequired": false,
+                            "reference": null,
+                            "widgetEdit": null
+                        }
+                    ],
+                    "submitButtonLabel": "execute all pages",
                     "hooks": {
-                        "load": false,
+                        "load": true,
                         "change": [
                             "changeHook"
                         ]
