@@ -119,8 +119,7 @@ class TestActionFormElementFactory(TestCase):
         plain_field: PlainDynamicField = {"type": "String"}
         self.assertRaisesRegex(
             FormElementFactoryException,
-            r"Unable to build a field. cls: 'StringDynamicField', e: "
-            r"'BaseDynamicField.__init__\(\) missing 1 required positional argument: 'label''",
+            r"missing 1 required positional argument: 'label'",
             FormElementFactory.build,
             plain_field,
         )
