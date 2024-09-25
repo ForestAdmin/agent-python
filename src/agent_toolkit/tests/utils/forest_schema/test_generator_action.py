@@ -478,17 +478,14 @@ class TestSchemaActionGeneratorLayout(BaseTestSchemaActionGenerator):
 
     def test_should_correctly_serialize_separator(self):
         result = self.loop.run_until_complete(
-            SchemaActionGenerator.build_layout_schema(
-                self.datasource, {"type": ActionFieldType.LAYOUT, "component": "Separator"}
-            )
+            SchemaActionGenerator.build_layout_schema({"type": ActionFieldType.LAYOUT, "component": "Separator"})
         )
         self.assertEqual(result, {"component": "separator"})
 
     def test_should_correctly_serialize_inputs_reference(self):
         result = self.loop.run_until_complete(
             SchemaActionGenerator.build_layout_schema(
-                self.datasource,
-                {"type": ActionFieldType.LAYOUT, "component": "Input", "fieldId": "firstname"},
+                {"type": ActionFieldType.LAYOUT, "component": "Input", "fieldId": "firstname"}
             )
         )
         self.assertEqual(result, {"component": "input", "fieldId": "firstname"})
@@ -496,7 +493,7 @@ class TestSchemaActionGeneratorLayout(BaseTestSchemaActionGenerator):
     def test_should_correctly_serialize_field_htmlBlock(self):
         result = self.loop.run_until_complete(
             SchemaActionGenerator.build_layout_schema(
-                self.datasource, {"type": ActionFieldType.LAYOUT, "component": "HtmlBlock", "content": "<b>my html</b>"}
+                {"type": ActionFieldType.LAYOUT, "component": "HtmlBlock", "content": "<b>my html</b>"}
             )
         )
         self.assertEqual(result, {"component": "htmlBlock", "content": "<b>my html</b>"})
@@ -544,7 +541,6 @@ class TestSchemaActionGeneratorLayout(BaseTestSchemaActionGenerator):
     def test_should_correctly_serialize_row_layout_element(self):
         result = self.loop.run_until_complete(
             SchemaActionGenerator.build_layout_schema(
-                self.datasource,
                 {
                     "type": ActionFieldType.LAYOUT,
                     "component": "Row",
@@ -561,6 +557,35 @@ class TestSchemaActionGeneratorLayout(BaseTestSchemaActionGenerator):
             {
                 "component": "row",
                 "fields": [
+                    {"component": "input", "fieldId": "gender"},
+                    {"component": "input", "fieldId": "gender_other"},
+                ],
+            },
+        )
+
+    def test_should_correctly_serialize_page_layout_element(self):
+        result = self.loop.run_until_complete(
+            SchemaActionGenerator.build_layout_schema(
+                {
+                    "type": ActionFieldType.LAYOUT,
+                    "component": "Page",
+                    "next_button_label": "next",
+                    "previous_button_label": None,
+                    "elements": [
+                        {"type": ActionFieldType.LAYOUT, "component": "Input", "fieldId": "gender"},
+                        {"type": ActionFieldType.LAYOUT, "component": "Input", "fieldId": "gender_other"},
+                    ],
+                },
+            )
+        )
+
+        self.assertEqual(
+            result,
+            {
+                "component": "page",
+                "nextButtonLabel": "next",
+                "previousButtonLabel": None,
+                "elements": [
                     {"component": "input", "fieldId": "gender"},
                     {"component": "input", "fieldId": "gender_other"},
                 ],

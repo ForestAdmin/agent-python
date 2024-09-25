@@ -125,16 +125,19 @@ class ActionCollectionDecorator(CollectionDecorator):
     ):
         for element in form_elements:
             if element["type"] not in [ActionFieldType.LAYOUT, "Layout"]:
-                element["watch_changes"] = element["id"] in context.form_values.used_keys
-            elif element["component"] in ["Row"]:
-                self._set_watch_changes_attr(element["fields"], context)
+                element["watch_changes"] = element["id"] in context.form_values.used_keys  # type:ignore
+            elif element["component"] == "Row":  # type:ignore
+                self._set_watch_changes_attr(element["fields"], context)  # type:ignore
+            elif element["component"] == "Page":  # type:ignore
+                self._set_watch_changes_attr(element["elements"], context)  # type:ignore
 
     def _refine_schema(self, sub_schema: CollectionSchema) -> CollectionSchema:
         actions_schema = {}
         for name, action in self._actions.items():
             dynamics: List[bool] = []
             for field in action.get("form", []):
-                dynamics.append(field.is_dynamic)
+                dynamics.append(field.is_dynamic)  # type:ignore
+
             actions_schema[name] = Action(
                 scope=ActionsScope(action["scope"]),
                 generate_file=action.get("generate_file", False),

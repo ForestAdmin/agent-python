@@ -317,11 +317,19 @@ class ForestServerActionFormElementRow(TypedDict):
     fields: List[ForestServerActionFormElementFieldReference]
 
 
+class ForestServerActionFormElementPage(TypedDict):
+    component: Literal["page"]
+    nextButtonLabel: Optional[str]
+    previousButtonLabel: Optional[str]
+    elements: List["ForestServerActionFormLayoutElement"]
+
+
 ForestServerActionFormLayoutElement = Union[
     ForestServerActionFormElementSeparator,
     ForestServerActionFormElementFieldReference,
     ForestServerActionFormElementHtmlBlock,
     ForestServerActionFormElementRow,
+    ForestServerActionFormElementPage,
 ]
 
 

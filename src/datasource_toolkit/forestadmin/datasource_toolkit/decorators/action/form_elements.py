@@ -82,6 +82,8 @@ class DynamicLayoutElements(BaseDynamicFormElement):
     EXTRA_ATTR_TO_EVALUATE = (
         *BaseDynamicFormElement.EXTRA_ATTR_TO_EVALUATE,
         "content",
+        "next_button_label",
+        "previous_button_label",
     )
 
     def __init__(
@@ -99,9 +101,12 @@ class DynamicLayoutElements(BaseDynamicFormElement):
             )
         super().__init__(if_, **component_fields)
         self._row_subfields: Optional[List[BaseDynamicField]] = None
+        self._page_elements: Optional[List[BaseDynamicFormElement]] = None
 
         if self._component == "Row":
             self._init_row()
+        elif self._component == "Page":
+            self._init_page()
 
     def _init_row(self):
         # validate there is subfields
@@ -117,6 +122,22 @@ class DynamicLayoutElements(BaseDynamicFormElement):
 
         # init subfields
         self._row_subfields = self._instantiate_subfields(self.extra_attr_fields["fields"])  # type: ignore
+
+    def _init_page(self):
+        # validate there is elements
+        if "elements" not in self.extra_attr_fields:
+            raise DynamicFormElementException("Using 'elements' in a 'Page' configuration is mandatory.")
+
+        for field in cast(
+            List[Union[PlainDynamicFormElement, BaseDynamicFormElement]], self.extra_attr_fields.get("elements", [])
+        ):
+            if (isinstance(field, DynamicLayoutElements) and field._component == "Page") or (
+                (isinstance(field, dict) and field.get("component") == "Page")
+            ):
+                raise DynamicFormElementException("A 'Page' form element doesn't allow sub pages as elements.")
+
+        # init elements
+        self._page_elements = self._instantiate_subfields(self.extra_attr_fields["elements"])  # type: ignore
 
     def _instantiate_subfields(self, subfields: List[Union["BaseDynamicField", PlainDynamicField]]):
         return [
@@ -146,6 +167,23 @@ class DynamicLayoutElements(BaseDynamicFormElement):
                 if await field.if_(context)
             ]
             if len(action_field["fields"]) == 0:
+                return None
+
+        if self._component == "Page" and self._page_elements:
+            for label_button in ["next_button_label", "previous_button_label"]:
+                if label_button not in action_field:
+                    action_field[label_button] = None
+
+            action_field["elements"] = [  # type:ignore
+                await field.to_action_field(
+                    context,
+                    default_value.get(field.id) if isinstance(field, BaseDynamicField) else default_value,
+                    search_value,
+                )
+                for field in self._page_elements
+                if await field.if_(context)
+            ]
+            if len(action_field["elements"]) == 0:
                 return None
 
         return action_field

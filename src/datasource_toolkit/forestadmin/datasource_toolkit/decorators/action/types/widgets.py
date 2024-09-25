@@ -11,8 +11,8 @@ from typing_extensions import NotRequired, TypedDict
 if TYPE_CHECKING:
     # avoid circular import for typing (also with 'from __future__ import annotations')
     # https://stackoverflow.com/questions/61544854/from-future-import-annotations
-    from forestadmin.datasource_toolkit.decorators.action.form_elements import BaseDynamicField
-    from forestadmin.datasource_toolkit.decorators.action.types.fields import PlainDynamicField
+    from forestadmin.datasource_toolkit.decorators.action.form_elements import BaseDynamicField, BaseDynamicFormElement
+    from forestadmin.datasource_toolkit.decorators.action.types.fields import PlainDynamicField, PlainDynamicFormElement
 
 Number = Union[int, float]
 
@@ -183,6 +183,13 @@ class RowConfiguration(TypedDict):
     fields: List[Union[PlainDynamicField, BaseDynamicField]]
 
 
+class PageConfiguration(TypedDict):
+    component: Literal["Page"]
+    elements: List[Union[PlainDynamicFormElement, BaseDynamicFormElement]]
+    next_button_label: NotRequired[ValueOrHandler[str]]
+    previous_button_label: NotRequired[ValueOrHandler[str]]
+
+
 WIDGET_ATTRIBUTES: Set[str] = set()
 for WidgetType in [
     ColorPickerFieldConfiguration,
@@ -213,5 +220,6 @@ for ComponentType in [
     SeparatorConfiguration,
     HtmlBlockConfiguration,
     RowConfiguration,
+    PageConfiguration,
 ]:
     COMPONENT_ATTRIBUTES = COMPONENT_ATTRIBUTES.union(ComponentType.__annotations__.keys())

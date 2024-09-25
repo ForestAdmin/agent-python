@@ -26,6 +26,7 @@ from forestadmin.datasource_toolkit.decorators.action.types.fields import (
     PlainFileDynamicField,
     PlainFileListDynamicField,
     PlainLayoutDynamicLayoutElementHtmlBlock,
+    PlainLayoutDynamicLayoutElementPage,
     PlainLayoutDynamicLayoutElementRow,
     PlainLayoutDynamicLayoutElementSeparator,
     PlainListEnumDynamicField,
@@ -483,6 +484,198 @@ class TestLayoutDynamicElementRow(BaseTestDynamicField):
         self.assertRaisesRegex(
             DynamicFormElementException,
             r"Using 'fields' in a 'Row' configuration is mandatory.",
+            FormElementFactory.build,
+            plain_field,
+        )
+
+
+class TestLayoutDynamicElementPage(BaseTestDynamicField):
+    def test_should_generate_action_field(self):
+        plain_field = PlainLayoutDynamicLayoutElementPage(
+            type="Layout",
+            component="Page",
+            elements=[
+                {"type": "String", "label": "firstname"},
+                {"type": "String", "label": "lastname"},
+            ],
+            next_button_label="next",
+            previous_button_label="previous",
+        )
+        ctx = Mock()
+        ctx.form_values = {}
+        dynamic_field = FormElementFactory.build(plain_field)
+
+        action_field = self.loop.run_until_complete(dynamic_field.to_action_field(ctx, ctx.form_values))
+
+        self.assertEqual(
+            action_field,
+            {
+                "type": ActionFieldType.LAYOUT,
+                "component": "Page",
+                "next_button_label": "next",
+                "previous_button_label": "previous",
+                "elements": [
+                    {
+                        "type": ActionFieldType.STRING,
+                        "id": "firstname",
+                        "label": "firstname",
+                        "description": "",
+                        "is_read_only": False,
+                        "is_required": False,
+                        "value": None,
+                        "default_value": None,
+                        "collection_name": None,
+                        "enum_values": None,
+                        "watch_changes": False,
+                    },
+                    {
+                        "type": ActionFieldType.STRING,
+                        "label": "lastname",
+                        "id": "lastname",
+                        "description": "",
+                        "is_read_only": False,
+                        "is_required": False,
+                        "value": None,
+                        "default_value": None,
+                        "collection_name": None,
+                        "enum_values": None,
+                        "watch_changes": False,
+                    },
+                ],
+            },
+        )
+
+    def test_should_generate_action_field_with_evaluation(self):
+        plain_field = PlainLayoutDynamicLayoutElementPage(
+            type="Layout",
+            component="Page",
+            if_=lambda ctx: True,
+            elements=[
+                {"type": "String", "label": "firstname"},
+                {"type": "String", "label": "lastname"},
+            ],
+            next_button_label=lambda ctx: "next",
+            previous_button_label=lambda ctx: "previous",
+        )
+        dynamic_field = FormElementFactory.build(plain_field)
+        ctx = Mock()
+        ctx.form_values = {}
+        action_field = self.loop.run_until_complete(dynamic_field.to_action_field(ctx, ctx.form_values))
+        self.assertEqual(
+            action_field,
+            {
+                "type": ActionFieldType.LAYOUT,
+                "component": "Page",
+                "next_button_label": "next",
+                "previous_button_label": "previous",
+                "elements": [
+                    {
+                        "type": ActionFieldType.STRING,
+                        "id": "firstname",
+                        "label": "firstname",
+                        "description": "",
+                        "is_read_only": False,
+                        "is_required": False,
+                        "value": None,
+                        "default_value": None,
+                        "collection_name": None,
+                        "enum_values": None,
+                        "watch_changes": False,
+                    },
+                    {
+                        "type": ActionFieldType.STRING,
+                        "label": "lastname",
+                        "id": "lastname",
+                        "description": "",
+                        "is_read_only": False,
+                        "is_required": False,
+                        "value": None,
+                        "default_value": None,
+                        "collection_name": None,
+                        "enum_values": None,
+                        "watch_changes": False,
+                    },
+                ],
+            },
+        )
+
+    def test_should_recursively_call_form_element_builder(self):
+        plain_field = PlainLayoutDynamicLayoutElementPage(
+            type="Layout",
+            component="Page",
+            elements=[
+                {"type": "String", "label": "firstname"},
+                {"type": "String", "label": "lastname"},
+            ],
+        )
+        with patch(
+            "forestadmin.datasource_toolkit.decorators.action.form_elements.FormElementFactory.build",
+            side_effect=FormElementFactory.build,
+        ) as mock_build:
+            FormElementFactory.build(plain_field)
+            mock_build.assert_any_call(plain_field)
+            mock_build.assert_any_call(plain_field["elements"][0])
+            mock_build.assert_any_call(plain_field["elements"][1])
+
+    def test_should_not_be_generated_if_no_content(self):
+        plain_field = PlainLayoutDynamicLayoutElementPage(
+            type="Layout",
+            component="Page",
+            elements=[
+                {"type": "String", "label": "firstname", "if_": lambda ctx: False},
+                {"type": "String", "label": "lastname", "if_": lambda ctx: False},
+            ],
+            next_button_label="next",
+            previous_button_label="previous",
+        )
+        dynamic_field = FormElementFactory.build(plain_field)
+        ctx = Mock()
+        ctx.form_values = {}
+        action_field = self.loop.run_until_complete(dynamic_field.to_action_field(ctx, ctx.form_values))
+        self.assertEqual(action_field, None)
+
+    def test_should_raise_if_contains_page(self):
+        # with plain field
+        plain_field = PlainLayoutDynamicLayoutElementPage(
+            type="Layout",
+            component="Page",
+            elements=[
+                {"type": "String", "label": "firstname", "if_": lambda ctx: False},
+                {"type": "String", "label": "lastname", "if_": lambda ctx: False},
+                {"type": "Layout", "component": "Page", "elements": []},
+            ],
+        )
+        self.assertRaisesRegex(
+            DynamicFormElementException,
+            r"A 'Page' form element doesn't allow sub pages as elements.",
+            FormElementFactory.build,
+            plain_field,
+        )
+        # with dynamic field
+        plain_field = PlainLayoutDynamicLayoutElementPage(
+            type="Layout",
+            component="Page",
+            elements=[
+                {"type": "String", "label": "firstname", "if_": lambda ctx: False},
+                {"type": "String", "label": "lastname", "if_": lambda ctx: False},
+                DynamicLayoutElements(component="Page", elements=[]),  # type: ignore
+            ],
+        )
+        self.assertRaisesRegex(
+            DynamicFormElementException,
+            r"A 'Page' form element doesn't allow sub pages as elements.",
+            FormElementFactory.build,
+            plain_field,
+        )
+
+    def test_should_raise_if_no_elements_present(self):
+        plain_field = PlainLayoutDynamicLayoutElementPage(
+            type="Layout",
+            component="Page",
+        )  # type: ignore
+        self.assertRaisesRegex(
+            DynamicFormElementException,
+            r"Using 'elements' in a 'Page' configuration is mandatory.",
             FormElementFactory.build,
             plain_field,
         )

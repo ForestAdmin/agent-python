@@ -20,6 +20,7 @@ from forestadmin.datasource_toolkit.decorators.action.types.widgets import (
     JsonEditorFieldConfiguration,
     NumberInputFieldConfiguration,
     NumberInputListFieldConfiguration,
+    PageConfiguration,
     RadioButtonFieldConfiguration,
     RichTextFieldConfiguration,
     RowConfiguration,
@@ -314,6 +315,10 @@ class PlainLayoutDynamicLayoutElementRow(PlainLayoutDynamicFormElement, RowConfi
     pass
 
 
+class PlainLayoutDynamicLayoutElementPage(PlainLayoutDynamicFormElement, PageConfiguration):
+    pass
+
+
 # If I split PlainTyping into multiple ones, auto completion stop working.
 # I dunno why, but like this it works!!! So let's not touch it
 class PlainTyping(TypedDict):
@@ -390,6 +395,7 @@ PlainDynamicLayout = Union[
     PlainLayoutDynamicLayoutElementSeparator,
     PlainLayoutDynamicLayoutElementHtmlBlock,
     PlainLayoutDynamicLayoutElementRow,
+    PlainLayoutDynamicLayoutElementPage,
     # for autocompletion
     PlainTyping,  # this one must be the latest by name class (alphabetic order)
 ]

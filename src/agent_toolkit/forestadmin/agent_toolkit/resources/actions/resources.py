@@ -138,10 +138,7 @@ class ActionResource(BaseCollectionResource):
             "fields": [
                 await SchemaActionGenerator.build_field_schema(request.collection.datasource, field) for field in fields
             ],
-            "layout": [
-                await SchemaActionGenerator.build_layout_schema(request.collection.datasource, field)
-                for field in layout
-            ],
+            "layout": [await SchemaActionGenerator.build_layout_schema(field) for field in layout],
         }
         return HttpResponseBuilder.build_success_response(ret)
 
