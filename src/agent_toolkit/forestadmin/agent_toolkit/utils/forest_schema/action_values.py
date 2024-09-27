@@ -72,9 +72,6 @@ class ForestValueConverter:
         data: Dict[str, Any] = {}
         for key, value in raw_data.items():
             _fields = list(filter(lambda f: f["id"] == key, fields))  # type: ignore
-            if len(_fields) != 1:
-                # TODO: here
-                continue
             field: ActionField = _fields[0]
             if field["type"] == ActionFieldType.COLLECTION and value:
                 collection = datasource.get_collection(cast(str, field["collection_name"]))
