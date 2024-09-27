@@ -70,8 +70,48 @@ class TestActionCollectionCustomizer(TestCase):
                 "scope": ActionsScope.SINGLE,
                 "execute": lambda ctx, result_builder: result_builder.success(),
                 "form": [
-                    {"type": ActionFieldType.NUMBER, "label": "amount", "id": "id"},
-                    {"type": ActionFieldType.NUMBER, "label": "cost", "id": "id"},
+                    {
+                        "type": ActionFieldType.LAYOUT,
+                        "component": "Page",
+                        "elements": [
+                            {"type": ActionFieldType.NUMBER, "label": "cost", "id": "id"},
+                            {
+                                "type": ActionFieldType.LAYOUT,
+                                "component": "Row",
+                                "fields": [
+                                    {"type": ActionFieldType.NUMBER, "label": "amount", "id": "id"},
+                                ],
+                            },
+                        ],
+                    }
+                ],
+            },
+        )
+
+    def test_add_action_should_raise_if_pages_and_others_are_mixed_at_root(self):
+        self.assertRaisesRegex(
+            DatasourceToolkitException,
+            r"You cannot mix pages and other form elements in smart action 'action_test' form",
+            self.product_collection.add_action,
+            "action_test",
+            {
+                "scope": ActionsScope.SINGLE,
+                "execute": lambda ctx, result_builder: result_builder.success(),
+                "form": [
+                    {
+                        "type": ActionFieldType.LAYOUT,
+                        "component": "Page",
+                        "elements": [
+                            {
+                                "type": ActionFieldType.NUMBER,
+                                "label": "cost",
+                            },
+                        ],
+                    },
+                    {
+                        "type": ActionFieldType.NUMBER,
+                        "label": "amount",
+                    },
                 ],
             },
         )

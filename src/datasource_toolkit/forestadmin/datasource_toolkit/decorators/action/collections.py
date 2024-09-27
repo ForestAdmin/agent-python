@@ -42,9 +42,20 @@ class ActionCollectionDecorator(CollectionDecorator):
             for field in action.get("form", [])
         ]
         self._validate_id_uniqueness(action["form"])  # type:ignore
+        self._validate_root_only_or_no_pages(action["form"], name)  # type:ignore
 
         self._actions[name] = action
         self.mark_schema_as_dirty()
+
+    def _validate_root_only_or_no_pages(self, form_elements: List[DynamicFormElements], action_name: str):
+        root_len = len(form_elements)
+        pages_len = len(
+            [f for f in form_elements if f.TYPE == ActionFieldType.LAYOUT and f._component == "Page"],  # type: ignore
+        )
+        if pages_len > 0 and pages_len != root_len:
+            raise DatasourceToolkitException(
+                f"You cannot mix pages and other form elements in smart action '{action_name}' form"
+            )
 
     def _validate_id_uniqueness(self, form_elements: List[DynamicFormElements], used=None):
         if used is None:
@@ -55,6 +66,8 @@ class ActionCollectionDecorator(CollectionDecorator):
                 element = cast(DynamicLayoutElements, element)
                 if element._component == "Row":
                     self._validate_id_uniqueness(element._row_subfields, used)  # type: ignore
+                elif element._component == "Page":
+                    self._validate_id_uniqueness(element._page_elements, used)  # type: ignore
             else:
                 element = cast(BaseDynamicField, element)
                 if element.id in used:
@@ -113,6 +126,7 @@ class ActionCollectionDecorator(CollectionDecorator):
             ]
 
         form_values = await self._build_form_values(context, form_fields, form_values)
+        context.form_values.update(form_values)
         action_fields = await self._build_fields(
             context, form_fields, form_values, meta.get("search_values", {}).get(meta.get("search_field"))
         )
@@ -164,15 +178,20 @@ class ActionCollectionDecorator(CollectionDecorator):
 
     async def _build_form_values(
         self, context: ActionContext, fields: List[DynamicFormElements], data: Optional[Dict[str, Any]]
-    ):
+    ) -> Dict[str, Any]:
         if data is None:
             form_values: Dict[str, Any] = {}
         else:
-            form_values = {**data}
+            form_values: Dict[str, Any] = {**data}
 
         for field in fields:
             if not isinstance(field, DynamicLayoutElements):
                 form_values[field.id] = form_values.get(field.id, await field.default_value(context))
+            elif isinstance(field, DynamicLayoutElements):
+                if field._component == "Page":
+                    form_values.update(await self._build_form_values(context, field._page_elements, data))
+                elif field._component == "Row":
+                    form_values.update(await self._build_form_values(context, field._row_subfields, data))
 
         return form_values
 
