@@ -186,8 +186,8 @@ class RowConfiguration(TypedDict):
 class PageConfiguration(TypedDict):
     component: Literal["Page"]
     elements: List[Union[PlainDynamicFormElement, BaseDynamicFormElement]]
-    next_button_label: NotRequired[ValueOrHandler[str]]
-    previous_button_label: NotRequired[ValueOrHandler[str]]
+    next_button_label: NotRequired[str]
+    previous_button_label: NotRequired[str]
 
 
 WIDGET_ATTRIBUTES: Set[str] = set()

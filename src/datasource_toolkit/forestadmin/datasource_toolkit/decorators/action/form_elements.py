@@ -79,12 +79,7 @@ class BaseDynamicFormElement:
 
 class DynamicLayoutElements(BaseDynamicFormElement):
     TYPE = ActionFieldType.LAYOUT
-    EXTRA_ATTR_TO_EVALUATE = (
-        *BaseDynamicFormElement.EXTRA_ATTR_TO_EVALUATE,
-        "content",
-        "next_button_label",
-        "previous_button_label",
-    )
+    EXTRA_ATTR_TO_EVALUATE = (*BaseDynamicFormElement.EXTRA_ATTR_TO_EVALUATE, "content")
 
     def __init__(
         self,
@@ -157,7 +152,10 @@ class DynamicLayoutElements(BaseDynamicFormElement):
         action_field = ActionLayoutElement(
             type=self.TYPE,
             component=self._component,
-            **{k: await self._evaluate(context, v) for k, v in self.extra_attr_fields.items()},
+            **{
+                k: await self._evaluate(context, v) if k in DynamicLayoutElements.EXTRA_ATTR_TO_EVALUATE else v
+                for k, v in self.extra_attr_fields.items()
+            },  # type: ignore
         )
 
         if self._component == "Row" and self._row_subfields:

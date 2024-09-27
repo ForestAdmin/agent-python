@@ -554,8 +554,8 @@ class TestLayoutDynamicElementPage(BaseTestDynamicField):
                 {"type": "String", "label": "firstname"},
                 {"type": "String", "label": "lastname"},
             ],
-            next_button_label=lambda ctx: "next",
-            previous_button_label=lambda ctx: "previous",
+            next_button_label="next",
+            previous_button_label="previous",
         )
         dynamic_field = FormElementFactory.build(plain_field)
         ctx = Mock()
