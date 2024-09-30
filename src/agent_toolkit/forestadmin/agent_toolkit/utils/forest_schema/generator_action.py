@@ -25,6 +25,7 @@ class SchemaActionGenerator:
     DUMMY_FIELDS = [
         ForestServerActionField(
             field="Loading...",
+            label="Loading...",
             type=SchemaFieldGenerator.build_column_type(PrimitiveType.STRING),
             isReadOnly=True,
             defaultValue="Form is loading",
@@ -96,7 +97,8 @@ class SchemaActionGenerator:
         value = ForestValueConverter.value_to_forest(field, field["value"])
         default_value = ForestValueConverter.value_to_forest(field, field["default_value"])
         output: ForestServerActionField = {
-            "field": field["label"],
+            "field": field["id"],
+            "label": field["label"],
             "value": value,
             # When sending to server, we need to rename 'value' into 'defaultValue'
             # otherwise, it does not gets applied 🤷‍♂️
@@ -150,7 +152,7 @@ class SchemaActionGenerator:
                     {
                         "type": ActionFieldType.LAYOUT,
                         "component": "Input",
-                        "fieldId": cast(ActionField, element)["label"],
+                        "fieldId": cast(ActionField, element)["id"],
                     }
                 )
             else:

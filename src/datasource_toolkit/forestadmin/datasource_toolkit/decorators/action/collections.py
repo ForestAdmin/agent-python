@@ -15,6 +15,7 @@ from forestadmin.datasource_toolkit.decorators.action.form_elements import (
 from forestadmin.datasource_toolkit.decorators.action.result_builder import ResultBuilder
 from forestadmin.datasource_toolkit.decorators.action.types.actions import ActionDict
 from forestadmin.datasource_toolkit.decorators.collection_decorator import CollectionDecorator
+from forestadmin.datasource_toolkit.exceptions import DatasourceToolkitException
 from forestadmin.datasource_toolkit.interfaces.actions import (
     Action,
     ActionField,
@@ -40,8 +41,27 @@ class ActionCollectionDecorator(CollectionDecorator):
             FormElementFactory.build(field) if not isinstance(field, BaseDynamicFormElement) else field
             for field in action.get("form", [])
         ]
+        self._validate_id_uniqueness(action["form"])  # type:ignore
+
         self._actions[name] = action
         self.mark_schema_as_dirty()
+
+    def _validate_id_uniqueness(self, form_elements: List[DynamicFormElements], used=None):
+        if used is None:
+            used = set()
+
+        for element in form_elements:
+            if element.TYPE == ActionFieldType.LAYOUT:
+                element = cast(DynamicLayoutElements, element)
+                if element._component == "Row":
+                    self._validate_id_uniqueness(element._row_subfields, used)  # type: ignore
+            else:
+                element = cast(BaseDynamicField, element)
+                if element.id in used:
+                    raise DatasourceToolkitException(
+                        f"All field must have different 'id'. Conflict come from field '{element.id}'"
+                    )
+                used.add(element.id)
 
     async def execute(
         self,
@@ -89,7 +109,7 @@ class ActionCollectionDecorator(CollectionDecorator):
             form_fields = [
                 field
                 for field in form_fields
-                if isinstance(field, BaseDynamicField) and field.label == meta["search_field"]
+                if isinstance(field, BaseDynamicField) and field.id == meta["search_field"]
             ]
 
         form_values = await self._build_form_values(context, form_fields, form_values)
@@ -105,7 +125,7 @@ class ActionCollectionDecorator(CollectionDecorator):
     ):
         for element in form_elements:
             if element["type"] not in [ActionFieldType.LAYOUT, "Layout"]:
-                element["watch_changes"] = element["label"] in context.form_values.used_keys
+                element["watch_changes"] = element["id"] in context.form_values.used_keys
             elif element["component"] in ["Row"]:
                 self._set_watch_changes_attr(element["fields"], context)
 
@@ -147,7 +167,7 @@ class ActionCollectionDecorator(CollectionDecorator):
 
         for field in fields:
             if not isinstance(field, DynamicLayoutElements):
-                form_values[field.label] = form_values.get(field.label, await field.default_value(context))
+                form_values[field.id] = form_values.get(field.id, await field.default_value(context))
 
         return form_values
 
@@ -161,7 +181,7 @@ class ActionCollectionDecorator(CollectionDecorator):
         action_fields: List[Union[ActionLayoutElement, ActionField]] = []
         for field in fields:
             if await field.if_(context):
-                value = form_values if isinstance(field, DynamicLayoutElements) else form_values.get(field.label)
+                value = form_values if isinstance(field, DynamicLayoutElements) else form_values.get(field.id)
                 action_field = await field.to_action_field(context, value, search_value)  # type:ignore
                 if action_field is not None:
                     action_fields.append(action_field)

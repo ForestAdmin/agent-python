@@ -141,7 +141,7 @@ class DynamicLayoutElements(BaseDynamicFormElement):
 
         if self._component == "Row" and self._row_subfields:
             action_field["fields"] = [
-                await field.to_action_field(context, default_value.get(field.label), search_value)
+                await field.to_action_field(context, default_value.get(field.id), search_value)
                 for field in self._row_subfields
                 if await field.if_(context)
             ]
@@ -175,6 +175,7 @@ class BaseDynamicField(BaseDynamicFormElement, Generic[Result]):
     def __init__(
         self,
         label: str,
+        id: Optional[str] = None,
         description: Optional[ValueOrHandler[str]] = "",
         is_required: Optional[ValueOrHandler[bool]] = False,
         is_read_only: Optional[ValueOrHandler[bool]] = False,
@@ -183,7 +184,8 @@ class BaseDynamicField(BaseDynamicFormElement, Generic[Result]):
         default_value: Optional[ValueOrHandler[Result]] = None,
         **kwargs: Dict[str, Any],
     ):
-        self.label = label
+        self.label: str = label if label is not None else id  # type:ignore
+        self.id: str = id if id is not None else label  # type:ignore
         self._description = description
         self._is_required = is_required
         self._is_read_only = is_read_only
@@ -202,6 +204,7 @@ class BaseDynamicField(BaseDynamicFormElement, Generic[Result]):
     ) -> ActionField:
         field = ActionField(
             type=self.TYPE,
+            id=self.id,
             label=self.label,
             description=await self.description(context),
             is_read_only=await self.is_read_only(context),
@@ -246,6 +249,7 @@ class CollectionDynamicField(BaseDynamicField[CompositeIdAlias]):
         self,
         collection_name: ValueOrHandler[str],
         label: str,
+        id: Optional[str] = None,
         description: Optional[str] = "",
         is_required: Optional[ValueOrHandler[bool]] = False,
         is_read_only: Optional[ValueOrHandler[bool]] = False,
@@ -254,7 +258,7 @@ class CollectionDynamicField(BaseDynamicField[CompositeIdAlias]):
         default_value: Optional[ValueOrHandler[CompositeIdAlias]] = None,
     ):
         super(CollectionDynamicField, self).__init__(
-            label, description, is_required, is_read_only, if_, value, default_value
+            label, id, description, is_required, is_read_only, if_, value, default_value
         )
         self._collection_name = collection_name
 
@@ -286,6 +290,7 @@ class EnumDynamicField(BaseDynamicField[str]):
         self,
         enum_values: ValueOrHandler[List[str]],
         label: str,
+        id: Optional[str] = None,
         description: Optional[str] = "",
         is_required: Optional[ValueOrHandler[bool]] = False,
         is_read_only: Optional[ValueOrHandler[bool]] = False,
@@ -293,7 +298,7 @@ class EnumDynamicField(BaseDynamicField[str]):
         value: Optional[ValueOrHandler[str]] = None,
         default_value: Optional[ValueOrHandler[str]] = None,
     ):
-        super().__init__(label, description, is_required, is_read_only, if_, value, default_value)
+        super().__init__(label, id, description, is_required, is_read_only, if_, value, default_value)
         self._enum_values = enum_values
 
     @property
@@ -322,6 +327,7 @@ class EnumListDynamicField(BaseDynamicField[List[str]]):
         self,
         enum_values: ValueOrHandler[List[str]],
         label: str,
+        id: Optional[str] = None,
         description: Optional[str] = "",
         is_required: Optional[ValueOrHandler[bool]] = False,
         is_read_only: Optional[ValueOrHandler[bool]] = False,
@@ -330,7 +336,7 @@ class EnumListDynamicField(BaseDynamicField[List[str]]):
         default_value: Optional[ValueOrHandler[List[str]]] = None,
     ):
         super(EnumListDynamicField, self).__init__(
-            label, description, is_required, is_read_only, if_, value, default_value
+            label, id, description, is_required, is_read_only, if_, value, default_value
         )
         self._enum_values = enum_values
 

@@ -6,7 +6,7 @@ PACKAGES=("agent_toolkit" "datasource_sqlalchemy" "datasource_toolkit" "flask_ag
 # PACKAGES=("datasource_sqlalchemy")
 PYTHON_VERSIONS=("3.8" "3.9" "3.10" "3.11" "3.12")
 # PYTHON_VERSIONS=("3.8" "3.11")
-# PYTHON_VERSIONS=("3.12")
+PYTHON_VERSIONS=("3.12")
 
 # flask related settings
 # https://pypi.org/project/Flask/#history

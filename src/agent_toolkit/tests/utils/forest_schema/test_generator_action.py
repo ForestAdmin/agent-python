@@ -99,6 +99,7 @@ class TestSchemaActionGenerator(BaseTestSchemaActionGenerator):
                 "fields": [
                     {
                         "field": "label",
+                        "label": "label",
                         "value": None,
                         "defaultValue": None,
                         "description": "email",
@@ -142,6 +143,7 @@ class TestSchemaActionGenerator(BaseTestSchemaActionGenerator):
             result["fields"][0],
             {
                 "field": "label",
+                "label": "label",
                 "value": None,
                 "defaultValue": None,
                 "description": "email",
@@ -181,7 +183,7 @@ class TestSchemaActionGenerator(BaseTestSchemaActionGenerator):
                         "value": None,
                     },
                     {
-                        "label": "avatar",
+                        "label": "gender",
                         "description": "Choose None, Male, Female or Both",
                         "type": ActionFieldType.ENUM_LIST,
                         "is_required": True,
@@ -200,6 +202,7 @@ class TestSchemaActionGenerator(BaseTestSchemaActionGenerator):
             result["fields"][0],
             {
                 "field": "author",
+                "label": "author",
                 "value": None,
                 "defaultValue": None,
                 "description": "choose an author",
@@ -217,6 +220,7 @@ class TestSchemaActionGenerator(BaseTestSchemaActionGenerator):
             result["fields"][1],
             {
                 "field": "avatar",
+                "label": "avatar",
                 "value": None,
                 "defaultValue": None,
                 "description": "choose an avatar",
@@ -233,7 +237,8 @@ class TestSchemaActionGenerator(BaseTestSchemaActionGenerator):
         self.assertEqual(
             result["fields"][2],
             {
-                "field": "avatar",
+                "field": "gender",
+                "label": "gender",
                 "value": [],
                 "defaultValue": None,
                 "description": "Choose None, Male, Female or Both",
@@ -393,6 +398,7 @@ class TestSchemaActionGeneratorLayout(BaseTestSchemaActionGenerator):
             [
                 {
                     "field": "Loading...",
+                    "label": "Loading...",
                     "type": "String",
                     "isReadOnly": True,
                     "defaultValue": "Form is loading",
@@ -430,6 +436,7 @@ class TestSchemaActionGeneratorLayout(BaseTestSchemaActionGenerator):
             [
                 {
                     "type": ActionFieldType.STRING,
+                    "id": "firstname",
                     "label": "firstname",
                     "description": "",
                     "is_read_only": False,
@@ -442,6 +449,7 @@ class TestSchemaActionGeneratorLayout(BaseTestSchemaActionGenerator):
                 },
                 {
                     "type": ActionFieldType.STRING,
+                    "id": "lastname",
                     "label": "lastname",
                     "description": "",
                     "is_read_only": False,
@@ -496,8 +504,13 @@ class TestSchemaActionGeneratorLayout(BaseTestSchemaActionGenerator):
                     "type": ActionFieldType.LAYOUT,
                     "component": "Row",
                     "fields": [
-                        {"type": ActionFieldType.STRING, "label": "gender", "watch_changes": True},
-                        {"type": ActionFieldType.STRING, "label": "gender_other", "watch_changes": True},
+                        {"type": ActionFieldType.STRING, "label": "gender", "id": "gender", "watch_changes": True},
+                        {
+                            "type": ActionFieldType.STRING,
+                            "label": "gender_other",
+                            "id": "gender_other",
+                            "watch_changes": True,
+                        },
                     ],
                 }
             ],
@@ -505,8 +518,8 @@ class TestSchemaActionGeneratorLayout(BaseTestSchemaActionGenerator):
         self.assertEqual(
             fields,
             [
-                {"type": ActionFieldType.STRING, "label": "gender", "watch_changes": True},
-                {"type": ActionFieldType.STRING, "label": "gender_other", "watch_changes": True},
+                {"type": ActionFieldType.STRING, "label": "gender", "id": "gender", "watch_changes": True},
+                {"type": ActionFieldType.STRING, "label": "gender_other", "id": "gender_other", "watch_changes": True},
             ],
         )
 

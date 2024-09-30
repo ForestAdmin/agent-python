@@ -20,6 +20,7 @@ from forestadmin.datasource_toolkit.decorators.action.form_elements import (
 )
 from forestadmin.datasource_toolkit.decorators.action.types.fields import (
     PlainCollectionDynamicField,
+    PlainDynamicField,
     PlainDynamicLayout,
     PlainEnumDynamicField,
     PlainFileDynamicField,
@@ -35,6 +36,10 @@ from forestadmin.datasource_toolkit.interfaces.actions import ActionFieldType, F
 
 
 class TestActionFormElementFactory(TestCase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.loop = asyncio.new_event_loop()
+
     def test_field_factory_should_raise_if_unknown_type(self):
         plain_field = PlainStringDynamicField(
             type="bla",  # type:ignore
@@ -98,6 +103,26 @@ class TestActionFormElementFactory(TestCase):
         field = FormElementFactory.build(plain_field)
         self.assertEqual(field._if_, None)
         self.assertEqual(field._component, "Separator")  # type:ignore
+
+    def test_should_create_id_in_copy_of_label(self):
+        plain_field: PlainDynamicField = {"type": "String", "label": "test"}
+        field = FormElementFactory.build(plain_field)
+        self.assertEqual(field.id, "test")
+
+    def test_should_create_with_label_and_id(self):
+        plain_field: PlainDynamicField = {"type": "String", "id": "test", "label": "this is a label"}
+        field = FormElementFactory.build(plain_field)
+        self.assertEqual(field.label, "this is a label")
+        self.assertEqual(field.id, "test")
+
+    def test_should_raise_if_none_of_id_and_label(self):
+        plain_field: PlainDynamicField = {"type": "String"}
+        self.assertRaisesRegex(
+            FormElementFactoryException,
+            r"missing 1 required positional argument: 'label'",
+            FormElementFactory.build,
+            plain_field,
+        )
 
 
 class BaseTestDynamicField(TestCase):
@@ -293,6 +318,7 @@ class TestLayoutDynamicElementRow(BaseTestDynamicField):
                 "fields": [
                     {
                         "type": ActionFieldType.STRING,
+                        "id": "gender",
                         "label": "gender",
                         "description": "",
                         "is_read_only": False,
@@ -306,6 +332,7 @@ class TestLayoutDynamicElementRow(BaseTestDynamicField):
                     {
                         "type": ActionFieldType.STRING,
                         "label": "gender_other",
+                        "id": "gender_other",
                         "description": "",
                         "is_read_only": False,
                         "is_required": False,
@@ -345,6 +372,7 @@ class TestLayoutDynamicElementRow(BaseTestDynamicField):
                     {
                         "type": ActionFieldType.STRING,
                         "label": "gender",
+                        "id": "gender",
                         "description": "",
                         "is_read_only": False,
                         "is_required": False,
@@ -357,6 +385,7 @@ class TestLayoutDynamicElementRow(BaseTestDynamicField):
                     {
                         "type": ActionFieldType.STRING,
                         "label": "gender_other",
+                        "id": "gender_other",
                         "description": "",
                         "is_read_only": False,
                         "is_required": False,

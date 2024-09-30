@@ -116,6 +116,7 @@ class ActionLayoutElement(BaseActionFormElement):
 
 class ActionField(BaseActionFormElement):
     label: str
+    id: str
     description: NotRequired[Optional[str]]
     is_required: NotRequired[Optional[bool]]
     is_read_only: NotRequired[Optional[bool]]
