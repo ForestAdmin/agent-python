@@ -253,7 +253,7 @@ class TestActionCollectionCustomizer(TestCase):
 
     def test_get_form_should_compute_dynamic_default_values_on_load_hook(self):
         async def execute(context: ActionContextSingle, result_builder: ResultBuilder) -> Union[ActionResult, None]:
-            result_builder.success("Bravo !!!")
+            return result_builder.success("Bravo !!!")
 
         test_action: ActionDict = {
             "scope": ActionsScope.SINGLE,
@@ -294,7 +294,7 @@ class TestActionCollectionCustomizer(TestCase):
                 "id": "last_name",
                 "type": ActionFieldType.STRING,
                 "description": "",
-                "is_read_only": False,
+                "is_read_only": True,
                 "is_required": False,
                 "value": None,
                 "collection_name": None,
