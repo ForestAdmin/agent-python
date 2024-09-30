@@ -236,7 +236,6 @@ class CrudResource(BaseCollectionResource):
     @authorize("edit")
     async def update(self, request: RequestCollection) -> Response:
         collection = request.collection
-        pk_fields = SchemaUtils.get_primary_keys(collection.schema)
         try:
             ids = unpack_id(collection.schema, request.pks)
         except (FieldValidatorException, CollectionResourceException) as e:
@@ -248,10 +247,9 @@ class CrudResource(BaseCollectionResource):
 
         schema = JsonApiSerializer.get(collection)
         try:
+            # if the id change it will be in 'data.attributes', otherwise, we get the id by from the request url.
+            request.body["data"].pop("id", None)  # type: ignore
             data: RecordsDataAlias = schema().load(request.body)  # type: ignore
-            if pk_fields[0] != "id":
-                data.update({pk_fields[0]: ids[0]})
-                del data["id"]
         except JsonApiException as e:
             ForestLogger.log("exception", e)
             return HttpResponseBuilder.build_client_error_response([e])
