@@ -1,3 +1,10 @@
+# [1.13.0](https://github.com/ForestAdmin/agent-python/compare/v1.12.0...v1.13.0) (2024-09-30)
+
+
+### Features
+
+* **action:** add optional id in form fields ([#271](https://github.com/ForestAdmin/agent-python/issues/271)) ([a18b8c1](https://github.com/ForestAdmin/agent-python/commit/a18b8c151f819d90072a4f0f2a07531820378635))
+
 # [1.12.0](https://github.com/ForestAdmin/agent-python/compare/v1.11.0...v1.12.0) (2024-09-25)
 
 
