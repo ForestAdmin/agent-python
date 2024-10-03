@@ -749,3 +749,72 @@ class TestActionCollectionCustomizer(TestCase):
                 }
             ],
         )
+
+    def test_get_form_should_return_only_one_field_on_search_hook_when_using_page_and_row(self):
+        def _search_fn(context, search_value):
+            return [{"label": "1", "value": 1}, {"label": "2", "value": 2}]
+
+        search_fn = Mock(wraps=_search_fn)
+
+        test_action: ActionDict = {
+            "scope": ActionsScope.SINGLE,
+            "execute": lambda ctx, rslt_builder: rslt_builder.success("ok"),
+            "form": [
+                {
+                    "type": "Layout",
+                    "component": "Page",
+                    "elements": [
+                        {
+                            "type": "Layout",
+                            "component": "Row",
+                            "fields": [
+                                {"type": "String", "label": "test"},
+                                {
+                                    "label": "Put a comment",
+                                    "type": ActionFieldType.NUMBER,
+                                    "is_read_only": True,
+                                    "is_required": False,
+                                    "widget": "Dropdown",
+                                    "search": "dynamic",
+                                    "options": search_fn,
+                                },
+                            ],
+                        }
+                    ],
+                },
+            ],
+        }
+
+        self.product_collection.add_action("action_test", test_action)
+        result = self.loop.run_until_complete(
+            self.product_collection.get_form(
+                self.mocked_caller,
+                "action_test",
+                {"Put a comment": 2},
+                None,
+                {"search_values": {"Put a comment": "2"}, "search_field": "Put a comment"},
+            )
+        )
+
+        self.assertEqual(len(result), 1)
+        self.assertEqual(
+            result,
+            [
+                {
+                    "type": ActionFieldType.NUMBER,
+                    "label": "Put a comment",
+                    "id": "Put a comment",
+                    "description": "",
+                    "is_read_only": True,
+                    "is_required": False,
+                    "value": 2,
+                    "default_value": None,
+                    "collection_name": None,
+                    "enum_values": None,
+                    "watch_changes": False,
+                    "widget": "Dropdown",
+                    "search": "dynamic",
+                    "options": [{"label": "1", "value": 1}, {"label": "2", "value": 2}],
+                }
+            ],
+        )
