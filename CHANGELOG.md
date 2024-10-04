@@ -1,3 +1,10 @@
+# [1.14.0](https://github.com/ForestAdmin/agent-python/compare/v1.13.0...v1.14.0) (2024-10-04)
+
+
+### Features
+
+* **action:** add description and submit button label to action ([#273](https://github.com/ForestAdmin/agent-python/issues/273)) ([2009427](https://github.com/ForestAdmin/agent-python/commit/2009427659482b73f238bb3d112e7f26820db31f))
+
 # [1.13.0](https://github.com/ForestAdmin/agent-python/compare/v1.12.0...v1.13.0) (2024-09-30)
 
 
