@@ -17,7 +17,11 @@ from forestadmin.agent_toolkit.resources.collections.exceptions import Collectio
 from forestadmin.agent_toolkit.resources.collections.requests import RequestCollection, RequestCollectionException
 from forestadmin.agent_toolkit.services.permissions.ip_whitelist_service import IpWhiteListService
 from forestadmin.agent_toolkit.services.permissions.permission_service import PermissionService
-from forestadmin.agent_toolkit.services.serializers.json_api import JsonApiException, create_json_api_schema
+from forestadmin.agent_toolkit.services.serializers.json_api import (
+    JsonApiException,
+    JsonApiSerializer,
+    create_json_api_schema,
+)
 from forestadmin.agent_toolkit.utils.context import Request, RequestMethod, User
 from forestadmin.agent_toolkit.utils.csv import CsvException
 from forestadmin.datasource_toolkit.collections import Collection
@@ -211,6 +215,7 @@ class TestCrudResource(TestCase):
 
     @classmethod
     def setUpClass(cls) -> None:
+        JsonApiSerializer.schema = {}
         cls.loop = asyncio.new_event_loop()
         cls.options = Options(
             auth_secret="fake_secret",
@@ -240,6 +245,11 @@ class TestCrudResource(TestCase):
         self.permission_service = Mock(PermissionService)
         self.permission_service.get_scope = AsyncMock(return_value=ConditionTreeLeaf("id", Operator.GREATER_THAN, 0))
         self.permission_service.can = AsyncMock(return_value=None)
+
+    @classmethod
+    def tearDownClass(cls) -> None:
+        JsonApiSerializer.schema = {}
+        return super().tearDownClass()
 
     # dispatch
     def test_dispatch(self):
