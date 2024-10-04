@@ -123,11 +123,9 @@ class DynamicLayoutElements(BaseDynamicFormElement):
         if "elements" not in self.extra_attr_fields:
             raise DynamicFormElementException("Using 'elements' in a 'Page' configuration is mandatory.")
 
-        for field in cast(
-            List[Union[PlainDynamicFormElement, BaseDynamicFormElement]], self.extra_attr_fields.get("elements", [])
-        ):
+        for field in self.extra_attr_fields.get("elements", []):
             if (isinstance(field, DynamicLayoutElements) and field._component == "Page") or (
-                (isinstance(field, dict) and field.get("component") == "Page")
+                isinstance(field, dict) and field.get("component") == "Page"
             ):
                 raise DynamicFormElementException("A 'Page' form element doesn't allow sub pages as elements.")
 
