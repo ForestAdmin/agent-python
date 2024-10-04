@@ -17,7 +17,7 @@ from forestadmin.agent_toolkit.resources.collections.exceptions import Collectio
 from forestadmin.agent_toolkit.resources.collections.requests import RequestCollection, RequestCollectionException
 from forestadmin.agent_toolkit.services.permissions.ip_whitelist_service import IpWhiteListService
 from forestadmin.agent_toolkit.services.permissions.permission_service import PermissionService
-from forestadmin.agent_toolkit.services.serializers.json_api import JsonApiException
+from forestadmin.agent_toolkit.services.serializers.json_api import JsonApiException, create_json_api_schema
 from forestadmin.agent_toolkit.utils.context import Request, RequestMethod, User
 from forestadmin.agent_toolkit.utils.csv import CsvException
 from forestadmin.datasource_toolkit.collections import Collection
@@ -95,7 +95,12 @@ class TestCrudResource(TestCase):
         cls.collection_order = cls._create_collection(
             "order",
             {
-                "id": {"column_type": PrimitiveType.NUMBER, "is_primary_key": True, "type": FieldType.COLUMN},
+                "id": {
+                    "column_type": PrimitiveType.NUMBER,
+                    "is_primary_key": True,
+                    "type": FieldType.COLUMN,
+                    "filter_operators": set([Operator.IN, Operator.EQUAL]),
+                },
                 "cost": {"column_type": PrimitiveType.NUMBER, "is_primary_key": False, "type": FieldType.COLUMN},
                 "important": {"column_type": PrimitiveType.BOOLEAN, "is_primary_key": False, "type": FieldType.COLUMN},
                 "products": {
@@ -131,7 +136,12 @@ class TestCrudResource(TestCase):
         cls.collection_status = cls._create_collection(
             "status",
             {
-                "id": {"column_type": PrimitiveType.NUMBER, "is_primary_key": True, "type": FieldType.COLUMN},
+                "id": {
+                    "column_type": PrimitiveType.NUMBER,
+                    "is_primary_key": True,
+                    "type": FieldType.COLUMN,
+                    "filter_operators": set([Operator.IN, Operator.EQUAL]),
+                },
                 "name": {"column_type": PrimitiveType.STRING, "is_primary_key": False, "type": FieldType.COLUMN},
             },
         )
@@ -140,7 +150,12 @@ class TestCrudResource(TestCase):
         cls.collection_cart = cls._create_collection(
             "cart",
             {
-                "id": {"column_type": PrimitiveType.NUMBER, "is_primary_key": True, "type": FieldType.COLUMN},
+                "id": {
+                    "column_type": PrimitiveType.NUMBER,
+                    "is_primary_key": True,
+                    "type": FieldType.COLUMN,
+                    "filter_operators": set([Operator.IN, Operator.EQUAL]),
+                },
                 "name": {"column_type": PrimitiveType.STRING, "is_primary_key": False, "type": FieldType.COLUMN},
             },
         )
@@ -149,11 +164,16 @@ class TestCrudResource(TestCase):
         cls.collection_product = cls._create_collection(
             "product",
             {
-                "id": {"column_type": PrimitiveType.NUMBER, "is_primary_key": True, "type": FieldType.COLUMN},
+                "id": {
+                    "column_type": PrimitiveType.NUMBER,
+                    "is_primary_key": True,
+                    "type": FieldType.COLUMN,
+                    "filter_operators": set([Operator.IN, Operator.EQUAL]),
+                },
                 "name": {"column_type": PrimitiveType.STRING, "is_primary_key": False, "type": FieldType.COLUMN},
                 "tags": {
                     "type": FieldType.POLYMORPHIC_ONE_TO_MANY,
-                    "foreign_collection": ["tag"],
+                    "foreign_collection": "tag",
                     "origin_key": "taggable_id",
                     "origin_key_target": "id",
                     "origin_type_field": "taggable_type",
@@ -210,6 +230,8 @@ class TestCrudResource(TestCase):
             "product": cls.collection_product,
             "tag": cls.collection_tag,
         }
+        for collection in cls.datasource.collections:
+            create_json_api_schema(collection)
 
     def setUp(self):
         self.ip_white_list_service = Mock(IpWhiteListService)
@@ -1204,6 +1226,52 @@ class TestCrudResource(TestCase):
         assert response.status == 500
         response_content = json.loads(response.body)
         assert response_content["errors"][0] == {"detail": "🌳🌳🌳", "name": "JsonApiException", "status": 500}
+
+    def test_edit_should_not_update_pk_if_not_set_in_attributes(self):
+        request = RequestCollection(
+            RequestMethod.PUT,
+            self.collection_order,
+            {"data": {"attributes": {"cost": 201}, "id": 10, "relationships": {}}},
+            {
+                "collection_name": "order",
+                "timezone": "Europe/Paris",
+                "pks": "10",
+                "fields[order]": "id,cost",
+            },
+            {},
+            None,
+        )
+        mock_order = {"id": 10, "cost": 201}
+        crud_resource = CrudResource(self.datasource, self.permission_service, self.ip_white_list_service, self.options)
+        self.collection_order.list = AsyncMock(return_value=[mock_order])
+        self.collection_order.update = AsyncMock()
+
+        self.loop.run_until_complete(crud_resource.update(request))
+        self.permission_service.can.reset_mock()
+        self.collection_order.update.assert_any_await(ANY, ANY, {"cost": 201})
+
+    def test_edit_should_update_pk_if_set_in_attributes(self):
+        request = RequestCollection(
+            RequestMethod.PUT,
+            self.collection_order,
+            {"data": {"attributes": {"cost": 201, "id": 11}, "id": 10, "relationships": {}}},
+            {
+                "collection_name": "order",
+                "timezone": "Europe/Paris",
+                "pks": "10",
+                "fields[order]": "id,cost",
+            },
+            {},
+            None,
+        )
+        mock_order = {"id": 11, "cost": 201}
+        crud_resource = CrudResource(self.datasource, self.permission_service, self.ip_white_list_service, self.options)
+        self.collection_order.list = AsyncMock(return_value=[mock_order])
+        self.collection_order.update = AsyncMock()
+
+        self.loop.run_until_complete(crud_resource.update(request))
+        self.permission_service.can.reset_mock()
+        self.collection_order.update.assert_any_await(ANY, ANY, {"cost": 201, "id": 11})
 
     # delete
     @patch(
