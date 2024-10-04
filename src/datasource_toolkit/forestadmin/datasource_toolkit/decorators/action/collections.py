@@ -139,6 +139,8 @@ class ActionCollectionDecorator(CollectionDecorator):
                 scope=ActionsScope(action["scope"]),
                 generate_file=action.get("generate_file", False),
                 static_form=not any(dynamics),
+                description=action.get("description"),
+                submit_button_label=action.get("submit_button_label"),
             )
         return {**sub_schema, "actions": actions_schema}
 

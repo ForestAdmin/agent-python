@@ -104,6 +104,8 @@ async def execute_export_json(context: ActionContext, result_builder: ResultBuil
 
 export_orders_json: ActionDict = {
     "scope": "Global",
+    "description": "Quick description of the action",
+    "submit_button_label": "Submit the action !!! 🫵",
     "generate_file": True,
     "execute": execute_export_json,
     "form": [
@@ -137,7 +139,7 @@ export_orders_json: ActionDict = {
                 },
                 {
                     "type": "String",
-                    # "if_": lambda ctx: ctx.form_values.get("gender", "") == "other",
+                    "if_": lambda ctx: ctx.form_values.get("gender", "") == "other",
                     "label": "gender_other",
                     "id": "gender_other",
                 },

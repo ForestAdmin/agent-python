@@ -55,10 +55,12 @@ class SchemaActionGenerator:
         ret = ForestServerAction(
             id=f"{collection.name}-{idx}-{slug}",
             name=name,
+            description=schema.description,
             type=cast(Literal["single", "bulk", "global"], schema.scope.value.lower()),
             endpoint=f"/forest/_actions/{collection.name}/{idx}/{slug}",
             download=bool(schema.generate_file),
             fields=fields,
+            submitButtonLabel=schema.submit_button_label,
             # Always registering the change hook has no consequences, even if we don't use it.
             hooks={"load": not schema.static_form, "change": ["changeHook"]},
         )
