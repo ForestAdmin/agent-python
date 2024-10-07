@@ -1,5 +1,5 @@
 import asyncio
-from unittest import TestCase, skip
+from unittest import TestCase
 from unittest.mock import Mock
 
 from forestadmin.agent_toolkit.utils.forest_schema.generator_action import SchemaActionGenerator
