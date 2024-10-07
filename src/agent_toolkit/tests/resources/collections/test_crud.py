@@ -1215,19 +1215,6 @@ class TestCrudResource(TestCase):
         response_content = json.loads(response.body)
         assert response_content["errors"][0] == {"detail": "🌳🌳🌳", "name": "JsonApiException", "status": 500}
 
-        # RecordValidatorException
-        mocked_json_serializer_get.return_value.load = Mock(return_value=mock_order)
-        with patch(
-            "forestadmin.agent_toolkit.resources.collections.crud.RecordValidator.validate",
-            side_effect=RecordValidatorException,
-        ):
-            response = self.loop.run_until_complete(crud_resource.update(request))
-        self.permission_service.can.assert_any_await(request.user, request.collection, "edit")
-        self.permission_service.can.reset_mock()
-        assert response.status == 500
-        response_content = json.loads(response.body)
-        assert response_content["errors"][0] == {"detail": "🌳🌳🌳", "name": "RecordValidatorException", "status": 500}
-
         # JsonApiException
         mocked_json_serializer_get.return_value.dump = Mock(side_effect=JsonApiException)
         response = self.loop.run_until_complete(crud_resource.update(request))
@@ -1236,6 +1223,32 @@ class TestCrudResource(TestCase):
         assert response.status == 500
         response_content = json.loads(response.body)
         assert response_content["errors"][0] == {"detail": "🌳🌳🌳", "name": "JsonApiException", "status": 500}
+
+    def test_edit_should_not_throw_and_do_nothing_on_empty_record(self):
+        request = RequestCollection(
+            RequestMethod.PUT,
+            self.collection_order,
+            {"data": {"attributes": {}, "id": 10, "relationships": {}}},
+            {
+                "collection_name": "order",
+                "timezone": "Europe/Paris",
+                "pks": "10",
+                "fields[order]": "id,cost",
+            },
+            {},
+            None,
+        )
+        mock_order = {"id": 10, "cost": 201}
+        self.collection_order.list = AsyncMock(return_value=[mock_order])
+        self.collection_order.update = AsyncMock()
+        crud_resource = CrudResource(self.datasource, self.permission_service, self.ip_white_list_service, self.options)
+
+        response = self.loop.run_until_complete(crud_resource.update(request))
+        self.permission_service.can.reset_mock()
+
+        self.collection_order.update.assert_any_await(ANY, ANY, {})
+
+        self.assertEqual(response.status, 200)
 
     def test_edit_should_not_update_pk_if_not_set_in_attributes(self):
         request = RequestCollection(
