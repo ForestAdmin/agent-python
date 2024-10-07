@@ -253,12 +253,6 @@ class CrudResource(BaseCollectionResource):
         except JsonApiException as e:
             ForestLogger.log("exception", e)
             return HttpResponseBuilder.build_client_error_response([e])
-        try:
-            RecordValidator.validate(cast(Collection, collection), data)
-        except RecordValidatorException as e:
-            ForestLogger.log("exception", e)
-            return HttpResponseBuilder.build_client_error_response([e])
-
         trees: List[ConditionTree] = [ConditionTreeFactory.match_ids(collection.schema, [ids])]
         scope_tree = await self.permission.get_scope(request.user, request.collection)
         if scope_tree:
