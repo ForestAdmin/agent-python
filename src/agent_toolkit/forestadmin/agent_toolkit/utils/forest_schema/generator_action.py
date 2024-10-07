@@ -65,8 +65,7 @@ class SchemaActionGenerator:
             hooks={"load": not schema.static_form, "change": ["changeHook"]},
         )
 
-        # TODO: do we want after story #7 to have all the layout in the forestadminschema.json ?
-        # what about  when there is no layout customization
+        # when there is not layout customizations, don't send the 'layout' property
         if any([item["component"] != "Input" for item in layout]):
             ret["layout"] = [await SchemaActionGenerator.build_layout_schema(field) for field in layout]
         return ret
