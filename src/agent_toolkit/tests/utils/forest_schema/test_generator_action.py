@@ -319,7 +319,6 @@ class TestSchemaActionGenerator(BaseTestSchemaActionGenerator):
 
 
 class TestSchemaActionGeneratorLayout(BaseTestSchemaActionGenerator):
-    @skip("restore it for story#7")
     def test_should_generate_layout_only_if_there_is_layout_elements(self):
         self.book_collection_action.add_action(
             "Send email",
@@ -343,6 +342,7 @@ class TestSchemaActionGeneratorLayout(BaseTestSchemaActionGenerator):
             [
                 {
                     "field": "firstname",
+                    "label": "firstname",
                     "value": None,
                     "defaultValue": None,
                     "description": "",
@@ -356,6 +356,7 @@ class TestSchemaActionGeneratorLayout(BaseTestSchemaActionGenerator):
                 },
                 {
                     "field": "lastname",
+                    "label": "lastname",
                     "value": None,
                     "defaultValue": None,
                     "description": "",
@@ -378,44 +379,25 @@ class TestSchemaActionGeneratorLayout(BaseTestSchemaActionGenerator):
             ],
         )
 
-    # TODO: remove after story#7
-    def test_should_generate_dynamic_form_if_there_is_layout_element(self):
+    def test_should_not_generate_layout_if_there_is_no_layout_elements(self):
         self.book_collection_action.add_action(
-            "Send email",
+            "Send email no layout",
             {
                 "scope": ActionsScope.SINGLE,
                 "generate_file": False,
                 "execute": Mock(),
                 "form": [
                     {"type": "String", "label": "firstname"},
-                    {"type": "Layout", "component": "Separator"},
                     {"type": "String", "label": "lastname"},
                 ],
             },
         )
 
         result = self.loop.run_until_complete(
-            SchemaActionGenerator.build("", self.book_collection_action, "Send email")
+            SchemaActionGenerator.build("", self.book_collection_action, "Send email no layout")
         )
-        self.assertEqual(
-            result["fields"],
-            [
-                {
-                    "field": "Loading...",
-                    "label": "Loading...",
-                    "type": "String",
-                    "isReadOnly": True,
-                    "defaultValue": "Form is loading",
-                    "value": None,
-                    "description": "",
-                    "enums": None,
-                    "hook": None,
-                    "isRequired": False,
-                    "reference": None,
-                    "widgetEdit": None,
-                }
-            ],
-        )
+
+        self.assertNotIn("layout", result)
 
     def test_field_layout_separator_should_work_fine(self):
         self.book_collection_action.add_action(
