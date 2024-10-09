@@ -1,3 +1,10 @@
+# [1.16.0](https://github.com/ForestAdmin/agent-python/compare/v1.15.1...v1.16.0) (2024-10-09)
+
+
+### Features
+
+* **action:** allow forms with layout to be static ([#277](https://github.com/ForestAdmin/agent-python/issues/277)) ([cafd0f5](https://github.com/ForestAdmin/agent-python/commit/cafd0f5790449f08cdf864b6879183cd3d6a18d2))
+
 ## [1.15.1](https://github.com/ForestAdmin/agent-python/compare/v1.15.0...v1.15.1) (2024-10-09)
 
 
