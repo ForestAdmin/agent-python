@@ -24,6 +24,7 @@ from forestadmin.datasource_toolkit.interfaces.actions import (
     ActionLayoutElement,
     ActionResult,
     ActionsScope,
+    BaseActionFormElement,
 )
 from forestadmin.datasource_toolkit.interfaces.models.collections import CollectionSchema
 from forestadmin.datasource_toolkit.interfaces.query.filter.unpaginated import Filter
@@ -119,11 +120,7 @@ class ActionCollectionDecorator(CollectionDecorator):
         if meta.get("search_field"):
             # in the case of a search hook,
             # we don't want to rebuild all the fields. only the one searched
-            form_fields = [
-                field
-                for field in form_fields
-                if isinstance(field, BaseDynamicField) and field.id == meta["search_field"]
-            ]
+            form_fields = [self._search_field_in_form(meta["search_field"], form_fields)]  # type: ignore
 
         form_values = await self._build_form_values(context, form_fields, form_values)
         context.form_values.update(form_values)
@@ -133,6 +130,19 @@ class ActionCollectionDecorator(CollectionDecorator):
 
         self._set_watch_changes_attr(action_fields, context)
         return action_fields
+
+    def _search_field_in_form(
+        self, field_id: str, form_elements: List[BaseActionFormElement]
+    ) -> ActionField:  # type: ignore
+        for field in form_elements:
+            if isinstance(field, BaseDynamicField):
+                if field.id == field_id:
+                    return field  # type: ignore
+            elif isinstance(field, DynamicLayoutElements):
+                if field._component == "Row":
+                    return self._search_field_in_form(field_id, field._row_subfields)  # type: ignore
+                if field._component == "Page":
+                    return self._search_field_in_form(field_id, field._page_elements)  # type: ignore
 
     def _set_watch_changes_attr(
         self, form_elements: List[Union[ActionLayoutElement, ActionField]], context: ActionContext
@@ -189,9 +199,13 @@ class ActionCollectionDecorator(CollectionDecorator):
                 form_values[field.id] = form_values.get(field.id, await field.default_value(context))
             elif isinstance(field, DynamicLayoutElements):
                 if field._component == "Page":
-                    form_values.update(await self._build_form_values(context, field._page_elements, data))
+                    form_values.update(
+                        await self._build_form_values(context, field._page_elements, data),  # type: ignore
+                    )
                 elif field._component == "Row":
-                    form_values.update(await self._build_form_values(context, field._row_subfields, data))
+                    form_values.update(
+                        await self._build_form_values(context, field._row_subfields, data),  # type: ignore
+                    )
 
         return form_values
 
