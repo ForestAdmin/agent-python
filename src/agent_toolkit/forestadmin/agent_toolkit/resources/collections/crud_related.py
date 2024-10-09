@@ -270,7 +270,6 @@ class CrudRelatedResource(BaseCollectionResource):
     @check_method(RequestMethod.DELETE)
     async def delete_list(self, request: RequestRelationCollection) -> Response:
         """delete and dissociate"""
-        await self.permission.can(request.user, request.collection, "delete")
         try:
             parent_ids = unpack_id(request.collection.schema, request.pks)
         except (FieldValidatorException, CollectionResourceException) as e:
@@ -280,6 +279,11 @@ class CrudRelatedResource(BaseCollectionResource):
         delete_mode = False
         if request.query:
             delete_mode = bool(request.query.get("delete", False))
+
+        if delete_mode is True:
+            await self.permission.can(request.user, request.foreign_collection, "delete")
+        else:
+            await self.permission.can(request.user, request.collection, "edit")
 
         filter = await self.get_base_fk_filter(request)
 

@@ -1254,7 +1254,7 @@ class TestCrudRelatedResource(TestCase):
         ) as fake_delete_one_to_many:
             response = self.loop.run_until_complete(self.crud_related_resource.delete_list(request))
             fake_delete_one_to_many.assert_awaited()
-        self.permission_service.can.assert_any_await(request.user, request.collection, "delete")
+        self.permission_service.can.assert_any_await(request.user, request.collection, "edit")
         self.permission_service.can.reset_mock()
 
         assert response.status == 204
@@ -1275,7 +1275,7 @@ class TestCrudRelatedResource(TestCase):
         ) as fake_delete_many_to_many:
             response = self.loop.run_until_complete(self.crud_related_resource.delete_list(request))
             fake_delete_many_to_many.assert_awaited()
-        self.permission_service.can.assert_any_await(request.user, request.collection, "delete")
+        self.permission_service.can.assert_any_await(request.user, request.collection, "edit")
         self.permission_service.can.reset_mock()
 
         assert response.status == 204
@@ -1303,7 +1303,7 @@ class TestCrudRelatedResource(TestCase):
             None,  # user
         )
         response = self.loop.run_until_complete(crud_related_resource.delete_list(request))
-        self.permission_service.can.assert_any_await(request.user, request.collection, "delete")
+        self.permission_service.can.assert_not_awaited()
         self.permission_service.can.reset_mock()
         assert response.status == 500
         response_content = json.loads(response.body)
@@ -1331,7 +1331,7 @@ class TestCrudRelatedResource(TestCase):
         ) as fake_delete_many_to_many:
             response = self.loop.run_until_complete(crud_related_resource.delete_list(request))
             fake_delete_many_to_many.assert_awaited()
-        self.permission_service.can.assert_any_await(request.user, request.collection, "delete")
+        self.permission_service.can.assert_any_await(request.user, request.collection, "edit")
         self.permission_service.can.reset_mock()
         assert response.status == 500
         response_content = json.loads(response.body)
@@ -1358,7 +1358,7 @@ class TestCrudRelatedResource(TestCase):
             None,  # user
         )
         response = self.loop.run_until_complete(crud_related_resource.delete_list(request))
-        self.permission_service.can.assert_any_await(request.user, request.collection, "delete")
+        self.permission_service.can.assert_any_await(request.user, request.collection, "edit")
         self.permission_service.can.reset_mock()
         assert response.status == 500
         response_content = json.loads(response.body)
@@ -1367,6 +1367,55 @@ class TestCrudRelatedResource(TestCase):
             "detail": "🌳🌳🌳Unhandled relation type",
             "status": 500,
         }
+
+    def test_delete_list_should_check_delete_permission_when_delete_flag_is_set(self):
+        query_get_params = {
+            "collection_name": "customer",
+            "relation_name": "order",
+            "timezone": "Europe/Paris",
+            "fields[order]": "id,cost",
+            "pks": "2",  # customer id
+            "delete": True,
+        }
+        request = RequestRelationCollection(
+            RequestMethod.DELETE,
+            *self.mk_request_customer_order_one_to_many(),
+            {"data": [{"id": "201", "type": "order"}]},
+            query_get_params,
+            {},
+            None,
+        )
+        with patch.object(
+            self.crud_related_resource, "_delete_one_to_many", new_callable=AsyncMock
+        ) as fake_delete_one_to_many:
+            self.loop.run_until_complete(self.crud_related_resource.delete_list(request))
+            fake_delete_one_to_many.assert_awaited()
+        self.permission_service.can.assert_any_await(request.user, request.foreign_collection, "delete")
+        self.permission_service.can.reset_mock()
+
+    def test_delete_list_should_check_edit_permission_when_delete_flag_is_not_set(self):
+        query_get_params = {
+            "collection_name": "customer",
+            "relation_name": "order",
+            "timezone": "Europe/Paris",
+            "fields[order]": "id,cost",
+            "pks": "2",  # customer id
+        }
+        request = RequestRelationCollection(
+            RequestMethod.DELETE,
+            *self.mk_request_customer_order_one_to_many(),
+            {"data": [{"id": "201", "type": "order"}]},
+            query_get_params,
+            {},
+            None,
+        )
+        with patch.object(
+            self.crud_related_resource, "_delete_one_to_many", new_callable=AsyncMock
+        ) as fake_delete_one_to_many:
+            self.loop.run_until_complete(self.crud_related_resource.delete_list(request))
+            fake_delete_one_to_many.assert_awaited()
+        self.permission_service.can.assert_any_await(request.user, request.collection, "edit")
+        self.permission_service.can.reset_mock()
 
     # _associate_one_to_many
     def test_associate_one_to_many(self):
