@@ -1,3 +1,10 @@
+# [1.15.0](https://github.com/ForestAdmin/agent-python/compare/v1.14.0...v1.15.0) (2024-10-09)
+
+
+### Features
+
+* **actions:** add pages in forms  ([#274](https://github.com/ForestAdmin/agent-python/issues/274)) ([d591fdd](https://github.com/ForestAdmin/agent-python/commit/d591fdd2e9f6e477a0374ff0090deeafb113b464))
+
 # [1.14.0](https://github.com/ForestAdmin/agent-python/compare/v1.13.0...v1.14.0) (2024-10-04)
 
 
