@@ -68,15 +68,11 @@ class SchemaActionGenerator:
         # TODO: do we want after story #7 to have all the layout in the forestadminschema.json ?
         # what about  when there is no layout customization
         if any([item["component"] != "Input" for item in layout]):
-            ret["layout"] = [
-                await SchemaActionGenerator.build_layout_schema(collection.datasource, field) for field in layout
-            ]
+            ret["layout"] = [await SchemaActionGenerator.build_layout_schema(field) for field in layout]
         return ret
 
     @classmethod
-    async def build_layout_schema(
-        cls, datasource: Datasource[Collection], field: ActionFormElement
-    ) -> ForestServerActionFormLayoutElement:
+    async def build_layout_schema(cls, field: ActionFormElement) -> ForestServerActionFormLayoutElement:
         field = cast(ActionLayoutElement, field)
         if field["component"] == "Input":
             return {"component": "input", "fieldId": field["fieldId"]}  # type:ignore
@@ -87,7 +83,14 @@ class SchemaActionGenerator:
         elif field["component"] == "Row":
             return {
                 "component": "row",
-                "fields": [await cls.build_layout_schema(datasource, f) for f in field["fields"]],  # type:ignore
+                "fields": [await cls.build_layout_schema(f) for f in field["fields"]],  # type:ignore
+            }
+        elif field["component"] == "Page":
+            return {
+                "component": "page",
+                "nextButtonLabel": field.get("next_button_label"),
+                "previousButtonLabel": field.get("previous_button_label"),
+                "elements": [await cls.build_layout_schema(f) for f in field["elements"]],  # type:ignore
             }
         else:
             raise AgentToolkitException(f"Unknown component '{field['component']}'")
@@ -162,10 +165,10 @@ class SchemaActionGenerator:
                     sub_fields, sub_layout = cls.extract_fields_and_layout(element["fields"])  # type: ignore
                     layout.append({**element, "fields": sub_layout})  # type: ignore
                     fields.extend(sub_fields)
-                # elif element["widget"] == "Page":
-                #     sub_fields, sub_layout = await cls.extract_fields_and_layout(element["elements"])
-                #     fields.extend(sub_fields)
-                #     layout.append({**element, "elements": sub_layout})
+                elif element["component"] == "Page":  # type: ignore
+                    sub_fields, sub_layout = cls.extract_fields_and_layout(element["elements"])  # type: ignore
+                    fields.extend(sub_fields)
+                    layout.append({**element, "elements": sub_layout})  # type: ignore
                 else:
                     layout.append(cast(ActionLayoutElement, element))
 

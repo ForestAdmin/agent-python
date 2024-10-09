@@ -96,6 +96,7 @@ LayoutComponentTypes = Literal[
     # "Input", # we don't want users to use this one
     "HtmlBlock",
     "Row",
+    "Page",
 ]
 
 
@@ -114,6 +115,9 @@ class ActionLayoutElement(BaseActionFormElement):
     fieldId: NotRequired[str]
     content: NotRequired[str]
     fields: NotRequired[List[Union["ActionField", ActionLayoutInput]]]
+    elements: NotRequired[List["ActionFormElement"]]
+    next_button_label: NotRequired[Optional[str]]
+    previous_button_label: NotRequired[Optional[str]]
 
 
 class ActionField(BaseActionFormElement):

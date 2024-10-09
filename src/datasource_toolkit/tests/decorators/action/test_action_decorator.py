@@ -70,8 +70,48 @@ class TestActionCollectionCustomizer(TestCase):
                 "scope": ActionsScope.SINGLE,
                 "execute": lambda ctx, result_builder: result_builder.success(),
                 "form": [
-                    {"type": ActionFieldType.NUMBER, "label": "amount", "id": "id"},
-                    {"type": ActionFieldType.NUMBER, "label": "cost", "id": "id"},
+                    {
+                        "type": ActionFieldType.LAYOUT,
+                        "component": "Page",
+                        "elements": [
+                            {"type": ActionFieldType.NUMBER, "label": "cost", "id": "id"},
+                            {
+                                "type": ActionFieldType.LAYOUT,
+                                "component": "Row",
+                                "fields": [
+                                    {"type": ActionFieldType.NUMBER, "label": "amount", "id": "id"},
+                                ],
+                            },
+                        ],
+                    }
+                ],
+            },
+        )
+
+    def test_add_action_should_raise_if_pages_and_others_are_mixed_at_root(self):
+        self.assertRaisesRegex(
+            DatasourceToolkitException,
+            r"You cannot mix pages and other form elements in smart action 'action_test' form",
+            self.product_collection.add_action,
+            "action_test",
+            {
+                "scope": ActionsScope.SINGLE,
+                "execute": lambda ctx, result_builder: result_builder.success(),
+                "form": [
+                    {
+                        "type": ActionFieldType.LAYOUT,
+                        "component": "Page",
+                        "elements": [
+                            {
+                                "type": ActionFieldType.NUMBER,
+                                "label": "cost",
+                            },
+                        ],
+                    },
+                    {
+                        "type": ActionFieldType.NUMBER,
+                        "label": "amount",
+                    },
                 ],
             },
         )
@@ -213,7 +253,7 @@ class TestActionCollectionCustomizer(TestCase):
 
     def test_get_form_should_compute_dynamic_default_values_on_load_hook(self):
         async def execute(context: ActionContextSingle, result_builder: ResultBuilder) -> Union[ActionResult, None]:
-            result_builder.success("Bravo !!!")
+            return result_builder.success("Bravo !!!")
 
         test_action: ActionDict = {
             "scope": ActionsScope.SINGLE,
@@ -254,7 +294,7 @@ class TestActionCollectionCustomizer(TestCase):
                 "id": "last_name",
                 "type": ActionFieldType.STRING,
                 "description": "",
-                "is_read_only": False,
+                "is_read_only": True,
                 "is_required": False,
                 "value": None,
                 "collection_name": None,

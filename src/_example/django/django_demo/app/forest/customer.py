@@ -206,6 +206,42 @@ export_json_action_dict: ActionDict = {
     "scope": "Bulk",
     "generate_file": True,
     "execute": export_customers_json,
+    "description": "test multipage",
+    "submit_button_label": "execute all pages",
+    "form": [
+        {
+            "type": "Layout",
+            "component": "Page",
+            "next_button_label": "go to address",
+            # "next_button_label": lambda ctx: "go to address",
+            "elements": [
+                {"type": "String", "label": "firstName"},
+                {"type": "String", "label": "lastName"},
+                {"type": "Layout", "component": "Separator"},
+                {"type": "Date", "label": "birthDate"},
+            ],
+        },
+        {
+            "type": "Layout",
+            "component": "Page",
+            "previous_button_label": "go back to identity",
+            "elements": [
+                {
+                    "type": "Layout",
+                    "component": "Row",
+                    "fields": [
+                        {"type": "Number", "label": "street_number"},
+                        {"type": "String", "label": "street_name"},
+                    ],
+                },
+                {"type": "Layout", "component": "Separator"},
+                {"type": "String", "label": "postal_code"},
+                {"type": "Number", "label": "city"},
+                {"type": "Layout", "component": "Separator"},
+                {"type": "String", "label": "country"},
+            ],
+        },
+    ],
 }
 
 
