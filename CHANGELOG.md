@@ -1,3 +1,10 @@
+## [1.16.1](https://github.com/ForestAdmin/agent-python/compare/v1.16.0...v1.16.1) (2024-10-09)
+
+
+### Bug Fixes
+
+* **permissions:** properly check permissions when dissociating or deleting related resources ([#278](https://github.com/ForestAdmin/agent-python/issues/278)) ([e8123c1](https://github.com/ForestAdmin/agent-python/commit/e8123c1875055d11d2ef8ff6b2a56d4d5b6b976a))
+
 # [1.16.0](https://github.com/ForestAdmin/agent-python/compare/v1.15.1...v1.16.0) (2024-10-09)
 
 
