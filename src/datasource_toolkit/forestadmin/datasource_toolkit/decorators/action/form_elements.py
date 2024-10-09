@@ -140,8 +140,14 @@ class DynamicLayoutElements(BaseDynamicFormElement):
 
     @property
     def is_dynamic(self) -> bool:
-        # TODO: restore the real computation for story#7
-        return True
+        """return True if this field is dynamic"""
+        dynamic = super().is_dynamic
+        if self._component == "Row":
+            dynamic = dynamic or any(map(lambda x: x.is_dynamic, self._row_subfields))
+        elif self._component == "Page":
+            dynamic = dynamic or any(map(lambda x: x.is_dynamic, self._page_elements))
+
+        return dynamic
 
     async def to_action_field(
         self, context: Context, default_value: Any, search_value: Optional[str] = None

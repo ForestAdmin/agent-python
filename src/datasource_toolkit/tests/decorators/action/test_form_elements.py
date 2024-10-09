@@ -257,11 +257,6 @@ class TestLayoutDynamicElementSeparator(BaseTestDynamicField):
 
         self.dynamic_field = FormElementFactory.build(self.plain_dynamic_layout)
 
-    def test_should_always_been_dynamic(self):
-        # TODO: this test must be remove at story#7
-        field = FormElementFactory.build(PlainLayoutDynamicLayoutElementSeparator(type="Layout", component="Separator"))
-        self.assertEqual(field.is_dynamic, True)
-
     def test_should_evaluate_if(self):
         ctx = Mock()
         ctx.form_values = {"desired_value": True}
@@ -679,3 +674,26 @@ class TestLayoutDynamicElementPage(BaseTestDynamicField):
             FormElementFactory.build,
             plain_field,
         )
+
+    def test_should_be_consider_as_dynamic_if_nested_field_is_dynamic(self):
+        plain_field = PlainLayoutDynamicLayoutElementPage(
+            type="Layout",
+            component="Page",
+            elements=[
+                {"type": "Layout", "component": "HtmlBlock", "content": "<h3>Identity</h3>"},
+                {
+                    "type": "Layout",
+                    "component": "Row",
+                    "fields": [
+                        {"type": "String", "label": "firstname"},
+                        {
+                            "type": "String",
+                            "label": "lastname",
+                            "if_": lambda ctx: ctx.form_values.get("firstname", "") != "special value",
+                        },
+                    ],
+                },
+            ],
+        )
+        dynamic_field = FormElementFactory.build(plain_field)
+        self.assertTrue(dynamic_field.is_dynamic)
