@@ -1,3 +1,10 @@
+## [1.15.1](https://github.com/ForestAdmin/agent-python/compare/v1.15.0...v1.15.1) (2024-10-09)
+
+
+### Bug Fixes
+
+* **action:** search field didn't works with row and pages ([#276](https://github.com/ForestAdmin/agent-python/issues/276)) ([e0c3d64](https://github.com/ForestAdmin/agent-python/commit/e0c3d64f626f120e8549219e7b9a6e8be89a9dab))
+
 # [1.15.0](https://github.com/ForestAdmin/agent-python/compare/v1.14.0...v1.15.0) (2024-10-09)
 
 
