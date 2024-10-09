@@ -575,27 +575,187 @@
                     "download": true,
                     "fields": [
                         {
-                            "field": "Loading...",
-                            "label": "Loading...",
-                            "type": "String",
-                            "isReadOnly": true,
-                            "defaultValue": "Form is loading",
+                            "field": "firstName",
+                            "label": "firstName",
                             "value": null,
+                            "defaultValue": null,
                             "description": "",
                             "enums": null,
                             "hook": null,
+                            "isReadOnly": false,
                             "isRequired": false,
                             "reference": null,
+                            "type": "String",
+                            "widgetEdit": null
+                        },
+                        {
+                            "field": "lastName",
+                            "label": "lastName",
+                            "value": null,
+                            "defaultValue": null,
+                            "description": "",
+                            "enums": null,
+                            "hook": null,
+                            "isReadOnly": false,
+                            "isRequired": false,
+                            "reference": null,
+                            "type": "String",
+                            "widgetEdit": null
+                        },
+                        {
+                            "field": "birthDate",
+                            "label": "birthDate",
+                            "value": null,
+                            "defaultValue": null,
+                            "description": "",
+                            "enums": null,
+                            "hook": null,
+                            "isReadOnly": false,
+                            "isRequired": false,
+                            "reference": null,
+                            "type": "Date",
+                            "widgetEdit": null
+                        },
+                        {
+                            "field": "street_number",
+                            "label": "street_number",
+                            "value": null,
+                            "defaultValue": null,
+                            "description": "",
+                            "enums": null,
+                            "hook": null,
+                            "isReadOnly": false,
+                            "isRequired": false,
+                            "reference": null,
+                            "type": "Number",
+                            "widgetEdit": null
+                        },
+                        {
+                            "field": "street_name",
+                            "label": "street_name",
+                            "value": null,
+                            "defaultValue": null,
+                            "description": "",
+                            "enums": null,
+                            "hook": null,
+                            "isReadOnly": false,
+                            "isRequired": false,
+                            "reference": null,
+                            "type": "String",
+                            "widgetEdit": null
+                        },
+                        {
+                            "field": "postal_code",
+                            "label": "postal_code",
+                            "value": null,
+                            "defaultValue": null,
+                            "description": "",
+                            "enums": null,
+                            "hook": null,
+                            "isReadOnly": false,
+                            "isRequired": false,
+                            "reference": null,
+                            "type": "String",
+                            "widgetEdit": null
+                        },
+                        {
+                            "field": "city",
+                            "label": "city",
+                            "value": null,
+                            "defaultValue": null,
+                            "description": "",
+                            "enums": null,
+                            "hook": null,
+                            "isReadOnly": false,
+                            "isRequired": false,
+                            "reference": null,
+                            "type": "Number",
+                            "widgetEdit": null
+                        },
+                        {
+                            "field": "country",
+                            "label": "country",
+                            "value": null,
+                            "defaultValue": null,
+                            "description": "",
+                            "enums": null,
+                            "hook": null,
+                            "isReadOnly": false,
+                            "isRequired": false,
+                            "reference": null,
+                            "type": "String",
                             "widgetEdit": null
                         }
                     ],
                     "submitButtonLabel": "execute all pages",
                     "hooks": {
-                        "load": true,
+                        "load": false,
                         "change": [
                             "changeHook"
                         ]
-                    }
+                    },
+                    "layout": [
+                        {
+                            "component": "page",
+                            "nextButtonLabel": "go to address",
+                            "previousButtonLabel": null,
+                            "elements": [
+                                {
+                                    "component": "input",
+                                    "fieldId": "firstName"
+                                },
+                                {
+                                    "component": "input",
+                                    "fieldId": "lastName"
+                                },
+                                {
+                                    "component": "separator"
+                                },
+                                {
+                                    "component": "input",
+                                    "fieldId": "birthDate"
+                                }
+                            ]
+                        },
+                        {
+                            "component": "page",
+                            "nextButtonLabel": null,
+                            "previousButtonLabel": "go back to identity",
+                            "elements": [
+                                {
+                                    "component": "row",
+                                    "fields": [
+                                        {
+                                            "component": "input",
+                                            "fieldId": "street_number"
+                                        },
+                                        {
+                                            "component": "input",
+                                            "fieldId": "street_name"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "component": "separator"
+                                },
+                                {
+                                    "component": "input",
+                                    "fieldId": "postal_code"
+                                },
+                                {
+                                    "component": "input",
+                                    "fieldId": "city"
+                                },
+                                {
+                                    "component": "separator"
+                                },
+                                {
+                                    "component": "input",
+                                    "fieldId": "country"
+                                }
+                            ]
+                        }
+                    ]
                 },
                 {
                     "id": "app_customer-1-age operation",
@@ -3495,7 +3655,7 @@
     ],
     "meta": {
         "liana": "agent-python",
-        "liana_version": "1.8.19",
+        "liana_version": "1.12.0",
         "stack": {
             "engine": "python",
             "engine_version": "3.12.4"
