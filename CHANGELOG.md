@@ -1,3 +1,10 @@
+## [1.16.2](https://github.com/ForestAdmin/agent-python/compare/v1.16.1...v1.16.2) (2024-10-16)
+
+
+### Bug Fixes
+
+* **update:** the generated sql request always sets the primary key by its own value ([#275](https://github.com/ForestAdmin/agent-python/issues/275)) ([cdf700f](https://github.com/ForestAdmin/agent-python/commit/cdf700fff434caa8644a6a49049a8aa156a4984a))
+
 ## [1.16.1](https://github.com/ForestAdmin/agent-python/compare/v1.16.0...v1.16.1) (2024-10-09)
 
 
