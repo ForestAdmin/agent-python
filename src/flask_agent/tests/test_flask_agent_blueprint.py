@@ -58,7 +58,9 @@ class TestFlaskAgentBlueprint(TestCase):
         self.mocked_resources["capabilities"].dispatch.assert_awaited()
         call_args = self.mocked_resources["capabilities"].dispatch.await_args.args
         self.assertEqual(call_args[1], "capabilities")
-        call_args[0].headers = {**call_args[0].headers}
+        headers = {**call_args[0].headers}
+        del headers["User-Agent"]
+        call_args[0].headers = headers
         self.assertEqual(
             call_args[0],
             Request(
@@ -66,7 +68,6 @@ class TestFlaskAgentBlueprint(TestCase):
                 {"collectionNames": ["app_test"]},
                 {"timezone": "Europe/Paris"},
                 {
-                    "User-Agent": "Werkzeug/3.0.3",
                     "Host": "localhost",
                     "Content-Type": "application/json",
                     "Content-Length": "33",
