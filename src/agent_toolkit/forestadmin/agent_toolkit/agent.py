@@ -4,6 +4,7 @@ from forestadmin.agent_toolkit.exceptions import AgentToolkitException
 from forestadmin.agent_toolkit.forest_logger import ForestLogger
 from forestadmin.agent_toolkit.options import Options, OptionValidator
 from forestadmin.agent_toolkit.resources.actions.resources import ActionResource
+from forestadmin.agent_toolkit.resources.capabilities import CapabilitiesResource
 from forestadmin.agent_toolkit.resources.collections.charts_collection import ChartsCollectionResource
 from forestadmin.agent_toolkit.resources.collections.charts_datasource import ChartsDatasourceResource
 from forestadmin.agent_toolkit.resources.collections.crud import CrudResource
@@ -28,6 +29,7 @@ from typing_extensions import Self
 
 
 class Resources(TypedDict):
+    capabilities: CapabilitiesResource
     authentication: Authentication
     crud: CrudResource
     crud_related: CrudRelatedResource
@@ -70,6 +72,9 @@ class Agent:
 
     async def __mk_resources(self):
         self._resources: Resources = {
+            "capabilities": CapabilitiesResource(
+                await self.customizer.get_datasource(), self._ip_white_list_service, self.options
+            ),
             "authentication": Authentication(self._ip_white_list_service, self.options),
             "crud": CrudResource(
                 await self.customizer.get_datasource(),
