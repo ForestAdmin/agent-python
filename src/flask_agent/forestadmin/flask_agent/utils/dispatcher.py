@@ -1,8 +1,13 @@
-from typing import Dict
+from typing import Union
 
-from forestadmin.agent_toolkit.resources.collections.crud import LiteralMethod
+from forestadmin.agent_toolkit.resources.collections.crud import LiteralMethod as CrudLiteralMethod
+from forestadmin.agent_toolkit.resources.collections.crud import LiteralMethod as CrudRelatedLiteralMethod
 
-LIST_MAPPER: Dict[str, Dict[str, LiteralMethod]] = {
+LiteralMethod = Union[CrudLiteralMethod, CrudRelatedLiteralMethod]
+
+# All this file is duplicated
+
+LIST_MAPPER = {
     "LIST": {
         "GET": "list",
         "POST": "add",

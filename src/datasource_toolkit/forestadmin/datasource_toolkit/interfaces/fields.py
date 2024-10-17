@@ -139,13 +139,13 @@ class Validation(TypedDict):
 
 class Column(TypedDict):
     column_type: "ColumnAlias"
-    filter_operators: NotRequired[Optional[Set[Operator]]]
-    default_value: NotRequired[Optional[Any]]
-    enum_values: NotRequired[Optional[List[str]]]
-    is_primary_key: NotRequired[Optional[bool]]
-    is_read_only: NotRequired[Optional[bool]]
-    is_sortable: NotRequired[Optional[bool]]
-    validations: NotRequired[Optional[List[Validation]]]
+    filter_operators: Set[Operator]
+    default_value: Optional[Any]
+    enum_values: Optional[List[str]]
+    is_primary_key: bool
+    is_read_only: bool
+    is_sortable: bool
+    validations: List[Validation]
     type: Literal[FieldType.COLUMN]
 
 
