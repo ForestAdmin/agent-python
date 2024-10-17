@@ -55,6 +55,7 @@ class TestFlaskAgent(TestCase):
         mock_base_agent_resources.return_value = {
             "crud": Mock(),
             "crud_related": Mock(),
+            "capabilities": Mock(),
             "authentication": Mock(),
             "stats": Mock(),
             "actions": Mock(),
@@ -67,6 +68,7 @@ class TestFlaskAgent(TestCase):
         blueprint.after_request.assert_called_once_with(_after_request)
         calls = [
             call("", methods=["GET"]),
+            call("/capabilities", methods=["POST"]),
             call("/authentication/callback", methods=["GET"]),
             call("/_actions/<collection_name>/<int:action_name>/<slug>/hooks/load", methods=["POST"]),
             call("/_actions/<collection_name>/<int:action_name>/<slug>/hooks/change", methods=["POST"]),

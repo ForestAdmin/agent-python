@@ -3,7 +3,7 @@ from unittest import TestCase
 from unittest.mock import ANY, AsyncMock, patch
 
 from flask import Flask
-from forestadmin.agent_toolkit.utils.context import Response
+from forestadmin.agent_toolkit.utils.context import Request, RequestMethod, Response
 from forestadmin.flask_agent.agent import create_agent
 
 
@@ -13,6 +13,7 @@ class TestFlaskAgentBlueprint(TestCase):
         cls.loop = asyncio.new_event_loop()
         cls.mocked_resources = {}
         for key in [
+            "capabilities",
             "authentication",
             "crud",
             "crud_related",
@@ -46,6 +47,34 @@ class TestFlaskAgentBlueprint(TestCase):
         response = self.client.get("/forest")
         assert response.status_code == 200
         assert response.json is None
+
+    def test_capabilities(self):
+        response = self.client.post(
+            "/forest/capabilities?timezone=Europe%2FParis",
+            json={"collectionNames": ["app_test"]},
+        )
+        assert response.status_code == 200
+        assert response.json == {"mock": "ok"}
+        self.mocked_resources["capabilities"].dispatch.assert_awaited()
+        call_args = self.mocked_resources["capabilities"].dispatch.await_args.args
+        self.assertEqual(call_args[1], "capabilities")
+        call_args[0].headers = {**call_args[0].headers}
+        self.assertEqual(
+            call_args[0],
+            Request(
+                RequestMethod.POST,
+                {"collectionNames": ["app_test"]},
+                {"timezone": "Europe/Paris"},
+                {
+                    "User-Agent": "Werkzeug/3.0.3",
+                    "Host": "localhost",
+                    "Content-Type": "application/json",
+                    "Content-Length": "33",
+                },
+                None,
+                "127.0.0.1",
+            ),
+        )
 
     def test_hook_load(self):
         response = self.client.post("/forest/_actions/customer/1/action_name/hooks/load")
