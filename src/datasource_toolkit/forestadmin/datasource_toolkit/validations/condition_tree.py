@@ -1,6 +1,6 @@
 from typing import Union, cast
 
-from forestadmin.datasource_toolkit.exceptions import DatasourceToolkitException
+from forestadmin.datasource_toolkit.exceptions import ValidationError
 from forestadmin.datasource_toolkit.interfaces.fields import Column, PrimitiveType, is_column
 from forestadmin.datasource_toolkit.interfaces.models.collections import Collection
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.base import ConditionTree
@@ -15,7 +15,7 @@ from forestadmin.datasource_toolkit.validations.rules import (
 from forestadmin.datasource_toolkit.validations.type_getter import TypeGetter
 
 
-class ConditionTreeValidatorException(DatasourceToolkitException):
+class ConditionTreeValidatorException(ValidationError):
     pass
 
 
@@ -57,7 +57,13 @@ class ConditionTreeValidator:
             raise ConditionTreeValidatorException(f'{error_msg} "The column is not filterable"')
         elif condition_tree.operator not in operators:
             raise ConditionTreeValidatorException(
-                f'{error_msg} "The allowed types are {[operator for operator in operators]}"'
+                f"The given operator '{condition_tree.operator.value}' is not "
+                f"supported by the column: '{condition_tree.field}'.\n"
+                + (
+                    f"The allowed operators are: [{','.join([o.value for o in operators])}]."
+                    if len(operators) > 0
+                    else "The column is not filterable."
+                )
             )
 
     @staticmethod
