@@ -6,7 +6,7 @@ from forestadmin.datasource_toolkit.decorators.collection_decorator import Colle
 from forestadmin.datasource_toolkit.decorators.operators_emulate.types import OperatorDefinition
 from forestadmin.datasource_toolkit.exceptions import ForestException
 from forestadmin.datasource_toolkit.interfaces.collections import Collection
-from forestadmin.datasource_toolkit.interfaces.fields import LITERAL_OPERATORS, FieldAlias, Operator, RelationAlias
+from forestadmin.datasource_toolkit.interfaces.fields import FieldAlias, Operator, RelationAlias
 from forestadmin.datasource_toolkit.interfaces.models.collections import CollectionSchema, Datasource
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.factory import ConditionTreeFactory
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.base import ConditionTree
@@ -17,6 +17,7 @@ from forestadmin.datasource_toolkit.utils.schema import SchemaUtils
 from forestadmin.datasource_toolkit.utils.user_callable import call_user_function
 from forestadmin.datasource_toolkit.validations.condition_tree import ConditionTreeValidator
 from forestadmin.datasource_toolkit.validations.field import FieldValidator
+from forestadmin.datasource_toolkit.validations.rules import MAP_ALLOWED_OPERATORS_FOR_COLUMN_TYPE
 
 
 class OperatorsEmulateCollectionDecorator(CollectionDecorator):
@@ -24,12 +25,10 @@ class OperatorsEmulateCollectionDecorator(CollectionDecorator):
         self._fields: Dict[str, Dict[Operator, Optional[OperatorDefinition]]] = {}
         super().__init__(collection, datasource)
 
-    def emulate_field_operator(self, name: str, operator: Union[Operator, LITERAL_OPERATORS]):
+    def emulate_field_operator(self, name: str, operator: Operator):
         self.replace_field_operator(name, operator, None)
 
-    def replace_field_operator(
-        self, name: str, operator: Union[Operator, LITERAL_OPERATORS], replace_by: Optional[OperatorDefinition]
-    ):
+    def replace_field_operator(self, name: str, operator: Operator, replace_by: Optional[OperatorDefinition]):
         # Check that the collection can actually support our rewriting
         pks = SchemaUtils.get_primary_keys(self.child_collection.schema)
         for pk in pks:
@@ -48,6 +47,12 @@ class OperatorsEmulateCollectionDecorator(CollectionDecorator):
         field = self.child_collection.schema["fields"].get(name)
         if field is None:
             raise ForestException(f"Cannot replace operator for relation on field '{name}'")
+
+        if operator not in MAP_ALLOWED_OPERATORS_FOR_COLUMN_TYPE.get(self.schema["fields"][name]["column_type"], []):
+            raise ForestException(
+                f"Cannot replace operator '{operator.value}' on field "
+                f"type '{self.schema["fields"][name]["column_type"].value}' for field '{name}'."
+            )
 
         if self._fields.get(name) is None:
             self._fields[name] = dict()
