@@ -144,8 +144,8 @@ class TestEmulateOperatorCollectionDecorator(TestCase):
         with patch.object(self.collection_book, "list", new_callable=AsyncMock) as mock_book_list:
             self.assertRaisesRegex(
                 ConditionTreeValidatorException,
-                r"🌳🌳🌳The given operator Operator.LIKE is not supported by the column: "
-                + r"\"The allowed types are \[<Operator.STARTS_WITH: 'starts_with'>]\"",
+                r"🌳🌳🌳The given operator 'like' is not supported by the column: 'title'\.\n"
+                r"The allowed operators are: \[starts_with\]\.",
                 self.loop.run_until_complete,
                 self.decorated_collection_book.list(
                     self.mocked_caller,
