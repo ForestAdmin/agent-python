@@ -51,7 +51,7 @@ class OperatorsEmulateCollectionDecorator(CollectionDecorator):
         if operator not in MAP_ALLOWED_OPERATORS_FOR_COLUMN_TYPE.get(self.schema["fields"][name]["column_type"], []):
             raise ForestException(
                 f"Cannot replace operator '{operator.value}' on field "
-                f"type '{self.schema["fields"][name]["column_type"].value}' for field '{name}'."
+                f"type '{self.schema['fields'][name]['column_type'].value}' for field '{name}'."
             )
 
         if self._fields.get(name) is None:
