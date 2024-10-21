@@ -42,19 +42,19 @@ class User:
 class Request:
     method: RequestMethod
     body: Optional[Dict[str, Any]] = None
-    query: Optional[Dict[str, Any]] = None
-    headers: Optional[Dict[str, str]] = None
+    query: Dict[str, Any]
+    headers: Dict[str, str]
     user: Optional[User] = None
-    client_ip: Optional[str] = None
+    client_ip: str
 
     def __init__(
         self,
         method: RequestMethod,
-        body: Optional[Dict[str, Any]] = None,
-        query: Optional[Dict[str, Any]] = None,
-        headers: Optional[Dict[str, str]] = None,
+        headers: Dict[str, str],
+        client_ip: str,
+        query: Dict[str, Any],
         user: Optional[User] = None,
-        client_ip: Optional[str] = None,
+        body: Optional[Dict[str, Any]] = None,
     ):
         self.method = method
         self.body = body
