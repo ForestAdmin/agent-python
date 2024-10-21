@@ -25,19 +25,19 @@ class TestAuthenticationResource(TestCase):
 
 class TestAuthenticationResourceDispatch(TestAuthenticationResource):
     def test_dispatch_should_call_the_authenticate(self):
-        request = Request(RequestMethod.GET)
+        request = Request(RequestMethod.GET, headers={}, query={}, client_ip="127.0.0.1")
         with patch.object(self.authentication_resource, "authenticate", new_callable=AsyncMock) as mocked_authenticate:
             self.loop.run_until_complete(self.authentication_resource.dispatch(request, "authenticate"))
             mocked_authenticate.assert_awaited_once_with(request)
 
     def test_dispatch_should_call_the_callback_method(self):
-        request = Request(RequestMethod.GET)
+        request = Request(RequestMethod.GET, headers={}, query={}, client_ip="127.0.0.1")
         with patch.object(self.authentication_resource, "callback", new_callable=AsyncMock) as mocked_callback:
             self.loop.run_until_complete(self.authentication_resource.dispatch(request, "callback"))
             mocked_callback.assert_awaited_once_with(request)
 
     def test_dispatch_should_call_handle_error_on_error_on_authenticate(self):
-        request = Request(RequestMethod.GET)
+        request = Request(RequestMethod.GET, headers={}, query={}, client_ip="127.0.0.1")
         exception = AuthenticationException("an error is needed")
         with patch.object(
             self.authentication_resource,
@@ -50,7 +50,7 @@ class TestAuthenticationResourceDispatch(TestAuthenticationResource):
             mocked_handle_error.assert_called_once_with("authenticate", request, exception)
 
     def test_dispatch_should_call_handle_error_on_error_on_callback(self):
-        request = Request(RequestMethod.GET)
+        request = Request(RequestMethod.GET, headers={}, query={}, client_ip="127.0.0.1")
         exception = AuthenticationException("an error is needed")
         with patch.object(
             self.authentication_resource,
@@ -65,7 +65,7 @@ class TestAuthenticationResourceDispatch(TestAuthenticationResource):
 
 class TestAuthenticationResourceAuthenticate(TestAuthenticationResource):
     def test_authenticate_should_raise_when_no_body_in_request(self):
-        request = Request(RequestMethod.POST, body={})
+        request = Request(RequestMethod.POST, body={}, headers={}, query={}, client_ip="127.0.0.1")
 
         self.assertRaisesRegex(
             AuthenticationException,
@@ -75,7 +75,9 @@ class TestAuthenticationResourceAuthenticate(TestAuthenticationResource):
         )
 
     def test_authenticate_should_raise_when_rendering_id_not_in_request_body(self):
-        request = Request(RequestMethod.POST, body={"notRenderingId": None})
+        request = Request(
+            RequestMethod.POST, body={"notRenderingId": None}, headers={}, query={}, client_ip="127.0.0.1"
+        )
 
         self.assertRaisesRegex(
             AuthenticationException,
@@ -85,7 +87,9 @@ class TestAuthenticationResourceAuthenticate(TestAuthenticationResource):
         )
 
     def test_authenticate_should_raise_when_rendering_id_is_not_parsable_as_an_integer(self):
-        request = Request(RequestMethod.POST, body={"renderingId": "not_integer"})
+        request = Request(
+            RequestMethod.POST, body={"renderingId": "not_integer"}, headers={}, query={}, client_ip="127.0.0.1"
+        )
 
         self.assertRaisesRegex(
             AuthenticationException,
@@ -98,7 +102,7 @@ class TestAuthenticationResourceAuthenticate(TestAuthenticationResource):
         custom_client = Mock(CustomClientOic)
         custom_client.get_authorization_url = Mock(return_value="http://my.authorization.url/")
 
-        request = Request(RequestMethod.POST, body={"renderingId": "12"})
+        request = Request(RequestMethod.POST, body={"renderingId": "12"}, headers={}, query={}, client_ip="127.0.0.1")
         with patch(
             "forestadmin.agent_toolkit.resources.security.resources.ClientFactory.build",
             new_callable=AsyncMock,
@@ -115,7 +119,7 @@ class TestAuthenticationResourceAuthenticate(TestAuthenticationResource):
 
 class TestAuthenticationResourceCallback(TestAuthenticationResource):
     def test_callback_should_raise_when_no_query_params(self):
-        request = Request(RequestMethod.GET, query=None)
+        request = Request(RequestMethod.GET, headers={}, query={}, client_ip="127.0.0.1")
         with patch(
             "forestadmin.agent_toolkit.resources.security.resources.ClientFactory.build",
             new_callable=AsyncMock,
@@ -129,7 +133,7 @@ class TestAuthenticationResourceCallback(TestAuthenticationResource):
             mocked_client_factory_build.assert_awaited_once_with(self.options)
 
     def test_callback_should_raise_when_state_query_params_is_not_set(self):
-        request = Request(RequestMethod.GET, query={"notState": None})
+        request = Request(RequestMethod.GET, query={"notState": None}, headers={}, client_ip="127.0.0.1")
         with patch(
             "forestadmin.agent_toolkit.resources.security.resources.ClientFactory.build",
             new_callable=AsyncMock,
@@ -142,7 +146,9 @@ class TestAuthenticationResourceCallback(TestAuthenticationResource):
             )
 
     def test_callback_should_raise_when_state_query_params_is_not_json_parsable(self):
-        request = Request(RequestMethod.GET, query={"state": 'not{json"renderingId":"12"}'})
+        request = Request(
+            RequestMethod.GET, query={"state": 'not{json"renderingId":"12"}'}, headers={}, client_ip="127.0.0.1"
+        )
         with patch(
             "forestadmin.agent_toolkit.resources.security.resources.ClientFactory.build",
             new_callable=AsyncMock,
@@ -155,7 +161,9 @@ class TestAuthenticationResourceCallback(TestAuthenticationResource):
             )
 
     def test_callback_should_raise_when_rendering_id_not_in_state(self):
-        request = Request(RequestMethod.GET, query={"state": '{"notRenderingId":"12"}'})
+        request = Request(
+            RequestMethod.GET, query={"state": '{"notRenderingId":"12"}'}, headers={}, client_ip="127.0.0.1"
+        )
         with patch(
             "forestadmin.agent_toolkit.resources.security.resources.ClientFactory.build",
             new_callable=AsyncMock,
@@ -168,7 +176,9 @@ class TestAuthenticationResourceCallback(TestAuthenticationResource):
             )
 
     def test_callback_should_raise_when_rendering_id_not_parsable_as_int(self):
-        request = Request(RequestMethod.GET, query={"state": '{"renderingId":"aa12"}'})
+        request = Request(
+            RequestMethod.GET, query={"state": '{"renderingId":"aa12"}'}, headers={}, client_ip="127.0.0.1"
+        )
         with patch(
             "forestadmin.agent_toolkit.resources.security.resources.ClientFactory.build",
             new_callable=AsyncMock,
@@ -191,7 +201,7 @@ class TestAuthenticationResourceCallback(TestAuthenticationResource):
             "teams": ["bestTeam"],
         }
 
-        request = Request(RequestMethod.GET, query={"state": '{"renderingId":"12"}'})
+        request = Request(RequestMethod.GET, query={"state": '{"renderingId":"12"}'}, headers={}, client_ip="127.0.0.1")
         with patch(
             "forestadmin.agent_toolkit.resources.security.resources.ClientFactory.build",
             new_callable=AsyncMock,
@@ -216,7 +226,7 @@ class TestAuthenticationResourceCallback(TestAuthenticationResource):
             "teams": ["bestTeam"],
         }
 
-        request = Request(RequestMethod.GET, query={"state": '{"renderingId":"12"}'})
+        request = Request(RequestMethod.GET, query={"state": '{"renderingId":"12"}'}, headers={}, client_ip="127.0.0.1")
         with patch(
             "forestadmin.agent_toolkit.resources.security.resources.ClientFactory.build",
             new_callable=AsyncMock,
@@ -253,7 +263,7 @@ class TestAuthenticationResourceCallback(TestAuthenticationResource):
 
 class TestAuthenticationResourceHandleError(TestAuthenticationResource):
     def test_handle_error_should_return_http_response_401_for_authentication_errors(self):
-        request = Request(RequestMethod.GET)
+        request = Request(RequestMethod.GET, query={}, headers={}, client_ip="127.0.0.1")
         response = self.authentication_resource._handle_error(
             "authenticate", request, AuthenticationException("state should be a json")
         )
@@ -261,7 +271,7 @@ class TestAuthenticationResourceHandleError(TestAuthenticationResource):
         self.assertEqual(response.status, 401)
 
     def test_handle_error_should_return_http_response_401_with_openid_error_for_opend_id_exceptions(self):
-        request = Request(RequestMethod.GET)
+        request = Request(RequestMethod.GET, query={}, headers={}, client_ip="127.0.0.1")
         response = self.authentication_resource._handle_error(
             "authenticate",
             request,
@@ -275,7 +285,7 @@ class TestAuthenticationResourceHandleError(TestAuthenticationResource):
         self.assertEqual(response_content["state"], "state")
 
     def test_handle_error_should_re_throw_errors_unrelated_to_authentication(self):
-        request = Request(RequestMethod.GET)
+        request = Request(RequestMethod.GET, query={}, headers={}, client_ip="127.0.0.1")
 
         self.assertRaisesRegex(
             Exception,

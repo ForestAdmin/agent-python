@@ -50,6 +50,7 @@ class BaseTestActionContext(TestCase):
             last_name="user",
             team="operational",
             timezone=zoneinfo.ZoneInfo("Europe/Paris"),
+            request={"ip": "127.0.0.1"},
         )
 
         cls.records = [{"id": 1, "title": "Foundation"}, {"id": 2, "title": "Beat the dealer"}]

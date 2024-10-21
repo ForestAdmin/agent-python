@@ -53,6 +53,7 @@ class TestCollectionChartContext(TestCase):
             last_name="user",
             team="operational",
             timezone=zoneinfo.ZoneInfo("Europe/Paris"),
+            request={"ip": "127.0.0.1"},
         )
 
         cls.datasource_decorator = ChartDataSourceDecorator(cls.datasource)

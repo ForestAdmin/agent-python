@@ -39,6 +39,7 @@ class TestContextVariableStack(TestCase):
             last_name="user",
             team="Operations",
             timezone=zoneinfo.ZoneInfo("Europe/Paris"),
+            request={"ip": "127.0.0.1"},
         )
 
         cls.permission_service = Mock(PermissionService)
