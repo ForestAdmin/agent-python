@@ -181,6 +181,7 @@ class TestAuthenticateDecorators(TestDecorators):
             self.assertEqual(request.user.first_name, user["first_name"])
             self.assertEqual(request.user.last_name, user["last_name"])
             self.assertEqual(request.user.team, user["team"])
+            self.assertEqual(request.user.request, {"ip": "127.0.0.1"})
 
             return True
 
