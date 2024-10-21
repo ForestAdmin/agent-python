@@ -220,7 +220,7 @@ class TestFilterProjection(TestFilter):
             },
             collection=self.collection_book,
             headers={},
-            client_ip="127.0.0.1"
+            client_ip="127.0.0.1",
         )
         expected_projection = ["id", "title", "author:id"]
 
