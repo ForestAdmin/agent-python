@@ -136,6 +136,15 @@ class TestEmulateOperatorCollectionDecorator(TestCase):
             Operator.EQUAL,
         )
 
+    def test_emulate_operator_should_throw_if_operator_is_not_suitable_for_type(self):
+        self.assertRaisesRegex(
+            ForestException,
+            r"🌳🌳🌳Cannot replace operator 'before' on field type 'String' for field 'title'",
+            self.decorated_collection_book.emulate_field_operator,
+            "title",
+            Operator.BEFORE,
+        )
+
     def test_list_should_crash_if_wanted_operator_not_supported(self):
         async def title_starts_with_replacer(value, ctx):
             return ConditionTreeLeaf("title", Operator.LIKE, "a_title_value%")
