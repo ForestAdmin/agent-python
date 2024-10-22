@@ -60,7 +60,7 @@ class TestDjangoAgentCapabilitiesRoutes(TestDjangoAgentRoutes):
 
     def test_capabilities(self):
         response = self.client.post(
-            f"/{self.conf_prefix}forest/capabilities?timezone=Europe%2FParis",
+            f"/{self.conf_prefix}forest/_internal/capabilities?timezone=Europe%2FParis",
             json.dumps({"collectionNames": ["app_test"]}),
             content_type="application/json",
         )

@@ -129,7 +129,7 @@ def build_blueprint(agent: FlaskAgent):  # noqa: C901
         rsp.status = 200
         return rsp
 
-    @blueprint.route("/capabilities", methods=["POST"])
+    @blueprint.route("/_internal/capabilities", methods=["POST"])
     async def capabilities() -> FlaskResponse:  # type: ignore
         return await _get_collection_response(request, (await agent.get_resources())["capabilities"], "capabilities")
 

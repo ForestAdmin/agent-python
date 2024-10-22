@@ -50,7 +50,7 @@ class TestFlaskAgentBlueprint(TestCase):
 
     def test_capabilities(self):
         response = self.client.post(
-            "/forest/capabilities?timezone=Europe%2FParis",
+            "/forest/_internal/capabilities?timezone=Europe%2FParis",
             json={"collectionNames": ["app_test"]},
         )
         assert response.status_code == 200
