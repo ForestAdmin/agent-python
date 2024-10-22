@@ -325,7 +325,7 @@ class TestDispatchStatsResource(TestStatResource):
             query={"collection_name": "Book"},
             body={"type": "Leaderboard"},
             user=self.mocked_caller,
-            client_ip="127.0.0.1"
+            client_ip="127.0.0.1",
         )
         with patch.object(
             self.stat_resource, "leader_board", new_callable=AsyncMock, return_value="leader_board"
@@ -797,7 +797,7 @@ class TestLeaderBoradStatsResource(TestStatResource):
             },
             headers={},
             user=self.mocked_caller,
-            client_ip="127.0.0.1"
+            client_ip="127.0.0.1",
         )
 
     def test_leaderbaord_should_raise_if_no_request_body(self):
