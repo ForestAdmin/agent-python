@@ -409,7 +409,6 @@ class CrudResource(BaseCollectionResource):
         projection: Projection,
         many: bool,
     ) -> Dict[str, Any]:
-        new_projection = Projection(*projection)
         relations_to_set = []
         for name, schema in collection.schema["fields"].items():
             if is_many_to_many(schema) or is_one_to_many(schema) or is_polymorphic_one_to_many(schema):
@@ -417,13 +416,12 @@ class CrudResource(BaseCollectionResource):
                     collection.datasource.get_collection(schema["foreign_collection"]).schema
                 )
                 for pk in pks:
-                    new_projection.append(f"{name}:{pk}")
+                    projection.append(f"{name}:{pk}")
                 relations_to_set.append(name)
 
-        new_records = deepcopy(records)
-        for record in new_records:
+        for record in records:
             for name in relations_to_set:
                 record[name] = None
 
         schema = JsonApiSerializer.get(collection)
-        return schema(projections=new_projection).dump(new_records if many is True else new_records[0], many=many)
+        return schema(projections=projection).dump(records if many is True else records[0], many=many)
