@@ -1,5 +1,6 @@
 import asyncio
-from typing import Any, Awaitable, Dict, List, Literal, Tuple, Union, cast
+from copy import deepcopy
+from typing import Any, Awaitable, Dict, List, Literal, Optional, Tuple, Union, cast
 from uuid import UUID
 
 from forestadmin.agent_toolkit.forest_logger import ForestLogger
@@ -27,6 +28,7 @@ from forestadmin.agent_toolkit.utils.context import HttpResponseBuilder, Request
 from forestadmin.agent_toolkit.utils.csv import Csv, CsvException
 from forestadmin.agent_toolkit.utils.id import unpack_id
 from forestadmin.datasource_toolkit.collections import Collection
+from forestadmin.datasource_toolkit.datasource_customizer.collection_customizer import CollectionCustomizer
 from forestadmin.datasource_toolkit.datasources import DatasourceException
 from forestadmin.datasource_toolkit.exceptions import ForbiddenError
 from forestadmin.datasource_toolkit.interfaces.fields import (
@@ -50,6 +52,7 @@ from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.base i
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.leaf import ConditionTreeLeaf
 from forestadmin.datasource_toolkit.interfaces.query.filter.paginated import PaginatedFilter
 from forestadmin.datasource_toolkit.interfaces.query.filter.unpaginated import Filter
+from forestadmin.datasource_toolkit.interfaces.query.projections import Projection
 from forestadmin.datasource_toolkit.interfaces.query.projections.factory import ProjectionFactory
 from forestadmin.datasource_toolkit.interfaces.records import CompositeIdAlias, RecordsDataAlias
 from forestadmin.datasource_toolkit.utils.collections import CollectionUtils
@@ -102,18 +105,10 @@ class CrudResource(BaseCollectionResource):
         if not len(records):
             return HttpResponseBuilder.build_unknown_response()
 
-        for name, schema in collection.schema["fields"].items():
-            if is_many_to_many(schema) or is_one_to_many(schema) or is_polymorphic_one_to_many(schema):
-                pks = SchemaUtils.get_primary_keys(
-                    collection.datasource.get_collection(schema["foreign_collection"]).schema
-                )
-                for pk in pks:
-                    projections.append(f"{name}:{pk}")
-                records[0][name] = None
-
-        schema = JsonApiSerializer.get(collection)
         try:
-            dumped: Dict[str, Any] = schema(projections=projections).dump(records[0])  # type: ignore
+            dumped: Dict[str, Any] = CrudResource._serialize_records_with_relationships(
+                records, request.collection, projections, many=False
+            )
         except JsonApiException as e:
             ForestLogger.log("exception", e)
             return HttpResponseBuilder.build_client_error_response([e])
@@ -153,7 +148,9 @@ class CrudResource(BaseCollectionResource):
             return HttpResponseBuilder.build_client_error_response([e])
 
         return HttpResponseBuilder.build_success_response(
-            schema(projections=list(records[0].keys())).dump(records[0], many=False)  # type: ignore
+            CrudResource._serialize_records_with_relationships(
+                records, request.collection, Projection(*list(records[0].keys())), many=False
+            )
         )
 
     @check_method(RequestMethod.GET)
@@ -173,23 +170,11 @@ class CrudResource(BaseCollectionResource):
             return HttpResponseBuilder.build_client_error_response([e])
 
         records = await request.collection.list(request.user, paginated_filter, projections)
-        names_to_set = []
-        for name, schema in request.collection.schema["fields"].items():
-            if is_many_to_many(schema) or is_one_to_many(schema) or is_polymorphic_one_to_many(schema):
-                pks = SchemaUtils.get_primary_keys(
-                    request.collection.datasource.get_collection(schema["foreign_collection"]).schema
-                )
-                for pk in pks:
-                    projections.append(f"{name}:{pk}")
-                names_to_set.append(name)
 
-        for record in records:
-            for name in names_to_set:
-                record[name] = None
-
-        schema = JsonApiSerializer.get(request.collection)
         try:
-            dumped: Dict[str, Any] = schema(projections=projections).dump(records, many=True)  # type: ignore
+            dumped: Dict[str, Any] = CrudResource._serialize_records_with_relationships(
+                records, request.collection, projections, many=True
+            )
         except JsonApiException as e:
             ForestLogger.log("exception", e)
             return HttpResponseBuilder.build_client_error_response([e])
@@ -278,9 +263,10 @@ class CrudResource(BaseCollectionResource):
         projection = ProjectionFactory.all(cast(Collection, collection))
         records = await collection.list(request.user, PaginatedFilter.from_base_filter(filter), projection)
 
-        schema = JsonApiSerializer.get(collection)
         try:
-            dumped: Dict[str, Any] = schema(projections=projection).dump(records[0])  # type: ignore
+            dumped: Dict[str, Any] = CrudResource._serialize_records_with_relationships(
+                records, request.collection, projection, many=False
+            )
         except JsonApiException as e:
             return HttpResponseBuilder.build_client_error_response([e])
 
@@ -415,3 +401,29 @@ class CrudResource(BaseCollectionResource):
                     record[field["foreign_key"]] = value
 
         return record, one_to_one_relations
+
+    @staticmethod
+    def _serialize_records_with_relationships(
+        records: List[RecordsDataAlias],
+        collection: Union[Collection, CollectionCustomizer],
+        projection: Projection,
+        many: bool,
+    ) -> Dict[str, Any]:
+        new_projection = Projection(*projection)
+        relations_to_set = []
+        for name, schema in collection.schema["fields"].items():
+            if is_many_to_many(schema) or is_one_to_many(schema) or is_polymorphic_one_to_many(schema):
+                pks = SchemaUtils.get_primary_keys(
+                    collection.datasource.get_collection(schema["foreign_collection"]).schema
+                )
+                for pk in pks:
+                    new_projection.append(f"{name}:{pk}")
+                relations_to_set.append(name)
+
+        new_records = deepcopy(records)
+        for record in new_records:
+            for name in relations_to_set:
+                record[name] = None
+
+        schema = JsonApiSerializer.get(collection)
+        return schema(projections=new_projection).dump(new_records[0] if many is True else new_records, many=many)
