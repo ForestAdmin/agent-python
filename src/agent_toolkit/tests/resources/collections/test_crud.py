@@ -485,6 +485,38 @@ class TestCrudResource(TestCase):
         }
         mocked_unpack_id.assert_called_once()
 
+    def test_get_should_return_to_many_relations_as_link(self):
+        mock_orders = [{"id": 10, "cost": 200}]
+        request = RequestCollection(
+            RequestMethod.GET,
+            self.collection_order,
+            None,
+            {
+                "collection_name": "order",
+                "timezone": "Europe/Paris",
+                "fields[order]": "id,cost",
+                "fields[status]": "id",
+                "pks": "10",
+            },
+            {},
+            None,
+        )
+        crud_resource = CrudResource(self.datasource, self.permission_service, self.ip_white_list_service, self.options)
+        with patch.object(self.collection_order, "list", new_callable=AsyncMock, return_value=mock_orders):
+            response = self.loop.run_until_complete(crud_resource.get(request))
+
+        response_body = json.loads(response.body)
+        self.assertIn("relationships", response_body["data"].keys())
+        self.assertEqual(
+            response_body["data"]["relationships"],
+            {
+                "products": {
+                    "links": {"related": {"href": "/forest/order/10/relationships/products"}},
+                    "data": [],
+                }
+            },
+        )
+
     @patch(
         "forestadmin.agent_toolkit.resources.collections.crud.JsonApiSerializer.get",
         return_value=Mock,
@@ -808,6 +840,40 @@ class TestCrudResource(TestCase):
                 )
                 self.assertEqual(second_call_update_args[2], {"taggable_id": 12, "taggable_type": "order"})
 
+    def test_add_should_return_to_many_relations_as_link(self):
+        mock_orders = [{"cost": 12.3, "important": True, "id": 10}]
+        request = RequestCollection(
+            RequestMethod.POST,
+            self.collection_order,
+            {
+                "data": {
+                    "attributes": {"cost": 12.3, "important": True},
+                },
+            },  # body
+            {
+                "collection_name": "order",
+                "relation_name": "tags",
+                "timezone": "Europe/Paris",
+            },
+            {},
+            None,
+        )
+        crud_resource = CrudResource(self.datasource, self.permission_service, self.ip_white_list_service, self.options)
+        with patch.object(self.collection_order, "create", new_callable=AsyncMock, return_value=mock_orders):
+            response = self.loop.run_until_complete(crud_resource.add(request))
+
+        response_body = json.loads(response.body)
+        self.assertIn("relationships", response_body["data"].keys())
+        self.assertEqual(
+            response_body["data"]["relationships"],
+            {
+                "products": {
+                    "links": {"related": {"href": "/forest/order/10/relationships/products"}},
+                    "data": [],
+                }
+            },
+        )
+
     # list
     @patch(
         "forestadmin.agent_toolkit.resources.collections.crud.JsonApiSerializer.get",
@@ -857,6 +923,37 @@ class TestCrudResource(TestCase):
 
         assert response_content["meta"]["decorators"]["0"] == {"id": 10, "search": ["cost"]}
         assert response_content["meta"]["decorators"]["1"] == {"id": 11, "search": ["cost"]}
+
+    def test_list_should_return_to_many_relations_as_link(self):
+        mock_orders = [{"id": 10, "cost": 200}, {"id": 11, "cost": 201}]
+        request = RequestCollection(
+            RequestMethod.GET,
+            self.collection_order,
+            None,
+            {
+                "collection_name": "order",
+                "timezone": "Europe/Paris",
+                "fields[order]": "id,cost",
+            },
+            {},
+            None,
+        )
+        crud_resource = CrudResource(self.datasource, self.permission_service, self.ip_white_list_service, self.options)
+        with patch.object(self.collection_order, "list", new_callable=AsyncMock, return_value=mock_orders):
+            response = self.loop.run_until_complete(crud_resource.list(request))
+
+        response_body = json.loads(response.body)
+        for record in response_body["data"]:
+            self.assertIn("relationships", record.keys())
+            self.assertEqual(
+                record["relationships"],
+                {
+                    "products": {
+                        "links": {"related": {"href": f"/forest/order/{record['id']}/relationships/products"}},
+                        "data": [],
+                    }
+                },
+            )
 
     @patch(
         "forestadmin.agent_toolkit.resources.collections.crud.JsonApiSerializer.get",
@@ -1295,6 +1392,41 @@ class TestCrudResource(TestCase):
         self.loop.run_until_complete(crud_resource.update(request))
         self.permission_service.can.reset_mock()
         self.collection_order.update.assert_any_await(ANY, ANY, {"cost": 201, "id": 11})
+
+    def test_update_should_return_to_many_relations_as_link(self):
+        mock_orders = [{"cost": 12.3, "important": True, "id": 10}]
+        request = RequestCollection(
+            RequestMethod.PUT,
+            self.collection_order,
+            {
+                "data": {
+                    "attributes": {"cost": 12.3, "important": True},
+                },
+            },  # body
+            {
+                "collection_name": "order",
+                "relation_name": "tags",
+                "timezone": "Europe/Paris",
+                "pks": "10",
+            },
+            {},
+            None,
+        )
+        crud_resource = CrudResource(self.datasource, self.permission_service, self.ip_white_list_service, self.options)
+        with patch.object(self.collection_order, "list", new_callable=AsyncMock, return_value=mock_orders):
+            response = self.loop.run_until_complete(crud_resource.update(request))
+
+        response_body = json.loads(response.body)
+        self.assertIn("relationships", response_body["data"].keys())
+        self.assertEqual(
+            response_body["data"]["relationships"],
+            {
+                "products": {
+                    "links": {"related": {"href": "/forest/order/10/relationships/products"}},
+                    "data": [],
+                }
+            },
+        )
 
     # delete
     @patch(

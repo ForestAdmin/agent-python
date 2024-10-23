@@ -166,7 +166,6 @@ class ForestRelationShip(fields.Relationship):
         self.forest_relation = kwargs.pop("forest_relation", None)
         self._forest_current_obj = None
         super(ForestRelationShip, self).__init__(*args, **kwargs)  # type: ignore
-        pass
 
     @property
     def schema(self) -> "ForestSchema":
