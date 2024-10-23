@@ -1,3 +1,10 @@
+## [1.16.3](https://github.com/ForestAdmin/agent-python/compare/v1.16.2...v1.16.3) (2024-10-23)
+
+
+### Bug Fixes
+
+* **serialization:** add one to many in relations in json api serialization ([#281](https://github.com/ForestAdmin/agent-python/issues/281)) ([d410323](https://github.com/ForestAdmin/agent-python/commit/d410323a7c7d75f029a70c94394245b38ad6b327))
+
 ## [1.16.2](https://github.com/ForestAdmin/agent-python/compare/v1.16.1...v1.16.2) (2024-10-16)
 
 
