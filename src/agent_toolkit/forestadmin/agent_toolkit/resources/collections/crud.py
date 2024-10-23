@@ -173,6 +173,20 @@ class CrudResource(BaseCollectionResource):
             return HttpResponseBuilder.build_client_error_response([e])
 
         records = await request.collection.list(request.user, paginated_filter, projections)
+        names_to_set = []
+        for name, schema in request.collection.schema["fields"].items():
+            if is_many_to_many(schema) or is_one_to_many(schema) or is_polymorphic_one_to_many(schema):
+                pks = SchemaUtils.get_primary_keys(
+                    request.collection.datasource.get_collection(schema["foreign_collection"]).schema
+                )
+                for pk in pks:
+                    projections.append(f"{name}:{pk}")
+                names_to_set.append(name)
+
+        for record in records:
+            for name in names_to_set:
+                record[name] = None
+
         schema = JsonApiSerializer.get(request.collection)
         try:
             dumped: Dict[str, Any] = schema(projections=projections).dump(records, many=True)  # type: ignore
