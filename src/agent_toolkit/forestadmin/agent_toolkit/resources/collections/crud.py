@@ -426,4 +426,4 @@ class CrudResource(BaseCollectionResource):
                 record[name] = None
 
         schema = JsonApiSerializer.get(collection)
-        return schema(projections=new_projection).dump(new_records[0] if many is True else new_records, many=many)
+        return schema(projections=new_projection).dump(new_records if many is True else new_records[0], many=many)
