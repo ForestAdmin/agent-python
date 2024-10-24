@@ -14,9 +14,7 @@ from app.forest.customer import (
     french_address_segment,
     full_name_contains,
     full_name_equal,
-    full_name_greater_than,
     full_name_in,
-    full_name_less_than,
     full_name_like,
     full_name_not_contains,
     full_name_not_in,
@@ -39,7 +37,6 @@ from app.forest.order import (
     total_order_chart,
 )
 from forestadmin.datasource_django.datasource import DjangoDatasource
-from forestadmin.datasource_toolkit.interfaces.fields import Operator
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.leaf import ConditionTreeLeaf
 from forestadmin.django_agent.agent import DjangoAgent
 
