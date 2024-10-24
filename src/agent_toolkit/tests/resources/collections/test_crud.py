@@ -507,16 +507,15 @@ class TestCrudResource(TestCase):
         request = RequestCollection(
             RequestMethod.GET,
             self.collection_order,
-            None,
-            {
+            query={
                 "collection_name": "order",
                 "timezone": "Europe/Paris",
                 "fields[order]": "id,cost",
                 "fields[status]": "id",
                 "pks": "10",
             },
-            {},
-            None,
+            headers={},
+            client_ip="127.0.0.1",
         )
         crud_resource = CrudResource(self.datasource, self.permission_service, self.ip_white_list_service, self.options)
         with patch.object(self.collection_order, "list", new_callable=AsyncMock, return_value=mock_orders):
@@ -876,18 +875,18 @@ class TestCrudResource(TestCase):
         request = RequestCollection(
             RequestMethod.POST,
             self.collection_order,
-            {
+            body={
                 "data": {
                     "attributes": {"cost": 12.3, "important": True},
                 },
             },  # body
-            {
+            query={
                 "collection_name": "order",
                 "relation_name": "tags",
                 "timezone": "Europe/Paris",
             },
-            {},
-            None,
+            headers={},
+            client_ip="127.0.0.1",
         )
         crud_resource = CrudResource(self.datasource, self.permission_service, self.ip_white_list_service, self.options)
         with patch.object(self.collection_order, "create", new_callable=AsyncMock, return_value=mock_orders):
@@ -959,14 +958,13 @@ class TestCrudResource(TestCase):
         request = RequestCollection(
             RequestMethod.GET,
             self.collection_order,
-            None,
-            {
+            query={
                 "collection_name": "order",
                 "timezone": "Europe/Paris",
                 "fields[order]": "id,cost",
             },
-            {},
-            None,
+            headers={},
+            client_ip="127.0.0.1",
         )
         crud_resource = CrudResource(self.datasource, self.permission_service, self.ip_white_list_service, self.options)
         with patch.object(self.collection_order, "list", new_callable=AsyncMock, return_value=mock_orders):
@@ -1422,19 +1420,19 @@ class TestCrudResource(TestCase):
         request = RequestCollection(
             RequestMethod.PUT,
             self.collection_order,
-            {
+            body={
                 "data": {
                     "attributes": {"cost": 12.3, "important": True},
                 },
             },  # body
-            {
+            query={
                 "collection_name": "order",
                 "relation_name": "tags",
                 "timezone": "Europe/Paris",
                 "pks": "10",
             },
-            {},
-            None,
+            headers={},
+            client_ip="127.0.0.1",
         )
         crud_resource = CrudResource(self.datasource, self.permission_service, self.ip_white_list_service, self.options)
         with patch.object(self.collection_order, "list", new_callable=AsyncMock, return_value=mock_orders):
