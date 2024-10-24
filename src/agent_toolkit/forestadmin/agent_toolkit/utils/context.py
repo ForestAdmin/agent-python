@@ -3,7 +3,7 @@ import json
 import sys
 from dataclasses import dataclass, field
 from io import BytesIO
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Callable, Dict, List, Optional, TypedDict
 from urllib.error import HTTPError
 
 if sys.version_info >= (3, 9):
@@ -22,6 +22,10 @@ class RequestMethod(enum.Enum):
     OPTIONS = "OPTIONS"
 
 
+class CallerRequest(TypedDict):
+    ip: str
+
+
 @dataclass
 class User:
     rendering_id: int
@@ -32,26 +36,25 @@ class User:
     last_name: str
     team: str
     timezone: ZoneInfo
-    # permission_level
-    # role
+    request: CallerRequest
 
 
 class Request:
     method: RequestMethod
     body: Optional[Dict[str, Any]] = None
-    query: Optional[Dict[str, Any]] = None
-    headers: Optional[Dict[str, str]] = None
+    query: Dict[str, Any]
+    headers: Dict[str, str]
     user: Optional[User] = None
-    client_ip: Optional[str] = None
+    client_ip: str
 
     def __init__(
         self,
         method: RequestMethod,
-        body: Optional[Dict[str, Any]] = None,
-        query: Optional[Dict[str, Any]] = None,
-        headers: Optional[Dict[str, str]] = None,
+        headers: Dict[str, str],
+        client_ip: str,
+        query: Dict[str, Any],
         user: Optional[User] = None,
-        client_ip: Optional[str] = None,
+        body: Optional[Dict[str, Any]] = None,
     ):
         self.method = method
         self.body = body

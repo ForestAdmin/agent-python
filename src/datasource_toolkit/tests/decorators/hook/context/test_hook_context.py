@@ -30,6 +30,7 @@ class FakeHookContext(HookContext):
                 last_name="user",
                 team="operational",
                 timezone=zoneinfo.ZoneInfo("Europe/Paris"),
+                request={"ip": "127.0.0.1"},
             ),
         )
 

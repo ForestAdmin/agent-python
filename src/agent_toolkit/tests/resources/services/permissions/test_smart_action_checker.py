@@ -64,6 +64,7 @@ class TestSmartActionChecker(TestCase):
             last_name="user",
             team="operational",
             timezone=zoneinfo.ZoneInfo("Europe/Paris"),
+            request={"ip": "127.0.0.1"},
         )
         cls.smart_action = {
             "triggerEnabled": {},
@@ -122,6 +123,9 @@ class Test01TriggerCanExecuteSmartActionChecker(TestSmartActionChecker):
             action_name=0,
             collection=self.decorated_collection_booking,
             body=self.mk_http_post(),
+            headers={},
+            query={},
+            client_ip="127.0.0.1",
             user=self.mocked_caller,
         )
 
@@ -140,6 +144,9 @@ class Test01TriggerCanExecuteSmartActionChecker(TestSmartActionChecker):
             action_name=0,
             collection=self.decorated_collection_booking,
             body=self.mk_http_post(),
+            headers={},
+            query={},
+            client_ip="127.0.0.1",
             user=self.mocked_caller,
         )
 
@@ -174,6 +181,9 @@ class Test01TriggerCanExecuteSmartActionChecker(TestSmartActionChecker):
             action_name=0,
             collection=self.decorated_collection_booking,
             body=self.mk_http_post(None, True),
+            headers={},
+            query={},
+            client_ip="127.0.0.1",
             user=self.mocked_caller,
         )
         smart_action = {
@@ -207,6 +217,9 @@ class Test01TriggerCanExecuteSmartActionChecker(TestSmartActionChecker):
             action_name=0,
             collection=self.decorated_collection_booking,
             body=self.mk_http_post(),
+            headers={},
+            query={},
+            client_ip="127.0.0.1",
             user=self.mocked_caller,
         )
         smart_action = {
@@ -233,6 +246,9 @@ class Test01TriggerCanExecuteSmartActionChecker(TestSmartActionChecker):
             action_name=0,
             collection=self.decorated_collection_booking,
             body=self.mk_http_post(),
+            headers={},
+            query={},
+            client_ip="127.0.0.1",
             user=self.mocked_caller,
         )
         smart_action = {
@@ -273,6 +289,9 @@ class Test01TriggerCanExecuteSmartActionChecker(TestSmartActionChecker):
             action_name=0,
             collection=self.decorated_collection_booking,
             body=self.mk_http_post(),
+            headers={},
+            query={},
+            client_ip="127.0.0.1",
             user=self.mocked_caller,
         )
         smart_action = {
@@ -310,6 +329,9 @@ class Test01TriggerCanExecuteSmartActionChecker(TestSmartActionChecker):
             action_name=0,
             collection=self.decorated_collection_booking,
             body=self.mk_http_post(),
+            headers={},
+            query={},
+            client_ip="127.0.0.1",
             user=self.mocked_caller,
         )
         smart_action = {
@@ -366,6 +388,9 @@ class Test01TriggerCanExecuteSmartActionChecker(TestSmartActionChecker):
             action_name=0,
             collection=self.decorated_collection_booking,
             body=self.mk_http_post(),
+            headers={},
+            query={},
+            client_ip="127.0.0.1",
             user=self.mocked_caller,
         )
         smart_action = {
@@ -393,6 +418,9 @@ class Test01TriggerCanExecuteSmartActionChecker(TestSmartActionChecker):
             action_name=0,
             collection=self.decorated_collection_booking,
             body=self.mk_http_post(),
+            headers={},
+            query={},
+            client_ip="127.0.0.1",
             user=self.mocked_caller,
         )
         smart_action = {
@@ -456,6 +484,9 @@ class Test01TriggerCanExecuteSmartActionChecker(TestSmartActionChecker):
             action_name=0,
             collection=self.decorated_collection_booking,
             body=self.mk_http_post(),
+            headers={},
+            query={},
+            client_ip="127.0.0.1",
             user=self.mocked_caller,
         )
         smart_action = {
@@ -497,6 +528,9 @@ class Test02ApproveCanExecuteSmartActionChecker(TestSmartActionChecker):
             action_name=0,
             collection=self.decorated_collection_booking,
             body=self.mk_http_post(20),
+            headers={},
+            query={},
+            client_ip="127.0.0.1",
             user=self.mocked_caller,
         )
 
@@ -515,6 +549,9 @@ class Test02ApproveCanExecuteSmartActionChecker(TestSmartActionChecker):
             action_name=0,
             collection=self.decorated_collection_booking,
             body=self.mk_http_post(1),
+            headers={},
+            query={},
+            client_ip="127.0.0.1",
             user=self.mocked_caller,
         )
 
@@ -535,6 +572,9 @@ class Test02ApproveCanExecuteSmartActionChecker(TestSmartActionChecker):
             action_name=0,
             collection=self.decorated_collection_booking,
             body=self.mk_http_post(20),
+            headers={},
+            query={},
+            client_ip="127.0.0.1",
             user=self.mocked_caller,
         )
         smart_action = {
@@ -579,6 +619,9 @@ class Test02ApproveCanExecuteSmartActionChecker(TestSmartActionChecker):
             action_name=0,
             collection=self.decorated_collection_booking,
             body=self.mk_http_post(1),
+            headers={},
+            query={},
+            client_ip="127.0.0.1",
             user=self.mocked_caller,
         )
         smart_action = {
@@ -624,6 +667,9 @@ class Test02ApproveCanExecuteSmartActionChecker(TestSmartActionChecker):
             action_name=0,
             collection=self.decorated_collection_booking,
             body=self.mk_http_post(1),
+            headers={},
+            query={},
+            client_ip="127.0.0.1",
             user=self.mocked_caller,
         )
         smart_action = {**self.smart_action}
@@ -645,6 +691,9 @@ class Test02ApproveCanExecuteSmartActionChecker(TestSmartActionChecker):
             action_name=0,
             collection=self.decorated_collection_booking,
             body=self.mk_http_post(1),
+            headers={},
+            query={},
+            client_ip="127.0.0.1",
             user=self.mocked_caller,
         )
         smart_action = {**self.smart_action, "selfApprovalEnabled": [1000]}
@@ -666,6 +715,9 @@ class Test02ApproveCanExecuteSmartActionChecker(TestSmartActionChecker):
             action_name=0,
             collection=self.decorated_collection_booking,
             body=self.mk_http_post(1),
+            headers={},
+            query={},
+            client_ip="127.0.0.1",
             user=self.mocked_caller,
         )
         smart_action = {
@@ -703,6 +755,9 @@ class Test02ApproveCanExecuteSmartActionChecker(TestSmartActionChecker):
             action_name=0,
             collection=self.decorated_collection_booking,
             body=self.mk_http_post(20),
+            headers={},
+            query={},
+            client_ip="127.0.0.1",
             user=self.mocked_caller,
         )
         smart_action = {
@@ -740,6 +795,9 @@ class Test02ApproveCanExecuteSmartActionChecker(TestSmartActionChecker):
             action_name=0,
             collection=self.decorated_collection_booking,
             body=self.mk_http_post(1),
+            headers={},
+            query={},
+            client_ip="127.0.0.1",
             user=self.mocked_caller,
         )
         smart_action = {

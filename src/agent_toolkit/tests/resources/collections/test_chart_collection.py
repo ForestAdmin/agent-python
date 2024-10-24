@@ -32,6 +32,7 @@ def authenticate_mock(fn):
             last_name="user",
             team="operational",
             timezone=zoneinfo.ZoneInfo("Europe/Paris"),
+            request={"ip": "127.0.0.1"},
         )
 
         return await fn(self, request)
@@ -91,6 +92,7 @@ class TestChartCollectionResource(TestCase):
             last_name="user",
             team="operational",
             timezone=zoneinfo.ZoneInfo("Europe/Paris"),
+            request={"ip": "127.0.0.1"},
         )
 
     def setUp(self) -> None:
@@ -109,6 +111,7 @@ class TestChartCollectionResource(TestCase):
                 body={"record_id": "1"},
                 headers={},
                 user=self.mocked_caller,
+                client_ip="127.0.0.1",
             )
             response: Response = self.loop.run_until_complete(self.chart_collection_resource.dispatch(request, ""))
 
@@ -130,6 +133,7 @@ class TestChartCollectionResource(TestCase):
             body={"record_id": "1"},
             headers={},
             user=self.mocked_caller,
+            client_ip="127.0.0.1",
         )
         response: Response = self.loop.run_until_complete(self.chart_collection_resource.dispatch(request, ""))
 
@@ -152,6 +156,7 @@ class TestChartCollectionResource(TestCase):
             body={"record_id": "1"},
             headers={},
             user=self.mocked_caller,
+            client_ip="127.0.0.1",
         )
 
         with patch.object(
@@ -175,6 +180,7 @@ class TestChartCollectionResource(TestCase):
             body={"record_id": "1"},
             headers={},
             user=self.mocked_caller,
+            client_ip="127.0.0.1",
         )
 
         with patch.object(
@@ -198,6 +204,7 @@ class TestChartCollectionResource(TestCase):
             body={"record_id": "1"},
             headers={},
             user=self.mocked_caller,
+            client_ip="127.0.0.1",
         )
 
         with patch.object(
@@ -228,6 +235,7 @@ class TestChartCollectionResource(TestCase):
             body={"record_id": "1"},
             headers={},
             user=self.mocked_caller,
+            client_ip="127.0.0.1",
         )
         request_collection = RequestCollection.from_request(request, self.datasource)
 
@@ -248,15 +256,14 @@ class TestChartCollectionResource(TestCase):
             query={"collection_name": "Book", "chart_name": "test_chart_book", "record_id": "1"},
             headers={},
             user=self.mocked_caller,
+            client_ip="127.0.0.1",
         )
         request_collection = RequestCollection.from_request(request, self.datasource)
 
         with patch.object(
             self.book_collection, "render_chart", new_callable=AsyncMock, return_value=100
         ) as mocked_render_chart:
-            chart: Response = self.loop.run_until_complete(
-                self.chart_collection_resource.handle_smart_chart(request_collection)
-            )
+            chart = self.loop.run_until_complete(self.chart_collection_resource.handle_smart_chart(request_collection))
 
             mocked_render_chart.assert_awaited_once_with(self.mocked_caller, "test_chart_book", [1])
             assert chart == 100
@@ -270,6 +277,7 @@ class TestChartCollectionResource(TestCase):
             },
             headers={},
             user=self.mocked_caller,
+            client_ip="127.0.0.1",
         )
         request_collection = RequestCollection.from_request(request, self.datasource)
 

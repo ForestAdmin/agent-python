@@ -51,6 +51,7 @@ def authenticate_mock(fn):
             last_name="user",
             team="operational",
             timezone=zoneinfo.ZoneInfo("Europe/Paris"),
+            request={"ip": "127.0.0.1"},
         )
 
         return await fn(self, request)
@@ -326,8 +327,10 @@ class TestCrudRelatedResource(TestCase):
     # -- dispatch
     def test_dispatch(self):
         request = Request(
-            method="GET",
+            method=RequestMethod.GET,
             query={"collection_name": "customer", "relation_name": "order"},
+            headers={},
+            client_ip="127.0.0.1",
         )
 
         self.crud_related_resource.list = AsyncMock()
@@ -358,8 +361,10 @@ class TestCrudRelatedResource(TestCase):
     @patch("forestadmin.agent_toolkit.resources.collections.crud_related.RequestRelationCollection")
     def test_dispatch_error(self, mock_request_relation_collection: Mock):
         request = Request(
-            method="GET",
+            method=RequestMethod.GET,
             query={"collection_name": "customer", "relation_name": "order"},
+            headers={},
+            client_ip="127.0.0.1",
         )
 
         self.assertRaises(
@@ -391,18 +396,19 @@ class TestCrudRelatedResource(TestCase):
         request = RequestRelationCollection(
             RequestMethod.GET,
             *self.mk_request_customer_order_one_to_many(),
-            None,
-            {
+            headers={},
+            query={
                 "collection_name": "customer",
                 "relation_name": "order",
                 "timezone": "Europe/Paris",
                 "fields[order]": "id,cost",
                 "pks": "2",  # customer id
-                "search_extended": 0,
+                "search_extended": "0",
                 "search": "20",
             },
-            {},
-            None,
+            body=None,
+            user=None,
+            client_ip="127.0.0.1",
         )
         crud_related_resource = CrudRelatedResource(
             self.datasource, self.permission_service, self.ip_white_list_service, self.options
@@ -463,6 +469,9 @@ class TestCrudRelatedResource(TestCase):
                 }
             ),
             "orders",
+            headers={},
+            query={},
+            client_ip="127.0.0.1",
         )
 
         response = self.loop.run_until_complete(crud_related_resource.list(request))
@@ -489,10 +498,9 @@ class TestCrudRelatedResource(TestCase):
         request = RequestRelationCollection(
             RequestMethod.GET,
             *self.mk_request_customer_order_one_to_many(),
-            None,
-            request_get_params,
-            {},
-            None,
+            query=request_get_params,
+            headers={},
+            client_ip="127.0.0.1",
         )
 
         response = self.loop.run_until_complete(crud_related_resource.list(request))
@@ -513,10 +521,9 @@ class TestCrudRelatedResource(TestCase):
         request = RequestRelationCollection(
             RequestMethod.GET,
             *self.mk_request_customer_order_one_to_many(),
-            None,
-            request_get_params,
-            {},
-            None,
+            query=request_get_params,
+            headers={},
+            client_ip="127.0.0.1",
         )
         self.collection_order.list = AsyncMock(return_value=mock_orders)
         mocked_json_serializer_get.return_value.dump = Mock(side_effect=JsonApiException)
@@ -541,18 +548,17 @@ class TestCrudRelatedResource(TestCase):
         request = RequestRelationCollection(
             RequestMethod.GET,
             *self.mk_request_customer_order_one_to_many(),
-            None,
-            {
+            query={
                 "collection_name": "customer",
                 "relation_name": "order",
                 "timezone": "Europe/Paris",
                 "fields[order]": "id,cost",
                 "pks": "2",  # customer id
-                "search_extended": 0,
+                "search_extended": "0",
                 "search": "20",
             },
-            {},
-            None,
+            headers={},
+            client_ip="127.0.0.1",
         )
         with patch.object(
             self.collection_order, "list", new_callable=AsyncMock, return_value=mock_orders
@@ -593,6 +599,9 @@ class TestCrudRelatedResource(TestCase):
                 }
             ),
             "orders",
+            query={},
+            headers={},
+            client_ip="127.0.0.1",
         )
         response = self.loop.run_until_complete(crud_related_resource.csv(request))
 
@@ -618,10 +627,9 @@ class TestCrudRelatedResource(TestCase):
         request = RequestRelationCollection(
             RequestMethod.GET,
             *self.mk_request_customer_order_one_to_many(),
-            None,
-            request_get_params,
-            {},
-            None,
+            query=request_get_params,
+            headers={},
+            client_ip="127.0.0.1",
         )
         response = self.loop.run_until_complete(crud_related_resource.csv(request))
         self.permission_service.can.assert_any_await(request.user, request.foreign_collection, "browse")
@@ -641,10 +649,9 @@ class TestCrudRelatedResource(TestCase):
         request = RequestRelationCollection(
             RequestMethod.GET,
             *self.mk_request_customer_order_one_to_many(),
-            None,
-            request_get_params,
-            {},
-            None,
+            query=request_get_params,
+            headers={},
+            client_ip="127.0.0.1",
         )
         with patch(
             "forestadmin.agent_toolkit.resources.collections.crud_related.parse_projection_with_pks",
@@ -689,18 +696,17 @@ class TestCrudRelatedResource(TestCase):
         request = RequestRelationCollection(
             RequestMethod.GET,
             *self.mk_request_customer_order_one_to_many(),
-            None,
-            {
+            headers={},
+            client_ip="127.0.0.1",
+            query={
                 "collection_name": "customer",
                 "relation_name": "order",
                 "timezone": "Europe/Paris",
                 "fields[order]": "id,cost",
                 "pks": "2",  # customer id
-                "search_extended": 0,
+                "search_extended": "0",
                 "search": "20",
             },
-            {},
-            None,
         )
         with patch.object(
             self.collection_order, "list", new_callable=AsyncMock, return_value=mock_orders
@@ -717,15 +723,15 @@ class TestCrudRelatedResource(TestCase):
         request = RequestRelationCollection(
             RequestMethod.POST,
             *self.mk_request_customer_order_one_to_many(),
-            {"data": [{"id": "201", "type": "order"}]},  # body
-            {
+            body={"data": [{"id": "201", "type": "order"}]},  # body
+            query={
                 "collection_name": "customer",
                 "relation_name": "order",
                 "timezone": "Europe/Paris",
                 "pks": "2",  # customer id
             },  # query
-            {},  # header
-            None,  # user
+            headers={},
+            client_ip="127.0.0.1",
         )
         crud_related_resource = CrudRelatedResource(
             self.datasource, self.permission_service, self.ip_white_list_service, self.options
@@ -743,15 +749,15 @@ class TestCrudRelatedResource(TestCase):
         request = RequestRelationCollection(
             RequestMethod.POST,
             *self.mk_request_order_product_many_to_many(),
-            {"data": [{"id": "201", "type": "product"}]},  # body
-            {
+            body={"data": [{"id": "201", "type": "product"}]},  # body
+            query={
                 "collection_name": "order",
                 "relation_name": "order",
                 "timezone": "Europe/Paris",
                 "pks": "2",  # order id
             },  # query
-            {},  # header
-            None,  # user
+            headers={},
+            client_ip="127.0.0.1",
         )
         crud_related_resource = CrudRelatedResource(
             self.datasource, self.permission_service, self.ip_white_list_service, self.options
@@ -773,15 +779,15 @@ class TestCrudRelatedResource(TestCase):
             self.collection_tag,
             self.collection_order.get_field("tags"),
             "tags",
-            {"data": [{"id": "201", "type": "tag"}]},  # body
-            {
+            body={"data": [{"id": "201", "type": "tag"}]},  # body
+            query={
                 "collection_name": "order",
                 "relation_name": "tags",
                 "timezone": "Europe/Paris",
                 "pks": "2",  # customer id
             },  # query
-            {},  # header
-            None,  # user
+            headers={},
+            client_ip="127.0.0.1",
         )
         crud_related_resource = CrudRelatedResource(
             self.datasource, self.permission_service, self.ip_white_list_service, self.options
@@ -815,10 +821,10 @@ class TestCrudRelatedResource(TestCase):
         request = RequestRelationCollection(
             RequestMethod.POST,
             *self.mk_request_customer_order_one_to_many(),
-            {"data": [{"id": "201", "type": "order"}]},  # body
-            request_get_params,  # query
-            {},  # header
-            None,  # user
+            body={"data": [{"id": "201", "type": "order"}]},  # body
+            query=request_get_params,  # query
+            headers={},
+            client_ip="127.0.0.1",
         )
 
         # no_id exception
@@ -839,10 +845,9 @@ class TestCrudRelatedResource(TestCase):
         request = RequestRelationCollection(
             RequestMethod.POST,
             *self.mk_request_customer_order_one_to_many(),
-            {},  # body
-            request_get_params,  # query
-            {},  # header
-            None,  # user
+            query=request_get_params,  # query
+            headers={},
+            client_ip="127.0.0.1",
         )
         response = self.loop.run_until_complete(self.crud_related_resource.add(request))
         self.permission_service.can.assert_any_await(request.user, request.collection, "edit")
@@ -859,10 +864,10 @@ class TestCrudRelatedResource(TestCase):
         request = RequestRelationCollection(
             RequestMethod.POST,
             *self.mk_request_customer_order_one_to_many(),
-            {"data": [{"id": "201", "type": "order"}]},  # body
-            request_get_params,  # query
-            {},  # header
-            None,  # user
+            body={"data": [{"id": "201", "type": "order"}]},  # body
+            query=request_get_params,  # query
+            headers={},
+            client_ip="127.0.0.1",
         )
 
         def mocked_unpack_id(schema, pk):
@@ -897,10 +902,10 @@ class TestCrudRelatedResource(TestCase):
                 }
             ),
             "orders",
-            {"data": [{"id": "201", "type": "order"}]},  # body
-            request_get_params,  # query
-            {},  # header
-            None,  # user
+            body={"data": [{"id": "201", "type": "order"}]},  # body
+            query=request_get_params,  # query
+            headers={},
+            client_ip="127.0.0.1",
         )
         response = self.loop.run_until_complete(self.crud_related_resource.add(request))
         self.permission_service.can.assert_any_await(request.user, request.collection, "edit")
@@ -936,15 +941,15 @@ class TestCrudRelatedResource(TestCase):
                 }
             ),
             "orders",
-            {"data": {"id": "201", "type": "cart"}},  # body
-            {
+            body={"data": {"id": "201", "type": "cart"}},  # body
+            query={
                 "collection_name": "order",
                 "relation_name": "cart",
                 "timezone": "Europe/Paris",
                 "pks": "2",  # order id
             },  # query
-            {},  # header
-            None,  # user
+            headers={},
+            client_ip="127.0.0.1",
         )
 
         response = self.loop.run_until_complete(crud_related_resource.update_list(request))
@@ -968,15 +973,15 @@ class TestCrudRelatedResource(TestCase):
                 }
             ),
             "orders",
-            {"data": {"id": "201", "type": "customer"}},  # body
-            {
+            body={"data": {"id": "201", "type": "customer"}},  # body
+            query={
                 "collection_name": "customer",
                 "relation_name": "order",
                 "timezone": "Europe/Paris",
                 "pks": "2",  # customer id
             },  # query
-            {},  # header
-            None,  # user
+            headers={},
+            client_ip="127.0.0.1",
         )
 
         response = self.loop.run_until_complete(crud_related_resource.update_list(request))
@@ -1010,10 +1015,10 @@ class TestCrudRelatedResource(TestCase):
                 }
             ),
             "orders",
-            {"data": None},  # body
-            query_get_params,  # query
-            {},  # header
-            None,  # user
+            body={"data": None},  # body
+            query=query_get_params,  # query
+            headers={},
+            client_ip="127.0.0.1",
         )
 
         with patch.object(self.collection_order, "update", new_callable=AsyncMock) as update_order:
@@ -1053,10 +1058,10 @@ class TestCrudRelatedResource(TestCase):
                 }
             ),
             "orders",
-            {"data": {"id": "201", "type": "customer"}},  # body
-            query_get_params,  # query
-            {},  # header
-            None,  # user
+            body={"data": {"id": "201", "type": "customer"}},  # body
+            query=query_get_params,  # query
+            headers={},
+            client_ip="127.0.0.1",
         )
 
         response = self.loop.run_until_complete(crud_related_resource.update_list(request))
@@ -1084,10 +1089,10 @@ class TestCrudRelatedResource(TestCase):
                 }
             ),
             "orders",
-            {"data": {"id": "201", "type": "customer"}},  # body
-            query_get_params,  # query
-            {},  # header
-            None,  # user
+            body={"data": {"id": "201", "type": "customer"}},  # body
+            query=query_get_params,  # query
+            headers={},
+            client_ip="127.0.0.1",
         )
 
         with patch.object(crud_related_resource, "_update_many_to_one", side_effect=CollectionResourceException):
@@ -1105,10 +1110,10 @@ class TestCrudRelatedResource(TestCase):
         request = RequestRelationCollection(
             RequestMethod.PUT,
             *self.mk_request_order_product_many_to_many(),
-            {"data": {"id": "201", "type": "customer"}},  # body
-            query_get_params,  # query
-            {},  # header
-            None,  # user
+            body={"data": {"id": "201", "type": "customer"}},  # body
+            query=query_get_params,  # query
+            headers={},
+            client_ip="127.0.0.1",
         )
         response = self.loop.run_until_complete(crud_related_resource.update_list(request))
         self.permission_service.can.assert_not_awaited()
@@ -1126,16 +1131,15 @@ class TestCrudRelatedResource(TestCase):
         request = RequestRelationCollection(
             RequestMethod.GET,
             *self.mk_request_customer_order_one_to_many(),
-            None,
-            {
+            query={
                 "collection_name": "customer",
                 "relation_name": "order",
                 "timezone": "Europe/Paris",
                 "fields[order]": "id,cost",
                 "pks": "2",  # customer id
             },
-            {},
-            None,
+            headers={},
+            client_ip="127.0.0.1",
         )
 
         with patch(
@@ -1156,16 +1160,15 @@ class TestCrudRelatedResource(TestCase):
         request = RequestRelationCollection(
             RequestMethod.GET,
             *self.mk_request_customer_order_one_to_many(),
-            None,
-            {
+            query={
                 "collection_name": "customer",
                 "relation_name": "order",
                 "timezone": "Europe/Paris",
                 "fields[order]": "id,cost",
                 "pks": "2",  # customer id
             },
-            {},
-            None,
+            headers={},
+            client_ip="127.0.0.1",
         )
         self.collection_order._schema["countable"] = False
         response = self.loop.run_until_complete(self.crud_related_resource.count(request))
@@ -1189,10 +1192,9 @@ class TestCrudRelatedResource(TestCase):
         request = RequestRelationCollection(
             RequestMethod.GET,
             *self.mk_request_customer_order_one_to_many(),
-            None,
-            query_get_params,
-            {},
-            None,
+            query=query_get_params,
+            headers={},
+            client_ip="127.0.0.1",
         )
         response = self.loop.run_until_complete(self.crud_related_resource.count(request))
         self.permission_service.can.assert_any_await(request.user, request.foreign_collection, "browse")
@@ -1209,10 +1211,9 @@ class TestCrudRelatedResource(TestCase):
         request = RequestRelationCollection(
             RequestMethod.GET,
             *self.mk_request_customer_order_one_to_many(),
-            None,
-            query_get_params,
-            {},
-            None,
+            query=query_get_params,
+            headers={},
+            client_ip="127.0.0.1",
         )
         with patch(
             "forestadmin.agent_toolkit.resources.collections.crud_related.CollectionUtils.aggregate_relation",
@@ -1244,10 +1245,10 @@ class TestCrudRelatedResource(TestCase):
         request = RequestRelationCollection(
             RequestMethod.DELETE,
             *self.mk_request_customer_order_one_to_many(),
-            {"data": [{"id": "201", "type": "order"}]},
-            query_get_params,
-            {},
-            None,
+            body={"data": [{"id": "201", "type": "order"}]},
+            query=query_get_params,
+            headers={},
+            client_ip="127.0.0.1",
         )
         with patch.object(
             self.crud_related_resource, "_delete_one_to_many", new_callable=AsyncMock
@@ -1265,10 +1266,10 @@ class TestCrudRelatedResource(TestCase):
         request = RequestRelationCollection(
             RequestMethod.DELETE,
             *self.mk_request_order_product_many_to_many(),
-            {"data": [{"id": "201", "type": "product"}]},  # body
-            query_get_params,  # query
-            {},  # header
-            None,  # user
+            body={"data": [{"id": "201", "type": "product"}]},  # body
+            query=query_get_params,  # query
+            headers={},
+            client_ip="127.0.0.1",
         )
         with patch.object(
             self.crud_related_resource, "_delete_many_to_many", new_callable=AsyncMock
@@ -1297,10 +1298,10 @@ class TestCrudRelatedResource(TestCase):
         request = RequestRelationCollection(
             RequestMethod.DELETE,
             *self.mk_request_order_product_many_to_many(),
-            {"data": [{"id": "201", "type": "product"}]},  # body
-            query_get_params,  # query
-            {},  # header
-            None,  # user
+            body={"data": [{"id": "201", "type": "product"}]},  # body
+            query=query_get_params,  # query
+            headers={},
+            client_ip="127.0.0.1",
         )
         response = self.loop.run_until_complete(crud_related_resource.delete_list(request))
         self.permission_service.can.assert_not_awaited()
@@ -1317,10 +1318,10 @@ class TestCrudRelatedResource(TestCase):
         request = RequestRelationCollection(
             RequestMethod.DELETE,
             *self.mk_request_order_product_many_to_many(),
-            {"data": [{"id": "201", "type": "product"}]},  # body
-            query_get_params,  # query
-            {},  # header
-            None,  # user
+            body={"data": [{"id": "201", "type": "product"}]},  # body
+            query=query_get_params,  # query
+            headers={},  # header
+            client_ip="127.0.0.1",
         )
 
         with patch.object(
@@ -1352,10 +1353,10 @@ class TestCrudRelatedResource(TestCase):
                 }
             ),
             "products",
-            {"data": [{"id": "201", "type": "product"}]},  # body
-            query_get_params,  # query
-            {},  # header
-            None,  # user
+            body={"data": [{"id": "201", "type": "product"}]},  # body
+            query=query_get_params,  # query
+            headers={},
+            client_ip="127.0.0.1",
         )
         response = self.loop.run_until_complete(crud_related_resource.delete_list(request))
         self.permission_service.can.assert_any_await(request.user, request.collection, "edit")
@@ -1380,10 +1381,10 @@ class TestCrudRelatedResource(TestCase):
         request = RequestRelationCollection(
             RequestMethod.DELETE,
             *self.mk_request_customer_order_one_to_many(),
-            {"data": [{"id": "201", "type": "order"}]},
-            query_get_params,
-            {},
-            None,
+            body={"data": [{"id": "201", "type": "order"}]},
+            query=query_get_params,
+            headers={},
+            client_ip="127.0.0.1",
         )
         with patch.object(
             self.crud_related_resource, "_delete_one_to_many", new_callable=AsyncMock
@@ -1404,10 +1405,10 @@ class TestCrudRelatedResource(TestCase):
         request = RequestRelationCollection(
             RequestMethod.DELETE,
             *self.mk_request_customer_order_one_to_many(),
-            {"data": [{"id": "201", "type": "order"}]},
-            query_get_params,
-            {},
-            None,
+            body={"data": [{"id": "201", "type": "order"}]},
+            query=query_get_params,
+            headers={},
+            client_ip="127.0.0.1",
         )
         with patch.object(
             self.crud_related_resource, "_delete_one_to_many", new_callable=AsyncMock
@@ -1432,10 +1433,9 @@ class TestCrudRelatedResource(TestCase):
         request = RequestRelationCollection(
             RequestMethod.POST,
             *self.mk_request_customer_order_one_to_many(),
-            None,
-            query_get_params,
-            {},
-            None,
+            query=query_get_params,
+            headers={},
+            client_ip="127.0.0.1",
         )
 
         response = self.loop.run_until_complete(crud_related_resource._associate_one_to_many(request, [201], 2))
@@ -1455,10 +1455,9 @@ class TestCrudRelatedResource(TestCase):
                 }
             ),
             "orders",
-            None,
-            query_get_params,
-            {},
-            None,
+            query=query_get_params,
+            headers={},
+            client_ip="127.0.0.1",
         )
         response = self.loop.run_until_complete(crud_related_resource._associate_one_to_many(request, [201], 2))
 
@@ -1473,10 +1472,9 @@ class TestCrudRelatedResource(TestCase):
         request = RequestRelationCollection(
             RequestMethod.POST,
             *self.mk_request_customer_order_one_to_many(),
-            None,
-            query_get_params,
-            {},
-            None,
+            query=query_get_params,
+            headers={},
+            client_ip="127.0.0.1",
         )
         with patch.object(self.collection_order, "update", new_callable=AsyncMock, side_effect=DatasourceException):
             response = self.loop.run_until_complete(crud_related_resource._associate_one_to_many(request, [201], 2))
@@ -1503,10 +1501,10 @@ class TestCrudRelatedResource(TestCase):
         request = RequestRelationCollection(
             RequestMethod.POST,
             *self.mk_request_order_product_many_to_many(),
-            {"data": [{"id": "201", "type": "product"}]},  # body
-            query_get_params,  # query
-            {},  # header
-            None,  # user
+            body={"data": [{"id": "201", "type": "product"}]},  # body
+            query=query_get_params,  # query
+            headers={},
+            client_ip="127.0.0.1",
         )
         with patch.object(
             self.collection_product_order, "create", new_callable=AsyncMock
@@ -1518,10 +1516,10 @@ class TestCrudRelatedResource(TestCase):
         request = RequestRelationCollection(
             RequestMethod.POST,
             *self.mk_request_customer_order_one_to_many(),
-            {"data": [{"id": "201", "type": "product"}]},  # body
-            query_get_params,  # query
-            {},  # header
-            None,  # user
+            body={"data": [{"id": "201", "type": "product"}]},  # body
+            query=query_get_params,  # query
+            headers={},
+            client_ip="127.0.0.1",
         )
         response = self.loop.run_until_complete(crud_related_resource._associate_many_to_many(request, [201], 2))
         assert response.status == 500
@@ -1535,10 +1533,10 @@ class TestCrudRelatedResource(TestCase):
         request = RequestRelationCollection(
             RequestMethod.POST,
             *self.mk_request_order_product_many_to_many(),
-            {"data": [{"id": "201", "type": "product"}]},  # body
-            query_get_params,  # query
-            {},  # header
-            None,  # user
+            body={"data": [{"id": "201", "type": "product"}]},  # body
+            query=query_get_params,  # query
+            headers={},
+            client_ip="127.0.0.1",
         )
         with patch.object(
             self.collection_product_order, "create", new_callable=AsyncMock, side_effect=DatasourceException
@@ -1571,10 +1569,10 @@ class TestCrudRelatedResource(TestCase):
         request = RequestRelationCollection(
             RequestMethod.DELETE,
             *self.mk_request_customer_order_one_to_many(),
-            {"data": [{"id": "201", "type": "order"}]},
-            query_get_params,
-            {},
-            None,
+            body={"data": [{"id": "201", "type": "order"}]},
+            query=query_get_params,
+            headers={},
+            client_ip="127.0.0.1",
         )
 
         with patch.object(
@@ -1596,10 +1594,10 @@ class TestCrudRelatedResource(TestCase):
         request = RequestRelationCollection(
             RequestMethod.DELETE,
             *self.mk_request_customer_order_one_to_many(),
-            {"data": {}},
-            query_get_params,
-            {},
-            None,
+            body={"data": {}},
+            query=query_get_params,
+            headers={},
+            client_ip="127.0.0.1",
         )
 
         with self.assertRaises(CollectionResourceException):
@@ -1609,10 +1607,10 @@ class TestCrudRelatedResource(TestCase):
         request = RequestRelationCollection(
             RequestMethod.DELETE,
             *self.mk_request_customer_order_one_to_many(),
-            {"data": {"attributes": {"all_records": True, "all_records_ids_excluded": ["201"]}}},
-            query_get_params,
-            {},
-            None,
+            body={"data": {"attributes": {"all_records": True, "all_records_ids_excluded": ["201"]}}},
+            query=query_get_params,
+            headers={},
+            client_ip="127.0.0.1",
         )
         response = self.loop.run_until_complete(crud_related_resource.get_base_fk_filter(request))
 
@@ -1646,10 +1644,10 @@ class TestCrudRelatedResource(TestCase):
         request = RequestRelationCollection(
             RequestMethod.DELETE,
             *self.mk_request_customer_order_one_to_many(),
-            {"data": [{"id": "201", "type": "order"}]},
-            query_get_params,
-            {},
-            None,
+            body={"data": [{"id": "201", "type": "order"}]},
+            query=query_get_params,
+            headers={},
+            client_ip="127.0.0.1",
         )
         _filter = self.loop.run_until_complete(crud_related_resource.get_base_fk_filter(request))
 
@@ -1661,10 +1659,10 @@ class TestCrudRelatedResource(TestCase):
         request = RequestRelationCollection(
             "DELETE",
             *self.mk_request_customer_order_one_to_many(),
-            {"data": [{"id": "201", "type": "order"}]},
-            query_get_params,
-            {},
-            None,
+            body={"data": [{"id": "201", "type": "order"}]},
+            query=query_get_params,
+            headers={},
+            client_ip="127.0.0.1",
         )
         _filter = self.loop.run_until_complete(crud_related_resource.get_base_fk_filter(request))
 
@@ -1675,10 +1673,10 @@ class TestCrudRelatedResource(TestCase):
         request = RequestRelationCollection(
             RequestMethod.DELETE,
             *self.mk_request_order_product_many_to_many(),
-            {"data": [{"id": "201", "type": "product"}]},  # body
-            query_get_params,  # query
-            {},  # header
-            None,  # user
+            body={"data": [{"id": "201", "type": "product"}]},  # body
+            query=query_get_params,  # query
+            headers={},
+            client_ip="127.0.0.1",
         )
 
         _filter = self.loop.run_until_complete(crud_related_resource.get_base_fk_filter(request))
@@ -1709,10 +1707,10 @@ class TestCrudRelatedResource(TestCase):
         request = RequestRelationCollection(
             RequestMethod.DELETE,
             *self.mk_request_order_product_many_to_many(),
-            {"data": [{"id": "201", "type": "product"}]},  # body
-            query_get_params,  # query
-            {},  # header
-            None,  # user
+            body={"data": [{"id": "201", "type": "product"}]},  # body
+            query=query_get_params,  # query
+            headers={},
+            client_ip="127.0.0.1",
         )
         _filter = self.loop.run_until_complete(crud_related_resource.get_base_fk_filter(request))
 
@@ -1731,10 +1729,10 @@ class TestCrudRelatedResource(TestCase):
         request = RequestRelationCollection(
             RequestMethod.DELETE,
             *self.mk_request_order_product_many_to_many(),
-            {"data": [{"id": "201", "type": "product"}]},  # body
-            query_get_params,  # query
-            {},  # header
-            None,  # user
+            body={"data": [{"id": "201", "type": "product"}]},  # body
+            query=query_get_params,  # query
+            headers={},
+            client_ip="127.0.0.1",
         )
 
         _filter = self.loop.run_until_complete(crud_related_resource.get_base_fk_filter(request))
@@ -1753,10 +1751,10 @@ class TestCrudRelatedResource(TestCase):
         request = RequestRelationCollection(
             RequestMethod.DELETE,
             *self.mk_request_customer_order_one_to_many(),
-            {"data": [{"id": 201, "type": "order"}]},
-            query_get_params,
-            {},
-            None,
+            body={"data": [{"id": 201, "type": "order"}]},
+            query=query_get_params,
+            headers={},
+            client_ip="127.0.0.1",
         )
 
         self.assertRaises(
@@ -1768,10 +1766,10 @@ class TestCrudRelatedResource(TestCase):
         request = RequestRelationCollection(
             RequestMethod.DELETE,
             *self.mk_request_order_product_many_to_many(),
-            {"data": [{"id": "201", "type": "product"}]},  # body
-            query_get_params,  # query
-            {},  # header
-            None,  # user
+            body={"data": [{"id": "201", "type": "product"}]},  # body
+            query=query_get_params,  # query
+            headers={},
+            client_ip="127.0.0.1",
         )
         with patch.object(self.collection_product, "delete", side_effect=DatasourceException, new_callable=AsyncMock):
             with patch.object(self.collection_product_order, "list", new_callable=AsyncMock):
@@ -1814,10 +1812,10 @@ class TestCrudRelatedResource(TestCase):
                 }
             ),
             "orders",
-            {"data": {"id": "201", "type": "cart"}},  # body
-            query_get_params,  # query
-            {},  # header
-            None,  # user
+            body={"data": {"id": "201", "type": "cart"}},  # body
+            query=query_get_params,  # query
+            headers={},
+            client_ip="127.0.0.1",
         )
 
         self.loop.run_until_complete(
@@ -1867,10 +1865,10 @@ class TestCrudRelatedResource(TestCase):
                 }
             ),
             "orders",
-            {"data": {"id": "201", "type": "cart"}},  # body
-            query_get_params,  # query
-            {},  # header
-            None,  # user
+            body={"data": {"id": "201", "type": "cart"}},  # body
+            query=query_get_params,  # query
+            headers={},
+            client_ip="127.0.0.1",
         )
 
         self.assertRaises(
@@ -1905,10 +1903,10 @@ class TestCrudRelatedResource(TestCase):
                 }
             ),
             "orders",
-            {"data": None},  # body
-            query_get_params,  # query
-            {},  # header
-            None,  # user
+            body={"data": None},  # body
+            query=query_get_params,  # query
+            headers={},
+            client_ip="127.0.0.1",
         )
 
         with patch.object(self.collection_cart, "update", new_callable=AsyncMock) as mock_update:
@@ -1947,8 +1945,11 @@ class TestCrudRelatedResource(TestCase):
                 foreign_key="customer_id",
                 foreign_key_target="id",
             ),
-            {"data": {"id": "201", "type": "customer"}},
-            query_get_params,  # query
+            "relation_name",
+            body={"data": {"id": "201", "type": "customer"}},
+            query=query_get_params,  # query
+            headers={},
+            client_ip="127.0.0.1",
         )
 
         self.collection_order.update.reset_mock()
@@ -1970,8 +1971,11 @@ class TestCrudRelatedResource(TestCase):
                 foreign_key="customer_id",
                 foreign_key_target="id",
             ),
-            {"data": {"id": "201", "type": "customer"}},
-            query_get_params,  # query
+            "relation_name",
+            body={"data": {"id": "201", "type": "customer"}},
+            query=query_get_params,  # query
+            headers={},
+            client_ip="127.0.0.1",
         )
 
         self.assertRaises(
@@ -1980,4 +1984,8 @@ class TestCrudRelatedResource(TestCase):
             crud_related_resource._update_many_to_one(request, [2], [201], zoneinfo.ZoneInfo("Europe/Paris")),
         )
 
+        self.permission_service.can.assert_not_awaited()
+        self.permission_service.can.assert_not_awaited()
+        self.permission_service.can.assert_not_awaited()
+        self.permission_service.can.assert_not_awaited()
         self.permission_service.can.assert_not_awaited()

@@ -95,38 +95,6 @@ async def full_name_equal(value, context: CollectionCustomizationContext) -> Con
     )
 
 
-async def full_name_less_than(value, context: CollectionCustomizationContext):
-    return ConditionTreeBranch(
-        "or",
-        [
-            ConditionTreeLeaf("first_name", "less_than", value),
-            ConditionTreeBranch(
-                "and",
-                [
-                    ConditionTreeLeaf("first_name", "equal", value),
-                    ConditionTreeLeaf("last_name", "less_than", value),
-                ],
-            ),
-        ],
-    )
-
-
-async def full_name_greater_than(value, context: CollectionCustomizationContext):
-    return ConditionTreeBranch(
-        "or",
-        [
-            ConditionTreeLeaf("first_name", "greater_than", value),
-            ConditionTreeBranch(
-                "and",
-                [
-                    ConditionTreeLeaf("first_name", "equal", value),
-                    ConditionTreeLeaf("last_name", "greater_than", value),
-                ],
-            ),
-        ],
-    )
-
-
 async def full_name_in(value, context: CollectionCustomizationContext):
     conditions = []
     for v in value:

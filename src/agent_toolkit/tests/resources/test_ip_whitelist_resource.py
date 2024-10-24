@@ -24,7 +24,7 @@ class TestIpWhitelistResource(TestCase):
         self.ip_whitelist_resource = IpWhitelistResource(ip_white_list_service, self.options)
 
     def test_check_ip_should_check_ip_rules_only_if_it_is_enabled(self):
-        request = Request(RequestMethod.GET, client_ip="127.0.0.1")
+        request = Request(RequestMethod.GET, query={}, headers={}, client_ip="127.0.0.1")
         with patch.object(
             ForestHttpApi,
             "get_ip_white_list_rules",
@@ -72,7 +72,7 @@ class TestIpWhitelistResource(TestCase):
             mock_match_rule.assert_called()
 
     def test_check_ip_should_raise_when_ip_not_pass_rules(self):
-        request = Request(RequestMethod.GET, client_ip="192.168.1.10")
+        request = Request(RequestMethod.GET, query={}, headers={}, client_ip="192.168.1.10")
         with patch.object(
             ForestHttpApi,
             "get_ip_white_list_rules",
@@ -96,7 +96,7 @@ class TestIpWhitelistResource(TestCase):
             )
 
     def test_check_ip_should_not_raise_when_ip_pass_rules(self):
-        request = Request(RequestMethod.GET, client_ip="127.0.0.1")
+        request = Request(RequestMethod.GET, query={}, headers={}, client_ip="127.0.0.1")
         with patch.object(
             ForestHttpApi,
             "get_ip_white_list_rules",

@@ -91,11 +91,13 @@ class TestDecorators(TestCase):
 class TestAuthenticateDecorators(TestDecorators):
     def test_should_return_401_if_no_headers(self):
         request = RequestCollection(
-            RequestMethod.GET,
-            self.book_collection,
+            method=RequestMethod.GET,
+            collection=self.book_collection,
             body=None,
             query={},
-            headers=None,
+            headers={},
+            client_ip="127.0.0.1",
+            user=None,
         )
 
         async def _decorated_fn(resource, request):
@@ -110,10 +112,12 @@ class TestAuthenticateDecorators(TestDecorators):
 
     def test_should_return_401_if_authorization_header_is_not_bearer_header(self):
         request = RequestCollection(
-            RequestMethod.GET,
-            self.book_collection,
+            method=RequestMethod.GET,
+            collection=self.book_collection,
             body=None,
             query={},
+            client_ip="127.0.0.1",
+            user=None,
             headers={"Authorization": "bla bla bla"},
         )
 
@@ -129,10 +133,12 @@ class TestAuthenticateDecorators(TestDecorators):
 
     def test_should_return_401_if_authorization_header_is_not_jwt_encoded(self):
         request = RequestCollection(
-            RequestMethod.GET,
-            self.book_collection,
+            method=RequestMethod.GET,
+            collection=self.book_collection,
             body=None,
             query={},
+            client_ip="127.0.0.1",
+            user=None,
             headers={"Authorization": "Bearer Wrong_Bearer"},
         )
 
@@ -158,9 +164,11 @@ class TestAuthenticateDecorators(TestDecorators):
         }
         encoded_user = jwt.encode(user, "auth_secret")
         request = RequestCollection(
-            RequestMethod.GET,
-            self.book_collection,
+            method=RequestMethod.GET,
+            collection=self.book_collection,
             body=None,
+            client_ip="127.0.0.1",
+            user=None,
             query={"timezone": "Europe/Paris"},
             headers={"Authorization": f"Bearer {encoded_user}"},
         )
@@ -173,6 +181,7 @@ class TestAuthenticateDecorators(TestDecorators):
             self.assertEqual(request.user.first_name, user["first_name"])
             self.assertEqual(request.user.last_name, user["last_name"])
             self.assertEqual(request.user.team, user["team"])
+            self.assertEqual(request.user.request, {"ip": "127.0.0.1"})
 
             return True
 
@@ -199,9 +208,11 @@ class TestAuthorizeDecorators(TestDecorators):
         }
         encoded_user = jwt.encode(user, "auth_secret")
         cls.request = RequestCollection(
-            RequestMethod.GET,
-            cls.book_collection,
+            method=RequestMethod.GET,
+            collection=cls.book_collection,
             body=None,
+            client_ip="127.0.0.1",
+            user=None,
             query={"timezone": "Europe/Paris"},
             headers={"Authorization": f"Bearer {encoded_user}"},
         )
@@ -268,11 +279,11 @@ class TestAuthorizeDecorators(TestDecorators):
 class TestCheckMethodDecorators(TestDecorators):
     def test_should_call_the_method_if_the_wanted_method_is_used(self):
         request = RequestCollection(
-            RequestMethod.POST,
-            self.book_collection,
-            body=None,
+            method=RequestMethod.POST,
+            collection=self.book_collection,
             query={},
-            headers=None,
+            headers={},
+            client_ip="127.0.0.1",
         )
 
         async def _decorated_fn(resource, request):
@@ -290,11 +301,13 @@ class TestCheckMethodDecorators(TestDecorators):
 
     def test_should_not_call_the_method_if_the_wanted_method_is_not_used(self):
         request = RequestCollection(
-            RequestMethod.POST,
-            self.book_collection,
+            method=RequestMethod.POST,
+            collection=self.book_collection,
             body=None,
             query={},
-            headers=None,
+            headers={},
+            client_ip="127.0.0.1",
+            user=None,
         )
 
         async def _decorated_fn(resource, request):
@@ -312,11 +325,13 @@ class TestCheckMethodDecorators(TestDecorators):
 class TestIpWhiteList(TestDecorators):
     def test_should_call_check_ip(self):
         request = RequestCollection(
-            RequestMethod.POST,
-            self.book_collection,
+            method=RequestMethod.POST,
+            collection=self.book_collection,
             body=None,
             query={},
-            headers=None,
+            headers={},
+            client_ip="127.0.0.1",
+            user=None,
         )
 
         async def _decorated_fn(resource, request):
@@ -331,11 +346,13 @@ class TestIpWhiteList(TestDecorators):
 
     def test_should_not_method_when_check_ip_raise(self):
         request = RequestCollection(
-            RequestMethod.POST,
-            self.book_collection,
+            method=RequestMethod.POST,
+            collection=self.book_collection,
             body=None,
             query={},
-            headers=None,
+            headers={},
+            client_ip="127.0.0.1",
+            user=None,
         )
 
         async def _decorated_fn(resource, request):

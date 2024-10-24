@@ -35,6 +35,7 @@ def authenticate_mock(fn):
             last_name="user",
             team="operational",
             timezone=zoneinfo.ZoneInfo("Europe/Paris"),
+            request={"ip": "127.0.0.1"},
         )
 
         return await fn(self, request)
@@ -176,6 +177,7 @@ class TestStatResource(TestCase):
             last_name="user",
             team="operational",
             timezone=zoneinfo.ZoneInfo("Europe/Paris"),
+            request={"ip": "127.0.0.1"},
         )
 
     def setUp(self) -> None:
@@ -187,10 +189,7 @@ class TestStatResource(TestCase):
 class TestDispatchStatsResource(TestStatResource):
     def test_dispatch_should_return_error_if_no_collection_specified(self):
         request = Request(
-            method=RequestMethod.POST,
-            headers={},
-            query={},
-            user=self.mocked_caller,
+            method=RequestMethod.POST, headers={}, query={}, user=self.mocked_caller, client_ip="127.0.0.1"
         )
         response = self.loop.run_until_complete(self.stat_resource.dispatch(request, None))
         content_body = json.loads(response.body)
@@ -204,6 +203,7 @@ class TestDispatchStatsResource(TestStatResource):
             headers={},
             query={"collection_name": "fakeCollection"},
             user=self.mocked_caller,
+            client_ip="127.0.0.1",
         )
         response = self.loop.run_until_complete(self.stat_resource.dispatch(request, None))
         content_body = json.loads(response.body)
@@ -217,6 +217,7 @@ class TestDispatchStatsResource(TestStatResource):
             headers={},
             query={"collection_name": "Book"},
             user=self.mocked_caller,
+            client_ip="127.0.0.1",
         )
         response = self.loop.run_until_complete(self.stat_resource.dispatch(request, None))
         content_body = json.loads(response.body)
@@ -231,6 +232,7 @@ class TestDispatchStatsResource(TestStatResource):
             query={"collection_name": "Book"},
             body={"type": "Unknown"},
             user=self.mocked_caller,
+            client_ip="127.0.0.1",
         )
         response = self.loop.run_until_complete(self.stat_resource.dispatch(request, None))
         content_body = json.loads(response.body)
@@ -245,6 +247,7 @@ class TestDispatchStatsResource(TestStatResource):
             query={"collection_name": "Book"},
             body={"type": "Value"},
             user=self.mocked_caller,
+            client_ip="127.0.0.1",
         )
         with patch.object(self.stat_resource, "value", new_callable=AsyncMock, return_value="value") as mock_value:
             response = self.loop.run_until_complete(self.stat_resource.dispatch(request, None))
@@ -263,6 +266,7 @@ class TestDispatchStatsResource(TestStatResource):
             query={"collection_name": "Book"},
             body={"type": "Objective"},
             user=self.mocked_caller,
+            client_ip="127.0.0.1",
         )
         with patch.object(
             self.stat_resource, "objective", new_callable=AsyncMock, return_value="objective"
@@ -283,6 +287,7 @@ class TestDispatchStatsResource(TestStatResource):
             query={"collection_name": "Book"},
             body={"type": "Pie"},
             user=self.mocked_caller,
+            client_ip="127.0.0.1",
         )
         with patch.object(self.stat_resource, "pie", new_callable=AsyncMock, return_value="pie") as mock_pie:
             response = self.loop.run_until_complete(self.stat_resource.dispatch(request, None))
@@ -301,6 +306,7 @@ class TestDispatchStatsResource(TestStatResource):
             query={"collection_name": "Book"},
             body={"type": "Line"},
             user=self.mocked_caller,
+            client_ip="127.0.0.1",
         )
         with patch.object(self.stat_resource, "line", new_callable=AsyncMock, return_value="line") as mock_line:
             response = self.loop.run_until_complete(self.stat_resource.dispatch(request, None))
@@ -319,6 +325,7 @@ class TestDispatchStatsResource(TestStatResource):
             query={"collection_name": "Book"},
             body={"type": "Leaderboard"},
             user=self.mocked_caller,
+            client_ip="127.0.0.1",
         )
         with patch.object(
             self.stat_resource, "leader_board", new_callable=AsyncMock, return_value="leader_board"
@@ -339,6 +346,7 @@ class TestDispatchStatsResource(TestStatResource):
             query={"collection_name": "Book"},
             body={"type": "Leaderboard"},
             user=self.mocked_caller,
+            client_ip="127.0.0.1",
         )
         with patch.object(
             self.stat_resource, "leader_board", new_callable=AsyncMock, side_effect=Exception("raise")
@@ -372,6 +380,7 @@ class TestValueStatsResource(TestStatResource):
             },
             headers={},
             user=self.mocked_caller,
+            client_ip="127.0.0.1",
         )
 
     def test_value_should_raise_if_no_request_body(self):
@@ -384,6 +393,7 @@ class TestValueStatsResource(TestStatResource):
             },
             headers={},
             user=self.mocked_caller,
+            client_ip="127.0.0.1",
         )
         self.assertRaisesRegex(Exception, "", self.loop.run_until_complete, self.stat_resource.value(request))
 
@@ -456,6 +466,7 @@ class TestObjectiveStatsResource(TestStatResource):
             },
             headers={},
             user=self.mocked_caller,
+            client_ip="127.0.0.1",
         )
 
     def test_value_should_raise_if_no_request_body(self):
@@ -468,6 +479,7 @@ class TestObjectiveStatsResource(TestStatResource):
             },
             headers={},
             user=self.mocked_caller,
+            client_ip="127.0.0.1",
         )
         self.assertRaisesRegex(Exception, "", self.loop.run_until_complete, self.stat_resource.objective(request))
 
@@ -505,6 +517,7 @@ class TestPieStatsResource(TestStatResource):
             },
             headers={},
             user=self.mocked_caller,
+            client_ip="127.0.0.1",
         )
 
     def test_value_should_raise_if_no_request_body(self):
@@ -517,6 +530,7 @@ class TestPieStatsResource(TestStatResource):
             },
             headers={},
             user=self.mocked_caller,
+            client_ip="127.0.0.1",
         )
         self.assertRaisesRegex(Exception, "", self.loop.run_until_complete, self.stat_resource.pie(request))
 
@@ -557,6 +571,7 @@ class TestLineStatsResource(TestStatResource):
             },
             headers={},
             user=self.mocked_caller,
+            client_ip="127.0.0.1",
         )
 
     def test_value_should_raise_if_no_request_body(self):
@@ -569,6 +584,7 @@ class TestLineStatsResource(TestStatResource):
             },
             headers={},
             user=self.mocked_caller,
+            client_ip="127.0.0.1",
         )
         self.assertRaisesRegex(Exception, "", self.loop.run_until_complete, self.stat_resource.line(request))
 
@@ -683,6 +699,7 @@ class TestLineStatsResource(TestStatResource):
             },
             headers={},
             user=self.mocked_caller,
+            client_ip="127.0.0.1",
         )
         self.assertRaisesRegex(
             ForestException,
@@ -780,6 +797,7 @@ class TestLeaderBoradStatsResource(TestStatResource):
             },
             headers={},
             user=self.mocked_caller,
+            client_ip="127.0.0.1",
         )
 
     def test_leaderbaord_should_raise_if_no_request_body(self):
@@ -792,6 +810,7 @@ class TestLeaderBoradStatsResource(TestStatResource):
             },
             headers={},
             user=self.mocked_caller,
+            client_ip="127.0.0.1",
         )
         self.assertRaisesRegex(Exception, "", self.loop.run_until_complete, self.stat_resource.leader_board(request))
 
@@ -852,6 +871,7 @@ class TestLeaderBoradStatsResource(TestStatResource):
             },
             headers={},
             user=self.mocked_caller,
+            client_ip="127.0.0.1",
         )
 
         self.assertRaisesRegex(

@@ -29,9 +29,10 @@ class RequestArgs(TypedDict):
     method: RequestMethod
     collection: Union[Collection, CollectionCustomizer]
     body: Optional[Dict[str, Any]]
-    query: Optional[Dict[str, str]]
-    headers: Optional[Dict[str, str]]
+    query: Dict[str, str]
+    headers: Dict[str, str]
     user: Optional[User]
+    client_ip: str
 
 
 class RequestCollection(Request):
@@ -39,12 +40,15 @@ class RequestCollection(Request):
         self,
         method: RequestMethod,
         collection: Union[Collection, CollectionCustomizer],
-        body: Optional[Dict[str, Any]] = None,
-        query: Optional[Dict[str, str]] = None,
-        headers: Optional[Dict[str, str]] = None,
+        headers: Dict[str, str],
+        client_ip: str,
+        query: Dict[str, str],
         user: Optional[User] = None,
+        body: Optional[Dict[str, Any]] = None,
     ):
-        super(RequestCollection, self).__init__(method, body, query, headers, user)
+        super(RequestCollection, self).__init__(
+            method=method, headers=headers, client_ip=client_ip, query=query, user=user, body=body
+        )
         self.collection = collection
 
     @staticmethod
@@ -69,6 +73,7 @@ class RequestCollection(Request):
             headers=request.headers,
             user=request.user,
             collection=collection,
+            client_ip=request.client_ip,
         )
 
     @classmethod
@@ -96,12 +101,21 @@ class RequestRelationCollection(RequestCollection):
         foreign_collection: Union[Collection, CollectionCustomizer],
         relation: Union[ManyToMany, OneToMany, OneToOne, ManyToOne],
         relation_name: str,
-        body: Optional[Dict[str, Any]] = None,
-        query: Optional[Dict[str, str]] = None,
-        headers: Optional[Dict[str, str]] = None,
+        headers: Dict[str, str],
+        client_ip: str,
+        query: Dict[str, str],
         user: Optional[User] = None,
+        body: Optional[Dict[str, Any]] = None,
     ):
-        super(RequestRelationCollection, self).__init__(method, collection, body, query, headers, user)
+        super(RequestRelationCollection, self).__init__(
+            method=method,
+            collection=collection,
+            headers=headers,
+            client_ip=client_ip,
+            query=query,
+            user=user,
+            body=body,
+        )
         self.foreign_collection = foreign_collection
         self.relation = relation
         self.relation_name = relation_name
