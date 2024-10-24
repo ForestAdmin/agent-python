@@ -86,6 +86,11 @@ class EmptyCollectionDecorator(CollectionDecorator):
             elif leaf.field in values_by_field and leaf.operator == Operator.IN:
                 values_by_field[leaf.field] = [value for value in values_by_field[leaf.field] if value in leaf.value]
 
+            elif leaf.field in values_by_field and leaf.operator == Operator.NOT_IN:
+                values_by_field[leaf.field] = [
+                    value for value in values_by_field[leaf.field] if value not in leaf.value
+                ]
+
         for value in values_by_field.values():
             if len(value) == 0:
                 return True

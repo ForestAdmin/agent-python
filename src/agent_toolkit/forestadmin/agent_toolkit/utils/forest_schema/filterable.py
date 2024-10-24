@@ -29,8 +29,14 @@ class FrontendFilterableUtils:
 
     OPERATOR_BY_TYPES = {
         PrimitiveType.BOOLEAN: BASE_OPERATORS,
-        PrimitiveType.ENUM: [*BASE_OPERATORS, Operator.IN],
-        PrimitiveType.NUMBER: [*BASE_OPERATORS, Operator.IN, Operator.GREATER_THAN, Operator.LESS_THAN],
+        PrimitiveType.ENUM: [*BASE_OPERATORS, Operator.IN, Operator.NOT_IN],
+        PrimitiveType.NUMBER: [
+            *BASE_OPERATORS,
+            Operator.IN,
+            Operator.GREATER_THAN,
+            Operator.LESS_THAN,
+            Operator.NOT_IN,
+        ],
         PrimitiveType.STRING: [
             *BASE_OPERATORS,
             Operator.IN,
@@ -39,7 +45,7 @@ class FrontendFilterableUtils:
             Operator.CONTAINS,
             Operator.NOT_CONTAINS,
         ],
-        PrimitiveType.UUID: BASE_OPERATORS,
+        PrimitiveType.UUID: [*BASE_OPERATORS, Operator.IN, Operator.NOT_IN],
         PrimitiveType.DATE: [*BASE_OPERATORS, *DATE_OPERATORS],
         PrimitiveType.DATE_ONLY: [*BASE_OPERATORS, *DATE_OPERATORS],
         PrimitiveType.TIME_ONLY: [*BASE_OPERATORS, *DATE_OPERATORS],
