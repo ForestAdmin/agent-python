@@ -13,6 +13,7 @@ from forestadmin.datasource_toolkit.plugins.plugin import Plugin
 @patch("forestadmin.agent_toolkit.agent.PermissionService")
 @patch("forestadmin.agent_toolkit.agent.DatasourceCustomizer")
 @patch("forestadmin.agent_toolkit.agent.Authentication")
+@patch("forestadmin.agent_toolkit.agent.CapabilitiesResource")
 @patch("forestadmin.agent_toolkit.agent.CrudResource")
 @patch("forestadmin.agent_toolkit.agent.CrudRelatedResource")
 @patch("forestadmin.agent_toolkit.agent.StatsResource")
@@ -37,6 +38,7 @@ class TestAgent(TestCase):
         mocked_stats_resource,
         mocked_crud_related_resource,
         mocked_crud_resource,
+        mocked_capabilities_resource,
         mocked_authentication_resource,
         mocked_datasource_customizer,
         mocked_permission_service,
@@ -83,6 +85,7 @@ class TestAgent(TestCase):
         mocked_stats_resource,
         mocked_crud_related_resource,
         mocked_crud_resource,
+        mocked_capabilities_resource,
         mocked_authentication_resource,
         mocked_datasource_customizer,
         mocked_permission_service,
@@ -93,6 +96,9 @@ class TestAgent(TestCase):
             resources = self.loop.run_until_complete(agent.get_resources())
 
             mocked_authentication_resource.assert_called_once_with(agent._ip_white_list_service, agent.options)
+            mocked_capabilities_resource.assert_called_once_with(
+                "fake_datasource", agent._ip_white_list_service, agent.options
+            )
             mocked_crud_resource.assert_called_once_with(
                 "fake_datasource", agent._permission_service, agent._ip_white_list_service, agent.options
             )
@@ -106,7 +112,8 @@ class TestAgent(TestCase):
                 "fake_datasource", agent._permission_service, agent._ip_white_list_service, agent.options
             )
 
-        assert len(resources) == 7
+        assert len(resources) == 8
+        assert "capabilities" in resources
         assert "authentication" in resources
         assert "crud" in resources
         assert "crud_related" in resources
@@ -123,6 +130,7 @@ class TestAgent(TestCase):
         mocked_stats_resource,
         mocked_crud_related_resource,
         mocked_crud_resource,
+        mocked_capabilities_resource,
         mocked_authentication_resource,
         mocked_datasource_customizer,
         mocked_permission_service,
@@ -143,6 +151,7 @@ class TestAgent(TestCase):
         mocked_stats_resource,
         mocked_crud_related_resource,
         mocked_crud_resource,
+        mocked_capabilities_resource,
         mocked_authentication_resource,
         mocked_datasource_customizer,
         mocked_permission_service,
@@ -162,6 +171,7 @@ class TestAgent(TestCase):
         mocked_stats_resource,
         mocked_crud_related_resource,
         mocked_crud_resource,
+        mocked_capabilities_resource,
         mocked_authentication_resource,
         mocked_datasource_customizer,
         mocked_permission_service,
@@ -184,6 +194,7 @@ class TestAgent(TestCase):
         mocked_stats_resource,
         mocked_crud_related_resource,
         mocked_crud_resource,
+        mocked_capabilities_resource,
         mocked_authentication_resource,
         mocked_datasource_customizer,
         mocked_permission_service,
@@ -203,6 +214,7 @@ class TestAgent(TestCase):
         mocked_stats_resource,
         mocked_crud_related_resource,
         mocked_crud_resource,
+        mocked_capabilities_resource,
         mocked_authentication_resource,
         mocked_datasource_customizer,
         mocked_permission_service,
@@ -226,6 +238,7 @@ class TestAgent(TestCase):
         mocked_stats_resource,
         mocked_crud_related_resource,
         mocked_crud_resource,
+        mocked_capabilities_resource,
         mocked_authentication_resource,
         mocked_datasource_customizer,
         mocked_permission_service,
@@ -270,6 +283,7 @@ class TestAgent(TestCase):
         mocked_stats_resource,
         mocked_crud_related_resource,
         mocked_crud_resource,
+        mocked_capabilities_resource,
         mocked_authentication_resource,
         mocked_datasource_customizer,
         mocked_permission_service,
@@ -305,6 +319,7 @@ class TestAgent(TestCase):
         mocked_stats_resource,
         mocked_crud_related_resource,
         mocked_crud_resource,
+        mocked_capabilities_resource,
         mocked_authentication_resource,
         mocked_datasource_customizer,
         mocked_permission_service,

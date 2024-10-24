@@ -36,10 +36,7 @@ from forestadmin.datasource_toolkit.interfaces.query.sort import Sort
 from forestadmin.datasource_toolkit.interfaces.query.sort.factory import SortFactory
 from forestadmin.datasource_toolkit.interfaces.records import CompositeIdAlias
 from forestadmin.datasource_toolkit.utils.collections import CollectionUtils
-from forestadmin.datasource_toolkit.validations.condition_tree import (
-    ConditionTreeValidator,
-    ConditionTreeValidatorException,
-)
+from forestadmin.datasource_toolkit.validations.condition_tree import ConditionTreeValidator
 from forestadmin.datasource_toolkit.validations.projection import ProjectionValidator
 
 DEFAULT_ITEMS_PER_PAGE = 15
@@ -210,10 +207,7 @@ def parse_condition_tree(request: Union[RequestCollection, RequestRelationCollec
     except ConditionTreeFactoryException as e:
         raise FilterException(str(e))
 
-    try:
-        ConditionTreeValidator.validate(condition_tree, _get_collection(request))
-    except ConditionTreeValidatorException as e:
-        raise FilterException(str(e))
+    ConditionTreeValidator.validate(condition_tree, collection)
 
     return condition_tree
 

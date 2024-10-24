@@ -1,7 +1,7 @@
 from django.conf import settings
 from django.urls import path
 
-from .views import actions, authentication, charts, crud, crud_related, index, stats
+from .views import actions, authentication, capabilities, charts, crud, crud_related, index, stats
 
 app_name = "django_agent"
 
@@ -15,6 +15,7 @@ if len(prefix) > 0 and prefix[0] == "/":
 urlpatterns = [
     # generic
     path(f"{prefix}forest/", index.index, name="index"),
+    path(f"{prefix}forest/_internal/capabilities", capabilities.capabilities, name="capabilities"),
     path(f"{prefix}forest/scope-cache-invalidation", index.scope_cache_invalidation, name="scope_invalidation"),
     # authentication
     path(f"{prefix}forest/authentication", authentication.authentication, name="authentication"),

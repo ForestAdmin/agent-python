@@ -5,6 +5,7 @@ from forestadmin.datasource_toolkit.collections import Collection
 from forestadmin.datasource_toolkit.datasources import Datasource
 from forestadmin.datasource_toolkit.interfaces.fields import (
     FieldType,
+    Operator,
     PolymorphicManyToOne,
     PolymorphicOneToMany,
     PolymorphicOneToOne,
@@ -39,6 +40,28 @@ class TestGeneratorField(TestCase):
                     "is_primary_key": False,
                     "column_type": PrimitiveType.STRING,
                     "filter_operators": set(MAP_ALLOWED_OPERATORS_FOR_COLUMN_TYPE[PrimitiveType.STRING]),
+                    "validations": [],
+                    "default_value": None,
+                    "enum_values": None,
+                    "is_sortable": True,
+                    "is_read_only": False,
+                },
+                "computed_filterable": {
+                    "type": FieldType.COLUMN,
+                    "is_primary_key": False,
+                    "column_type": PrimitiveType.STRING,
+                    "filter_operators": set([Operator.EQUAL]),
+                    "validations": [],
+                    "default_value": None,
+                    "enum_values": None,
+                    "is_sortable": True,
+                    "is_read_only": False,
+                },
+                "computed_unfilterable": {
+                    "type": FieldType.COLUMN,
+                    "is_primary_key": False,
+                    "column_type": PrimitiveType.STRING,
+                    "filter_operators": set(),
                     "validations": [],
                     "default_value": None,
                     "enum_values": None,
@@ -132,6 +155,7 @@ class TestGeneratorField(TestCase):
                     "enum_values": None,
                     "is_sortable": True,
                     "is_read_only": False,
+                    "is_primary_key": False,
                 },
                 "taggable_id": {
                     "is_primary_key": False,
@@ -201,3 +225,14 @@ class TestGeneratorField(TestCase):
         self.assertEqual(author_tags_field["relationship"], "HasOne")
         self.assertEqual(author_tags_field["reference"], "Tag.taggable_id")
         self.assertEqual(author_tags_field["inverseOf"], "taggable")
+
+    def test_should_be_filterable_if_there_is_one_operator_or_more(self):
+        schema_field = SchemaFieldGenerator.build(self.book_collection, "computed_filterable")
+        self.assertTrue(schema_field["isFilterable"])
+
+        schema_field = SchemaFieldGenerator.build(self.book_collection, "name")
+        self.assertTrue(schema_field["isFilterable"])
+
+    def test_should_not_be_filterable_if_there_is_zero_operator(self):
+        schema_field = SchemaFieldGenerator.build(self.book_collection, "computed_unfilterable")
+        self.assertFalse(schema_field["isFilterable"])

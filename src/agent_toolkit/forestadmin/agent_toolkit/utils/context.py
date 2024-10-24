@@ -60,6 +60,17 @@ class Request:
         self.user = user
         self.client_ip = client_ip
 
+    def __eq__(self, value: object) -> bool:
+        return (
+            self.__class__ == value.__class__
+            and self.method == value.method
+            and self.body == value.body
+            and self.query == value.query
+            and self.headers == value.headers
+            and self.user == value.user
+            and self.client_ip == value.client_ip
+        )
+
 
 @dataclass
 class Response:

@@ -12,7 +12,9 @@ from flask.wrappers import Response as FlaskResponse
 from forestadmin.agent_toolkit.agent import Agent as BaseAgent
 from forestadmin.agent_toolkit.forest_logger import ForestLogger
 from forestadmin.agent_toolkit.options import Options
+from forestadmin.agent_toolkit.resources.actions.resources import LiteralMethod as ActionLiteralMethod
 from forestadmin.agent_toolkit.resources.base import BaseResource
+from forestadmin.agent_toolkit.resources.capabilities import LiteralMethod as CapabilitiesLiteralMethod
 from forestadmin.agent_toolkit.resources.collections.crud import LiteralMethod as CrudLiteralMethod
 from forestadmin.agent_toolkit.resources.security.resources import LiteralMethod as AuthLiteralMethod
 from forestadmin.agent_toolkit.utils.context import Request
@@ -113,7 +115,9 @@ def build_blueprint(agent: FlaskAgent):  # noqa: C901
     async def _get_collection_response(
         request: FlaskRequest,
         resource: BaseResource,
-        method: Optional[Union[AuthLiteralMethod, CrudLiteralMethod, Literal["execute", "hook"]]] = None,
+        method: Optional[
+            Union[AuthLiteralMethod, CrudLiteralMethod, ActionLiteralMethod, CapabilitiesLiteralMethod]
+        ] = None,
         detail: bool = False,
     ) -> FlaskResponse:
         response = await resource.dispatch(*_get_dispatch(request, method=method, detail=detail))
@@ -124,6 +128,10 @@ def build_blueprint(agent: FlaskAgent):  # noqa: C901
         rsp = FlaskResponse()
         rsp.status = 200
         return rsp
+
+    @blueprint.route("/_internal/capabilities", methods=["POST"])
+    async def capabilities() -> FlaskResponse:  # type: ignore
+        return await _get_collection_response(request, (await agent.get_resources())["capabilities"], "capabilities")
 
     @blueprint.route("/authentication/callback", methods=["GET"])
     async def callback() -> FlaskResponse:  # type: ignore

@@ -93,9 +93,7 @@ class SchemaFieldGenerator:
             "defaultValue": column.get("default_value"),
             "enums": sorted(column["enum_values"]) if column.get("enum_values") is not None else None,
             "inverseOf": None,
-            "isFilterable": FrontendFilterableUtils.is_filterable(
-                column["column_type"], column.get("filter_operators", set())
-            ),
+            "isFilterable": FrontendFilterableUtils.is_filterable(column.get("filter_operators", set())),
             "isPrimaryKey": bool(column.get("is_primary_key", False)),
             "isSortable": bool(column.get("is_sortable", False)),
             # When a column is a foreign key, it is readonly.
@@ -111,9 +109,7 @@ class SchemaFieldGenerator:
     def is_foreign_collection_filterable(foreign_collection: Collection) -> bool:
         res = False
         for field in foreign_collection.schema["fields"].values():
-            if is_column(field) and FrontendFilterableUtils.is_filterable(
-                field["column_type"], field["filter_operators"]
-            ):
+            if is_column(field) and FrontendFilterableUtils.is_filterable(field["filter_operators"]):
                 res = True
                 break
         return res

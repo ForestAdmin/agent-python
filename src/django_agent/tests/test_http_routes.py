@@ -17,6 +17,7 @@ class TestDjangoAgentRoutes(TestCase):
 
         cls.mocked_resources = {}
         for key in [
+            "capabilities",
             "authentication",
             "crud",
             "crud_related",
@@ -49,6 +50,37 @@ class TestDjangoAgentRoutes(TestCase):
         patch("forestadmin.django_agent.apps.is_launch_as_server", return_value=True).start()
 
         super().setUpClass()
+
+
+class TestDjangoAgentCapabilitiesRoutes(TestDjangoAgentRoutes):
+    @classmethod
+    def setUpClass(cls) -> None:
+        super().setUpClass()
+        cls.capabilities_resource = cls.loop.run_until_complete(cls.django_agent.get_resources())["capabilities"]
+
+    def test_capabilities(self):
+        response = self.client.post(
+            f"/{self.conf_prefix}forest/_internal/capabilities?timezone=Europe%2FParis",
+            json.dumps({"collectionNames": ["app_test"]}),
+            content_type="application/json",
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.content, b'{"mock": "ok"}')
+        self.capabilities_resource.dispatch.assert_awaited()
+        call_args = self.capabilities_resource.dispatch.await_args[0]
+        self.assertEqual(call_args[1], "capabilities")
+        self.assertEqual(
+            call_args[0],
+            Request(
+                RequestMethod.POST,
+                {"collectionNames": ["app_test"]},
+                {"timezone": "Europe/Paris"},
+                {"Cookie": "", "Content-Length": "33", "Content-Type": "application/json"},
+                None,
+                "127.0.0.1",
+            ),
+        )
 
 
 class TestDjangoAgentGenericRoutes(TestDjangoAgentRoutes):

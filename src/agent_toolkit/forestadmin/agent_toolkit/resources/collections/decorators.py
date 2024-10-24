@@ -4,6 +4,7 @@ import jwt
 from forestadmin.agent_toolkit.resources.collections.base_collection_resource import BaseCollectionResource
 from forestadmin.agent_toolkit.resources.collections.filter import parse_timezone
 from forestadmin.agent_toolkit.resources.collections.requests import RequestCollection
+from forestadmin.agent_toolkit.resources.ip_white_list_resource import IpWhitelistResource
 from forestadmin.agent_toolkit.utils.context import (
     FileResponse,
     HttpResponseBuilder,
@@ -15,14 +16,15 @@ from forestadmin.agent_toolkit.utils.context import (
 from forestadmin.datasource_toolkit.exceptions import ForbiddenError
 
 BoundRequest = TypeVar("BoundRequest", bound=Request)
-BoundResource = TypeVar("BoundResource", bound=BaseCollectionResource)
+BoundCollectionResource = TypeVar("BoundCollectionResource", bound=BaseCollectionResource)
 BoundRequestCollection = TypeVar("BoundRequestCollection", bound=RequestCollection)
+BoundIpWhitelistResource = TypeVar("BoundIpWhitelistResource", bound=IpWhitelistResource)
 
 
 async def _authenticate(
-    self: "BoundResource",
-    request: BoundRequestCollection,
-    decorated_fn: Callable[["BoundResource", BoundRequestCollection], Awaitable[Union[FileResponse, Response]]],
+    self: "BoundIpWhitelistResource",
+    request: BoundRequest,
+    decorated_fn: Callable[["BoundIpWhitelistResource", BoundRequest], Awaitable[Union[FileResponse, Response]]],
 ):
     if not request.headers:
         return Response(status=401)
@@ -55,8 +57,8 @@ async def _authenticate(
     return await decorated_fn(self, request)
 
 
-def authenticate(fn: Callable[["BoundResource", BoundRequestCollection], Awaitable[Union[FileResponse, Response]]]):
-    async def wrapped2(self: "BoundResource", request: BoundRequestCollection) -> Union[FileResponse, Response]:
+def authenticate(fn: Callable[["BoundIpWhitelistResource", BoundRequest], Awaitable[Union[FileResponse, Response]]]):
+    async def wrapped2(self: "BoundIpWhitelistResource", request: BoundRequest) -> Union[FileResponse, Response]:
         return await _authenticate(self, request, fn)
 
     return wrapped2
@@ -64,9 +66,9 @@ def authenticate(fn: Callable[["BoundResource", BoundRequestCollection], Awaitab
 
 async def _authorize(
     action: str,
-    self: "BoundResource",
+    self: "BoundCollectionResource",
     request: BoundRequestCollection,
-    decorated_fn: Callable[["BoundResource", BoundRequestCollection], Awaitable[Any]],
+    decorated_fn: Callable[["BoundCollectionResource", BoundRequestCollection], Awaitable[Any]],
 ):
     if action == "chart":
         await self.permission.can_chart(request)
@@ -78,8 +80,10 @@ async def _authorize(
 
 
 def authorize(action: str):
-    def wrapper(fn: Callable[["BoundResource", BoundRequestCollection], Awaitable[Any]]):
-        async def wrapped1(self: "BoundResource", request: BoundRequestCollection) -> Union[FileResponse, Response]:
+    def wrapper(fn: Callable[["BoundCollectionResource", BoundRequestCollection], Awaitable[Any]]):
+        async def wrapped1(
+            self: "BoundCollectionResource", request: BoundRequestCollection
+        ) -> Union[FileResponse, Response]:
             return await _authorize(action, self, request, fn)
 
         return wrapped1
@@ -89,9 +93,9 @@ def authorize(action: str):
 
 async def _check_method(
     method: RequestMethod,
-    self: "BoundResource",
-    request: BoundRequestCollection,
-    decorated_fn: Callable[["BoundResource", BoundRequestCollection], Awaitable[Union[FileResponse, Response]]],
+    self: "BoundIpWhitelistResource",
+    request: BoundRequest,
+    decorated_fn: Callable[["BoundIpWhitelistResource", BoundRequest], Awaitable[Union[FileResponse, Response]]],
 ):
     if request.method != method:
         return HttpResponseBuilder.build_method_not_allowed_response()
@@ -99,8 +103,8 @@ async def _check_method(
 
 
 def check_method(method: RequestMethod):
-    def wrapper(fn: Callable[["BoundResource", BoundRequestCollection], Awaitable[Union[FileResponse, Response]]]):
-        async def wrapped(self: "BoundResource", request: BoundRequestCollection) -> Union[FileResponse, Response]:
+    def wrapper(fn: Callable[["BoundIpWhitelistResource", BoundRequest], Awaitable[Union[FileResponse, Response]]]):
+        async def wrapped(self: "BoundIpWhitelistResource", request: BoundRequest) -> Union[FileResponse, Response]:
             return await _check_method(method, self, request, fn)
 
         return wrapped

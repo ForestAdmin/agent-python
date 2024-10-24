@@ -39,6 +39,7 @@ from app.forest.order import (
     total_order_chart,
 )
 from forestadmin.datasource_django.datasource import DjangoDatasource
+from forestadmin.datasource_toolkit.interfaces.fields import Operator
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.leaf import ConditionTreeLeaf
 from forestadmin.django_agent.agent import DjangoAgent
 
@@ -127,17 +128,17 @@ def customize_forest(agent: DjangoAgent):
     ).replace_field_operator(
         "full_name", "in", full_name_in
     ).replace_field_operator(
-        "full_name", "not_in", full_name_not_in
-    ).replace_field_operator(
-        "full_name", "less_than", full_name_less_than
-    ).replace_field_operator(
-        "full_name", "greater_than", full_name_greater_than
+        "full_name",
+        "not_in",
+        full_name_not_in,
     ).replace_field_operator(
         "full_name", "like", full_name_like
     ).replace_field_operator(
         "full_name", "contains", full_name_contains
     ).replace_field_operator(
-        "full_name", "not_contains", full_name_not_contains
+        "full_name",
+        "not_contains",
+        full_name_not_contains,
     ).emulate_field_filtering(
         # emulate others operators
         "full_name"
