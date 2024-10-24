@@ -1,3 +1,10 @@
+# [1.17.0](https://github.com/ForestAdmin/agent-python/compare/v1.16.3...v1.17.0) (2024-10-24)
+
+
+### Features
+
+* **capabilities:** expose fields operators to frontend ([#279](https://github.com/ForestAdmin/agent-python/issues/279)) ([baba981](https://github.com/ForestAdmin/agent-python/commit/baba981d03eb4fac4da639a42ab0d694e48509d0))
+
 ## [1.16.3](https://github.com/ForestAdmin/agent-python/compare/v1.16.2...v1.16.3) (2024-10-23)
 
 
