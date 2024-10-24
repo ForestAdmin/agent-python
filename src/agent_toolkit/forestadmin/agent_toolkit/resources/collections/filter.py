@@ -207,7 +207,7 @@ def parse_condition_tree(request: Union[RequestCollection, RequestRelationCollec
     except ConditionTreeFactoryException as e:
         raise FilterException(str(e))
 
-    ConditionTreeValidator.validate(condition_tree, _get_collection(request))
+    ConditionTreeValidator.validate(condition_tree, collection)
 
     return condition_tree
 
