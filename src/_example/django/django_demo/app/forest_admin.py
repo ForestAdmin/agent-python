@@ -1,6 +1,11 @@
 import datetime
 
-from app.forest.address import address_full_name_computed, get_postal_code, high_delivery_address_segment
+from app.forest.address import (
+    address_full_name_computed,
+    get_postal_code,
+    high_delivery_address_segment,
+    segment_addr_fr,
+)
 from app.forest.cart import cart_get_customer_id, cart_update_name
 from app.forest.custom_datasources.typicode import TypicodeDatasource
 from app.forest.customer import (
@@ -48,6 +53,9 @@ def customize_forest(agent: DjangoAgent):
     agent.add_datasource(DjangoDatasource(support_polymorphic_relations=True))
     agent.add_datasource(TypicodeDatasource())
     agent.add_datasource(SqlAlchemyDatasource(Base, DB_URI))
+
+    agent.customize_collection("address").add_segment("France", segment_addr_fr("address"))
+    agent.customize_collection("app_address").add_segment("France", segment_addr_fr("app_address"))
 
     # # ## ADDRESS
     agent.customize_collection("app_address").add_segment(

@@ -6,7 +6,12 @@
             "isSearchable": true,
             "paginationType": "page",
             "actions": [],
-            "segments": [],
+            "segments": [
+                {
+                    "id": "address.France",
+                    "name": "France"
+                }
+            ],
             "fields": [
                 {
                     "defaultValue": null,
@@ -164,6 +169,10 @@
             "paginationType": "page",
             "actions": [],
             "segments": [
+                {
+                    "id": "app_address.France",
+                    "name": "France"
+                },
                 {
                     "id": "app_address.highOrderDelivery",
                     "name": "highOrderDelivery"
