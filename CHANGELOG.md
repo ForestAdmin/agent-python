@@ -1,3 +1,10 @@
+# [1.18.0](https://github.com/ForestAdmin/agent-python/compare/v1.17.0...v1.18.0) (2024-10-31)
+
+
+### Features
+
+* add request ip to user context ([#280](https://github.com/ForestAdmin/agent-python/issues/280)) ([24e5b9c](https://github.com/ForestAdmin/agent-python/commit/24e5b9c178a7ce1e58917a3a997f97feb3bfe8d0))
+
 # [1.17.0](https://github.com/ForestAdmin/agent-python/compare/v1.16.3...v1.17.0) (2024-10-24)
 
 
