@@ -77,6 +77,7 @@ class BaseTestPermissionService(TestCase):
             last_name="user",
             team="operational",
             timezone=zoneinfo.ZoneInfo("Europe/Paris"),
+            request={"ip": "127.0.0.1"},
         )
         cls.options: RoleOptions = {
             "server_url": "https://api.developpement.forestadmin.com",
@@ -348,6 +349,9 @@ class Test03CanChartPermissionService(BaseTestPermissionService):
                 "sourceCollectionName": "Booking",
                 "type": "Value",
             },
+            query={},
+            headers={},
+            client_ip="127.0.0.1",
             user=self.mocked_caller,
         )
 
@@ -369,6 +373,9 @@ class Test03CanChartPermissionService(BaseTestPermissionService):
                 "sourceCollectionName": "Booking",
                 "type": "Pie",
             },
+            query={},
+            headers={},
+            client_ip="127.0.0.1",
             user=self.mocked_caller,
         )
 
@@ -402,6 +409,9 @@ class Test03CanChartPermissionService(BaseTestPermissionService):
                 "sourceCollectionName": "Car",
                 "type": "Pie",
             },
+            query={},
+            headers={},
+            client_ip="127.0.0.1",
             user=self.mocked_caller,
         )
 
@@ -509,7 +519,7 @@ class Test05CanSmartActionPermissionService(BaseTestPermissionService):
         request = RequestCollection(
             method=RequestMethod.POST,
             collection=self.booking_collection,
-            query={"action_name": 0, "slug": "mark as live"},
+            query={"action_name": "0", "slug": "mark as live"},
             body={
                 "data": {
                     "attributes": {
@@ -534,6 +544,8 @@ class Test05CanSmartActionPermissionService(BaseTestPermissionService):
                     "type": "custom-action-requests",
                 },
             },
+            headers={},
+            client_ip="127.0.0.1",
             user=self.mocked_caller,
         )
 
@@ -551,7 +563,7 @@ class Test05CanSmartActionPermissionService(BaseTestPermissionService):
         request = RequestCollection(
             method=RequestMethod.POST,
             collection=self.booking_collection,
-            query={"action_name": 0, "slug": "mark as live"},
+            query={"action_name": "0", "slug": "mark as live"},
             body={
                 "data": {
                     "attributes": {
@@ -576,6 +588,8 @@ class Test05CanSmartActionPermissionService(BaseTestPermissionService):
                     "type": "custom-action-requests",
                 },
             },
+            headers={},
+            client_ip="127.0.0.1",
             user=self.mocked_caller,
         )
 
@@ -593,7 +607,7 @@ class Test05CanSmartActionPermissionService(BaseTestPermissionService):
         request = RequestCollection(
             method=RequestMethod.POST,
             collection=self.booking_collection,
-            query={"action_name": 0, "slug": "fake-smart-action"},
+            query={"action_name": "0", "slug": "fake-smart-action"},
             body={
                 "data": {
                     "attributes": {
@@ -618,6 +632,8 @@ class Test05CanSmartActionPermissionService(BaseTestPermissionService):
                     "type": "custom-action-requests",
                 },
             },
+            headers={},
+            client_ip="127.0.0.1",
             user=self.mocked_caller,
         )
 

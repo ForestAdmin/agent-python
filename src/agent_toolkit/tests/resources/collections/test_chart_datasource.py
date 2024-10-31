@@ -32,6 +32,7 @@ def authenticate_mock(fn):
             last_name="user",
             team="operational",
             timezone=zoneinfo.ZoneInfo("Europe/Paris"),
+            request={"ip": "127.0.0.1"},
         )
 
         return await fn(self, request)
@@ -90,6 +91,7 @@ class TestChartDatasourceResource(TestCase):
             last_name="user",
             team="operational",
             timezone=zoneinfo.ZoneInfo("Europe/Paris"),
+            request={"ip": "127.0.0.1"},
         )
 
     def setUp(self) -> None:
@@ -106,6 +108,7 @@ class TestChartDatasourceResource(TestCase):
                 body={},
                 headers={},
                 user=self.mocked_caller,
+                client_ip="127.0.0.1",
             )
             response: Response = self.loop.run_until_complete(self.chart_datasource_resource.dispatch(request, ""))
 
@@ -124,6 +127,7 @@ class TestChartDatasourceResource(TestCase):
             body={},
             headers={},
             user=self.mocked_caller,
+            client_ip="127.0.0.1",
         )
 
         with patch.object(
@@ -144,6 +148,7 @@ class TestChartDatasourceResource(TestCase):
             body=None,
             headers={},
             user=self.mocked_caller,
+            client_ip="127.0.0.1",
         )
 
         with patch.object(
@@ -166,6 +171,7 @@ class TestChartDatasourceResource(TestCase):
             body=None,
             headers={},
             user=self.mocked_caller,
+            client_ip="127.0.0.1",
         )
 
         with patch.object(
@@ -195,6 +201,7 @@ class TestChartDatasourceResource(TestCase):
             body={},
             headers={},
             user=self.mocked_caller,
+            client_ip="127.0.0.1",
         )
 
         with patch.object(
@@ -212,6 +219,7 @@ class TestChartDatasourceResource(TestCase):
             query={"chart_name": "test_chart_book"},
             headers={},
             user=self.mocked_caller,
+            client_ip="127.0.0.1",
         )
         with patch.object(
             self.decorated_datasource, "render_chart", new_callable=AsyncMock, return_value=100

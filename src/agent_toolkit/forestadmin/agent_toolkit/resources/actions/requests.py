@@ -26,12 +26,21 @@ class ActionRequest(RequestCollection):
         method: RequestMethod,
         action_name: str,
         collection: Union[Collection, CollectionCustomizer],
-        body: Optional[Dict[str, Any]] = None,
-        query: Optional[Dict[str, str]] = None,
-        headers: Optional[Dict[str, str]] = None,
+        headers: Dict[str, str],
+        client_ip: str,
+        query: Dict[str, str],
         user: Optional[User] = None,
+        body: Optional[Dict[str, Any]] = None,
     ):
-        super(ActionRequest, self).__init__(method, collection, body, query, headers, user)
+        super(ActionRequest, self).__init__(
+            method=method,
+            collection=collection,
+            headers=headers,
+            client_ip=client_ip,
+            query=query,
+            user=user,
+            body=body,
+        )
         self.action_name = action_name
 
     @staticmethod

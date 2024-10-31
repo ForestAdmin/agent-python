@@ -32,6 +32,7 @@ def authenticate_mock(fn):
             last_name="user",
             team="operational",
             timezone=zoneinfo.ZoneInfo("Europe/Paris"),
+            request={"ip": "127.0.0.1"},
         )
 
         return await fn(self, request)
@@ -105,6 +106,7 @@ class TestCapabilitiesResource(TestCase):
             last_name="user",
             team="operational",
             timezone=zoneinfo.ZoneInfo("Europe/Paris"),
+            request={"ip": "127.0.0.1"},
         )
 
     def setUp(self) -> None:
@@ -114,9 +116,9 @@ class TestCapabilitiesResource(TestCase):
         for method in [RequestMethod.DELETE, RequestMethod.OPTIONS, RequestMethod.PUT]:
             request = Request(
                 method=method,
-                query=None,
-                body=None,
+                query={},
                 headers={},
+                client_ip="127.0.0.1",
                 user=self.mocked_caller,
             )
             response: Response = self.loop.run_until_complete(
@@ -128,9 +130,10 @@ class TestCapabilitiesResource(TestCase):
     def test_dispatch_should_dispatch_POST_to_capabilities(self):
         request = Request(
             method=RequestMethod.POST,
-            query=None,
+            query={},
             body={"collectionNames": ["Book"]},
             headers={},
+            client_ip="127.0.0.1",
             user=self.mocked_caller,
         )
         response: Response = self.loop.run_until_complete(self.capabilities_resource.dispatch(request, "capabilities"))

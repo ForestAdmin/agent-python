@@ -74,11 +74,10 @@ class TestDjangoAgentCapabilitiesRoutes(TestDjangoAgentRoutes):
             call_args[0],
             Request(
                 RequestMethod.POST,
-                {"collectionNames": ["app_test"]},
-                {"timezone": "Europe/Paris"},
-                {"Cookie": "", "Content-Length": "33", "Content-Type": "application/json"},
-                None,
-                "127.0.0.1",
+                body={"collectionNames": ["app_test"]},
+                query={"timezone": "Europe/Paris"},
+                headers={"Cookie": "", "Content-Length": "33", "Content-Type": "application/json"},
+                client_ip="127.0.0.1",
             ),
         )
 

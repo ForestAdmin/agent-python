@@ -123,6 +123,8 @@ class TestFilterConditionTree(TestFilter):
                 "collection_name": "Book",
             },
             collection=self.collection_book,
+            headers={},
+            client_ip="127.0.0.1",
         )
         condition_tree = parse_condition_tree(request)
         self.assertEqual(condition_tree.value, ["Foundation", "Harry Potter"])
@@ -136,6 +138,8 @@ class TestFilterConditionTree(TestFilter):
                 "collection_name": "Book",
             },
             collection=self.collection_book,
+            headers={},
+            client_ip="127.0.0.1",
         )
         condition_tree = parse_condition_tree(request)
         self.assertEqual(condition_tree.value, [1, 2])
@@ -150,6 +154,8 @@ class TestFilterConditionTree(TestFilter):
                 "collection_name": "Book",
             },
             collection=self.collection_book,
+            headers={},
+            client_ip="127.0.0.1",
         )
         condition_tree = parse_condition_tree(request)
         self.assertEqual(condition_tree.aggregator, Aggregator.OR)
@@ -167,6 +173,8 @@ class TestFilterConditionTree(TestFilter):
                 "collection_name": "Book",
             },
             collection=self.collection_book,
+            headers={},
+            client_ip="127.0.0.1",
         )
         condition_tree = parse_condition_tree(request)
         self.assertEqual(condition_tree.value, [1, 2])
@@ -179,6 +187,8 @@ class TestFilterConditionTree(TestFilter):
                 "collection_name": "Book",
             },
             collection=self.collection_book,
+            headers={},
+            client_ip="127.0.0.1",
         )
         condition_tree = parse_condition_tree(request)
         self.assertEqual(condition_tree.value, [1, 2])
@@ -191,6 +201,8 @@ class TestFilterConditionTree(TestFilter):
                 "collection_name": "Book",
             },
             collection=self.collection_book,
+            headers={},
+            client_ip="127.0.0.1",
         )
         condition_tree = parse_condition_tree(request)
         self.assertEqual(condition_tree.value, [1, 2])
@@ -207,6 +219,8 @@ class TestFilterProjection(TestFilter):
                 "fields[author]": "id",
             },
             collection=self.collection_book,
+            headers={},
+            client_ip="127.0.0.1",
         )
         expected_projection = ["id", "title", "author:id"]
 
@@ -226,6 +240,8 @@ class TestFilterProjection(TestFilter):
                 "collection_name": "Book",
             },
             collection=self.collection_book,
+            headers={},
+            client_ip="127.0.0.1",
         )
         expected_projection = ["author:firstname", "author:id", "author:lastname", "author_id", "id", "title"]
 
@@ -241,6 +257,8 @@ class TestFilterProjection(TestFilter):
                 "fields[Book]": "id,title,blabedoubla",
             },
             collection=self.collection_book,
+            headers={},
+            client_ip="127.0.0.1",
         )
 
         self.assertRaisesRegex(CollectionException, r"Field not found 'Book.blabedoubla'", parse_projection, request)
@@ -253,6 +271,8 @@ class TestFilterProjection(TestFilter):
                 "collection_name": "Tag",
             },
             collection=self.collection_tag,
+            headers={},
+            client_ip="127.0.0.1",
         )
         expected_projection = ["id", "tag", "taggable_id", "taggable_type", "taggable:*"]
 
@@ -270,6 +290,8 @@ class TestFilterSort(TestFilter):
                 "fields[Book]": "id,title",
             },
             collection=self.collection_book,
+            headers={},
+            client_ip="127.0.0.1",
         )
 
         sort = parse_sort(request)
@@ -285,6 +307,8 @@ class TestFilterSort(TestFilter):
                 "sort": "title",
             },
             collection=self.collection_book,
+            headers={},
+            client_ip="127.0.0.1",
         )
 
         sort = parse_sort(request)
@@ -300,6 +324,8 @@ class TestFilterSort(TestFilter):
                 "sort": "-title",
             },
             collection=self.collection_book,
+            headers={},
+            client_ip="127.0.0.1",
         )
 
         sort = parse_sort(request)
@@ -315,6 +341,8 @@ class TestFilterSort(TestFilter):
                 "sort": "-title,id",
             },
             collection=self.collection_book,
+            headers={},
+            client_ip="127.0.0.1",
         )
         sort = parse_sort(request)
         self.assertEqual(sort, [{"field": "title", "ascending": False}, {"field": "id", "ascending": True}])

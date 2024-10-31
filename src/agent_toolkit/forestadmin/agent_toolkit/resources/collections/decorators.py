@@ -53,6 +53,7 @@ async def _authenticate(
         last_name=user["last_name"],
         team=user["team"],
         timezone=parse_timezone(request),
+        request={"ip": request.client_ip},
     )
     return await decorated_fn(self, request)
 

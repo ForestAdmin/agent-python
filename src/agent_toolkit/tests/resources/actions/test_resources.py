@@ -44,6 +44,7 @@ def authenticate_mock(fn):
             last_name="user",
             team="operational",
             timezone=zoneinfo.ZoneInfo("Europe/Paris"),
+            request={"ip": "127.0.0.1"},
         )
 
         return await fn(self, request)
@@ -152,6 +153,7 @@ class BaseTestActionResource(TestCase):
             last_name="user",
             team="operational",
             timezone=zoneinfo.ZoneInfo("Europe/Paris"),
+            request={"ip": "127.0.0.1"},
         )
 
     def setUp(self) -> None:
@@ -195,6 +197,7 @@ class TestDispatchActionResource(BaseTestActionResource):
             body={},
             headers={},
             user=None,
+            client_ip="127.0.0.1",
         )
 
         response = self.loop.run_until_complete(self.action_resource.dispatch(request, "execute"))
@@ -222,6 +225,7 @@ class TestDispatchActionResource(BaseTestActionResource):
             body={},
             headers={},
             user=None,
+            client_ip="127.0.0.1",
         )
         with patch.object(self.action_resource, "hook", new_callable=AsyncMock, return_value="result") as mock_hook:
             response = self.loop.run_until_complete(self.action_resource.dispatch(request, "hook"))
@@ -240,6 +244,7 @@ class TestDispatchActionResource(BaseTestActionResource):
             body={},
             headers={},
             user=None,
+            client_ip="127.0.0.1",
         )
 
         with patch.object(
@@ -269,6 +274,7 @@ class TestDispatchActionResource(BaseTestActionResource):
             body={},
             headers={},
             user=None,
+            client_ip="127.0.0.1",
         )
 
         with patch.object(self.action_resource, "execute", new_callable=AsyncMock, return_value="result") as mock_hook:
@@ -288,6 +294,7 @@ class TestDispatchActionResource(BaseTestActionResource):
             body={},
             headers={},
             user=None,
+            client_ip="127.0.0.1",
         )
 
         with patch.object(
@@ -317,6 +324,7 @@ class TestDispatchActionResource(BaseTestActionResource):
             body={},
             headers={},
             user=None,
+            client_ip="127.0.0.1",
         )
 
         with patch.object(
@@ -388,6 +396,7 @@ class TestHookActionResource(BaseTestActionResource):
             },
             headers={},
             user=self.mocked_caller,
+            client_ip="127.0.0.1",
         )
         self.assertRaisesRegex(Exception, "", self.loop.run_until_complete, self.action_resource.hook(request))
 
@@ -463,6 +472,7 @@ class TestHookActionResource(BaseTestActionResource):
             },
             headers={},
             user=self.mocked_caller,
+            client_ip="127.0.0.1",
         )
 
         with patch.object(
@@ -561,6 +571,7 @@ class TestHookActionResource(BaseTestActionResource):
                     "type": "action-requests",
                 }
             },
+            client_ip="127.0.0.1",
         )
 
         with patch.object(
@@ -661,6 +672,7 @@ class TestExecuteActionResource(BaseTestActionResource):
             },
             headers={},
             user=self.mocked_caller,
+            client_ip="127.0.0.1",
         )
         self.assertRaisesRegex(Exception, "", self.loop.run_until_complete, self.action_resource.execute(request))
 
@@ -681,6 +693,7 @@ class TestExecuteActionResource(BaseTestActionResource):
             },
             headers={},
             user=self.mocked_caller,
+            client_ip="127.0.0.1",
         )
 
         with patch.object(
@@ -716,6 +729,7 @@ class TestExecuteActionResource(BaseTestActionResource):
             },
             headers={},
             user=self.mocked_caller,
+            client_ip="127.0.0.1",
         )
         response = self.loop.run_until_complete(self.action_resource.execute(request))
         self.assertEqual(response.status, 400)
@@ -742,6 +756,7 @@ class TestExecuteActionResource(BaseTestActionResource):
             },
             headers={},
             user=self.mocked_caller,
+            client_ip="127.0.0.1",
         )
         response = self.loop.run_until_complete(self.action_resource.execute(request))
         self.assertEqual(response.status, 400)
@@ -768,6 +783,7 @@ class TestExecuteActionResource(BaseTestActionResource):
             },
             headers={},
             user=self.mocked_caller,
+            client_ip="127.0.0.1",
         )
         response = self.loop.run_until_complete(self.action_resource.execute(request))
         self.assertEqual(response.status, 200)
@@ -794,6 +810,7 @@ class TestExecuteActionResource(BaseTestActionResource):
             },
             headers={},
             user=self.mocked_caller,
+            client_ip="127.0.0.1",
         )
         response = self.loop.run_until_complete(self.action_resource.execute(request))
         self.assertEqual(response.status, 200)
@@ -818,11 +835,12 @@ class TestExecuteActionResource(BaseTestActionResource):
             query={
                 "timezone": "Europe/Paris",
                 "collection_name": "Book",
-                "action_name": 0,
+                "action_name": "0",
                 "slug": "test_action_global",
             },
             headers={},
             user=self.mocked_caller,
+            client_ip="127.0.0.1",
         )
         response = self.loop.run_until_complete(self.action_resource.execute(request))
         self.assertEqual(response.name, "testFile.txt")
@@ -843,11 +861,12 @@ class TestExecuteActionResource(BaseTestActionResource):
             query={
                 "timezone": "Europe/Paris",
                 "collection_name": "Book",
-                "action_name": 0,
+                "action_name": "0",
                 "slug": "test_action_global",
             },
             headers={},
             user=self.mocked_caller,
+            client_ip="127.0.0.1",
         )
         response = self.loop.run_until_complete(self.action_resource.execute(request))
         self.assertEqual(response.status, 200)
@@ -865,11 +884,12 @@ class TestExecuteActionResource(BaseTestActionResource):
             query={
                 "timezone": "Europe/Paris",
                 "collection_name": "Book",
-                "action_name": 0,
+                "action_name": "0",
                 "slug": "test_action_global",
             },
             headers={},
             user=self.mocked_caller,
+            client_ip="127.0.0.1",
         )
         response = self.loop.run_until_complete(self.action_resource.execute(request))
         self.assertEqual(response.status, 200)
@@ -915,6 +935,7 @@ class TestExecuteActionResource(BaseTestActionResource):
             },
             headers={},
             user=self.mocked_caller,
+            client_ip="127.0.0.1",
         )
 
         with patch.object(
@@ -949,11 +970,13 @@ class TestExecuteActionResource(BaseTestActionResource):
             query={
                 "timezone": "Europe/Paris",
                 "collection_name": "Book",
-                "action_name": 0,
+                "action_name": "0",
                 "slug": "test_action_global",
             },
             headers={},
             user=self.mocked_caller,
+            client_ip="127.0.0.1",
         )
         response = self.loop.run_until_complete(self.action_resource.execute(request))
+        self.assertEqual(response.headers["headerOne"], "valueOne")
         self.assertEqual(response.headers["headerOne"], "valueOne")

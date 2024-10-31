@@ -65,15 +65,14 @@ class TestFlaskAgentBlueprint(TestCase):
             call_args[0],
             Request(
                 RequestMethod.POST,
-                {"collectionNames": ["app_test"]},
-                {"timezone": "Europe/Paris"},
-                {
+                body={"collectionNames": ["app_test"]},
+                query={"timezone": "Europe/Paris"},
+                headers={
                     "Host": "localhost",
                     "Content-Type": "application/json",
                     "Content-Length": "33",
                 },
-                None,
-                "127.0.0.1",
+                client_ip="127.0.0.1",
             ),
         )
 
