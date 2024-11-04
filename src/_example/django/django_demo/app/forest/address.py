@@ -4,11 +4,27 @@ from aiohttp import ClientSession
 from forestadmin.datasource_toolkit.context.collection_context import CollectionCustomizationContext
 from forestadmin.datasource_toolkit.decorators.computed.types import ComputedDefinition
 from forestadmin.datasource_toolkit.interfaces.query.aggregation import Aggregation
+from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.base import ConditionTree
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.leaf import ConditionTreeLeaf
 from forestadmin.datasource_toolkit.interfaces.query.filter.unpaginated import Filter
 from forestadmin.datasource_toolkit.interfaces.records import RecordsDataAlias
+from sqlalchemy import text
+from sqlalchemy.orm.session import Session
+
 
 # segments
+def segment_addr_fr(table_name: str):
+    def segment_addr_fr(context: CollectionCustomizationContext) -> ConditionTree:
+        with context.collection.get_native_driver() as driver:
+            if isinstance(driver, Session):  # if is sqlalchemy driver
+                ret = driver.execute(text(f"select country from {table_name} where country like 'france'"))
+            else:
+                ret = driver.execute(f"select country from {table_name} where country like 'france'")
+            countries = [r[0] for r in ret]
+
+            return ConditionTreeLeaf(field="country", operator="in", value=countries)
+
+    return segment_addr_fr
 
 
 async def high_delivery_address_segment(context: CollectionCustomizationContext):
