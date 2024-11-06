@@ -8,21 +8,16 @@ from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.base i
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.leaf import ConditionTreeLeaf
 from forestadmin.datasource_toolkit.interfaces.query.filter.unpaginated import Filter
 from forestadmin.datasource_toolkit.interfaces.records import RecordsDataAlias
-from sqlalchemy import text
-from sqlalchemy.orm.session import Session
 
 
 # segments
 def segment_addr_fr(table_name: str):
     def segment_addr_fr(context: CollectionCustomizationContext) -> ConditionTree:
         with context.collection.get_native_driver() as driver:
-            if isinstance(driver, Session):  # if is sqlalchemy driver
-                ret = driver.execute(text(f"select country from {table_name} where country like 'france'"))
-            else:
-                ret = driver.execute(f"select country from {table_name} where country like 'france'")
-            countries = [r[0] for r in ret]
+            ret = driver.execute(f"select distinct country from {table_name} where country like '%france%'")
+            rows = [*ret]
 
-            return ConditionTreeLeaf(field="country", operator="in", value=countries)
+        return ConditionTreeLeaf(field="country", operator="in", value=[r[0] for r in rows])
 
     return segment_addr_fr
 
