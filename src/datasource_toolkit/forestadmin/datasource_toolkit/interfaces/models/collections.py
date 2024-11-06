@@ -43,6 +43,11 @@ BoundCollection = TypeVar("BoundCollection", bound=Collection)
 class Datasource(Generic[BoundCollection], abc.ABC):
     @property
     @abc.abstractmethod
+    def name(self) -> str:
+        raise NotImplementedError
+
+    @property
+    @abc.abstractmethod
     def collections(self) -> List[BoundCollection]:
         raise NotImplementedError
 

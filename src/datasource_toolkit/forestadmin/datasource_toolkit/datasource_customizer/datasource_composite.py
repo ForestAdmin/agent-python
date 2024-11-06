@@ -1,5 +1,6 @@
-from typing import Any, List
+from typing import Any, Dict, List
 
+from forestadmin.agent_toolkit.forest_logger import ForestLogger
 from forestadmin.agent_toolkit.utils.context import User
 from forestadmin.datasource_toolkit.datasources import Datasource
 from forestadmin.datasource_toolkit.exceptions import DatasourceToolkitException
@@ -49,6 +50,12 @@ class CompositeDatasource(Datasource):
             if chart_name in self.schema["charts"].keys():
                 raise DatasourceToolkitException(f"Chart '{chart_name}' already exists.")
 
+        if datasource.name in [ds.name for ds in self._datasources]:
+            ForestLogger.log(
+                "warning",
+                f"A datasource with the name '{datasource.name}' already exists. "
+                "You can use the optional parameter 'name' when creating a datasource.",
+            )
         self._datasources.append(datasource)
 
     async def render_chart(self, caller: User, name: str) -> Chart:
@@ -57,3 +64,16 @@ class CompositeDatasource(Datasource):
                 return await datasource.render_chart(caller, name)
 
         raise DatasourceToolkitException(f"Chart {name} is not defined in the datasource.")
+
+    def get_datasources(self) -> List[Datasource]:
+        return [*self._datasources]
+
+    def get_datasource(self, name: str) -> Datasource:
+        for datasource in self._datasources:
+            if name == datasource.name:
+                return datasource
+
+        raise DatasourceToolkitException(
+            f"Datasource with name '{name}' is not found. Datasources names are: "
+            f"{', '.join([ds.name for ds in self._datasources])}"
+        )

@@ -1,11 +1,13 @@
+from typing import Optional
+
 from django.apps import apps
 from forestadmin.datasource_django.collection import DjangoCollection
 from forestadmin.datasource_django.interface import BaseDjangoDatasource
 
 
 class DjangoDatasource(BaseDjangoDatasource):
-    def __init__(self, support_polymorphic_relations: bool = False) -> None:
-        super().__init__()
+    def __init__(self, support_polymorphic_relations: bool = False, name: Optional[str] = None) -> None:
+        super().__init__(name)
         self.support_polymorphic_relations = support_polymorphic_relations
         self._create_collections()
 
