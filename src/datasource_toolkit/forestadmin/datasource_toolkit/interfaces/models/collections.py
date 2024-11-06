@@ -15,6 +15,10 @@ class CollectionSchema(TypedDict):
     charts: Dict[str, Callable]
 
 
+class DatasourceSchema(TypedDict):
+    charts: Dict[str, Callable]
+
+
 class Collection(abc.ABC):
     @property
     @abc.abstractmethod
@@ -48,4 +52,9 @@ class Datasource(Generic[BoundCollection], abc.ABC):
 
     @abc.abstractmethod
     def add_collection(self, collection: BoundCollection) -> None:
+        raise NotImplementedError
+
+    @property
+    @abc.abstractmethod
+    def schema(self) -> DatasourceSchema:
         raise NotImplementedError
