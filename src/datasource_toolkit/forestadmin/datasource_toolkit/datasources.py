@@ -5,6 +5,7 @@ from forestadmin.datasource_toolkit.exceptions import DatasourceToolkitException
 from forestadmin.datasource_toolkit.interfaces.chart import Chart
 from forestadmin.datasource_toolkit.interfaces.models.collections import BoundCollection
 from forestadmin.datasource_toolkit.interfaces.models.collections import Datasource as DatasourceInterface
+from forestadmin.datasource_toolkit.interfaces.models.collections import DatasourceSchema
 
 
 class DatasourceException(DatasourceToolkitException):
@@ -16,7 +17,7 @@ class Datasource(DatasourceInterface[BoundCollection]):
         self._collections: Dict[str, BoundCollection] = {}
 
     @property
-    def schema(self):
+    def schema(self) -> DatasourceSchema:
         return {"charts": {}}
 
     @property

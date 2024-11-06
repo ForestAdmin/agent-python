@@ -51,6 +51,10 @@ class RelaxedDatasource(Datasource["RelaxedCollection"]):
     def add_collection(self, collection: "RelaxedCollection") -> None:
         raise RelaxedDatasourceException("Cannot modify existing datasources")
 
+    @property
+    def schema(self):
+        return self.datasource.schema
+
 
 class RelaxedCollection(Collection):
     def __init__(self, collection: Collection):
