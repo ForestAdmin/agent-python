@@ -8,8 +8,8 @@ from sqlalchemy.orm import Mapper, sessionmaker
 
 
 class SqlAlchemyDatasource(BaseSqlAlchemyDatasource):
-    def __init__(self, Base: Any, db_uri: Optional[str] = None) -> None:
-        super().__init__()
+    def __init__(self, Base: Any, db_uri: Optional[str] = None, name: Optional[str] = None) -> None:
+        super().__init__(name)
         self._base = Base
         self.__is_using_flask_sqlalchemy = hasattr(Base, "Model")
 

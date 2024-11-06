@@ -55,6 +55,10 @@ class RelaxedDatasource(Datasource["RelaxedCollection"]):
     def schema(self):
         return self.datasource.schema
 
+    @property
+    def name(self):
+        return self.datasource.name
+
 
 class RelaxedCollection(Collection):
     def __init__(self, collection: Collection):

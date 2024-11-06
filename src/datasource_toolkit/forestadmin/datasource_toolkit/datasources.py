@@ -1,4 +1,4 @@
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 from forestadmin.agent_toolkit.utils.context import User
 from forestadmin.datasource_toolkit.exceptions import DatasourceToolkitException
@@ -13,8 +13,13 @@ class DatasourceException(DatasourceToolkitException):
 
 
 class Datasource(DatasourceInterface[BoundCollection]):
-    def __init__(self) -> None:
+    def __init__(self, name: Optional[str] = None) -> None:
         self._collections: Dict[str, BoundCollection] = {}
+        self._name = name if name is not None else self.__class__.__name__
+
+    @property
+    def name(self) -> str:
+        return self._name
 
     @property
     def schema(self) -> DatasourceSchema:
