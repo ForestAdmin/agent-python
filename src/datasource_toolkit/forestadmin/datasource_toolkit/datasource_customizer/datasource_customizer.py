@@ -1,6 +1,7 @@
 from typing import Dict, Optional
 
 from forestadmin.datasource_toolkit.datasource_customizer.collection_customizer import CollectionCustomizer
+from forestadmin.datasource_toolkit.datasource_customizer.datasource_composite import CompositeDatasource
 from forestadmin.datasource_toolkit.datasource_customizer.types import DataSourceOptions
 from forestadmin.datasource_toolkit.datasources import Datasource
 from forestadmin.datasource_toolkit.decorators.chart.types import DataSourceChartDefinition
@@ -12,7 +13,7 @@ from typing_extensions import Self
 
 class DatasourceCustomizer:
     def __init__(self) -> None:
-        self.composite_datasource: Datasource = Datasource()
+        self.composite_datasource: CompositeDatasource = CompositeDatasource()
         self.stack = DecoratorStack(self.composite_datasource)
 
     @property
@@ -52,8 +53,7 @@ class DatasourceCustomizer:
                 rename_decorator.rename_collections(_options.get("rename", {}))
                 datasource = rename_decorator
 
-            for collection in datasource.collections:
-                self.composite_datasource.add_collection(collection)
+            self.composite_datasource.add_datasource(datasource)
 
         self.stack.queue_customization(_add_datasource)
         return self
