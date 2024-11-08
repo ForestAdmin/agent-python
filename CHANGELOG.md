@@ -1,3 +1,10 @@
+## [1.18.1](https://github.com/ForestAdmin/agent-python/compare/v1.18.0...v1.18.1) (2024-11-08)
+
+
+### Bug Fixes
+
+* **native_driver:** usage is now the same in django and sqlalchemy ([#285](https://github.com/ForestAdmin/agent-python/issues/285)) ([b221271](https://github.com/ForestAdmin/agent-python/commit/b22127124e2b87ae2dca8335618caa4d0dbc7e5e))
+
 # [1.18.0](https://github.com/ForestAdmin/agent-python/compare/v1.17.0...v1.18.0) (2024-10-31)
 
 
