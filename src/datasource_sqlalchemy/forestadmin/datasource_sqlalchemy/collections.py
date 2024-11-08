@@ -34,6 +34,7 @@ from forestadmin.datasource_toolkit.interfaces.records import RecordsDataAlias
 from forestadmin.datasource_toolkit.validations.type_getter import TypeGetter
 from sqlalchemy import Table
 from sqlalchemy import column as SqlAlchemyColumn
+from sqlalchemy import text
 from sqlalchemy.engine import Dialect
 from sqlalchemy.orm import Mapper, RelationshipProperty
 from sqlalchemy.orm.session import Session
@@ -108,7 +109,18 @@ class SqlAlchemyCollection(BaseSqlAlchemyCollection):
         return self._factory
 
     def get_native_driver(self) -> Session:
-        return self.datasource.Session
+        session = self.datasource.Session()
+        real_execute = session.execute
+
+        def _custom_execute(statement, *args, **kwargs):
+            new_statement = statement
+            if isinstance(new_statement, str):
+                new_statement = text(statement)
+            return real_execute(new_statement, *args, **kwargs)
+
+        session.execute = _custom_execute
+
+        return session
 
     def get_column(self, name: str, alias_: Optional[Alias] = None) -> SqlAlchemyColumn:
         mapper = self.mapper

@@ -304,12 +304,19 @@ class TestSqlAlchemyCollectionWithModels(TestCase):
         assert [*filter(lambda item: item["group"]["customer_id"] == 10, results)][0]["value"] == 3408.5
 
     def test_get_native_driver_should_return_connection(self):
-        Session_ = self.datasource.get_collection("order").get_native_driver()
-        with Session_() as connection:
+        with self.datasource.get_collection("order").get_native_driver() as connection:
             self.assertIsInstance(connection, Session)
             self.assertEqual(str(connection.bind.url), f"sqlite:///{models.test_db_path}")
 
             rows = connection.execute(text('select id,amount from "order"  where id =  3')).all()
+        self.assertEqual(rows, [(3, 5285)])
+
+    def test_get_native_driver_should_work_without_declaring_request_as_text(self):
+        with self.datasource.get_collection("order").get_native_driver() as connection:
+            self.assertIsInstance(connection, Session)
+            self.assertEqual(str(connection.bind.url), f"sqlite:///{models.test_db_path}")
+
+            rows = connection.execute('select id,amount from "order"  where id =  3').all()
         self.assertEqual(rows, [(3, 5285)])
 
 
