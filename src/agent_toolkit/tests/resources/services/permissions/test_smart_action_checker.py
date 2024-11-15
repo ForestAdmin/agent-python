@@ -159,7 +159,7 @@ class Test01TriggerCanExecuteSmartActionChecker(TestSmartActionChecker):
                         "aggregator": "and",
                         "conditions": [{"field": "title", "value": None, "source": "data", "operator": "present"}],
                     },
-                    "role_id": 1,
+                    "roleId": 1,
                 }
             ],
         }
@@ -195,7 +195,7 @@ class Test01TriggerCanExecuteSmartActionChecker(TestSmartActionChecker):
                         "aggregator": "and",
                         "conditions": [{"field": "title", "value": None, "source": "data", "operator": "present"}],
                     },
-                    "role_id": 1,
+                    "roleId": 1,
                 }
             ],
         }
@@ -261,7 +261,7 @@ class Test01TriggerCanExecuteSmartActionChecker(TestSmartActionChecker):
                         "aggregator": "and",
                         "conditions": [{"field": "id", "value": 1, "source": "data", "operator": "equal"}],
                     },
-                    "role_id": 1,
+                    "roleId": 1,
                 }
             ],
         }
@@ -304,7 +304,7 @@ class Test01TriggerCanExecuteSmartActionChecker(TestSmartActionChecker):
                         "aggregator": "and",
                         "conditions": [{"field": "id", "value": 1, "source": "data", "operator": "equal"}],
                     },
-                    "role_id": 1,
+                    "roleId": 1,
                 }
             ],
         }
@@ -343,7 +343,7 @@ class Test01TriggerCanExecuteSmartActionChecker(TestSmartActionChecker):
                         "aggregator": "and",
                         "conditions": [{"field": "title", "value": None, "source": "data", "operator": "present"}],
                     },
-                    "role_id": 1,
+                    "roleId": 1,
                 }
             ],
             "approvalRequired": [1],
@@ -353,7 +353,7 @@ class Test01TriggerCanExecuteSmartActionChecker(TestSmartActionChecker):
                         "aggregator": "and",
                         "conditions": [{"field": "id", "value": 1, "source": "data", "operator": "equal"}],
                     },
-                    "role_id": 1,
+                    "roleId": 1,
                 }
             ],
         }
@@ -728,7 +728,7 @@ class Test02ApproveCanExecuteSmartActionChecker(TestSmartActionChecker):
                         "aggregator": "and",
                         "conditions": [{"field": "id", "value": 1, "source": "data", "operator": "equal"}],
                     },
-                    "role_id": 1,
+                    "roleId": 1,
                 }
             ],
         }
@@ -768,7 +768,7 @@ class Test02ApproveCanExecuteSmartActionChecker(TestSmartActionChecker):
                         "aggregator": "and",
                         "conditions": [{"field": "id", "value": 1000, "source": "data", "operator": "equal"}],
                     },
-                    "role_id": 1,
+                    "roleId": 1,
                 }
             ],
         }
@@ -808,7 +808,7 @@ class Test02ApproveCanExecuteSmartActionChecker(TestSmartActionChecker):
                         "aggregator": "and",
                         "conditions": [{"field": "id", "value": 1000, "source": "data", "operator": "equal"}],
                     },
-                    "role_id": 1,
+                    "roleId": 1,
                 }
             ],
         }
