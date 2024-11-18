@@ -65,9 +65,9 @@ class SmartActionChecker:
             self.role_id in self.smart_action["triggerEnabled"]
             and self.role_id in self.smart_action["approvalRequired"]
         ):
-            if len(self.smart_action["approvalRequiredConditions"]) == 0 or await self._match_conditions(
-                "approvalRequiredConditions"
-            ):
+            if self._get_conditions_for_current_role(
+                self.smart_action["approvalRequiredConditions"]
+            ) is None or await self._match_conditions("approvalRequiredConditions"):
                 raise RequireApproval(
                     "This action requires to be approved.",
                     {},
