@@ -1,3 +1,10 @@
+## [1.18.2](https://github.com/ForestAdmin/agent-python/compare/v1.18.1...v1.18.2) (2024-11-18)
+
+
+### Bug Fixes
+
+* **permission:** get approval conditions by role id ([#286](https://github.com/ForestAdmin/agent-python/issues/286)) ([8853290](https://github.com/ForestAdmin/agent-python/commit/8853290a9a4406f54170d020d85b78cbfa803db2))
+
 ## [1.18.1](https://github.com/ForestAdmin/agent-python/compare/v1.18.0...v1.18.1) (2024-11-08)
 
 
