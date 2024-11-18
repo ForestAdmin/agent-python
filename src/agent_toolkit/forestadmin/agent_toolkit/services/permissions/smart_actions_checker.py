@@ -1,4 +1,4 @@
-from typing import Dict
+from typing import Dict, List
 
 from forestadmin.agent_toolkit.utils.context import User
 from forestadmin.datasource_toolkit.collections import Collection
@@ -38,7 +38,7 @@ class SmartActionChecker:
         if (
             self.role_id in self.smart_action["userApprovalEnabled"]
             and (
-                len(self.smart_action["userApprovalConditions"]) == 0
+                self._get_conditions_for_current_role(self.smart_action["userApprovalConditions"]) is None
                 or await self._match_conditions("userApprovalConditions")
             )
             and (
@@ -57,15 +57,17 @@ class SmartActionChecker:
             self.role_id in self.smart_action["triggerEnabled"]
             and self.role_id not in self.smart_action["approvalRequired"]
         ):
-            if len(self.smart_action["triggerConditions"]) == 0 or await self._match_conditions("triggerConditions"):
+            if self._get_conditions_for_current_role(
+                self.smart_action["triggerConditions"]
+            ) is None or await self._match_conditions("triggerConditions"):
                 return True
         elif (
             self.role_id in self.smart_action["triggerEnabled"]
             and self.role_id in self.smart_action["approvalRequired"]
         ):
-            if len(self.smart_action["approvalRequiredConditions"]) == 0 or await self._match_conditions(
-                "approvalRequiredConditions"
-            ):
+            if self._get_conditions_for_current_role(
+                self.smart_action["approvalRequiredConditions"]
+            ) is None or await self._match_conditions("approvalRequiredConditions"):
                 raise RequireApproval(
                     "This action requires to be approved.",
                     {},
@@ -97,12 +99,14 @@ class SmartActionChecker:
                     Operator.IN,
                     self.request.body.get("data", {}).get("attributes", {}).get("ids"),
                 )
-            condition = self.smart_action[condition_name][0]["filter"]
+
             conditional_filter = self.filter_.override(
                 {
                     "condition_tree": ConditionTreeFactory.intersect(
                         [
-                            ConditionTreeFactory.from_plain_object(condition),
+                            ConditionTreeFactory.from_plain_object(
+                                self._get_conditions_for_current_role(self.smart_action[condition_name])["filter"]
+                            ),
                             self.filter_.condition_tree,
                             condition_record_filter,
                         ]
@@ -120,3 +124,11 @@ class SmartActionChecker:
                 {},
                 "InvalidActionConditionError",
             )
+
+    def _get_conditions_for_current_role(self, conditions: List):
+        conditions = [c for c in conditions if c["roleId"] == self.role_id]
+
+        if len(conditions) == 1:
+            return conditions[0]
+        else:
+            return None
