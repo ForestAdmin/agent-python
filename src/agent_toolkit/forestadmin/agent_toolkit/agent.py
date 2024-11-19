@@ -9,6 +9,7 @@ from forestadmin.agent_toolkit.resources.collections.charts_collection import Ch
 from forestadmin.agent_toolkit.resources.collections.charts_datasource import ChartsDatasourceResource
 from forestadmin.agent_toolkit.resources.collections.crud import CrudResource
 from forestadmin.agent_toolkit.resources.collections.crud_related import CrudRelatedResource
+from forestadmin.agent_toolkit.resources.collections.native_query import NativeQueryResource
 from forestadmin.agent_toolkit.resources.collections.stats import StatsResource
 from forestadmin.agent_toolkit.resources.security.resources import Authentication
 from forestadmin.agent_toolkit.services.permissions.ip_whitelist_service import IpWhiteListService
@@ -37,6 +38,7 @@ class Resources(TypedDict):
     actions: ActionResource
     collection_charts: ChartsCollectionResource
     datasource_charts: ChartsDatasourceResource
+    native_query: NativeQueryResource
 
 
 class Agent:
@@ -107,6 +109,13 @@ class Agent:
                 self.options,
             ),
             "datasource_charts": ChartsDatasourceResource(
+                await self.customizer.get_datasource(),
+                self._permission_service,
+                self._ip_white_list_service,
+                self.options,
+            ),
+            "native_query": NativeQueryResource(
+                self.customizer.composite_datasource,
                 await self.customizer.get_datasource(),
                 self._permission_service,
                 self._ip_white_list_service,
