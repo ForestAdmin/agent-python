@@ -59,6 +59,9 @@ class RelaxedDatasource(Datasource["RelaxedCollection"]):
     def name(self):
         return self.datasource.name
 
+    async def execute_native_query(self, native_query: str) -> Any:
+        raise RelaxedDatasourceException("Cannot use this method. Please use 'collection.get_native_driver' instead.")
+
 
 class RelaxedCollection(Collection):
     def __init__(self, collection: Collection):

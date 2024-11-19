@@ -1,4 +1,4 @@
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
 from forestadmin.agent_toolkit.utils.context import User
 from forestadmin.datasource_toolkit.exceptions import DatasourceToolkitException
@@ -16,6 +16,7 @@ class Datasource(DatasourceInterface[BoundCollection]):
     def __init__(self, name: Optional[str] = None) -> None:
         self._collections: Dict[str, BoundCollection] = {}
         self._name = name if name is not None else self.__class__.__name__
+        self._schema: DatasourceSchema = {"charts": {}, "native_query": False}
 
     @property
     def name(self) -> str:
@@ -23,7 +24,10 @@ class Datasource(DatasourceInterface[BoundCollection]):
 
     @property
     def schema(self) -> DatasourceSchema:
-        return {"charts": {}}
+        return self._schema
+
+    def enable_native_query(self):
+        self._schema["native_query"] = True
 
     @property
     def collections(self) -> List[BoundCollection]:
@@ -46,3 +50,6 @@ class Datasource(DatasourceInterface[BoundCollection]):
 
     async def render_chart(self, caller: User, name: str) -> Chart:
         raise DatasourceException(f"Chart {name} not exists on this datasource.")
+
+    async def execute_native_query(self, native_query: str) -> Any:
+        raise NotImplementedError(f"'execute_native_query' is not implemented on {self.__class__.__name__}")

@@ -3,6 +3,7 @@ from typing import Callable, Dict, Generic, List, TypedDict, TypeVar
 
 from forestadmin.datasource_toolkit.interfaces.actions import Action
 from forestadmin.datasource_toolkit.interfaces.fields import FieldAlias
+from forestadmin.datasource_toolkit.interfaces.records import RecordsDataAlias
 from typing_extensions import Self
 
 
@@ -17,6 +18,7 @@ class CollectionSchema(TypedDict):
 
 class DatasourceSchema(TypedDict):
     charts: Dict[str, Callable]
+    native_query: bool
 
 
 class Collection(abc.ABC):
@@ -62,4 +64,8 @@ class Datasource(Generic[BoundCollection], abc.ABC):
     @property
     @abc.abstractmethod
     def schema(self) -> DatasourceSchema:
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    async def execute_native_query(self, native_query: str) -> List[RecordsDataAlias]:
         raise NotImplementedError
