@@ -1,9 +1,10 @@
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 
 from forestadmin.datasource_sqlalchemy.collections import SqlAlchemyCollection
 from forestadmin.datasource_sqlalchemy.exceptions import SqlAlchemyDatasourceException
 from forestadmin.datasource_sqlalchemy.interfaces import BaseSqlAlchemyDatasource
-from sqlalchemy import create_engine
+from forestadmin.datasource_toolkit.interfaces.records import RecordsDataAlias
+from sqlalchemy import create_engine, text
 from sqlalchemy.orm import Mapper, sessionmaker
 
 
@@ -25,6 +26,7 @@ class SqlAlchemyDatasource(BaseSqlAlchemyDatasource):
 
         self.Session = sessionmaker(bind)
         self._create_collections()
+        self.enable_native_query()
 
     def _find_db_uri(self, base_class):
         engine = None
@@ -55,6 +57,17 @@ class SqlAlchemyDatasource(BaseSqlAlchemyDatasource):
         for mapper in self._base.registry.mappers:
             mappers[mapper.persist_selectable.name] = mapper
         return mappers
+
+    async def execute_native_query(self, native_query: str) -> List[RecordsDataAlias]:
+        try:
+            session = self.Session()
+            query = native_query
+            if isinstance(query, str):
+                query = text(query)
+            rows = session.execute(query)
+            return [*rows.mappings()]
+        except Exception as exc:
+            raise SqlAlchemyDatasourceException(str(exc))
 
     # unused code, can be use full but can be remove
     # from forestadmin.datasource_toolkit.datasources import DatasourceException

@@ -77,3 +77,8 @@ class CompositeDatasource(Datasource):
             f"Datasource with name '{name}' is not found. Datasources names are: "
             f"{', '.join([ds.name for ds in self._datasources])}"
         )
+
+    async def execute_native_query(self, native_query: str) -> Any:
+        raise DatasourceToolkitException(
+            "Cannot use this method. Please use 'get_datasource(name).execute_native_query' instead."
+        )
