@@ -75,7 +75,9 @@ class Agent:
     async def __mk_resources(self):
         self._resources: Resources = {
             "capabilities": CapabilitiesResource(
-                await self.customizer.get_datasource(), self._ip_white_list_service, self.options
+                self.customizer.composite_datasource,
+                self._ip_white_list_service,
+                self.options,
             ),
             "authentication": Authentication(self._ip_white_list_service, self.options),
             "crud": CrudResource(

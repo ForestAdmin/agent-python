@@ -7,6 +7,7 @@ from forestadmin.agent_toolkit.resources.ip_white_list_resource import IpWhiteli
 from forestadmin.agent_toolkit.services.permissions.ip_whitelist_service import IpWhiteListService
 from forestadmin.agent_toolkit.utils.context import HttpResponseBuilder, Request, RequestMethod, Response
 from forestadmin.agent_toolkit.utils.forest_schema.generator_field import SchemaFieldGenerator
+from forestadmin.datasource_toolkit.datasource_customizer.datasource_composite import CompositeDatasource
 from forestadmin.datasource_toolkit.datasource_customizer.datasource_customizer import DatasourceCustomizer
 from forestadmin.datasource_toolkit.exceptions import BusinessError
 from forestadmin.datasource_toolkit.interfaces.fields import Column, is_column
@@ -19,12 +20,12 @@ DatasourceAlias = Union[Datasource[BoundCollection], DatasourceCustomizer]
 class CapabilitiesResource(IpWhitelistResource):
     def __init__(
         self,
-        datasource: DatasourceAlias,
+        composite_datasource: CompositeDatasource,
         ip_white_list_service: IpWhiteListService,
         options: Options,
     ):
         super().__init__(ip_white_list_service, options)
-        self.datasource = datasource
+        self.composite_datasource: CompositeDatasource = composite_datasource
 
     @ip_white_list
     async def dispatch(self, request: Request, method_name: LiteralMethod) -> Response:
@@ -40,14 +41,18 @@ class CapabilitiesResource(IpWhitelistResource):
     @check_method(RequestMethod.POST)
     @authenticate
     async def capabilities(self, request: Request) -> Response:
-        ret = {"collections": []}
+        ret = {"collections": [], "nativeQueryConnections": []}
         requested_collections = request.body.get("collectionNames", [])
         for collection_name in requested_collections:
             ret["collections"].append(self._get_collection_capability(collection_name))
+
+        ret["nativeQueryConnections"] = [
+            {"name": connection} for connection in self.composite_datasource.get_native_query_connection()
+        ]
         return HttpResponseBuilder.build_success_response(ret)
 
     def _get_collection_capability(self, collection_name: str) -> Dict[str, Any]:
-        collection = self.datasource.get_collection(collection_name)
+        collection = self.composite_datasource.get_collection(collection_name)
         fields = []
         for field_name, field_schema in collection.schema["fields"].items():
             if is_column(field_schema):
