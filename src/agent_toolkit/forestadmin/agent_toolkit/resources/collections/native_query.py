@@ -32,7 +32,7 @@ class NativeQueryResource(BaseCollectionResource):
     @ip_white_list
     async def dispatch(self, request: Request, method_name: Literal["native_query"]) -> Response:
         try:
-            return HttpResponseBuilder.build_success_response(await self.handle_native_query(request))
+            return await self.handle_native_query(request)  # type:ignore
         except Exception as exc:
             ForestLogger.log("exception", exc)
             return HttpResponseBuilder.build_client_error_response([exc])
@@ -42,5 +42,8 @@ class NativeQueryResource(BaseCollectionResource):
     async def handle_native_query(self, request: Request) -> Response:
         # TODO: permission check
         # TODO: context variable injector
-        ds = self.composite_datasource.get_datasource(request.body["datasource"])
-        return await ds.execute_native_query(request.body["native_query"])
+        return HttpResponseBuilder.build_success_response(
+            await self.composite_datasource.execute_native_query(
+                request.body["connection_name"], request.body["native_query"]
+            )
+        )
