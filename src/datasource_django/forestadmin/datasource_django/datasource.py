@@ -17,8 +17,10 @@ class DjangoDatasource(BaseDjangoDatasource):
         support_polymorphic_relations: bool = False,
         live_query_connection: Optional[Union[str, Dict[str, str]]] = None,
     ) -> None:
-        self._live_query_connections: Dict[str, str] = self._handle_live_query_connections_param(live_query_connection)
-        super().__init__([*self._live_query_connections.keys()])
+        self._django_live_query_connections: Dict[str, str] = self._handle_live_query_connections_param(
+            live_query_connection
+        )
+        super().__init__([*self._django_live_query_connections.keys()])
 
         self.support_polymorphic_relations = support_polymorphic_relations
         self._create_collections()
@@ -57,21 +59,26 @@ class DjangoDatasource(BaseDjangoDatasource):
                 self.add_collection(collection)
 
     async def execute_native_query(self, connection_name: str, native_query: str) -> List[RecordsDataAlias]:
-        if self._live_query_connections is None or connection_name not in self._live_query_connections.keys():
+        if (
+            self._django_live_query_connections is None
+            or connection_name not in self._django_live_query_connections.keys()
+        ):
+            # TODO: verify
             # This one should never occur
             raise DjangoDatasourceException(
                 f"Native query connection '{connection_name}' is not known by DjangoDatasource."
             )
 
-        if self._live_query_connections[connection_name] not in connections:
+        if self._django_live_query_connections[connection_name] not in connections:
+            # TODO: verify
             raise DjangoDatasourceException(
-                f"Connection to database '{self._live_query_connections[connection_name]}' for alias "
+                f"Connection to database '{self._django_live_query_connections[connection_name]}' for alias "
                 f"'{connection_name}' is not found in django connections. "
                 f"Existing connections are {','.join([*connections])}"
             )
 
         def _execute_native_query():
-            cursor = connections[self._live_query_connections[connection_name]].cursor()  # type: ignore
+            cursor = connections[self._django_live_query_connections[connection_name]].cursor()  # type: ignore
             try:
                 rows = cursor.execute(native_query)
                 ret = []

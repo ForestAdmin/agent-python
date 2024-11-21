@@ -1,5 +1,5 @@
 import abc
-from typing import Any, Callable, Dict, Generic, List, Optional, TypedDict, TypeVar, Union
+from typing import Callable, Dict, Generic, List, TypedDict, TypeVar
 
 from forestadmin.datasource_toolkit.interfaces.actions import Action
 from forestadmin.datasource_toolkit.interfaces.fields import FieldAlias
@@ -18,7 +18,6 @@ class CollectionSchema(TypedDict):
 
 class DatasourceSchema(TypedDict):
     charts: Dict[str, Callable]
-    native_query_connections: List[str]
 
 
 class Collection(abc.ABC):
@@ -50,6 +49,10 @@ class Datasource(Generic[BoundCollection], abc.ABC):
 
     @abc.abstractmethod
     def get_collection(self, name: str) -> BoundCollection:
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def get_native_query_connection(self) -> List[str]:
         raise NotImplementedError
 
     @abc.abstractmethod

@@ -15,10 +15,13 @@ class DatasourceException(DatasourceToolkitException):
 class Datasource(DatasourceInterface[BoundCollection]):
     def __init__(self, live_query_connections: Optional[List[str]] = None) -> None:
         self._collections: Dict[str, BoundCollection] = {}
+        self._live_query_connections = live_query_connections
         self._schema: DatasourceSchema = {
             "charts": {},
-            "native_query_connections": live_query_connections or [],
         }
+
+    def get_native_query_connection(self) -> List[str]:
+        return self._live_query_connections or []
 
     @property
     def schema(self) -> DatasourceSchema:
