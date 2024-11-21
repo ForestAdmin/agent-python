@@ -15,12 +15,17 @@ class CompositeDatasource(Datasource):
     @property
     def schema(self) -> DatasourceSchema:
         charts = {}
-        native_queries = []
         for datasource in self._datasources:
             charts.update(datasource.schema["charts"])
-            native_queries.extend(datasource.schema["native_query_connections"])
 
-        return {"charts": charts, "native_query_connections": native_queries}
+        return {"charts": charts}
+
+    def get_native_query_connection(self) -> List[str]:
+        native_queries = []
+        for datasource in self._datasources:
+
+            native_queries.extend(datasource.get_native_query_connection())
+        return native_queries
 
     @property
     def collections(self) -> List[BoundCollection]:
@@ -52,8 +57,9 @@ class CompositeDatasource(Datasource):
             if connection in self.schema["charts"].keys():
                 raise DatasourceToolkitException(f"Chart '{connection}' already exists.")
 
-        for connection in datasource.schema["native_query_connections"]:
-            if connection in self.schema["native_query_connections"]:
+        existing_native_query_connection_names = self.get_native_query_connection()
+        for connection in datasource.get_native_query_connection():
+            if connection in existing_native_query_connection_names:
                 raise DatasourceToolkitException(f"Native query connection '{connection}' already exists.")
 
         self._datasources.append(datasource)
@@ -67,10 +73,10 @@ class CompositeDatasource(Datasource):
 
     async def execute_native_query(self, connection_name: str, native_query: str) -> Any:
         for datasource in self._datasources:
-            if connection_name in datasource.schema["native_query_connections"]:
+            if connection_name in datasource.get_native_query_connection():
                 return await datasource.execute_native_query(connection_name, native_query)
 
         raise DatasourceToolkitException(
             f"Cannot find {connection_name} in datasources. "
-            f"Existing connection names are: {','.join(self.schema['native_query_connections'])}"
+            f"Existing connection names are: {','.join(self.get_native_query_connection())}"
         )

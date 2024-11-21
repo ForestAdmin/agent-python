@@ -59,6 +59,7 @@ class SqlAlchemyDatasource(BaseSqlAlchemyDatasource):
 
     async def execute_native_query(self, connection_name: str, native_query: str) -> List[RecordsDataAlias]:
         if connection_name != self.schema["native_query_connections"][0]:
+            # TODO: verify
             raise SqlAlchemyDatasourceException(
                 f"The native query connection '{connection_name}' doesn't belongs to this datasource."
             )
@@ -70,6 +71,7 @@ class SqlAlchemyDatasource(BaseSqlAlchemyDatasource):
             rows = session.execute(query)
             return [*rows.mappings()]
         except Exception as exc:
+            # TODO: verify
             raise SqlAlchemyDatasourceException(str(exc))
 
     # unused code, can be use full but can be remove
