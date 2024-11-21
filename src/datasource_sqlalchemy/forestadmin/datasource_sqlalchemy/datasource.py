@@ -9,8 +9,8 @@ from sqlalchemy.orm import Mapper, sessionmaker
 
 
 class SqlAlchemyDatasource(BaseSqlAlchemyDatasource):
-    def __init__(self, Base: Any, db_uri: Optional[str] = None, name: Optional[str] = None) -> None:
-        super().__init__(name)
+    def __init__(self, Base: Any, db_uri: Optional[str] = None, live_query_connection: Optional[str] = None) -> None:
+        super().__init__([live_query_connection] if live_query_connection is not None else None)
         self._base = Base
         self.__is_using_flask_sqlalchemy = hasattr(Base, "Model")
 
@@ -26,7 +26,6 @@ class SqlAlchemyDatasource(BaseSqlAlchemyDatasource):
 
         self.Session = sessionmaker(bind)
         self._create_collections()
-        self.enable_native_query()
 
     def _find_db_uri(self, base_class):
         engine = None
@@ -58,7 +57,11 @@ class SqlAlchemyDatasource(BaseSqlAlchemyDatasource):
             mappers[mapper.persist_selectable.name] = mapper
         return mappers
 
-    async def execute_native_query(self, native_query: str) -> List[RecordsDataAlias]:
+    async def execute_native_query(self, connection_name: str, native_query: str) -> List[RecordsDataAlias]:
+        if connection_name != self.schema["native_query_connections"][0]:
+            raise SqlAlchemyDatasourceException(
+                f"The native query connection '{connection_name}' doesn't belongs to this datasource."
+            )
         try:
             session = self.Session()
             query = native_query

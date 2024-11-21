@@ -13,21 +13,16 @@ class DatasourceException(DatasourceToolkitException):
 
 
 class Datasource(DatasourceInterface[BoundCollection]):
-    def __init__(self, name: Optional[str] = None) -> None:
+    def __init__(self, live_query_connections: Optional[List[str]] = None) -> None:
         self._collections: Dict[str, BoundCollection] = {}
-        self._name = name if name is not None else self.__class__.__name__
-        self._schema: DatasourceSchema = {"charts": {}, "native_query": False}
-
-    @property
-    def name(self) -> str:
-        return self._name
+        self._schema: DatasourceSchema = {
+            "charts": {},
+            "native_query_connections": live_query_connections or [],
+        }
 
     @property
     def schema(self) -> DatasourceSchema:
         return self._schema
-
-    def enable_native_query(self):
-        self._schema["native_query"] = True
 
     @property
     def collections(self) -> List[BoundCollection]:
@@ -51,5 +46,5 @@ class Datasource(DatasourceInterface[BoundCollection]):
     async def render_chart(self, caller: User, name: str) -> Chart:
         raise DatasourceException(f"Chart {name} not exists on this datasource.")
 
-    async def execute_native_query(self, native_query: str) -> Any:
+    async def execute_native_query(self, connection_name: str, native_query: str) -> Any:
         raise NotImplementedError(f"'execute_native_query' is not implemented on {self.__class__.__name__}")

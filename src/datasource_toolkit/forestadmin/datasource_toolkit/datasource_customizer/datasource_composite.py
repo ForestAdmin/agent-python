@@ -1,6 +1,5 @@
-from typing import Any, Dict, List
+from typing import Any, List
 
-from forestadmin.agent_toolkit.forest_logger import ForestLogger
 from forestadmin.agent_toolkit.utils.context import User
 from forestadmin.datasource_toolkit.datasources import Datasource
 from forestadmin.datasource_toolkit.exceptions import DatasourceToolkitException
@@ -16,9 +15,12 @@ class CompositeDatasource(Datasource):
     @property
     def schema(self) -> DatasourceSchema:
         charts = {}
+        native_queries = []
         for datasource in self._datasources:
             charts.update(datasource.schema["charts"])
-        return {"charts": charts}
+            native_queries.extend(datasource.schema["native_query_connections"])
+
+        return {"charts": charts, "native_query_connections": native_queries}
 
     @property
     def collections(self) -> List[BoundCollection]:
@@ -46,16 +48,14 @@ class CompositeDatasource(Datasource):
             if collection.name in existing_collection_names:
                 raise DatasourceToolkitException(f"Collection '{collection.name}' already exists.")
 
-        for chart_name in datasource.schema["charts"].keys():
-            if chart_name in self.schema["charts"].keys():
-                raise DatasourceToolkitException(f"Chart '{chart_name}' already exists.")
+        for connection in datasource.schema["charts"].keys():
+            if connection in self.schema["charts"].keys():
+                raise DatasourceToolkitException(f"Chart '{connection}' already exists.")
 
-        if datasource.name in [ds.name for ds in self._datasources]:
-            ForestLogger.log(
-                "warning",
-                f"A datasource with the name '{datasource.name}' already exists. "
-                "You can use the optional parameter 'name' when creating a datasource.",
-            )
+        for connection in datasource.schema["native_query_connections"]:
+            if connection in self.schema["native_query_connections"]:
+                raise DatasourceToolkitException(f"Native query connection '{connection}' already exists.")
+
         self._datasources.append(datasource)
 
     async def render_chart(self, caller: User, name: str) -> Chart:
@@ -65,20 +65,12 @@ class CompositeDatasource(Datasource):
 
         raise DatasourceToolkitException(f"Chart {name} is not defined in the datasource.")
 
-    def get_datasources(self) -> List[Datasource]:
-        return [*self._datasources]
-
-    def get_datasource(self, name: str) -> Datasource:
+    async def execute_native_query(self, connection_name: str, native_query: str) -> Any:
         for datasource in self._datasources:
-            if name == datasource.name:
-                return datasource
+            if connection_name in datasource.schema["native_query_connections"]:
+                return await datasource.execute_native_query(connection_name, native_query)
 
         raise DatasourceToolkitException(
-            f"Datasource with name '{name}' is not found. Datasources names are: "
-            f"{', '.join([ds.name for ds in self._datasources])}"
-        )
-
-    async def execute_native_query(self, native_query: str) -> Any:
-        raise DatasourceToolkitException(
-            "Cannot use this method. Please use 'get_datasource(name).execute_native_query' instead."
+            f"Cannot find {connection_name} in datasources. "
+            f"Existing connection names are: {','.join(self.schema['native_query_connections'])}"
         )
