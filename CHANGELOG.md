@@ -1,3 +1,10 @@
+## [1.18.3](https://github.com/ForestAdmin/agent-python/compare/v1.18.2...v1.18.3) (2024-11-22)
+
+
+### Bug Fixes
+
+* **security:** patch micromatch dependency vulnerabilities ([#289](https://github.com/ForestAdmin/agent-python/issues/289)) ([713d267](https://github.com/ForestAdmin/agent-python/commit/713d267364f1378bef293545e0cfb0dfa1ae8646))
+
 ## [1.18.2](https://github.com/ForestAdmin/agent-python/compare/v1.18.1...v1.18.2) (2024-11-18)
 
 
