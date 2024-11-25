@@ -21,6 +21,7 @@ from forestadmin.agent_toolkit.resources.collections.filter import (
     parse_timezone,
 )
 from forestadmin.agent_toolkit.resources.collections.requests import RequestCollection, RequestCollectionException
+from forestadmin.agent_toolkit.resources.context_variable_injector_mixin import ContextVariableInjectorResourceMixin
 from forestadmin.agent_toolkit.services.serializers import add_search_metadata
 from forestadmin.agent_toolkit.services.serializers.json_api import JsonApiException, JsonApiSerializer
 from forestadmin.agent_toolkit.utils.context import HttpResponseBuilder, Request, RequestMethod, Response, User
@@ -62,7 +63,7 @@ from forestadmin.datasource_toolkit.validations.records import RecordValidator, 
 LiteralMethod = Literal["list", "count", "add", "get", "delete_list", "csv"]
 
 
-class CrudResource(BaseCollectionResource):
+class CrudResource(BaseCollectionResource, ContextVariableInjectorResourceMixin):
     @ip_white_list
     async def dispatch(self, request: Request, method_name: LiteralMethod) -> Response:
         method = getattr(self, method_name)
