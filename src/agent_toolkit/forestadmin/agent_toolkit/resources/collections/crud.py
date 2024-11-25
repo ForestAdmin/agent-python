@@ -1,8 +1,9 @@
 import asyncio
-from typing import Any, Awaitable, Dict, List, Literal, Tuple, Union, cast
+from typing import Any, Awaitable, Dict, List, Literal, Optional, Tuple, Union, cast
 from uuid import UUID
 
 from forestadmin.agent_toolkit.forest_logger import ForestLogger
+from forestadmin.agent_toolkit.options import Options
 from forestadmin.agent_toolkit.resources.collections.base_collection_resource import BaseCollectionResource
 from forestadmin.agent_toolkit.resources.collections.decorators import (
     authenticate,
@@ -22,6 +23,8 @@ from forestadmin.agent_toolkit.resources.collections.filter import (
 )
 from forestadmin.agent_toolkit.resources.collections.requests import RequestCollection, RequestCollectionException
 from forestadmin.agent_toolkit.resources.context_variable_injector_mixin import ContextVariableInjectorResourceMixin
+from forestadmin.agent_toolkit.services.permissions.ip_whitelist_service import IpWhiteListService
+from forestadmin.agent_toolkit.services.permissions.permission_service import PermissionService
 from forestadmin.agent_toolkit.services.serializers import add_search_metadata
 from forestadmin.agent_toolkit.services.serializers.json_api import JsonApiException, JsonApiSerializer
 from forestadmin.agent_toolkit.utils.context import HttpResponseBuilder, Request, RequestMethod, Response, User
@@ -29,7 +32,9 @@ from forestadmin.agent_toolkit.utils.csv import Csv, CsvException
 from forestadmin.agent_toolkit.utils.id import unpack_id
 from forestadmin.datasource_toolkit.collections import Collection
 from forestadmin.datasource_toolkit.datasource_customizer.collection_customizer import CollectionCustomizer
-from forestadmin.datasource_toolkit.datasources import DatasourceException
+from forestadmin.datasource_toolkit.datasource_customizer.datasource_composite import CompositeDatasource
+from forestadmin.datasource_toolkit.datasource_customizer.datasource_customizer import DatasourceCustomizer
+from forestadmin.datasource_toolkit.datasources import Datasource, DatasourceException
 from forestadmin.datasource_toolkit.exceptions import ForbiddenError
 from forestadmin.datasource_toolkit.interfaces.fields import (
     ManyToOne,
@@ -64,6 +69,17 @@ LiteralMethod = Literal["list", "count", "add", "get", "delete_list", "csv"]
 
 
 class CrudResource(BaseCollectionResource, ContextVariableInjectorResourceMixin):
+    def __init__(
+        self,
+        datasource_composite: CompositeDatasource,
+        datasource: Union[Datasource, DatasourceCustomizer],
+        permission: PermissionService,
+        ip_white_list_service: IpWhiteListService,
+        options: Options,
+    ):
+        self._datasource_composite = datasource_composite
+        super().__init__(datasource, permission, ip_white_list_service, options)
+
     @ip_white_list
     async def dispatch(self, request: Request, method_name: LiteralMethod) -> Response:
         method = getattr(self, method_name)
@@ -160,6 +176,9 @@ class CrudResource(BaseCollectionResource, ContextVariableInjectorResourceMixin)
         scope_tree = await self.permission.get_scope(request.user, request.collection)
         try:
             paginated_filter = build_paginated_filter(request, scope_tree)
+            condition_tree = await self._handle_live_query_segment(request, paginated_filter.condition_tree)
+            paginated_filter = paginated_filter.override({"condition_tree": condition_tree})
+
         except FilterException as e:
             ForestLogger.log("exception", e)
             return HttpResponseBuilder.build_client_error_response([e])
@@ -192,6 +211,8 @@ class CrudResource(BaseCollectionResource, ContextVariableInjectorResourceMixin)
         scope_tree = await self.permission.get_scope(request.user, request.collection)
         try:
             paginated_filter = build_paginated_filter(request, scope_tree)
+            condition_tree = await self._handle_live_query_segment(request, paginated_filter.condition_tree)
+            paginated_filter = paginated_filter.override({"condition_tree": condition_tree})
             paginated_filter.page = None
         except FilterException as e:
             ForestLogger.log("exception", e)
@@ -221,9 +242,12 @@ class CrudResource(BaseCollectionResource, ContextVariableInjectorResourceMixin)
             return HttpResponseBuilder.build_success_response({"meta": {"count": "deactivated"}})
 
         scope_tree = await self.permission.get_scope(request.user, request.collection)
-        filter = build_filter(request, scope_tree)
+        filter_ = build_filter(request, scope_tree)
+        filter_ = filter_.override(
+            {"condition_tree": await self._handle_live_query_segment(request, filter_.condition_tree)}
+        )
         aggregation = Aggregation({"operation": "Count"})
-        result = await request.collection.aggregate(request.user, filter, aggregation)
+        result = await request.collection.aggregate(request.user, filter_, aggregation)
         try:
             count = result[0]["value"]
         except IndexError:
@@ -425,3 +449,32 @@ class CrudResource(BaseCollectionResource, ContextVariableInjectorResourceMixin)
 
         schema = JsonApiSerializer.get(collection)
         return schema(projections=projection).dump(records if many is True else records[0], many=many)
+
+    async def _handle_live_query_segment(
+        self, request: RequestCollection, condition_tree: Optional[ConditionTree]
+    ) -> ConditionTree:
+
+        if request.query.get("segmentQuery") is not None:
+            # if "connectionName" not in request.query:
+            #     # TODO: correct exception
+            #     raise Exception
+
+            await self.permission.can_live_query_segment(request)
+            await self.inject_context_variables_in_live_query_segment(request)
+            # TODO: remove connectionName mock
+            rslt = await self._datasource_composite.execute_native_query(
+                "django" if request.collection.name.startswith("app_") else "sqlalchemy",
+                request.query["segmentQuery"],
+            )
+
+            trees = []
+            if condition_tree:
+                trees.append(condition_tree)
+            trees.append(
+                ConditionTreeLeaf(
+                    SchemaUtils.get_primary_keys(request.collection.schema)[0],
+                    Operator.IN,
+                    [entry["id"] for entry in rslt],
+                )
+            )
+        return ConditionTreeFactory.intersect(trees)

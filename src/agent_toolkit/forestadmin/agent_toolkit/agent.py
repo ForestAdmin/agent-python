@@ -81,6 +81,7 @@ class Agent:
             ),
             "authentication": Authentication(self._ip_white_list_service, self.options),
             "crud": CrudResource(
+                self.customizer.composite_datasource,
                 await self.customizer.get_datasource(),
                 self._permission_service,
                 self._ip_white_list_service,
