@@ -107,14 +107,17 @@ class Comments(TypicodeCollection):
                 "name": {
                     "type": FieldType.COLUMN,
                     "column_type": "String",
+                    "filter_operators": set([Operator.EQUAL]),
                 },
                 "email": {
                     "type": FieldType.COLUMN,
                     "column_type": "String",
+                    "filter_operators": set([Operator.EQUAL]),
                 },
                 "body": {
                     "type": FieldType.COLUMN,
                     "column_type": "String",
+                    "filter_operators": set([Operator.EQUAL]),
                 },
             }
         )
@@ -140,10 +143,12 @@ class Post(TypicodeCollection):
                 "title": {
                     "type": FieldType.COLUMN,
                     "column_type": "String",
+                    "filter_operators": set([Operator.EQUAL]),
                 },
                 "body": {
                     "type": FieldType.COLUMN,
                     "column_type": "String",
+                    "filter_operators": set([Operator.EQUAL]),
                 },
             }
         )
