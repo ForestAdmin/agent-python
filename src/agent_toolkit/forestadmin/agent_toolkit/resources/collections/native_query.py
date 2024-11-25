@@ -4,6 +4,7 @@ from forestadmin.agent_toolkit.forest_logger import ForestLogger
 from forestadmin.agent_toolkit.options import Options
 from forestadmin.agent_toolkit.resources.collections.base_collection_resource import BaseCollectionResource
 from forestadmin.agent_toolkit.resources.collections.decorators import authenticate, check_method, ip_white_list
+from forestadmin.agent_toolkit.resources.context_variable_injector_mixin import ContextVariableInjectorResourceMixin
 from forestadmin.agent_toolkit.services.permissions.ip_whitelist_service import IpWhiteListService
 from forestadmin.agent_toolkit.services.permissions.permission_service import PermissionService
 from forestadmin.agent_toolkit.utils.context import HttpResponseBuilder, Request, RequestMethod, Response
@@ -17,7 +18,7 @@ DatasourceAlias = Union[Datasource[BoundCollection], DatasourceCustomizer]
 LiteralMethod = Literal["native_query"]
 
 
-class NativeQueryResource(BaseCollectionResource):
+class NativeQueryResource(BaseCollectionResource, ContextVariableInjectorResourceMixin):
     def __init__(
         self,
         composite_datasource: CompositeDatasource,
@@ -40,10 +41,8 @@ class NativeQueryResource(BaseCollectionResource):
     @check_method(RequestMethod.POST)
     @authenticate
     async def handle_native_query(self, request: Request) -> Response:
-        # TODO: permission check
-        # TODO: context variable injector
+        await self.permission.can_chart(request)
+        await self.inject_context_variables_in_live_query_chart(request)
         return HttpResponseBuilder.build_success_response(
-            await self.composite_datasource.execute_native_query(
-                request.body["connection_name"], request.body["native_query"]
-            )
+            await self.composite_datasource.execute_native_query(request.body["connectionName"], request.body["query"])
         )
