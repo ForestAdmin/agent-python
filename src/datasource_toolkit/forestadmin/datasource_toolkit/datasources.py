@@ -20,7 +20,7 @@ class Datasource(DatasourceInterface[BoundCollection]):
             "charts": {},
         }
 
-    def get_native_query_connection(self) -> List[str]:
+    def get_native_query_connections(self) -> List[str]:
         return self._live_query_connections or []
 
     @property

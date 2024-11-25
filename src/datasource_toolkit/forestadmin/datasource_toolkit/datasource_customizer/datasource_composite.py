@@ -20,11 +20,11 @@ class CompositeDatasource(Datasource):
 
         return {"charts": charts}
 
-    def get_native_query_connection(self) -> List[str]:
+    def get_native_query_connections(self) -> List[str]:
         native_queries = []
         for datasource in self._datasources:
 
-            native_queries.extend(datasource.get_native_query_connection())
+            native_queries.extend(datasource.get_native_query_connections())
         return native_queries
 
     @property
@@ -57,8 +57,8 @@ class CompositeDatasource(Datasource):
             if connection in self.schema["charts"].keys():
                 raise DatasourceToolkitException(f"Chart '{connection}' already exists.")
 
-        existing_native_query_connection_names = self.get_native_query_connection()
-        for connection in datasource.get_native_query_connection():
+        existing_native_query_connection_names = self.get_native_query_connections()
+        for connection in datasource.get_native_query_connections():
             if connection in existing_native_query_connection_names:
                 raise DatasourceToolkitException(f"Native query connection '{connection}' already exists.")
 
@@ -73,10 +73,10 @@ class CompositeDatasource(Datasource):
 
     async def execute_native_query(self, connection_name: str, native_query: str) -> Any:
         for datasource in self._datasources:
-            if connection_name in datasource.get_native_query_connection():
+            if connection_name in datasource.get_native_query_connections():
                 return await datasource.execute_native_query(connection_name, native_query)
 
         raise DatasourceToolkitException(
             f"Cannot find {connection_name} in datasources. "
-            f"Existing connection names are: {','.join(self.get_native_query_connection())}"
+            f"Existing connection names are: {','.join(self.get_native_query_connections())}"
         )

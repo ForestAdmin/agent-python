@@ -52,7 +52,7 @@ class Datasource(Generic[BoundCollection], abc.ABC):
         raise NotImplementedError
 
     @abc.abstractmethod
-    def get_native_query_connection(self) -> List[str]:
+    def get_native_query_connections(self) -> List[str]:
         raise NotImplementedError
 
     @abc.abstractmethod

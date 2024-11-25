@@ -47,7 +47,7 @@ class CapabilitiesResource(IpWhitelistResource):
             ret["collections"].append(self._get_collection_capability(collection_name))
 
         ret["nativeQueryConnections"] = [
-            {"name": connection} for connection in self.composite_datasource.get_native_query_connection()
+            {"name": connection} for connection in self.composite_datasource.get_native_query_connections()
         ]
         return HttpResponseBuilder.build_success_response(ret)
 
