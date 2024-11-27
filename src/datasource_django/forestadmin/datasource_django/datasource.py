@@ -82,8 +82,10 @@ class DjangoDatasource(BaseDjangoDatasource):
         def _execute_native_query():
             cursor = connections[self._django_live_query_connections[connection_name]].cursor()  # type: ignore
             try:
-                # TODO: find a better way to handle `parameters` (and like '%') over all datasources
+                # replace '\s' by '%%'
+                # %(var)s is already the correct  syntax
                 rows = cursor.execute(native_query.replace("\\%", "%%"), parameters)
+
                 ret = []
                 for row in rows:
                     return_row = {}
