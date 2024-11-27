@@ -1,4 +1,4 @@
-from typing import Any, List
+from typing import Any, Dict, List
 
 from forestadmin.agent_toolkit.utils.context import User
 from forestadmin.datasource_toolkit.datasources import Datasource
@@ -23,7 +23,6 @@ class CompositeDatasource(Datasource):
     def get_native_query_connections(self) -> List[str]:
         native_queries = []
         for datasource in self._datasources:
-
             native_queries.extend(datasource.get_native_query_connections())
         return native_queries
 
@@ -71,10 +70,10 @@ class CompositeDatasource(Datasource):
 
         raise DatasourceToolkitException(f"Chart {name} is not defined in the datasource.")
 
-    async def execute_native_query(self, connection_name: str, native_query: str) -> Any:
+    async def execute_native_query(self, connection_name: str, native_query: str, parameters: Dict[str, str]) -> Any:
         for datasource in self._datasources:
             if connection_name in datasource.get_native_query_connections():
-                return await datasource.execute_native_query(connection_name, native_query)
+                return await datasource.execute_native_query(connection_name, native_query, parameters)
 
         raise DatasourceToolkitException(
             f"Cannot find {connection_name} in datasources. "

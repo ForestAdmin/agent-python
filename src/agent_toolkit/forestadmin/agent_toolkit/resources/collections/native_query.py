@@ -42,7 +42,9 @@ class NativeQueryResource(BaseCollectionResource, ContextVariableInjectorResourc
     @authenticate
     async def handle_native_query(self, request: Request) -> Response:
         await self.permission.can_chart(request)
-        await self.inject_context_variables_in_live_query_chart(request)
+        variables = await self.inject_and_get_context_variables_in_live_query_chart(request)
         return HttpResponseBuilder.build_success_response(
-            await self.composite_datasource.execute_native_query(request.body["connectionName"], request.body["query"])
+            await self.composite_datasource.execute_native_query(
+                request.body["connectionName"], request.body["query"], variables
+            )
         )

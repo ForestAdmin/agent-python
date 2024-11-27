@@ -1,5 +1,5 @@
 import re
-from typing import Optional
+from typing import Dict, Optional, Tuple
 
 from forestadmin.agent_toolkit.utils.context_variables import ContextVariables
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.base import ConditionTree
@@ -29,3 +29,19 @@ class ContextVariableInjector:
             return value
 
         return re.sub(r"{{([^}]+)}}", lambda match: str(context_variable.get_value(match.group(1))), value)
+
+    @staticmethod
+    def format_query_and_get_vars(value, context_variable: ContextVariables) -> Tuple[str, Dict[str, str]]:
+        if not isinstance(value, str):
+            return value
+
+        vars = {}
+
+        def _match(match):
+            # TODO: find a better way to handle `parameters` (and like '%') over all datasources
+            vars[match.group(1).replace(".", "__")] = context_variable.get_value(match.group(1))
+            return f"%({match.group(1).replace(".", "__")})s"
+
+        ret = re.sub(r"{{([^}]+)}}", _match, value.replace("%", "\\%"))
+
+        return ret, vars

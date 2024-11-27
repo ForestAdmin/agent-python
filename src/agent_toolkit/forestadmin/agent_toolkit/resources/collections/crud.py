@@ -452,7 +452,7 @@ class CrudResource(BaseCollectionResource, ContextVariableInjectorResourceMixin)
 
     async def _handle_live_query_segment(
         self, request: RequestCollection, condition_tree: Optional[ConditionTree]
-    ) -> ConditionTree:
+    ) -> Optional[ConditionTree]:
 
         if request.query.get("segmentQuery") is not None:
             # if "connectionName" not in request.query:
@@ -460,11 +460,17 @@ class CrudResource(BaseCollectionResource, ContextVariableInjectorResourceMixin)
             #     raise Exception
 
             await self.permission.can_live_query_segment(request)
-            await self.inject_context_variables_in_live_query_segment(request)
+            vars = await self.inject_and_get_context_variables_in_live_query_segment(request)
+            # TODO: remove connectionName mock
+            if request.collection.name.startswith("app_"):
+                connection_name = "django"
+            elif request.collection.name.startswith("sqlalchemy_"):
+                connection_name = "dj_sqlachemy"
+            else:
+                connection_name = "sqlalchemy"
             # TODO: remove connectionName mock
             rslt = await self._datasource_composite.execute_native_query(
-                "django" if request.collection.name.startswith("app_") else "sqlalchemy",
-                request.query["segmentQuery"],
+                connection_name, request.query["segmentQuery"], vars
             )
 
             trees = []
@@ -477,4 +483,5 @@ class CrudResource(BaseCollectionResource, ContextVariableInjectorResourceMixin)
                     [entry["id"] for entry in rslt],
                 )
             )
-        return ConditionTreeFactory.intersect(trees)
+            return ConditionTreeFactory.intersect(trees)
+        return condition_tree

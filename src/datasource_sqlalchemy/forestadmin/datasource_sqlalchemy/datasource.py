@@ -57,7 +57,9 @@ class SqlAlchemyDatasource(BaseSqlAlchemyDatasource):
             mappers[mapper.persist_selectable.name] = mapper
         return mappers
 
-    async def execute_native_query(self, connection_name: str, native_query: str) -> List[RecordsDataAlias]:
+    async def execute_native_query(
+        self, connection_name: str, native_query: str, parameters: Dict[str, str]
+    ) -> List[RecordsDataAlias]:
         if connection_name != self.get_native_query_connections()[0]:
             # TODO: verify
             raise SqlAlchemyDatasourceException(
@@ -67,8 +69,13 @@ class SqlAlchemyDatasource(BaseSqlAlchemyDatasource):
             session = self.Session()
             query = native_query
             if isinstance(query, str):
+                query = native_query
+                # TODO: find a better way to handle `parameters` (and like '%') over all datasources
+                for key in parameters.keys():
+                    query = query.replace(f"%({key})s", f":{key}")
+                    query = query.replace("\\%", "%")
                 query = text(query)
-            rows = session.execute(query)
+            rows = session.execute(query, parameters)
             return [*rows.mappings()]
         except Exception as exc:
             # TODO: verify

@@ -49,5 +49,5 @@ class Datasource(DatasourceInterface[BoundCollection]):
     async def render_chart(self, caller: User, name: str) -> Chart:
         raise DatasourceException(f"Chart {name} not exists on this datasource.")
 
-    async def execute_native_query(self, connection_name: str, native_query: str) -> Any:
+    async def execute_native_query(self, connection_name: str, native_query: str, parameters: Dict[str, str]) -> Any:
         raise NotImplementedError(f"'execute_native_query' is not implemented on {self.__class__.__name__}")
