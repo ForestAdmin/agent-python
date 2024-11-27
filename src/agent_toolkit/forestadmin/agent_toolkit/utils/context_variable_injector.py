@@ -43,7 +43,7 @@ class ContextVariableInjector:
 
         def _match(match):
             variables[match.group(1).replace(".", "__")] = context_variable.get_value(match.group(1))
-            return f"%({match.group(1).replace(".", "__")})s"
+            return f"%({match.group(1).replace('.', '__')})s"
 
         ret = re.sub(r"{{([^}]+)}}", _match, value.replace("%", "\\%"))
 
