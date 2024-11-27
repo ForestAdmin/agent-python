@@ -1,10 +1,10 @@
-from typing import Dict, List
+from typing import Dict, List, Union
 
+from forestadmin.datasource_toolkit.decorators.rename_collection.datasource import RenameCollectionHandler
 from typing_extensions import NotRequired, TypedDict
 
 
 class DataSourceOptions(TypedDict):
-    rename: NotRequired[Dict[str, str]]
-    # TODO: rename should also be a function
+    rename: NotRequired[Union[Dict[str, str], RenameCollectionHandler]]
     include: NotRequired[List[str]]
     exclude: NotRequired[List[str]]
