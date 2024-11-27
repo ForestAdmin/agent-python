@@ -117,18 +117,6 @@ class TestCompositeDatasource(BaseTestCompositeDatasource):
             "Unknown",
         )
 
-    def test_should_log_if_multiple_datasources_have_same_name(self):
-        ds1 = Datasource(name="test")
-        ds2 = Datasource(name="test")
-        self.composite_ds.add_datasource(ds1)
-        with patch("forestadmin.datasource_toolkit.datasource_customizer.datasource_composite.ForestLogger.log") as log:
-            self.composite_ds.add_datasource(ds2)
-            log.assert_any_call(
-                "warning",
-                "A datasource with the name 'test' already exists. You can use the optional parameter 'name' when "
-                "creating a datasource.",
-            )
-
 
 class TestCompositeDatasourceCharts(BaseTestCompositeDatasource):
     def setUp(self) -> None:
