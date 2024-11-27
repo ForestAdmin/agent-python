@@ -383,7 +383,7 @@ class Test03CanChartPermissionService(BaseTestPermissionService):
 
         def mock_get_rendering_permissions(rendering_id, options):
             if mock["call_count"] == 0:
-                ret = {"stats": {}}
+                ret = {"stats": {}, "collections": {}, "team": {}}
             elif mock["call_count"] == 1:
                 ret = http_patches["get_rendering_permissions"].kwargs["return_value"]
             mock["call_count"] = mock["call_count"] + 1
@@ -416,7 +416,10 @@ class Test03CanChartPermissionService(BaseTestPermissionService):
         )
 
         with patch.object(
-            ForestHttpApi, "get_rendering_permissions", new_callable=AsyncMock, return_value={"stats": {}}
+            ForestHttpApi,
+            "get_rendering_permissions",
+            new_callable=AsyncMock,
+            return_value={"stats": {}, "collections": {}, "team": {}},
         ):
             self.assertRaisesRegex(
                 ForbiddenError,
