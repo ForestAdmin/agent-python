@@ -50,4 +50,7 @@ class Datasource(DatasourceInterface[BoundCollection]):
         raise DatasourceException(f"Chart {name} not exists on this datasource.")
 
     async def execute_native_query(self, connection_name: str, native_query: str, parameters: Dict[str, str]) -> Any:
+        # in native_query, there is the following syntax:
+        # - parameters to inject by 'execute' method are in the format '%(var)s'
+        # - '%' (in 'like' comparisons) are replaced by '\%' (to avoid conflict with previous rule)
         raise NotImplementedError(f"'execute_native_query' is not implemented on {self.__class__.__name__}")

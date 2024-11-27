@@ -70,10 +70,12 @@ class SqlAlchemyDatasource(BaseSqlAlchemyDatasource):
             query = native_query
             if isinstance(query, str):
                 query = native_query
-                # TODO: find a better way to handle `parameters` (and like '%') over all datasources
                 for key in parameters.keys():
+                    # replace '%(...)s' by ':...'
                     query = query.replace(f"%({key})s", f":{key}")
-                    query = query.replace("\\%", "%")
+                # replace '\%' by '%'
+                query = query.replace("\\%", "%")
+
                 query = text(query)
             rows = session.execute(query, parameters)
             return [*rows.mappings()]

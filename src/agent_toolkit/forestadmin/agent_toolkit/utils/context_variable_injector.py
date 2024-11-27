@@ -31,17 +31,20 @@ class ContextVariableInjector:
         return re.sub(r"{{([^}]+)}}", lambda match: str(context_variable.get_value(match.group(1))), value)
 
     @staticmethod
-    def format_query_and_get_vars(value, context_variable: ContextVariables) -> Tuple[str, Dict[str, str]]:
+    def format_query_and_get_vars(value: str, context_variable: ContextVariables) -> Tuple[str, Dict[str, str]]:
         if not isinstance(value, str):
             return value
-
-        vars = {}
+        variables = {}
+        # to allow datasources to rework variables:
+        # - '%' are replaced by '\%'
+        # - '{{var}}' are replaced by '%(var)s'
+        # - '.' in vars are replaced by '__', and also in the returned mapping
+        # - and the mapping of vars is returned
 
         def _match(match):
-            # TODO: find a better way to handle `parameters` (and like '%') over all datasources
-            vars[match.group(1).replace(".", "__")] = context_variable.get_value(match.group(1))
+            variables[match.group(1).replace(".", "__")] = context_variable.get_value(match.group(1))
             return f"%({match.group(1).replace(".", "__")})s"
 
         ret = re.sub(r"{{([^}]+)}}", _match, value.replace("%", "\\%"))
 
-        return ret, vars
+        return (ret, variables)
