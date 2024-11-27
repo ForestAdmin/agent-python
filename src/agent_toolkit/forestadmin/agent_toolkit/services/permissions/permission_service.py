@@ -59,6 +59,7 @@ class PermissionService:
         return is_allowed
 
     async def can_chart(self, request: RequestCollection) -> bool:
+        # TODO: verify after new permissions
         hash_request = request.body["type"] + ":" + _hash_chart(request.body)
         is_allowed = hash_request in await self._get_chart_data(request.user.rendering_id, False)
 
