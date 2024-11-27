@@ -58,7 +58,9 @@ class DjangoDatasource(BaseDjangoDatasource):
                 collection = DjangoCollection(self, model, self.support_polymorphic_relations)
                 self.add_collection(collection)
 
-    async def execute_native_query(self, connection_name: str, native_query: str) -> List[RecordsDataAlias]:
+    async def execute_native_query(
+        self, connection_name: str, native_query: str, parameters: Dict[str, str]
+    ) -> List[RecordsDataAlias]:
         if (
             self._django_live_query_connections is None
             or connection_name not in self._django_live_query_connections.keys()
@@ -80,7 +82,8 @@ class DjangoDatasource(BaseDjangoDatasource):
         def _execute_native_query():
             cursor = connections[self._django_live_query_connections[connection_name]].cursor()  # type: ignore
             try:
-                rows = cursor.execute(native_query)
+                # TODO: find a better way to handle `parameters` (and like '%') over all datasources
+                rows = cursor.execute(native_query.replace("\\%", "%%"), parameters)
                 ret = []
                 for row in rows:
                     return_row = {}

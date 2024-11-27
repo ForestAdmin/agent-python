@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import json
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Dict
 
 from forestadmin.agent_toolkit.utils.context_variable_injector import ContextVariableInjector
 from forestadmin.agent_toolkit.utils.context_variable_instantiator import ContextVariablesInstantiator
@@ -39,21 +39,24 @@ class ContextVariableInjectorResourceMixin:
 
         request.body["filter"] = injected_filter.to_plain_object()
 
-    async def inject_context_variables_in_live_query_segment(self, request: "RequestCollection"):
+    async def inject_and_get_context_variables_in_live_query_segment(
+        self, request: "RequestCollection"
+    ) -> Dict[str, str]:
         # TODO: handle context variables from front or not ??
         if request.query.get("segmentQuery") is None:
-            return
+            return {}
         context_variables_dct = request.query.pop("contextVariables", {})
 
         context_variables = await ContextVariablesInstantiator.build_context_variables(
             request.user, context_variables_dct, self.permission
         )
 
-        request.query["segmentQuery"] = ContextVariableInjector.inject_context_in_value(
+        request.query["segmentQuery"], vars = ContextVariableInjector.format_query_and_get_vars(
             request.query["segmentQuery"], context_variables
         )
+        return vars
 
-    async def inject_context_variables_in_live_query_chart(self, request: "Request"):
+    async def inject_and_get_context_variables_in_live_query_chart(self, request: "Request") -> Dict[str, str]:
         context_variables_dct = request.body.get("contextVariables", {})
         context_variables = await ContextVariablesInstantiator.build_context_variables(
             request.user, context_variables_dct, self.permission
@@ -62,3 +65,8 @@ class ContextVariableInjectorResourceMixin:
         request.body["query"] = ContextVariableInjector.inject_context_in_value(
             request.body["query"], context_variables
         )
+
+        request.query["query"], vars = ContextVariableInjector.format_query_and_get_vars(
+            request.query["query"], context_variables
+        )
+        return vars

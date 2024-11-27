@@ -65,5 +65,7 @@ class Datasource(Generic[BoundCollection], abc.ABC):
         raise NotImplementedError
 
     @abc.abstractmethod
-    async def execute_native_query(self, connection_name: str, native_query: str) -> List[RecordsDataAlias]:
+    async def execute_native_query(
+        self, connection_name: str, native_query: str, parameters: Dict[str, str]
+    ) -> List[RecordsDataAlias]:
         raise NotImplementedError
