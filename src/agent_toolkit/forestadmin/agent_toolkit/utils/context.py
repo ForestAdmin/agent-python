@@ -144,6 +144,8 @@ class HttpResponseBuilder:
 
     @staticmethod
     def _get_error_status(error: Exception):
+        if isinstance(error, BusinessError):
+            return 400
         if isinstance(error, ValidationError):
             return 400
         if isinstance(error, ForbiddenError):

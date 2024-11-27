@@ -10,6 +10,7 @@ from forestadmin.agent_toolkit.services.permissions.permission_service import Pe
 from forestadmin.agent_toolkit.utils.context import HttpResponseBuilder, Request, RequestMethod, Response
 from forestadmin.datasource_toolkit.datasource_customizer.datasource_composite import CompositeDatasource
 from forestadmin.datasource_toolkit.datasource_customizer.datasource_customizer import DatasourceCustomizer
+from forestadmin.datasource_toolkit.exceptions import BusinessError
 from forestadmin.datasource_toolkit.interfaces.models.collections import BoundCollection, Datasource
 
 DatasourceAlias = Union[Datasource[BoundCollection], DatasourceCustomizer]
@@ -42,6 +43,12 @@ class NativeQueryResource(BaseCollectionResource, ContextVariableInjectorResourc
     @authenticate
     async def handle_native_query(self, request: Request) -> Response:
         await self.permission.can_chart(request)
+        assert request.body is not None
+        if "connectionName" not in request.body:
+            raise BusinessError("Missing 'connectionName' in parameter.")
+        if "query" not in request.body:
+            raise BusinessError("Missing 'query' in parameter.")
+
         variables = await self.inject_and_get_context_variables_in_live_query_chart(request)
         return HttpResponseBuilder.build_success_response(
             await self.composite_datasource.execute_native_query(

@@ -35,7 +35,7 @@ from forestadmin.datasource_toolkit.datasource_customizer.collection_customizer 
 from forestadmin.datasource_toolkit.datasource_customizer.datasource_composite import CompositeDatasource
 from forestadmin.datasource_toolkit.datasource_customizer.datasource_customizer import DatasourceCustomizer
 from forestadmin.datasource_toolkit.datasources import Datasource, DatasourceException
-from forestadmin.datasource_toolkit.exceptions import ForbiddenError
+from forestadmin.datasource_toolkit.exceptions import BusinessError, ForbiddenError
 from forestadmin.datasource_toolkit.interfaces.fields import (
     ManyToOne,
     OneToOne,
@@ -453,25 +453,26 @@ class CrudResource(BaseCollectionResource, ContextVariableInjectorResourceMixin)
     async def _handle_live_query_segment(
         self, request: RequestCollection, condition_tree: Optional[ConditionTree]
     ) -> Optional[ConditionTree]:
+        # TODO: remove connectionName mock
+        if request.collection.name.startswith("app_"):
+            request.query["connectionName"] = "django"
+        elif request.collection.name.startswith("sqlalchemy_"):
+            request.query["connectionName"] = "dj_sqlachemy"
+        else:
+            request.query["connectionName"] = "sqlalchemy"
+        # TODO: remove connectionName mock
 
         if request.query.get("segmentQuery") is not None:
-            # if "connectionName" not in request.query:
-            #     # TODO: correct exception
-            #     raise Exception
+            if "connectionName" not in request.query:
+                raise BusinessError("Missing 'connectionName' parameter.")
 
             await self.permission.can_live_query_segment(request)
-            vars = await self.inject_and_get_context_variables_in_live_query_segment(request)
-            # TODO: remove connectionName mock
-            if request.collection.name.startswith("app_"):
-                connection_name = "django"
-            elif request.collection.name.startswith("sqlalchemy_"):
-                connection_name = "dj_sqlachemy"
-            else:
-                connection_name = "sqlalchemy"
-            # TODO: remove connectionName mock
-            rslt = await self._datasource_composite.execute_native_query(
-                connection_name, request.query["segmentQuery"], vars
+            variables = await self.inject_and_get_context_variables_in_live_query_segment(request)
+            native_query_result = await self._datasource_composite.execute_native_query(
+                request.query["connectionName"], request.query["segmentQuery"], variables
             )
+            if len(native_query_result) > 0 and "id" not in native_query_result[0]:
+                raise BusinessError("Live query must return an 'id' field.")
 
             trees = []
             if condition_tree:
@@ -480,7 +481,7 @@ class CrudResource(BaseCollectionResource, ContextVariableInjectorResourceMixin)
                 ConditionTreeLeaf(
                     SchemaUtils.get_primary_keys(request.collection.schema)[0],
                     Operator.IN,
-                    [entry["id"] for entry in rslt],
+                    [entry["id"] for entry in native_query_result],
                 )
             )
             return ConditionTreeFactory.intersect(trees)
