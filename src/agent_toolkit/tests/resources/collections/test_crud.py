@@ -25,7 +25,6 @@ from forestadmin.agent_toolkit.services.serializers.json_api import (
 from forestadmin.agent_toolkit.utils.context import Request, RequestMethod, User
 from forestadmin.agent_toolkit.utils.csv import CsvException
 from forestadmin.datasource_toolkit.collections import Collection
-from forestadmin.datasource_toolkit.datasource_customizer.datasource_composite import CompositeDatasource
 from forestadmin.datasource_toolkit.datasources import Datasource, DatasourceException
 from forestadmin.datasource_toolkit.exceptions import ValidationError
 from forestadmin.datasource_toolkit.interfaces.fields import FieldType, Operator, PrimitiveType
