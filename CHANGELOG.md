@@ -1,3 +1,10 @@
+## [1.18.4](https://github.com/ForestAdmin/agent-python/compare/v1.18.3...v1.18.4) (2024-11-28)
+
+
+### Bug Fixes
+
+* **rename decorator:** properly map relation when renaming pk field ([#292](https://github.com/ForestAdmin/agent-python/issues/292)) ([ac9f63e](https://github.com/ForestAdmin/agent-python/commit/ac9f63efe9a7728c1da012059fcab0d436143940))
+
 ## [1.18.3](https://github.com/ForestAdmin/agent-python/compare/v1.18.2...v1.18.3) (2024-11-22)
 
 
