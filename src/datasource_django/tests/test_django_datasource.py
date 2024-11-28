@@ -178,3 +178,11 @@ class TestDjangoDatasourceNativeQueryExecution(TestCase):
                 },
             ],
         )
+
+    def test_should_correctly_raise_exception_during_sql_error(self):
+        self.assertRaisesRegex(
+            DjangoDatasourceException,
+            r"no such table: blabla",
+            self.loop.run_until_complete,
+            self.dj_datasource.execute_native_query("django", "select * from blabla", {}),
+        )
