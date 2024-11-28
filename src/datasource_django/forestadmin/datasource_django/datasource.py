@@ -61,17 +61,15 @@ class DjangoDatasource(BaseDjangoDatasource):
     async def execute_native_query(
         self, connection_name: str, native_query: str, parameters: Dict[str, str]
     ) -> List[RecordsDataAlias]:
-        if (
-            self._django_live_query_connections is None
-            or connection_name not in self._django_live_query_connections.keys()
-        ):
+        if connection_name not in self._django_live_query_connections.keys():
             # TODO: verify
-            # This one should never occur
+            # This one should never occur while datasource composite works fine
             raise DjangoDatasourceException(
                 f"Native query connection '{connection_name}' is not known by DjangoDatasource."
             )
 
         if self._django_live_query_connections[connection_name] not in connections:
+            # This one should never occur
             # TODO: verify
             raise DjangoDatasourceException(
                 f"Connection to database '{self._django_live_query_connections[connection_name]}' for alias "
@@ -82,7 +80,7 @@ class DjangoDatasource(BaseDjangoDatasource):
         def _execute_native_query():
             cursor = connections[self._django_live_query_connections[connection_name]].cursor()  # type: ignore
             try:
-                # replace '\s' by '%%'
+                # replace '\%' by '%%'
                 # %(var)s is already the correct  syntax
                 rows = cursor.execute(native_query.replace("\\%", "%%"), parameters)
 
