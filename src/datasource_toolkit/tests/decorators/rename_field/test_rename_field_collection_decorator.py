@@ -411,3 +411,20 @@ class TestRenameFieldCollectionDecorator(TestCase):
         assert person_book_fields["book"]["foreign_key"] == "novel_id"
         assert person_book_fields["person"]["foreign_key"] == "author_id"
         assert person_fields["book"]["origin_key"] == "author_id"
+
+    def test_when_renaming_pk_should_update_all_collections(self):
+        self.decorated_collection_book.rename_field("id", "new_book_id")
+        self.decorated_collection_person.rename_field("id", "new_person_id")
+
+        book_fields = self.decorated_collection_book.schema["fields"]
+        person_fields = self.decorated_collection_person.schema["fields"]
+        person_book_fields = self.decorated_collection_person_book.schema["fields"]
+
+        self.assertEqual(book_fields["persons"]["foreign_key_target"], "new_person_id")
+        self.assertEqual(book_fields["persons"]["origin_key_target"], "new_book_id")
+
+        self.assertEqual(book_fields["author"]["foreign_key_target"], "new_person_id")
+        self.assertEqual(person_fields["book"]["origin_key_target"], "new_person_id")
+
+        self.assertEqual(person_book_fields["book"]["foreign_key_target"], "new_book_id")
+        self.assertEqual(person_book_fields["person"]["foreign_key_target"], "new_person_id")
