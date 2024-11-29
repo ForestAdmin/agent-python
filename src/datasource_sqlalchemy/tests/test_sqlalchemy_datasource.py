@@ -1,8 +1,9 @@
+import asyncio
+import os
 from unittest import TestCase
 from unittest.mock import Mock, patch
 
 from flask import Flask
-from flask_sqlalchemy import SQLAlchemy
 from forestadmin.datasource_sqlalchemy.datasource import SqlAlchemyDatasource
 from forestadmin.datasource_sqlalchemy.exceptions import SqlAlchemyDatasourceException
 from sqlalchemy.orm import DeclarativeMeta
@@ -50,6 +51,8 @@ class TestSqlAlchemyDatasource(TestCase):
 
     @patch("forestadmin.datasource_sqlalchemy.datasource.sessionmaker")
     def test_create_datasource_with_flask_sqlalchemy_integration_should_find_engine(self, mocked_sessionmaker):
+        from flask_sqlalchemy import SQLAlchemy
+
         app = Flask(__name__)
         app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///memory"
         db = SQLAlchemy()
@@ -93,3 +96,93 @@ class TestSqlAlchemyDatasourceWithModels(TestCase):
 
         assert len(datasource._collections) == 4
         assert datasource.get_collection("address").datasource == datasource
+
+
+class TestSQLAlchemyDatasourceConnectionQueryCreation(TestCase):
+    def test_should_not_create_native_query_connection_if_no_params(self):
+        ds = SqlAlchemyDatasource(models.Base)
+        self.assertEqual(ds.get_native_query_connections(), [])
+
+    def test_should_create_native_query_connection_to_default_if_string_is_set(self):
+        ds = SqlAlchemyDatasource(models.Base, live_query_connection="sqlalchemy")
+        self.assertEqual(ds.get_native_query_connections(), ["sqlalchemy"])
+
+
+class TestSQLAlchemyDatasourceNativeQueryExecution(TestCase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        super().setUpClass()
+        cls.loop = asyncio.new_event_loop()
+        if os.path.exists(models.test_db_path):
+            os.remove(models.test_db_path)
+        models.create_test_database()
+        models.load_fixtures()
+        cls.sql_alchemy_datasource = SqlAlchemyDatasource(models.Base, live_query_connection="sqlalchemy")
+
+    def test_should_raise_if_connection_is_not_known_by_datasource(self):
+        self.assertRaisesRegex(
+            SqlAlchemyDatasourceException,
+            r"The native query connection 'foo' doesn't belongs to this datasource.",
+            self.loop.run_until_complete,
+            self.sql_alchemy_datasource.execute_native_query("foo", "select * from blabla", {}),
+        )
+
+    def test_should_correctly_execute_query(self):
+        result = self.loop.run_until_complete(
+            self.sql_alchemy_datasource.execute_native_query(
+                "sqlalchemy", "select * from customer where id <= 2 order by id;", {}
+            )
+        )
+        self.assertEqual(
+            result,
+            [
+                {"id": 1, "first_name": "David", "last_name": "Myers", "age": 112},
+                {"id": 2, "first_name": "Thomas", "last_name": "Odom", "age": 92},
+            ],
+        )
+
+    def test_should_correctly_execute_query_with_formatting(self):
+        result = self.loop.run_until_complete(
+            self.sql_alchemy_datasource.execute_native_query(
+                "sqlalchemy",
+                """select *
+                from customer
+                where first_name = %(first_name)s
+                    and last_name = %(last_name)s
+                order by id""",
+                {"first_name": "David", "last_name": "Myers"},
+            )
+        )
+        self.assertEqual(
+            result,
+            [
+                {"id": 1, "first_name": "David", "last_name": "Myers", "age": 112},
+            ],
+        )
+
+    def test_should_correctly_execute_query_with_percent(self):
+        result = self.loop.run_until_complete(
+            self.sql_alchemy_datasource.execute_native_query(
+                "sqlalchemy",
+                """select *
+                from customer
+                where first_name like 'Dav\\%'
+                order by id""",
+                {},
+            )
+        )
+
+        self.assertEqual(
+            result,
+            [
+                {"id": 1, "first_name": "David", "last_name": "Myers", "age": 112},
+            ],
+        )
+
+    def test_should_correctly_raise_exception_during_sql_error(self):
+        self.assertRaisesRegex(
+            SqlAlchemyDatasourceException,
+            r"no such table: blabla",
+            self.loop.run_until_complete,
+            self.sql_alchemy_datasource.execute_native_query("sqlalchemy", "select * from blabla", {}),
+        )
