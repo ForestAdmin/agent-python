@@ -123,10 +123,10 @@ DATABASES = {
         "NAME": os.path.join(BASE_DIR, "db.sqlite3"),
         "ATOMIC_REQUESTS": True,
     },
-    # "other": {
-    #     "ENGINE": "django.db.backends.sqlite3",
-    #     "NAME": os.path.join(BASE_DIR, "db_flask_example.sqlite"),
-    # },
+    "other": {
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": os.path.join(BASE_DIR, "db_sqlalchemy.sql"),
+    },
 }
 
 DATABASE_ROUTERS = ["django_demo.db_router.DBRouter"]
