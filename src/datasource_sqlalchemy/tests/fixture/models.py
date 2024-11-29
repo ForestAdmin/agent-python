@@ -8,8 +8,6 @@ from sqlalchemy import Column, DateTime, Enum, ForeignKey, Integer, String, crea
 from sqlalchemy.orm import Session, relationship, validates
 
 use_sqlalchemy_2 = sqlalchemy.__version__.split(".")[0] == "2"
-test_db_path = os.path.abspath(os.path.join(__file__, "..", "..", "..", "..", "..", "test_db.sql"))
-engine = create_engine(f"sqlite:///{test_db_path}", echo=False)
 fixtures_dir = os.path.abspath(os.path.join(__file__, ".."))
 
 # to import/export json as fixtures
@@ -55,7 +53,13 @@ else:
 
     Base = declarative_base(cls=_Base)
 
-Base.metadata.bind = engine
+
+def get_models_base(db_file_name):
+    test_db_path = os.path.abspath(os.path.join(__file__, "..", "..", "..", "..", "..", f"{db_file_name}.sql"))
+    engine = create_engine(f"sqlite:///{test_db_path}", echo=False)
+    Base.metadata.bind = engine
+    Base.metadata.file_path = test_db_path
+    return Base
 
 
 class ORDER_STATUS(str, enum.Enum):
@@ -116,7 +120,7 @@ class CustomersAddresses(Base):
     address_id = Column(Integer, ForeignKey("address.id"), primary_key=True)
 
 
-def load_fixtures():
+def load_fixtures(base):
     with open(os.path.join(fixtures_dir, "addresses.json"), "r") as fin:
         data = json.load(fin)
         addresses = [Address.__import__(d) for d in data]
@@ -133,7 +137,7 @@ def load_fixtures():
         data = json.load(fin)
         orders = [Order.__import__(d) for d in data]
 
-    with Session(Base.metadata.bind) as session:
+    with Session(base.metadata.bind) as session:
         session.bulk_save_objects(addresses)
         session.bulk_save_objects(customers)
         session.bulk_save_objects(customers_addresses)
@@ -141,5 +145,5 @@ def load_fixtures():
         session.commit()
 
 
-def create_test_database():
-    Base.metadata.create_all(engine)
+def create_test_database(base):
+    base.metadata.create_all(base.metadata.bind)

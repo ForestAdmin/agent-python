@@ -113,11 +113,17 @@ class TestSQLAlchemyDatasourceNativeQueryExecution(TestCase):
     def setUpClass(cls) -> None:
         super().setUpClass()
         cls.loop = asyncio.new_event_loop()
-        if os.path.exists(models.test_db_path):
-            os.remove(models.test_db_path)
-        models.create_test_database()
-        models.load_fixtures()
+        cls.sql_alchemy_base = models.get_models_base("test_datasource_native_query")
+        if os.path.exists(cls.sql_alchemy_base.metadata.file_path):
+            os.remove(cls.sql_alchemy_base.metadata.file_path)
+        models.create_test_database(cls.sql_alchemy_base)
+        models.load_fixtures(cls.sql_alchemy_base)
         cls.sql_alchemy_datasource = SqlAlchemyDatasource(models.Base, live_query_connection="sqlalchemy")
+
+    @classmethod
+    def tearDownClass(cls):
+        os.remove(cls.sql_alchemy_base.metadata.file_path)
+        cls.loop.close()
 
     def test_should_raise_if_connection_is_not_known_by_datasource(self):
         self.assertRaisesRegex(
