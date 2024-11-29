@@ -143,10 +143,11 @@ class TestSqlAlchemyCollectionWithModels(TestCase):
     @classmethod
     def setUpClass(cls):
         cls.loop = asyncio.new_event_loop()
-        if os.path.exists(models.test_db_path):
-            os.remove(models.test_db_path)
-        models.create_test_database()
-        models.load_fixtures()
+        cls.sql_alchemy_base = models.get_models_base("test_collection_operations")
+        if os.path.exists(cls.sql_alchemy_base.metadata.file_path):
+            os.remove(cls.sql_alchemy_base.metadata.file_path)
+        models.create_test_database(cls.sql_alchemy_base)
+        models.load_fixtures(cls.sql_alchemy_base)
         cls.datasource = SqlAlchemyDatasource(models.Base)
         cls.mocked_caller = User(
             rendering_id=1,
@@ -162,7 +163,7 @@ class TestSqlAlchemyCollectionWithModels(TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        os.remove(models.test_db_path)
+        os.remove(cls.sql_alchemy_base.metadata.file_path)
         cls.loop.close()
 
     def test_get_columns(self):
@@ -306,7 +307,7 @@ class TestSqlAlchemyCollectionWithModels(TestCase):
     def test_get_native_driver_should_return_connection(self):
         with self.datasource.get_collection("order").get_native_driver() as connection:
             self.assertIsInstance(connection, Session)
-            self.assertEqual(str(connection.bind.url), f"sqlite:///{models.test_db_path}")
+            self.assertEqual(str(connection.bind.url), f"sqlite:///{self.sql_alchemy_base.metadata.file_path}")
 
             rows = connection.execute(text('select id,amount from "order"  where id =  3')).all()
         self.assertEqual(rows, [(3, 5285)])
@@ -314,7 +315,7 @@ class TestSqlAlchemyCollectionWithModels(TestCase):
     def test_get_native_driver_should_work_without_declaring_request_as_text(self):
         with self.datasource.get_collection("order").get_native_driver() as connection:
             self.assertIsInstance(connection, Session)
-            self.assertEqual(str(connection.bind.url), f"sqlite:///{models.test_db_path}")
+            self.assertEqual(str(connection.bind.url), f"sqlite:///{self.sql_alchemy_base.metadata.file_path}")
 
             rows = connection.execute('select id,amount from "order"  where id =  3').all()
         self.assertEqual(rows, [(3, 5285)])
