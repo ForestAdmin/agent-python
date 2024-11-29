@@ -3,9 +3,11 @@ import json
 import os
 from datetime import date, datetime
 
+import sqlalchemy  # type: ignore
 from sqlalchemy import Column, DateTime, Enum, ForeignKey, Integer, String, create_engine, func, types
-from sqlalchemy.orm import Session, declarative_base, relationship, validates
+from sqlalchemy.orm import Session, relationship, validates
 
+use_sqlalchemy_2 = sqlalchemy.__version__.split(".")[0] == "2"
 test_db_path = os.path.abspath(os.path.join(__file__, "..", "..", "..", "..", "..", "test_db.sql"))
 engine = create_engine(f"sqlite:///{test_db_path}", echo=False)
 fixtures_dir = os.path.abspath(os.path.join(__file__, ".."))
@@ -42,7 +44,17 @@ class _Base(object):
         return cls(**params)
 
 
-Base = declarative_base(cls=_Base)
+if use_sqlalchemy_2:
+    from sqlalchemy.orm import DeclarativeBase
+
+    class Base(DeclarativeBase, _Base):
+        pass
+
+else:
+    from sqlalchemy.orm import declarative_base
+
+    Base = declarative_base(cls=_Base)
+
 Base.metadata.bind = engine
 
 
