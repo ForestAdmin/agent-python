@@ -16,12 +16,12 @@ def _decode_segment_query_permissions(raw_permission: Dict[Any, Any]):
     segment_queries = {}
     for collection_name, value in raw_permission.items():
         segment_queries[collection_name] = []
-        for segment_query in value.get("segments", []):
+        for segment_query in value.get("liveQuerySegments", []):
             segment_queries[collection_name].append(
                 _dict_hash(
                     {
-                        "query": segment_query,
-                        # "connection_name": connection_name # TODO: review when connectionName in permissions
+                        "query": segment_query["query"],
+                        "connection_name": segment_query["connectionName"],
                     }
                 )
             )
@@ -74,7 +74,7 @@ def _dict_hash(data: Dict[Any, Any]) -> str:
 
 def _hash_chart(chart: Dict[Any, Any]) -> str:
     known_chart_keys = [
-        # "connectionName", # TODO: to enable with next backend version of permissions
+        "connectionName",
         "type",
         "apiRoute",
         "smartRoute",

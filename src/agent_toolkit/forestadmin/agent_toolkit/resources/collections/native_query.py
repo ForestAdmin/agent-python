@@ -1,4 +1,5 @@
 from typing import Literal, Union
+from uuid import uuid4
 
 from forestadmin.agent_toolkit.forest_logger import ForestLogger
 from forestadmin.agent_toolkit.options import Options
@@ -51,7 +52,15 @@ class NativeQueryResource(BaseCollectionResource, ContextVariableInjectorResourc
 
         variables = await self.inject_and_get_context_variables_in_live_query_chart(request)
         return HttpResponseBuilder.build_success_response(
-            await self.composite_datasource.execute_native_query(
-                request.body["connectionName"], request.body["query"], variables
-            )
+            {
+                "data": {
+                    "id": str(uuid4()),
+                    "type": "stats",
+                    "attributes": {
+                        "value": await self.composite_datasource.execute_native_query(
+                            request.body["connectionName"], request.body["query"], variables
+                        ),
+                    },
+                }
+            }
         )

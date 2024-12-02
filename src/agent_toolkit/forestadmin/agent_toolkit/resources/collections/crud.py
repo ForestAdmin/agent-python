@@ -453,15 +453,6 @@ class CrudResource(BaseCollectionResource, ContextVariableInjectorResourceMixin)
     async def _handle_live_query_segment(
         self, request: RequestCollection, condition_tree: Optional[ConditionTree]
     ) -> Optional[ConditionTree]:
-        # TODO: remove connectionName mock
-        if request.collection.name.startswith("app_"):
-            request.query["connectionName"] = "django"
-        elif request.collection.name.startswith("sqlalchemy_"):
-            request.query["connectionName"] = "dj_sqlachemy"
-        else:
-            request.query["connectionName"] = "sqlalchemy"
-        # TODO: remove connectionName mock
-
         if request.query.get("segmentQuery") is not None:
             if "connectionName" not in request.query:
                 raise BusinessError("Missing 'connectionName' parameter.")
