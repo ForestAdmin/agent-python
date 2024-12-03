@@ -11,7 +11,6 @@ from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.base i
 ##################
 
 
-# TODO: adapt after new version of permissions api
 def _decode_segment_query_permissions(raw_permission: Dict[Any, Any]):
     segment_queries = {}
     for collection_name, value in raw_permission.items():

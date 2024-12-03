@@ -59,6 +59,9 @@ class RelaxedDatasource(Datasource["RelaxedCollection"]):
     def name(self):
         return self.datasource.name
 
+    def get_native_query_connections(self):
+        raise NotImplementedError
+
     async def execute_native_query(
         self, connection_name: str, native_query: str, parameters: Dict[str, str]
     ) -> List[Dict[str, Any]]:

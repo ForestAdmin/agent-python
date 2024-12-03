@@ -3,6 +3,7 @@ from typing import Any, Dict, List, Optional
 from forestadmin.datasource_sqlalchemy.collections import SqlAlchemyCollection
 from forestadmin.datasource_sqlalchemy.exceptions import SqlAlchemyDatasourceException
 from forestadmin.datasource_sqlalchemy.interfaces import BaseSqlAlchemyDatasource
+from forestadmin.datasource_toolkit.exceptions import NativeQueryException
 from forestadmin.datasource_toolkit.interfaces.records import RecordsDataAlias
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import Mapper, sessionmaker
@@ -61,8 +62,7 @@ class SqlAlchemyDatasource(BaseSqlAlchemyDatasource):
         self, connection_name: str, native_query: str, parameters: Dict[str, str]
     ) -> List[RecordsDataAlias]:
         if connection_name != self.get_native_query_connections()[0]:
-            # TODO: verify
-            raise SqlAlchemyDatasourceException(
+            raise NativeQueryException(
                 f"The native query connection '{connection_name}' doesn't belongs to this datasource."
             )
         try:
@@ -80,8 +80,7 @@ class SqlAlchemyDatasource(BaseSqlAlchemyDatasource):
             rows = session.execute(query, parameters)
             return [*rows.mappings()]
         except Exception as exc:
-            # TODO: verify
-            raise SqlAlchemyDatasourceException(str(exc))
+            raise NativeQueryException(str(exc))
 
     # unused code, can be use full but can be remove
     # from forestadmin.datasource_toolkit.datasources import DatasourceException

@@ -6,6 +6,7 @@ from unittest.mock import Mock, patch
 from flask import Flask
 from forestadmin.datasource_sqlalchemy.datasource import SqlAlchemyDatasource
 from forestadmin.datasource_sqlalchemy.exceptions import SqlAlchemyDatasourceException
+from forestadmin.datasource_toolkit.exceptions import NativeQueryException
 from sqlalchemy.orm import DeclarativeMeta
 
 from .fixture import models
@@ -127,7 +128,7 @@ class TestSQLAlchemyDatasourceNativeQueryExecution(TestCase):
 
     def test_should_raise_if_connection_is_not_known_by_datasource(self):
         self.assertRaisesRegex(
-            SqlAlchemyDatasourceException,
+            NativeQueryException,
             r"The native query connection 'foo' doesn't belongs to this datasource.",
             self.loop.run_until_complete,
             self.sql_alchemy_datasource.execute_native_query("foo", "select * from blabla", {}),
@@ -187,7 +188,7 @@ class TestSQLAlchemyDatasourceNativeQueryExecution(TestCase):
 
     def test_should_correctly_raise_exception_during_sql_error(self):
         self.assertRaisesRegex(
-            SqlAlchemyDatasourceException,
+            NativeQueryException,
             r"no such table: blabla",
             self.loop.run_until_complete,
             self.sql_alchemy_datasource.execute_native_query("sqlalchemy", "select * from blabla", {}),
