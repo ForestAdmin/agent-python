@@ -59,7 +59,6 @@ class PermissionService:
         return is_allowed
 
     async def can_chart(self, request: RequestCollection) -> bool:
-        # TODO: verify after new permissions
         hash_request = request.body["type"] + ":" + _hash_chart(request.body)
         is_allowed = hash_request in await self._get_chart_data(request.user.rendering_id, False)
 
@@ -81,9 +80,7 @@ class PermissionService:
     async def can_live_query_segment(self, request: RequestCollection) -> bool:
         live_query = request.query["segmentQuery"]
         connection_name = request.query["connectionName"]
-        hash_live_query = _dict_hash(
-            {"query": live_query, "connection_name": connection_name}  # TODO: review when connectionName in permissions
-        )
+        hash_live_query = _dict_hash({"query": live_query, "connection_name": connection_name})
         is_allowed = hash_live_query in (await self._get_segment_queries(request.user.rendering_id, False)).get(
             request.collection.name
         )
