@@ -1,4 +1,4 @@
-from typing import Literal, Union
+from typing import Any, Dict, List, Literal, Optional, Union
 from uuid import uuid4
 
 from forestadmin.agent_toolkit.forest_logger import ForestLogger
@@ -11,7 +11,15 @@ from forestadmin.agent_toolkit.services.permissions.permission_service import Pe
 from forestadmin.agent_toolkit.utils.context import HttpResponseBuilder, Request, RequestMethod, Response
 from forestadmin.datasource_toolkit.datasource_customizer.datasource_composite import CompositeDatasource
 from forestadmin.datasource_toolkit.datasource_customizer.datasource_customizer import DatasourceCustomizer
-from forestadmin.datasource_toolkit.exceptions import BusinessError
+from forestadmin.datasource_toolkit.exceptions import BusinessError, UnprocessableError, ValidationError
+from forestadmin.datasource_toolkit.interfaces.chart import (
+    Chart,
+    DistributionChart,
+    LeaderboardChart,
+    ObjectiveChart,
+    TimeBasedChart,
+    ValueChart,
+)
 from forestadmin.datasource_toolkit.interfaces.models.collections import BoundCollection, Datasource
 
 DatasourceAlias = Union[Datasource[BoundCollection], DatasourceCustomizer]
@@ -49,18 +57,81 @@ class NativeQueryResource(BaseCollectionResource, ContextVariableInjectorResourc
             raise BusinessError("Missing 'connectionName' in parameter.")
         if "query" not in request.body:
             raise BusinessError("Missing 'query' in parameter.")
+        if request.body.get("type") not in ["Line", "Objective", "Leaderboard", "Pie", "Value"]:
+            raise ValidationError(f"Unknown chart type '{request.body.get("type")}'.")
 
         variables = await self.inject_and_get_context_variables_in_live_query_chart(request)
+        native_query_results = await self.composite_datasource.execute_native_query(
+            request.body["connectionName"], request.body["query"], variables
+        )
+
+        chart_result: Chart
+        if request.body["type"] == "Line":
+            chart_result = self._handle_line_chart(native_query_results)
+        elif request.body["type"] == "Objective":
+            chart_result = self._handle_objective_chart(native_query_results)
+        elif request.body["type"] == "Leaderboard":
+            chart_result = self._handle_leaderboard_chart(native_query_results)
+        elif request.body["type"] == "Pie":
+            chart_result = self._handle_pie_chart(native_query_results)
+        elif request.body["type"] == "Value":
+            chart_result = self._handle_value_chart(native_query_results)
+
         return HttpResponseBuilder.build_success_response(
             {
                 "data": {
                     "id": str(uuid4()),
                     "type": "stats",
                     "attributes": {
-                        "value": await self.composite_datasource.execute_native_query(
-                            request.body["connectionName"], request.body["query"], variables
-                        ),
+                        "value": chart_result,  # type:ignore
                     },
                 }
             }
         )
+
+    def _handle_line_chart(self, native_query_results: List[Dict[str, Any]]) -> TimeBasedChart:
+        if len(native_query_results) >= 1:
+            if "key" not in native_query_results[0] or "value" not in native_query_results[0]:
+                raise UnprocessableError("Native query for 'Line' chart must return 'key' and 'value' fields.")
+
+        return [{"label": res["key"], "values": {"value": res["value"]}} for res in native_query_results]
+
+    def _handle_objective_chart(self, native_query_results: List[Dict[str, Any]]) -> ObjectiveChart:
+        if len(native_query_results) == 1:
+            if "value" not in native_query_results[0] or "objective" not in native_query_results[0]:
+                raise UnprocessableError(
+                    "Native query for 'Objective' chart must return 'value' and 'objective' fields."
+                )
+        else:
+            raise UnprocessableError("Native query for 'Objective' chart must return only one row.")
+
+        return {
+            "value": native_query_results[0]["value"],
+            "objective": native_query_results[0]["objective"],
+        }
+
+    def _handle_leaderboard_chart(self, native_query_results: List[Dict[str, Any]]) -> LeaderboardChart:
+        if len(native_query_results) >= 1:
+            if "key" not in native_query_results[0] or "value" not in native_query_results[0]:
+                raise UnprocessableError("Native query for 'Leaderboard' chart must return 'key' and 'value' fields.")
+
+        return [{"key": res["key"], "value": res["value"]} for res in native_query_results]
+
+    def _handle_pie_chart(self, native_query_results: List[Dict[str, Any]]) -> DistributionChart:
+        if len(native_query_results) >= 1:
+            if "key" not in native_query_results[0] or "value" not in native_query_results[0]:
+                raise UnprocessableError("Native query for 'Pie' chart must return 'key' and 'value' fields.")
+
+        return [{"key": res["key"], "value": res["value"]} for res in native_query_results]
+
+    def _handle_value_chart(self, native_query_results: List[Dict[str, Any]]) -> ValueChart:
+        if len(native_query_results) == 1:
+            if "value" not in native_query_results[0]:
+                raise UnprocessableError("Native query for 'Value' chart must return 'value' field.")
+        else:
+            raise UnprocessableError("Native query for 'Value' chart must return only one row.")
+
+        ret = {"countCurrent": native_query_results[0]["value"]}
+        if "previous" in native_query_results[0]:
+            ret["countPrevious"] = native_query_results[0]["previous"]
+        return ret  # type:ignore
