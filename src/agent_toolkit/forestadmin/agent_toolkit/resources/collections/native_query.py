@@ -58,7 +58,7 @@ class NativeQueryResource(BaseCollectionResource, ContextVariableInjectorResourc
         if "query" not in request.body:
             raise BusinessError("Missing 'query' in parameter.")
         if request.body.get("type") not in ["Line", "Objective", "Leaderboard", "Pie", "Value"]:
-            raise ValidationError(f"Unknown chart type '{request.body.get("type")}'.")
+            raise ValidationError(f"Unknown chart type '{request.body.get('type')}'.")
 
         variables = await self.inject_and_get_context_variables_in_live_query_chart(request)
         native_query_results = await self.composite_datasource.execute_native_query(
