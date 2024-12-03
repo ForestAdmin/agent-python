@@ -12,7 +12,7 @@ from forestadmin.agent_toolkit.utils.context import User
 from forestadmin.datasource_toolkit.collections import Collection
 from forestadmin.datasource_toolkit.datasource_customizer.datasource_composite import CompositeDatasource
 from forestadmin.datasource_toolkit.datasources import Datasource
-from forestadmin.datasource_toolkit.exceptions import DatasourceToolkitException
+from forestadmin.datasource_toolkit.exceptions import DatasourceToolkitException, NativeQueryException
 from forestadmin.datasource_toolkit.interfaces.fields import Column, FieldType, PrimitiveType
 
 
@@ -39,8 +39,25 @@ class BaseTestCompositeDatasource(TestCase):
         self.ds1_charts = {"charts": {"chart1": Mock()}}
         self.ds2_charts = {"charts": {"chart2": Mock()}}
 
-        DS1 = type("DS1", (Datasource,), {"schema": PropertyMock(return_value=self.ds1_charts)})
-        DS2 = type("DS2", (Datasource,), {"schema": PropertyMock(return_value=self.ds2_charts)})
+        self.ds1_connections = ["db1", "db2"]
+        self.ds2_connections = ["db3"]
+
+        DS1 = type(
+            "DS1",
+            (Datasource,),
+            {
+                "schema": PropertyMock(return_value=self.ds1_charts),
+                "get_native_query_connections": Mock(return_value=self.ds1_connections),
+            },
+        )
+        DS2 = type(
+            "DS2",
+            (Datasource,),
+            {
+                "schema": PropertyMock(return_value=self.ds2_charts),
+                "get_native_query_connections": Mock(return_value=self.ds2_connections),
+            },
+        )
 
         self.datasource_1: Datasource = DS1()
         self.collection_person = Collection("Person", self.datasource_1)
@@ -160,3 +177,50 @@ class TestCompositeDatasourceCharts(BaseTestCompositeDatasource):
         with patch.object(self.datasource_2, "render_chart", new_callable=AsyncMock) as mock_render_chart:
             self.loop.run_until_complete(self.composite_ds.render_chart(self.mocked_caller, "chart2"))
             mock_render_chart.assert_awaited_with(self.mocked_caller, "chart2")
+
+
+class TestCompositeDatasourceNativeQuery(BaseTestCompositeDatasource):
+
+    def setUp(self) -> None:
+        super().setUp()
+        self.composite_ds.add_datasource(self.datasource_1)
+
+    def test_add_datasource_should_raise_if_duplicated_live_query_connection(self):
+        with patch.object(self.datasource_2, "get_native_query_connections", return_value=["db1"]):
+            self.assertRaisesRegex(
+                DatasourceToolkitException,
+                r"Native query connection 'db1' already exists.",
+                self.composite_ds.add_datasource,
+                self.datasource_2,
+            )
+
+    def test_get_native_query_connection_should_return_all_connections(self):
+        self.composite_ds.add_datasource(self.datasource_2)
+        connections = self.composite_ds.get_native_query_connections()
+        self.assertIn("db1", connections)
+        self.assertIn("db2", connections)
+        self.assertIn("db3", connections)
+
+    def test_execute_native_query_should_raise_if_connection_is_unknown(self):
+        self.composite_ds.add_datasource(self.datasource_2)
+
+        self.assertRaisesRegex(
+            NativeQueryException,
+            r"Cannot find connection 'bla' in datasources. Existing connection names are: db1,db2,db3",
+            self.loop.run_until_complete,
+            self.composite_ds.execute_native_query("bla", "select * from ...", {}),
+        )
+
+    def test_execute_native_query_should_call_to_correct_datasource(self):
+        self.composite_ds.add_datasource(self.datasource_2)
+
+        with patch.object(self.datasource_1, "execute_native_query", new_callable=AsyncMock) as mock_ds1_exec:
+            self.loop.run_until_complete(self.composite_ds.execute_native_query("db1", "select * from ...", {}))
+            mock_ds1_exec.assert_any_await("db1", "select * from ...", {})
+
+            self.loop.run_until_complete(self.composite_ds.execute_native_query("db2", "select * from ...", {}))
+            mock_ds1_exec.assert_any_await("db2", "select * from ...", {})
+
+        with patch.object(self.datasource_2, "execute_native_query", new_callable=AsyncMock) as mock_ds2_exec:
+            self.loop.run_until_complete(self.composite_ds.execute_native_query("db3", "select * from ...", {}))
+            mock_ds2_exec.assert_any_await("db3", "select * from ...", {})
