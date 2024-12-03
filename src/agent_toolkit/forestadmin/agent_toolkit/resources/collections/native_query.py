@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Literal, Optional, Union
+from typing import Any, Dict, List, Literal, Union
 from uuid import uuid4
 
 from forestadmin.agent_toolkit.forest_logger import ForestLogger
