@@ -2,7 +2,7 @@ from typing import Any, Dict, List
 
 from forestadmin.agent_toolkit.utils.context import User
 from forestadmin.datasource_toolkit.datasources import Datasource
-from forestadmin.datasource_toolkit.exceptions import BusinessError, DatasourceToolkitException
+from forestadmin.datasource_toolkit.exceptions import DatasourceToolkitException, NativeQueryException
 from forestadmin.datasource_toolkit.interfaces.chart import Chart
 from forestadmin.datasource_toolkit.interfaces.models.collections import BoundCollection, DatasourceSchema
 
@@ -75,7 +75,7 @@ class CompositeDatasource(Datasource):
             if connection_name in datasource.get_native_query_connections():
                 return await datasource.execute_native_query(connection_name, native_query, parameters)
 
-        raise BusinessError(
+        raise NativeQueryException(
             f"Cannot find connection '{connection_name}' in datasources. "
             f"Existing connection names are: {','.join(self.get_native_query_connections())}"
         )

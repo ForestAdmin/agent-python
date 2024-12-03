@@ -5,6 +5,7 @@ from django.test import SimpleTestCase, TestCase
 from forestadmin.datasource_django.collection import DjangoCollection
 from forestadmin.datasource_django.datasource import DjangoDatasource
 from forestadmin.datasource_django.exception import DjangoDatasourceException
+from forestadmin.datasource_toolkit.exceptions import NativeQueryException
 
 mock_collection1 = Mock(DjangoCollection)
 mock_collection1.name = "first"
@@ -111,7 +112,7 @@ class TestDjangoDatasourceNativeQueryExecution(TestCase):
 
     def test_should_raise_if_connection_is_not_known_by_datasource(self):
         self.assertRaisesRegex(
-            DjangoDatasourceException,
+            NativeQueryException,
             r"Native query connection 'foo' is not known by DjangoDatasource.",
             self.loop.run_until_complete,
             self.dj_datasource.execute_native_query("foo", "select * from blabla", {}),
@@ -181,7 +182,7 @@ class TestDjangoDatasourceNativeQueryExecution(TestCase):
 
     def test_should_correctly_raise_exception_during_sql_error(self):
         self.assertRaisesRegex(
-            DjangoDatasourceException,
+            NativeQueryException,
             r"no such table: blabla",
             self.loop.run_until_complete,
             self.dj_datasource.execute_native_query("django", "select * from blabla", {}),

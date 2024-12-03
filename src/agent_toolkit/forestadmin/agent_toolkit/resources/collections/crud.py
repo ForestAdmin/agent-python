@@ -35,7 +35,7 @@ from forestadmin.datasource_toolkit.datasource_customizer.collection_customizer 
 from forestadmin.datasource_toolkit.datasource_customizer.datasource_composite import CompositeDatasource
 from forestadmin.datasource_toolkit.datasource_customizer.datasource_customizer import DatasourceCustomizer
 from forestadmin.datasource_toolkit.datasources import Datasource, DatasourceException
-from forestadmin.datasource_toolkit.exceptions import BusinessError, ForbiddenError
+from forestadmin.datasource_toolkit.exceptions import BusinessError, ForbiddenError, NativeQueryException
 from forestadmin.datasource_toolkit.interfaces.fields import (
     ManyToOne,
     OneToOne,
@@ -454,8 +454,8 @@ class CrudResource(BaseCollectionResource, ContextVariableInjectorResourceMixin)
         self, request: RequestCollection, condition_tree: Optional[ConditionTree]
     ) -> Optional[ConditionTree]:
         if request.query.get("segmentQuery") is not None:
-            if "connectionName" not in request.query:
-                raise BusinessError("Missing 'connectionName' parameter.")
+            if "connectionName" not in request.query or request.query["connectionName"] == "":
+                raise NativeQueryException("Missing 'connectionName' parameter.")
 
             await self.permission.can_live_query_segment(request)
             variables = await self.inject_and_get_context_variables_in_live_query_segment(request)
@@ -469,11 +469,7 @@ class CrudResource(BaseCollectionResource, ContextVariableInjectorResourceMixin)
             if condition_tree:
                 trees.append(condition_tree)
             trees.append(
-                ConditionTreeLeaf(
-                    SchemaUtils.get_primary_keys(request.collection.schema)[0],
-                    Operator.IN,
-                    [entry["id"] for entry in native_query_result],
-                )
+                ConditionTreeFactory.match_ids(request.collection.schema, [[*r.values()] for r in native_query_result])
             )
             return ConditionTreeFactory.intersect(trees)
         return condition_tree

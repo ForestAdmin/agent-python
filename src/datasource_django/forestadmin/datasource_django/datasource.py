@@ -8,6 +8,7 @@ from forestadmin.agent_toolkit.forest_logger import ForestLogger
 from forestadmin.datasource_django.collection import DjangoCollection
 from forestadmin.datasource_django.exception import DjangoDatasourceException
 from forestadmin.datasource_django.interface import BaseDjangoDatasource
+from forestadmin.datasource_toolkit.exceptions import NativeQueryException
 from forestadmin.datasource_toolkit.interfaces.records import RecordsDataAlias
 
 
@@ -63,9 +64,7 @@ class DjangoDatasource(BaseDjangoDatasource):
     ) -> List[RecordsDataAlias]:
         if connection_name not in self._django_live_query_connections.keys():
             # This one should never occur while datasource composite works fine
-            raise DjangoDatasourceException(
-                f"Native query connection '{connection_name}' is not known by DjangoDatasource."
-            )
+            raise NativeQueryException(f"Native query connection '{connection_name}' is not known by DjangoDatasource.")
 
         def _execute_native_query():
             cursor = connections[self._django_live_query_connections[connection_name]].cursor()  # type: ignore
@@ -85,7 +84,6 @@ class DjangoDatasource(BaseDjangoDatasource):
                     ret.append(return_row)
                 return ret
             except Exception as e:
-                # TODO: verify
-                raise DjangoDatasourceException(str(e))
+                raise NativeQueryException(str(e))
 
         return await sync_to_async(_execute_native_query)()
