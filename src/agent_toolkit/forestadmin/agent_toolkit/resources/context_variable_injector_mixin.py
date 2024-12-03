@@ -62,10 +62,6 @@ class ContextVariableInjectorResourceMixin:
             request.user, context_variables_dct, self.permission
         )
 
-        request.body["query"] = ContextVariableInjector.inject_context_in_value(
-            request.body["query"], context_variables
-        )
-
         request.body["query"], vars = ContextVariableInjector.format_query_and_get_vars(
             request.body["query"], context_variables
         )
