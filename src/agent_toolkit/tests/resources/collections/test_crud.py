@@ -27,26 +27,29 @@ from forestadmin.agent_toolkit.utils.csv import CsvException
 from forestadmin.datasource_toolkit.collections import Collection
 from forestadmin.datasource_toolkit.datasource_customizer.datasource_composite import CompositeDatasource
 from forestadmin.datasource_toolkit.datasources import Datasource, DatasourceException
-from forestadmin.datasource_toolkit.exceptions import ValidationError
+from forestadmin.datasource_toolkit.exceptions import ForbiddenError, NativeQueryException, ValidationError
 from forestadmin.datasource_toolkit.interfaces.fields import FieldType, Operator, PrimitiveType
+from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.branch import ConditionTreeBranch
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.leaf import ConditionTreeLeaf
 from forestadmin.datasource_toolkit.interfaces.query.projections import Projection
 from forestadmin.datasource_toolkit.validations.records import RecordValidatorException
 
+FAKE_USER = User(
+    rendering_id=1,
+    user_id=1,
+    tags={},
+    email="dummy@user.fr",
+    first_name="dummy",
+    last_name="user",
+    team="operational",
+    timezone=zoneinfo.ZoneInfo("Europe/Paris"),
+    request={"ip": "127.0.0.1"},
+)
+
 
 def authenticate_mock(fn):
     async def wrapped2(self, request):
-        request.user = User(
-            rendering_id=1,
-            user_id=1,
-            tags={},
-            email="dummy@user.fr",
-            first_name="dummy",
-            last_name="user",
-            team="operational",
-            timezone=zoneinfo.ZoneInfo("Europe/Paris"),
-            request={"ip": "127.0.0.1"},
-        )
+        request.user = FAKE_USER
 
         return await fn(self, request)
 
@@ -227,7 +230,7 @@ class TestCrudResource(TestCase):
             is_production=False,
         )
         # cls.datasource = Mock(Datasource)
-        cls.datasource = Datasource()
+        cls.datasource = Datasource(["db_connection"])
         cls.datasource_composite = CompositeDatasource()
         cls.datasource.get_collection = lambda x: cls.datasource._collections[x]
         cls._create_collections()
@@ -249,6 +252,7 @@ class TestCrudResource(TestCase):
         self.permission_service = Mock(PermissionService)
         self.permission_service.get_scope = AsyncMock(return_value=ConditionTreeLeaf("id", Operator.GREATER_THAN, 0))
         self.permission_service.can = AsyncMock(return_value=None)
+        self.permission_service.can_live_query_segment = AsyncMock(return_value=None)
 
     @classmethod
     def tearDownClass(cls) -> None:
@@ -1163,9 +1167,9 @@ class TestCrudResource(TestCase):
     )
     def test_list_should_parse_multi_field_sorting(self, mocked_json_serializer_get: Mock):
         mock_orders = [
-            {"id": 10, "cost": 200, "important": "02_PENDING"},
-            {"id": 11, "cost": 201, "important": "02_PENDING"},
-            {"id": 13, "cost": 20, "important": "01_URGENT"},
+            {"id": 10, "cost": 200, "important": True},
+            {"id": 11, "cost": 201, "important": True},
+            {"id": 13, "cost": 20, "important": False},
         ]
         request = RequestCollection(
             RequestMethod.GET,
@@ -1203,6 +1207,39 @@ class TestCrudResource(TestCase):
         self.assertEqual(len(paginated_filter.sort), 2)
         self.assertEqual(paginated_filter.sort[0], {"field": "important", "ascending": True})
         self.assertEqual(paginated_filter.sort[1], {"field": "cost", "ascending": False})
+
+    def test_list_should_handle_live_query_segment(self):
+        mock_orders = [{"id": 10, "cost": 200}, {"id": 11, "cost": 201}]
+
+        request = RequestCollection(
+            RequestMethod.GET,
+            self.collection_order,
+            query={
+                "collection_name": "order",
+                "timezone": "Europe/Paris",
+                "fields[order]": "id,cost",
+                "search": "test",
+                "segmentName": "test_live_query",
+                "segmentQuery": "select id from order where important is true;",
+                "connectionName": "db_connection",
+            },
+            headers={},
+            client_ip="127.0.0.1",
+        )
+        crud_resource = CrudResource(
+            self.datasource_composite,
+            self.datasource,
+            self.permission_service,
+            self.ip_white_list_service,
+            self.options,
+        )
+        self.collection_order.list = AsyncMock(return_value=mock_orders)
+
+        with patch.object(
+            crud_resource, "_handle_live_query_segment", new_callable=AsyncMock
+        ) as mock_handle_live_queries:
+            self.loop.run_until_complete(crud_resource.list(request))
+            mock_handle_live_queries.assert_awaited_once_with(request, ConditionTreeLeaf("id", "greater_than", 0))
 
     @patch(
         "forestadmin.agent_toolkit.resources.collections.crud.JsonApiSerializer.get",
@@ -1320,6 +1357,37 @@ class TestCrudResource(TestCase):
         response_content = json.loads(response.body)
         assert response_content["count"] == 0
         self.collection_order.aggregate.assert_called()
+
+    def test_count_should_handle_live_query_segment(self):
+        request = RequestCollection(
+            RequestMethod.GET,
+            self.collection_order,
+            query={
+                "collection_name": "order",
+                "timezone": "Europe/Paris",
+                "fields[order]": "id,cost",
+                "search": "test",
+                "segmentName": "test_live_query",
+                "segmentQuery": "select id from order where important is true;",
+                "connectionName": "db_connection",
+            },
+            headers={},
+            client_ip="127.0.0.1",
+        )
+        crud_resource = CrudResource(
+            self.datasource_composite,
+            self.datasource,
+            self.permission_service,
+            self.ip_white_list_service,
+            self.options,
+        )
+        self.collection_order.aggregate = AsyncMock(return_value=[{"value": 1000, "group": {}}])
+
+        with patch.object(
+            crud_resource, "_handle_live_query_segment", new_callable=AsyncMock
+        ) as mock_handle_live_queries:
+            self.loop.run_until_complete(crud_resource.count(request))
+            mock_handle_live_queries.assert_awaited_once_with(request, ConditionTreeLeaf("id", "greater_than", 0))
 
     def test_deactivate_count(self):
         request = RequestCollection(
@@ -1860,3 +1928,253 @@ class TestCrudResource(TestCase):
         self.assertIsNone(self.collection_order.list.await_args[0][1].page)
         self.collection_order.list.assert_awaited()
         self.assertIsNone(self.collection_order.list.await_args[0][1].page)
+
+    def test_csv_should_handle_live_query_segment(self):
+        mock_orders = [{"id": 10, "cost": 200}, {"id": 11, "cost": 201}]
+
+        request = RequestCollection(
+            RequestMethod.GET,
+            self.collection_order,
+            query={
+                "collection_name": "order",
+                "timezone": "Europe/Paris",
+                "fields[order]": "id,cost",
+                "search": "test",
+                "segmentName": "test_live_query",
+                "segmentQuery": "select id from order where important is true;",
+                "connectionName": "db_connection",
+            },
+            headers={},
+            client_ip="127.0.0.1",
+        )
+        crud_resource = CrudResource(
+            self.datasource_composite,
+            self.datasource,
+            self.permission_service,
+            self.ip_white_list_service,
+            self.options,
+        )
+        self.collection_order.list = AsyncMock(return_value=mock_orders)
+
+        with patch.object(
+            crud_resource, "_handle_live_query_segment", new_callable=AsyncMock
+        ) as mock_handle_live_queries:
+            self.loop.run_until_complete(crud_resource.csv(request))
+            mock_handle_live_queries.assert_awaited_once_with(request, ConditionTreeLeaf("id", "greater_than", 0))
+
+    # live queries
+
+    def test_handle_native_query_should_handle_live_query_segments(self):
+        request = RequestCollection(
+            RequestMethod.GET,
+            self.collection_order,
+            query={
+                "collection_name": "order",
+                "timezone": "Europe/Paris",
+                "fields[order]": "id,cost,important",
+                "segmentName": "test_live_query",
+                "segmentQuery": "select id from order where important is true;",
+                "connectionName": "db_connection",
+            },
+            headers={},
+            client_ip="127.0.0.1",
+            user=FAKE_USER,
+        )
+        crud_resource = CrudResource(
+            self.datasource_composite,
+            self.datasource,
+            self.permission_service,
+            self.ip_white_list_service,
+            self.options,
+        )
+        with patch.object(
+            self.datasource_composite,
+            "execute_native_query",
+            new_callable=AsyncMock,
+            return_value=[{"id": 10}, {"id": 11}],
+        ) as mock_exec_native_query:
+            condition_tree = self.loop.run_until_complete(crud_resource._handle_live_query_segment(request, None))
+            self.assertEqual(condition_tree, ConditionTreeLeaf("id", "in", [10, 11]))
+            mock_exec_native_query.assert_awaited_once_with(
+                "db_connection", "select id from order where important is true;", {}
+            )
+
+    def test_handle_native_query_should_inject_context_variable_and_handle_like_percent(self):
+        request = RequestCollection(
+            RequestMethod.GET,
+            self.collection_order,
+            query={
+                "collection_name": "order",
+                "timezone": "Europe/Paris",
+                "fields[order]": "id,cost,important",
+                "segmentName": "test_live_query",
+                "segmentQuery": "select id from user where first_name like 'Ga%' or id = {{currentUser.id}};",
+                "connectionName": "db_connection",
+            },
+            headers={},
+            client_ip="127.0.0.1",
+            user=FAKE_USER,
+        )
+        crud_resource = CrudResource(
+            self.datasource_composite,
+            self.datasource,
+            self.permission_service,
+            self.ip_white_list_service,
+            self.options,
+        )
+        with patch.object(
+            self.permission_service,
+            "get_user_data",
+            new_callable=AsyncMock,
+            return_value={
+                "id": 1,
+                "firstName": "dummy",
+                "lastName": "user",
+                "fullName": "dummy user",
+                "email": "dummy@user.fr",
+                "tags": {},
+                "roleId": 8,
+                "permissionLevel": "admin",
+            },
+        ):
+            with patch.object(
+                self.datasource_composite,
+                "execute_native_query",
+                new_callable=AsyncMock,
+                return_value=[{"id": 10}, {"id": 11}],
+            ) as mock_exec_native_query:
+                condition_tree = self.loop.run_until_complete(crud_resource._handle_live_query_segment(request, None))
+                self.assertEqual(condition_tree, ConditionTreeLeaf("id", "in", [10, 11]))
+                mock_exec_native_query.assert_awaited_once_with(
+                    "db_connection",
+                    "select id from user where first_name like 'Ga\\%' or id = %(currentUser__id)s;",
+                    {"currentUser__id": 1},
+                )
+
+    def test_handle_native_query_should_intersect_existing_condition_tree(self):
+        request = RequestCollection(
+            RequestMethod.GET,
+            self.collection_order,
+            query={
+                "collection_name": "order",
+                "timezone": "Europe/Paris",
+                "fields[order]": "id,cost,important",
+                "segmentName": "test_live_query",
+                "segmentQuery": "select id from user where id=10 or id=11;",
+                "connectionName": "db_connection",
+            },
+            headers={},
+            client_ip="127.0.0.1",
+            user=FAKE_USER,
+        )
+        crud_resource = CrudResource(
+            self.datasource_composite,
+            self.datasource,
+            self.permission_service,
+            self.ip_white_list_service,
+            self.options,
+        )
+        with patch.object(
+            self.datasource_composite,
+            "execute_native_query",
+            new_callable=AsyncMock,
+            return_value=[{"id": 10}, {"id": 11}],
+        ):
+            condition_tree = self.loop.run_until_complete(
+                crud_resource._handle_live_query_segment(request, ConditionTreeLeaf("id", "equal", 25))
+            )
+
+            self.assertEqual(
+                condition_tree,
+                ConditionTreeBranch(
+                    "and",
+                    [
+                        ConditionTreeLeaf("id", "equal", 25),
+                        ConditionTreeLeaf("id", "in", [10, 11]),
+                    ],
+                ),
+            )
+
+    def test_handle_native_query_should_raise_error_if_live_query_params_are_incorrect(self):
+        request = RequestCollection(
+            RequestMethod.GET,
+            self.collection_order,
+            query={
+                "collection_name": "order",
+                "timezone": "Europe/Paris",
+                "fields[order]": "id,cost,important",
+                "segmentName": "test_live_query",
+                "segmentQuery": "select id from order where important is true;",
+            },
+            headers={},
+            client_ip="127.0.0.1",
+            user=FAKE_USER,
+        )
+        crud_resource = CrudResource(
+            self.datasource_composite,
+            self.datasource,
+            self.permission_service,
+            self.ip_white_list_service,
+            self.options,
+        )
+
+        self.assertRaisesRegex(
+            NativeQueryException,
+            "Missing 'connectionName' parameter.",
+            self.loop.run_until_complete,
+            crud_resource._handle_live_query_segment(request, None),
+        )
+
+        request.query["connectionName"] = None
+        self.assertRaisesRegex(
+            NativeQueryException,
+            "Missing 'connectionName' parameter.",
+            self.loop.run_until_complete,
+            crud_resource._handle_live_query_segment(request, None),
+        )
+
+        request.query["connectionName"] = ""
+        self.assertRaisesRegex(
+            NativeQueryException,
+            "Missing 'connectionName' parameter.",
+            self.loop.run_until_complete,
+            crud_resource._handle_live_query_segment(request, None),
+        )
+
+    def test_handle_native_query_should_raise_error_if_not_permission(self):
+
+        request = RequestCollection(
+            RequestMethod.GET,
+            self.collection_order,
+            query={
+                "collection_name": "order",
+                "timezone": "Europe/Paris",
+                "fields[order]": "id,cost,important",
+                "segmentName": "test_live_query",
+                "segmentQuery": "select id from order where important is true;",
+                "connectionName": "db_connection",
+            },
+            headers={},
+            client_ip="127.0.0.1",
+            user=FAKE_USER,
+        )
+        crud_resource = CrudResource(
+            self.datasource_composite,
+            self.datasource,
+            self.permission_service,
+            self.ip_white_list_service,
+            self.options,
+        )
+
+        with patch.object(
+            self.permission_service,
+            "can_live_query_segment",
+            new_callable=AsyncMock,
+            side_effect=ForbiddenError("You don't have permission to access this segment query."),
+        ):
+            self.assertRaisesRegex(
+                ForbiddenError,
+                "You don't have permission to access this segment query.",
+                self.loop.run_until_complete,
+                crud_resource._handle_live_query_segment(request, None),
+            )
