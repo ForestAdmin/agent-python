@@ -35,7 +35,7 @@ from forestadmin.datasource_toolkit.datasource_customizer.collection_customizer 
 from forestadmin.datasource_toolkit.datasource_customizer.datasource_composite import CompositeDatasource
 from forestadmin.datasource_toolkit.datasource_customizer.datasource_customizer import DatasourceCustomizer
 from forestadmin.datasource_toolkit.datasources import Datasource, DatasourceException
-from forestadmin.datasource_toolkit.exceptions import BusinessError, ForbiddenError, NativeQueryException
+from forestadmin.datasource_toolkit.exceptions import ForbiddenError, NativeQueryException
 from forestadmin.datasource_toolkit.interfaces.fields import (
     ManyToOne,
     OneToOne,
