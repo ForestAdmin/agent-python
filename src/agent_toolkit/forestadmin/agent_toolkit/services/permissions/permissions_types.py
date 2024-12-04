@@ -3,6 +3,7 @@ from typing import Any, Dict, Optional, Set, TypedDict
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.branch import ConditionTreeBranch
 
 
+# this file is never imported
 class PermissionBody(TypedDict):
     actions: Set[str]
     actions_by_user: Dict[str, Set[int]]

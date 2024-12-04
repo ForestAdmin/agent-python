@@ -42,9 +42,6 @@ class ContextVariableInjectorResourceMixin:
     async def inject_and_get_context_variables_in_live_query_segment(
         self, request: "RequestCollection"
     ) -> Dict[str, str]:
-        # TODO: handle context variables from front or not ??
-        if request.query.get("segmentQuery") is None:
-            return {}
         context_variables_dct = request.query.pop("contextVariables", {})
 
         context_variables = await ContextVariablesInstantiator.build_context_variables(

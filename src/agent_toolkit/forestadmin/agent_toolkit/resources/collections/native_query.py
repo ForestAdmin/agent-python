@@ -53,7 +53,7 @@ class NativeQueryResource(BaseCollectionResource, ContextVariableInjectorResourc
     async def handle_native_query(self, request: Request) -> Response:
         await self.permission.can_chart(request)
         assert request.body is not None
-        if "connectionName" not in request.body or request.body["connectionName"] is None:
+        if request.body.get("connectionName") is None:
             raise BusinessError("Setting a 'Native query connection' is mandatory.")
         if "query" not in request.body:
             raise BusinessError("Missing 'query' in parameter.")
