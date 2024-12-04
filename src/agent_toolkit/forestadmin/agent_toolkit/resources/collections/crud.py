@@ -61,6 +61,7 @@ from forestadmin.datasource_toolkit.interfaces.query.projections import Projecti
 from forestadmin.datasource_toolkit.interfaces.query.projections.factory import ProjectionFactory
 from forestadmin.datasource_toolkit.interfaces.records import CompositeIdAlias, RecordsDataAlias
 from forestadmin.datasource_toolkit.utils.collections import CollectionUtils
+from forestadmin.datasource_toolkit.utils.records import RecordUtils
 from forestadmin.datasource_toolkit.utils.schema import SchemaUtils
 from forestadmin.datasource_toolkit.validations.field import FieldValidatorException
 from forestadmin.datasource_toolkit.validations.records import RecordValidator, RecordValidatorException
@@ -462,14 +463,19 @@ class CrudResource(BaseCollectionResource, ContextVariableInjectorResourceMixin)
             native_query_result = await self._datasource_composite.execute_native_query(
                 request.query["connectionName"], request.query["segmentQuery"], variables
             )
-            if len(native_query_result) > 0 and "id" not in native_query_result[0]:
-                raise BusinessError("Live query must return an 'id' field.")
+
+            pk_field = SchemaUtils.get_primary_keys(request.collection.schema)[0]
+            if len(native_query_result) > 0 and pk_field not in native_query_result[0]:
+                raise NativeQueryException(f"Live query must return the primary key field ('{pk_field}').")
 
             trees = []
             if condition_tree:
                 trees.append(condition_tree)
             trees.append(
-                ConditionTreeFactory.match_ids(request.collection.schema, [[*r.values()] for r in native_query_result])
+                ConditionTreeFactory.match_ids(
+                    request.collection.schema,
+                    [RecordUtils.get_primary_key(request.collection.schema, r) for r in native_query_result],
+                )
             )
             return ConditionTreeFactory.intersect(trees)
         return condition_tree
