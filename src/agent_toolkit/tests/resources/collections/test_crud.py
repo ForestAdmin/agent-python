@@ -2178,3 +2178,39 @@ class TestCrudResource(TestCase):
                 self.loop.run_until_complete,
                 crud_resource._handle_live_query_segment(request, None),
             )
+
+    def test_handle_native_query_should_raise_error_if_pk_not_returned(self):
+        request = RequestCollection(
+            RequestMethod.GET,
+            self.collection_order,
+            query={
+                "collection_name": "order",
+                "timezone": "Europe/Paris",
+                "fields[order]": "id,cost,important",
+                "segmentName": "test_live_query",
+                "segmentQuery": "select id as bla, cost from order where important is true;",
+                "connectionName": "db_connection",
+            },
+            headers={},
+            client_ip="127.0.0.1",
+            user=FAKE_USER,
+        )
+        crud_resource = CrudResource(
+            self.datasource_composite,
+            self.datasource,
+            self.permission_service,
+            self.ip_white_list_service,
+            self.options,
+        )
+        with patch.object(
+            self.datasource_composite,
+            "execute_native_query",
+            new_callable=AsyncMock,
+            return_value=[{"bla": 10, "cost": 100}, {"bla": 11, "cost": 100}],
+        ):
+            self.assertRaisesRegex(
+                NativeQueryException,
+                r"Live query must return the primary key field \('id'\).",
+                self.loop.run_until_complete,
+                crud_resource._handle_live_query_segment(request, None),
+            )
