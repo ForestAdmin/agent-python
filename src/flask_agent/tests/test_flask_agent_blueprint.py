@@ -13,6 +13,7 @@ class TestFlaskAgentBlueprint(TestCase):
         cls.loop = asyncio.new_event_loop()
         cls.mocked_resources = {}
         for key in [
+            "native_query",
             "capabilities",
             "authentication",
             "crud",
@@ -71,6 +72,44 @@ class TestFlaskAgentBlueprint(TestCase):
                     "Host": "localhost",
                     "Content-Type": "application/json",
                     "Content-Length": "33",
+                },
+                client_ip="127.0.0.1",
+            ),
+        )
+
+    def test_native_query(self):
+        response = self.client.post(
+            "/forest/_internal/native_query?timezone=Europe%2FParis",
+            json={
+                "connectionName": "django",
+                "contextVariables": {},
+                "query": "select status as key, sum(amount) as value from order group by key",
+                "type": "Pie",
+            },
+        )
+        assert response.status_code == 200
+        assert response.json == {"mock": "ok"}
+        self.mocked_resources["native_query"].dispatch.assert_awaited()
+        call_args = self.mocked_resources["native_query"].dispatch.await_args.args
+        self.assertEqual(call_args[1], "native_query")
+        headers = {**call_args[0].headers}
+        del headers["User-Agent"]
+        call_args[0].headers = headers
+        self.assertEqual(
+            call_args[0],
+            Request(
+                RequestMethod.POST,
+                body={
+                    "connectionName": "django",
+                    "contextVariables": {},
+                    "query": "select status as key, sum(amount) as value from order group by key",
+                    "type": "Pie",
+                },
+                query={"timezone": "Europe/Paris"},
+                headers={
+                    "Host": "localhost",
+                    "Content-Type": "application/json",
+                    "Content-Length": "146",
                 },
                 client_ip="127.0.0.1",
             ),
