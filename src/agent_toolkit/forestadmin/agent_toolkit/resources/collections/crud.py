@@ -456,7 +456,7 @@ class CrudResource(BaseCollectionResource, ContextVariableInjectorResourceMixin)
     ) -> Optional[ConditionTree]:
         if request.query.get("segmentQuery") is not None:
             if request.query.get("connectionName") in ["", None]:
-                raise NativeQueryException("Missing 'connectionName' parameter.")
+                raise NativeQueryException("Missing native query connection attribute")
 
             await self.permission.can_live_query_segment(request)
             variables = await self.inject_and_get_context_variables_in_live_query_segment(request)
