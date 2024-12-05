@@ -25,6 +25,18 @@ class BusinessError(DatasourceToolkitException):
         super().__init__(message, *args)
 
 
+class NativeQueryException(BusinessError):
+    def __init__(
+        self,
+        message: str = "",
+        headers: Optional[Dict[str, Any]] = None,
+        name: str = "NativeQueryError",
+        data: Optional[Dict[str, Any]] = {},
+        *args: object,
+    ) -> None:
+        super().__init__(message, headers, name, data, *args)
+
+
 class ValidationError(BusinessError):
     def __init__(
         self,

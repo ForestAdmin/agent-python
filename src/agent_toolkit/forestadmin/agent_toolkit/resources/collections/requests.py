@@ -39,7 +39,7 @@ class RequestCollection(Request):
     def __init__(
         self,
         method: RequestMethod,
-        collection: Union[Collection, CollectionCustomizer],
+        collection: Collection,
         headers: Dict[str, str],
         client_ip: str,
         query: Dict[str, str],

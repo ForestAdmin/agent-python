@@ -1,10 +1,11 @@
-from typing import Dict, List
+from typing import Any, Dict, List, Optional
 
 from forestadmin.agent_toolkit.utils.context import User
 from forestadmin.datasource_toolkit.exceptions import DatasourceToolkitException
 from forestadmin.datasource_toolkit.interfaces.chart import Chart
 from forestadmin.datasource_toolkit.interfaces.models.collections import BoundCollection
 from forestadmin.datasource_toolkit.interfaces.models.collections import Datasource as DatasourceInterface
+from forestadmin.datasource_toolkit.interfaces.models.collections import DatasourceSchema
 
 
 class DatasourceException(DatasourceToolkitException):
@@ -12,12 +13,19 @@ class DatasourceException(DatasourceToolkitException):
 
 
 class Datasource(DatasourceInterface[BoundCollection]):
-    def __init__(self) -> None:
+    def __init__(self, live_query_connections: Optional[List[str]] = None) -> None:
         self._collections: Dict[str, BoundCollection] = {}
+        self._live_query_connections = live_query_connections
+        self._schema: DatasourceSchema = {
+            "charts": {},
+        }
+
+    def get_native_query_connections(self) -> List[str]:
+        return self._live_query_connections or []
 
     @property
-    def schema(self):
-        return {"charts": {}}
+    def schema(self) -> DatasourceSchema:
+        return self._schema
 
     @property
     def collections(self) -> List[BoundCollection]:
@@ -40,3 +48,9 @@ class Datasource(DatasourceInterface[BoundCollection]):
 
     async def render_chart(self, caller: User, name: str) -> Chart:
         raise DatasourceException(f"Chart {name} not exists on this datasource.")
+
+    async def execute_native_query(self, connection_name: str, native_query: str, parameters: Dict[str, str]) -> Any:
+        # in native_query, there is the following syntax:
+        # - parameters to inject by 'execute' method are in the format '%(var)s'
+        # - '%' (in 'like' comparisons) are replaced by '\%' (to avoid conflict with previous rule)
+        raise NotImplementedError(f"'execute_native_query' is not implemented on {self.__class__.__name__}")

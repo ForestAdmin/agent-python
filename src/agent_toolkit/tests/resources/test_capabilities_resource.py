@@ -71,7 +71,7 @@ class TestCapabilitiesResource(TestCase):
             is_production=False,
         )  # type:ignore
 
-        cls.datasource = Datasource()
+        cls.datasource = Datasource(live_query_connections=["test1", "test2"])
         Collection.__abstractmethods__ = set()  # type:ignore # to instantiate abstract class
         cls.book_collection = Collection("Book", cls.datasource)  # type:ignore
         cls.book_collection.add_fields(
@@ -127,7 +127,7 @@ class TestCapabilitiesResource(TestCase):
 
             self.assertEqual(response.status, 405)
 
-    def test_dispatch_should_dispatch_POST_to_capabilities(self):
+    def test_dispatch_should_return_correct_collection_and_fields_capabilities(self):
         request = Request(
             method=RequestMethod.POST,
             query={},
@@ -156,3 +156,18 @@ class TestCapabilitiesResource(TestCase):
                 }
             ],
         )
+
+    def test_should_return_correct_datasource_connections_capabilities(self):
+        request = Request(
+            method=RequestMethod.POST,
+            query={},
+            body={"collectionNames": ["Book"]},
+            headers={},
+            client_ip="127.0.0.1",
+            user=self.mocked_caller,
+        )
+        response: Response = self.loop.run_until_complete(self.capabilities_resource.dispatch(request, "capabilities"))
+        self.assertEqual(response.status, 200)
+        response_content = json.loads(response.body)
+
+        self.assertEqual(response_content["nativeQueryConnections"], [{"name": "test1"}, {"name": "test2"}])
