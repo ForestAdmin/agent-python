@@ -75,7 +75,4 @@ class CompositeDatasource(Datasource):
             if connection_name in datasource.get_native_query_connections():
                 return await datasource.execute_native_query(connection_name, native_query, parameters)
 
-        raise NativeQueryException(
-            f"Cannot find connection '{connection_name}' in datasources. "
-            f"Existing connection names are: {','.join(self.get_native_query_connections())}"
-        )
+        raise NativeQueryException(f"Native query connection '{connection_name}' is unknown")

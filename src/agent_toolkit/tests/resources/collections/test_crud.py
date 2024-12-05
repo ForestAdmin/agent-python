@@ -2120,7 +2120,7 @@ class TestCrudResource(TestCase):
 
         self.assertRaisesRegex(
             NativeQueryException,
-            "Missing 'connectionName' parameter.",
+            "Missing native query connection attribute",
             self.loop.run_until_complete,
             crud_resource._handle_live_query_segment(request, None),
         )
@@ -2128,7 +2128,7 @@ class TestCrudResource(TestCase):
         request.query["connectionName"] = None
         self.assertRaisesRegex(
             NativeQueryException,
-            "Missing 'connectionName' parameter.",
+            "Missing native query connection attribute",
             self.loop.run_until_complete,
             crud_resource._handle_live_query_segment(request, None),
         )
@@ -2136,7 +2136,7 @@ class TestCrudResource(TestCase):
         request.query["connectionName"] = ""
         self.assertRaisesRegex(
             NativeQueryException,
-            "Missing 'connectionName' parameter.",
+            "Missing native query connection attribute",
             self.loop.run_until_complete,
             crud_resource._handle_live_query_segment(request, None),
         )

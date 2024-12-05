@@ -147,7 +147,7 @@ class TestNativeQueryResourceOnError(TestNativeQueryResourceBase):
                 "errors": [
                     {
                         "name": "ValidationError",
-                        "detail": "Setting a 'Native query connection' is mandatory.",
+                        "detail": "Missing native query connection attribute",
                         "status": 400,
                         "data": {},
                     }

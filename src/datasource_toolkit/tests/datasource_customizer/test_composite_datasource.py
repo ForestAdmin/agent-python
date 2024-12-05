@@ -206,7 +206,7 @@ class TestCompositeDatasourceNativeQuery(BaseTestCompositeDatasource):
 
         self.assertRaisesRegex(
             NativeQueryException,
-            r"Cannot find connection 'bla' in datasources. Existing connection names are: db1,db2,db3",
+            r"Native query connection 'bla' is unknown",
             self.loop.run_until_complete,
             self.composite_ds.execute_native_query("bla", "select * from ...", {}),
         )
