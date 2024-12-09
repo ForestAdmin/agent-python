@@ -3,8 +3,6 @@ import sys
 from unittest import TestCase
 from unittest.mock import AsyncMock, patch
 
-from forestadmin.datasource_toolkit.decorators.lazy_join.collection import LazyJoinCollectionDecorator
-
 if sys.version_info >= (3, 9):
     import zoneinfo
 else:
@@ -14,13 +12,14 @@ from forestadmin.agent_toolkit.utils.context import User
 from forestadmin.datasource_toolkit.collections import Collection
 from forestadmin.datasource_toolkit.datasources import Datasource
 from forestadmin.datasource_toolkit.decorators.datasource_decorator import DatasourceDecorator
+from forestadmin.datasource_toolkit.decorators.lazy_join.collection import LazyJoinCollectionDecorator
 from forestadmin.datasource_toolkit.interfaces.fields import Column, FieldType, ManyToOne, OneToOne, PrimitiveType
+from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.leaf import ConditionTreeLeaf
 from forestadmin.datasource_toolkit.interfaces.query.filter.unpaginated import Filter
 from forestadmin.datasource_toolkit.interfaces.query.projections import Projection
 
 
 class TestEmptyCollectionDecorator(TestCase):
-
     @classmethod
     def setUpClass(cls) -> None:
         cls.loop = asyncio.new_event_loop()
@@ -73,7 +72,7 @@ class TestEmptyCollectionDecorator(TestCase):
 
     def test_should_not_join_when_projection_ask_for_target_field_only(self):
         with patch.object(
-            self.collection_book, "list", new_callable=AsyncMock, return_value=[{"id": 1, "author_id": 1}]
+            self.collection_book, "list", new_callable=AsyncMock, return_value=[{"id": 1, "author_id": 2}]
         ) as mock_list:
             result = self.loop.run_until_complete(
                 self.decorated_book_collection.list(
@@ -85,14 +84,14 @@ class TestEmptyCollectionDecorator(TestCase):
             mock_list.assert_awaited_once_with(self.mocked_caller, Filter({}), Projection("id", "author_id"))
 
         # should contain author object, without author_id FK
-        self.assertEqual([{"id": 1, "author": {"id": 1}}], result)
+        self.assertEqual([{"id": 1, "author": {"id": 2}}], result)
 
     def test_should_join_when_projection_ask_for_multiple_fields_in_relation(self):
         with patch.object(
             self.collection_book,
             "list",
             new_callable=AsyncMock,
-            return_value=[{"id": 1, "author": {"id": 1, "first_name": "Isaac"}}],
+            return_value=[{"id": 1, "author": {"id": 2, "first_name": "Isaac"}}],
         ) as mock_list:
             result = self.loop.run_until_complete(
                 self.decorated_book_collection.list(
@@ -105,4 +104,38 @@ class TestEmptyCollectionDecorator(TestCase):
                 self.mocked_caller, Filter({}), Projection("id", "author:id", "author:first_name")
             )
 
-        self.assertEqual([{"id": 1, "author": {"id": 1, "first_name": "Isaac"}}], result)
+        self.assertEqual([{"id": 1, "author": {"id": 2, "first_name": "Isaac"}}], result)
+
+    def test_should_replace_in_condition_tree(self):
+        with patch.object(
+            self.collection_book, "list", new_callable=AsyncMock, return_value=[{"id": 1, "author_id": 2}]
+        ) as mock_list:
+            self.loop.run_until_complete(
+                self.decorated_book_collection.list(
+                    self.mocked_caller,
+                    Filter({"condition_tree": ConditionTreeLeaf("author:id", "equal", 2)}),
+                    Projection("id", "author:id"),
+                )
+            )
+            mock_list.assert_awaited_once_with(
+                self.mocked_caller,
+                Filter({"condition_tree": ConditionTreeLeaf("author_id", "equal", 2)}),
+                Projection("id", "author_id"),
+            )
+
+    def test_should_not_replace_in_condition_tree(self):
+        with patch.object(
+            self.collection_book, "list", new_callable=AsyncMock, return_value=[{"id": 1, "author_id": 2}]
+        ) as mock_list:
+            self.loop.run_until_complete(
+                self.decorated_book_collection.list(
+                    self.mocked_caller,
+                    Filter({"condition_tree": ConditionTreeLeaf("author:first_name", "equal", "Isaac")}),
+                    Projection("id", "author:id"),
+                )
+            )
+            mock_list.assert_awaited_once_with(
+                self.mocked_caller,
+                Filter({"condition_tree": ConditionTreeLeaf("author:first_name", "equal", "Isaac")}),
+                Projection("id", "author_id"),
+            )
