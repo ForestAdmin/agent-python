@@ -7,12 +7,12 @@ from forestadmin.datasource_toolkit.decorators.computed.collections import Compu
 from forestadmin.datasource_toolkit.decorators.datasource_decorator import DatasourceDecorator
 from forestadmin.datasource_toolkit.decorators.empty.collection import EmptyCollectionDecorator
 from forestadmin.datasource_toolkit.decorators.hook.collections import CollectionHookDecorator
+from forestadmin.datasource_toolkit.decorators.lazy_join.collection import LazyJoinCollectionDecorator
 from forestadmin.datasource_toolkit.decorators.operators_emulate.collections import OperatorsEmulateCollectionDecorator
 from forestadmin.datasource_toolkit.decorators.operators_equivalence.collections import (
     OperatorEquivalenceCollectionDecorator,
 )
 from forestadmin.datasource_toolkit.decorators.override.collection import OverrideCollectionDecorator
-from forestadmin.datasource_toolkit.decorators.perf_optimizer.collection import PerfOptimizerCollectionDecorator
 from forestadmin.datasource_toolkit.decorators.publication.datasource import PublicationDataSourceDecorator
 from forestadmin.datasource_toolkit.decorators.relation.collections import RelationCollectionDecorator
 from forestadmin.datasource_toolkit.decorators.rename_field.collections import RenameFieldCollectionDecorator
@@ -33,7 +33,7 @@ class DecoratorStack:
         # Step 0: Do not query datasource when we know the result with yield an empty set.
         last = self.override = DatasourceDecorator(last, OverrideCollectionDecorator)  # type: ignore
         last = self.empty = DatasourceDecorator(last, EmptyCollectionDecorator)  # type: ignore
-        last = self.perf_optimizer = DatasourceDecorator(last, PerfOptimizerCollectionDecorator)  # type: ignore
+        last = self.lazy_joins = DatasourceDecorator(last, LazyJoinCollectionDecorator)  # type: ignore
 
         # Step 1: Computed-Relation-Computed sandwich (needed because some emulated relations depend
         # on computed fields, and some computed fields depend on relation...)

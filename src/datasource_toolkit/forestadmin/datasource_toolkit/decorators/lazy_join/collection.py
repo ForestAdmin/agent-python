@@ -8,15 +8,15 @@ from forestadmin.datasource_toolkit.interfaces.query.projections import Projecti
 from forestadmin.datasource_toolkit.interfaces.records import RecordsDataAlias
 
 
-class PerfOptimizerCollectionDecorator(CollectionDecorator):
+class LazyJoinCollectionDecorator(CollectionDecorator):
     async def list(self, caller: User, filter_: PaginatedFilter, projection: Projection) -> List[RecordsDataAlias]:
-        simplified_projection = self._get_simplified_projection(projection)
+        simplified_projection = self._get_projection_without_joins(projection)
 
         ret = await super().list(caller, filter_, simplified_projection)
 
-        return self._apply_simplification_to_records(projection, simplified_projection, ret)
+        return self._apply_joins_on_records(projection, simplified_projection, ret)
 
-    def _get_simplified_projection(self, projection: Projection) -> Projection:
+    def _get_projection_without_joins(self, projection: Projection) -> Projection:
         returned_projection = Projection(*projection)
         for relation, relation_projections in projection.relations.items():
             relation_schema = self.schema["fields"][relation]
@@ -31,7 +31,7 @@ class PerfOptimizerCollectionDecorator(CollectionDecorator):
 
         return returned_projection
 
-    def _apply_simplification_to_records(
+    def _apply_joins_on_records(
         self, initial_projection: Projection, requested_projection: Projection, records: List[RecordsDataAlias]
     ) -> List[RecordsDataAlias]:
         if requested_projection == initial_projection:
