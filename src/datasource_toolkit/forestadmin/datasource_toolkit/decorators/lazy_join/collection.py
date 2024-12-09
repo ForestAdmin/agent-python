@@ -1,4 +1,4 @@
-from typing import List, Union
+from typing import List, Union, cast
 
 from forestadmin.agent_toolkit.utils.context import User
 from forestadmin.datasource_toolkit.decorators.collection_decorator import CollectionDecorator
@@ -11,9 +11,10 @@ from forestadmin.datasource_toolkit.interfaces.records import RecordsDataAlias
 
 class LazyJoinCollectionDecorator(CollectionDecorator):
     async def list(self, caller: User, filter_: PaginatedFilter, projection: Projection) -> List[RecordsDataAlias]:
+        refined_filter = cast(PaginatedFilter, await self._refine_filter(caller, filter_))
         simplified_projection = self._get_projection_without_useless_joins(projection)
 
-        ret = await super().list(caller, filter_, simplified_projection)
+        ret = await self.child_collection.list(caller, refined_filter, simplified_projection)
 
         return self._apply_joins_on_records(projection, simplified_projection, ret)
 
