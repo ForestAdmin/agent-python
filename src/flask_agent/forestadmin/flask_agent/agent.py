@@ -16,6 +16,7 @@ from forestadmin.agent_toolkit.resources.actions.resources import LiteralMethod 
 from forestadmin.agent_toolkit.resources.base import BaseResource
 from forestadmin.agent_toolkit.resources.capabilities import LiteralMethod as CapabilitiesLiteralMethod
 from forestadmin.agent_toolkit.resources.collections.crud import LiteralMethod as CrudLiteralMethod
+from forestadmin.agent_toolkit.resources.collections.native_query import LiteralMethod as NativeQueryLiteralMethod
 from forestadmin.agent_toolkit.resources.security.resources import LiteralMethod as AuthLiteralMethod
 from forestadmin.agent_toolkit.utils.context import Request
 from forestadmin.agent_toolkit.utils.forest_schema.type import AgentMeta
@@ -116,7 +117,13 @@ def build_blueprint(agent: FlaskAgent):  # noqa: C901
         request: FlaskRequest,
         resource: BaseResource,
         method: Optional[
-            Union[AuthLiteralMethod, CrudLiteralMethod, ActionLiteralMethod, CapabilitiesLiteralMethod]
+            Union[
+                AuthLiteralMethod,
+                CrudLiteralMethod,
+                ActionLiteralMethod,
+                CapabilitiesLiteralMethod,
+                NativeQueryLiteralMethod,
+            ]
         ] = None,
         detail: bool = False,
     ) -> FlaskResponse:
@@ -132,6 +139,10 @@ def build_blueprint(agent: FlaskAgent):  # noqa: C901
     @blueprint.route("/_internal/capabilities", methods=["POST"])
     async def capabilities() -> FlaskResponse:  # type: ignore
         return await _get_collection_response(request, (await agent.get_resources())["capabilities"], "capabilities")
+
+    @blueprint.route("/_internal/native_query", methods=["POST"])
+    async def native_query() -> FlaskResponse:  # type: ignore
+        return await _get_collection_response(request, (await agent.get_resources())["native_query"], "native_query")
 
     @blueprint.route("/authentication/callback", methods=["GET"])
     async def callback() -> FlaskResponse:  # type: ignore

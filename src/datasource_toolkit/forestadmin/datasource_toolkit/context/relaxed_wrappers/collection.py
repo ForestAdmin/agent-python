@@ -51,6 +51,22 @@ class RelaxedDatasource(Datasource["RelaxedCollection"]):
     def add_collection(self, collection: "RelaxedCollection") -> None:
         raise RelaxedDatasourceException("Cannot modify existing datasources")
 
+    @property
+    def schema(self):
+        return self.datasource.schema
+
+    @property
+    def name(self):
+        return self.datasource.name
+
+    def get_native_query_connections(self):
+        raise NotImplementedError
+
+    async def execute_native_query(
+        self, connection_name: str, native_query: str, parameters: Dict[str, str]
+    ) -> List[Dict[str, Any]]:
+        raise RelaxedDatasourceException("Cannot use this method. Please use 'collection.get_native_driver' instead.")
+
 
 class RelaxedCollection(Collection):
     def __init__(self, collection: Collection):

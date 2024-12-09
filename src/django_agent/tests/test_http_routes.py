@@ -18,6 +18,7 @@ class TestDjangoAgentRoutes(TestCase):
         cls.mocked_resources = {}
         for key in [
             "capabilities",
+            "native_query",
             "authentication",
             "crud",
             "crud_related",
@@ -457,3 +458,45 @@ class TestDjangoAgentStatRoutes(TestDjangoAgentRoutes):
         self.assertEqual(request_param.method, RequestMethod.POST)
         self.assertEqual(request_param.query["collection_name"], "customer")
         self.assertEqual(request_param.body, {"post_attr": "post_value"})
+
+
+class TestDjangoAgentNativeQueryRoutes(TestDjangoAgentRoutes):
+    @classmethod
+    def setUpClass(cls) -> None:
+        super().setUpClass()
+        cls.native_query_resource = cls.loop.run_until_complete(cls.django_agent.get_resources())["native_query"]
+
+    def test_native_query(self):
+        response = self.client.post(
+            f"/{self.conf_prefix}forest/_internal/native_query?timezone=Europe%2FParis",
+            json.dumps(
+                {
+                    "connectionName": "django",
+                    "contextVariables": {},
+                    "query": "select status as key, sum(amount) as value from order group by key",
+                    "type": "Pie",
+                }
+            ),
+            content_type="application/json",
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.content, b'{"mock": "ok"}')
+        self.native_query_resource.dispatch.assert_awaited()
+        call_args = self.native_query_resource.dispatch.await_args[0]
+        self.assertEqual(call_args[1], "native_query")
+        self.assertEqual(
+            call_args[0],
+            Request(
+                RequestMethod.POST,
+                body={
+                    "connectionName": "django",
+                    "contextVariables": {},
+                    "query": "select status as key, sum(amount) as value from order group by key",
+                    "type": "Pie",
+                },
+                query={"timezone": "Europe/Paris"},
+                headers={"Cookie": "", "Content-Length": "146", "Content-Type": "application/json"},
+                client_ip="127.0.0.1",
+            ),
+        )
