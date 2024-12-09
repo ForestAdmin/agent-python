@@ -7,6 +7,7 @@ from forestadmin.datasource_toolkit.decorators.computed.collections import Compu
 from forestadmin.datasource_toolkit.decorators.datasource_decorator import DatasourceDecorator
 from forestadmin.datasource_toolkit.decorators.empty.collection import EmptyCollectionDecorator
 from forestadmin.datasource_toolkit.decorators.hook.collections import CollectionHookDecorator
+from forestadmin.datasource_toolkit.decorators.lazy_join.collection import LazyJoinCollectionDecorator
 from forestadmin.datasource_toolkit.decorators.operators_emulate.collections import OperatorsEmulateCollectionDecorator
 from forestadmin.datasource_toolkit.decorators.operators_equivalence.collections import (
     OperatorEquivalenceCollectionDecorator,
@@ -31,6 +32,7 @@ class DecoratorStack:
 
         # Step 0: Do not query datasource when we know the result with yield an empty set.
         last = self.override = DatasourceDecorator(last, OverrideCollectionDecorator)  # type: ignore
+        last = self.lazy_joins = DatasourceDecorator(last, LazyJoinCollectionDecorator)  # type: ignore
         last = self.empty = DatasourceDecorator(last, EmptyCollectionDecorator)  # type: ignore
 
         # Step 1: Computed-Relation-Computed sandwich (needed because some emulated relations depend
