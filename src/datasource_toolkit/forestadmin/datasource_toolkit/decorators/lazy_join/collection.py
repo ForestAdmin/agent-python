@@ -10,13 +10,13 @@ from forestadmin.datasource_toolkit.interfaces.records import RecordsDataAlias
 
 class LazyJoinCollectionDecorator(CollectionDecorator):
     async def list(self, caller: User, filter_: PaginatedFilter, projection: Projection) -> List[RecordsDataAlias]:
-        simplified_projection = self._get_projection_without_joins(projection)
+        simplified_projection = self._get_projection_without_useless_joins(projection)
 
         ret = await super().list(caller, filter_, simplified_projection)
 
         return self._apply_joins_on_records(projection, simplified_projection, ret)
 
-    def _get_projection_without_joins(self, projection: Projection) -> Projection:
+    def _get_projection_without_useless_joins(self, projection: Projection) -> Projection:
         returned_projection = Projection(*projection)
         for relation, relation_projections in projection.relations.items():
             relation_schema = self.schema["fields"][relation]
