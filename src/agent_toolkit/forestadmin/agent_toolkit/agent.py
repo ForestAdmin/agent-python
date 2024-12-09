@@ -131,7 +131,9 @@ class Agent:
             await self.__mk_resources()
         return self._resources
 
-    def add_datasource(self, datasource: Datasource[BoundCollection], options: Optional[DataSourceOptions] = None):
+    def add_datasource(
+        self, datasource: Datasource[BoundCollection], options: Optional[DataSourceOptions] = None
+    ) -> Self:
         """Add a datasource
 
         Args:
@@ -142,6 +144,7 @@ class Agent:
             options = {}
         self.customizer.add_datasource(datasource, options)
         self._resources = None
+        return self
 
     def use(self, plugin: type, options: Optional[Dict] = {}) -> Self:
         """Load a plugin across all collections
