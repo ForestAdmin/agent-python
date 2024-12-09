@@ -46,11 +46,7 @@ class PerfOptimizerCollectionDecorator(CollectionDecorator):
                 relation_schema = self.schema["fields"][relation]
 
                 if is_many_to_one(relation_schema):
-                    if (
-                        len(relation_projections) == 1
-                        and relation_schema["foreign_key_target"] == relation_projections[0]
-                    ):
-                        record[relation] = {relation_projections[0]: record[relation_schema["foreign_key_target"]]}
+                    record[relation] = {relation_projections[0]: record[relation_schema["foreign_key_target"]]}
 
             # remove foreign keys
             for projection in projections_to_rm:
