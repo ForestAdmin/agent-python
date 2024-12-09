@@ -14,6 +14,7 @@ from forestadmin.datasource_toolkit.decorators.operators_emulate.collections imp
 from forestadmin.datasource_toolkit.decorators.operators_equivalence.collections import (
     OperatorEquivalenceCollectionDecorator,
 )
+from forestadmin.datasource_toolkit.decorators.override.collection import OverrideCollectionDecorator
 from forestadmin.datasource_toolkit.decorators.relation.collections import RelationCollectionDecorator
 from forestadmin.datasource_toolkit.decorators.rename_field.collections import RenameFieldCollectionDecorator
 from forestadmin.datasource_toolkit.decorators.schema.collection import SchemaCollectionDecorator
@@ -69,8 +70,9 @@ class TestDecoratorStack(TestCase):
             DecoratorStack(self.datasource)
 
             call_list = [
-                call(self.datasource, EmptyCollectionDecorator),
+                call(self.datasource, OverrideCollectionDecorator),
                 call(self.datasource, LazyJoinCollectionDecorator),
+                call(self.datasource, EmptyCollectionDecorator),
                 call(self.datasource, ComputedCollectionDecorator),
                 call(self.datasource, OperatorsEmulateCollectionDecorator),
                 call(self.datasource, OperatorEquivalenceCollectionDecorator),
