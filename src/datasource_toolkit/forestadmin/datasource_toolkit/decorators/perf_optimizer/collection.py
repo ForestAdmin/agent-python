@@ -23,26 +23,37 @@ class PerfOptimizerCollectionDecorator(CollectionDecorator):
 
             if is_many_to_one(relation_schema):
                 if len(relation_projections) == 1 and relation_schema["foreign_key_target"] == relation_projections[0]:
+                    # remove foreign key target from projection
                     returned_projection.remove(f"{relation}:{relation_projections[0]}")
+                    # add foreign keys to projection
+                    if relation_schema["foreign_key"] not in returned_projection:
+                        returned_projection.append(relation_schema["foreign_key"])
 
         return returned_projection
 
     def _apply_simplification_to_records(
-        self, desired_projection: Projection, record_projection: Projection, records: List[RecordsDataAlias]
+        self, initial_projection: Projection, requested_projection: Projection, records: List[RecordsDataAlias]
     ) -> List[RecordsDataAlias]:
-        if record_projection == desired_projection:
+        if requested_projection == initial_projection:
             return records
 
-        projection_differences = Projection(*[p for p in desired_projection if p not in record_projection])
+        projections_to_add = Projection(*[p for p in initial_projection if p not in requested_projection])
+        projections_to_rm = Projection(*[p for p in requested_projection if p not in initial_projection])
 
-        for relation, relation_projections in projection_differences.relations.items():
-            relation_schema = self.schema["fields"][relation]
+        for record in records:
+            # add to records relation:id
+            for relation, relation_projections in projections_to_add.relations.items():
+                relation_schema = self.schema["fields"][relation]
 
-            if is_many_to_one(relation_schema):
-                if len(relation_projections) == 1 and relation_schema["foreign_key_target"] == relation_projections[0]:
-                    for record in records:
-                        # TODO: verify about this assertion and remove it, or deal it another way
-                        assert relation not in record
+                if is_many_to_one(relation_schema):
+                    if (
+                        len(relation_projections) == 1
+                        and relation_schema["foreign_key_target"] == relation_projections[0]
+                    ):
                         record[relation] = {relation_projections[0]: record[relation_schema["foreign_key_target"]]}
+
+            # remove foreign keys
+            for projection in projections_to_rm:
+                del record[projection]
 
         return records
