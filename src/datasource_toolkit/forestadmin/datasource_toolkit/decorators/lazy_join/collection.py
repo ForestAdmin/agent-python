@@ -1,9 +1,10 @@
-from typing import List
+from typing import List, Union
 
 from forestadmin.agent_toolkit.utils.context import User
 from forestadmin.datasource_toolkit.decorators.collection_decorator import CollectionDecorator
 from forestadmin.datasource_toolkit.interfaces.fields import is_many_to_one
 from forestadmin.datasource_toolkit.interfaces.query.filter.paginated import PaginatedFilter
+from forestadmin.datasource_toolkit.interfaces.query.filter.unpaginated import Filter
 from forestadmin.datasource_toolkit.interfaces.query.projections import Projection
 from forestadmin.datasource_toolkit.interfaces.records import RecordsDataAlias
 
@@ -16,18 +17,54 @@ class LazyJoinCollectionDecorator(CollectionDecorator):
 
         return self._apply_joins_on_records(projection, simplified_projection, ret)
 
+    async def _refine_filter(
+        self, caller: User, _filter: Union[Filter, PaginatedFilter, None]
+    ) -> Union[Filter, PaginatedFilter, None]:
+        if _filter is None or _filter.condition_tree is None:
+            return _filter
+
+        _filter.condition_tree = _filter.condition_tree.replace(
+            lambda leaf: (
+                {
+                    "field": self._get_fk_field_for_projection(leaf.field),
+                    "operator": leaf.operator,
+                    "value": leaf.value,
+                }
+                if self._is_useless_join(leaf.field.split(":")[0], _filter.condition_tree.projection)
+                else leaf
+            )  # type:ignore
+        )
+
+        return _filter
+
+    def _is_useless_join(self, relation: str, projection: Projection) -> bool:
+        relation_schema = self.schema["fields"][relation]
+        sub_projections = projection.relations[relation]
+
+        return (
+            is_many_to_one(relation_schema)
+            and len(sub_projections) == 1
+            and sub_projections[0] == relation_schema["foreign_key_target"]
+        )
+
+    def _get_fk_field_for_projection(self, projection: str) -> str:
+        relation_name = projection.split(":")[0]
+        relation_schema = self.schema["fields"][relation_name]
+
+        # assert is_many_to_one(relation_schema)
+        return relation_schema["foreign_key"]  # type:ignore
+
     def _get_projection_without_useless_joins(self, projection: Projection) -> Projection:
         returned_projection = Projection(*projection)
         for relation, relation_projections in projection.relations.items():
-            relation_schema = self.schema["fields"][relation]
+            if self._is_useless_join(relation, projection):
+                # remove foreign key target from projection
+                returned_projection.remove(f"{relation}:{relation_projections[0]}")
 
-            if is_many_to_one(relation_schema):
-                if len(relation_projections) == 1 and relation_schema["foreign_key_target"] == relation_projections[0]:
-                    # remove foreign key target from projection
-                    returned_projection.remove(f"{relation}:{relation_projections[0]}")
-                    # add foreign keys to projection
-                    if relation_schema["foreign_key"] not in returned_projection:
-                        returned_projection.append(relation_schema["foreign_key"])
+                # add foreign keys to projection
+                fk_field = self._get_fk_field_for_projection(relation)
+                if fk_field not in returned_projection:
+                    returned_projection.append(fk_field)
 
         return returned_projection
 
