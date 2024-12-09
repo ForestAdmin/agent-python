@@ -12,6 +12,7 @@ from forestadmin.datasource_toolkit.decorators.operators_equivalence.collections
     OperatorEquivalenceCollectionDecorator,
 )
 from forestadmin.datasource_toolkit.decorators.override.collection import OverrideCollectionDecorator
+from forestadmin.datasource_toolkit.decorators.perf_optimizer.collection import PerfOptimizerCollectionDecorator
 from forestadmin.datasource_toolkit.decorators.publication.datasource import PublicationDataSourceDecorator
 from forestadmin.datasource_toolkit.decorators.relation.collections import RelationCollectionDecorator
 from forestadmin.datasource_toolkit.decorators.rename_field.collections import RenameFieldCollectionDecorator
@@ -32,6 +33,7 @@ class DecoratorStack:
         # Step 0: Do not query datasource when we know the result with yield an empty set.
         last = self.override = DatasourceDecorator(last, OverrideCollectionDecorator)  # type: ignore
         last = self.empty = DatasourceDecorator(last, EmptyCollectionDecorator)  # type: ignore
+        last = self.perf_optimizer = DatasourceDecorator(last, PerfOptimizerCollectionDecorator)  # type: ignore
 
         # Step 1: Computed-Relation-Computed sandwich (needed because some emulated relations depend
         # on computed fields, and some computed fields depend on relation...)
