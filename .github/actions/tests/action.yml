@@ -24,7 +24,7 @@ runs:
       uses: actions/cache@v3
       with:
         path: '~/.cache/pypoetry'
-        key: ${{ runner.os }}-poetry-${{ steps.setup-python.outputs.python-version }}-${{ inputs.current_package }}-${{ hashFiles('**/poetry.lock') }}
+        key: ${{ runner.os }}-poetry-${{ inputs.python-version }}-${{ inputs.current_package }}-${{ hashFiles('**/poetry.lock') }}
     - name: Install package dependencies
       shell: bash
       working-directory: ${{ inputs.current_package }}
