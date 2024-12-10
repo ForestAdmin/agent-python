@@ -1,15 +1,17 @@
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 
 from forestadmin.datasource_sqlalchemy.collections import SqlAlchemyCollection
 from forestadmin.datasource_sqlalchemy.exceptions import SqlAlchemyDatasourceException
 from forestadmin.datasource_sqlalchemy.interfaces import BaseSqlAlchemyDatasource
-from sqlalchemy import create_engine
+from forestadmin.datasource_toolkit.exceptions import NativeQueryException
+from forestadmin.datasource_toolkit.interfaces.records import RecordsDataAlias
+from sqlalchemy import create_engine, text
 from sqlalchemy.orm import Mapper, sessionmaker
 
 
 class SqlAlchemyDatasource(BaseSqlAlchemyDatasource):
-    def __init__(self, Base: Any, db_uri: Optional[str] = None) -> None:
-        super().__init__()
+    def __init__(self, Base: Any, db_uri: Optional[str] = None, live_query_connection: Optional[str] = None) -> None:
+        super().__init__([live_query_connection] if live_query_connection is not None else None)
         self._base = Base
         self.__is_using_flask_sqlalchemy = hasattr(Base, "Model")
 
@@ -55,6 +57,30 @@ class SqlAlchemyDatasource(BaseSqlAlchemyDatasource):
         for mapper in self._base.registry.mappers:
             mappers[mapper.persist_selectable.name] = mapper
         return mappers
+
+    async def execute_native_query(
+        self, connection_name: str, native_query: str, parameters: Dict[str, str]
+    ) -> List[RecordsDataAlias]:
+        if connection_name != self.get_native_query_connections()[0]:
+            raise NativeQueryException(
+                f"The native query connection '{connection_name}' doesn't belongs to this datasource."
+            )
+        try:
+            session = self.Session()
+            query = native_query
+            if isinstance(query, str):
+                query = native_query
+                for key in parameters.keys():
+                    # replace '%(...)s' by ':...'
+                    query = query.replace(f"%({key})s", f":{key}")
+                # replace '\%' by '%'
+                query = query.replace("\\%", "%")
+
+                query = text(query)
+            rows = session.execute(query, parameters)
+            return [*rows.mappings()]
+        except Exception as exc:
+            raise NativeQueryException(str(exc))
 
     # unused code, can be use full but can be remove
     # from forestadmin.datasource_toolkit.datasources import DatasourceException

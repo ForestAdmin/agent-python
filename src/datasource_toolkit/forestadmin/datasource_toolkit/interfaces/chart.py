@@ -31,5 +31,3 @@ Chart = Union[
     LeaderboardChart,
     SmartChart,
 ]
-
-a: TimeBasedChart = [{"label": "&", "values": {"value"}}]
