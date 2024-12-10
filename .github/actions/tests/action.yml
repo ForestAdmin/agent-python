@@ -12,14 +12,23 @@ runs:
   steps:
     - uses: actions/checkout@v3
     - name: Install poetry
-      uses: snok/install-poetry@v1
-      with:
-        version: 1.7.1
+      # uses: snok/install-poetry@v1
+      # with:
+      #   version: 1.7.1
+      run: |
+        pipx install poetry
+        echo "POETRY_CACHE_DIR=$(pip cache dir)" >> $GITHUB_ENV
+
     - name: Set up Python ${{ inputs.python-version }}
       uses: actions/setup-python@v4
       with:
         python-version: ${{ inputs.python-version }}
         # cache: 'poetry'
+    - name: Cache poetry
+      uses: actions/cache@v3
+      with:
+        path: ${{ env.POETRY_CACHE_DIR }}
+        key: ${{ runner.os }}-poetry-${{ steps.setup-python.outputs.python-version }}-${{ inputs.current_package }}-${{ hashFiles('**/poetry.lock') }}
     - name: Install package dependencies
       shell: bash
       working-directory: ${{ inputs.current_package }}
