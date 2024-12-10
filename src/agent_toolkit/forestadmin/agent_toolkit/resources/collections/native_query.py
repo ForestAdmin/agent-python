@@ -9,6 +9,7 @@ from forestadmin.agent_toolkit.resources.context_variable_injector_mixin import 
 from forestadmin.agent_toolkit.services.permissions.ip_whitelist_service import IpWhiteListService
 from forestadmin.agent_toolkit.services.permissions.permission_service import PermissionService
 from forestadmin.agent_toolkit.utils.context import HttpResponseBuilder, Request, RequestMethod, Response
+from forestadmin.agent_toolkit.utils.sql_query_checker import SqlQueryChecker
 from forestadmin.datasource_toolkit.datasource_customizer.datasource_composite import CompositeDatasource
 from forestadmin.datasource_toolkit.datasource_customizer.datasource_customizer import DatasourceCustomizer
 from forestadmin.datasource_toolkit.exceptions import BusinessError, UnprocessableError, ValidationError
@@ -60,6 +61,7 @@ class NativeQueryResource(BaseCollectionResource, ContextVariableInjectorResourc
         if request.body.get("type") not in ["Line", "Objective", "Leaderboard", "Pie", "Value"]:
             raise ValidationError(f"Unknown chart type '{request.body.get('type')}'.")
 
+        SqlQueryChecker.check_query(request.body["query"])
         variables = await self.inject_and_get_context_variables_in_live_query_chart(request)
         native_query_results = await self.composite_datasource.execute_native_query(
             request.body["connectionName"], request.body["query"], variables
