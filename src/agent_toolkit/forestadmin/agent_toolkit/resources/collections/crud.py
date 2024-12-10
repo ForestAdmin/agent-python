@@ -30,6 +30,7 @@ from forestadmin.agent_toolkit.services.serializers.json_api import JsonApiExcep
 from forestadmin.agent_toolkit.utils.context import HttpResponseBuilder, Request, RequestMethod, Response, User
 from forestadmin.agent_toolkit.utils.csv import Csv, CsvException
 from forestadmin.agent_toolkit.utils.id import unpack_id
+from forestadmin.agent_toolkit.utils.sql_query_checker import SqlQueryChecker
 from forestadmin.datasource_toolkit.collections import Collection
 from forestadmin.datasource_toolkit.datasource_customizer.collection_customizer import CollectionCustomizer
 from forestadmin.datasource_toolkit.datasource_customizer.datasource_composite import CompositeDatasource
@@ -459,6 +460,7 @@ class CrudResource(BaseCollectionResource, ContextVariableInjectorResourceMixin)
                 raise NativeQueryException("Missing native query connection attribute")
 
             await self.permission.can_live_query_segment(request)
+            SqlQueryChecker.check_query(request.query["segmentQuery"])
             variables = await self.inject_and_get_context_variables_in_live_query_segment(request)
             native_query_result = await self._datasource_composite.execute_native_query(
                 request.query["connectionName"], request.query["segmentQuery"], variables
