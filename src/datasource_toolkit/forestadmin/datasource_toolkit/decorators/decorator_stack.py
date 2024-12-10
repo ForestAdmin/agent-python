@@ -7,6 +7,7 @@ from forestadmin.datasource_toolkit.decorators.computed.collections import Compu
 from forestadmin.datasource_toolkit.decorators.datasource_decorator import DatasourceDecorator
 from forestadmin.datasource_toolkit.decorators.empty.collection import EmptyCollectionDecorator
 from forestadmin.datasource_toolkit.decorators.hook.collections import CollectionHookDecorator
+from forestadmin.datasource_toolkit.decorators.lazy_join.collection import LazyJoinCollectionDecorator
 from forestadmin.datasource_toolkit.decorators.operators_emulate.collections import OperatorsEmulateCollectionDecorator
 from forestadmin.datasource_toolkit.decorators.operators_equivalence.collections import (
     OperatorEquivalenceCollectionDecorator,
@@ -40,6 +41,8 @@ class DecoratorStack:
         last = self.early_op_emulate = DatasourceDecorator(last, OperatorsEmulateCollectionDecorator)
         last = self.early_op_equivalence = DatasourceDecorator(last, OperatorEquivalenceCollectionDecorator)
         last = self.relation = DatasourceDecorator(last, RelationCollectionDecorator)
+        # lazy join is just before relation, to avoid relations to do useless stuff
+        last = self.lazy_joins = DatasourceDecorator(last, LazyJoinCollectionDecorator)
         last = self.late_computed = DatasourceDecorator(last, ComputedCollectionDecorator)
         last = self.late_op_emulate = DatasourceDecorator(last, OperatorsEmulateCollectionDecorator)
         last = self.late_op_equivalence = DatasourceDecorator(last, OperatorEquivalenceCollectionDecorator)

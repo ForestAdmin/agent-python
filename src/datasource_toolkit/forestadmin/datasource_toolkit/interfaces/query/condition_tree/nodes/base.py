@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 import abc
 import sys
-from typing import Any, Awaitable, Callable, Dict, List, TypeVar, Union
+from typing import TYPE_CHECKING, Any, Awaitable, Callable, Dict, List, TypeVar, Union
 
 if sys.version_info >= (3, 9):
     import zoneinfo
@@ -12,6 +14,9 @@ from forestadmin.datasource_toolkit.interfaces.models.collections import Collect
 from forestadmin.datasource_toolkit.interfaces.query.projections import Projection
 from forestadmin.datasource_toolkit.interfaces.records import RecordsDataAlias
 from typing_extensions import TypedDict
+
+if TYPE_CHECKING:
+    from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.leaf import ConditionTreeLeaf
 
 
 class ConditionTreeException(DatasourceToolkitException):
@@ -75,7 +80,7 @@ class ConditionTreeComponent(TypedDict):
 
 
 HandlerResult = TypeVar("HandlerResult")
-HandlerAlias = Callable[[ConditionTree], HandlerResult]
+HandlerAlias = Callable[["ConditionTreeLeaf"], HandlerResult]
 ReplacerAlias = HandlerAlias[Union[ConditionTree, ConditionTreeComponent]]
 AsyncReplacerAlias = HandlerAlias[Awaitable[Union[ConditionTree, ConditionTreeComponent]]]
 CallbackAlias = HandlerAlias[None]

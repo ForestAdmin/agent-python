@@ -9,10 +9,12 @@ from forestadmin.datasource_toolkit.decorators.computed.collections import Compu
 from forestadmin.datasource_toolkit.decorators.decorator_stack import DecoratorStack
 from forestadmin.datasource_toolkit.decorators.empty.collection import EmptyCollectionDecorator
 from forestadmin.datasource_toolkit.decorators.hook.collections import CollectionHookDecorator
+from forestadmin.datasource_toolkit.decorators.lazy_join.collection import LazyJoinCollectionDecorator
 from forestadmin.datasource_toolkit.decorators.operators_emulate.collections import OperatorsEmulateCollectionDecorator
 from forestadmin.datasource_toolkit.decorators.operators_equivalence.collections import (
     OperatorEquivalenceCollectionDecorator,
 )
+from forestadmin.datasource_toolkit.decorators.override.collection import OverrideCollectionDecorator
 from forestadmin.datasource_toolkit.decorators.relation.collections import RelationCollectionDecorator
 from forestadmin.datasource_toolkit.decorators.rename_field.collections import RenameFieldCollectionDecorator
 from forestadmin.datasource_toolkit.decorators.schema.collection import SchemaCollectionDecorator
@@ -68,11 +70,13 @@ class TestDecoratorStack(TestCase):
             DecoratorStack(self.datasource)
 
             call_list = [
+                call(self.datasource, OverrideCollectionDecorator),
                 call(self.datasource, EmptyCollectionDecorator),
                 call(self.datasource, ComputedCollectionDecorator),
                 call(self.datasource, OperatorsEmulateCollectionDecorator),
                 call(self.datasource, OperatorEquivalenceCollectionDecorator),
                 call(self.datasource, RelationCollectionDecorator),
+                call(self.datasource, LazyJoinCollectionDecorator),
                 call(self.datasource, ComputedCollectionDecorator),
                 call(self.datasource, OperatorsEmulateCollectionDecorator),
                 call(self.datasource, OperatorEquivalenceCollectionDecorator),
