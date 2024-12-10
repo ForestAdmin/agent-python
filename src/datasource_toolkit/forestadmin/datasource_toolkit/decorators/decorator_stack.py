@@ -32,7 +32,6 @@ class DecoratorStack:
 
         # Step 0: Do not query datasource when we know the result with yield an empty set.
         last = self.override = DatasourceDecorator(last, OverrideCollectionDecorator)  # type: ignore
-        last = self.lazy_joins = DatasourceDecorator(last, LazyJoinCollectionDecorator)  # type: ignore
         last = self.empty = DatasourceDecorator(last, EmptyCollectionDecorator)  # type: ignore
 
         # Step 1: Computed-Relation-Computed sandwich (needed because some emulated relations depend
@@ -42,6 +41,7 @@ class DecoratorStack:
         last = self.early_op_emulate = DatasourceDecorator(last, OperatorsEmulateCollectionDecorator)
         last = self.early_op_equivalence = DatasourceDecorator(last, OperatorEquivalenceCollectionDecorator)
         last = self.relation = DatasourceDecorator(last, RelationCollectionDecorator)
+        last = self.lazy_joins = DatasourceDecorator(last, LazyJoinCollectionDecorator)  # type: ignore
         last = self.late_computed = DatasourceDecorator(last, ComputedCollectionDecorator)
         last = self.late_op_emulate = DatasourceDecorator(last, OperatorsEmulateCollectionDecorator)
         last = self.late_op_equivalence = DatasourceDecorator(last, OperatorEquivalenceCollectionDecorator)

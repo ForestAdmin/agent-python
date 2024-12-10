@@ -71,12 +71,12 @@ class TestDecoratorStack(TestCase):
 
             call_list = [
                 call(self.datasource, OverrideCollectionDecorator),
-                call(self.datasource, LazyJoinCollectionDecorator),
                 call(self.datasource, EmptyCollectionDecorator),
                 call(self.datasource, ComputedCollectionDecorator),
                 call(self.datasource, OperatorsEmulateCollectionDecorator),
                 call(self.datasource, OperatorEquivalenceCollectionDecorator),
                 call(self.datasource, RelationCollectionDecorator),
+                call(self.datasource, LazyJoinCollectionDecorator),
                 call(self.datasource, ComputedCollectionDecorator),
                 call(self.datasource, OperatorsEmulateCollectionDecorator),
                 call(self.datasource, OperatorEquivalenceCollectionDecorator),
