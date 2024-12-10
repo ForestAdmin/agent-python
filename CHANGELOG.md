@@ -1,3 +1,10 @@
+## [1.18.5](https://github.com/ForestAdmin/agent-python/compare/v1.18.4...v1.18.5) (2024-12-10)
+
+
+### Performance Improvements
+
+* **table_join:** avoid join if we only want the target field of the relation ([#293](https://github.com/ForestAdmin/agent-python/issues/293)) ([a6a4739](https://github.com/ForestAdmin/agent-python/commit/a6a4739bd97cb47768007241751c60421b70ed39))
+
 ## [1.18.4](https://github.com/ForestAdmin/agent-python/compare/v1.18.3...v1.18.4) (2024-11-28)
 
 
