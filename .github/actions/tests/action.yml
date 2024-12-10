@@ -15,7 +15,7 @@ runs:
       uses: actions/setup-python@v4
       with:
         python-version: ${{ inputs.python-version }}
-        # cache: 'poetry'
+        cache: 'poetry'
     - name: Install poetry
       uses: snok/install-poetry@v1
       with:
@@ -23,7 +23,7 @@ runs:
     - name: Install package dependencies
       shell: bash
       working-directory: ${{ inputs.current_package }}
-      run: export PYTHON_KEYRING_BACKEND=keyring.backends.fail.Keyring && poetry install --no-interaction --with test
+      run: poetry install --no-interaction --with test
     - name: Test with pytest
       shell: bash
       working-directory: ${{ inputs.current_package }}
