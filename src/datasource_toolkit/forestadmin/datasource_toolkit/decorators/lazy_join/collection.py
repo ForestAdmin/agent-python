@@ -2,7 +2,8 @@ from typing import List, Union, cast
 
 from forestadmin.agent_toolkit.utils.context import User
 from forestadmin.datasource_toolkit.decorators.collection_decorator import CollectionDecorator
-from forestadmin.datasource_toolkit.interfaces.fields import is_many_to_one
+from forestadmin.datasource_toolkit.interfaces.fields import ManyToOne, is_many_to_one
+from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.leaf import ConditionTreeLeaf
 from forestadmin.datasource_toolkit.interfaces.query.filter.paginated import PaginatedFilter
 from forestadmin.datasource_toolkit.interfaces.query.filter.unpaginated import Filter
 from forestadmin.datasource_toolkit.interfaces.query.projections import Projection
@@ -11,9 +12,9 @@ from forestadmin.datasource_toolkit.interfaces.records import RecordsDataAlias
 
 class LazyJoinCollectionDecorator(CollectionDecorator):
     async def list(self, caller: User, filter_: PaginatedFilter, projection: Projection) -> List[RecordsDataAlias]:
-        refined_filter = cast(PaginatedFilter, await self._refine_filter(caller, filter_))
         simplified_projection = self._get_projection_without_useless_joins(projection)
 
+        refined_filter = cast(PaginatedFilter, await self._refine_filter(caller, filter_))
         ret = await self.child_collection.list(caller, refined_filter, simplified_projection)
 
         return self._apply_joins_on_records(projection, simplified_projection, ret)
@@ -26,14 +27,14 @@ class LazyJoinCollectionDecorator(CollectionDecorator):
 
         _filter.condition_tree = _filter.condition_tree.replace(
             lambda leaf: (
-                {
-                    "field": self._get_fk_field_for_projection(leaf.field),
-                    "operator": leaf.operator,
-                    "value": leaf.value,
-                }
+                ConditionTreeLeaf(
+                    self._get_fk_field_for_projection(leaf.field),
+                    leaf.operator,
+                    leaf.value,
+                )
                 if self._is_useless_join(leaf.field.split(":")[0], _filter.condition_tree.projection)
                 else leaf
-            )  # type:ignore
+            )
         )
 
         return _filter
@@ -50,10 +51,9 @@ class LazyJoinCollectionDecorator(CollectionDecorator):
 
     def _get_fk_field_for_projection(self, projection: str) -> str:
         relation_name = projection.split(":")[0]
-        relation_schema = self.schema["fields"][relation_name]
+        relation_schema = cast(ManyToOne, self.schema["fields"][relation_name])
 
-        # assert is_many_to_one(relation_schema)
-        return relation_schema["foreign_key"]  # type:ignore
+        return relation_schema["foreign_key"]
 
     def _get_projection_without_useless_joins(self, projection: Projection) -> Projection:
         returned_projection = Projection(*projection)
