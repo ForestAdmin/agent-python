@@ -41,7 +41,8 @@ class DecoratorStack:
         last = self.early_op_emulate = DatasourceDecorator(last, OperatorsEmulateCollectionDecorator)
         last = self.early_op_equivalence = DatasourceDecorator(last, OperatorEquivalenceCollectionDecorator)
         last = self.relation = DatasourceDecorator(last, RelationCollectionDecorator)
-        last = self.lazy_joins = DatasourceDecorator(last, LazyJoinCollectionDecorator)  # type: ignore
+        # lazy join is just before relation, to avoid relations to do useless stuff
+        last = self.lazy_joins = DatasourceDecorator(last, LazyJoinCollectionDecorator)
         last = self.late_computed = DatasourceDecorator(last, ComputedCollectionDecorator)
         last = self.late_op_emulate = DatasourceDecorator(last, OperatorsEmulateCollectionDecorator)
         last = self.late_op_equivalence = DatasourceDecorator(last, OperatorEquivalenceCollectionDecorator)
