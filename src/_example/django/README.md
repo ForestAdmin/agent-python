@@ -12,12 +12,12 @@ Normally with docker, you just have a few command to use, in the correct folder:
 ```bash
 cd src/_example/django
 
-docker compose up -d --build # to start in background
-# Example project is now running on port 8000
+docker compose up -d # to start in background
+# Example project is now running on port 8000 with auto reload
 
 docker compose logs -f # to see the output
 
-docker compose down # to stop
+docker compose down # to cleanup
 ```
 
 ⚠️ If you already have a [`.env`](./.env) at the root of this example project, it will be used, overriding what's define in the [docker compose file](./docker-compose.yaml).
