@@ -1,0 +1,36 @@
+# Comments are provided throughout this file to help you get started.
+# If you need more help, visit the Docker compose reference guide at
+# https://docs.docker.com/compose/compose-file/
+
+# Here the instructions define your application as a service called "server".
+# This service is built from the Dockerfile in the current directory.
+# You can add other services your application may depend on here, such as a
+# database or a cache. For examples, see the Awesome Compose repository:
+# https://github.com/docker/awesome-compose
+services:
+  agent-python_django-example:
+    container_name: agent-python_django-example
+    # image: agent-python_django-example
+    build:
+      context: ../../../
+      dockerfile: src/_example/django/Dockerfile
+      args:
+        PYTHON_VERSION: 3.11 # 3.11 is default if not set
+    environment:
+      # forest environment related
+      FOREST_ENV_SECRET: ${FOREST_ENV_SECRET}
+      FOREST_AUTH_SECRET: ${FOREST_AUTH_SECRET}
+      FOREST_IS_PRODUCTION: "False"
+      # forest related
+      FOREST_VERIFY_SSL: "False"
+      FOREST_SERVER_URL: 'https://api.development.forestadmin.com'
+      # django related
+      DJANGO_SECRET_KEY: "^=k+h&r(f7d+#@3f)%h2xef!zvsn2f5_^ahuo*9v7k^6gk=*ey"
+      DJANGO_DEBUG: True
+      DJANGO_ALLOWED_HOSTS: "*"
+    volumes:
+      # root of repo at /app
+      - ../../../:/app
+    ports:
+      - 8000:8000
+
