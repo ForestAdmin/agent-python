@@ -10,7 +10,6 @@
 services:
   agent-python_django-example:
     container_name: agent-python_django-example
-    # image: agent-python_django-example
     build:
       context: ../../../
       dockerfile: src/_example/django/Dockerfile
