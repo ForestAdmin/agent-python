@@ -88,7 +88,7 @@ class LazyJoinCollectionDecorator(CollectionDecorator):
                         self._get_fk_field_for_projection(f"{relation}:{relation_projections[0]}")
                     ]
                     record[relation] = {
-                        relation_projections[0]: fk_value 
+                        relation_projections[0]: fk_value
                     } if fk_value else None
 
             # remove foreign keys
