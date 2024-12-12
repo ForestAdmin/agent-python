@@ -85,8 +85,8 @@ class LazyJoinCollectionDecorator(CollectionDecorator):
 
                 if is_many_to_one(relation_schema):
                     fk_value = record[
-                            self._get_fk_field_for_projection(f"{relation}:{relation_projections[0]}")
-                        ]
+                        self._get_fk_field_for_projection(f"{relation}:{relation_projections[0]}")
+                    ]
                     record[relation] = {
                         relation_projections[0]: fk_value 
                     } if fk_value else None
