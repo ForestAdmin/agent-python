@@ -84,11 +84,12 @@ class TestDjangoDatasourceConnectionQueryCreation(SimpleTestCase):
     def test_should_log_when_creating_connection_with_string_param_and_multiple_databases_are_set_up(self):
         with patch("forestadmin.datasource_django.datasource.ForestLogger.log") as log_fn:
             DjangoDatasource(live_query_connection="django")
-            # TODO: adapt error message
             log_fn.assert_any_call(
                 "info",
                 "You enabled live query as django for django 'default' database. "
-                "To use it over multiple databases, read the related documentation here: http://link.",
+                "To use it over multiple databases, read the related documentation here: "
+                "https://docs.forestadmin.com/developer-guide-agents-python/data-sources/provided-data-sources/"
+                "django#enable-support-of-live-queries.",
             )
 
     def test_should_raise_if_connection_query_target_non_existent_database(self):
