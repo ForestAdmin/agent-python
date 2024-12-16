@@ -1,3 +1,10 @@
+## [1.18.6](https://github.com/ForestAdmin/agent-python/compare/v1.18.5...v1.18.6) (2024-12-16)
+
+
+### Bug Fixes
+
+* **lazy_join:** handle nullable relation ([#296](https://github.com/ForestAdmin/agent-python/issues/296)) ([fc4a2af](https://github.com/ForestAdmin/agent-python/commit/fc4a2af52415c6c26795e4be9344a4c0e0d06bbe))
+
 ## [1.18.5](https://github.com/ForestAdmin/agent-python/compare/v1.18.4...v1.18.5) (2024-12-10)
 
 
