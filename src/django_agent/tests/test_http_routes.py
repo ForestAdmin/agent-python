@@ -95,12 +95,18 @@ class TestDjangoAgentGenericRoutes(TestDjangoAgentRoutes):
         self.assertEqual(response.content, b"")
 
     def test_scope_cache_invalidation(self):
-        response = self.client.get(
-            f"/{self.conf_prefix}forest/scope-cache-invalidation",
-            HTTP_X_FORWARDED_FOR="179.114.131.49",
-        )
-        self.assertEqual(response.status_code, 204)
-        self.assertEqual(response.content, b"")
+        with patch.object(
+            self.django_agent._permission_service,
+            "invalidate_cache",
+            spy=self.django_agent._permission_service.invalidate_cache,
+        ) as spy_invalidate:
+            response = self.client.get(
+                f"/{self.conf_prefix}forest/scope-cache-invalidation",
+                HTTP_X_FORWARDED_FOR="179.114.131.49",
+            )
+            self.assertEqual(response.status_code, 204)
+            self.assertEqual(response.content, b"")
+            spy_invalidate.assert_called_once_with("forest.rendering")
 
 
 class TestDjangoAgentAuthenticationRoutes(TestDjangoAgentRoutes):

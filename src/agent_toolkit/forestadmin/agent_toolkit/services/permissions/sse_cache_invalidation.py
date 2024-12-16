@@ -17,7 +17,7 @@ class SSECacheInvalidation(Thread):
     _MESSAGE__CACHE_KEYS: Dict[str, List[str]] = {
         "refresh-users": ["forest.users"],
         "refresh-roles": ["forest.collections"],
-        "refresh-renderings": ["forest.collections", "forest.stats", "forest.scopes", "forest.segment_queries"],
+        "refresh-renderings": ["forest.collections", "forest.rendering"],
         # "refresh-customizations": None,  # work with nocode actions
         # TODO: add one for ip whitelist when server implement it
     }

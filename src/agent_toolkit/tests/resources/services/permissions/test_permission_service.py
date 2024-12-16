@@ -233,11 +233,10 @@ class Test01CachePermissionService(BaseTestPermissionService):
 
     def test_dont_call_api_when_something_is_cached(self):
         http_patches: PatchHttpApiDict = self.mock_forest_http_api()
-        http_patches: PatchHttpApiDict = self.mock_forest_http_api()
         http_mocks: MockHttpApiDict = {name: patch.start() for name, patch in http_patches.items()}
 
-        response_1 = self.loop.run_until_complete(self.permission_service._get_chart_data(1))
-        response_2 = self.loop.run_until_complete(self.permission_service._get_chart_data(1))
+        response_1 = self.loop.run_until_complete(self.permission_service._get_rendering_data(1))
+        response_2 = self.loop.run_until_complete(self.permission_service._get_rendering_data(1))
         self.assertEqual(response_1, response_2)
 
         response_1 = self.loop.run_until_complete(self.permission_service.get_user_data(1))

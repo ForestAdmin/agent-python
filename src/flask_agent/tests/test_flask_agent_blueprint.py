@@ -279,6 +279,5 @@ class TestFlaskAgentBlueprint(TestCase):
     def test_invalidate_cache(self):
         with patch.object(self.agent._permission_service, "invalidate_cache") as mocked_invalidate_cache:
             response = self.client.post("/forest/scope-cache-invalidation")
-            mocked_invalidate_cache.assert_called_with("forest.scopes")
-        assert response.status_code == 204
+            mocked_invalidate_cache.assert_called_with("forest.rendering")
         assert response.status_code == 204
