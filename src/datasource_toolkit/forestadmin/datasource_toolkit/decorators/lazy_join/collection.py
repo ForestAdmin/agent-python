@@ -84,11 +84,8 @@ class LazyJoinCollectionDecorator(CollectionDecorator):
                 relation_schema = self.schema["fields"][relation]
 
                 if is_many_to_one(relation_schema):
-                    record[relation] = {
-                        relation_projections[0]: record[
-                            self._get_fk_field_for_projection(f"{relation}:{relation_projections[0]}")
-                        ]
-                    }
+                    fk_value = record[self._get_fk_field_for_projection(f"{relation}:{relation_projections[0]}")]
+                    record[relation] = {relation_projections[0]: fk_value} if fk_value else None
 
             # remove foreign keys
             for projection in projections_to_rm:

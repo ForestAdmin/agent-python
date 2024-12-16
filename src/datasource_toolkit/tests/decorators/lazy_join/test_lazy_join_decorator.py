@@ -225,3 +225,30 @@ class TestEmptyCollectionDecorator(TestCase):
             ],
             response,
         )
+
+    def test_should_correctly_handle_null_relations(self):
+        with patch.object(
+            self.collection_book,
+            "list",
+            new_callable=AsyncMock,
+            return_value=[
+                {"id": 1, "author_id": 2},
+                {"id": 2, "author_id": None},
+            ],
+        ) as mock_list:
+            result = self.loop.run_until_complete(
+                self.decorated_book_collection.list(
+                    self.mocked_caller,
+                    PaginatedFilter({}),
+                    Projection("id", "author:id"),
+                )
+            )
+            mock_list.assert_awaited_once_with(self.mocked_caller, PaginatedFilter({}), Projection("id", "author_id"))
+
+        self.assertEqual(
+            [
+                {"id": 1, "author": {"id": 2}},
+                {"id": 2, "author": None},
+            ],
+            result,
+        )
