@@ -21,7 +21,7 @@ runs:
         python-version: ${{ inputs.python-version }}
         # cache: 'poetry'
     - name: Cache poetry
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: '~/.cache/pypoetry'
         key: ${{ runner.os }}-poetry-${{ inputs.python-version }}-${{ inputs.current_package }}-${{ hashFiles('**/poetry.lock') }}
