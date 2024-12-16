@@ -1,23 +1,28 @@
+from __future__ import annotations
+
 import time
 from threading import Thread
-from typing import Dict
+from typing import TYPE_CHECKING, Dict, List
 
 import urllib3
 from forestadmin.agent_toolkit.forest_logger import ForestLogger
 from forestadmin.agent_toolkit.options import Options
 from sseclient import SSEClient
 
+if TYPE_CHECKING:
+    from forestadmin.agent_toolkit.services.permissions.permission_service import PermissionService
+
 
 class SSECacheInvalidation(Thread):
-    _MESSAGE__CACHE_KEYS: Dict[str, str] = {
+    _MESSAGE__CACHE_KEYS: Dict[str, List[str]] = {
         "refresh-users": ["forest.users"],
         "refresh-roles": ["forest.collections"],
-        "refresh-renderings": ["forest.collections", "forest.stats", "forest.scopes"],
+        "refresh-renderings": ["forest.collections", "forest.stats", "forest.scopes", "forest.segment_queries"],
         # "refresh-customizations": None,  # work with nocode actions
         # TODO: add one for ip whitelist when server implement it
     }
 
-    def __init__(self, permission_service: "PermissionService", options: Options, *args, **kwargs):  # noqa: F821
+    def __init__(self, permission_service: "PermissionService", options: Options, *args, **kwargs):
         super().__init__(name="SSECacheInvalidationThread", daemon=True, *args, **kwargs)
         self.permission_service = permission_service
         self.options: Options = options
