@@ -38,7 +38,9 @@ class DjangoDatasource(BaseDjangoDatasource):
                 ForestLogger.log(
                     "info",
                     f"You enabled live query as {live_query_connections} for django 'default' database."
-                    " To use it over multiple databases, read the related documentation here: https://docs.forestadmin.com/developer-guide-agents-python/data-sources/provided-data-sources/django#enable-support-of-live-queries.",
+                    " To use it over multiple databases, read the related documentation here: "
+                    "https://docs.forestadmin.com/developer-guide-agents-python/"
+                    "data-sources/provided-data-sources/django#enable-support-of-live-queries.",
                 )
         else:
             ret = live_query_connections
