@@ -61,7 +61,10 @@ jobs:
       - run: "echo $CHANGES"
         shell: bash
         env:
-          CHANGES: ${{ needs.changes.steps.changes }}
+          CHANGES: ${{  toJSON(needs.changes.outputs) }}
+
+
+
       - id: has_change
         run: "echo has_change=$(echo $CHANGES | jq .$PACKAGE_NAME) >> $GITHUB_OUTPUT"
         shell: bash
@@ -72,6 +75,9 @@ jobs:
         shell: bash
         env:
           OUTPUTS: ${{ steps.has_change.outputs }}
+
+
+
       - id: lint
         if: needs.changes.steps.changes.outputs.${{ steps.package_name.outputs._2 }} == 'true'
         uses: ./.github/actions/linting
