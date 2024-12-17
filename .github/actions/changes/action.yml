@@ -1,6 +1,8 @@
 name: Changes
 outputs:
-  changes: ${{ steps.changes.outputs }}
+  changes:
+    description: changes per package
+    value: ${{ steps.changes.outputs }}
 runs:
   using: "composite"
   steps:
