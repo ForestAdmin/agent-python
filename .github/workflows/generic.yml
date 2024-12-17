@@ -27,7 +27,9 @@ jobs:
   changes:
     name: changes
     runs-on: ubuntu-latest
-    outputs: ${{ steps.changes.outputs }}
+    outputs:
+      all: ${{ steps.changes.outputs.all }}
+      django_agent: ${{ steps.changes.outputs.django_agent }}
 
     steps:
       - uses: actions/checkout@v4
