@@ -63,10 +63,10 @@ jobs:
       - run:   echo "$OUTPUTS"
         shell: bash
         env:
-          OUTPUTS: ${{ toJSON(steps.has_change.outputs) }}
+          OUTPUTS: ${{ steps.has_change.outputs.has_changes }}
 
       - id: lint
-        if: ${{ toJSON(steps.has_change.outputs.has_changes) == 'true' }}
+        if: ${{ steps.has_change.outputs.has_changes == 'true' }}
         uses: ./.github/actions/linting
         with:
           python-version: ${{ matrix.python-version }}
