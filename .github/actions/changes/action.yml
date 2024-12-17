@@ -1,11 +1,26 @@
 name: Changes
 outputs:
-  changes:
-    description: changes per package
+  all:
+    description: changes on all
     value: ${{ toJSON(steps.changes.outputs) }}
   django_agent:
-    description: changes per package
+    description: changes on django_agent
     value: ${{ steps.changes.outputs.django_agent }}
+  flask_agent:
+    description: changes on flask_agent
+    value: ${{ steps.changes.outputs.flask_agent }}
+  agent_toolkit:
+    description: changes on agent_toolkit
+    value: ${{ steps.changes.outputs.agent_toolkit }}
+  datasource_django:
+    description: changes on datasource_django
+    value: ${{ steps.changes.outputs.datasource_django }}
+  datasource_sqlalchemy:
+    description: changes on datasource_sqlalchemy
+    value: ${{ steps.changes.outputs.datasource_sqlalchemy }}
+  datasource_toolkit:
+    description: changes on datasource_toolkit
+    value: ${{ steps.changes.outputs.datasource_toolkit }}
 runs:
   using: "composite"
   steps:
@@ -13,22 +28,15 @@ runs:
       id: changes
       with:
         filters: |
-          ./src/datasource_toolkit/:
+          datasource_toolkit:
             - 'src/datasource_toolkit/**'
-          ./src/datasource_sqlalchemy:
+          datasource_sqlalchemy:
             - 'src/datasource_sqlalchemy/**'
-          ./src/datasource_django:
+          datasource_django:
             - 'src/datasource_django/**'
-          ./src/agent_toolkit:
+          agent_toolkit:
             - 'src/agent_toolkit/**'
-          ./src/flask_agent:
+          flask_agent:
             - 'src/flask_agent/**'
-          ./src/django_agent:
-            - 'src/django_agent/**'
           django_agent:
             - 'src/django_agent/**'
-
-    - run:   echo "$OUTPUTS"
-      shell: bash
-      env:
-        OUTPUTS: ${{ toJSON(steps.changes.outputs) }}
