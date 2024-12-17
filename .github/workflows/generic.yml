@@ -55,10 +55,10 @@ jobs:
         current_package: ${{ fromJson(inputs.packages) }}
     steps:
       - uses: actions/checkout@v4
-      - run:   echo "$OUTPUTS"
+      - run:   echo "django agent $OUTPUTS"
         shell: bash
         env:
-          OUTPUTS: ${{ toJSON(needs.changes) }}
+          OUTPUTS: ${{ toJSON(fromJSON(needs.changes.outputs.all).django_agent) }}
       - id: lint
         if: needs.changes.steps.changes.outputs.${{ matrix.current_package }} == 'true'
         uses: ./.github/actions/linting
