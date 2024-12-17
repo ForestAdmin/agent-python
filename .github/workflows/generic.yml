@@ -35,7 +35,7 @@ jobs:
       - run:   echo "$OUTPUTS"
         shell: bash
         env:
-          OUTPUTS: ${{ toJSON(steps.changes.outputs) }}
+          OUTPUTS: ${{ toJSON(steps.changes) }}
 
   lint:
     name: Linting
@@ -50,7 +50,7 @@ jobs:
       - run:   echo "$OUTPUTS"
         shell: bash
         env:
-          OUTPUTS: ${{ toJSON(needs.changes) }}
+          OUTPUTS: ${{ toJSON(needs.changes.steps.changes.outputs) }}
       - id: lint
         if: needs.changes.steps.changes.outputs.${{ matrix.current_package }} == 'true'
         uses: ./.github/actions/linting
