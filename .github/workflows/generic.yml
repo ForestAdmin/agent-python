@@ -51,26 +51,29 @@ jobs:
         current_package: ${{ fromJson(inputs.packages) }}
     steps:
       - uses: actions/checkout@v4
-      - uses: jungwinter/split@master
-        id: package_name
-        with:
-          msg:  ${{ matrix.current_package }}
-          separator: "/"
-          maxsplit: -1
+      # - uses: jungwinter/split@master
+      #   id: package_name
+      #   with:
+      #     msg:  ${{ matrix.current_package }}
+      #     separator: "/"
+      #     maxsplit: -1
 
-      - run: "echo $CHANGES"
-        shell: bash
-        env:
-          CHANGES: ${{  toJSON(needs.changes) }}
+      # - run: "echo $CHANGES"
+      #   shell: bash
+      #   env:
+      #     CHANGES: ${{  toJSON(needs.changes) }}
 
 
 
       - id: has_change
-        run: "echo has_change=$(echo $CHANGES | jq .$PACKAGE_NAME) >> $GITHUB_OUTPUT"
+        run: |
+          PACKAGE_NAME=echo $PACKAGE | cut -d'/' -f3
+          echo has_change=$(echo $CHANGES | jq .$PACKAGE_NAME) >> $GITHUB_OUTPUT
         shell: bash
         env:
-          PACKAGE_NAME: ${{ steps.package_name.outputs._2 }}
+          PACKAGE: ${{ matrix.current_package }}
           CHANGES: ${{ toJSON(needs.changes.outputs) }}
+
       - run:   echo "$OUTPUTS"
         shell: bash
         env:
