@@ -28,7 +28,7 @@ jobs:
     name: changes
     runs-on: ubuntu-latest
     outputs:
-      # packages: ${{ steps.changes.outputs.packages }}
+      packages: ${{ steps.changes.outputs.packages }}
       django_agent: ${{ steps.changes.outputs.django_agent }}
       flask_agent: ${{ steps.changes.outputs.flask_agent }}
       agent_toolkit: ${{ steps.changes.outputs.agent_toolkit }}
@@ -58,7 +58,7 @@ jobs:
         shell: bash
         env:
           PACKAGE: ${{ matrix.current_package }}
-          CHANGES: ${{ toJSON(needs.changes.outputs) }}
+          CHANGES: ${{ needs.changes.outputs.packages }}
 
       - run:   echo "$OUTPUTS"
         shell: bash
