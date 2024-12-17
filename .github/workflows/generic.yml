@@ -66,7 +66,7 @@ jobs:
           OUTPUTS: ${{ toJSON(steps.has_change.outputs) }}
 
       - id: lint
-        if: ${{ toJSON(steps.has_change.outputs) == 'true' }}
+        if: ${{ toJSON(steps.has_change.outputs.has_changes) == 'true' }}
         uses: ./.github/actions/linting
         with:
           python-version: ${{ matrix.python-version }}
