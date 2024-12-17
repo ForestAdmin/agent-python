@@ -40,6 +40,10 @@ jobs:
         shell: bash
         env:
           OUTPUTS: ${{ toJSON(steps.changes.outputs.django_agent) }}
+      - run:   echo "$OUTPUTS"
+        shell: bash
+        env:
+          OUTPUTS: ${{ steps.changes.outputs.all }}
 
   lint:
     name: Linting
