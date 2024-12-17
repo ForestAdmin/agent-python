@@ -1,7 +1,7 @@
 name: Changes
 outputs:
-  all:
-    packages: changes on all
+  packages:
+    description: changes on all
     value: ${{ toJSON(steps.changes.outputs) }}
   # django_agent:
   #   description: changes on django_agent
