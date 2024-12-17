@@ -45,10 +45,15 @@ jobs:
         current_package: ${{ fromJson(inputs.packages) }}
     steps:
       - uses: actions/checkout@v4
-      - run:   echo "${{ matrix.current_package }} | django agent $OUTPUTS"
+      - id: package_name
+        run: echo $PACKAGE | cut -d/ -f 3 >> "$GITHUB_OUTPUT"
         shell: bash
         env:
-          OUTPUTS: ${{ toJSON(fromJSON(needs.changes.outputs.all).django_agent) }}
+          PACKAGE: ${{ matrix.current_package }}
+      - run:   echo "$OUTPUTS"
+        shell: bash
+        env:
+          OUTPUTS: ${{ steps.package_name.outputs }}
       - id: lint
         if: needs.changes.steps.changes.outputs.${{ matrix.current_package }} == 'true'
         uses: ./.github/actions/linting
