@@ -21,3 +21,7 @@ runs:
           django_agent:
             - 'src/django_agent/**'
 
+    - run:   echo "$OUTPUTS"
+      shell: bash
+      env:
+        OUTPUTS: ${{ toJSON(step.changes.outputs) }}
