@@ -2,7 +2,6 @@ name: Changes
 runs:
   using: "composite"
   steps:
-    - uses: actions/checkout@v4
     - uses: dorny/paths-filter@v2
       id: changes
       with:

@@ -33,6 +33,8 @@ outputs:
 runs:
   using: "composite"
   steps:
+    # this is certainly useless, but theses params seems to be here for a good reason.
+    # I added theses params to the related job in workflows.yml, but still afraid to test
     - uses: actions/checkout@v4
       with:
         fetch-depth: 0

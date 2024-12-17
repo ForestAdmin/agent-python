@@ -28,6 +28,7 @@ jobs:
     name: changes
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
       - id: changes
         uses: ./.github/actions/changes
   lint:
@@ -39,6 +40,7 @@ jobs:
         python-version: ['3.10']
         current_package: ${{ fromJson(inputs.packages) }}
     steps:
+      - uses: actions/checkout@v4
       - id: lint
         if: needs.changes.steps.changes.outputs.${{ matrix.current_package }} == 'true'
         uses: ./.github/actions/linting
@@ -54,6 +56,7 @@ jobs:
         python-version: ['3.10']
         current_package: ${{ fromJson(inputs.packages) }}
     steps:
+      - uses: actions/checkout@v4
       - id: isort
         if: needs.changes.outputs.${{ matrix.current_package }} == 'true'
         uses: ./.github/actions/isort
@@ -69,6 +72,7 @@ jobs:
         python-version: ['3.10']
         current_package: ${{ fromJson(inputs.packages) }}
     steps:
+      - uses: actions/checkout@v4
       - id: isort
         if: needs.changes.outputs.${{ matrix.current_package }} == 'true'
         uses: ./.github/actions/black
@@ -84,6 +88,7 @@ jobs:
         python-version: ['3.8', '3.9', '3.10', '3.11', '3.12']
         current_package: ${{ fromJson(inputs.packages) }}
     steps:
+      - uses: actions/checkout@v4
       - id: tests
         if: steps.changes.outputs.${{ matrix.current_package }} == 'true'
         uses: ./.github/actions/tests
@@ -98,6 +103,7 @@ jobs:
       matrix:
         python-version: ['3.10']
     steps:
+      - uses: actions/checkout@v4
       - id: coverage
         uses: ./.github/actions/coverage
         with:
@@ -117,6 +123,10 @@ jobs:
       matrix:
         python-version: ['3.10']
     steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false # GITHUB_TOKEN must not be set for the semantic release
       - id: release
         uses: ./.github/actions/release
         with:
@@ -140,6 +150,7 @@ jobs:
         python-version: ['3.10']
         current_package: ${{ fromJson(inputs.packages) }}
     steps:
+      - uses: actions/checkout@v4
       - id: pypi
         uses: ./.github/actions/pypi
         with:
