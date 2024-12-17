@@ -12,7 +12,7 @@ from forestadmin.agent_toolkit.utils.context import HttpResponseBuilder, Request
 from forestadmin.agent_toolkit.utils.sql_query_checker import SqlQueryChecker
 from forestadmin.datasource_toolkit.datasource_customizer.datasource_composite import CompositeDatasource
 from forestadmin.datasource_toolkit.datasource_customizer.datasource_customizer import DatasourceCustomizer
-from forestadmin.datasource_toolkit.exceptions import BusinessError, UnprocessableError, ValidationError
+from forestadmin.datasource_toolkit.exceptions import BusinessError, ForbiddenError, UnprocessableError, ValidationError
 from forestadmin.datasource_toolkit.interfaces.chart import (
     Chart,
     DistributionChart,
@@ -45,6 +45,8 @@ class NativeQueryResource(BaseCollectionResource, ContextVariableInjectorResourc
     async def dispatch(self, request: Request, method_name: Literal["native_query"]) -> Response:
         try:
             return await self.handle_native_query(request)  # type:ignore
+        except ForbiddenError as exc:
+            return HttpResponseBuilder.build_client_error_response([exc])
         except Exception as exc:
             ForestLogger.log("exception", exc)
             return HttpResponseBuilder.build_client_error_response([exc])

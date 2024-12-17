@@ -15,7 +15,7 @@ from forestadmin.agent_toolkit.resources.collections.filter import build_filter
 from forestadmin.agent_toolkit.resources.collections.requests import RequestCollection, RequestCollectionException
 from forestadmin.agent_toolkit.resources.context_variable_injector_mixin import ContextVariableInjectorResourceMixin
 from forestadmin.agent_toolkit.utils.context import FileResponse, HttpResponseBuilder, Request, RequestMethod, Response
-from forestadmin.datasource_toolkit.exceptions import ForestException
+from forestadmin.datasource_toolkit.exceptions import ForbiddenError, ForestException
 from forestadmin.datasource_toolkit.interfaces.query.aggregation import Aggregation
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.base import ConditionTree
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.branch import Aggregator, ConditionTreeBranch
@@ -63,6 +63,8 @@ class StatsResource(BaseCollectionResource, ContextVariableInjectorResourceMixin
             )
         try:
             return await meth(request_collection)
+        except ForbiddenError as exc:
+            return HttpResponseBuilder.build_client_error_response([exc])
         except Exception as exc:
             ForestLogger.log("exception", exc)
             return HttpResponseBuilder.build_client_error_response([exc])
