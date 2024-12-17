@@ -47,15 +47,15 @@ jobs:
         id: has_change
         run: |
           PACKAGE_NAME=$(echo $PACKAGE | cut -d'/' -f3)
-          echo "has_change=$(echo $CHANGES | jq .$PACKAGE_NAME)" >> $GITHUB_OUTPUT
+          echo "has_change=$(echo $CHANGES | jq -r .$PACKAGE_NAME)" >> $GITHUB_OUTPUT
         shell: bash
         env:
           PACKAGE: ${{ matrix.current_package }}
           CHANGES: ${{ needs.changes.outputs.packages }}
       - uses: actions/checkout@v4
-        if: ${{ steps.has_change.outputs.has_change != '"false"' }}
+        if: ${{ steps.has_change.outputs.has_change != 'false' }}
       - id: lint
-        if: ${{ steps.has_change.outputs.has_change != '"false"' }}
+        if: ${{ steps.has_change.outputs.has_change != 'false' }}
         uses: ./.github/actions/linting
         with:
           python-version: ${{ matrix.python-version }}
@@ -73,15 +73,15 @@ jobs:
         id: has_change
         run: |
           PACKAGE_NAME=$(echo $PACKAGE | cut -d'/' -f3)
-          echo "has_change=$(echo $CHANGES | jq .$PACKAGE_NAME)" >> $GITHUB_OUTPUT
+          echo "has_change=$(echo $CHANGES | jq -r .$PACKAGE_NAME)" >> $GITHUB_OUTPUT
         shell: bash
         env:
           PACKAGE: ${{ matrix.current_package }}
           CHANGES: ${{ needs.changes.outputs.packages }}
       - uses: actions/checkout@v4
-        if: ${{ steps.has_change.outputs.has_change != '"false"' }}
+        if: ${{ steps.has_change.outputs.has_change != 'false' }}
       - id: isort
-        if: ${{ steps.has_change.outputs.has_change != '"false"' }}
+        if: ${{ steps.has_change.outputs.has_change != 'false' }}
         uses: ./.github/actions/isort
         with:
           python-version: ${{ matrix.python-version }}
@@ -99,15 +99,15 @@ jobs:
         id: has_change
         run: |
           PACKAGE_NAME=$(echo $PACKAGE | cut -d'/' -f3)
-          echo "has_change=$(echo $CHANGES | jq .$PACKAGE_NAME)" >> $GITHUB_OUTPUT
+          echo "has_change=$(echo $CHANGES | jq -r .$PACKAGE_NAME)" >> $GITHUB_OUTPUT
         shell: bash
         env:
           PACKAGE: ${{ matrix.current_package }}
           CHANGES: ${{ needs.changes.outputs.packages }}
       - uses: actions/checkout@v4
-        if: ${{ steps.has_change.outputs.has_change != '"false"' }}
+        if: ${{ steps.has_change.outputs.has_change != 'false' }}
       - id: isort
-        if: ${{ steps.has_change.outputs.has_change != '"false"' }}
+        if: ${{ steps.has_change.outputs.has_change != 'false' }}
         uses: ./.github/actions/black
         with:
           python-version: ${{ matrix.python-version }}
