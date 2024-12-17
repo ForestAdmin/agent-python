@@ -53,7 +53,7 @@ jobs:
       - uses: actions/checkout@v4
       - id: has_change
         run: |
-          PACKAGE_NAME=echo "$PACKAGE" | cut -d'/' -f3
+          PACKAGE_NAME=$(echo $PACKAGE | cut -d'/' -f3)
           echo "has_change=$(echo $CHANGES | jq .$PACKAGE_NAME)" >> $GITHUB_OUTPUT
         shell: bash
         env:
