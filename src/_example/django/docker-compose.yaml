@@ -16,11 +16,8 @@ services:
       args:
         PYTHON_VERSION: 3.11 # 3.11 is default if not set
     environment:
-      # forest environment related
-      FOREST_ENV_SECRET: ${FOREST_ENV_SECRET}
-      FOREST_AUTH_SECRET: ${FOREST_AUTH_SECRET}
-      FOREST_IS_PRODUCTION: "False"
       # forest related
+      FOREST_IS_PRODUCTION: "False"
       FOREST_VERIFY_SSL: "False"
       FOREST_SERVER_URL: 'https://api.development.forestadmin.com'
       # django related

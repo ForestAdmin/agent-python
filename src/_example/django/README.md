@@ -5,7 +5,7 @@
 
 ## Using docker
 
-First you need to update the [docker compose file](./docker-compose.yaml) to add your `FOREST_ENV_SECRET` and `FOREST_AUTH_SECRET`
+First you need to create a `.env` file from [.env.docker.sample](./.env.docker.sample) file to add your `FOREST_ENV_SECRET` and `FOREST_AUTH_SECRET`
 
 Normally with docker, you just have a few command to use, in the correct folder:
 
@@ -20,7 +20,7 @@ docker compose logs -f # to see the output
 docker compose down # to cleanup
 ```
 
-⚠️ If you already have a [`.env`](./.env) at the root of this example project, it will be used, overriding what's define in the [docker compose file](./docker-compose.yaml).
+⚠️ If you already have a [`.env`](./.env) at the root of this example project, it will be used, overriding environment variables defined in the [docker-compose.yaml](./docker-compose.yaml) file.
 
 ## Setup a dev environment on your machine
 
