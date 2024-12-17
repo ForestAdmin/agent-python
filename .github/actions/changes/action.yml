@@ -2,7 +2,10 @@ name: Changes
 outputs:
   changes:
     description: changes per package
-    value: ${{ steps.changes.outputs }}
+    value: ${{ toJSON(steps.changes.outputs) }}
+  django_agent:
+    description: changes per package
+    value: ${{ steps.changes.outputs.django_agent }}
 runs:
   using: "composite"
   steps:
