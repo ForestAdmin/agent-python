@@ -44,9 +44,9 @@ jobs:
       - id: debug
         shell: bash
         run: |
-          echo '${{needs.changes.steps.changes.outputs';}}
-          echo '${{steps.changes.outputs../src/django_agent}}'
-          echo '${{needs.steps.changes.outputs.django_agent}}'
+          echo '${{needs.changes.steps.changes.outputs}}';
+          echo '${{steps.changes.outputs../src/django_agent}}';
+          echo '${{needs.steps.changes.outputs.django_agent}}';
       - id: lint
         if: steps.changes.outputs.${{ matrix.current_package }} == 'true'
         uses: ./.github/actions/linting
