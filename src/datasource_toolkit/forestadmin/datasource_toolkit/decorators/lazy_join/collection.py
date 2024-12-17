@@ -3,6 +3,7 @@ from typing import List, Union, cast
 from forestadmin.agent_toolkit.utils.context import User
 from forestadmin.datasource_toolkit.decorators.collection_decorator import CollectionDecorator
 from forestadmin.datasource_toolkit.interfaces.fields import ManyToOne, is_many_to_one
+from forestadmin.datasource_toolkit.interfaces.query.aggregation import AggregateResult, Aggregation
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.leaf import ConditionTreeLeaf
 from forestadmin.datasource_toolkit.interfaces.query.filter.paginated import PaginatedFilter
 from forestadmin.datasource_toolkit.interfaces.query.filter.unpaginated import Filter
@@ -39,6 +40,38 @@ class LazyJoinCollectionDecorator(CollectionDecorator):
 
         return _filter
 
+    async def aggregate(
+        self, caller: User, filter_: Filter | None, aggregation: Aggregation, limit: int | None = None
+    ) -> List[AggregateResult]:
+        replaced = {}
+
+        def replacer(field_name: str) -> str:
+            if self._is_useless_join(field_name.split(":")[0], aggregation.projection):
+                new_field_name = self._get_fk_field_for_projection(field_name)
+                replaced[new_field_name] = field_name
+                return new_field_name
+            else:
+                return field_name
+
+        new_aggregation = aggregation.replace_fields(replacer)
+
+        aggregate_result = await self.child_collection.aggregate(
+            caller, cast(Filter, await self._refine_filter(caller, filter_)), new_aggregation, limit
+        )
+        if aggregation == new_aggregation:
+            return aggregate_result
+
+        for result in aggregate_result:
+            group = {}
+            for field, value in result["group"].items():
+                if field in replaced:
+                    group[replaced[field]] = value
+                else:
+                    group[field] = value
+            result["group"] = group
+
+        return aggregate_result
+
     def _is_useless_join(self, relation: str, projection: Projection) -> bool:
         relation_schema = self.schema["fields"][relation]
         sub_projections = projection.relations[relation]
@@ -63,7 +96,7 @@ class LazyJoinCollectionDecorator(CollectionDecorator):
                 returned_projection.remove(f"{relation}:{relation_projections[0]}")
 
                 # add foreign keys to projection
-                fk_field = self._get_fk_field_for_projection(relation)
+                fk_field = self._get_fk_field_for_projection(f"{relation}:{relation_projections[0]}")
                 if fk_field not in returned_projection:
                     returned_projection.append(fk_field)
 
