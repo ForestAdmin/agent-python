@@ -1,4 +1,4 @@
-from typing import List, Union, cast
+from typing import List, Optional, Union, cast
 
 from forestadmin.agent_toolkit.utils.context import User
 from forestadmin.datasource_toolkit.decorators.collection_decorator import CollectionDecorator
@@ -41,7 +41,7 @@ class LazyJoinCollectionDecorator(CollectionDecorator):
         return _filter
 
     async def aggregate(
-        self, caller: User, filter_: Filter | None, aggregation: Aggregation, limit: int | None = None
+        self, caller: User, filter_: Union[Filter, None], aggregation: Aggregation, limit: Optional[int] = None
     ) -> List[AggregateResult]:
         replaced = {}
 
