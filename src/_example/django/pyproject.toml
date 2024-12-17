@@ -37,4 +37,4 @@ type = "simple"
 [tool.poe.tasks]
 init-db  = { shell = "cd django_demo && python manage.py migrate" }
 populate-db  = { shell = "cd django_demo && python manage.py populate-db && python manage.py sqlalchemy_init" }
-runserver = { shell = "cd django_demo && python manage.py runserver" }
+runserver = { shell = "cd django_demo && python manage.py runserver 0.0.0.0:8000" }
