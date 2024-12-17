@@ -13,36 +13,17 @@ runs:
     - uses: actions/checkout@v4
     - name: Install poetry
       shell: bash
-      run: |
-        pipx install poetry
-        echo "POETRY_CACHE_DIR=$(pip cache dir)" >> $GITHUB_ENV
+      run: pipx install poetry
     - name: Set up Python ${{ inputs.python-version }}
       uses: actions/setup-python@v4
       with:
         python-version: ${{ inputs.python-version }}
-        cache: 'poetry'
-        # setup python cache is 10 Mb and name is:
-        # 'setup-python-Linux-python-3.10.15-poetry-v2-d2a04beabaad3b04df0afa80a06ba826d4dbba62915af5dd06c85580428cd810'
-        # setup-python-os-py_version-package_manager_v2_poetry_lock_hash
-
-    - name: Cache poetry
-      uses: actions/cache@v3
-      with:
-        path: ${{ env.POETRY_CACHE_DIR }}
-        key: ${{ runner.os }}-poetry-${{ inputs.python-version }}-${{ inputs.current_package }}-${{ hashFiles('**/poetry.lock') }}
-
-    # 315MB of cache * 6 sub package * 5 python versions ~= 10GB.
-    # - name: Cache poetry
-    #   id: cache-poetry-install
-    #   uses: actions/cache@v4
-    #   with:
-    #     path: '~/.cache/pypoetry'
-    #     key: ${{ runner.os }}-poetry-${{ inputs.python-version }}-${{ inputs.current_package }}-${{ hashFiles('**/poetry.lock') }}
+    # We are not caching here, because it's impossible to have less than 160MB of cache, meaning
+    # *6 subpackage, * 5 python version = 5GB, it's too much.
     - name: Install package dependencies
       shell: bash
       working-directory: ${{ inputs.current_package }}
       run: poetry install --no-interaction --with test
-      # if: steps.cache-poetry-install.outputs.cache-hit != 'true'
     - name: Test with pytest
       shell: bash
       working-directory: ${{ inputs.current_package }}
