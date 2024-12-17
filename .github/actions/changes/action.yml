@@ -24,4 +24,4 @@ runs:
     - run:   echo "$OUTPUTS"
       shell: bash
       env:
-        OUTPUTS: ${{ toJSON(step.changes.outputs) }}
+        OUTPUTS: ${{ toJSON(steps.changes.outputs) }}
