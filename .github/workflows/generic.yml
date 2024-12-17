@@ -27,6 +27,29 @@ jobs:
   changes:
     name: changes
     runs-on: ubuntu-latest
+    outputs:
+      all:
+        description: changes on all
+        value: ${{ toJSON(steps.changes.outputs) }}
+      django_agent:
+        description: changes on django_agent
+        value: ${{ steps.changes.outputs.django_agent }}
+      flask_agent:
+        description: changes on flask_agent
+        value: ${{ steps.changes.outputs.flask_agent }}
+      agent_toolkit:
+        description: changes on agent_toolkit
+        value: ${{ steps.changes.outputs.agent_toolkit }}
+      datasource_django:
+        description: changes on datasource_django
+        value: ${{ steps.changes.outputs.datasource_django }}
+      datasource_sqlalchemy:
+        description: changes on datasource_sqlalchemy
+        value: ${{ steps.changes.outputs.datasource_sqlalchemy }}
+      datasource_toolkit:
+        description: changes on datasource_toolkit
+        value: ${{ steps.changes.outputs.datasource_toolkit }}
+
     steps:
       - uses: actions/checkout@v4
       - id: changes
@@ -35,7 +58,7 @@ jobs:
       - run:   echo "$OUTPUTS"
         shell: bash
         env:
-          OUTPUTS: ${{ toJSON(steps.changes) }}
+          OUTPUTS: ${{ toJSON(steps.changes.outputs.django_agent) }}
 
   lint:
     name: Linting
