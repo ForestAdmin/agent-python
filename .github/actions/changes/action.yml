@@ -11,7 +11,12 @@ runs:
             - 'src/datasource_toolkit/**'
           ./src/datasource_sqlalchemy:
             - 'src/datasource_sqlalchemy/**'
+          ./src/datasource_django:
+            - 'src/datasource_django/**'
           ./src/agent_toolkit:
             - 'src/agent_toolkit/**'
           ./src/flask_agent:
             - 'src/flask_agent/**'
+          ./src/django_agent:
+            - 'src/django_agent/**'
+
