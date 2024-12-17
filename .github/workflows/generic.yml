@@ -46,7 +46,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - id: package_name
-        run: echo $PACKAGE | cut -d/ -f 3 >> "$GITHUB_OUTPUT"
+        run: "echo package_name=$($PACKAGE | cut -d/ -f 3) >> $GITHUB_OUTPUT"
         shell: bash
         env:
           PACKAGE: ${{ matrix.current_package }}
