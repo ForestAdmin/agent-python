@@ -1,8 +1,6 @@
 name: Changes
 runs:
   using: "composite"
-  outputs:
-    changes: ${{ steps.changes.outputs }}
   steps:
     - uses: dorny/paths-filter@v2
       id: changes
@@ -22,6 +20,8 @@ runs:
             - 'src/django_agent/**'
           django_agent:
             - 'src/django_agent/**'
+      outputs:
+        changes: ${{ steps.changes.outputs }}
 
     - run:   echo "$OUTPUTS"
       shell: bash
