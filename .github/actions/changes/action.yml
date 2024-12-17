@@ -1,6 +1,8 @@
 name: Changes
 runs:
   using: "composite"
+  outputs:
+    changes: ${{ steps.changes.outputs }}
   steps:
     - uses: dorny/paths-filter@v2
       id: changes
