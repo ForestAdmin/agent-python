@@ -43,7 +43,6 @@ jobs:
         python-version: ['3.10']
         current_package: ${{ fromJson(inputs.packages) }}
     steps:
-      - uses: actions/checkout@v4
       - name: has change in sub package
         id: has_change
         run: |
@@ -53,6 +52,8 @@ jobs:
         env:
           PACKAGE: ${{ matrix.current_package }}
           CHANGES: ${{ needs.changes.outputs.packages }}
+      - uses: actions/checkout@v4
+        if: ${{ steps.has_change.outputs.has_change != '"false"' }}
       - id: lint
         if: ${{ steps.has_change.outputs.has_change != '"false"' }}
         uses: ./.github/actions/linting
@@ -68,7 +69,17 @@ jobs:
         python-version: ['3.10']
         current_package: ${{ fromJson(inputs.packages) }}
     steps:
+      - name: has change in sub package
+        id: has_change
+        run: |
+          PACKAGE_NAME=$(echo $PACKAGE | cut -d'/' -f3)
+          echo "has_change=$(echo $CHANGES | jq .$PACKAGE_NAME)" >> $GITHUB_OUTPUT
+        shell: bash
+        env:
+          PACKAGE: ${{ matrix.current_package }}
+          CHANGES: ${{ needs.changes.outputs.packages }}
       - uses: actions/checkout@v4
+        if: ${{ steps.has_change.outputs.has_change != '"false"' }}
       - id: isort
         if: ${{ steps.has_change.outputs.has_change != '"false"' }}
         uses: ./.github/actions/isort
@@ -84,7 +95,17 @@ jobs:
         python-version: ['3.10']
         current_package: ${{ fromJson(inputs.packages) }}
     steps:
+      - name: has change in sub package
+        id: has_change
+        run: |
+          PACKAGE_NAME=$(echo $PACKAGE | cut -d'/' -f3)
+          echo "has_change=$(echo $CHANGES | jq .$PACKAGE_NAME)" >> $GITHUB_OUTPUT
+        shell: bash
+        env:
+          PACKAGE: ${{ matrix.current_package }}
+          CHANGES: ${{ needs.changes.outputs.packages }}
       - uses: actions/checkout@v4
+        if: ${{ steps.has_change.outputs.has_change != '"false"' }}
       - id: isort
         if: ${{ steps.has_change.outputs.has_change != '"false"' }}
         uses: ./.github/actions/black
