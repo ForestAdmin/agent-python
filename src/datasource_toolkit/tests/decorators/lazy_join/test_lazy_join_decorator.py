@@ -1,7 +1,7 @@
 import asyncio
 import sys
 from unittest import TestCase
-from unittest.mock import ANY, AsyncMock, patch
+from unittest.mock import AsyncMock, patch
 
 from forestadmin.datasource_toolkit.interfaces.query.aggregation import Aggregation
 from forestadmin.datasource_toolkit.interfaces.query.filter.unpaginated import Filter
