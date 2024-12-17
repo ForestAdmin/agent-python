@@ -57,12 +57,12 @@ jobs:
       #   shell: bash
       #   env:
       #     PACKAGE: ${{ matrix.current_package }}
-      - run:   echo "$OUTPUTS"
-        shell: bash
-        env:
-          OUTPUTS: ${{ toJSON(steps.package_name.outputs) }}
+      # - run:   echo "$OUTPUTS"
+      #   shell: bash
+      #   env:
+      #     OUTPUTS: ${{ steps.package_name.outputs._2 }}
       - id: lint
-        if: needs.changes.steps.changes.outputs.${{ matrix.current_package }} == 'true'
+        if: needs.changes.steps.changes.outputs.${{ steps.package_name.outputs._2 }} == 'true'
         uses: ./.github/actions/linting
         with:
           python-version: ${{ matrix.python-version }}
