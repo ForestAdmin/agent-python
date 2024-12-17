@@ -45,11 +45,18 @@ jobs:
         current_package: ${{ fromJson(inputs.packages) }}
     steps:
       - uses: actions/checkout@v4
-      - id: package_name
-        run: "echo package_name=$(echo $PACKAGE | cut -d/ -f 3) >> $GITHUB_OUTPUT"
-        shell: bash
-        env:
-          PACKAGE: ${{ matrix.current_package }}
+      - uses: jungwinter/split@master
+        id: package_name
+        with:
+          msg:  ${{ matrix.current_package }}
+          separator: "/"
+          maxsplit: -1
+
+      # - id: package_name
+      #   run: "echo package_name=$(echo $PACKAGE | cut -d/ -f 3) >> $GITHUB_OUTPUT"
+      #   shell: bash
+      #   env:
+      #     PACKAGE: ${{ matrix.current_package }}
       - run:   echo "$OUTPUTS"
         shell: bash
         env:
