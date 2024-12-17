@@ -2,8 +2,7 @@ name: Changes
 outputs:
   packages:
     description: changes on all
-    # value: ${{ toJSON(steps.changes.outputs) }}
-    value: ${{ steps.changes.outputs }}
+    value: ${{ toJSON(steps.changes.outputs) }}
 runs:
   using: "composite"
   steps:
