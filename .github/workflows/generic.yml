@@ -61,7 +61,7 @@ jobs:
       - run: "echo $CHANGES"
         shell: bash
         env:
-          CHANGES: ${{  toJSON(needs.changes.outputs) }}
+          CHANGES: ${{  toJSON(needs.changes) }}
 
 
 
@@ -69,7 +69,7 @@ jobs:
         run: "echo has_change=$(echo $CHANGES | jq .$PACKAGE_NAME) >> $GITHUB_OUTPUT"
         shell: bash
         env:
-          PACKAGE_NAME: ${{ matrix.current_package }}
+          PACKAGE_NAME: ${{ steps.package_name.outputs._2 }}
           CHANGES: ${{ needs.changes.steps.changes.outputs }}
       - run:   echo "$OUTPUTS"
         shell: bash
