@@ -70,7 +70,7 @@ jobs:
         shell: bash
         env:
           PACKAGE_NAME: ${{ steps.package_name.outputs._2 }}
-          CHANGES: ${{ needs.changes.steps.changes.outputs }}
+          CHANGES: ${{ toJSON(needs.changes.outputs) }}
       - run:   echo "$OUTPUTS"
         shell: bash
         env:
