@@ -28,7 +28,7 @@ jobs:
     name: changes
     runs-on: ubuntu-latest
     outputs:
-      packages: ${{ steps.changes.outputs.packages }}
+      # packages: ${{ steps.changes.outputs.packages }}
       django_agent: ${{ steps.changes.outputs.django_agent }}
       flask_agent: ${{ steps.changes.outputs.flask_agent }}
       agent_toolkit: ${{ steps.changes.outputs.agent_toolkit }}
@@ -63,10 +63,10 @@ jobs:
       - run:   echo "$OUTPUTS"
         shell: bash
         env:
-          OUTPUTS: ${{ steps.has_change.outputs }}
+          OUTPUTS: ${{ toJSON(steps.has_change.outputs) }}
 
       - id: lint
-        if: ${{ steps.has_change.outputs == 'true' }}
+        if: ${{ toJSON(steps.has_change.outputs) == 'true' }}
         uses: ./.github/actions/linting
         with:
           python-version: ${{ matrix.python-version }}
