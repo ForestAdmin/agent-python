@@ -1,4 +1,6 @@
 name: Changes
+outputs:
+  changes: ${{ steps.changes.outputs }}
 runs:
   using: "composite"
   steps:
@@ -20,8 +22,6 @@ runs:
             - 'src/django_agent/**'
           django_agent:
             - 'src/django_agent/**'
-      outputs:
-        changes: ${{ steps.changes.outputs }}
 
     - run:   echo "$OUTPUTS"
       shell: bash
