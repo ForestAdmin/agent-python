@@ -45,9 +45,10 @@ jobs:
         shell: bash
         run: |
           echo 'needs.changes.steps.changes.outputs';
-          echo 'steps.changes.outputs'
+          echo 'steps.changes.outputs../src/django_agent'
+          echo 'steps.changes.outputs.django_agent'
       - id: lint
-        if: needs.changes.steps.changes.outputs.${{ matrix.current_package }} == 'true'
+        if: steps.changes.outputs.${{ matrix.current_package }} == 'true'
         uses: ./.github/actions/linting
         with:
           python-version: ${{ matrix.python-version }}

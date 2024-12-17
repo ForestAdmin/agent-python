@@ -18,4 +18,6 @@ runs:
             - 'src/flask_agent/**'
           ./src/django_agent:
             - 'src/django_agent/**'
+          django_agent:
+            - 'src/django_agent/**'
 
