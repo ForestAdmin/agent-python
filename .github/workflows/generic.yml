@@ -28,22 +28,12 @@ jobs:
     name: changes
     runs-on: ubuntu-latest
     outputs:
-      all: ${{ steps.changes.outputs.all }}
-      django_agent: ${{ steps.changes.outputs.django_agent }}
+      packages: ${{ steps.changes.outputs.packages }}
 
     steps:
       - uses: actions/checkout@v4
       - id: changes
         uses: ./.github/actions/changes
-
-      - run:   echo "$OUTPUTS"
-        shell: bash
-        env:
-          OUTPUTS: ${{ toJSON(steps.changes.outputs.django_agent) }}
-      - run:   echo "$OUTPUTS"
-        shell: bash
-        env:
-          OUTPUTS: ${{ steps.changes.outputs.all }}
 
   lint:
     name: Linting
@@ -55,7 +45,7 @@ jobs:
         current_package: ${{ fromJson(inputs.packages) }}
     steps:
       - uses: actions/checkout@v4
-      - run:   echo "django agent $OUTPUTS"
+      - run:   echo "${{ matrix.current_package }} | django agent $OUTPUTS"
         shell: bash
         env:
           OUTPUTS: ${{ toJSON(fromJSON(needs.changes.outputs.all).django_agent) }}
