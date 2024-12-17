@@ -51,22 +51,10 @@ jobs:
         current_package: ${{ fromJson(inputs.packages) }}
     steps:
       - uses: actions/checkout@v4
-      # - uses: jungwinter/split@master
-      #   id: package_name
-      #   with:
-      #     msg:  ${{ matrix.current_package }}
-      #     separator: "/"
-      #     maxsplit: -1
-
-      - run: "echo $CHANGES"
-        shell: bash
-        env:
-          CHANGES: ${{  toJSON(needs.changes) }}
-
-
-
       - id: has_change
-        run: echo "has_change=$(echo $CHANGES | jq .$(echo "$PACKAGE" | cut -d'/' -f3))" >> $GITHUB_OUTPUT
+        run: |
+          PACKAGE_NAME=echo "$PACKAGE" | cut -d'/' -f3
+          echo "has_change=$(echo $CHANGES | jq .$PACKAGE_NAME)" >> $GITHUB_OUTPUT
         shell: bash
         env:
           PACKAGE: ${{ matrix.current_package }}
@@ -75,12 +63,10 @@ jobs:
       - run:   echo "$OUTPUTS"
         shell: bash
         env:
-          OUTPUTS: ${{ toJSON(steps.has_change.outputs) }}
-
-
+          OUTPUTS: ${{ steps.has_change.outputs }}
 
       - id: lint
-        if: needs.changes.steps.changes.outputs.${{ steps.package_name.outputs._2 }} == 'true'
+        if: ${{ steps.has_change.outputs == 'true' }}
         uses: ./.github/actions/linting
         with:
           python-version: ${{ matrix.python-version }}
