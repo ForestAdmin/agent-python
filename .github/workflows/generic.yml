@@ -66,9 +66,7 @@ jobs:
 
 
       - id: has_change
-        run: |
-          PACKAGE_NAME=echo "$PACKAGE" | cut -d'/' -f3
-          echo has_change=$(echo $CHANGES | jq .$PACKAGE_NAME) >> $GITHUB_OUTPUT
+        run: echo "has_change=$(echo $CHANGES | jq .$(echo "$PACKAGE" | cut -d'/' -f3))" >> $GITHUB_OUTPUT
         shell: bash
         env:
           PACKAGE: ${{ matrix.current_package }}
@@ -77,7 +75,7 @@ jobs:
       - run:   echo "$OUTPUTS"
         shell: bash
         env:
-          OUTPUTS: ${{ steps.has_change.outputs }}
+          OUTPUTS: ${{ toJSON(steps.has_change.outputs) }}
 
 
 

@@ -1,6 +1,6 @@
 name: Changes
 outputs:
-  all:
+  packages:
     description: changes on all
     value: ${{ toJSON(steps.changes.outputs) }}
   django_agent:
