@@ -65,7 +65,7 @@ source venv/bin/activate  # adapt venv with the path previously used
 ### Install the dependencies
 
 ```bash
-poetry install --with dev
+poetry install
 ```
 
 ### Init your database

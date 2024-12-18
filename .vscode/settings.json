@@ -1,0 +1,59 @@
+{
+    "python.analysis.extraPaths": [
+        "src/",
+        "src/_example/flask_sqlalchemy_package/",
+        "src/_example/flask_sqlalchemy_scratch/",
+        "src/_example/django/django_demo",
+        "src/_example/fastapi/",
+        // enable the following when working on test project
+        // "src/datasource_django/tests/test_project_datasource",
+        // "src/django_agent/tests/test_project_agent",
+    ],
+    "python.autoComplete.extraPaths": [
+        "src/",
+        "src/_example/flask_sqlalchemy_package/",
+        "src/_example/flask_sqlalchemy_scratch/",
+        "src/_example/fastapi/",
+        "src/_example/django/django_demo",
+        // enable the following when working on test project
+        // "src/datasource_django/tests/test_project_datasource",
+        // "src/django_agent/tests/test_project_agent",
+    ],
+    "python.testing.pytestArgs": [
+        "--rootdir=./src/",
+        "src/agent_toolkit",
+        "src/datasource_toolkit",
+        "src/datasource_sqlalchemy",
+        "src/flask_agent",
+        "src/fastapi_agent",
+        // because of test projects, the following cannot be enable at the same time
+        // "src/datasource_django",
+        // "src/django_agent",
+    ],
+    "black-formatter.args": [
+        "--line-length=120"
+    ],
+    "flake8.args": [
+        "--max-line-length=120"
+    ],
+    "isort.args": [
+        "--settings-file",
+        ".isort.cfg"
+    ],
+    "python.analysis.typeCheckingMode": "standard",
+    "python.testing.pytestEnabled": true,
+    "python.testing.autoTestDiscoverOnSaveEnabled": true,
+    "[python]": {
+        "editor.defaultFormatter": "ms-python.black-formatter",
+        "editor.formatOnSave": true,
+        "editor.codeActionsOnSave": {
+            "source.organizeImports": "explicit",
+            // "source.unusedImports": "explicit" // this one is disturbing when developping
+        },
+    },
+    "cSpell.words": [
+        "datauri",
+        "Dateonly",
+        "sessionmaker"
+    ],
+}
