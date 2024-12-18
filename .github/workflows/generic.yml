@@ -27,10 +27,13 @@ jobs:
   changes:
     name: changes
     runs-on: ubuntu-latest
+    outputs:
+      packages: ${{ steps.changes.outputs.packages }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - id: changes
         uses: ./.github/actions/changes
+
   lint:
     name: Linting
     needs: [ changes ]
@@ -40,9 +43,19 @@ jobs:
         python-version: ['3.10']
         current_package: ${{ fromJson(inputs.packages) }}
     steps:
-      - uses: actions/checkout@v3
+      - name: has change in sub package
+        id: has_change
+        run: |
+          PACKAGE_NAME=$(echo $PACKAGE | cut -d'/' -f3)
+          echo "has_change=$(echo $CHANGES | jq -r .$PACKAGE_NAME)" >> $GITHUB_OUTPUT
+        shell: bash
+        env:
+          PACKAGE: ${{ matrix.current_package }}
+          CHANGES: ${{ needs.changes.outputs.packages }}
+      - uses: actions/checkout@v4
+        if: ${{ steps.has_change.outputs.has_change != 'false' }}
       - id: lint
-        if: needs.changes.steps.changes.outputs.${{ matrix.current_package }} == 'true'
+        if: ${{ steps.has_change.outputs.has_change != 'false' }}
         uses: ./.github/actions/linting
         with:
           python-version: ${{ matrix.python-version }}
@@ -56,9 +69,19 @@ jobs:
         python-version: ['3.10']
         current_package: ${{ fromJson(inputs.packages) }}
     steps:
-      - uses: actions/checkout@v3
+      - name: has change in sub package
+        id: has_change
+        run: |
+          PACKAGE_NAME=$(echo $PACKAGE | cut -d'/' -f3)
+          echo "has_change=$(echo $CHANGES | jq -r .$PACKAGE_NAME)" >> $GITHUB_OUTPUT
+        shell: bash
+        env:
+          PACKAGE: ${{ matrix.current_package }}
+          CHANGES: ${{ needs.changes.outputs.packages }}
+      - uses: actions/checkout@v4
+        if: ${{ steps.has_change.outputs.has_change != 'false' }}
       - id: isort
-        if: needs.changes.outputs.${{ matrix.current_package }} == 'true'
+        if: ${{ steps.has_change.outputs.has_change != 'false' }}
         uses: ./.github/actions/isort
         with:
           python-version: ${{ matrix.python-version }}
@@ -72,9 +95,19 @@ jobs:
         python-version: ['3.10']
         current_package: ${{ fromJson(inputs.packages) }}
     steps:
-      - uses: actions/checkout@v3
+      - name: has change in sub package
+        id: has_change
+        run: |
+          PACKAGE_NAME=$(echo $PACKAGE | cut -d'/' -f3)
+          echo "has_change=$(echo $CHANGES | jq -r .$PACKAGE_NAME)" >> $GITHUB_OUTPUT
+        shell: bash
+        env:
+          PACKAGE: ${{ matrix.current_package }}
+          CHANGES: ${{ needs.changes.outputs.packages }}
+      - uses: actions/checkout@v4
+        if: ${{ steps.has_change.outputs.has_change != 'false' }}
       - id: isort
-        if: needs.changes.outputs.${{ matrix.current_package }} == 'true'
+        if: ${{ steps.has_change.outputs.has_change != 'false' }}
         uses: ./.github/actions/black
         with:
           python-version: ${{ matrix.python-version }}
@@ -88,7 +121,7 @@ jobs:
         python-version: ['3.8', '3.9', '3.10', '3.11', '3.12']
         current_package: ${{ fromJson(inputs.packages) }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - id: tests
         if: steps.changes.outputs.${{ matrix.current_package }} == 'true'
         uses: ./.github/actions/tests
@@ -103,7 +136,7 @@ jobs:
       matrix:
         python-version: ['3.10']
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - id: coverage
         uses: ./.github/actions/coverage
         with:
@@ -123,7 +156,10 @@ jobs:
       matrix:
         python-version: ['3.10']
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false # GITHUB_TOKEN must not be set for the semantic release
       - id: release
         uses: ./.github/actions/release
         with:
@@ -147,7 +183,7 @@ jobs:
         python-version: ['3.10']
         current_package: ${{ fromJson(inputs.packages) }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - id: pypi
         uses: ./.github/actions/pypi
         with:

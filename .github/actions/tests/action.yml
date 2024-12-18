@@ -10,16 +10,16 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
+    - name: Install poetry
+      shell: bash
+      run: pipx install poetry
     - name: Set up Python ${{ inputs.python-version }}
       uses: actions/setup-python@v4
       with:
         python-version: ${{ inputs.python-version }}
-        # cache: 'poetry'
-    - name: Install poetry
-      uses: snok/install-poetry@v1
-      with:
-        version: 1.7.1
+    # We are not caching here, because it's impossible to have less than 160MB of cache, meaning
+    # *6 subpackage, * 5 python version = 5GB, it's too much.
     - name: Install package dependencies
       shell: bash
       working-directory: ${{ inputs.current_package }}

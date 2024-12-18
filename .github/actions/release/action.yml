@@ -33,14 +33,16 @@ outputs:
 runs:
   using: "composite"
   steps:
-    - uses: actions/checkout@v3
+    # this is certainly useless, but theses params seems to be here for a good reason.
+    # I added theses params to the related job in workflows.yml, but still afraid to test
+    - uses: actions/checkout@v4
       with:
         fetch-depth: 0
         persist-credentials: false # GITHUB_TOKEN must not be set for the semantic release
     - uses: actions/setup-node@v2
       with:
         node-version: 14.17.6
-    # - uses: actions/cache@v2
+    # - uses: actions/cache@v4
     #   with:
     #     path: '**/node_modules'
     #     key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}

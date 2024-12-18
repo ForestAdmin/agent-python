@@ -1,4 +1,8 @@
 name: Changes
+outputs:
+  packages:
+    description: changes on all sub packages
+    value: ${{ toJSON(steps.changes.outputs) }}
 runs:
   using: "composite"
   steps:
@@ -6,11 +10,15 @@ runs:
       id: changes
       with:
         filters: |
-          ./src/datasource_toolkit/:
+          datasource_toolkit:
             - 'src/datasource_toolkit/**'
-          ./src/datasource_sqlalchemy:
+          datasource_sqlalchemy:
             - 'src/datasource_sqlalchemy/**'
-          ./src/agent_toolkit:
+          datasource_django:
+            - 'src/datasource_django/**'
+          agent_toolkit:
             - 'src/agent_toolkit/**'
-          ./src/flask_agent:
+          flask_agent:
             - 'src/flask_agent/**'
+          django_agent:
+            - 'src/django_agent/**'
