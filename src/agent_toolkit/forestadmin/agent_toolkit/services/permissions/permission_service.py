@@ -81,13 +81,15 @@ class PermissionService:
         live_query = request.query["segmentQuery"]
         connection_name = request.query["connectionName"]
         hash_live_query = _dict_hash({"query": live_query, "connection_name": connection_name})
-        is_allowed = hash_live_query in (await self._get_segment_queries(request.user.rendering_id, False)).get(
-            request.collection.name
-        )
+        is_allowed = hash_live_query in (
+            (await self._get_rendering_data(request.user.rendering_id, False))["segment_queries"]
+        ).get(request.collection.name)
 
         # Refetch
         if is_allowed is False:
-            is_allowed = hash_live_query in await self._get_segment_queries(request.user.rendering_id, True)
+            is_allowed = (
+                hash_live_query in (await self._get_rendering_data(request.user.rendering_id, True))["segment_queries"]
+            )
 
         # still not allowed - throw forbidden message
         if is_allowed is False:
@@ -196,16 +198,6 @@ class PermissionService:
             self._handle_rendering_permissions(response)
 
         return self.cache["forest.rendering"]
-
-    async def _get_segment_queries(self, rendering_id: int, force_fetch: bool):
-        if force_fetch and "forest.rendering" in self.cache:
-            del self.cache["forest.rendering"]
-
-        if "forest.rendering" not in self.cache:
-            response = await ForestHttpApi.get_rendering_permissions(rendering_id, self.options)
-            self._handle_rendering_permissions(response)
-
-        return self.cache["forest.rendering"]["segment_queries"]
 
     def _handle_rendering_permissions(self, rendering_permissions):
         rendering_cache = {}
