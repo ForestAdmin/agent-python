@@ -18,7 +18,7 @@ forestadmin-datasource-django = { path = "../../datasource_django", develop = tr
 forestadmin-datasource-sqlalchemy ={ path = "../../datasource_sqlalchemy", develop = true }
 SQLAlchemy = ">2.0.0"
 
-[tool.poetry.group.dev.dependencies]
+# [tool.poetry.group.dev.dependencies]
 coverage = "~=6.5"
 flake8 = ">=5.0"
 freezegun = "~=1.2.0"
