@@ -3,9 +3,6 @@ import sys
 from unittest import TestCase
 from unittest.mock import AsyncMock, patch
 
-from forestadmin.datasource_toolkit.interfaces.query.aggregation import Aggregation
-from forestadmin.datasource_toolkit.interfaces.query.filter.unpaginated import Filter
-
 if sys.version_info >= (3, 9):
     import zoneinfo
 else:
@@ -17,8 +14,10 @@ from forestadmin.datasource_toolkit.datasources import Datasource
 from forestadmin.datasource_toolkit.decorators.datasource_decorator import DatasourceDecorator
 from forestadmin.datasource_toolkit.decorators.lazy_join.collection import LazyJoinCollectionDecorator
 from forestadmin.datasource_toolkit.interfaces.fields import Column, FieldType, ManyToOne, OneToMany, PrimitiveType
+from forestadmin.datasource_toolkit.interfaces.query.aggregation import Aggregation
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.leaf import ConditionTreeLeaf
 from forestadmin.datasource_toolkit.interfaces.query.filter.paginated import PaginatedFilter
+from forestadmin.datasource_toolkit.interfaces.query.filter.unpaginated import Filter
 from forestadmin.datasource_toolkit.interfaces.query.projections import Projection
 
 
