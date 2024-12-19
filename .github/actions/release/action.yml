@@ -39,7 +39,7 @@ runs:
       with:
         fetch-depth: 0
         persist-credentials: false # GITHUB_TOKEN must not be set for the semantic release
-    - uses: actions/setup-node@v2
+    - uses: actions/setup-node@v4
       with:
         node-version: 14.17.6
     # - uses: actions/cache@v4
