@@ -10,5 +10,9 @@ async def index(request: HttpRequest):
 
 @transaction.non_atomic_requests
 async def scope_cache_invalidation(request: HttpRequest):
-    DjangoAgentApp.get_agent()._permission_service.invalidate_cache("forest.scopes")
+    DjangoAgentApp.get_agent()._permission_service.invalidate_cache("forest.rendering")
     return HttpResponse(status=204)
+
+
+# This is so ugly... But django.views.decorators.csrf.csrf_exempt is not asyncio ready
+scope_cache_invalidation.csrf_exempt = True

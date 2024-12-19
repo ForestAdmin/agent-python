@@ -50,9 +50,16 @@ from forestadmin.django_agent.agent import DjangoAgent
 
 def customize_forest(agent: DjangoAgent):
     # customize_forest_logging()
-    agent.add_datasource(DjangoDatasource(support_polymorphic_relations=True))
+
+    agent.add_datasource(
+        DjangoDatasource(
+            support_polymorphic_relations=True, live_query_connection={"django": "default", "dj_sqlachemy": "other"}
+        )
+    )
     agent.add_datasource(TypicodeDatasource())
-    agent.add_datasource(SqlAlchemyDatasource(Base, DB_URI))
+    agent.add_datasource(
+        SqlAlchemyDatasource(Base, DB_URI, live_query_connection="sqlalchemy"),
+    )
 
     agent.customize_collection("address").add_segment("France", segment_addr_fr("address"))
     agent.customize_collection("app_address").add_segment("France", segment_addr_fr("app_address"))

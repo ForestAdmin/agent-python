@@ -1,8 +1,11 @@
-from unittest import TestCase
+import asyncio
 from unittest.mock import Mock, call, patch
 
+from django.test import SimpleTestCase, TestCase
 from forestadmin.datasource_django.collection import DjangoCollection
 from forestadmin.datasource_django.datasource import DjangoDatasource
+from forestadmin.datasource_django.exception import DjangoDatasourceException
+from forestadmin.datasource_toolkit.exceptions import NativeQueryException
 
 mock_collection1 = Mock(DjangoCollection)
 mock_collection1.name = "first"
@@ -66,3 +69,111 @@ class TestDjangoDatasource(TestCase):
         """ignoring proxy models means no collections added twice or more"""
         datasource = DjangoDatasource()
         self.assertEqual(len([c.name for c in datasource.collections if c.name == "auth_user"]), 1)
+
+
+class TestDjangoDatasourceConnectionQueryCreation(SimpleTestCase):
+    def test_should_not_create_native_query_connection_if_no_params(self):
+        ds = DjangoDatasource()
+        self.assertEqual(ds.get_native_query_connections(), [])
+
+    def test_should_create_native_query_connection_to_default_if_string_is_set(self):
+        ds = DjangoDatasource(live_query_connection="django")
+        self.assertEqual(ds.get_native_query_connections(), ["django"])
+        self.assertEqual(ds._django_live_query_connections["django"], "default")
+
+    def test_should_raise_if_connection_query_target_non_existent_database(self):
+        self.assertRaisesRegex(
+            DjangoDatasourceException,
+            r"Connection to database 'plouf' for alias 'plif' is not found in django databases\. "
+            r"Existing connections are default,other",
+            DjangoDatasource,
+            live_query_connection={"django": "default", "plif": "plouf"},
+        )
+
+
+class TestDjangoDatasourceNativeQueryExecution(TestCase):
+    fixtures = ["person.json", "book.json", "rating.json", "tag.json"]
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        super().setUpClass()
+        cls.loop = asyncio.new_event_loop()
+        cls.dj_datasource = DjangoDatasource(live_query_connection={"django": "default", "other": "other"})
+
+    def test_should_raise_if_connection_is_not_known_by_datasource(self):
+        self.assertRaisesRegex(
+            NativeQueryException,
+            r"Native query connection 'foo' is not known by DjangoDatasource.",
+            self.loop.run_until_complete,
+            self.dj_datasource.execute_native_query("foo", "select * from blabla", {}),
+        )
+
+    async def test_should_correctly_execute_query(self):
+        result = await self.dj_datasource.execute_native_query(
+            "django", "select * from test_app_person order by person_pk;", {}
+        )
+        self.assertEqual(
+            result,
+            [
+                {
+                    "person_pk": 1,
+                    "first_name": "Isaac",
+                    "last_name": "Asimov",
+                    "birth_date": "1920-02-01",
+                    "auth_user_id": None,
+                },
+                {
+                    "person_pk": 2,
+                    "first_name": "J.K.",
+                    "last_name": "Rowling",
+                    "birth_date": "1965-07-31",
+                    "auth_user_id": None,
+                },
+            ],
+        )
+
+    async def test_should_correctly_execute_query_with_formatting(self):
+        result = await self.dj_datasource.execute_native_query(
+            "django",
+            "select * from test_app_person where first_name = %(first_name)s order by person_pk;",
+            {"first_name": "Isaac"},
+        )
+        self.assertEqual(
+            result,
+            [
+                {
+                    "person_pk": 1,
+                    "first_name": "Isaac",
+                    "last_name": "Asimov",
+                    "birth_date": "1920-02-01",
+                    "auth_user_id": None,
+                },
+            ],
+        )
+
+    async def test_should_correctly_execute_query_with_percent(self):
+        result = await self.dj_datasource.execute_native_query(
+            "django",
+            "select * from test_app_person where first_name like 'Is\\%' order by person_pk;",
+            {},
+        )
+        self.assertEqual(
+            result,
+            [
+                {
+                    "person_pk": 1,
+                    "first_name": "Isaac",
+                    "last_name": "Asimov",
+                    "birth_date": "1920-02-01",
+                    "auth_user_id": None,
+                },
+            ],
+        )
+
+    def test_should_correctly_raise_exception_during_sql_error(self):
+        self.assertRaisesRegex(
+            NativeQueryException,
+            r"no such table: blabla",
+            self.loop.run_until_complete,
+            self.dj_datasource.execute_native_query("django", "select * from blabla", {}),
+        )

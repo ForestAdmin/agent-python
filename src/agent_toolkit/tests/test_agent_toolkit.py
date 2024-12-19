@@ -18,6 +18,7 @@ from forestadmin.datasource_toolkit.plugins.plugin import Plugin
 @patch("forestadmin.agent_toolkit.agent.CrudRelatedResource")
 @patch("forestadmin.agent_toolkit.agent.StatsResource")
 @patch("forestadmin.agent_toolkit.agent.ActionResource")
+@patch("forestadmin.agent_toolkit.agent.NativeQueryResource")
 @patch("forestadmin.agent_toolkit.agent.SchemaEmitter.get_serialized_schema", new_callable=AsyncMock)
 @patch("forestadmin.agent_toolkit.agent.ForestHttpApi.send_schema", new_callable=AsyncMock)
 class TestAgent(TestCase):
@@ -34,6 +35,7 @@ class TestAgent(TestCase):
         self,
         mocked_schema_emitter__get_serialized_schema,
         mocked_forest_http_api__send_schema,
+        mocked_native_query_resource,
         mocked_action_resource,
         mocked_stats_resource,
         mocked_crud_related_resource,
@@ -81,6 +83,7 @@ class TestAgent(TestCase):
         self,
         mocked_schema_emitter__get_serialized_schema,
         mocked_forest_http_api__send_schema,
+        mocked_native_query_resource,
         mocked_action_resource,
         mocked_stats_resource,
         mocked_crud_related_resource,
@@ -97,10 +100,14 @@ class TestAgent(TestCase):
 
             mocked_authentication_resource.assert_called_once_with(agent._ip_white_list_service, agent.options)
             mocked_capabilities_resource.assert_called_once_with(
-                "fake_datasource", agent._ip_white_list_service, agent.options
+                agent.customizer.composite_datasource, agent._ip_white_list_service, agent.options
             )
             mocked_crud_resource.assert_called_once_with(
-                "fake_datasource", agent._permission_service, agent._ip_white_list_service, agent.options
+                agent.customizer.composite_datasource,
+                "fake_datasource",
+                agent._permission_service,
+                agent._ip_white_list_service,
+                agent.options,
             )
             mocked_crud_related_resource.assert_called_once_with(
                 "fake_datasource", agent._permission_service, agent._ip_white_list_service, agent.options
@@ -111,8 +118,16 @@ class TestAgent(TestCase):
             mocked_action_resource.assert_called_once_with(
                 "fake_datasource", agent._permission_service, agent._ip_white_list_service, agent.options
             )
+            mocked_native_query_resource.assert_called_once_with(
+                agent.customizer.composite_datasource,
+                "fake_datasource",
+                agent._permission_service,
+                agent._ip_white_list_service,
+                agent.options,
+            )
 
-        assert len(resources) == 8
+        assert len(resources) == 9
+        assert "native_query" in resources
         assert "capabilities" in resources
         assert "authentication" in resources
         assert "crud" in resources
@@ -126,6 +141,7 @@ class TestAgent(TestCase):
         self,
         mocked_schema_emitter__get_serialized_schema,
         mocked_forest_http_api__send_schema,
+        mocked_native_query_resource,
         mocked_action_resource,
         mocked_stats_resource,
         mocked_crud_related_resource,
@@ -147,6 +163,7 @@ class TestAgent(TestCase):
         self,
         mocked_schema_emitter__get_serialized_schema,
         mocked_forest_http_api__send_schema,
+        mocked_native_query_resource,
         mocked_action_resource,
         mocked_stats_resource,
         mocked_crud_related_resource,
@@ -167,6 +184,7 @@ class TestAgent(TestCase):
         self,
         mocked_schema_emitter__get_serialized_schema,
         mocked_forest_http_api__send_schema,
+        mocked_native_query_resource,
         mocked_action_resource,
         mocked_stats_resource,
         mocked_crud_related_resource,
@@ -190,6 +208,7 @@ class TestAgent(TestCase):
         self,
         mocked_schema_emitter__get_serialized_schema,
         mocked_forest_http_api__send_schema,
+        mocked_native_query_resource,
         mocked_action_resource,
         mocked_stats_resource,
         mocked_crud_related_resource,
@@ -210,6 +229,7 @@ class TestAgent(TestCase):
         self,
         mocked_schema_emitter__get_serialized_schema,
         mocked_forest_http_api__send_schema,
+        mocked_native_query_resource,
         mocked_action_resource,
         mocked_stats_resource,
         mocked_crud_related_resource,
@@ -234,6 +254,7 @@ class TestAgent(TestCase):
         mocked_create_json_api_schema,
         mocked_schema_emitter__get_serialized_schema,
         mocked_forest_http_api__send_schema,
+        mocked_native_query_resource,
         mocked_action_resource,
         mocked_stats_resource,
         mocked_crud_related_resource,
@@ -279,6 +300,7 @@ class TestAgent(TestCase):
         self,
         mocked_schema_emitter__get_serialized_schema,
         mocked_forest_http_api__send_schema,
+        mocked_native_query_resource,
         mocked_action_resource,
         mocked_stats_resource,
         mocked_crud_related_resource,
@@ -315,6 +337,7 @@ class TestAgent(TestCase):
         self,
         mocked_schema_emitter__get_serialized_schema,
         mocked_forest_http_api__send_schema,
+        mocked_native_query_resource,
         mocked_action_resource,
         mocked_stats_resource,
         mocked_crud_related_resource,

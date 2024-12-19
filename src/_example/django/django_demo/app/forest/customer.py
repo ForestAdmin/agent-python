@@ -69,7 +69,7 @@ def customer_spending_computed() -> ComputedDefinition:
 
 def customer_full_name() -> ComputedDefinition:
     async def _get_customer_fullname_values(records: List[RecordsDataAlias], context: CollectionCustomizationContext):
-        return [f"{record['first_name']} - {record['last_name']}" for record in records]
+        return [f"{record.get('first_name', '')} - {record.get('last_name', '')}" for record in records]
 
     return {
         "column_type": "String",

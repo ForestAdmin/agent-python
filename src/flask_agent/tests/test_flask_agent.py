@@ -69,6 +69,7 @@ class TestFlaskAgent(TestCase):
         calls = [
             call("", methods=["GET"]),
             call("/_internal/capabilities", methods=["POST"]),
+            call("/_internal/native_query", methods=["POST"]),
             call("/authentication/callback", methods=["GET"]),
             call("/_actions/<collection_name>/<int:action_name>/<slug>/hooks/load", methods=["POST"]),
             call("/_actions/<collection_name>/<int:action_name>/<slug>/hooks/change", methods=["POST"]),

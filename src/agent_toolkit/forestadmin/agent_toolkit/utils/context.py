@@ -150,6 +150,8 @@ class HttpResponseBuilder:
             return 403
         if isinstance(error, UnprocessableError):
             return 422
+        if isinstance(error, BusinessError):
+            return 400
         if isinstance(error, HTTPError):
             return error.code
 

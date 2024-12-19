@@ -8,6 +8,8 @@ from forestadmin.agent_toolkit.services.permissions.permissions_functions import
     _decode_actions_permissions,
     _decode_crud_permissions,
     _decode_scope_permissions,
+    _decode_segment_query_permissions,
+    _dict_hash,
     _hash_chart,
 )
 from forestadmin.agent_toolkit.services.permissions.smart_actions_checker import SmartActionChecker
@@ -27,7 +29,7 @@ from forestadmin.datasource_toolkit.interfaces.query.filter.unpaginated import F
 class PermissionService:
     def __init__(self, options: RoleOptions):
         self.options = options
-        self.cache: TTLCache[int, Any] = TTLCache(maxsize=256, ttl=options["permission_cache_duration"])
+        self.cache: TTLCache[str, Any] = TTLCache(maxsize=256, ttl=options["permission_cache_duration"])
 
     def invalidate_cache(self, key: str):
         if key in self.cache:
@@ -58,11 +60,11 @@ class PermissionService:
 
     async def can_chart(self, request: RequestCollection) -> bool:
         hash_request = request.body["type"] + ":" + _hash_chart(request.body)
-        is_allowed = hash_request in await self._get_chart_data(request.user.rendering_id, False)
+        is_allowed = hash_request in (await self._get_rendering_data(request.user.rendering_id, False))["stats"]
 
         # Refetch
         if is_allowed is False:
-            is_allowed = hash_request in await self._get_chart_data(request.user.rendering_id, True)
+            is_allowed = hash_request in (await self._get_rendering_data(request.user.rendering_id, True))["stats"]
 
         # still not allowed - throw forbidden message
         if is_allowed is False:
@@ -72,6 +74,33 @@ class PermissionService:
             raise ForbiddenError("You don't have permission to access this chart.")
         ForestLogger.log(
             "debug", f"User {request.user.user_id} can retrieve chart on rendering {request.user.rendering_id}"
+        )
+        return is_allowed
+
+    async def can_live_query_segment(self, request: RequestCollection) -> bool:
+        live_query = request.query["segmentQuery"]
+        connection_name = request.query["connectionName"]
+        hash_live_query = _dict_hash({"query": live_query, "connection_name": connection_name})
+        is_allowed = hash_live_query in (
+            (await self._get_rendering_data(request.user.rendering_id, False))["segment_queries"]
+        ).get(request.collection.name)
+
+        # Refetch
+        if is_allowed is False:
+            is_allowed = (
+                hash_live_query in (await self._get_rendering_data(request.user.rendering_id, True))["segment_queries"]
+            )
+
+        # still not allowed - throw forbidden message
+        if is_allowed is False:
+            ForestLogger.log(
+                "debug",
+                f"User {request.user.user_id} cannot retrieve segment queries on rendering {request.user.rendering_id}",
+            )
+            raise ForbiddenError("You don't have permission to access this segment query.")
+        ForestLogger.log(
+            "debug",
+            f"User {request.user.user_id} can retrieve segment queries on rendering {request.user.rendering_id}",
         )
         return is_allowed
 
@@ -109,7 +138,7 @@ class PermissionService:
         caller: User,
         collection: Union[Collection, CollectionCustomizer],
     ) -> Optional[ConditionTree]:
-        permissions = await self._get_scope_and_team_data(caller.rendering_id)
+        permissions = await self._get_rendering_data(caller.rendering_id)
         scope = permissions["scopes"].get(collection.name)
         if scope is None:
             return None
@@ -140,23 +169,8 @@ class PermissionService:
         return self.cache["forest.users"][user_id]
 
     async def get_team(self, rendering_id: int):
-        permissions = await self._get_scope_and_team_data(rendering_id)
+        permissions = await self._get_rendering_data(rendering_id)
         return permissions["team"]
-
-    async def _get_chart_data(self, rendering_id: int, force_fetch: bool = False) -> Dict:
-        if force_fetch and "forest.stats" in self.cache:
-            del self.cache["forest.stats"]
-
-        if "forest.stats" not in self.cache:
-            ForestLogger.log("debug", f"Loading rendering permissions for rendering {rendering_id}")
-            response = await ForestHttpApi.get_rendering_permissions(rendering_id, self.options)
-
-            stat_hash = []
-            for stat in response["stats"]:
-                stat_hash.append(f'{stat["type"]}:{_hash_chart(stat)}')
-            self.cache["forest.stats"] = stat_hash
-
-        return self.cache["forest.stats"]
 
     async def _get_collection_permissions_data(self, force_fetch: bool = False):
         if force_fetch and "forest.collections" in self.cache:
@@ -175,14 +189,33 @@ class PermissionService:
 
         return self.cache["forest.collections"]
 
-    async def _get_scope_and_team_data(self, rendering_id: int):
-        if "forest.scopes" not in self.cache:
+    async def _get_rendering_data(self, rendering_id: int, force_fetch: bool = False):
+        if force_fetch and "forest.rendering" in self.cache:
+            del self.cache["forest.rendering"]
+
+        if "forest.rendering" not in self.cache:
             response = await ForestHttpApi.get_rendering_permissions(rendering_id, self.options)
-            data = {"scopes": _decode_scope_permissions(response["collections"]), "team": response["team"]}
+            self._handle_rendering_permissions(response)
 
-            self.cache["forest.scopes"] = data
+        return self.cache["forest.rendering"]
 
-        return self.cache["forest.scopes"]
+    def _handle_rendering_permissions(self, rendering_permissions):
+        rendering_cache = {}
+
+        # forest.stats
+        stat_hash = []
+        for stat in rendering_permissions["stats"]:
+            stat_hash.append(f'{stat["type"]}:{_hash_chart(stat)}')
+        rendering_cache["stats"] = stat_hash
+
+        # forest.scopes
+        rendering_cache["scopes"] = _decode_scope_permissions(rendering_permissions["collections"])
+        rendering_cache["team"] = rendering_permissions["team"]
+
+        # forest.segment_queries
+        rendering_cache["segment_queries"] = _decode_segment_query_permissions(rendering_permissions["collections"])
+
+        self.cache["forest.rendering"] = rendering_cache
 
     async def _find_action_from_endpoint(
         self, collection: Collection, get_params: Dict, http_method: str

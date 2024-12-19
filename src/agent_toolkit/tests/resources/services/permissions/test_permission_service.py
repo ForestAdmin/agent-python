@@ -38,7 +38,7 @@ class BaseTestPermissionService(TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         cls.loop = asyncio.new_event_loop()
-        cls.datasource = Datasource()
+        cls.datasource = Datasource(["database_1"])
         Collection.__abstractmethods__ = set()  # to instantiate abstract class
         cls.booking_collection = Collection("Booking", cls.datasource)
         cls.booking_collection.add_fields(
@@ -174,7 +174,18 @@ class BaseTestPermissionService(TestCase):
             "get_rendering_permissions",
             new_callable=AsyncMock,
             return_value={
-                "collections": {"Booking": {"scope": scope, "segments": []}},
+                "collections": {
+                    "Booking": {
+                        "scope": scope,
+                        "segments": ["select id from booking where title is null"],
+                        "liveQuerySegments": [
+                            {
+                                "query": "select id from booking where title is null",
+                                "connectionName": "database_1",
+                            }
+                        ],
+                    }
+                },
                 "stats": [
                     {
                         "type": "Pie",
@@ -190,6 +201,11 @@ class BaseTestPermissionService(TestCase):
                         "aggregator": "Count",
                         "aggregateFieldName": None,
                         "sourceCollectionName": "Booking",
+                    },
+                    {
+                        "type": "Pie",
+                        "query": "select sum(amount) as value, status as key from app_order group by status",
+                        "connectionName": "database_1",
                     },
                 ],
                 "team": {
@@ -217,11 +233,10 @@ class Test01CachePermissionService(BaseTestPermissionService):
 
     def test_dont_call_api_when_something_is_cached(self):
         http_patches: PatchHttpApiDict = self.mock_forest_http_api()
-        http_patches: PatchHttpApiDict = self.mock_forest_http_api()
         http_mocks: MockHttpApiDict = {name: patch.start() for name, patch in http_patches.items()}
 
-        response_1 = self.loop.run_until_complete(self.permission_service._get_chart_data(1))
-        response_2 = self.loop.run_until_complete(self.permission_service._get_chart_data(1))
+        response_1 = self.loop.run_until_complete(self.permission_service._get_rendering_data(1))
+        response_2 = self.loop.run_until_complete(self.permission_service._get_rendering_data(1))
         self.assertEqual(response_1, response_2)
 
         response_1 = self.loop.run_until_complete(self.permission_service.get_user_data(1))
@@ -383,7 +398,7 @@ class Test03CanChartPermissionService(BaseTestPermissionService):
 
         def mock_get_rendering_permissions(rendering_id, options):
             if mock["call_count"] == 0:
-                ret = {"stats": {}}
+                ret = {"stats": {}, "collections": {}, "team": {}}
             elif mock["call_count"] == 1:
                 ret = http_patches["get_rendering_permissions"].kwargs["return_value"]
             mock["call_count"] = mock["call_count"] + 1
@@ -416,7 +431,10 @@ class Test03CanChartPermissionService(BaseTestPermissionService):
         )
 
         with patch.object(
-            ForestHttpApi, "get_rendering_permissions", new_callable=AsyncMock, return_value={"stats": {}}
+            ForestHttpApi,
+            "get_rendering_permissions",
+            new_callable=AsyncMock,
+            return_value={"stats": {}, "collections": {}, "team": {}},
         ):
             self.assertRaisesRegex(
                 ForbiddenError,
@@ -424,6 +442,87 @@ class Test03CanChartPermissionService(BaseTestPermissionService):
                 self.loop.run_until_complete,
                 self.permission_service.can_chart(request),
             )
+
+    def test_can_chart_should_handle_live_query_chart(self):
+        http_patches: PatchHttpApiDict = self.mock_forest_http_api()
+        rendering_permission_mock: AsyncMock = http_patches["get_rendering_permissions"].start()
+
+        request = RequestCollection(
+            method=RequestMethod.POST,
+            collection=self.booking_collection,
+            body={
+                "connectionName": "database_1",
+                "contextVariables": {},
+                "query": "select sum(amount) as value, status as key from app_order group by status",
+                "type": "Pie",
+            },
+            query={},
+            headers={},
+            client_ip="127.0.0.1",
+            user=self.mocked_caller,
+        )
+
+        is_allowed = self.loop.run_until_complete(self.permission_service.can_chart(request))
+        rendering_permission_mock.assert_awaited_once()
+        self.assertTrue(is_allowed)
+
+        http_patches["get_rendering_permissions"].stop()
+
+    def test_can_chart_should_raise_forbidden_error_on_not_wrong_live_query_connection(self):
+        http_patches: PatchHttpApiDict = self.mock_forest_http_api()
+        http_patches["get_rendering_permissions"].start()
+
+        request = RequestCollection(
+            method=RequestMethod.POST,
+            collection=self.booking_collection,
+            body={
+                "connectionName": "wrong_database",
+                "contextVariables": {},
+                "query": "select sum(amount) as value, status as key from app_order group by status",
+                "type": "Pie",
+            },
+            query={},
+            headers={},
+            client_ip="127.0.0.1",
+            user=self.mocked_caller,
+        )
+
+        self.assertRaisesRegex(
+            ForbiddenError,
+            r"🌳🌳🌳You don't have permission to access this chart.",
+            self.loop.run_until_complete,
+            self.permission_service.can_chart(request),
+        )
+
+        http_patches["get_rendering_permissions"].stop()
+
+    def test_can_chart_should_raise_forbidden_error_on_mismatching_query(self):
+        http_patches: PatchHttpApiDict = self.mock_forest_http_api()
+        http_patches["get_rendering_permissions"].start()
+
+        request = RequestCollection(
+            method=RequestMethod.POST,
+            collection=self.booking_collection,
+            body={
+                "connectionName": "database_1",
+                "contextVariables": {},
+                "query": "select sum(amount) as value, status as key from app_order group by status ; ",
+                "type": "Pie",
+            },
+            query={},
+            headers={},
+            client_ip="127.0.0.1",
+            user=self.mocked_caller,
+        )
+
+        self.assertRaisesRegex(
+            ForbiddenError,
+            r"🌳🌳🌳You don't have permission to access this chart.",
+            self.loop.run_until_complete,
+            self.permission_service.can_chart(request),
+        )
+
+        http_patches["get_rendering_permissions"].stop()
 
 
 class Test04GetScopePermissionService(BaseTestPermissionService):
@@ -646,3 +745,86 @@ class Test05CanSmartActionPermissionService(BaseTestPermissionService):
 
         http_patches["get_environment_permissions"].stop()
         http_patches["get_users"].stop()
+
+
+class Test06CanLiveQuerySegment(BaseTestPermissionService):
+    def test_can_live_query_segment_should_allow_correct_live_query_segment(self):
+        http_patches: PatchHttpApiDict = self.mock_forest_http_api()
+        rendering_permission_mock: AsyncMock = http_patches["get_rendering_permissions"].start()
+
+        request = RequestCollection(
+            method=RequestMethod.GET,
+            collection=self.booking_collection,
+            body=None,
+            query={
+                "fields[Booking]": "id,title",
+                "connectionName": "database_1",
+                "segmentName": "no_title",
+                "segmentQuery": "select id from booking where title is null",
+            },
+            headers={},
+            client_ip="127.0.0.1",
+            user=self.mocked_caller,
+        )
+
+        is_allowed = self.loop.run_until_complete(self.permission_service.can_live_query_segment(request))
+        rendering_permission_mock.assert_awaited_once()
+        self.assertTrue(is_allowed)
+
+        http_patches["get_rendering_permissions"].stop()
+
+    def test_can_live_query_segment_should_raise_forbidden_when_wrong_connection_name(self):
+        http_patches: PatchHttpApiDict = self.mock_forest_http_api()
+        http_patches["get_rendering_permissions"].start()
+
+        request = RequestCollection(
+            method=RequestMethod.GET,
+            collection=self.booking_collection,
+            body=None,
+            query={
+                "fields[Booking]": "id,title",
+                "connectionName": "database_2",
+                "segmentName": "no_title",
+                "segmentQuery": "select id from booking where title is null",
+            },
+            headers={},
+            client_ip="127.0.0.1",
+            user=self.mocked_caller,
+        )
+
+        self.assertRaisesRegex(
+            ForbiddenError,
+            r"🌳🌳🌳You don't have permission to access this segment query.",
+            self.loop.run_until_complete,
+            self.permission_service.can_live_query_segment(request),
+        )
+
+        http_patches["get_rendering_permissions"].stop()
+
+    def test_can_live_query_segment_should_raise_forbidden_when_mismatching_query(self):
+        http_patches: PatchHttpApiDict = self.mock_forest_http_api()
+        http_patches["get_rendering_permissions"].start()
+
+        request = RequestCollection(
+            method=RequestMethod.GET,
+            collection=self.booking_collection,
+            body=None,
+            query={
+                "fields[Booking]": "id,title",
+                "connectionName": "database_1",
+                "segmentName": "no_title",
+                "segmentQuery": "select id from booking where title is null;",
+            },
+            headers={},
+            client_ip="127.0.0.1",
+            user=self.mocked_caller,
+        )
+
+        self.assertRaisesRegex(
+            ForbiddenError,
+            r"🌳🌳🌳You don't have permission to access this segment query.",
+            self.loop.run_until_complete,
+            self.permission_service.can_live_query_segment(request),
+        )
+
+        http_patches["get_rendering_permissions"].stop()
