@@ -1,4 +1,4 @@
-from typing import Dict, List, Union
+from typing import Callable, Dict, List, Union
 
 from forestadmin.datasource_toolkit.datasources import Datasource
 from forestadmin.datasource_toolkit.decorators.datasource_decorator import DatasourceDecorator
@@ -7,6 +7,8 @@ from forestadmin.datasource_toolkit.exceptions import ForestException
 from forestadmin.datasource_toolkit.interfaces.fields import is_polymorphic_one_to_many, is_polymorphic_one_to_one
 from forestadmin.datasource_toolkit.interfaces.models.collections import BoundCollection
 from forestadmin.datasource_toolkit.utils.collections import CollectionUtils
+
+RenameCollectionHandler = Callable[[str], Union[str, None]]
 
 
 class RenameCollectionDataSourceDecorator(DatasourceDecorator):
@@ -37,8 +39,16 @@ class RenameCollectionDataSourceDecorator(DatasourceDecorator):
     def get_collection_name(self, child_name: str) -> str:
         return self._from_child_name.get(child_name, child_name)
 
-    def rename_collections(self, renames: Dict[str, str]):
-        for old_name, new_name in renames.items():
+    def rename_collections(self, renames: Union[Dict[str, str], RenameCollectionHandler]):
+        rename_tuples = {}
+        if isinstance(renames, dict):
+            rename_tuples = renames
+        else:
+            for collection in self.collections:
+                new_name = renames(collection.name) or collection.name
+                rename_tuples[collection.name] = new_name
+
+        for old_name, new_name in rename_tuples.items():
             self.rename_collection(old_name, new_name)
 
     def rename_collection(self, current_name: str, new_name: str):
