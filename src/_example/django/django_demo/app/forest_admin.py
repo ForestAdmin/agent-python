@@ -58,7 +58,7 @@ def customize_forest(agent: DjangoAgent):
     )
     agent.add_datasource(TypicodeDatasource())
     agent.add_datasource(
-        SqlAlchemyDatasource(Base, DB_URI, live_query_connection="sqlalchemy"),
+        SqlAlchemyDatasource(Base, DB_URI), {"rename": lambda collection_name: f"SQLAlchemy_{collection_name}"}
     )
 
     agent.customize_collection("address").add_segment("France", segment_addr_fr("address"))
