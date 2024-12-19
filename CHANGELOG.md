@@ -1,3 +1,10 @@
+# [1.19.0](https://github.com/ForestAdmin/agent-python/compare/v1.18.6...v1.19.0) (2024-12-19)
+
+
+### Features
+
+* **capabilities:** support for native query connections ([#290](https://github.com/ForestAdmin/agent-python/issues/290)) ([1e43231](https://github.com/ForestAdmin/agent-python/commit/1e4323199faef1192430c56758879ae1b0b45fd1))
+
 ## [1.18.6](https://github.com/ForestAdmin/agent-python/compare/v1.18.5...v1.18.6) (2024-12-16)
 
 
