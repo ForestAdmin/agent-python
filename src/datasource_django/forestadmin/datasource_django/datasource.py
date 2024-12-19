@@ -4,7 +4,6 @@ from typing import Dict, List, Optional, Union
 from asgiref.sync import sync_to_async
 from django.apps import apps
 from django.db import connections
-from forestadmin.agent_toolkit.forest_logger import ForestLogger
 from forestadmin.datasource_django.collection import DjangoCollection
 from forestadmin.datasource_django.exception import DjangoDatasourceException
 from forestadmin.datasource_django.interface import BaseDjangoDatasource
@@ -18,6 +17,19 @@ class DjangoDatasource(BaseDjangoDatasource):
         support_polymorphic_relations: bool = False,
         live_query_connection: Optional[Union[str, Dict[str, str]]] = None,
     ) -> None:
+        """ Create a django datasource.
+        More information here:
+        https://docs.forestadmin.com/developer-guide-agents-python/data-sources/provided-data-sources/django
+
+
+        Args:
+            support_polymorphic_relations (bool, optional, default to `False`): Enable introspection over \
+                polymorphic relation (AKA GenericForeignKey). Defaults to False.
+            live_query_connection (Union[str, Dict[str, str]], optional, default to `None`): Set a connectionName to \
+                use live queries. If a string is given, this connection will be map to django 'default' database. \
+                Otherwise, you must use a dict `{'connectionName': 'DjangoDatabaseName'}`. \
+                None doesn't enable this feature.
+        """
         self._django_live_query_connections: Dict[str, str] = self._handle_live_query_connections_param(
             live_query_connection
         )
@@ -34,14 +46,6 @@ class DjangoDatasource(BaseDjangoDatasource):
 
         if isinstance(live_query_connections, str):
             ret = {live_query_connections: "default"}
-            if len(connections.all()) > 1:
-                ForestLogger.log(
-                    "info",
-                    f"You enabled live query as {live_query_connections} for django 'default' database."
-                    " To use it over multiple databases, read the related documentation here: "
-                    "https://docs.forestadmin.com/developer-guide-agents-python/"
-                    "data-sources/provided-data-sources/django#enable-support-of-live-queries.",
-                )
         else:
             ret = live_query_connections
 

@@ -28,7 +28,7 @@ from forestadmin.datasource_toolkit.interfaces.models.collections import Datasou
 class DecoratorStack:
     def __init__(self, datasource: Datasource) -> None:
         self._customizations: List = list()
-        last = self.base_datasource = datasource
+        last = datasource
 
         # Step 0: Do not query datasource when we know the result with yield an empty set.
         last = self.override = DatasourceDecorator(last, OverrideCollectionDecorator)  # type: ignore
