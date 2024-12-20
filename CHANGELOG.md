@@ -1,3 +1,10 @@
+## [1.19.1](https://github.com/ForestAdmin/agent-python/compare/v1.19.0...v1.19.1) (2024-12-20)
+
+
+### Bug Fixes
+
+* **operator_capabilities:** operator emulation wasn't expose to front end ([#301](https://github.com/ForestAdmin/agent-python/issues/301)) ([0e95a58](https://github.com/ForestAdmin/agent-python/commit/0e95a58be6dcb0ae7d92d9929cedbf0c63a7fc8e))
+
 # [1.19.0](https://github.com/ForestAdmin/agent-python/compare/v1.18.6...v1.19.0) (2024-12-19)
 
 
