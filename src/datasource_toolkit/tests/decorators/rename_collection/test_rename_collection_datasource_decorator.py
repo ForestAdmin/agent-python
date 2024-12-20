@@ -187,3 +187,20 @@ class TestRenameCollectionDatasourceDecorator(TestCase):
     def test_rename_collection_should_rename_a_collection_owning_a_polymorphic_many_to_one(self):
         self.decorated_datasource.rename_collections({"Rating": "Whatever"})
         self.assertIsInstance(self.decorated_datasource.get_collection("Whatever"), RenameCollectionCollectionDecorator)
+
+    def test_rename_collection_can_rename_all_in_once_with_a_function(self):
+        to_not_rename = ["Bar", "Restaurant"]
+        self.decorated_datasource.rename_collections(lambda name: f"new_{name}" if name not in to_not_rename else None)
+
+        for collection in self.decorated_datasource.collections:
+            if collection.name not in to_not_rename:
+                self.assertTrue(collection.name.startswith("new_"))
+            else:
+                self.assertFalse(collection.name.startswith("new_"))
+
+    def test_rename_collection_should_not_rename_collection_when_none_is_returned(self):
+        self.decorated_datasource.rename_collections(lambda name: f"new_{name}" if name == "Book" else None)
+
+        for collection in self.decorated_datasource.collections:
+            if collection.name.startswith("new_"):
+                self.assertEqual(collection.name, "new_Book")
