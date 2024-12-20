@@ -28,4 +28,4 @@ runs:
       with:
           sortPaths: ${{ inputs.current_package }}
           requirementsFiles: "requirements.txt ../../requirements.txt"
-          configurations: "--settings-file=../../.isort.cfg"
+          configuration: "--settings-file=../../.isort.cfg"
