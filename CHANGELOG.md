@@ -1,3 +1,10 @@
+# [1.20.0](https://github.com/ForestAdmin/agent-python/compare/v1.19.1...v1.20.0) (2024-12-20)
+
+
+### Features
+
+* **rename:** rename collection can be a function ([#291](https://github.com/ForestAdmin/agent-python/issues/291)) ([cc8cb99](https://github.com/ForestAdmin/agent-python/commit/cc8cb99e0ece3b1857370fd37a2c9749c4bb598d))
+
 ## [1.19.1](https://github.com/ForestAdmin/agent-python/compare/v1.19.0...v1.19.1) (2024-12-20)
 
 
