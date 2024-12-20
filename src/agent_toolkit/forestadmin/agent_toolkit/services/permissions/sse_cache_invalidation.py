@@ -42,7 +42,10 @@ class SSECacheInvalidation(Thread):
             url = f"{self.options['server_url']}/liana/v4/subscribe-to-events"
             headers = {"forest-secret-key": self.options["env_secret"], "Accept": "text/event-stream"}
             try:
-                http = urllib3.PoolManager()
+                args = {}
+                if self.options["verify_ssl"] is False:
+                    args["cert_reqs"] = "CERT_NONE"
+                http = urllib3.PoolManager(**args)
                 self.sse_client = SSEClient(http.request("GET", url, preload_content=False, headers=headers))
 
                 for msg in self.sse_client.events():
