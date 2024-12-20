@@ -733,7 +733,7 @@ pyflakes = ">=2.5.0,<2.6.0"
 
 [[package]]
 name = "forestadmin-agent-django"
-version = "1.19.0"
+version = "1.17.0"
 description = "django agent for forestadmin python agent"
 optional = false
 python-versions = ">=3.8,<3.13"
@@ -744,8 +744,8 @@ develop = true
 "backports.zoneinfo" = {version = "~=0.2.1", extras = ["tzdata"], markers = "python_version < \"3.9\""}
 django = ">=3.2,<6.0"
 django-cors-headers = ">=3.8"
-forestadmin-agent-toolkit = "1.19.0"
-forestadmin-datasource-django = "1.19.0"
+forestadmin-agent-toolkit = "1.17.0"
+forestadmin-datasource-django = "1.17.0"
 typing-extensions = "~=4.2"
 
 [package.source]
@@ -754,7 +754,7 @@ url = "../../django_agent"
 
 [[package]]
 name = "forestadmin-agent-toolkit"
-version = "1.19.0"
+version = "1.17.0"
 description = "agent toolkit for forestadmin python agent"
 optional = false
 python-versions = ">=3.8,<3.13"
@@ -765,7 +765,7 @@ develop = true
 aiohttp = "~=3.9"
 "backports.zoneinfo" = {version = "~0.2.1", extras = ["tzdata"], markers = "python_version < \"3.9\""}
 cachetools = "~=5.2"
-forestadmin-datasource-toolkit = "1.19.0"
+forestadmin-datasource-toolkit = "1.17.0"
 marshmallow-jsonapi = ">=0.24.0, <1.0"
 numpy = [
     {version = ">=1.26.0,<2.0.0", markers = "python_full_version >= \"3.12.0\""},
@@ -783,7 +783,7 @@ url = "../../agent_toolkit"
 
 [[package]]
 name = "forestadmin-datasource-django"
-version = "1.19.0"
+version = "1.17.0"
 description = "django datasource for forestadmin python agent"
 optional = false
 python-versions = ">=3.8,<3.13"
@@ -793,8 +793,8 @@ develop = true
 [package.dependencies]
 "backports.zoneinfo" = {version = "~=0.2.1", extras = ["tzdata"], markers = "python_version < \"3.9\""}
 django = ">=3.2,<6.0"
-forestadmin-agent-toolkit = "1.19.0"
-forestadmin-datasource-toolkit = "1.19.0"
+forestadmin-agent-toolkit = "1.17.0"
+forestadmin-datasource-toolkit = "1.17.0"
 typing-extensions = "~=4.2"
 
 [package.source]
@@ -803,7 +803,7 @@ url = "../../datasource_django"
 
 [[package]]
 name = "forestadmin-datasource-sqlalchemy"
-version = "1.19.0"
+version = "1.17.0"
 description = "sqlalchemy datasource for forestadmin python agent"
 optional = false
 python-versions = ">=3.8,<3.13"
@@ -812,8 +812,8 @@ develop = true
 
 [package.dependencies]
 "backports.zoneinfo" = {version = "~=0.2.1", extras = ["tzdata"], markers = "python_version < \"3.9\""}
-forestadmin-agent-toolkit = "1.19.0"
-forestadmin-datasource-toolkit = "1.19.0"
+forestadmin-agent-toolkit = "1.17.0"
+forestadmin-datasource-toolkit = "1.17.0"
 sqlalchemy = ">=1.4.0"
 typing-extensions = "~=4.2"
 
@@ -823,7 +823,7 @@ url = "../../datasource_sqlalchemy"
 
 [[package]]
 name = "forestadmin-datasource-toolkit"
-version = "1.19.0"
+version = "1.17.0"
 description = "datasource toolkit for forestadmin python agent"
 optional = false
 python-versions = ">=3.8,<3.13"
@@ -2432,4 +2432,4 @@ propcache = ">=0.2.0"
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.8,<3.13"
-content-hash = "098c1001a3b24a77f0ef739506f2f4ed3d99e147e005f669fac6952d5b3f214f"
+content-hash = "9b53c8148f88a8d534edc0d02082b83e838a8b1d76dd643fa9dfbe56a844f542"
