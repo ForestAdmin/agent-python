@@ -36,7 +36,7 @@ COPY ./ /app/
 
 WORKDIR /app/src/_example/django/
 
-RUN /opt/poetry/bin/poetry install --no-cache
+RUN /opt/poetry/bin/poetry lock --no-update && /opt/poetry/bin/poetry install --no-cache
 
 # for a bind mount on running repo
 VOLUME /app
