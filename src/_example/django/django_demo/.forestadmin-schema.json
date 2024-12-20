@@ -3542,10 +3542,10 @@
     ],
     "meta": {
         "liana": "agent-python",
-        "liana_version": "1.18.5",
+        "liana_version": "1.17.0",
         "stack": {
             "engine": "python",
-            "engine_version": "3.11.11"
+            "engine_version": "3.12.4"
         }
     }
 }
