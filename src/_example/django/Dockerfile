@@ -28,13 +28,12 @@ RUN \
 
 # Copy the source code into the container.
 # we're using a volume for that, but for initialization
-
-RUN curl -sSL https://install.python-poetry.org | python3 - ;\
-    export PATH="/opt/poetry/bin:$PATH"
-
 COPY ./ /app/
 
 WORKDIR /app/src/_example/django/
+
+RUN curl -sSL https://install.python-poetry.org | python3 - ;\
+    export PATH="/opt/poetry/bin:$PATH"
 
 RUN /opt/poetry/bin/poetry install --no-cache
 
