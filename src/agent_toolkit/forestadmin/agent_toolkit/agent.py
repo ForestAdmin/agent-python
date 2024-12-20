@@ -76,6 +76,8 @@ class Agent:
         self._resources: Resources = {
             "capabilities": CapabilitiesResource(
                 self.customizer.composite_datasource,
+                await self.customizer.get_datasource(),
+                self._permission_service,
                 self._ip_white_list_service,
                 self.options,
             ),
