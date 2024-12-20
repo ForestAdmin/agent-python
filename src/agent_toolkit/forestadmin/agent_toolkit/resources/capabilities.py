@@ -2,9 +2,10 @@ from typing import Any, Dict, Literal, Union
 
 from forestadmin.agent_toolkit.forest_logger import ForestLogger
 from forestadmin.agent_toolkit.options import Options
+from forestadmin.agent_toolkit.resources.collections.base_collection_resource import BaseCollectionResource
 from forestadmin.agent_toolkit.resources.collections.decorators import authenticate, check_method, ip_white_list
-from forestadmin.agent_toolkit.resources.ip_white_list_resource import IpWhitelistResource
 from forestadmin.agent_toolkit.services.permissions.ip_whitelist_service import IpWhiteListService
+from forestadmin.agent_toolkit.services.permissions.permission_service import PermissionService
 from forestadmin.agent_toolkit.utils.context import HttpResponseBuilder, Request, RequestMethod, Response
 from forestadmin.agent_toolkit.utils.forest_schema.generator_field import SchemaFieldGenerator
 from forestadmin.datasource_toolkit.datasource_customizer.datasource_composite import CompositeDatasource
@@ -17,14 +18,16 @@ LiteralMethod = Literal["capabilities"]
 DatasourceAlias = Union[Datasource[BoundCollection], DatasourceCustomizer]
 
 
-class CapabilitiesResource(IpWhitelistResource):
+class CapabilitiesResource(BaseCollectionResource):
     def __init__(
         self,
         composite_datasource: CompositeDatasource,
+        datasource: Union[Datasource, DatasourceCustomizer],
+        permission: PermissionService,
         ip_white_list_service: IpWhiteListService,
         options: Options,
     ):
-        super().__init__(ip_white_list_service, options)
+        super().__init__(datasource, permission, ip_white_list_service, options)
         self.composite_datasource: CompositeDatasource = composite_datasource
 
     @ip_white_list
@@ -52,7 +55,7 @@ class CapabilitiesResource(IpWhitelistResource):
         return HttpResponseBuilder.build_success_response(ret)
 
     def _get_collection_capability(self, collection_name: str) -> Dict[str, Any]:
-        collection = self.composite_datasource.get_collection(collection_name)
+        collection = self.datasource.get_collection(collection_name)
         fields = []
         for field_name, field_schema in collection.schema["fields"].items():
             if is_column(field_schema):

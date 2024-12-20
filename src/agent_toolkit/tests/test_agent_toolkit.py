@@ -100,7 +100,11 @@ class TestAgent(TestCase):
 
             mocked_authentication_resource.assert_called_once_with(agent._ip_white_list_service, agent.options)
             mocked_capabilities_resource.assert_called_once_with(
-                agent.customizer.composite_datasource, agent._ip_white_list_service, agent.options
+                agent.customizer.composite_datasource,
+                "fake_datasource",
+                agent._permission_service,
+                agent._ip_white_list_service,
+                agent.options,
             )
             mocked_crud_resource.assert_called_once_with(
                 agent.customizer.composite_datasource,

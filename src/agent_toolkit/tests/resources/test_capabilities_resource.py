@@ -17,6 +17,7 @@ from forestadmin.agent_toolkit.services.permissions.ip_whitelist_service import 
 from forestadmin.agent_toolkit.services.permissions.permission_service import PermissionService
 from forestadmin.agent_toolkit.utils.context import Request, RequestMethod, Response, User
 from forestadmin.datasource_toolkit.collections import Collection
+from forestadmin.datasource_toolkit.datasource_customizer.datasource_customizer import DatasourceCustomizer
 from forestadmin.datasource_toolkit.datasources import Datasource
 from forestadmin.datasource_toolkit.interfaces.fields import FieldType, Operator, PrimitiveType
 
@@ -94,6 +95,12 @@ class TestCapabilitiesResource(TestCase):
                     "type": FieldType.COLUMN,
                     "filter_operators": set([]),
                 },
+                "created_at": {
+                    "column_type": PrimitiveType.DATE,
+                    "is_primary_key": False,
+                    "type": FieldType.COLUMN,
+                    "filter_operators": set([Operator.EQUAL, Operator.GREATER_THAN, Operator.LESS_THAN]),
+                },
             }  # type:ignore
         )
         cls.datasource.add_collection(cls.book_collection)
@@ -108,9 +115,17 @@ class TestCapabilitiesResource(TestCase):
             timezone=zoneinfo.ZoneInfo("Europe/Paris"),
             request={"ip": "127.0.0.1"},
         )
+        cls.datasource_customizer = DatasourceCustomizer()
+        cls.datasource_customizer.add_datasource(cls.datasource)
 
     def setUp(self) -> None:
-        self.capabilities_resource = CapabilitiesResource(self.datasource, self.ip_white_list_service, self.options)
+        self.capabilities_resource = CapabilitiesResource(
+            self.datasource_customizer.composite_datasource,
+            self.loop.run_until_complete(self.datasource_customizer.get_datasource()),
+            self.permission_service,
+            self.ip_white_list_service,
+            self.options,
+        )
 
     def test_dispatch_should_not_dispatch_to_capabilities_when_no_post_request(self):
         for method in [RequestMethod.DELETE, RequestMethod.OPTIONS, RequestMethod.PUT]:
@@ -127,7 +142,7 @@ class TestCapabilitiesResource(TestCase):
 
             self.assertEqual(response.status, 405)
 
-    def test_dispatch_should_return_correct_collection_and_fields_capabilities(self):
+    def test_dispatch_should_return_correct_collection_and_fields_capabilities_with_emulated_operators(self):
         request = Request(
             method=RequestMethod.POST,
             query={},
@@ -148,10 +163,40 @@ class TestCapabilitiesResource(TestCase):
                         {
                             "name": "id",
                             "type": "Number",
-                            "operators": ["equal", "greater_than", "in", "less_than"],
+                            "operators": ["blank", "equal", "greater_than", "in", "less_than", "missing"],
                         },
                         {"name": "name", "type": "String", "operators": []},
                         {"name": "cost", "type": "Number", "operators": []},
+                        {
+                            "name": "created_at",
+                            "type": "Date",
+                            "operators": [
+                                "after",
+                                "after_x_hours_ago",
+                                "before",
+                                "before_x_hours_ago",
+                                "blank",
+                                "equal",
+                                "future",
+                                "greater_than",
+                                "in",
+                                "less_than",
+                                "missing",
+                                "past",
+                                "previous_month",
+                                "previous_month_to_date",
+                                "previous_quarter",
+                                "previous_quarter_to_date",
+                                "previous_week",
+                                "previous_week_to_date",
+                                "previous_x_days",
+                                "previous_x_days_to_date",
+                                "previous_year",
+                                "previous_year_to_date",
+                                "today",
+                                "yesterday",
+                            ],
+                        },
                     ],
                 }
             ],
