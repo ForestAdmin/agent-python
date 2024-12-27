@@ -24,7 +24,7 @@ DateCallback = Callable[[datetime, str], datetime]
 
 
 class Frequency(enum.Enum):
-    HOUR = "H"
+    HOUR = "h"
     DAY = "d"
     WEEK = "W-MON"
     MONTH = "MS"
