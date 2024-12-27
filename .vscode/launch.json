@@ -35,22 +35,6 @@
             "justMyCode": false,
         },
         {
-            "name": "flask-sqlalchemy_scratch",
-            "type": "debugpy",
-            "request": "launch",
-            "module": "flask",
-            "cwd": "${workspaceFolder}/src/_example/flask_sqlalchemy_scratch",
-            "envFile": "${workspaceFolder}/src/_example/flask_sqlalchemy_scratch/.env",
-            "args": [
-                "run",
-                "-h",
-                "0.0.0.0",
-                "--reload",
-                "--without-threads"
-            ],
-            "justMyCode": false
-        },
-        {
             "name": "flask-sqlalchemy_package",
             "type": "debugpy",
             "request": "launch",
