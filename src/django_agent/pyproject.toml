@@ -46,7 +46,6 @@ optional = true
 [tool.poetry.group.test.dependencies]
 pytest = "~=7.1"
 coverage = "~=6.5"
-freezegun = "~=1.2.0"
 pytest-cov = "^4.0.0"
 pytest-django = ">=4.0.0"
 
