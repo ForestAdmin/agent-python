@@ -7,7 +7,7 @@ readme = "README.md"
 packages = [{include = "demo"}]
 
 [tool.poetry.dependencies]
-python = ">=3.8,<3.13"
+python = ">=3.8,<3.14"
 sqlalchemy = ">=1.4.0"
 Flask = ">=2.0.0"
 Flask-SQLAlchemy = ">=2.4.0"
@@ -34,7 +34,7 @@ optional = true
 pytest = "~=7.1"
 pytest-asyncio = "~=0.18"
 coverage = "~=6.5"
-freezegun = "~=1.2.0"
+freezegun = "~=1.5.0"
 
 [[tool.poetry.group.test.dependencies.mock]]
 version = "4.0"
