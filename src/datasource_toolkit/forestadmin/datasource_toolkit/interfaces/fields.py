@@ -112,24 +112,16 @@ PrimitiveTypeLiteral = Literal[
     "Binary",
 ]
 
-LiteralManyToOne = Literal["ManyToOne"]
-LiteralOneToOne = Literal["OneToOne"]
-LiteralOneToMany = Literal["OneToMany"]
-LiteralManyToMany = Literal["ManyToMany"]
-LiteralPolymorphicManyToOne = Literal["PolymorphicManyToOne"]
-LiteralPolymorphicOneToMany = Literal["PolymorphicOneToMany"]
-LiteralPolymorphicOneToOne = Literal["PolymorphicOneToOne"]
-
 
 class FieldType(enum.Enum):
     COLUMN = "Column"
-    MANY_TO_ONE = LiteralManyToOne
-    ONE_TO_ONE = LiteralOneToOne
-    ONE_TO_MANY = LiteralOneToMany
-    MANY_TO_MANY = LiteralManyToMany
-    POLYMORPHIC_MANY_TO_ONE = LiteralPolymorphicManyToOne
-    POLYMORPHIC_ONE_TO_MANY = LiteralPolymorphicOneToMany
-    POLYMORPHIC_ONE_TO_ONE = LiteralPolymorphicOneToOne
+    MANY_TO_ONE = "ManyToOne"
+    ONE_TO_ONE = "OneToOne"
+    ONE_TO_MANY = "OneToMany"
+    MANY_TO_MANY = "ManyToMany"
+    POLYMORPHIC_MANY_TO_ONE = "PolymorphicManyToOne"
+    POLYMORPHIC_ONE_TO_MANY = "PolymorphicOneToMany"
+    POLYMORPHIC_ONE_TO_ONE = "PolymorphicOneToOne"
 
 
 class Validation(TypedDict):
@@ -139,21 +131,32 @@ class Validation(TypedDict):
 
 class Column(TypedDict):
     column_type: "ColumnAlias"
-    filter_operators: Set[Operator]
-    default_value: Optional[Any]
-    enum_values: Optional[List[str]]
-    is_primary_key: bool
-    is_read_only: bool
-    is_sortable: bool
-    validations: List[Validation]
-    type: Literal[FieldType.COLUMN]
+    filter_operators: NotRequired[Set[Union[Operator, LITERAL_OPERATORS]]]
+    default_value: NotRequired[Optional[Any]]
+    enum_values: NotRequired[Optional[List[str]]]
+    is_primary_key: NotRequired[bool]
+    is_read_only: NotRequired[bool]
+    is_sortable: NotRequired[bool]
+    validations: NotRequired[List[Validation]]
+    type: Literal[FieldType.COLUMN, "Column"]
+
+
+COLUMN_DEFAULT = {
+    "filter_operators": set(),
+    "default_value": None,
+    "enum_values": None,
+    "is_primary_key": False,
+    "is_read_only": False,
+    "is_sortable": False,
+    "validations": [],
+}
 
 
 class ManyToOne(TypedDict):
     foreign_collection: str
     foreign_key: str
     foreign_key_target: str
-    type: Literal[FieldType.MANY_TO_ONE]
+    type: Literal[FieldType.MANY_TO_ONE, "ManyToOne"]
 
 
 class PolymorphicManyToOne(TypedDict):
@@ -161,14 +164,14 @@ class PolymorphicManyToOne(TypedDict):
     foreign_key: str
     foreign_key_type_field: str
     foreign_key_targets: Dict[str, str]
-    type: Literal[FieldType.POLYMORPHIC_MANY_TO_ONE]
+    type: Literal[FieldType.POLYMORPHIC_MANY_TO_ONE, "PolymorphicManyToOne"]
 
 
 class PolymorphicOneToMany(TypedDict):
     foreign_collection: str
     origin_key: str
     origin_key_target: str
-    type: Literal[FieldType.POLYMORPHIC_ONE_TO_MANY]
+    type: Literal[FieldType.POLYMORPHIC_ONE_TO_MANY, "PolymorphicOneToMany"]
     origin_type_field: str
     origin_type_value: str
 
@@ -177,7 +180,7 @@ class PolymorphicOneToOne(TypedDict):
     foreign_collection: str
     origin_key: str
     origin_key_target: str
-    type: Literal[FieldType.POLYMORPHIC_ONE_TO_ONE]
+    type: Literal[FieldType.POLYMORPHIC_ONE_TO_ONE, "PolymorphicOneToOne"]
     origin_type_field: str
     origin_type_value: str
 
@@ -186,14 +189,14 @@ class OneToOne(TypedDict):
     foreign_collection: str
     origin_key: str
     origin_key_target: str
-    type: Literal[FieldType.ONE_TO_ONE]
+    type: Literal[FieldType.ONE_TO_ONE, "OneToOne"]
 
 
 class OneToMany(TypedDict):
     foreign_collection: str
     origin_key: str
     origin_key_target: str
-    type: Literal[FieldType.ONE_TO_MANY]
+    type: Literal[FieldType.ONE_TO_MANY, "OneToMany"]
 
 
 class ManyToMany(TypedDict):
@@ -201,10 +204,10 @@ class ManyToMany(TypedDict):
     foreign_collection: str
     foreign_key: str
     foreign_key_target: str
-    foreign_relation: Optional[str]
+    foreign_relation: NotRequired[Optional[str]]
     origin_key: str
     origin_key_target: str
-    type: Literal[FieldType.MANY_TO_MANY]
+    type: Literal[FieldType.MANY_TO_MANY, "ManyToMany"]
 
 
 ColumnAlias = Union[PrimitiveType, PrimitiveTypeLiteral, Dict[str, "ColumnAlias"], List["ColumnAlias"]]
