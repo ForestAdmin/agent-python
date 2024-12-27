@@ -4,9 +4,8 @@ ARTIFACT_DIR="artifacts_coverages"
 
 PACKAGES=("agent_toolkit" "datasource_sqlalchemy" "datasource_toolkit" "flask_agent" "datasource_django" "django_agent")
 # PACKAGES=("datasource_sqlalchemy")
-PYTHON_VERSIONS=("3.8" "3.9" "3.10" "3.11" "3.12")
-# PYTHON_VERSIONS=("3.8" "3.11")
-PYTHON_VERSIONS=("3.12")
+PYTHON_VERSIONS=("3.8" "3.9" "3.10" "3.11" "3.12" "3.13")
+# PYTHON_VERSIONS=("3.8" "3.13")
 
 # flask related settings
 # https://pypi.org/project/Flask/#history
@@ -34,7 +33,7 @@ for sub_version in {0..21}; do
         SQLALCHEMY_VERSIONS+=($version)
     fi
 done
-DJANGO_VERSIONS=("3.2" "4.0" "4.1" "4.2" "5.0")
+DJANGO_VERSIONS=("3.2" "4.0" "4.1" "4.2" "5.0", "5.1")
 
 # launch test on all versions only if we test 1 package
 if [[ ${#PACKAGES[@]} == 1 ]]; then
