@@ -15,7 +15,7 @@ homepage = "https://www.forestadmin.com"
 include = "forestadmin"
 
 [tool.poetry.dependencies]
-python = ">=3.8,<3.13"
+python = ">=3.8,<3.14"
 typing-extensions = "~=4.2"
 filetype = "^1.0.0"
 pandas = ">=1.4.0"
