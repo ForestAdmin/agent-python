@@ -74,7 +74,7 @@ class TestBaseBinaryDecorator(TestCase):
                     is_primary_key=False,
                     type=FieldType.COLUMN,
                 ),
-                "cover": Column(column_type=PrimitiveType.BINARY, type=FieldType.COLUMN, validations=[]),
+                "cover": Column(column_type=PrimitiveType.BINARY, type=FieldType.COLUMN),
             }
         )
         cls.datasource.add_collection(cls.collection_book)

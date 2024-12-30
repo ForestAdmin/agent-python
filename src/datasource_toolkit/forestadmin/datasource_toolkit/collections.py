@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from copy import deepcopy
 from typing import TYPE_CHECKING, Any, Dict, List, Optional
 
 from forestadmin.agent_toolkit.utils.context import User
@@ -70,7 +71,7 @@ class Collection(CollectionInterface):
         _field = {}
         if field["type"] in ["Column", FieldType.COLUMN]:
             # only column have optional fields
-            _field = {**COLUMN_DEFAULT}
+            _field = deepcopy(COLUMN_DEFAULT)
 
         _field.update(field)
 
