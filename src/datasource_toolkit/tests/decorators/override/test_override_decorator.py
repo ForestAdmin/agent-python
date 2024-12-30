@@ -25,6 +25,10 @@ class BaseTestOverrideCollectionDecorator(TestCase):
     def setUpClass(cls) -> None:
         cls.loop = asyncio.new_event_loop()
         cls.datasource: Datasource = Datasource()
+        Collection.create = AsyncMock()
+        Collection.update = AsyncMock()
+        Collection.delete = AsyncMock()
+        Collection.aggregate = AsyncMock()
         Collection.__abstractmethods__ = set()  # to instantiate abstract class # type:ignore
 
         cls.collection_transaction = Collection("Transaction", cls.datasource)  # type:ignore

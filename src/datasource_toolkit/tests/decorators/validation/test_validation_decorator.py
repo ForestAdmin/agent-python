@@ -61,7 +61,9 @@ class TesValidationCollectionDecorator(TestCase):
                 "id": Column(column_type=PrimitiveType.NUMBER, is_primary_key=True, type=FieldType.COLUMN),
                 "first_name": Column(column_type=PrimitiveType.STRING, type=FieldType.COLUMN),
                 "last_name": Column(column_type=PrimitiveType.STRING, type=FieldType.COLUMN),
-                "book": OneToOne(origin_key="author_id", origin_key_target="id", foreign_collection="Book"),
+                "book": OneToOne(
+                    origin_key="author_id", origin_key_target="id", foreign_collection="Book", type=FieldType.ONE_TO_ONE
+                ),
             }
         )
         cls.datasource.add_collection(cls.collection_book)
