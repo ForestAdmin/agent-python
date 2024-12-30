@@ -52,10 +52,39 @@ class TestSearchCollectionDecorator(TestCase):
     def setUp(self) -> None:
         self.datasource: Datasource = Datasource()
         self.collection_person = Collection("Person", self.datasource)
+        self.collection_person.add_fields(
+            {
+                "id": {
+                    "is_primary_key": True,
+                    "type": FieldType.COLUMN,
+                    "column_type": PrimitiveType.NUMBER,
+                    "filter_operators": set([Operator.EQUAL, Operator.IN]),
+                }
+            }
+        )
+
+        self.no_searchable_fields_collection = Collection("NotSearchable", self.datasource)
+        self.no_searchable_fields_collection.add_fields(
+            {
+                "id": {
+                    "is_primary_key": True,
+                    "type": FieldType.COLUMN,
+                    "column_type": PrimitiveType.NUMBER,
+                    "filter_operators": set(),
+                }
+            }
+        )
         self.datasource.add_collection(self.collection_person)
+        self.datasource.add_collection(self.no_searchable_fields_collection)
 
         self.datasource_decorator = DatasourceDecorator(self.datasource, SearchCollectionDecorator)
-        self.decorated_collection_person = self.datasource_decorator.get_collection("Person")
+        self.decorated_collection_person: SearchCollectionDecorator = self.datasource_decorator.get_collection(
+            "Person"
+        )  # type:ignore
+
+        self.decorated_not_searchable_collection: SearchCollectionDecorator = self.datasource_decorator.get_collection(
+            "NotSearchable"
+        )  # type:ignore
 
     def test_replace_search_should_work(self):
         def replacer(search: Any, search_extended: bool, context: CollectionCustomizationContext):
@@ -66,6 +95,13 @@ class TestSearchCollectionDecorator(TestCase):
 
     def test_schema_is_searchable_should_be_true(self):
         assert self.decorated_collection_person.schema["searchable"] is True
+
+    def test_schema_is_searchable_should_be_false_when_no_fields_can_be_searched(self):
+        assert self.decorated_not_searchable_collection.schema["searchable"] is False
+
+    def test_schema_is_searchable_should_be_false_when_disabling_search(self):
+        self.decorated_collection_person.disable_search()
+        assert self.decorated_collection_person.schema["searchable"] is False
 
     def test_refine_filter_should_return_the_given_filter_for_empty_filter(self):
         filter_ = Filter({"search": None})
@@ -169,6 +205,7 @@ class TestSearchCollectionDecorator(TestCase):
                 "condition_tree": ConditionTreeBranch(
                     Aggregator.OR,
                     conditions=[
+                        ConditionTreeLeaf("id", Operator.EQUAL, 1584),
                         ConditionTreeLeaf("number", Operator.EQUAL, 1584),
                         ConditionTreeLeaf("label", Operator.CONTAINS, "1584"),
                     ],
@@ -206,11 +243,11 @@ class TestSearchCollectionDecorator(TestCase):
     def test_search_number_in_all_field(self):
         self.collection_person.add_field(
             "field1",
-            Column(column_type=PrimitiveType.NUMBER, filter_operators=[Operator.EQUAL], type=FieldType.COLUMN),
+            Column(column_type=PrimitiveType.NUMBER, filter_operators=set([Operator.EQUAL]), type=FieldType.COLUMN),
         )
         self.collection_person.add_field(
             "field2",
-            Column(column_type=PrimitiveType.NUMBER, filter_operators=[Operator.EQUAL], type=FieldType.COLUMN),
+            Column(column_type=PrimitiveType.NUMBER, filter_operators=set([Operator.EQUAL]), type=FieldType.COLUMN),
         )
 
         self.collection_person.add_field(
@@ -230,6 +267,7 @@ class TestSearchCollectionDecorator(TestCase):
                 "condition_tree": ConditionTreeBranch(
                     Aggregator.OR,
                     conditions=[
+                        ConditionTreeLeaf("id", Operator.EQUAL, 1584),
                         ConditionTreeLeaf("field1", Operator.EQUAL, 1584),
                         ConditionTreeLeaf("field2", Operator.EQUAL, 1584),
                     ],
