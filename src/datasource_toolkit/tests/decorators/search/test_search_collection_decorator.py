@@ -93,11 +93,23 @@ class TestSearchCollectionDecorator(TestCase):
         self.decorated_collection_person.replace_search(replacer)
         assert self.decorated_collection_person._replacer == replacer
 
-    def test_schema_is_searchable_should_be_true(self):
+    def test_schema_is_searchable_should_be_true_by_default_when_fields_can_be_searched(self):
         assert self.decorated_collection_person.schema["searchable"] is True
 
     def test_schema_is_searchable_should_be_false_when_no_fields_can_be_searched(self):
         assert self.decorated_not_searchable_collection.schema["searchable"] is False
+
+    def test_schema_conflict_on_replace_and_disable_apply_the_latest_one(self):
+        self.decorated_collection_person.mark_schema_as_dirty()
+        assert self.decorated_collection_person.schema["searchable"] is True
+
+        self.decorated_collection_person.disable_search()
+        self.decorated_collection_person.mark_schema_as_dirty()
+        assert self.decorated_collection_person.schema["searchable"] is False
+
+        self.decorated_collection_person.replace_search(None)
+        self.decorated_collection_person.mark_schema_as_dirty()
+        assert self.decorated_collection_person.schema["searchable"] is True
 
     def test_schema_is_searchable_should_be_false_when_disabling_search(self):
         self.decorated_collection_person.disable_search()
