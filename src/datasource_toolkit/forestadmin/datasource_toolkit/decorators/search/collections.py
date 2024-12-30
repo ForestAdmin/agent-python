@@ -149,12 +149,14 @@ class SearchCollectionDecorator(CollectionDecorator):
     def _is_searchable_field(self, field: Column) -> bool:
         operators = field.get("filter_operators", [])
 
-        return (
-            (
-                field["column_type"] == PrimitiveType.STRING
-                and (Operator.CONTAINS in operators or Operator.EQUAL in operators)
-            )
-            or (field["column_type"] == PrimitiveType.UUID and (Operator.EQUAL in operators))
-            or (field["column_type"] == PrimitiveType.ENUM and (Operator.EQUAL in operators))
-            or (field["column_type"] == PrimitiveType.NUMBER and (Operator.EQUAL in operators))
-        )
+        if field["column_type"] == PrimitiveType.STRING and (
+            Operator.CONTAINS in operators or Operator.EQUAL in operators
+        ):
+            return True
+
+        if field["column_type"] in [PrimitiveType.NUMBER, PrimitiveType.UUID, PrimitiveType.ENUM] and (
+            Operator.EQUAL in operators
+        ):
+            return True
+
+        return False
