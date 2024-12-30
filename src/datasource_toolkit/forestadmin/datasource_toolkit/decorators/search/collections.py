@@ -33,19 +33,20 @@ class SearchCollectionDecorator(CollectionDecorator):
         super().__init__(collection, datasource)
         self._replacer: SearchDefinition = None
         self._disable_search = False
+        self._searchable = len(self._get_searchable_fields(self.child_collection, False)) > 0
 
     def disable_search(self):
-        self._disable_search = True
+        self._searchable = False
 
     def replace_search(self, replacer: SearchDefinition):
         self._replacer = replacer
+        self._searchable = True
 
     def _refine_schema(self, sub_schema: CollectionSchema) -> CollectionSchema:
 
         return {
             **sub_schema,
-            "searchable": not self._disable_search
-            and len(self._get_searchable_fields(self.child_collection, False)) > 0,
+            "searchable": self._searchable,
         }
 
     def _default_replacer(self, search: str, extended: bool) -> ConditionTree:
