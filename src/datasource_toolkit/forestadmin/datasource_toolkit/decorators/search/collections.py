@@ -43,7 +43,6 @@ class SearchCollectionDecorator(CollectionDecorator):
         self._searchable = True
 
     def _refine_schema(self, sub_schema: CollectionSchema) -> CollectionSchema:
-
         return {
             **sub_schema,
             "searchable": self._searchable,
