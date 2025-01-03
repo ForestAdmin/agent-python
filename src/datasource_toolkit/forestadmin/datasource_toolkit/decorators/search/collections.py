@@ -32,7 +32,6 @@ class SearchCollectionDecorator(CollectionDecorator):
     def __init__(self, collection: Collection, datasource: Datasource[BoundCollection]):
         super().__init__(collection, datasource)
         self._replacer: SearchDefinition = None
-        self._disable_search = False
         self._searchable = len(self._get_searchable_fields(self.child_collection, False)) > 0
 
     def disable_search(self):
