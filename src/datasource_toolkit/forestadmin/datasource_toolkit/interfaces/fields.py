@@ -210,13 +210,26 @@ class ManyToMany(TypedDict):
     type: Literal[FieldType.MANY_TO_MANY, "ManyToMany"]
 
 
+class TypingHelper(TypedDict):
+    type: Literal[
+        "ManyToOne",
+        "OneToMany",
+        "OneToOne",
+        "ManyToMany",
+        "PolymorphicManyToOne",
+        "PolymorphicOneToMany",
+        "PolymorphicOneToOne",
+        "Column",
+    ]
+
+
 ColumnAlias = Union[PrimitiveType, PrimitiveTypeLiteral, Dict[str, "ColumnAlias"], List["ColumnAlias"]]
 StraightRelationAlias = Union[ManyToMany, ManyToOne, OneToOne, OneToMany]
 RelationAlias = Union[
     ManyToMany, ManyToOne, OneToOne, OneToMany, PolymorphicManyToOne, PolymorphicOneToOne, PolymorphicOneToMany
 ]
 PolyRelationAlias = Union[PolymorphicManyToOne, PolymorphicOneToOne, PolymorphicOneToMany]
-FieldAlias = Union[Column, RelationAlias]
+FieldAlias = Union[Column, RelationAlias, TypingHelper]
 
 
 def is_column(field: "FieldAlias") -> TypeGuard[Column]:
