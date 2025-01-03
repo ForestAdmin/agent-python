@@ -573,6 +573,22 @@ class CollectionCustomizer:
         self.stack.queue_customization(_replace_search)
         return self
 
+    def disable_search(self) -> Self:
+        """Disable the search bar
+
+        Documentation:
+            https://docs.forestadmin.com/developer-guide-agents-python/agent-customization/search
+
+        Example:
+            .disable_search()
+        """
+
+        async def _disable_search():
+            cast(SearchCollectionDecorator, self.stack.search.get_collection(self.collection_name)).disable_search()
+
+        self.stack.queue_customization(_disable_search)
+        return self
+
     def add_chart(self, name: str, definition: CollectionChartDefinition) -> Self:
         """Create a new API chart
 
