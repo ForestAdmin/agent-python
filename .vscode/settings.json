@@ -56,4 +56,11 @@
         "Dateonly",
         "sessionmaker"
     ],
+    "files.watcherExclude": {
+        "**/.git/objects/**": true,
+        "**/.git/subtree-cache/**": true,
+        "**/node_modules/**": true,
+        "**/venv*/**": true,
+        "**/__pycache__/**": true
+    },
 }
