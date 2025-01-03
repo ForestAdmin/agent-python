@@ -61,7 +61,9 @@ class TestComputedCollectionDecorator(TestCase):
                 "id": Column(column_type=PrimitiveType.NUMBER, is_primary_key=True, type=FieldType.COLUMN),
                 "first_name": Column(column_type=PrimitiveType.STRING, type=FieldType.COLUMN),
                 "last_name": Column(column_type=PrimitiveType.STRING, type=FieldType.COLUMN),
-                "book": OneToOne(origin_key="author_id", origin_key_target="id", foreign_collection="Book"),
+                "book": OneToOne(
+                    origin_key="author_id", origin_key_target="id", foreign_collection="Book", type="OneToOne"
+                ),
             }
         )
         cls.collection_rating = Collection("Rating", cls.datasource)

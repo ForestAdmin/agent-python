@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Optional, cast
+from typing import Any, Dict, List, Optional, Union, cast
 
 from forestadmin.datasource_toolkit.interfaces.query.filter.unpaginated import (
     BaseFilter,
@@ -13,7 +13,7 @@ from typing_extensions import Self, TypeGuard
 
 class PaginatedFilterComponent(FilterComponent, total=False):
     page: Page
-    sort: Sort
+    sort: List[Union[PlainSortClause, Sort]]
 
 
 class PlainPaginatedFilter(PlainFilter):
