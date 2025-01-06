@@ -24,18 +24,11 @@ runs:
     - name: Install package dependencies
       shell: bash
       working-directory: ./src/datasource_toolkit
-      run: poetry install --only test
+      run: poetry install --with test
     - name: Download all coverage reports
       uses: actions/download-artifact@v4
       with:
         path: coverage
-    - name: debug reports
-      shell: bash
-      run: |
-        poetry --directory ./src/datasource_toolkit run pwd &&
-        poetry --directory ./src/datasource_toolkit run ls -hal ../../coverage/ &&
-        poetry --directory ./src/datasource_toolkit run find ../../coverage/ | grep \\.coverage &&
-        poetry --directory ./src/datasource_toolkit run find ../../coverage | xargs poetry --directory ./src/datasource_toolkit run ls
     - name: Combine reports
       shell: bash
       run: poetry --directory ./src/datasource_toolkit run find ../../coverage | grep \\.coverage | xargs poetry --directory ./src/datasource_toolkit run coverage combine
