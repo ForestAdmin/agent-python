@@ -29,6 +29,9 @@ runs:
       uses: actions/download-artifact@v4
       with:
         path: coverage
+    - name: debug reports
+      shell: bash
+      run: pwd && ls -aR ./coverage/
     - name: Combine reports
       shell: bash
       run: poetry --directory ./src/datasource_toolkit run find ../../coverage | grep \\.coverage | xargs poetry --directory ./src/datasource_toolkit run coverage combine
