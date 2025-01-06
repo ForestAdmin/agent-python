@@ -33,11 +33,11 @@ runs:
       shell: bash
       run: |
         pwd &&
-        ls -aR ./coverage/
-        && poetry --directory ./src/datasource_toolkit run pwd
-        && poetry --directory ./src/datasource_toolkit run ls -hal ../../coverage/
-        && poetry --directory ./src/datasource_toolkit run ls -hal ../../coverage/*
-        && poetry --directory ./src/datasource_toolkit run ls -hal ../../coverage/*/.coverage
+        ls -aR ./coverage/ &&
+        poetry --directory ./src/datasource_toolkit run pwd &&
+        poetry --directory ./src/datasource_toolkit run ls -hal ../../coverage/ &&
+        poetry --directory ./src/datasource_toolkit run ls -hal ../../coverage/* &&
+        poetry --directory ./src/datasource_toolkit run ls -hal ../../coverage/*/.coverage
     - name: Combine reports
       shell: bash
       run: poetry --directory ./src/datasource_toolkit run find ../../coverage | grep \\.coverage | xargs poetry --directory ./src/datasource_toolkit run coverage combine
