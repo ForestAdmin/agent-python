@@ -26,6 +26,7 @@
         "src/datasource_sqlalchemy",
         "src/flask_agent",
         "src/fastapi_agent",
+        "src/datasource_mongo",
         // because of test projects, the following cannot be enable at the same time
         // "src/datasource_django",
         // "src/django_agent",
@@ -54,7 +55,8 @@
     "cSpell.words": [
         "datauri",
         "Dateonly",
-        "sessionmaker"
+        "sessionmaker",
+        "sqlalchemy"
     ],
     "files.watcherExclude": {
         "**/.git/objects/**": true,

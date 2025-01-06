@@ -22,3 +22,5 @@ runs:
             - 'src/flask_agent/**'
           django_agent:
             - 'src/django_agent/**'
+          datasource_mongo:
+            - 'src/datasource_mongo/**'

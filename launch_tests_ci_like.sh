@@ -2,7 +2,7 @@
 # set -x
 ARTIFACT_DIR="artifacts_coverages"
 
-PACKAGES=("agent_toolkit" "datasource_sqlalchemy" "datasource_toolkit" "flask_agent" "datasource_django" "django_agent")
+PACKAGES=("agent_toolkit" "datasource_sqlalchemy" "datasource_toolkit" "flask_agent" "datasource_django" "django_agent" "datasource_mongo")
 # PACKAGES=("datasource_sqlalchemy")
 PYTHON_VERSIONS=("3.8" "3.9" "3.10" "3.11" "3.12" "3.13")
 # PYTHON_VERSIONS=("3.8" "3.13")
