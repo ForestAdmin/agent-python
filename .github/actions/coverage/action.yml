@@ -35,7 +35,7 @@ runs:
         poetry --directory ./src/datasource_toolkit run pwd &&
         poetry --directory ./src/datasource_toolkit run ls -hal ../../coverage/ &&
         poetry --directory ./src/datasource_toolkit run find ../../coverage/ | grep \\.coverage &&
-        poetry --directory ./src/datasource_toolkit run find ../../coverage | xargs ls
+        poetry --directory ./src/datasource_toolkit run find ../../coverage | xargs poetry --directory ./src/datasource_toolkit run ls
     - name: Combine reports
       shell: bash
       run: poetry --directory ./src/datasource_toolkit run find ../../coverage | grep \\.coverage | xargs poetry --directory ./src/datasource_toolkit run coverage combine
