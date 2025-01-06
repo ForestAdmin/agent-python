@@ -24,98 +24,96 @@ on:
       SLACK_WEBHOOK:
         required: true
 jobs:
-  # TODO: uncomment
-  # changes:
-  #   name: changes
-  #   runs-on: ubuntu-latest
-  #   outputs:
-  #     packages: ${{ steps.changes.outputs.packages }}
-  #   steps:
-  #     - uses: actions/checkout@v4
-  #     - id: changes
-  #       uses: ./.github/actions/changes
-  # lint:
-  #   name: Linting
-  #   needs: [ changes ]
-  #   runs-on: ubuntu-latest
-  #   strategy:
-  #     matrix:
-  #       python-version: ['3.10']
-  #       current_package: ${{ fromJson(inputs.packages) }}
-  #   steps:
-  #     - name: has change in sub package
-  #       id: has_change
-  #       run: |
-  #         PACKAGE_NAME=$(echo $PACKAGE | cut -d'/' -f3)
-  #         echo "has_change=$(echo $CHANGES | jq -r .$PACKAGE_NAME)" >> $GITHUB_OUTPUT
-  #       shell: bash
-  #       env:
-  #         PACKAGE: ${{ matrix.current_package }}
-  #         CHANGES: ${{ needs.changes.outputs.packages }}
-  #     - uses: actions/checkout@v4
-  #       if: ${{ steps.has_change.outputs.has_change != 'false' }}
-  #     - id: lint
-  #       if: ${{ steps.has_change.outputs.has_change != 'false' }}
-  #       uses: ./.github/actions/linting
-  #       with:
-  #         python-version: ${{ matrix.python-version }}
-  #         current_package: ${{ matrix.current_package }}
-  # isort:
-  #   name: Isorting
-  #   needs: [ changes ]
-  #   runs-on: ubuntu-latest
-  #   strategy:
-  #     matrix:
-  #       python-version: ['3.10']
-  #       current_package: ${{ fromJson(inputs.packages) }}
-  #   steps:
-  #     - name: has change in sub package
-  #       id: has_change
-  #       run: |
-  #         PACKAGE_NAME=$(echo $PACKAGE | cut -d'/' -f3)
-  #         echo "has_change=$(echo $CHANGES | jq -r .$PACKAGE_NAME)" >> $GITHUB_OUTPUT
-  #       shell: bash
-  #       env:
-  #         PACKAGE: ${{ matrix.current_package }}
-  #         CHANGES: ${{ needs.changes.outputs.packages }}
-  #     - uses: actions/checkout@v4
-  #       if: ${{ steps.has_change.outputs.has_change != 'false' }}
-  #     - id: isort
-  #       if: ${{ steps.has_change.outputs.has_change != 'false' }}
-  #       uses: ./.github/actions/isort
-  #       with:
-  #         python-version: ${{ matrix.python-version }}
-  #         current_package: ${{ matrix.current_package }}
-  # black:
-  #   name: Black
-  #   needs: [ changes ]
-  #   runs-on: ubuntu-latest
-  #   strategy:
-  #     matrix:
-  #       python-version: ['3.10']
-  #       current_package: ${{ fromJson(inputs.packages) }}
-  #   steps:
-  #     - name: has change in sub package
-  #       id: has_change
-  #       run: |
-  #         PACKAGE_NAME=$(echo $PACKAGE | cut -d'/' -f3)
-  #         echo "has_change=$(echo $CHANGES | jq -r .$PACKAGE_NAME)" >> $GITHUB_OUTPUT
-  #       shell: bash
-  #       env:
-  #         PACKAGE: ${{ matrix.current_package }}
-  #         CHANGES: ${{ needs.changes.outputs.packages }}
-  #     - uses: actions/checkout@v4
-  #       if: ${{ steps.has_change.outputs.has_change != 'false' }}
-  #     - id: isort
-  #       if: ${{ steps.has_change.outputs.has_change != 'false' }}
-  #       uses: ./.github/actions/black
-  #       with:
-  #         python-version: ${{ matrix.python-version }}
-  #         current_package: ${{ matrix.current_package }}
+  changes:
+    name: changes
+    runs-on: ubuntu-latest
+    outputs:
+      packages: ${{ steps.changes.outputs.packages }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: changes
+        uses: ./.github/actions/changes
+  lint:
+    name: Linting
+    needs: [ changes ]
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.10']
+        current_package: ${{ fromJson(inputs.packages) }}
+    steps:
+      - name: has change in sub package
+        id: has_change
+        run: |
+          PACKAGE_NAME=$(echo $PACKAGE | cut -d'/' -f3)
+          echo "has_change=$(echo $CHANGES | jq -r .$PACKAGE_NAME)" >> $GITHUB_OUTPUT
+        shell: bash
+        env:
+          PACKAGE: ${{ matrix.current_package }}
+          CHANGES: ${{ needs.changes.outputs.packages }}
+      - uses: actions/checkout@v4
+        if: ${{ steps.has_change.outputs.has_change != 'false' }}
+      - id: lint
+        if: ${{ steps.has_change.outputs.has_change != 'false' }}
+        uses: ./.github/actions/linting
+        with:
+          python-version: ${{ matrix.python-version }}
+          current_package: ${{ matrix.current_package }}
+  isort:
+    name: Isorting
+    needs: [ changes ]
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.10']
+        current_package: ${{ fromJson(inputs.packages) }}
+    steps:
+      - name: has change in sub package
+        id: has_change
+        run: |
+          PACKAGE_NAME=$(echo $PACKAGE | cut -d'/' -f3)
+          echo "has_change=$(echo $CHANGES | jq -r .$PACKAGE_NAME)" >> $GITHUB_OUTPUT
+        shell: bash
+        env:
+          PACKAGE: ${{ matrix.current_package }}
+          CHANGES: ${{ needs.changes.outputs.packages }}
+      - uses: actions/checkout@v4
+        if: ${{ steps.has_change.outputs.has_change != 'false' }}
+      - id: isort
+        if: ${{ steps.has_change.outputs.has_change != 'false' }}
+        uses: ./.github/actions/isort
+        with:
+          python-version: ${{ matrix.python-version }}
+          current_package: ${{ matrix.current_package }}
+  black:
+    name: Black
+    needs: [ changes ]
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.10']
+        current_package: ${{ fromJson(inputs.packages) }}
+    steps:
+      - name: has change in sub package
+        id: has_change
+        run: |
+          PACKAGE_NAME=$(echo $PACKAGE | cut -d'/' -f3)
+          echo "has_change=$(echo $CHANGES | jq -r .$PACKAGE_NAME)" >> $GITHUB_OUTPUT
+        shell: bash
+        env:
+          PACKAGE: ${{ matrix.current_package }}
+          CHANGES: ${{ needs.changes.outputs.packages }}
+      - uses: actions/checkout@v4
+        if: ${{ steps.has_change.outputs.has_change != 'false' }}
+      - id: isort
+        if: ${{ steps.has_change.outputs.has_change != 'false' }}
+        uses: ./.github/actions/black
+        with:
+          python-version: ${{ matrix.python-version }}
+          current_package: ${{ matrix.current_package }}
   test:
     name: Test
-    # TODO
-    # needs: [isort, lint, black]
+    needs: [isort, lint, black]
     runs-on: ubuntu-latest
     strategy:
       matrix:
