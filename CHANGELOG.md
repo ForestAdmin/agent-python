@@ -1,3 +1,10 @@
+# [1.21.0](https://github.com/ForestAdmin/agent-python/compare/v1.20.1...v1.21.0) (2025-01-06)
+
+
+### Features
+
+* **django:** support django 5.1 ([#272](https://github.com/ForestAdmin/agent-python/issues/272)) ([efe61e7](https://github.com/ForestAdmin/agent-python/commit/efe61e7faa8aab968f14178ff222bb2a42c8d5a1))
+
 ## [1.20.1](https://github.com/ForestAdmin/agent-python/compare/v1.20.0...v1.20.1) (2025-01-06)
 
 
