@@ -14,8 +14,10 @@ from forestadmin.datasource_toolkit.datasources import Datasource
 from forestadmin.datasource_toolkit.decorators.datasource_decorator import DatasourceDecorator
 from forestadmin.datasource_toolkit.decorators.lazy_join.collection import LazyJoinCollectionDecorator
 from forestadmin.datasource_toolkit.interfaces.fields import Column, FieldType, ManyToOne, OneToMany, PrimitiveType
+from forestadmin.datasource_toolkit.interfaces.query.aggregation import Aggregation
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.leaf import ConditionTreeLeaf
 from forestadmin.datasource_toolkit.interfaces.query.filter.paginated import PaginatedFilter
+from forestadmin.datasource_toolkit.interfaces.query.filter.unpaginated import Filter
 from forestadmin.datasource_toolkit.interfaces.query.projections import Projection
 
 
@@ -51,6 +53,10 @@ class TestEmptyCollectionDecorator(TestCase):
                 ),
                 "title": Column(
                     column_type=PrimitiveType.STRING,
+                    type=FieldType.COLUMN,
+                ),
+                "price": Column(
+                    column_type=PrimitiveType.NUMBER,
                     type=FieldType.COLUMN,
                 ),
             }
@@ -226,7 +232,7 @@ class TestEmptyCollectionDecorator(TestCase):
             response,
         )
 
-    def test_should_correctly_handle_null_relations(self):
+    def test_should_correctly_handle_null_relations_on_list(self):
         with patch.object(
             self.collection_book,
             "list",
@@ -252,3 +258,131 @@ class TestEmptyCollectionDecorator(TestCase):
             ],
             result,
         )
+
+    def test_should_not_join_on_aggregate_when_group_by_foreign_pk(self):
+        with patch.object(
+            self.collection_book,
+            "aggregate",
+            new_callable=AsyncMock,
+            return_value=[
+                {"value": 1824.11, "group": {"author_id": 2}},
+                {"value": 824.11, "group": {"author_id": 3}},
+            ],
+        ) as mock_aggregate:
+            result = self.loop.run_until_complete(
+                self.decorated_book_collection.aggregate(
+                    self.mocked_caller,
+                    Filter({}),
+                    Aggregation({"field": "price", "operation": "Sum", "groups": [{"field": "author:id"}]}),
+                    None,
+                )
+            )
+            self.assertEqual(
+                result,
+                [
+                    {"value": 1824.11, "group": {"author:id": 2}},
+                    {"value": 824.11, "group": {"author:id": 3}},
+                ],
+            )
+            mock_aggregate.assert_awaited_once_with(
+                self.mocked_caller,
+                Filter({}),
+                Aggregation({"field": "price", "operation": "Sum", "groups": [{"field": "author_id"}]}),
+                None,
+            )
+
+    def test_should_join_on_aggregate_when_group_by_foreign_field(self):
+        with patch.object(
+            self.collection_book,
+            "aggregate",
+            new_callable=AsyncMock,
+            return_value=[
+                {"value": 1824.11, "group": {"author:first_name": "Isaac"}},
+                {"value": 824.11, "group": {"author:first_name": "JK"}},
+            ],
+        ) as mock_aggregate:
+            result = self.loop.run_until_complete(
+                self.decorated_book_collection.aggregate(
+                    self.mocked_caller,
+                    Filter({}),
+                    Aggregation({"field": "price", "operation": "Sum", "groups": [{"field": "author:first_name"}]}),
+                    None,
+                )
+            )
+            self.assertEqual(
+                result,
+                [
+                    {"value": 1824.11, "group": {"author:first_name": "Isaac"}},
+                    {"value": 824.11, "group": {"author:first_name": "JK"}},
+                ],
+            )
+            mock_aggregate.assert_awaited_once_with(
+                self.mocked_caller,
+                Filter({}),
+                Aggregation({"field": "price", "operation": "Sum", "groups": [{"field": "author:first_name"}]}),
+                None,
+            )
+
+    def test_should_not_join_on_aggregate_when_group_by_foreign_pk_and_filter_on_foreign_pk(self):
+        with patch.object(
+            self.collection_book,
+            "aggregate",
+            new_callable=AsyncMock,
+            return_value=[
+                {"value": 1824.11, "group": {"author_id": 2}},
+                {"value": 824.11, "group": {"author_id": 3}},
+            ],
+        ) as mock_aggregate:
+            result = self.loop.run_until_complete(
+                self.decorated_book_collection.aggregate(
+                    self.mocked_caller,
+                    Filter({"condition_tree": ConditionTreeLeaf("author:id", "not_equal", 50)}),
+                    Aggregation({"field": "price", "operation": "Sum", "groups": [{"field": "author:id"}]}),
+                    None,
+                )
+            )
+            self.assertEqual(
+                result,
+                [
+                    {"value": 1824.11, "group": {"author:id": 2}},
+                    {"value": 824.11, "group": {"author:id": 3}},
+                ],
+            )
+            mock_aggregate.assert_awaited_once_with(
+                self.mocked_caller,
+                Filter({"condition_tree": ConditionTreeLeaf("author_id", "not_equal", 50)}),
+                Aggregation({"field": "price", "operation": "Sum", "groups": [{"field": "author_id"}]}),
+                None,
+            )
+
+    def test_should_join_on_aggregate_when_group_by_foreign_pk_and_filter_on_foreign_field(self):
+        with patch.object(
+            self.collection_book,
+            "aggregate",
+            new_callable=AsyncMock,
+            return_value=[
+                {"value": 1824.11, "group": {"author_id": 2}},
+                {"value": 824.11, "group": {"author_id": 3}},
+            ],
+        ) as mock_aggregate:
+            result = self.loop.run_until_complete(
+                self.decorated_book_collection.aggregate(
+                    self.mocked_caller,
+                    Filter({"condition_tree": ConditionTreeLeaf("author:first_name", "not_equal", "wrong_name")}),
+                    Aggregation({"field": "price", "operation": "Sum", "groups": [{"field": "author:id"}]}),
+                    None,
+                )
+            )
+            self.assertEqual(
+                result,
+                [
+                    {"value": 1824.11, "group": {"author:id": 2}},
+                    {"value": 824.11, "group": {"author:id": 3}},
+                ],
+            )
+            mock_aggregate.assert_awaited_once_with(
+                self.mocked_caller,
+                Filter({"condition_tree": ConditionTreeLeaf("author:first_name", "not_equal", "wrong_name")}),
+                Aggregation({"field": "price", "operation": "Sum", "groups": [{"field": "author_id"}]}),
+                None,
+            )
