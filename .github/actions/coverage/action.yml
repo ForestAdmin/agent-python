@@ -31,7 +31,7 @@ runs:
         path: coverage
     - name: debug reports
       shell: bash
-      run: pwd && ls -aR ./coverage/ && poetry --directory ./src/datasource_toolkit run pwd && poetry --directory ./src/datasource_toolkit run ls -hal ../../coverage/code-coverage-report.agent_toolkit.3.10/.coverage
+      run: pwd && ls -aR ./coverage/ && poetry --directory ./src/datasource_toolkit run pwd && poetry --directory ./src/datasource_toolkit run ls -hal ../../coverage/code-coverage-report.*/.coverage
     - name: Combine reports
       shell: bash
       run: poetry --directory ./src/datasource_toolkit run find ../../coverage | grep \\.coverage | xargs poetry --directory ./src/datasource_toolkit run coverage combine
