@@ -51,6 +51,13 @@ class TestEmptyCollectionDecorator(TestCase):
                     foreign_key_target="id",
                     type=FieldType.MANY_TO_ONE,
                 ),
+                "editor_id": Column(column_type=PrimitiveType.NUMBER, type=FieldType.COLUMN),
+                "editor": ManyToOne(
+                    foreign_collection="Person",
+                    foreign_key="editor_id",
+                    foreign_key_target="id",
+                    type=FieldType.MANY_TO_ONE,
+                ),
                 "title": Column(
                     column_type=PrimitiveType.STRING,
                     type=FieldType.COLUMN,
@@ -123,6 +130,30 @@ class TestEmptyCollectionDecorator(TestCase):
                 {"id": 1, "author": {"id": 2, "first_name": "Isaac"}},
                 {"id": 2, "author": {"id": 5, "first_name": "J.K."}},
             ],
+            result,
+        )
+
+    def test_should_work_with_multiple_relations(self):
+        with patch.object(
+            self.collection_book,
+            "list",
+            new_callable=AsyncMock,
+            return_value=[{"id": 1, "author_id": 2, "editor_id": 3}, {"id": 2, "author_id": 5, "editor_id": 6}],
+        ) as mock_list:
+            result = self.loop.run_until_complete(
+                self.decorated_book_collection.list(
+                    self.mocked_caller,
+                    PaginatedFilter({}),
+                    Projection("id", "author:id", "editor:id"),
+                )
+            )
+            mock_list.assert_awaited_once_with(
+                self.mocked_caller, PaginatedFilter({}), Projection("id", "author_id", "editor_id")
+            )
+
+        # should contain author object, without author_id FK
+        self.assertEqual(
+            [{"id": 1, "author": {"id": 2}, "editor": {"id": 3}}, {"id": 2, "author": {"id": 5}, "editor": {"id": 6}}],
             result,
         )
 
