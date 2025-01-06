@@ -15,7 +15,7 @@ homepage = "https://www.forestadmin.com"
 include = "forestadmin"
 
 [tool.poetry.dependencies]
-python = ">=3.8,<3.13"
+python = ">=3.8,<3.14"
 typing-extensions = "~=4.2"
 django = ">=3.2,<5.2"
 forestadmin-agent-toolkit = "1.21.0"
@@ -46,7 +46,6 @@ optional = true
 [tool.poetry.group.test.dependencies]
 pytest = "~=7.1"
 coverage = "~=6.5"
-freezegun = "~=1.2.0"
 pytest-cov = "^4.0.0"
 pytest-django = ">=4.0.0"
 

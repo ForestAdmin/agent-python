@@ -15,17 +15,23 @@ homepage = "https://www.forestadmin.com"
 include = "forestadmin"
 
 [tool.poetry.dependencies]
-python = ">=3.8,<3.13"
+python = ">=3.8,<3.14"
 typing-extensions = "~=4.2"
 filetype = "^1.0.0"
-pandas = ">=1.4.0"
+
 [[tool.poetry.dependencies.numpy]]
 version = ">=1.26.0,<2.0.0"
 python = ">=3.12.0"
-
 [[tool.poetry.dependencies.numpy]]
 version = "<2.0.0"
 python = "<3.12.0"
+
+[[tool.poetry.dependencies.pandas]]
+version = ">=1.4.0"
+python = "<3.13.0"
+[[tool.poetry.dependencies.pandas]]
+version = ">=2.2.3"
+python = ">=3.13.0"
 
 [tool.poetry.dependencies."backports.zoneinfo"]
 version = "~=0.2.1"
@@ -48,7 +54,7 @@ optional = true
 pytest = "~=7.1"
 pytest-asyncio = "~=0.18"
 coverage = "~=6.5"
-freezegun = "~=1.2.0"
+freezegun = "~=1.5.0"
 pytest-cov = "^4.0.0"
 
 [tool.poetry.group.linter.dependencies]

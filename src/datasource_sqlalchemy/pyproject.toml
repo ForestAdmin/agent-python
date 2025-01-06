@@ -15,7 +15,7 @@ homepage = "https://www.forestadmin.com"
 include = "forestadmin"
 
 [tool.poetry.dependencies]
-python = ">=3.8,<3.13"
+python = ">=3.8,<3.14"
 typing-extensions = "~=4.2"
 sqlalchemy = ">=1.4.0"
 forestadmin-datasource-toolkit = "1.21.0"
@@ -42,7 +42,6 @@ optional = true
 pytest = "~=7.1"
 pytest-asyncio = "~=0.18"
 coverage = "~=6.5"
-freezegun = "~=1.2.0"
 pytest-cov = "^4.0.0"
 Flask-SQLAlchemy = ">=2.4.0"
 
