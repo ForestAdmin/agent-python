@@ -1,3 +1,10 @@
+## [1.20.1](https://github.com/ForestAdmin/agent-python/compare/v1.20.0...v1.20.1) (2025-01-06)
+
+
+### Performance Improvements
+
+* add aggregate to lazy join ([#298](https://github.com/ForestAdmin/agent-python/issues/298)) ([692879a](https://github.com/ForestAdmin/agent-python/commit/692879a80e07cb8460080c867067827ab194dd19))
+
 # [1.20.0](https://github.com/ForestAdmin/agent-python/compare/v1.19.1...v1.20.0) (2024-12-20)
 
 

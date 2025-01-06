@@ -4,7 +4,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 name = "forestadmin-datasource-sqlalchemy"
-version = "1.20.0"
+version = "1.20.1"
 description = "sqlalchemy datasource for forestadmin python agent"
 authors = [ "Valentin Monté <valentinm@forestadmin.com>", "Julien Barreau <julien.barreau@forestadmin.com>",]
 readme = "README.md"
@@ -18,8 +18,8 @@ include = "forestadmin"
 python = ">=3.8,<3.13"
 typing-extensions = "~=4.2"
 sqlalchemy = ">=1.4.0"
-forestadmin-datasource-toolkit = "1.20.0"
-forestadmin-agent-toolkit = "1.20.0"
+forestadmin-datasource-toolkit = "1.20.1"
+forestadmin-agent-toolkit = "1.20.1"
 
 [tool.poetry.dependencies."backports.zoneinfo"]
 version = "~=0.2.1"
