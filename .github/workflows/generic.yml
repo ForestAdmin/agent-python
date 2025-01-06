@@ -24,16 +24,16 @@ on:
       SLACK_WEBHOOK:
         required: true
 jobs:
-  changes:
-    name: changes
-    runs-on: ubuntu-latest
-    outputs:
-      packages: ${{ steps.changes.outputs.packages }}
-    steps:
-      - uses: actions/checkout@v4
-      - id: changes
-        uses: ./.github/actions/changes
   # TODO: uncomment
+  # changes:
+  #   name: changes
+  #   runs-on: ubuntu-latest
+  #   outputs:
+  #     packages: ${{ steps.changes.outputs.packages }}
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - id: changes
+  #       uses: ./.github/actions/changes
   # lint:
   #   name: Linting
   #   needs: [ changes ]
