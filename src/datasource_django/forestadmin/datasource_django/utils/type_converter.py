@@ -1,5 +1,6 @@
 from typing import Dict, Set, Tuple
 
+import django
 from django.db import models
 from forestadmin.datasource_django.exception import DjangoDatasourceException
 from forestadmin.datasource_toolkit.interfaces.fields import ColumnAlias, Operator, PrimitiveType
@@ -25,11 +26,12 @@ class ConverterException(DjangoDatasourceException):
 if postgres_fields is not None:
     POSTGRES_TYPE: Dict[type, PrimitiveType] = {
         # specific postgres fields
-        postgres_fields.CIText: PrimitiveType.STRING,
-        postgres_fields.CIEmailField: PrimitiveType.STRING,
         postgres_fields.HStoreField: PrimitiveType.JSON,
         # postgres_fields.RangeField and subclassed ones not handles
     }
+    if django.VERSION[0] < 5 or (django.VERSION[0] == 5 and django.VERSION[1] < 1):
+        POSTGRES_TYPE[postgres_fields.CIText] = PrimitiveType.STRING
+        POSTGRES_TYPE[postgres_fields.CIEmailField] = PrimitiveType.STRING
 else:
     POSTGRES_TYPE: Dict[type, PrimitiveType] = {}
 

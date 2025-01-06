@@ -17,7 +17,7 @@ include = "forestadmin"
 [tool.poetry.dependencies]
 python = ">=3.8,<3.13"
 typing-extensions = "~=4.2"
-django = ">=3.2,<6.0"
+django = ">=3.2,<5.2"
 forestadmin-datasource-toolkit = "1.20.1"
 forestadmin-agent-toolkit = "1.20.1"
 
