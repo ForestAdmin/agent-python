@@ -42,15 +42,6 @@ class TypicodeCollection(Collection):
             request_params["params"].append(("q", filter_.search))
         return request_params
 
-    async def create(self, caller: User, data: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-        raise NotImplementedError("cannot create")
-
-    async def update(self, caller: User, filter_: Filter | None, patch: Dict[str, Any]) -> None:
-        raise NotImplementedError("cannot update")
-
-    async def delete(self, caller: User, filter_: Filter | None) -> None:
-        raise NotImplementedError("cannot delete")
-
     async def list(self, caller: User, filter_: PaginatedFilter, projection: Projection) -> List[Dict[str, Any]]:
         request = self._build_request(filter_.to_base_filter())
         if filter_ and filter_.page:
@@ -83,9 +74,6 @@ class TypicodeCollection(Collection):
             limit,
         )
 
-    def get_native_driver(self):
-        raise NotImplementedError("cannot delete")
-
 
 class Comments(TypicodeCollection):
     def __init__(self, datasource: Datasource[Self]):
@@ -94,7 +82,7 @@ class Comments(TypicodeCollection):
         self.add_fields(
             {
                 "id": {
-                    "type": FieldType.COLUMN,
+                    "type": "Column",
                     "is_primary_key": True,
                     "column_type": "Number",
                     "filter_operators": set([Operator.EQUAL]),

@@ -67,7 +67,9 @@ class TestEmptyCollectionDecorator(TestCase):
                 "id": Column(column_type=PrimitiveType.NUMBER, is_primary_key=True, type=FieldType.COLUMN),
                 "first_name": Column(column_type=PrimitiveType.STRING, type=FieldType.COLUMN),
                 "last_name": Column(column_type=PrimitiveType.STRING, type=FieldType.COLUMN),
-                "books": OneToMany(origin_key="author_id", origin_key_target="id", foreign_collection="Book"),
+                "books": OneToMany(
+                    origin_key="author_id", origin_key_target="id", foreign_collection="Book", type="OneToMany"
+                ),
             }
         )
 

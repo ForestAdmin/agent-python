@@ -27,6 +27,10 @@ class TestHookCollectionDecorator(TestCase):
         cls.datasource: Datasource = Datasource()
 
         Collection.__abstractmethods__ = set()  # to instantiate abstract class
+        Collection.create = AsyncMock()
+        Collection.update = AsyncMock()
+        Collection.delete = AsyncMock()
+        Collection.aggregate = AsyncMock()
         cls.collection_transaction = Collection("Transaction", cls.datasource)
         cls.collection_transaction.add_fields(
             {
