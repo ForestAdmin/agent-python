@@ -114,7 +114,8 @@ jobs:
   #         current_package: ${{ matrix.current_package }}
   test:
     name: Test
-    needs: [isort, lint, black]
+    # TODO
+    # needs: [isort, lint, black]
     runs-on: ubuntu-latest
     strategy:
       matrix:
