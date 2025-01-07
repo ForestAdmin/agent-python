@@ -36,10 +36,12 @@ class SearchCollectionDecorator(CollectionDecorator):
 
     def disable_search(self):
         self._searchable = False
+        self.mark_schema_as_dirty()
 
     def replace_search(self, replacer: SearchDefinition):
         self._replacer = replacer
         self._searchable = True
+        self.mark_schema_as_dirty()
 
     def _refine_schema(self, sub_schema: CollectionSchema) -> CollectionSchema:
         return {

@@ -622,3 +622,13 @@ class TestSearchCollectionDecorator(TestCase):
         filter_ = Filter({"search": "something", "search_extended": True})
         self.loop.run_until_complete(self.decorated_collection_person._refine_filter(self.mocked_caller, filter_))
         spy_replacer_fn.assert_awaited_with("something", True, ANY)
+
+    def test_disable_search_should_mark_schema_as_dirty(self):
+        with patch.object(self.decorated_collection_person, "mark_schema_as_dirty") as mark_schema_as_dirty:
+            self.decorated_collection_person.disable_search()
+            mark_schema_as_dirty.assert_called_once()
+
+    def test_replace_search_should_mark_schema_as_dirty(self):
+        with patch.object(self.decorated_collection_person, "mark_schema_as_dirty") as mark_schema_as_dirty:
+            self.decorated_collection_person.replace_search(None)
+            mark_schema_as_dirty.assert_called_once()
