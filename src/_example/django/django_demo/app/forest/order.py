@@ -165,9 +165,12 @@ async def refund_order_execute(context: ActionContextBulk, result_builder: Resul
     reason = context.form_values.get("reason")
     if reason is None:
         return result_builder.error("You must provide a reason to refund an order.")
-    my_order = [o async for o in Order.objects.filter(id__in=my_order_id)][0]
+    my_orders = Order.objects.filter(id__in=my_order_id).select_related("customer")
     # await my_order.refund()
-    return result_builder.success(f"fake refund ({my_order.amount}), because {reason}.")
+    txt = ""
+    async for o in my_orders:
+        txt += f"fake refund of {o.amount} to {o.customer.first_name} {o.customer.last_name}, because {reason}."
+    return result_builder.success(txt)
 
 
 refund_order_action: ActionDict = {
