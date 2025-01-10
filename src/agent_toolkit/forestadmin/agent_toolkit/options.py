@@ -35,6 +35,7 @@ class OptionValidator:
         "permissions_cache_duration_in_seconds": 15 * 60,
         "skip_schema_update": False,
         "verify_ssl": os.environ.get("FOREST_VERIFY_SSL", "True").lower() == "true",
+        "mcp_server_port": 8012,
     }
 
     @classmethod

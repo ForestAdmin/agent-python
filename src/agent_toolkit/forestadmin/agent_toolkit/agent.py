@@ -11,6 +11,7 @@ from forestadmin.agent_toolkit.resources.collections.crud import CrudResource
 from forestadmin.agent_toolkit.resources.collections.crud_related import CrudRelatedResource
 from forestadmin.agent_toolkit.resources.collections.native_query import NativeQueryResource
 from forestadmin.agent_toolkit.resources.collections.stats import StatsResource
+from forestadmin.agent_toolkit.resources.mcp import MCPResource
 from forestadmin.agent_toolkit.resources.security.resources import Authentication
 from forestadmin.agent_toolkit.services.permissions.ip_whitelist_service import IpWhiteListService
 from forestadmin.agent_toolkit.services.permissions.permission_service import PermissionService
@@ -65,6 +66,7 @@ class Agent:
         self._permission_service = PermissionService(service_options)
         self._ip_white_list_service = IpWhiteListService(service_options)
 
+        self._mcp_server = None
         # TODO: add ip_white_list_service to sse cache invalidation thread when server implement it
         self._sse_thread = SSECacheInvalidation(self._permission_service, self.options)
 
@@ -73,6 +75,11 @@ class Agent:
             self._sse_thread.stop()
 
     async def __mk_resources(self):
+        self._mcp_server = (
+            MCPResource.create_mcp_server(self, await self.customizer.get_datasource())
+            if self.options.get("mcp_server_port") is not None
+            else None
+        )
         self._resources: Resources = {
             "capabilities": CapabilitiesResource(
                 self.customizer.composite_datasource,
@@ -240,6 +247,10 @@ class Agent:
 
         if self.options["instant_cache_refresh"]:
             self._sse_thread.start()
+        if self.options.get("mcp_server_port") is not None:
+            await self.__mk_resources()
+            if self._mcp_server is not None:
+                self._mcp_server.start()
 
         ForestLogger.log("debug", "Agent started")
         Agent.__IS_INITIALIZED = True
