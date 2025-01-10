@@ -33,6 +33,7 @@ from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.branch
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.leaf import ConditionTreeLeaf, LeafComponents
 from forestadmin.datasource_toolkit.interfaces.query.filter.paginated import PaginatedFilter
 from forestadmin.datasource_toolkit.interfaces.query.filter.unpaginated import Filter
+from forestadmin.datasource_toolkit.interfaces.query.projections import Projection
 from forestadmin.datasource_toolkit.interfaces.query.projections.factory import ProjectionFactory
 from forestadmin.datasource_toolkit.utils.schema import SchemaUtils
 from forestadmin.datasource_toolkit.validations.projection import ProjectionValidator
@@ -136,7 +137,7 @@ class MCPResource(Thread):
         def get_fields(
             collection_name: Annotated[str, Field(description="the name of the collection you want the fields")]
         ) -> List[str]:
-            """list all fields and relations of collection {collection_name}"""
+            """list all fields and relations of collection {collection_name}, and their definitions"""
             ForestLogger.log("info", f"-- TOOL get_fields of {collection_name}")
             return self.datasource.get_collection(collection_name).schema["fields"]
 
@@ -171,7 +172,10 @@ class MCPResource(Thread):
                 str, Field(description="the name of the action in collection {collection_name} you want the form")
             ],
         ) -> List[str]:
-            """load form of action {action_name} of collection {collection_name}."""
+            """
+            load form of action {action_name} of collection {collection_name}.
+            If there is a form associated to this action, LLM must prompt the user to fill the form.
+            """
             ForestLogger.log("info", f"-- TOOL load form of action {action_name} of collection {collection_name}")
             try:
                 form = await cast(Collection, self.datasource.get_collection(collection_name)).get_form(
@@ -263,7 +267,9 @@ class MCPResource(Thread):
             condition_tree: Annotated[
                 Optional[Union[LeafComponents, BranchComponents]],
                 Field(
-                    description="condition tree to filter in the collection",
+                    description="condition tree to filter in the collection. "
+                    "You can also include field from belongsTo & hasOne relations, by prefixing the targeted field by the relation field name, separated with ':'"
+                    "See this page(https://docs.forestadmin.com/developer-guide-agents-python/data-sources/getting-started/queries/filters) ",
                     default=None,
                 ),
             ],
@@ -285,8 +291,11 @@ class MCPResource(Thread):
             projection: Annotated[
                 Optional[List[str]],
                 Field(
-                    description="the list of field to return for each record. ':' is used to pass through relations. "
-                    "If set to None, all records will be used. Projection must not contains relations",
+                    description="The list of field to return for each record. "
+                    "If set to None, all fields will be used. "
+                    "You can also include field from belongsTo & hasOne relations, by prefixing the targeted field by the relation field name, separated with ':'"
+                    "See this page(https://docs.forestadmin.com/documentation/reference-guide/fields/projections) "
+                    "for more information",
                     default=None,
                 ),
             ],
@@ -294,14 +303,17 @@ class MCPResource(Thread):
         ) -> List[Dict[str, Any]]:
             """list records of {collection_name}. collection_name can be found using get_collections tool"""
             try:
+                ForestLogger.log(
+                    "info",
+                    f"-- TOOL get_list of {collection_name}, projection: {projection}, condition_tree: {condition_tree}",
+                )
                 collection = self.datasource.get_collection(collection_name)
-                ForestLogger.log("info", f"-- TOOL get_list of {collection_name}")
                 filter_ = PaginatedFilter({})
                 if condition_tree:
                     parsed_condition_tree = ConditionTreeFactory.from_plain_object(condition_tree)
                     ProjectionValidator.validate(collection, parsed_condition_tree.projection)
-
                     filter_ = filter_.override({"condition_tree": parsed_condition_tree})
+
                 if search and len(search) > 0:
                     filter_ = filter_.override({"search": search, "search_extended": search_extended or False})
 
@@ -315,7 +327,7 @@ class MCPResource(Thread):
                 ret = await collection.list(
                     None,
                     filter_,
-                    (ProjectionFactory(*projection) if projection else ProjectionFactory.all(collection)),
+                    (Projection(*projection) if projection else ProjectionFactory.all(collection)),
                 )
                 ForestLogger.log("info", f"-- TOOL get_list of {collection_name} ; {len(ret)} records")
                 return ret

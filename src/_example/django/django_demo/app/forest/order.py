@@ -169,7 +169,7 @@ async def refund_order_execute(context: ActionContextBulk, result_builder: Resul
     # await my_order.refund()
     txt = ""
     async for o in my_orders:
-        txt += f"fake refund of {o.amount} to {o.customer.first_name} {o.customer.last_name}, because {reason}."
+        txt += f"fake refund of {o.amount} to {o.customer.first_name} {o.customer.last_name}, because {reason}.\n"
     return result_builder.success(txt)
 
 
@@ -181,7 +181,6 @@ refund_order_action: ActionDict = {
             "type": "String",
             "label": "reason",
             "is_required": True,
-            "description": "",
             "default_value": "",
             "value": "",
         },
