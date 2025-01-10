@@ -43,7 +43,8 @@ from app.forest.order import (
 )
 from app.sqlalchemy_models import DB_URI, Base
 from forestadmin.datasource_django.datasource import DjangoDatasource
-from forestadmin.datasource_sqlalchemy.datasource import SqlAlchemyDatasource
+
+# from forestadmin.datasource_sqlalchemy.datasource import SqlAlchemyDatasource
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.leaf import ConditionTreeLeaf
 from forestadmin.django_agent.agent import DjangoAgent
 
@@ -53,21 +54,24 @@ def customize_forest(agent: DjangoAgent):
 
     agent.add_datasource(
         DjangoDatasource(
-            support_polymorphic_relations=True, live_query_connection={"django": "default", "dj_sqlachemy": "other"}
-        )
+            # support_polymorphic_relations=True,
+            live_query_connection={"django": "default", "dj_sqlachemy": "other"},
+        ),
+        # {"rename": {"app_address": "address"}},
+        {"rename": lambda collection_name: collection_name.replace("app_", "")},
     )
     agent.add_datasource(TypicodeDatasource())
-    agent.add_datasource(
-        SqlAlchemyDatasource(Base, DB_URI), {"rename": lambda collection_name: f"SQLAlchemy_{collection_name}"}
-    )
+    # agent.add_datasource(
+    #     SqlAlchemyDatasource(Base, DB_URI), {"rename": lambda collection_name: f"SQLAlchemy_{collection_name}"}
+    # )
 
+    # agent.customize_collection("address").add_segment("France", segment_addr_fr("address"))
     agent.customize_collection("address").add_segment("France", segment_addr_fr("address"))
-    agent.customize_collection("app_address").add_segment("France", segment_addr_fr("app_address"))
 
     # # ## ADDRESS
-    agent.customize_collection("app_address").add_segment(
-        "highOrderDelivery", high_delivery_address_segment
-    ).rename_field("country", "pays").add_field("full_address", address_full_name_computed("country")).rename_field(
+    agent.customize_collection("address").add_segment("highOrderDelivery", high_delivery_address_segment).rename_field(
+        "country", "pays"
+    ).add_field("full_address", address_full_name_computed("country")).rename_field(
         "full_address", "complete_address"
     ).replace_field_sorting(
         "full_address",
@@ -95,7 +99,7 @@ def customize_forest(agent: DjangoAgent):
     )
 
     # cart
-    agent.customize_collection("app_cart").add_field(
+    agent.customize_collection("cart").add_field(
         "customer_id",
         {
             "column_type": "Number",
@@ -110,7 +114,7 @@ def customize_forest(agent: DjangoAgent):
 
     # # ## CUSTOMERS
     # # import field ?
-    agent.customize_collection("app_customer").add_field(
+    agent.customize_collection("customer").add_field(
         "age",
         {
             "column_type": "Number",
@@ -172,14 +176,14 @@ def customize_forest(agent: DjangoAgent):
     ).add_many_to_many_relation(
         # relations
         "smart_billing_addresses",
-        "app_address",
-        "app_order",
+        "address",
+        "order",
         "customer_id",
         "billing_address_id",
     ).add_many_to_many_relation(
-        "smart_delivering_addresses", "app_address", "app_order", "customer_id", "delivering_address_id"
+        "smart_delivering_addresses", "address", "order", "customer_id", "delivering_address_id"
     ).add_one_to_many_relation(
-        "smart_carts", "app_cart", "customer_id"
+        "smart_carts", "cart", "customer_id"
     ).add_hook(
         # hooks
         "Before",
@@ -196,7 +200,7 @@ def customize_forest(agent: DjangoAgent):
     )
 
     # # ## ORDERS
-    agent.customize_collection("app_order").add_segment("Pending order", pending_order_segment).add_segment(
+    agent.customize_collection("order").add_segment("Pending order", pending_order_segment).add_segment(
         # segment
         "Delivered order",
         delivered_order_segment,
@@ -235,7 +239,7 @@ def customize_forest(agent: DjangoAgent):
             "get_values": lambda records, cts: [r["ordered_at"] for r in records],
         },
     )
-    agent.customize_collection("app_tag").rename_field("tagged_item", "item")
+    # agent.customize_collection("tag").rename_field("tagged_item", "item")
 
     # general
     agent.add_chart("total_order", total_order_chart).add_chart(

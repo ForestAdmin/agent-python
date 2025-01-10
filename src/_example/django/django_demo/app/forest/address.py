@@ -23,7 +23,7 @@ def segment_addr_fr(table_name: str):
 
 
 async def high_delivery_address_segment(context: CollectionCustomizationContext):
-    rows = await context.datasource.get_collection("app_order").aggregate(
+    rows = await context.datasource.get_collection("order").aggregate(
         context.caller,
         Filter({}),
         Aggregation({"operation": "Count", "groups": [{"field": "delivering_address_id"}]}),

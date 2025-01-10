@@ -51,7 +51,7 @@ def customer_spending_computed() -> ComputedDefinition:
                 "groups": [{"field": "customer_id"}],
             }
         )
-        rows = await context.datasource.get_collection("app_order").aggregate(context.caller, condition, aggregation)
+        rows = await context.datasource.get_collection("order").aggregate(context.caller, condition, aggregation)
         ret = []
         for record in records:
             filtered = [*filter(lambda r: r["group"]["customer_id"] == record["id"], rows)]
@@ -288,7 +288,7 @@ age_operation_action_dict: ActionDict = {
 async def total_orders_customer_chart(
     context: CollectionChartContext, result_builder: ResultBuilderChart, ids: CompositeIdAlias
 ):
-    orders = await context.datasource.get_collection("app_order").aggregate(
+    orders = await context.datasource.get_collection("order").aggregate(
         caller=context.caller,
         filter_=Filter({"condition_tree": ConditionTreeLeaf("customer_id", "equal", ids[0])}),
         aggregation=Aggregation({"field": "amount", "operation": "Sum"}),
@@ -299,7 +299,7 @@ async def total_orders_customer_chart(
 async def time_order_number_chart(
     context: CollectionChartContext, result_builder: ResultBuilderChart, ids: CompositeIdAlias
 ):
-    records = await context.datasource.get_collection("app_order").aggregate(
+    records = await context.datasource.get_collection("order").aggregate(
         caller=context.caller,
         filter_=Filter({"condition_tree": ConditionTreeLeaf("customer_id", "equal", ids[0])}),
         aggregation=Aggregation(

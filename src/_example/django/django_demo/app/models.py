@@ -1,7 +1,7 @@
 from datetime import date
 
 # uncomment this to reenable "other" database
-from app.flask_models import *  # noqa:F401,F403
+# from app.flask_models import *  # noqa:F401,F403
 
 # from django.db.models.functions import Concat
 from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation

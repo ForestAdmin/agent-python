@@ -6,6 +6,7 @@ from app.models import Order
 from forestadmin.datasource_toolkit.context.agent_context import AgentCustomizationContext
 from forestadmin.datasource_toolkit.context.collection_context import CollectionCustomizationContext
 from forestadmin.datasource_toolkit.decorators.action.context.base import ActionContext
+from forestadmin.datasource_toolkit.decorators.action.context.bulk import ActionContextBulk
 from forestadmin.datasource_toolkit.decorators.action.context.single import ActionContextSingle
 from forestadmin.datasource_toolkit.decorators.action.result_builder import ResultBuilder
 from forestadmin.datasource_toolkit.decorators.action.types.actions import ActionDict
@@ -147,7 +148,7 @@ export_orders_json: ActionDict = {
         },
         {
             "type": "Collection",
-            "collection_name": "app_customer",
+            "collection_name": "customer",
             "label": "customer",
             "id": "customer_ids",
             # "is_required": True,
@@ -159,24 +160,31 @@ export_orders_json: ActionDict = {
 }
 
 
-async def refund_order_execute(context: ActionContextSingle, result_builder: ResultBuilder) -> ActionResult:
-    my_order_id = await context.get_record_id()
-    my_order = await Order.objects.aget(id=my_order_id)
+async def refund_order_execute(context: ActionContextBulk, result_builder: ResultBuilder) -> ActionResult:
+    my_order_id = await context.get_records_ids()
+    reason = context.form_values.get("reason")
+    if reason is None:
+        return result_builder.error("You must provide a reason to refund an order.")
+    my_order = [o async for o in Order.objects.filter(id__in=my_order_id)][0]
     # await my_order.refund()
-    return result_builder.success(f"fake refund ({my_order.amount})")
+    return result_builder.success(f"fake refund ({my_order.amount}), because {reason}.")
 
 
 refund_order_action: ActionDict = {
-    "scope": "Single",
+    "scope": "Bulk",
     "execute": refund_order_execute,
     "form": [
         {
             "type": "String",
             "label": "reason",
-            "is_required": False,
+            "is_required": True,
             "description": "",
             "default_value": "",
             "value": "",
+        },
+        {
+            "type": "String",
+            "label": "comment",
         },
     ],
 }
@@ -184,12 +192,12 @@ refund_order_action: ActionDict = {
 
 # charts
 async def total_order_chart(context: AgentCustomizationContext, result_builder: ResultBuilderChart):
-    records = await context.datasource.get_collection("app_order").list(context.caller, PaginatedFilter({}), ["id"])
+    records = await context.datasource.get_collection("order").list(context.caller, PaginatedFilter({}), ["id"])
     return result_builder.value(len(records))
 
 
 async def nb_order_per_week(context: AgentCustomizationContext, result_builder: ResultBuilderChart):
-    records = await context.datasource.get_collection("app_order").aggregate(
+    records = await context.datasource.get_collection("order").aggregate(
         context.caller,
         Filter({"condition_tree": ConditionTreeLeaf("created_at", "before", "2022-01-01")}),
         Aggregation(
