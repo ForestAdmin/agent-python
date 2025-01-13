@@ -1,10 +1,7 @@
 from __future__ import annotations
 
-import asyncio
 import json
-import logging
 import os
-from multiprocessing import Condition
 from threading import Thread
 from typing import TYPE_CHECKING, Annotated, Any, Dict, List, Optional, Union, cast
 
@@ -33,6 +30,7 @@ from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.branch
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.leaf import ConditionTreeLeaf, LeafComponents
 from forestadmin.datasource_toolkit.interfaces.query.filter.paginated import PaginatedFilter
 from forestadmin.datasource_toolkit.interfaces.query.filter.unpaginated import Filter
+from forestadmin.datasource_toolkit.interfaces.query.page import PlainPage
 from forestadmin.datasource_toolkit.interfaces.query.projections import Projection
 from forestadmin.datasource_toolkit.interfaces.query.projections.factory import ProjectionFactory
 from forestadmin.datasource_toolkit.utils.schema import SchemaUtils
@@ -66,7 +64,7 @@ class MCPResource(Thread):
     def run(self) -> None:
         if os.environ.get("RUN_MAIN") != "true":
             return
-        self.setup_prompts()
+        # self.setup_prompts()
         self.setup_resources()
         self.setup_tools()
         super().run()
@@ -122,13 +120,26 @@ class MCPResource(Thread):
         # async def list_tools() -> List[types.Tool]:
         #     # help debug schema
         #     tools = await self.mcp.list_tools()
-        #     list_record_tool = [t for t in tools if t.name == "list-collection-records"][0]
+        #     # list_record_tool = [t for t in tools if t.name == "list-collection-records"][0]
+        #     try:
+        #         with open(
+        #             os.path.abspath(os.path.join(self.agent.options["schema_path"], "..", "mcp_tools.json")), "w"
+        #         ) as fout:
+        #             json.dump([t.model_dump() for t in tools], fout, indent=4)
+        #     except Exception as exc:
+        #         print(exc)
         #     return tools
 
     def setup_metadata_tools(self):
         @self.mcp.tool("list_collections")
-        def get_collections() -> List[str]:
-            """list all the collections names known by forestadmin"""
+        async def get_collections() -> List[str]:
+            """
+            List all the collections names known by forestadmin.
+            For each collection, check for:
+                'Fields' using 'collection-field' tools.
+                'Segments' using 'collection-segments' tool.
+                'Actions' using 'collection-actions' tool.
+            """
             ret = [c.name for c in self.datasource.collections]
             ForestLogger.log("info", f"-- TOOL get_collections, {ret}")
             return ret
@@ -145,7 +156,10 @@ class MCPResource(Thread):
         def get_segments(
             collection_name: Annotated[str, Field(description="the name of the collection you want the segments")]
         ) -> List[str]:
-            """list all segments of collection {collection_name}"""
+            """
+            List all segments of collection {collection_name}.
+            """
+            # A Segment is a subset of a Collection: it's a saved filter of your Collection.
             ForestLogger.log("info", f"-- TOOL get_segments of {collection_name}")
             return self.datasource.get_collection(collection_name).schema["segments"]
 
@@ -158,6 +172,7 @@ class MCPResource(Thread):
             If there is only one field named 'Loading...' in the form, it means that the form is dynamic and you should
                 use the tool load form to have it, otherwise you can trust that it is in 'form' key.
             Action are executable by using execute_action tool.
+            LLM should read this documentation https://docs.forestadmin.com/developer-guide-agents-python/agent-customization/actions.
             """
             ForestLogger.log("info", f"-- TOOL get_actions of {collection_name}")
             return self.datasource.get_collection(collection_name).schema["actions"]
@@ -208,7 +223,8 @@ class MCPResource(Thread):
                 Optional[Dict[str, Any]],
                 Field(
                     description="when the action provides a form, the form to fill for the action. "
-                    "All fields with 'is_required=true must be filled by the end user.",
+                    "All fields with 'is_required=true must be filled by the end user."
+                    "LLM should prompt the user to fill the form.",
                     examples=[{"label": "value"}],
                     default=None,
                 ),
@@ -269,7 +285,7 @@ class MCPResource(Thread):
                 Field(
                     description="condition tree to filter in the collection. "
                     "You can also include field from belongsTo & hasOne relations, by prefixing the targeted field by the relation field name, separated with ':'"
-                    "See this page(https://docs.forestadmin.com/developer-guide-agents-python/data-sources/getting-started/queries/filters) ",
+                    "LLM should read this page before use: https://docs.forestadmin.com/developer-guide-agents-python/data-sources/getting-started/queries/filters",
                     default=None,
                 ),
             ],
@@ -288,27 +304,43 @@ class MCPResource(Thread):
                     default=None,
                 ),
             ],
+            segment: Annotated[
+                Optional[str],
+                Field(
+                    description="List of available segment can be obtain with tool collection-segments."
+                    "LLM should read this page before use: https://docs.forestadmin.com/developer-guide-agents-python/agent-customization/segments.",
+                    default=None,
+                ),
+            ],
             projection: Annotated[
                 Optional[List[str]],
                 Field(
                     description="The list of field to return for each record. "
                     "If set to None, all fields will be used. "
                     "You can also include field from belongsTo & hasOne relations, by prefixing the targeted field by the relation field name, separated with ':'"
-                    "See this page(https://docs.forestadmin.com/documentation/reference-guide/fields/projections) "
-                    "for more information",
+                    "LLM should read this page before use: https://docs.forestadmin.com/documentation/reference-guide/fields/projections.",
                     default=None,
                 ),
             ],
-            # page: PlainPage
+            page: Annotated[PlainPage, Field(description="pagination")],
+            # context: Context,
         ) -> List[Dict[str, Any]]:
             """list records of {collection_name}. collection_name can be found using get_collections tool"""
             try:
                 ForestLogger.log(
                     "info",
-                    f"-- TOOL get_list of {collection_name}, projection: {projection}, condition_tree: {condition_tree}",
+                    f"-- TOOL get_list of {collection_name}, \n"
+                    f"projection: {projection}, condition_tree: {condition_tree}, segment: {segment}",
                 )
+                # total_wait = 30  # sec
+                # nb_progress_report = 20
+                # for i in range(nb_progress_report):
+                #     await context.report_progress(i / nb_progress_report, nb_progress_report)
+                #     time.sleep(total_wait / nb_progress_report)
                 collection = self.datasource.get_collection(collection_name)
                 filter_ = PaginatedFilter({})
+                if segment:
+                    filter_.segment = segment
                 if condition_tree:
                     parsed_condition_tree = ConditionTreeFactory.from_plain_object(condition_tree)
                     ProjectionValidator.validate(collection, parsed_condition_tree.projection)
