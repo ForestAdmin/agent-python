@@ -61,8 +61,13 @@ def rejected_order_segment(context: CollectionCustomizationContext):
 
 
 def suspicious_order_segment(context: CollectionCustomizationContext):
-    too_old = ConditionTreeLeaf(field="customer:age", operator="greater_than", value=99)
-    too_young = ConditionTreeLeaf(field="customer:age", operator="less_than", value=18)
+    more_than_99_bday = datetime.date.today() - datetime.timedelta(days=99 * 365)
+    # too_old = ConditionTreeLeaf(field="customer:age", operator="greater_than", value=99)
+    too_old = ConditionTreeLeaf(field="customer:birthday_date", operator="less_than", value=more_than_99_bday)
+
+    less_than_18_bday = datetime.date.today() - datetime.timedelta(days=18 * 365)
+    too_young = ConditionTreeLeaf(field="customer:birthday_date", operator="greater_than", value=less_than_18_bday)
+    # too_young = ConditionTreeLeaf(field="customer:age", operator="less_than", value=18)
     return ConditionTreeBranch("or", [too_old, too_young])
 
 
