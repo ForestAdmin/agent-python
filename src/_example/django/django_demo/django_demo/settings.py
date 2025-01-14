@@ -71,8 +71,18 @@ CORS_ALLOWED_ORIGIN_REGEXES = [
 CORS_ALLOW_CREDENTIALS = True
 # Application definition
 
+BEDROCK_SETTINGS = {
+    "model_id": os.environ.get("BEDROCK_MODEL_ID", "mistral.mistral-large-2407-v1:0"),
+    "system_prompt": "You are an assistant that can use forest admin",
+    "mcp_server": {
+        "command": os.environ.get("MCP_SERVER_COMMAND", "/Users/julien/git/mcp-proxy/venv/bin/mcp-proxy"),
+        "args": [os.environ.get("MCP_SERVER_ARGS", "http://localhost:8012/sse")],
+    },
+}
+
 INSTALLED_APPS = [
     "app",
+    "bedrock_ai",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
