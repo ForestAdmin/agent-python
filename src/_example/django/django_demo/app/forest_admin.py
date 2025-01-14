@@ -34,19 +34,34 @@ from app.forest.order import (
     dispatched_order_segment,
     export_orders_json,
     get_customer_full_name_field,
+    get_kyc_action,
+    get_refund_order,
     nb_order_per_week,
     pending_order_segment,
-    refund_order_action,
     rejected_order_segment,
     suspicious_order_segment,
     total_order_chart,
 )
 from app.sqlalchemy_models import DB_URI, Base
+from bedrock_ai.bedrock_client import BedrockAI
 from forestadmin.datasource_django.datasource import DjangoDatasource
+from forestadmin.datasource_toolkit.decorators.action.context.base import ActionContext
+from forestadmin.datasource_toolkit.decorators.action.result_builder import ResultBuilder
 
 # from forestadmin.datasource_sqlalchemy.datasource import SqlAlchemyDatasource
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.leaf import ConditionTreeLeaf
 from forestadmin.django_agent.agent import DjangoAgent
+
+
+async def prompt_ai(context: ActionContext, result_builder: ResultBuilder):
+    await BedrockAI.prompt(context.form_values["user prompt"])
+    BedrockAI.CHAT
+    ret = result_builder.success(
+        BedrockAI.convertToHTML(BedrockAI.CHAT),
+        {"type": "html"},
+    )
+    BedrockAI.reset_chat()
+    return ret
 
 
 def customize_forest(agent: DjangoAgent):
@@ -219,7 +234,18 @@ def customize_forest(agent: DjangoAgent):
         "Export json",
         export_orders_json,
     ).add_action(
-        "Refund order(s)", refund_order_action
+        "Refund order france", get_refund_order("france")
+    ).add_action(
+        "Refund order other", get_refund_order("other")
+    ).add_action(
+        "KYC", get_kyc_action()
+    ).add_action(
+        "prompt ai",
+        {
+            "form": [{"type": "String", "widget": "TextInput", "label": "user prompt", "is_required": True}],
+            "scope": "Global",
+            "execute": prompt_ai,
+        },
     ).add_field_validation(
         # validation
         "amount",

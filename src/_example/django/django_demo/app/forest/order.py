@@ -1,13 +1,14 @@
+import datetime
 import io
 import json
 from typing import List
 
 from app.models import Order
+from bedrock_ai.bedrock_client import BedrockAI
 from forestadmin.datasource_toolkit.context.agent_context import AgentCustomizationContext
 from forestadmin.datasource_toolkit.context.collection_context import CollectionCustomizationContext
 from forestadmin.datasource_toolkit.decorators.action.context.base import ActionContext
 from forestadmin.datasource_toolkit.decorators.action.context.bulk import ActionContextBulk
-from forestadmin.datasource_toolkit.decorators.action.context.single import ActionContextSingle
 from forestadmin.datasource_toolkit.decorators.action.result_builder import ResultBuilder
 from forestadmin.datasource_toolkit.decorators.action.types.actions import ActionDict
 from forestadmin.datasource_toolkit.decorators.chart.result_builder import ResultBuilder as ResultBuilderChart
@@ -165,36 +166,67 @@ export_orders_json: ActionDict = {
 }
 
 
-async def refund_order_execute(context: ActionContextBulk, result_builder: ResultBuilder) -> ActionResult:
-    my_order_id = await context.get_records_ids()
-    reason = context.form_values.get("reason")
-    if reason is None:
-        return result_builder.error("You must provide a reason to refund an order.")
-    my_orders = Order.objects.filter(id__in=my_order_id).select_related("customer")
-    # await my_order.refund()
-    txt = ""
-    async for o in my_orders:
-        txt += f"fake refund of {o.amount} to {o.customer.first_name} {o.customer.last_name}, because {reason}.\n"
-    return result_builder.success(txt)
+def get_refund_order(scope):
+    async def refund_order_execute(context: ActionContextBulk, result_builder: ResultBuilder) -> ActionResult:
+        my_order_id = await context.get_records_ids()
+        reason = context.form_values.get("reason")
+        # if reason is None:
+        #     return result_builder.error("You must provide a reason to refund an order.")
+        my_orders = Order.objects.filter(id__in=my_order_id).select_related("customer")
+        # await my_order.refund()
+        txt = ""
+        async for o in my_orders:
+            txt += f"({scope})fake refund of {o.amount} to {o.customer.first_name} {o.customer.last_name}, because {reason}.\n"
+        print(f"--- refund action done on ids({my_order_id}), on scope ({scope}), with context: {reason}")
+        return result_builder.success(txt)
+
+    refund_order_action: ActionDict = {
+        "scope": "Bulk",
+        "execute": refund_order_execute,
+        "form": [
+            {
+                "type": "String",
+                "label": "reason",
+                "is_required": lambda ctx: True,
+                "default_value": "",
+                "value": "",
+            },
+            {
+                "type": "String",
+                "label": "comment",
+            },
+        ],
+    }
+    return refund_order_action
 
 
-refund_order_action: ActionDict = {
-    "scope": "Bulk",
-    "execute": refund_order_execute,
-    "form": [
-        {
-            "type": "String",
-            "label": "reason",
-            "is_required": True,
-            "default_value": "",
-            "value": "",
-        },
-        {
-            "type": "String",
-            "label": "comment",
-        },
-    ],
-}
+def get_kyc_action():
+    async def kyc_action_execute(context: ActionContextBulk, result_builder: ResultBuilder) -> ActionResult:
+        user_prompt = (
+            f"Execute action 'refund order france' for order ids {await context.get_records_ids()} "
+            "if 'delivery address' of order is in france, otherwise execute the action 'refund order other'. The reason is: \n"
+            f"'{context.form_values.get("context")}'.\n"
+            "Don't forget to give me a recap (without markdown language)!"
+        )
+
+        result = await BedrockAI.prompt(user_prompt)
+
+        print("\n\n---------")
+        print(f"-user prompt: {user_prompt}")
+        print(f"-ai answer: {result}")
+        result_builder.success(result)
+
+    kyc_action: ActionDict = {
+        "scope": "Bulk",
+        "execute": kyc_action_execute,
+        "form": [
+            {
+                "type": "String",
+                "label": "context",
+            }
+        ],
+    }
+    return kyc_action
 
 
 # charts

@@ -76,8 +76,6 @@ class BedrockAI:
     async def prompt(user_input: str) -> str:
         try:
             inst = BedrockAI()
-            # inst = BedrockAI.get_instance()
-            # await inst.init()
             if BedrockAI.CHAT is None:
                 BedrockAI.CHAT = []
 
@@ -104,8 +102,8 @@ class BedrockAI:
 
         # Create server parameters for SQLite configuration
         self.server_params = StdioServerParameters(
-            command="/Users/julien/git/mcp-proxy/venv/bin/mcp-proxy",
-            args=["http://localhost:8012/sse", "2>/dev/null"],
+            command=settings.BEDROCK_SETTINGS["mcp_server"]["command"],
+            args=settings.BEDROCK_SETTINGS["mcp_server"]["args"],
             env=None,
         )
 
