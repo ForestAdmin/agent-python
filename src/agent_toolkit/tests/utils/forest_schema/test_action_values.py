@@ -156,6 +156,30 @@ class TestForestValueConverterValueToForest(TestCase):
             "1|2",
         )
 
+    def test_should_parse_correctly_pks_when_they_are_integer(self):
+        self.assertEqual(
+            ForestValueConverter.value_to_forest(
+                {
+                    "type": ActionFieldType.COLLECTION,
+                    "watch_changes": False,
+                    "label": "test_enum",
+                },
+                [1],
+            ),
+            "1",
+        )
+        self.assertEqual(
+            ForestValueConverter.value_to_forest(
+                {
+                    "type": ActionFieldType.COLLECTION,
+                    "watch_changes": False,
+                    "label": "test_enum",
+                },
+                [1, 2],
+            ),
+            "1|2",
+        )
+
     def test_should_transform_file_into_datauri(self):
         self.assertEqual(
             ForestValueConverter.value_to_forest(
