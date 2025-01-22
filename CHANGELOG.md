@@ -1,3 +1,10 @@
+## [1.22.1](https://github.com/ForestAdmin/agent-python/compare/v1.22.0...v1.22.1) (2025-01-22)
+
+
+### Bug Fixes
+
+* **action_hook:** parsing int collection pk on action hook ([#308](https://github.com/ForestAdmin/agent-python/issues/308)) ([9f89903](https://github.com/ForestAdmin/agent-python/commit/9f89903f5deafb4a697958509e53c98aa2d7c9b6))
+
 # [1.22.0](https://github.com/ForestAdmin/agent-python/compare/v1.21.0...v1.22.0) (2025-01-06)
 
 
