@@ -101,7 +101,7 @@ class ForestValueConverter:
 
         elif field["type"] == ActionFieldType.COLLECTION and value:
             value = cast(CompositeIdAlias, value)
-            return "|".join(value)
+            return "|".join([str(v) for v in value])
 
         elif field["type"] == ActionFieldType.FILE and value:
             return ForestValueConverter._make_data_uri(value)
