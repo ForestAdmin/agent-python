@@ -125,7 +125,11 @@ class ActionCollectionDecorator(CollectionDecorator):
         form_values = await self._build_form_values(context, form_fields, form_values)
         context.form_values.update(form_values)
         action_fields = await self._build_fields(
-            context, form_fields, form_values, meta.get("search_values", {}).get(meta.get("search_field"))
+            context,
+            form_fields,
+            form_values,
+            meta.get("search_values", {}).get(meta.get("search_field")),
+            meta.get("include_hidden_fields", False),
         )
 
         self._set_watch_changes_attr(action_fields, context)
@@ -215,10 +219,11 @@ class ActionCollectionDecorator(CollectionDecorator):
         fields: List[DynamicFormElements],
         form_values: RecordsDataAlias,
         search_value: Optional[str] = None,
+        include_hidden_fields: bool = False,
     ) -> List[Union[ActionLayoutElement, ActionField]]:
         action_fields: List[Union[ActionLayoutElement, ActionField]] = []
         for field in fields:
-            if await field.if_(context):
+            if include_hidden_fields or await field.if_(context):
                 value = form_values if isinstance(field, DynamicLayoutElements) else form_values.get(field.id)
                 action_field = await field.to_action_field(context, value, search_value)  # type:ignore
                 if action_field is not None:
