@@ -1,3 +1,10 @@
+## [1.22.2](https://github.com/ForestAdmin/agent-python/compare/v1.22.1...v1.22.2) (2025-01-28)
+
+
+### Bug Fixes
+
+* **action_form:** all fields should be returned during execute ([#310](https://github.com/ForestAdmin/agent-python/issues/310)) ([9c60c27](https://github.com/ForestAdmin/agent-python/commit/9c60c27b129b36a9d4428c82a627c66c74313312))
+
 ## [1.22.1](https://github.com/ForestAdmin/agent-python/compare/v1.22.0...v1.22.1) (2025-01-22)
 
 
