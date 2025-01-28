@@ -819,3 +819,43 @@ class TestActionCollectionCustomizer(TestCase):
                 }
             ],
         )
+
+    def test_get_form_should_return_hidden_fields_when_asked(self):
+        if_fn = Mock(return_value=False)
+        test_action: ActionDict = {
+            "scope": ActionsScope.SINGLE,
+            "execute": lambda ctx, result_builder: result_builder.success("ok"),
+            "form": [
+                {
+                    "label": "name",
+                    "type": ActionFieldType.STRING,
+                    "if_": if_fn,
+                },
+            ],
+        }
+        self.product_collection.add_action("action_test", test_action)
+
+        result = self.loop.run_until_complete(
+            self.product_collection.get_form(
+                self.mocked_caller, "action_test", {"name": "name"}, None, {"include_hidden_fields": True}
+            )
+        )
+        self.assertEqual(
+            result,
+            [
+                {
+                    "label": "name",
+                    "id": "name",
+                    "type": ActionFieldType.STRING,
+                    "description": "",
+                    "is_read_only": False,
+                    "is_required": False,
+                    "value": "name",
+                    "default_value": None,
+                    "collection_name": None,
+                    "enum_values": None,
+                    "watch_changes": False,
+                }
+            ],
+        )
+        if_fn.assert_not_called()

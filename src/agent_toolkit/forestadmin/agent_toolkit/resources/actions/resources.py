@@ -59,7 +59,10 @@ class ActionResource(BaseCollectionResource):
         # As forms are dynamic, we don't have any way to ensure that we're parsing the data correctly
         # => better send invalid data to the getForm() customer handler than to the execute() one.
         unsafe_data = ForestValueConverter.make_form_unsafe_data(raw_data)
-        fields = await request.collection.get_form(request.user, request.action_name, unsafe_data, filter_)
+
+        fields = await request.collection.get_form(
+            request.user, request.action_name, unsafe_data, filter_, {"include_hidden_fields": True}
+        )
 
         fields = SchemaActionGenerator.extract_fields_and_layout(fields)[0]
         # Now that we have the field list, we can parse the data again.

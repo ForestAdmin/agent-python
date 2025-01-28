@@ -1,4 +1,5 @@
 import asyncio
+import copy
 import importlib
 import json
 import sys
@@ -980,3 +981,56 @@ class TestExecuteActionResource(BaseTestActionResource):
         response = self.loop.run_until_complete(self.action_resource.execute(request))
         self.assertEqual(response.headers["headerOne"], "valueOne")
         self.assertEqual(response.headers["headerOne"], "valueOne")
+
+    def test_execute_should_get_all_form_fields_included_hidden(self):
+
+        self.decorated_collection_book.add_action(
+            "test_action_global_hidden_fields",
+            {
+                "scope": ActionsScope.GLOBAL,
+                "execute": lambda ctx, rb: rb.success(ctx.form_values.get("hidden_field")),
+                "form": [
+                    {
+                        "type": "String",
+                        "label": "hidden_field",
+                        "if_": lambda ctx: False,
+                    }
+                ],
+            },
+        )
+        body_params = copy.deepcopy(self.body_params)
+        body_params["data"]["attributes"]["values"] = {"hidden_field": "hidden_value"}
+        request = ActionRequest(
+            method=RequestMethod.POST,
+            action_name="test_action_global_hidden_fields",
+            collection=self.decorated_collection_book,
+            body=body_params,
+            query={
+                "timezone": "Europe/Paris",
+                "collection_name": "Book",
+                "action_name": 0,
+                "slug": "test_action_global_hidden_fields",
+            },
+            headers={},
+            user=self.mocked_caller,
+            client_ip="127.0.0.1",
+        )
+        with patch.object(
+            self.decorated_collection_book,
+            "get_form",
+            new_callable=AsyncMock,
+            wraps=self.decorated_collection_book.get_form,
+        ) as spy_get_form:
+            response = self.loop.run_until_complete(self.action_resource.execute(request))
+            spy_get_form.assert_awaited_once_with(
+                request.user,
+                "test_action_global_hidden_fields",
+                {"hidden_field": "hidden_value"},
+                ANY,
+                {"include_hidden_fields": True},
+            )
+        self.assertEqual(response.status, 200)
+        self.assertEqual(
+            response.body,
+            '{"success": "hidden_value"}',
+        )
