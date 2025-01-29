@@ -1,3 +1,10 @@
+## [1.22.3](https://github.com/ForestAdmin/agent-python/compare/v1.22.2...v1.22.3) (2025-01-29)
+
+
+### Bug Fixes
+
+* collection is not always searchable ([#304](https://github.com/ForestAdmin/agent-python/issues/304)) ([fa45ab7](https://github.com/ForestAdmin/agent-python/commit/fa45ab7c14b8d4b210d2041f943b738f05231bb4))
+
 ## [1.22.2](https://github.com/ForestAdmin/agent-python/compare/v1.22.1...v1.22.2) (2025-01-28)
 
 
