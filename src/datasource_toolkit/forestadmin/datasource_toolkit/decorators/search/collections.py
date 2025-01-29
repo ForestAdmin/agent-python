@@ -32,12 +32,22 @@ class SearchCollectionDecorator(CollectionDecorator):
     def __init__(self, collection: Collection, datasource: Datasource[BoundCollection]):
         super().__init__(collection, datasource)
         self._replacer: SearchDefinition = None
+        self._searchable = len(self._get_searchable_fields(self.child_collection, False)) > 0
+
+    def disable_search(self):
+        self._searchable = False
+        self.mark_schema_as_dirty()
 
     def replace_search(self, replacer: SearchDefinition):
         self._replacer = replacer
+        self._searchable = True
+        self.mark_schema_as_dirty()
 
     def _refine_schema(self, sub_schema: CollectionSchema) -> CollectionSchema:
-        return {**sub_schema, "searchable": True}
+        return {
+            **sub_schema,
+            "searchable": self._searchable,
+        }
 
     def _default_replacer(self, search: str, extended: bool) -> ConditionTree:
         searchable_fields = self._get_searchable_fields(self.child_collection, extended)
@@ -77,18 +87,14 @@ class SearchCollectionDecorator(CollectionDecorator):
         return _filter
 
     def _build_condition(self, field: str, schema: Column, search: str) -> Union[ConditionTree, None]:
-        if (
-            schema["column_type"] == PrimitiveType.NUMBER
-            and search.isnumeric()
-            and Operator.EQUAL in schema.get("filter_operators", [])
-        ):
+        if schema["column_type"] == PrimitiveType.NUMBER and search.isnumeric():
             try:
                 value = int(search)
             except ValueError:
                 value = float(search)
             return ConditionTreeLeaf(field, Operator.EQUAL, value)
 
-        if schema["column_type"] == PrimitiveType.ENUM and Operator.EQUAL in schema.get("filter_operators", []):
+        if schema["column_type"] == PrimitiveType.ENUM:
             search_value = self.lenient_find(schema["enum_values"], search)
             if search_value is not None:
                 return ConditionTreeLeaf(field, Operator.EQUAL, search_value)
@@ -103,17 +109,11 @@ class SearchCollectionDecorator(CollectionDecorator):
                 operator = Operator.CONTAINS
             elif support_equal:
                 operator = Operator.EQUAL
-            else:
-                operator = None
 
             if operator:
                 return ConditionTreeLeaf(field, operator, search)
 
-        if (
-            schema["column_type"] == PrimitiveType.UUID
-            and is_valid_uuid(search)
-            and Operator.EQUAL in schema.get("filter_operators", [])
-        ):
+        if schema["column_type"] == PrimitiveType.UUID and is_valid_uuid(search):
             return ConditionTreeLeaf(field, Operator.EQUAL, search)
 
     def lenient_find(self, haystack: List[str], needle: str) -> Union[str, None]:
@@ -126,14 +126,14 @@ class SearchCollectionDecorator(CollectionDecorator):
         fields: List[Tuple[str, ColumnAlias]] = []
 
         for name, field in collection.schema["fields"].items():
-            if is_column(field):
+            if is_column(field) and self._is_searchable_field(field):
                 fields.append((name, field))
 
             if extended and (is_many_to_one(field) or is_one_to_one(field) or is_polymorphic_one_to_one(field)):
                 related = collection.datasource.get_collection(field["foreign_collection"])
 
                 for sub_name, sub_field in related.schema["fields"].items():
-                    if is_column(sub_field):
+                    if is_column(sub_field) and self._is_searchable_field(sub_field):
                         fields.append((f"{name}:{sub_name}", sub_field))
 
             if extended and is_polymorphic_many_to_one(field):
@@ -145,3 +145,18 @@ class SearchCollectionDecorator(CollectionDecorator):
                 )
 
         return fields
+
+    def _is_searchable_field(self, field: Column) -> bool:
+        operators = field.get("filter_operators", [])
+
+        if field["column_type"] == PrimitiveType.STRING and (
+            Operator.CONTAINS in operators or Operator.EQUAL in operators
+        ):
+            return True
+
+        if field["column_type"] in [PrimitiveType.NUMBER, PrimitiveType.UUID, PrimitiveType.ENUM] and (
+            Operator.EQUAL in operators
+        ):
+            return True
+
+        return False

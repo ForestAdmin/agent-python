@@ -33,7 +33,6 @@ jobs:
       - uses: actions/checkout@v4
       - id: changes
         uses: ./.github/actions/changes
-
   lint:
     name: Linting
     needs: [ changes ]
