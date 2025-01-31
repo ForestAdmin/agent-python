@@ -460,9 +460,9 @@ class CrudResource(BaseCollectionResource, ContextVariableInjectorResourceMixin)
             new_ret = JsonApiSerializerHomeMade(self.datasource, projection).serialize(
                 records if many is True else records[0], collection
             )
-            from dictdiffer import diff
+            from dictdiffer import diff as differ
 
-            diff = list(diff(new_ret, ret))
+            diff = list(differ(ret, new_ret))
             ForestLogger.log("info", f"returning new_ret ... diff({len(diff)})")
             return new_ret
         except Exception as exc:

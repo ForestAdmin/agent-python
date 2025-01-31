@@ -1,40 +1,39 @@
-import json
 from datetime import date, datetime, time
-from typing import Any, Dict, List, Optional, Tuple, TypeVar, Union, cast
+from typing import Any, Dict, List, Optional, Tuple, Union, cast
+from uuid import uuid4
 
 from forestadmin.agent_toolkit.exceptions import AgentToolkitException
 from forestadmin.agent_toolkit.forest_logger import ForestLogger
-from forestadmin.agent_toolkit.services.serializers import DumpedResult
+from forestadmin.agent_toolkit.services.serializers import DumpedResult, IncludedData
+from forestadmin.agent_toolkit.services.serializers.exceptions import JsonApiSerializerException
 from forestadmin.agent_toolkit.utils.id import pack_id
 from forestadmin.datasource_toolkit.collections import Collection
 from forestadmin.datasource_toolkit.datasources import Datasource
 from forestadmin.datasource_toolkit.interfaces.chart import Chart
 from forestadmin.datasource_toolkit.interfaces.fields import (
     Column,
-    ManyToMany,
     ManyToOne,
-    OneToMany,
     OneToOne,
     PolymorphicManyToOne,
-    PolymorphicOneToMany,
     PolymorphicOneToOne,
     PrimitiveType,
     RelationAlias,
-    StraightRelationAlias,
     is_column,
     is_many_to_many,
     is_many_to_one,
     is_one_to_many,
     is_one_to_one,
     is_polymorphic_many_to_one,
-    is_polymorphic_one_to_many,
     is_polymorphic_one_to_one,
 )
 from forestadmin.datasource_toolkit.interfaces.query.projections import Projection
 from forestadmin.datasource_toolkit.interfaces.query.projections.factory import ProjectionFactory
 from forestadmin.datasource_toolkit.interfaces.records import RecordsDataAlias
-from forestadmin.datasource_toolkit.utils.records import RecordUtils
 from forestadmin.datasource_toolkit.utils.schema import SchemaUtils
+
+
+def render_chart(chart: Chart):
+    return {"id": str(uuid4()), "type": "stats", "attributes": {"value": chart}}
 
 
 class JsonApiSerializer:
@@ -50,7 +49,7 @@ class JsonApiSerializer:
 
         if ret.get("included") == []:
             del ret["included"]
-        return ret
+        return cast(DumpedResult, ret)
 
     @classmethod
     def _get_id(cls, collection: Collection, data: RecordsDataAlias) -> Union[int, str]:
@@ -62,7 +61,9 @@ class JsonApiSerializer:
         return pk
 
     @classmethod
-    def _is_in_included(cls, included: List[Dict[str, Any]], item: Dict[str, Any]) -> bool:
+    def _is_in_included(cls, included: List[Dict[str, Any]], item: IncludedData) -> bool:
+        if "id" not in item or "type" not in item:
+            raise JsonApiSerializerException("Included item must have an id and a type")
         for included_item in included:
             if included_item["id"] == item["id"] and included_item["type"] == item["type"]:
                 return True
@@ -73,13 +74,15 @@ class JsonApiSerializer:
         for item in data:
             serialized = self._serialize_one(item, collection)
             ret["data"].append(serialized["data"])
-            for included in serialized["included"]:
+            for included in serialized.get("included", []):
                 if not self._is_in_included(ret["included"], included):
                     ret["included"].append(included)
 
-        return ret
+        return cast(DumpedResult, ret)
 
-    def _serialize_one(self, data: RecordsDataAlias, collection: Collection, projection: Optional[Projection] = None):
+    def _serialize_one(
+        self, data: RecordsDataAlias, collection: Collection, projection: Optional[Projection] = None
+    ) -> DumpedResult:
         projection = projection if projection is not None else self.projection
         primary_keys = SchemaUtils.get_primary_keys(collection.schema)
         pk_value = self._get_id(collection, data)
@@ -100,18 +103,23 @@ class JsonApiSerializer:
             if key in primary_keys or key not in collection.schema["fields"]:
                 continue
             if is_column(collection.schema["fields"][key]) and key in first_level_projection:
-                ret["data"]["attributes"][key] = self._serialize_value(value, collection.schema["fields"][key])
+                ret["data"]["attributes"][key] = self._serialize_value(
+                    value, cast(Column, collection.schema["fields"][key])
+                )
             elif not is_column(collection.schema["fields"][key]):
                 relation, included = self._serialize_relation(
-                    key, data, collection.schema["fields"][key], f"/forest/{collection.name}/{pk_value}"
+                    key,
+                    data,
+                    cast(RelationAlias, collection.schema["fields"][key]),
+                    f"/forest/{collection.name}/{pk_value}",
                 )
                 ret["data"]["relationships"][key] = relation
-                if included != {} and not self._is_in_included(ret["included"], included):
+                if included is not None and not self._is_in_included(ret["included"], included):
                     ret["included"].append(included)
 
         if ret["data"].get("attributes") == {}:
             del ret["data"]["attributes"]
-        return ret
+        return cast(DumpedResult, ret)
 
     def _serialize_value(self, value: Any, schema: Column) -> Union[str, int, float, bool, None]:
         if value is None:
@@ -147,8 +155,8 @@ class JsonApiSerializer:
 
     def _serialize_relation(
         self, name: str, data: Any, schema: RelationAlias, current_link: str
-    ) -> Tuple[Dict[str, Any], Dict[str, Any]]:
-        relation, included = {}, {}
+    ) -> Tuple[Dict[str, Any], Optional[IncludedData]]:
+        relation, included = {}, None
         sub_data = data[name]
         if sub_data is None:
             return {
@@ -174,7 +182,8 @@ class JsonApiSerializer:
         data: Any,
         schema: Union[PolymorphicOneToOne, OneToOne, ManyToOne],
         current_link: str,
-    ) -> Tuple[Dict[str, Any], Dict[str, Any]]:
+    ) -> Tuple[Dict[str, Any], IncludedData]:
+        """return (relationships, included)"""
         foreign_collection = self.datasource.get_collection(schema["foreign_collection"])
 
         relation = {
@@ -202,7 +211,7 @@ class JsonApiSerializer:
         }
         if included_attributes != {}:
             included["attributes"] = included_attributes
-        return relation, included
+        return relation, cast(IncludedData, included)
 
     def _serialize_polymorphic_many_to_one_relationship(
         self,
@@ -210,7 +219,8 @@ class JsonApiSerializer:
         data: Any,
         schema: PolymorphicManyToOne,
         current_link: str,
-    ) -> Tuple[Dict[str, Any], Dict[str, Any]]:
+    ) -> Tuple[Dict[str, Any], IncludedData]:
+        """return (relationships, included)"""
         sub_data = data[name]
         foreign_collection = self.datasource.get_collection(data[schema["foreign_key_type_field"]])
 
@@ -225,7 +235,11 @@ class JsonApiSerializer:
         included = self._serialize_one(
             sub_data, foreign_collection, ProjectionFactory.all(foreign_collection, allow_nested=True)
         )
-        included = {**included["data"], "links": included["links"], "relationships": {}}
+        included = {
+            **included.get("data", {}),  # type: ignore for serialize_one it's a dict
+            "links": included.get("links", {}),
+            "relationships": {},
+        }
 
         # add relationships key in included
         for foreign_relation_name, foreign_relation_schema in foreign_collection.schema["fields"].items():
@@ -233,9 +247,10 @@ class JsonApiSerializer:
                 included["relationships"][foreign_relation_name] = {
                     "links": {
                         "related": {
-                            "href": f"/forest/{foreign_collection.name}/{self._get_id(foreign_collection, sub_data)}/relationships/{foreign_relation_name}"
+                            "href": f"/forest/{foreign_collection.name}/{self._get_id(foreign_collection, sub_data)}"
+                            "/relationships/{foreign_relation_name}"
                         }
                     }
                 }
 
-        return relation, included
+        return relation, cast(IncludedData, included)
