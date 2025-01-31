@@ -1,3 +1,10 @@
+## [1.22.4](https://github.com/ForestAdmin/agent-python/compare/v1.22.3...v1.22.4) (2025-01-31)
+
+
+### Bug Fixes
+
+* remove marshmallow json api import error ([#309](https://github.com/ForestAdmin/agent-python/issues/309)) ([46ba170](https://github.com/ForestAdmin/agent-python/commit/46ba17021c008553eeb7e95b1cc218f99a8fa441))
+
 ## [1.22.3](https://github.com/ForestAdmin/agent-python/compare/v1.22.2...v1.22.3) (2025-01-29)
 
 
