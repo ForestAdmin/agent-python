@@ -28,7 +28,10 @@ from forestadmin.agent_toolkit.services.permissions.ip_whitelist_service import 
 from forestadmin.agent_toolkit.services.permissions.permission_service import PermissionService
 from forestadmin.agent_toolkit.services.serializers import add_search_metadata
 from forestadmin.agent_toolkit.services.serializers.json_api import JsonApiException, JsonApiSerializer
-from forestadmin.agent_toolkit.services.serializers.json_api_home_made import (
+from forestadmin.agent_toolkit.services.serializers.json_api_deserializer import (
+    JsonApiDeserializer as JsonApiDeserializerHomeMade,
+)
+from forestadmin.agent_toolkit.services.serializers.json_api_serializer import (
     JsonApiSerializer as JsonApiSerializerHomeMade,
 )
 from forestadmin.agent_toolkit.utils.context import HttpResponseBuilder, Request, RequestMethod, Response, User
@@ -145,6 +148,17 @@ class CrudResource(BaseCollectionResource, ContextVariableInjectorResourceMixin)
         schema = JsonApiSerializer.get(collection)
         try:
             data: RecordsDataAlias = schema().load(request.body)  # type: ignore
+            try:
+                new_data = JsonApiDeserializerHomeMade(self.datasource).deserialize(request.body, collection)
+                from dictdiffer import diff as differ
+
+                diff = list(differ(data, new_data))
+                ForestLogger.log("info", f"creating new_ret({collection.name}) ... diff({len(diff)})")
+                data = new_data
+            except Exception as exc:
+                traceback.print_exc()
+                pass
+                # raise
         except JsonApiException as e:
             ForestLogger.log("exception", e)
             return HttpResponseBuilder.build_client_error_response([e])
@@ -279,6 +293,18 @@ class CrudResource(BaseCollectionResource, ContextVariableInjectorResourceMixin)
             # if the id change it will be in 'data.attributes', otherwise, we get the id by from the request url.
             request.body["data"].pop("id", None)  # type: ignore
             data: RecordsDataAlias = schema().load(request.body)  # type: ignore
+            try:
+                new_data = JsonApiDeserializerHomeMade(self.datasource).deserialize(request.body, collection)
+                from dictdiffer import diff as differ
+
+                diff = list(differ(data, new_data))
+                ForestLogger.log("info", f"creating new_ret({collection.name}) ... diff({len(diff)})")
+                data = new_data
+            except Exception as exc:
+                traceback.print_exc()
+                pass
+                # raise
+
         except JsonApiException as e:
             ForestLogger.log("exception", e)
             return HttpResponseBuilder.build_client_error_response([e])
@@ -463,8 +489,8 @@ class CrudResource(BaseCollectionResource, ContextVariableInjectorResourceMixin)
             from dictdiffer import diff as differ
 
             diff = list(differ(ret, new_ret))
-            ForestLogger.log("info", f"returning new_ret ... diff({len(diff)})")
-            return new_ret
+            ForestLogger.log("info", f"returning new_ret({collection.name}) ... diff({len(diff)})")
+            return cast(Dict[str, Any], new_ret)
         except Exception as exc:
             traceback.print_exc()
             pass

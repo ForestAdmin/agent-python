@@ -4,7 +4,7 @@ from uuid import uuid4
 
 from forestadmin.agent_toolkit.exceptions import AgentToolkitException
 from forestadmin.agent_toolkit.forest_logger import ForestLogger
-from forestadmin.agent_toolkit.services.serializers import DumpedResult, IncludedData
+from forestadmin.agent_toolkit.services.serializers import Data, DumpedResult, IncludedData
 from forestadmin.agent_toolkit.services.serializers.exceptions import JsonApiSerializerException
 from forestadmin.agent_toolkit.utils.id import pack_id
 from forestadmin.datasource_toolkit.collections import Collection
@@ -85,6 +85,8 @@ class JsonApiSerializer:
     ) -> DumpedResult:
         projection = projection if projection is not None else self.projection
         primary_keys = SchemaUtils.get_primary_keys(collection.schema)
+        if len(primary_keys) > 1:
+            primary_keys = []
         pk_value = self._get_id(collection, data)
         ret = {
             "data": {
@@ -119,6 +121,8 @@ class JsonApiSerializer:
 
         if ret["data"].get("attributes") == {}:
             del ret["data"]["attributes"]
+        if ret["data"].get("relationships") == {}:
+            del ret["data"]["relationships"]
         return cast(DumpedResult, ret)
 
     def _serialize_value(self, value: Any, schema: Column) -> Union[str, int, float, bool, None]:
@@ -130,6 +134,7 @@ class JsonApiSerializer:
             PrimitiveType.BOOLEAN,
             PrimitiveType.JSON,
             PrimitiveType.BINARY,
+            PrimitiveType.POINT,
         ]:
             return value
         elif schema["column_type"] in [PrimitiveType.UUID, PrimitiveType.ENUM, PrimitiveType.POINT]:
@@ -160,7 +165,7 @@ class JsonApiSerializer:
         sub_data = data[name]
         if sub_data is None:
             return {
-                "data": None,
+                "data": None if is_polymorphic_many_to_one(schema) or is_polymorphic_one_to_one(schema) else [],
                 "links": {"related": {"href": f"{current_link}/relationships/{name}"}},
             }, included
 
@@ -235,8 +240,12 @@ class JsonApiSerializer:
         included = self._serialize_one(
             sub_data, foreign_collection, ProjectionFactory.all(foreign_collection, allow_nested=True)
         )
+        included["data"] = cast(Data, included["data"])
         included = {
-            **included.get("data", {}),  # type: ignore for serialize_one it's a dict
+            "type": included["data"]["type"],
+            "id": included["data"]["id"],
+            "attributes": included["data"]["attributes"],
+            # **included.get("data", {}),  # type: ignore for serialize_one it's a dict
             "links": included.get("links", {}),
             "relationships": {},
         }
@@ -248,7 +257,7 @@ class JsonApiSerializer:
                     "links": {
                         "related": {
                             "href": f"/forest/{foreign_collection.name}/{self._get_id(foreign_collection, sub_data)}"
-                            "/relationships/{foreign_relation_name}"
+                            f"/relationships/{foreign_relation_name}"
                         }
                     }
                 }

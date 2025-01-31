@@ -29,7 +29,7 @@ from forestadmin.agent_toolkit.resources.collections.requests import (
 )
 from forestadmin.agent_toolkit.services.serializers import DumpedResult, add_search_metadata
 from forestadmin.agent_toolkit.services.serializers.json_api import JsonApiException, JsonApiSerializer
-from forestadmin.agent_toolkit.services.serializers.json_api_home_made import (
+from forestadmin.agent_toolkit.services.serializers.json_api_serializer import (
     JsonApiSerializer as JsonApiSerializerHomeMade,
 )
 from forestadmin.agent_toolkit.utils.context import HttpResponseBuilder, Request, RequestMethod, Response
@@ -126,7 +126,7 @@ class CrudRelatedResource(BaseCollectionResource):
             from dictdiffer import diff as differ
 
             diff = list(differ(dumped, new_ret))
-            ForestLogger.log("info", f"returning new_ret ... diff({len(diff)})")
+            ForestLogger.log("info", f"returning new_ret({request.foreign_collection.name}) ... diff({len(diff)})")
             if len(diff) > 0:
                 pass
             return HttpResponseBuilder.build_success_response(cast(Dict[str, Any], dumped))
