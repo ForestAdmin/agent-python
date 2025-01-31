@@ -1,4 +1,5 @@
 import sys
+import traceback
 from typing import Any, Dict, List, Literal, Union, cast
 
 if sys.version_info >= (3, 9):
@@ -28,6 +29,9 @@ from forestadmin.agent_toolkit.resources.collections.requests import (
 )
 from forestadmin.agent_toolkit.services.serializers import DumpedResult, add_search_metadata
 from forestadmin.agent_toolkit.services.serializers.json_api import JsonApiException, JsonApiSerializer
+from forestadmin.agent_toolkit.services.serializers.json_api_home_made import (
+    JsonApiSerializer as JsonApiSerializerHomeMade,
+)
 from forestadmin.agent_toolkit.utils.context import HttpResponseBuilder, Request, RequestMethod, Response
 from forestadmin.agent_toolkit.utils.csv import Csv, CsvException
 from forestadmin.agent_toolkit.utils.id import unpack_id
@@ -112,6 +116,24 @@ class CrudRelatedResource(BaseCollectionResource):
 
         if paginated_filter.search:
             dumped = add_search_metadata(dumped, paginated_filter.search)
+
+        try:
+            new_ret = JsonApiSerializerHomeMade(self.datasource, projection).serialize(
+                records, request.foreign_collection
+            )
+            if paginated_filter.search:
+                dumped = add_search_metadata(dumped, paginated_filter.search)
+            from dictdiffer import diff as differ
+
+            diff = list(differ(dumped, new_ret))
+            ForestLogger.log("info", f"returning new_ret ... diff({len(diff)})")
+            if len(diff) > 0:
+                pass
+            return HttpResponseBuilder.build_success_response(cast(Dict[str, Any], dumped))
+        except Exception as exc:
+            traceback.print_exc()
+            pass
+            # raise
 
         return HttpResponseBuilder.build_success_response(cast(Dict[str, Any], dumped))
 

@@ -1,4 +1,5 @@
 import asyncio
+import traceback
 from typing import Any, Awaitable, Dict, List, Literal, Optional, Tuple, Union, cast
 from uuid import UUID
 
@@ -27,6 +28,9 @@ from forestadmin.agent_toolkit.services.permissions.ip_whitelist_service import 
 from forestadmin.agent_toolkit.services.permissions.permission_service import PermissionService
 from forestadmin.agent_toolkit.services.serializers import add_search_metadata
 from forestadmin.agent_toolkit.services.serializers.json_api import JsonApiException, JsonApiSerializer
+from forestadmin.agent_toolkit.services.serializers.json_api_home_made import (
+    JsonApiSerializer as JsonApiSerializerHomeMade,
+)
 from forestadmin.agent_toolkit.utils.context import HttpResponseBuilder, Request, RequestMethod, Response, User
 from forestadmin.agent_toolkit.utils.csv import Csv, CsvException
 from forestadmin.agent_toolkit.utils.id import unpack_id
@@ -124,7 +128,7 @@ class CrudResource(BaseCollectionResource, ContextVariableInjectorResourceMixin)
             return HttpResponseBuilder.build_unknown_response()
 
         try:
-            dumped: Dict[str, Any] = CrudResource._serialize_records_with_relationships(
+            dumped: Dict[str, Any] = self._serialize_records_with_relationships(
                 records, request.collection, projections, many=False
             )
         except JsonApiException as e:
@@ -166,7 +170,7 @@ class CrudResource(BaseCollectionResource, ContextVariableInjectorResourceMixin)
             return HttpResponseBuilder.build_client_error_response([e])
 
         return HttpResponseBuilder.build_success_response(
-            CrudResource._serialize_records_with_relationships(
+            self._serialize_records_with_relationships(
                 records, request.collection, Projection(*list(records[0].keys())), many=False
             )
         )
@@ -193,7 +197,7 @@ class CrudResource(BaseCollectionResource, ContextVariableInjectorResourceMixin)
         records = await request.collection.list(request.user, paginated_filter, projections)
 
         try:
-            dumped: Dict[str, Any] = CrudResource._serialize_records_with_relationships(
+            dumped: Dict[str, Any] = self._serialize_records_with_relationships(
                 records, request.collection, projections, many=True
             )
         except JsonApiException as e:
@@ -290,7 +294,7 @@ class CrudResource(BaseCollectionResource, ContextVariableInjectorResourceMixin)
         records = await collection.list(request.user, PaginatedFilter.from_base_filter(filter), projection)
 
         try:
-            dumped: Dict[str, Any] = CrudResource._serialize_records_with_relationships(
+            dumped: Dict[str, Any] = self._serialize_records_with_relationships(
                 records, request.collection, projection, many=False
             )
         except JsonApiException as e:
@@ -428,8 +432,8 @@ class CrudResource(BaseCollectionResource, ContextVariableInjectorResourceMixin)
 
         return record, one_to_one_relations
 
-    @staticmethod
     def _serialize_records_with_relationships(
+        self,
         records: List[RecordsDataAlias],
         collection: Union[Collection, CollectionCustomizer],
         projection: Projection,
@@ -450,7 +454,23 @@ class CrudResource(BaseCollectionResource, ContextVariableInjectorResourceMixin)
                 record[name] = None
 
         schema = JsonApiSerializer.get(collection)
-        return schema(projections=projection).dump(records if many is True else records[0], many=many)
+        ret = schema(projections=projection).dump(records if many is True else records[0], many=many)
+
+        try:
+            new_ret = JsonApiSerializerHomeMade(self.datasource, projection).serialize(
+                records if many is True else records[0], collection
+            )
+            from dictdiffer import diff
+
+            diff = list(diff(new_ret, ret))
+            ForestLogger.log("info", f"returning new_ret ... diff({len(diff)})")
+            return new_ret
+        except Exception as exc:
+            traceback.print_exc()
+            pass
+            # raise
+
+        return ret
 
     async def _handle_live_query_segment(
         self, request: RequestCollection, condition_tree: Optional[ConditionTree]
