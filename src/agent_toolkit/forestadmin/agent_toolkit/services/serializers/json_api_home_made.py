@@ -1,4 +1,5 @@
-from datetime import date, datetime
+import json
+from datetime import date, datetime, time
 from typing import Any, Dict, List, Optional, Tuple, TypeVar, Union, cast
 
 from forestadmin.agent_toolkit.exceptions import AgentToolkitException
@@ -115,22 +116,29 @@ class JsonApiSerializer:
     def _serialize_value(self, value: Any, schema: Column) -> Union[str, int, float, bool, None]:
         if value is None:
             return None
-        if schema["column_type"] in [PrimitiveType.STRING, PrimitiveType.NUMBER, PrimitiveType.BOOLEAN]:
+        if schema["column_type"] in [
+            PrimitiveType.STRING,
+            PrimitiveType.NUMBER,
+            PrimitiveType.BOOLEAN,
+            PrimitiveType.JSON,
+            PrimitiveType.BINARY,
+        ]:
             return value
-        elif schema["column_type"] in [PrimitiveType.UUID, PrimitiveType.ENUM]:
+        elif schema["column_type"] in [PrimitiveType.UUID, PrimitiveType.ENUM, PrimitiveType.POINT]:
             return str(value)
         elif schema["column_type"] == PrimitiveType.DATE:
-            return cast(datetime, value).isoformat()
+            if isinstance(value, date):
+                return value.isoformat()
+            return str(value)
         elif schema["column_type"] == PrimitiveType.DATE_ONLY:
-            return cast(date, value).isoformat()
+            if isinstance(value, datetime):
+                return value.date().isoformat()
+            return str(value)
         elif schema["column_type"] == PrimitiveType.TIME_ONLY:
-            return str(value)  # TODO: validate
-        elif schema["column_type"] == PrimitiveType.BINARY:
-            return value  # TODO: validate
-        elif schema["column_type"] == PrimitiveType.POINT:
-            return str(value)  # TODO: validate
-        elif schema["column_type"] == PrimitiveType.JSON:
-            return value  # TODO: validate
+            if isinstance(value, time) or isinstance(value, datetime):
+                return value.isoformat()
+                # return value.strftime("%H:%M:%S") # This format is in forest developer guide
+            return str(value)
         elif isinstance(schema["column_type"], dict) or isinstance(schema["column_type"], list):
             return value
         else:
