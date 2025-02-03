@@ -1,3 +1,10 @@
+## [1.22.5](https://github.com/ForestAdmin/agent-python/compare/v1.22.4...v1.22.5) (2025-02-03)
+
+
+### Bug Fixes
+
+* **numpy:** update numpy minimal and maximal versions ([#313](https://github.com/ForestAdmin/agent-python/issues/313)) ([5aba28f](https://github.com/ForestAdmin/agent-python/commit/5aba28f9bea3d8df7be4164024ed5cde401fda8b))
+
 ## [1.22.4](https://github.com/ForestAdmin/agent-python/compare/v1.22.3...v1.22.4) (2025-01-31)
 
 

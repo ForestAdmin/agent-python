@@ -5,7 +5,7 @@ build-backend = "poetry.core.masonry.api"
 [tool.poetry]
 name = "forestadmin-datasource-toolkit"
 description = "datasource toolkit for forestadmin python agent"
-version = "1.22.4"
+version = "1.22.5"
 authors = [ "Valentin Monté <valentinm@forestadmin.com>", "Julien Barreau <julien.barreau@forestadmin.com>",]
 readme = "README.md"
 repository = "https://github.com/ForestAdmin/agent-python"
@@ -18,7 +18,6 @@ include = "forestadmin"
 python = ">=3.8,<3.14"
 typing-extensions = "~=4.2"
 filetype = "^1.0.0"
-
 [[tool.poetry.dependencies.numpy]]
 python = ">=3.8.0,<3.12"
 version = ">=1.24.0"
