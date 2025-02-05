@@ -18,8 +18,6 @@ from forestadmin.agent_toolkit.resources.collections.requests import RequestColl
 from forestadmin.agent_toolkit.services.permissions.ip_whitelist_service import IpWhiteListService
 from forestadmin.agent_toolkit.services.permissions.permission_service import PermissionService
 from forestadmin.agent_toolkit.services.serializers.exceptions import JsonApiSerializerException
-from forestadmin.agent_toolkit.services.serializers.json_api import JsonApiSerializer as JsonApiSerializerOld
-from forestadmin.agent_toolkit.services.serializers.json_api import create_json_api_schema
 from forestadmin.agent_toolkit.services.serializers.json_api_serializer import JsonApiSerializer
 from forestadmin.agent_toolkit.utils.context import Request, RequestMethod, User
 from forestadmin.agent_toolkit.utils.csv import CsvException
@@ -247,8 +245,6 @@ class TestCrudResource(TestCase):
             "tag": cls.collection_tag,
         }
         cls.datasource_composite.add_datasource(cls.datasource)
-        for collection in cls.datasource.collections:
-            create_json_api_schema(collection)
 
     def setUp(self):
         self.ip_white_list_service = Mock(IpWhiteListService)
@@ -258,11 +254,6 @@ class TestCrudResource(TestCase):
         self.permission_service.get_scope = AsyncMock(return_value=ConditionTreeLeaf("id", Operator.GREATER_THAN, 0))
         self.permission_service.can = AsyncMock(return_value=None)
         self.permission_service.can_live_query_segment = AsyncMock(return_value=None)
-
-    @classmethod
-    def tearDownClass(cls) -> None:
-        JsonApiSerializerOld.schema = {}
-        return super().tearDownClass()
 
     # dispatch
     def test_dispatch(self):
