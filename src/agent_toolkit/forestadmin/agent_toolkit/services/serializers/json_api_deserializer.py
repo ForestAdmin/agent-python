@@ -2,12 +2,17 @@ from datetime import date, datetime, time
 from typing import Any, Callable, Dict, Union, cast
 from uuid import UUID
 
-from forestadmin.agent_toolkit.exceptions import AgentToolkitException
 from forestadmin.agent_toolkit.forest_logger import ForestLogger
 from forestadmin.agent_toolkit.services.serializers import Data, DumpedResult
+from forestadmin.agent_toolkit.services.serializers.exceptions import JsonApiDeserializerException
 from forestadmin.datasource_toolkit.collections import Collection
 from forestadmin.datasource_toolkit.datasources import Datasource
-from forestadmin.datasource_toolkit.interfaces.fields import Column, PrimitiveType, is_one_to_one
+from forestadmin.datasource_toolkit.interfaces.fields import (
+    Column,
+    PrimitiveType,
+    is_one_to_one,
+    is_polymorphic_many_to_one,
+)
 from forestadmin.datasource_toolkit.interfaces.records import RecordsDataAlias
 from forestadmin.datasource_toolkit.utils.schema import SchemaUtils
 
@@ -21,10 +26,23 @@ class JsonApiDeserializer:
         data["data"] = cast(Data, data["data"])
 
         for key, value in data["data"]["attributes"].items():
+            if key not in collection.schema["fields"]:
+                raise JsonApiDeserializerException(f"Field {key} doesn't exists in collection {collection.name}.")
             ret[key] = self._deserialize_value(value, cast(Column, collection.schema["fields"][key]))
 
         # TODO: relationships
         for key, value in data["data"].get("relationships", {}).items():
+            if key not in collection.schema["fields"]:
+                raise JsonApiDeserializerException(f"Field {key} doesn't exists in collection {collection.name}.")
+            schema = collection.schema["fields"][key]
+            if is_polymorphic_many_to_one(schema):
+                ret[schema["foreign_key_type_field"]] = value["data"]["type"]
+                try:
+                    ret[schema["foreign_key"]] = int(value["data"]["id"])
+                except ValueError:
+                    ret[schema["foreign_key"]] = value["data"]["id"]
+                continue
+
             try:
                 ret[key] = int(value["data"]["id"])
             except ValueError:
@@ -37,6 +55,8 @@ class JsonApiDeserializer:
             return None
 
         def number_parser(val):
+            if isinstance(val, int) or isinstance(val, float):
+                return val
             try:
                 return int(value)
             except ValueError:
@@ -62,12 +82,4 @@ class JsonApiDeserializer:
             return value
         else:
             ForestLogger.log("error", f"Unknown column type {schema['column_type']}")
-            raise AgentToolkitException(f"Unknown column type {schema['column_type']}")
-
-    def _deserialize_relationships(self, name: str, value, collection: Collection):
-        ret = {}
-        if is_one_to_one(collection.schema):
-            return value["data"].get(pk)
-        for pk in SchemaUtils.get_primary_keys(collection.schema):
-            ret[pk] = value["data"].get(pk)
-        return ret
+            raise JsonApiDeserializerException(f"Unknown column type {schema['column_type']}")

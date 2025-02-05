@@ -2,7 +2,6 @@ from datetime import date, datetime, time
 from typing import Any, Dict, List, Optional, Tuple, Union, cast
 from uuid import uuid4
 
-from forestadmin.agent_toolkit.exceptions import AgentToolkitException
 from forestadmin.agent_toolkit.forest_logger import ForestLogger
 from forestadmin.agent_toolkit.services.serializers import Data, DumpedResult, IncludedData
 from forestadmin.agent_toolkit.services.serializers.exceptions import JsonApiSerializerException
@@ -156,7 +155,7 @@ class JsonApiSerializer:
             return value
         else:
             ForestLogger.log("error", f"Unknown column type {schema['column_type']}")
-            raise AgentToolkitException(f"Unknown column type {schema['column_type']}")
+            raise JsonApiSerializerException(f"Unknown column type {schema['column_type']}")
 
     def _serialize_relation(
         self, name: str, data: Any, schema: RelationAlias, current_link: str
@@ -165,7 +164,11 @@ class JsonApiSerializer:
         sub_data = data[name]
         if sub_data is None:
             return {
-                "data": None if is_polymorphic_many_to_one(schema) or is_polymorphic_one_to_one(schema) else [],
+                "data": (
+                    None
+                    if is_polymorphic_many_to_one(schema) or is_polymorphic_one_to_one(schema) or is_one_to_one(schema)
+                    else []
+                ),
                 "links": {"related": {"href": f"{current_link}/relationships/{name}"}},
             }, included
 
