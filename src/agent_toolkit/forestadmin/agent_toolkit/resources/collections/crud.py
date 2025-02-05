@@ -27,16 +27,13 @@ from forestadmin.agent_toolkit.resources.context_variable_injector_mixin import 
 from forestadmin.agent_toolkit.services.permissions.ip_whitelist_service import IpWhiteListService
 from forestadmin.agent_toolkit.services.permissions.permission_service import PermissionService
 from forestadmin.agent_toolkit.services.serializers import add_search_metadata
-from forestadmin.agent_toolkit.services.serializers.json_api import JsonApiException, JsonApiSerializer
-from forestadmin.agent_toolkit.services.serializers.json_api_deserializer import (
-    JsonApiDeserializer as JsonApiDeserializerHomeMade,
-)
-from forestadmin.agent_toolkit.services.serializers.json_api_serializer import (
-    JsonApiSerializer as JsonApiSerializerHomeMade,
-)
+from forestadmin.agent_toolkit.services.serializers.exceptions import JsonApiException
+from forestadmin.agent_toolkit.services.serializers.json_api import JsonApiSerializer as JsonApiSerializerOld
+from forestadmin.agent_toolkit.services.serializers.json_api_deserializer import JsonApiDeserializer
+from forestadmin.agent_toolkit.services.serializers.json_api_serializer import JsonApiSerializer
 from forestadmin.agent_toolkit.utils.context import HttpResponseBuilder, Request, RequestMethod, Response, User
 from forestadmin.agent_toolkit.utils.csv import Csv, CsvException
-from forestadmin.agent_toolkit.utils.id import unpack_id
+from forestadmin.agent_toolkit.utils.id import IdException, unpack_id
 from forestadmin.agent_toolkit.utils.sql_query_checker import SqlQueryChecker
 from forestadmin.datasource_toolkit.collections import Collection
 from forestadmin.datasource_toolkit.datasource_customizer.collection_customizer import CollectionCustomizer
@@ -145,20 +142,14 @@ class CrudResource(BaseCollectionResource, ContextVariableInjectorResourceMixin)
     @authorize("add")
     async def add(self, request: RequestCollection) -> Response:
         collection = request.collection
-        schema = JsonApiSerializer.get(collection)
         try:
-            data: RecordsDataAlias = schema().load(request.body)  # type: ignore
-            try:
-                new_data = JsonApiDeserializerHomeMade(self.datasource).deserialize(request.body, collection)
-                from dictdiffer import diff as differ
+            data = JsonApiDeserializer(self.datasource).deserialize(request.body, collection)
+            old_data = JsonApiSerializerOld.get(collection)().load(request.body)
+            # data = {"id": 10, "cost": 200, "status": 1, "cart": 1}
+            # from dictdiffer import diff as differ
 
-                diff = list(differ(data, new_data))
-                ForestLogger.log("info", f"creating new_ret({collection.name}) ... diff({len(diff)})")
-                data = new_data
-            except Exception as exc:
-                traceback.print_exc()
-                pass
-                # raise
+            # diff = list(differ(data, new_data))
+            # ForestLogger.log("info", f"creating new_ret({collection.name}) ... diff({len(diff)})")
         except JsonApiException as e:
             ForestLogger.log("exception", e)
             return HttpResponseBuilder.build_client_error_response([e])
@@ -281,29 +272,28 @@ class CrudResource(BaseCollectionResource, ContextVariableInjectorResourceMixin)
         collection = request.collection
         try:
             ids = unpack_id(collection.schema, request.pks)
-        except (FieldValidatorException, CollectionResourceException) as e:
+        except (FieldValidatorException, CollectionResourceException, IdException) as e:
             ForestLogger.log("exception", e)
             return HttpResponseBuilder.build_client_error_response([e])
 
         if request.body and "data" in request.body and "relationships" in request.body["data"]:
             del request.body["data"]["relationships"]
 
-        schema = JsonApiSerializer.get(collection)
+        # schema = JsonApiSerializerOld.get(collection)
         try:
             # if the id change it will be in 'data.attributes', otherwise, we get the id by from the request url.
             request.body["data"].pop("id", None)  # type: ignore
-            data: RecordsDataAlias = schema().load(request.body)  # type: ignore
+            # data: RecordsDataAlias = schema().load(request.body)  # type: ignore
             try:
-                new_data = JsonApiDeserializerHomeMade(self.datasource).deserialize(request.body, collection)
-                from dictdiffer import diff as differ
+                new_data = JsonApiDeserializer(self.datasource).deserialize(request.body, collection)
+                # from dictdiffer import diff as differ
 
-                diff = list(differ(data, new_data))
-                ForestLogger.log("info", f"creating new_ret({collection.name}) ... diff({len(diff)})")
+                # diff = list(differ(data, new_data))
+                # ForestLogger.log("info", f"creating new_ret({collection.name}) ... diff({len(diff)})")
                 data = new_data
-            except Exception as exc:
+            except Exception:
                 traceback.print_exc()
-                pass
-                # raise
+                raise
 
         except JsonApiException as e:
             ForestLogger.log("exception", e)
@@ -440,6 +430,9 @@ class CrudResource(BaseCollectionResource, ContextVariableInjectorResourceMixin)
                 or is_polymorphic_one_to_one(field)
                 or is_polymorphic_many_to_one(field)
             ):
+                # if is_polymorphic_many_to_one(field):
+                #     foreign_collection = self.datasource.get_collection(data[field["foreign_key_type_field"]])
+                # else:
                 foreign_collection = self.datasource.get_collection(field["foreign_collection"])
                 pk_names = SchemaUtils.get_primary_keys(foreign_collection.schema)
                 if is_one_to_one(field) or is_polymorphic_one_to_one(field):
@@ -466,6 +459,7 @@ class CrudResource(BaseCollectionResource, ContextVariableInjectorResourceMixin)
         many: bool,
     ) -> Dict[str, Any]:
         relations_to_set = []
+        projection = Projection(*projection)
         for name, schema in collection.schema["fields"].items():
             if is_many_to_many(schema) or is_one_to_many(schema) or is_polymorphic_one_to_many(schema):
                 pks = SchemaUtils.get_primary_keys(
@@ -479,22 +473,28 @@ class CrudResource(BaseCollectionResource, ContextVariableInjectorResourceMixin)
             for name in relations_to_set:
                 record[name] = None
 
-        schema = JsonApiSerializer.get(collection)
-        ret = schema(projections=projection).dump(records if many is True else records[0], many=many)
+        new_ret = JsonApiSerializer(self.datasource, projection).serialize(
+            records if many is True else records[0], collection
+        )
+        # old_ret = JsonApiSerializerOld.get(collection)().dump(records if many is True else records[0], many=many)
+        # ret = old_ret
+        ret = new_ret
+        # ForestLogger.log("info", f"returning new_ret({collection.name}) ... diff({len(diff)})")
+        # if len(diff):
+        #     from pprint import pprint
 
-        try:
-            new_ret = JsonApiSerializerHomeMade(self.datasource, projection).serialize(
-                records if many is True else records[0], collection
-            )
-            from dictdiffer import diff as differ
+        #     pprint(diff)
+        # try:
+        #     new_ret = JsonApiSerializer(self.datasource, projection).serialize(
+        #         records if many is True else records[0], collection
+        #     )
+        #     from dictdiffer import diff as differ
 
-            diff = list(differ(ret, new_ret))
-            ForestLogger.log("info", f"returning new_ret({collection.name}) ... diff({len(diff)})")
-            return cast(Dict[str, Any], new_ret)
-        except Exception as exc:
-            traceback.print_exc()
-            pass
-            # raise
+        #     diff = list(differ(ret, new_ret))
+        #     ForestLogger.log("info", f"returning new_ret({collection.name}) ... diff({len(diff)})")
+        #     return cast(Dict[str, Any], new_ret)
+        # except Exception:
+        #     traceback.print_exc()
 
         return ret
 

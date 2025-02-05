@@ -1,4 +1,7 @@
-class JsonApiException(Exception):
+from forestadmin.agent_toolkit.exceptions import AgentToolkitException
+
+
+class JsonApiException(AgentToolkitException):
     pass
 
 
