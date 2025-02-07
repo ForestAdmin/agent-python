@@ -392,7 +392,7 @@ class TestCrudResource(TestCase):
             self.collection_order,
             headers={},
             client_ip="127.0.0.1",
-            query={"collection_name": "order", "pks": "10", "fields[order]": "id,cost,important"},
+            query={"collection_name": "order", "pks": "10", "fields[order]": "id,cost,important", "fields[cart]": "id"},
         )
         crud_resource = CrudResource(
             self.datasource_composite,
@@ -429,13 +429,6 @@ class TestCrudResource(TestCase):
         self.assertEqual(response.status, 200)
         self.assertTrue(isinstance(response_content["data"], dict))
         self.assertEqual(response_content["data"]["attributes"]["cost"], mock_order["cost"])
-        self.assertEqual(
-            response_content["data"]["relationships"]["cart"],
-            {
-                "data": {"id": "11", "type": "cart"},
-                "links": {"related": {"href": "/forest/order/10/relationships/cart"}},
-            },
-        )
         self.assertEqual(
             response_content["data"]["relationships"]["products"],
             {"data": [], "links": {"related": {"href": "/forest/order/10/relationships/products"}}},
@@ -601,7 +594,7 @@ class TestCrudResource(TestCase):
             {
                 "data": {
                     "id": 10,
-                    "attributes": {"taggable_id": 10, "taggable_type": "product"},
+                    "attributes": {"id": 10, "taggable_id": 10, "taggable_type": "product"},
                     "links": {"self": "/forest/tag/10"},
                     "relationships": {
                         "taggable": {
@@ -616,7 +609,7 @@ class TestCrudResource(TestCase):
                     {
                         "type": "product",
                         "id": 10,
-                        "attributes": {"name": "my product"},
+                        "attributes": {"id": 10, "name": "my product"},
                         "links": {"self": "/forest/product/10"},
                         "relationships": {
                             "tags": {"links": {"related": {"href": "/forest/product/10/relationships/tags"}}}

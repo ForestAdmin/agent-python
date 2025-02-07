@@ -5,16 +5,21 @@ from uuid import UUID
 from forestadmin.agent_toolkit.forest_logger import ForestLogger
 from forestadmin.agent_toolkit.services.serializers import Data, DumpedResult
 from forestadmin.agent_toolkit.services.serializers.exceptions import JsonApiDeserializerException
+from forestadmin.agent_toolkit.utils.id import unpack_id
 from forestadmin.datasource_toolkit.collections import Collection
 from forestadmin.datasource_toolkit.datasources import Datasource
 from forestadmin.datasource_toolkit.interfaces.fields import (
     Column,
     PrimitiveType,
+    is_many_to_many,
+    is_many_to_one,
+    is_one_to_many,
     is_one_to_one,
     is_polymorphic_many_to_one,
+    is_polymorphic_one_to_many,
+    is_polymorphic_one_to_one,
 )
 from forestadmin.datasource_toolkit.interfaces.records import RecordsDataAlias
-from forestadmin.datasource_toolkit.utils.schema import SchemaUtils
 
 
 class JsonApiDeserializer:
@@ -30,24 +35,42 @@ class JsonApiDeserializer:
                 raise JsonApiDeserializerException(f"Field {key} doesn't exists in collection {collection.name}.")
             ret[key] = self._deserialize_value(value, cast(Column, collection.schema["fields"][key]))
 
-        # TODO: relationships
+        # PK is never sent to deserialize. It's used to identify record. No need to handle it.
+        # If it's sent to update the PK value, the new value is in 'attributes'
+
         for key, value in data["data"].get("relationships", {}).items():
             if key not in collection.schema["fields"]:
                 raise JsonApiDeserializerException(f"Field {key} doesn't exists in collection {collection.name}.")
             schema = collection.schema["fields"][key]
-            if is_polymorphic_many_to_one(schema):
-                ret[schema["foreign_key_type_field"]] = value["data"]["type"]
-                try:
-                    ret[schema["foreign_key"]] = int(value["data"]["id"])
-                except ValueError:
-                    ret[schema["foreign_key"]] = value["data"]["id"]
+
+            if is_one_to_many(schema) or is_many_to_many(schema) or is_polymorphic_one_to_many(schema):
+                raise JsonApiDeserializerException("We shouldn't deserialize toMany relations")
+
+            if value.get("data") is None or "id" not in value["data"]:
+                ret[key] = None
                 continue
 
-            try:
-                ret[key] = int(value["data"]["id"])
-            except ValueError:
-                ret[key] = value["data"]["id"]
+            if is_polymorphic_many_to_one(schema):
+                ret[schema["foreign_key_type_field"]] = self._deserialize_value(
+                    value["data"]["type"], cast(Column, collection.schema["fields"][schema["foreign_key_type_field"]])
+                )
+                ret[schema["foreign_key"]] = self._deserialize_value(
+                    value["data"]["id"], cast(Column, collection.schema["fields"][schema["foreign_key"]])
+                )
+                continue
 
+            elif is_many_to_one(schema):
+                ret[key] = self._deserialize_value(
+                    value["data"]["id"], cast(Column, collection.schema["fields"][schema["foreign_key"]])
+                )
+            elif is_one_to_one(schema):
+                ret[key] = self._deserialize_value(
+                    value["data"]["id"], cast(Column, collection.schema["fields"][schema["origin_key_target"]])
+                )
+            elif is_polymorphic_one_to_one(schema):
+                ret[key] = self._deserialize_value(
+                    value["data"]["id"], cast(Column, collection.schema["fields"][schema["origin_key_target"]])
+                )
         return ret
 
     def _deserialize_value(self, value: Union[str, int, float, bool, None], schema: Column) -> Any:
@@ -67,16 +90,16 @@ class JsonApiDeserializer:
             PrimitiveType.ENUM: str,
             PrimitiveType.BOOLEAN: bool,
             PrimitiveType.NUMBER: number_parser,
-            PrimitiveType.UUID: UUID,
-            PrimitiveType.DATE_ONLY: date.fromisoformat,
-            PrimitiveType.TIME_ONLY: time.fromisoformat,
-            PrimitiveType.DATE: datetime.fromisoformat,
-            PrimitiveType.POINT: lambda v: (int(v) for v in cast(str, value).split(",")),
+            PrimitiveType.UUID: lambda v: UUID(v) if isinstance(v, str) else v,
+            PrimitiveType.DATE_ONLY: lambda v: date.fromisoformat(v) if isinstance(v, str) else v,
+            PrimitiveType.TIME_ONLY: lambda v: time.fromisoformat(v) if isinstance(v, str) else v,
+            PrimitiveType.DATE: lambda v: datetime.fromisoformat(v) if isinstance(v, str) else v,
+            PrimitiveType.POINT: lambda v: [int(v_) for v_ in cast(str, v).split(",")],
             PrimitiveType.BINARY: lambda v: v,  # should not be called
             PrimitiveType.JSON: lambda v: v,
         }
 
-        if schema["column_type"] in parser_map.keys():
+        if isinstance(schema["column_type"], PrimitiveType):
             return parser_map[cast(PrimitiveType, schema["column_type"])](value)
         elif isinstance(schema["column_type"], dict) or isinstance(schema["column_type"], list):
             return value

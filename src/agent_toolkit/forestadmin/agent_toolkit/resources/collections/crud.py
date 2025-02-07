@@ -144,7 +144,7 @@ class CrudResource(BaseCollectionResource, ContextVariableInjectorResourceMixin)
         collection = request.collection
         try:
             data = JsonApiDeserializer(self.datasource).deserialize(request.body, collection)
-            old_data = JsonApiSerializerOld.get(collection)().load(request.body)
+            # old_data = JsonApiSerializerOld.get(collection)().load(request.body)
             # data = {"id": 10, "cost": 200, "status": 1, "cart": 1}
             # from dictdiffer import diff as differ
 

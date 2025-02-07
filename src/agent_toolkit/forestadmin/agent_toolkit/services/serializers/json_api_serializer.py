@@ -1,5 +1,6 @@
+from ast import literal_eval
 from datetime import date, datetime, time
-from typing import Any, Dict, List, Optional, Tuple, Union, cast
+from typing import Any, Callable, Dict, List, Optional, Tuple, Union, cast
 from uuid import uuid4
 
 from forestadmin.agent_toolkit.forest_logger import ForestLogger
@@ -7,7 +8,7 @@ from forestadmin.agent_toolkit.services.serializers import Data, DumpedResult, I
 from forestadmin.agent_toolkit.services.serializers.exceptions import JsonApiSerializerException
 from forestadmin.agent_toolkit.utils.id import pack_id
 from forestadmin.datasource_toolkit.collections import Collection
-from forestadmin.datasource_toolkit.datasources import Datasource
+from forestadmin.datasource_toolkit.datasources import Datasource, DatasourceException
 from forestadmin.datasource_toolkit.interfaces.chart import Chart
 from forestadmin.datasource_toolkit.interfaces.fields import (
     Column,
@@ -28,7 +29,6 @@ from forestadmin.datasource_toolkit.interfaces.fields import (
 from forestadmin.datasource_toolkit.interfaces.query.projections import Projection
 from forestadmin.datasource_toolkit.interfaces.query.projections.factory import ProjectionFactory
 from forestadmin.datasource_toolkit.interfaces.records import RecordsDataAlias
-from forestadmin.datasource_toolkit.utils.schema import SchemaUtils
 
 
 def render_chart(chart: Chart):
@@ -83,9 +83,6 @@ class JsonApiSerializer:
         self, data: RecordsDataAlias, collection: Collection, projection: Optional[Projection] = None
     ) -> DumpedResult:
         projection = projection if projection is not None else self.projection
-        primary_keys = SchemaUtils.get_primary_keys(collection.schema)
-        if len(primary_keys) > 1:
-            primary_keys = []
         pk_value = self._get_id(collection, data)
         ret = {
             "data": {
@@ -101,7 +98,7 @@ class JsonApiSerializer:
 
         first_level_projection = [*projection.relations.keys(), *projection.columns]
         for key, value in data.items():
-            if key in primary_keys or key not in collection.schema["fields"]:
+            if key not in first_level_projection or key not in collection.schema["fields"]:
                 continue
             if is_column(collection.schema["fields"][key]) and key in first_level_projection:
                 ret["data"]["attributes"][key] = self._serialize_value(
@@ -127,30 +124,30 @@ class JsonApiSerializer:
     def _serialize_value(self, value: Any, schema: Column) -> Union[str, int, float, bool, None]:
         if value is None:
             return None
-        if schema["column_type"] in [
-            PrimitiveType.STRING,
-            PrimitiveType.NUMBER,
-            PrimitiveType.BOOLEAN,
-            PrimitiveType.JSON,
-            PrimitiveType.BINARY,
-            PrimitiveType.POINT,
-        ]:
-            return value
-        elif schema["column_type"] in [PrimitiveType.UUID, PrimitiveType.ENUM, PrimitiveType.POINT]:
-            return str(value)
-        elif schema["column_type"] == PrimitiveType.DATE:
-            if isinstance(value, date):
-                return value.isoformat()
-            return str(value)
-        elif schema["column_type"] == PrimitiveType.DATE_ONLY:
-            if isinstance(value, datetime):
-                return value.date().isoformat()
-            return str(value)
-        elif schema["column_type"] == PrimitiveType.TIME_ONLY:
-            if isinstance(value, time) or isinstance(value, datetime):
-                return value.isoformat()
-                # return value.strftime("%H:%M:%S") # This format is in forest developer guide
-            return str(value)
+
+        def number_dump(val):
+            if isinstance(val, int) or isinstance(val, float):
+                return val
+            elif isinstance(val, str):
+                return literal_eval(str(value))
+
+        parser_map: Dict[PrimitiveType, Callable] = {
+            PrimitiveType.STRING: str,
+            PrimitiveType.ENUM: str,
+            PrimitiveType.BOOLEAN: bool,
+            PrimitiveType.NUMBER: number_dump,
+            PrimitiveType.UUID: str,
+            PrimitiveType.DATE_ONLY: lambda v: v if isinstance(v, str) else date.isoformat(v),
+            PrimitiveType.TIME_ONLY: lambda v: v if isinstance(v, str) else time.isoformat(v),
+            PrimitiveType.DATE: lambda v: v if isinstance(v, str) else datetime.isoformat(v),
+            PrimitiveType.POINT: lambda v: v,
+            PrimitiveType.BINARY: lambda v: v,  # should not be called, because of binary decorator this type
+            # is transformed to string
+            PrimitiveType.JSON: lambda v: v,
+        }
+
+        if isinstance(schema["column_type"], PrimitiveType):
+            return parser_map[cast(PrimitiveType, schema["column_type"])](value)
         elif isinstance(schema["column_type"], dict) or isinstance(schema["column_type"], list):
             return value
         else:
@@ -206,7 +203,7 @@ class JsonApiSerializer:
         sub_projection = self.projection.relations[name]
         included_attributes = {}
         for key, value in data.items():
-            if key not in sub_projection or key in SchemaUtils.get_primary_keys(foreign_collection.schema):
+            if key not in sub_projection:
                 continue
             included_attributes[key] = self._serialize_value(value, foreign_collection.schema["fields"][key])
 
@@ -227,16 +224,19 @@ class JsonApiSerializer:
         data: Any,
         schema: PolymorphicManyToOne,
         current_link: str,
-    ) -> Tuple[Dict[str, Any], IncludedData]:
+    ) -> Tuple[Dict[str, Any], Optional[IncludedData]]:
         """return (relationships, included)"""
         sub_data = data[name]
-        foreign_collection = self.datasource.get_collection(data[schema["foreign_key_type_field"]])
+        try:
+            foreign_collection = self.datasource.get_collection(data[schema["foreign_key_type_field"]])
+        except DatasourceException:
+            return {"data": None, "links": {"related": {"href": f"{current_link}/relationships/{name}"}}}, None
 
         relation = {
             "data": {
                 "id": pack_id(foreign_collection.schema, sub_data),  # TODO: validate
                 # "id": self._get_id(foreign_collection, sub_data),
-                "type": foreign_collection.name,
+                "type": data[schema["foreign_key_type_field"]],
             },
             "links": {"related": {"href": f"{current_link}/relationships/{name}"}},
         }
