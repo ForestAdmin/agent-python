@@ -1,5 +1,4 @@
 import sys
-import traceback
 from typing import Any, Dict, List, Literal, Union, cast
 
 if sys.version_info >= (3, 9):
@@ -27,8 +26,10 @@ from forestadmin.agent_toolkit.resources.collections.requests import (
     RequestCollectionException,
     RequestRelationCollection,
 )
-from forestadmin.agent_toolkit.services.serializers import add_search_metadata
+from forestadmin.agent_toolkit.services.serializers import add_search_metadata  # , diff_json_api
 from forestadmin.agent_toolkit.services.serializers.exceptions import JsonApiException
+
+# from forestadmin.agent_toolkit.services.serializers.json_api import JsonApiSerializer as JsonApiSerializerOld
 from forestadmin.agent_toolkit.services.serializers.json_api_serializer import JsonApiSerializer
 from forestadmin.agent_toolkit.utils.context import HttpResponseBuilder, Request, RequestMethod, Response
 from forestadmin.agent_toolkit.utils.csv import Csv, CsvException
@@ -107,8 +108,9 @@ class CrudRelatedResource(BaseCollectionResource):
         )
         # schema = JsonApiSerializerOld.get(request.foreign_collection)
         try:
+            # old_dumped = schema(projections=projection).dump(records, many=True)  # type: ignore
             dumped = JsonApiSerializer(self.datasource, projection).serialize(records, request.foreign_collection)
-        #     dumped: DumpedResult = schema(projections=projection).dump(records, many=True)  # type: ignore
+            # diff_json_api(old_dumped, dumped, "crud related list")
         except JsonApiException as e:
             ForestLogger.log("exception", e)
             return HttpResponseBuilder.build_client_error_response([e])

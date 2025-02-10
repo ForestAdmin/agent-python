@@ -474,7 +474,6 @@ class TestCrudRelatedResource(TestCase):
         )
 
     def test_list_error_on_instance_pk(self):
-        mock_orders = [{"id": 10, "cost": 200}, {"id": 11, "cost": 201}]
         crud_related_resource = CrudRelatedResource(
             self.datasource, self.permission_service, self.ip_white_list_service, self.options
         )

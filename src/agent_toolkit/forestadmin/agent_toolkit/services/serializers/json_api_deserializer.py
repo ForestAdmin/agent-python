@@ -5,7 +5,6 @@ from uuid import UUID
 from forestadmin.agent_toolkit.forest_logger import ForestLogger
 from forestadmin.agent_toolkit.services.serializers import Data, DumpedResult
 from forestadmin.agent_toolkit.services.serializers.exceptions import JsonApiDeserializerException
-from forestadmin.agent_toolkit.utils.id import unpack_id
 from forestadmin.datasource_toolkit.collections import Collection
 from forestadmin.datasource_toolkit.datasources import Datasource
 from forestadmin.datasource_toolkit.interfaces.fields import (

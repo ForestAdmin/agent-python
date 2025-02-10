@@ -26,9 +26,10 @@ from forestadmin.agent_toolkit.resources.collections.requests import RequestColl
 from forestadmin.agent_toolkit.resources.context_variable_injector_mixin import ContextVariableInjectorResourceMixin
 from forestadmin.agent_toolkit.services.permissions.ip_whitelist_service import IpWhiteListService
 from forestadmin.agent_toolkit.services.permissions.permission_service import PermissionService
-from forestadmin.agent_toolkit.services.serializers import add_search_metadata
+from forestadmin.agent_toolkit.services.serializers import add_search_metadata  # , diff_json_api
 from forestadmin.agent_toolkit.services.serializers.exceptions import JsonApiException
-from forestadmin.agent_toolkit.services.serializers.json_api import JsonApiSerializer as JsonApiSerializerOld
+
+# from forestadmin.agent_toolkit.services.serializers.json_api import JsonApiSerializer as JsonApiSerializerOld
 from forestadmin.agent_toolkit.services.serializers.json_api_deserializer import JsonApiDeserializer
 from forestadmin.agent_toolkit.services.serializers.json_api_serializer import JsonApiSerializer
 from forestadmin.agent_toolkit.utils.context import HttpResponseBuilder, Request, RequestMethod, Response, User
@@ -145,11 +146,7 @@ class CrudResource(BaseCollectionResource, ContextVariableInjectorResourceMixin)
         try:
             data = JsonApiDeserializer(self.datasource).deserialize(request.body, collection)
             # old_data = JsonApiSerializerOld.get(collection)().load(request.body)
-            # data = {"id": 10, "cost": 200, "status": 1, "cart": 1}
-            # from dictdiffer import diff as differ
-
-            # diff = list(differ(data, new_data))
-            # ForestLogger.log("info", f"creating new_ret({collection.name}) ... diff({len(diff)})")
+            # diffs = diff_json_api(old_data, data, "crud add")
         except JsonApiException as e:
             ForestLogger.log("exception", e)
             return HttpResponseBuilder.build_client_error_response([e])
@@ -283,17 +280,9 @@ class CrudResource(BaseCollectionResource, ContextVariableInjectorResourceMixin)
         try:
             # if the id change it will be in 'data.attributes', otherwise, we get the id by from the request url.
             request.body["data"].pop("id", None)  # type: ignore
-            # data: RecordsDataAlias = schema().load(request.body)  # type: ignore
-            try:
-                new_data = JsonApiDeserializer(self.datasource).deserialize(request.body, collection)
-                # from dictdiffer import diff as differ
-
-                # diff = list(differ(data, new_data))
-                # ForestLogger.log("info", f"creating new_ret({collection.name}) ... diff({len(diff)})")
-                data = new_data
-            except Exception:
-                traceback.print_exc()
-                raise
+            # old_data: RecordsDataAlias = schema().load(request.body)  # type: ignore
+            data = JsonApiDeserializer(self.datasource).deserialize(request.body, collection)
+            # diff_json_api(old_data, data, "crud update")
 
         except JsonApiException as e:
             ForestLogger.log("exception", e)
@@ -473,28 +462,13 @@ class CrudResource(BaseCollectionResource, ContextVariableInjectorResourceMixin)
             for name in relations_to_set:
                 record[name] = None
 
-        new_ret = JsonApiSerializer(self.datasource, projection).serialize(
+        ret = JsonApiSerializer(self.datasource, projection).serialize(
             records if many is True else records[0], collection
         )
-        # old_ret = JsonApiSerializerOld.get(collection)().dump(records if many is True else records[0], many=many)
-        # ret = old_ret
-        ret = new_ret
-        # ForestLogger.log("info", f"returning new_ret({collection.name}) ... diff({len(diff)})")
-        # if len(diff):
-        #     from pprint import pprint
-
-        #     pprint(diff)
-        # try:
-        #     new_ret = JsonApiSerializer(self.datasource, projection).serialize(
-        #         records if many is True else records[0], collection
-        #     )
-        #     from dictdiffer import diff as differ
-
-        #     diff = list(differ(ret, new_ret))
-        #     ForestLogger.log("info", f"returning new_ret({collection.name}) ... diff({len(diff)})")
-        #     return cast(Dict[str, Any], new_ret)
-        # except Exception:
-        #     traceback.print_exc()
+        # old_ret = JsonApiSerializerOld.get(collection)(projections=projection).dump(
+        #     records if many is True else records[0], many=many
+        # )
+        # diff_json_api(old_ret, ret, "crud list/get serialize")
 
         return ret
 
