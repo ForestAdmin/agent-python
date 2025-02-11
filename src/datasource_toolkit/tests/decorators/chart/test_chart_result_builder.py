@@ -109,6 +109,24 @@ class TestResultBuilderTimeBased(TestCase):
             {"label": "W02-1986", "values": {"value": 7}},
         ]
 
+    def test_time_based_should_return_correct_format_week_iso_year(self):
+        result = ResultBuilder.time_based(
+            DateOperation.WEEK,
+            {
+                "2024-12-23": 1,
+                "2024-12-30": 0,
+                "2025-01-06": 7,
+            },
+        )
+        self.assertEqual(
+            result,
+            [
+                {"label": "W52-2024", "values": {"value": 1}},
+                {"label": "W01-2025", "values": {"value": 0}},
+                {"label": "W02-2025", "values": {"value": 7}},
+            ],
+        )
+
     def test_time_based_should_return_correct_format_month(self):
         result = ResultBuilder.time_based(
             DateOperation.MONTH,

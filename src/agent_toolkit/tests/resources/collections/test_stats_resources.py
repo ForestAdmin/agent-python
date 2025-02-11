@@ -636,6 +636,33 @@ class TestLineStatsResource(TestStatResource):
             {"label": "W02-2022", "values": {"value": 15}},
         )
 
+    def test_line_week_label_should_be_with_iso_year(self):
+        request = self.mk_request("Week")
+        with patch.object(
+            self.book_collection,
+            "aggregate",
+            new_callable=AsyncMock,
+            return_value=[
+                {"value": 10, "group": {"date": "2024-12-23 00:00:00"}},
+                {"value": 15, "group": {"date": "2024-12-30 00:00:00"}},
+                {"value": 20, "group": {"date": "2025-01-06 00:00:00"}},
+            ],
+        ):
+            response = self.loop.run_until_complete(self.stat_resource.line(request))
+
+        content_body = json.loads(response.body)
+        self.assertEqual(response.status, 200)
+        self.assertEqual(content_body["data"]["type"], "stats")
+        self.assertEqual(len(content_body["data"]["attributes"]["value"]), 3)
+        self.assertEqual(
+            content_body["data"]["attributes"]["value"],
+            [
+                {"label": "W52-2024", "values": {"value": 10}},
+                {"label": "W01-2025", "values": {"value": 15}},
+                {"label": "W02-2025", "values": {"value": 20}},
+            ],
+        )
+
     def test_line_should_return_chart_with_month_filter(self):
         request = self.mk_request("Month")
         with patch.object(
