@@ -55,7 +55,7 @@ class ResultBuilder:
 
     FORMATS: Dict[DateOperation, str] = {
         DateOperation.DAY: "%d/%m/%Y",
-        DateOperation.WEEK: "W%V-%Y",
+        DateOperation.WEEK: "W%V-%G",
         DateOperation.MONTH: "%b %Y",
         DateOperation.YEAR: "%Y",
     }
