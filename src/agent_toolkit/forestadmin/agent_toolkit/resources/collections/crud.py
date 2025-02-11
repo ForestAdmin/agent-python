@@ -25,10 +25,8 @@ from forestadmin.agent_toolkit.resources.collections.requests import RequestColl
 from forestadmin.agent_toolkit.resources.context_variable_injector_mixin import ContextVariableInjectorResourceMixin
 from forestadmin.agent_toolkit.services.permissions.ip_whitelist_service import IpWhiteListService
 from forestadmin.agent_toolkit.services.permissions.permission_service import PermissionService
-from forestadmin.agent_toolkit.services.serializers import add_search_metadata  # , diff_json_api
+from forestadmin.agent_toolkit.services.serializers import add_search_metadata
 from forestadmin.agent_toolkit.services.serializers.exceptions import JsonApiException
-
-# from forestadmin.agent_toolkit.services.serializers.json_api import JsonApiSerializer as JsonApiSerializerOld
 from forestadmin.agent_toolkit.services.serializers.json_api_deserializer import JsonApiDeserializer
 from forestadmin.agent_toolkit.services.serializers.json_api_serializer import JsonApiSerializer
 from forestadmin.agent_toolkit.utils.context import HttpResponseBuilder, Request, RequestMethod, Response, User
@@ -144,8 +142,6 @@ class CrudResource(BaseCollectionResource, ContextVariableInjectorResourceMixin)
         collection = request.collection
         try:
             data = JsonApiDeserializer(self.datasource).deserialize(request.body, collection)
-            # old_data = JsonApiSerializerOld.get(collection)().load(request.body)
-            # diffs = diff_json_api(old_data, data, "crud add")
         except JsonApiException as e:
             ForestLogger.log("exception", e)
             return HttpResponseBuilder.build_client_error_response([e])
@@ -275,17 +271,14 @@ class CrudResource(BaseCollectionResource, ContextVariableInjectorResourceMixin)
         if request.body and "data" in request.body and "relationships" in request.body["data"]:
             del request.body["data"]["relationships"]
 
-        # schema = JsonApiSerializerOld.get(collection)
         try:
             # if the id change it will be in 'data.attributes', otherwise, we get the id by from the request url.
             request.body["data"].pop("id", None)  # type: ignore
-            # old_data: RecordsDataAlias = schema().load(request.body)  # type: ignore
             data = JsonApiDeserializer(self.datasource).deserialize(request.body, collection)
-            # diff_json_api(old_data, data, "crud update")
-
         except JsonApiException as e:
             ForestLogger.log("exception", e)
             return HttpResponseBuilder.build_client_error_response([e])
+
         trees: List[ConditionTree] = [ConditionTreeFactory.match_ids(collection.schema, [ids])]
         scope_tree = await self.permission.get_scope(request.user, request.collection)
         if scope_tree:
@@ -418,9 +411,6 @@ class CrudResource(BaseCollectionResource, ContextVariableInjectorResourceMixin)
                 or is_polymorphic_one_to_one(field)
                 or is_polymorphic_many_to_one(field)
             ):
-                # if is_polymorphic_many_to_one(field):
-                #     foreign_collection = self.datasource.get_collection(data[field["foreign_key_type_field"]])
-                # else:
                 foreign_collection = self.datasource.get_collection(field["foreign_collection"])
                 pk_names = SchemaUtils.get_primary_keys(foreign_collection.schema)
                 if is_one_to_one(field) or is_polymorphic_one_to_one(field):
@@ -464,11 +454,6 @@ class CrudResource(BaseCollectionResource, ContextVariableInjectorResourceMixin)
         ret = JsonApiSerializer(self.datasource, projection).serialize(
             records if many is True else records[0], collection
         )
-        # old_ret = JsonApiSerializerOld.get(collection)(projections=projection).dump(
-        #     records if many is True else records[0], many=many
-        # )
-        # diff_json_api(old_ret, ret, "crud list/get serialize")
-
         return ret
 
     async def _handle_live_query_segment(

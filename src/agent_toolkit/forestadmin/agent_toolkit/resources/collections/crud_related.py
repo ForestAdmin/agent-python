@@ -26,10 +26,8 @@ from forestadmin.agent_toolkit.resources.collections.requests import (
     RequestCollectionException,
     RequestRelationCollection,
 )
-from forestadmin.agent_toolkit.services.serializers import add_search_metadata  # , diff_json_api
+from forestadmin.agent_toolkit.services.serializers import add_search_metadata
 from forestadmin.agent_toolkit.services.serializers.exceptions import JsonApiException
-
-# from forestadmin.agent_toolkit.services.serializers.json_api import JsonApiSerializer as JsonApiSerializerOld
 from forestadmin.agent_toolkit.services.serializers.json_api_serializer import JsonApiSerializer
 from forestadmin.agent_toolkit.utils.context import HttpResponseBuilder, Request, RequestMethod, Response
 from forestadmin.agent_toolkit.utils.csv import Csv, CsvException
@@ -106,11 +104,8 @@ class CrudRelatedResource(BaseCollectionResource):
             paginated_filter,
             projection,
         )
-        # schema = JsonApiSerializerOld.get(request.foreign_collection)
         try:
-            # old_dumped = schema(projections=projection).dump(records, many=True)  # type: ignore
             dumped = JsonApiSerializer(self.datasource, projection).serialize(records, request.foreign_collection)
-            # diff_json_api(old_dumped, dumped, "crud related list")
         except JsonApiException as e:
             ForestLogger.log("exception", e)
             return HttpResponseBuilder.build_client_error_response([e])
@@ -118,19 +113,6 @@ class CrudRelatedResource(BaseCollectionResource):
         if paginated_filter.search:
             dumped = add_search_metadata(dumped, paginated_filter.search)
 
-        # try:
-        #     if paginated_filter.search:
-        #         dumped = add_search_metadata(dumped, paginated_filter.search)
-        #     # from dictdiffer import diff as differ
-
-        #     # diff = list(differ(dumped, new_ret))
-        #     # ForestLogger.log("info", f"returning new_ret({request.foreign_collection.name}) ... diff({len(diff)})")
-        #     # if len(diff) > 0:
-        #     #     pass
-        #     return HttpResponseBuilder.build_success_response(cast(Dict[str, Any], dumped))
-        # except Exception:
-        #     traceback.print_exc()
-        #     raise
         return HttpResponseBuilder.build_success_response(cast(Dict[str, Any], dumped))
 
     @authenticate
