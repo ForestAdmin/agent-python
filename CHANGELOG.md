@@ -1,3 +1,10 @@
+## [1.22.6](https://github.com/ForestAdmin/agent-python/compare/v1.22.5...v1.22.6) (2025-02-13)
+
+
+### Bug Fixes
+
+* **charts:** properly format week of year ([#314](https://github.com/ForestAdmin/agent-python/issues/314)) ([5e515a9](https://github.com/ForestAdmin/agent-python/commit/5e515a94f98b6b8612d42008192d4bfa58e0926b))
+
 ## [1.22.5](https://github.com/ForestAdmin/agent-python/compare/v1.22.4...v1.22.5) (2025-02-03)
 
 
