@@ -1,5 +1,6 @@
 import io
 import json
+from datetime import date
 from typing import List
 
 from app.models import Order
@@ -184,14 +185,18 @@ refund_order_action: ActionDict = {
 
 # charts
 async def total_order_chart(context: AgentCustomizationContext, result_builder: ResultBuilderChart):
-    records = await context.datasource.get_collection("app_order").list(context.caller, PaginatedFilter({}), ["id"])
-    return result_builder.value(len(records))
+    # records = await context.datasource.get_collection("app_order").list(context.caller, PaginatedFilter({}), ["id"])
+    # return result_builder.value(len(records))
+    record = await context.datasource.get_collection("app_order").aggregate(
+        context.caller, Filter({}), Aggregation({"operation": "Count"})
+    )
+    return result_builder.value(record[0]["value"])
 
 
 async def nb_order_per_week(context: AgentCustomizationContext, result_builder: ResultBuilderChart):
     records = await context.datasource.get_collection("app_order").aggregate(
         context.caller,
-        Filter({"condition_tree": ConditionTreeLeaf("created_at", "before", "2022-01-01")}),
+        Filter({"condition_tree": ConditionTreeLeaf("created_at", "before", date.today())}),
         Aggregation(
             {
                 "field": "created_at",
