@@ -1,5 +1,5 @@
 from datetime import date, datetime
-from typing import Any, Dict, List, Literal, Optional, Union, cast
+from typing import Any, Callable, Dict, List, Literal, Optional, Union, cast
 from uuid import uuid1
 
 import pandas as pd
@@ -26,9 +26,15 @@ from forestadmin.datasource_toolkit.utils.schema import SchemaUtils
 
 
 class StatsResource(BaseCollectionResource, ContextVariableInjectorResourceMixin):
-    FREQUENCIES = {"Day": "d", "Week": "W-MON", "Month": "BMS", "Year": "BYS"}
+    FREQUENCIES = {"Day": "d", "Week": "W-MON", "Month": "BMS", "Year": "BYS", "Quarter": "QS"}
 
-    FORMAT = {"Day": "%d/%m/%Y", "Week": "W%V-%G", "Month": "%b %Y", "Year": "%Y"}
+    FORMAT: Dict[str, Callable[[Union[date, datetime]], str]] = {
+        "Day": lambda d: d.strftime("%d/%m/%Y"),
+        "Week": lambda d: d.strftime("W%V-%Y"),
+        "Month": lambda d: d.strftime("%b %Y"),
+        "Year": lambda d: d.strftime("%Y"),
+        "Quarter": lambda d: f"{d.year}-Q{pd.Timestamp(d).quarter}",
+    }
 
     def stats_method(self, type: str):
         return {
@@ -161,7 +167,7 @@ class StatsResource(BaseCollectionResource, ContextVariableInjectorResourceMixin
                         f"The time chart label type must be 'str' or 'date', not {type(label)}. Skipping this record.",
                     )
                 dates.append(label)
-                values_label[label.strftime(self.FORMAT[request.body["timeRange"]])] = row["value"]
+                values_label[self.FORMAT[request.body["timeRange"]](label)] = row["value"]
 
         dates.sort()
         end = dates[-1]
@@ -170,7 +176,7 @@ class StatsResource(BaseCollectionResource, ContextVariableInjectorResourceMixin
         for dt in pd.date_range(  # type: ignore
             start=start, end=end, freq=self.FREQUENCIES[request.body["timeRange"]]
         ).to_pydatetime():
-            label = dt.strftime(self.FORMAT[request.body["timeRange"]])
+            label = self.FORMAT[request.body["timeRange"]](dt)
             data_points.append(
                 {
                     "label": label,
