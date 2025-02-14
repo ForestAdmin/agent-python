@@ -6,9 +6,10 @@ from forestadmin.datasource_sqlalchemy.utils.relationships import Relationships,
 from forestadmin.datasource_toolkit.exceptions import DatasourceToolkitException
 from forestadmin.datasource_toolkit.interfaces.query.aggregation import Aggregation, Aggregator, DateOperation
 from forestadmin.datasource_toolkit.interfaces.query.projections import Projection
-from sqlalchemy import DATE, cast
+from sqlalchemy import DATE, Integer, cast
 from sqlalchemy import column as SqlAlchemyColumn
-from sqlalchemy import func, text
+from sqlalchemy import extract, func, text
+from sqlalchemy.dialects.postgresql import INTERVAL
 from sqlalchemy.engine import Dialect
 
 
@@ -82,12 +83,39 @@ class AggregationFactory:
 class DateAggregation:
     @staticmethod
     def build_postgres(column: SqlAlchemyColumn, operation: DateOperation) -> SqlAlchemyColumn:
+        # if operation == DateOperation.QUARTER:
+        #     return func.date_trunc(text("'quarter'"), column) + INTERVAL("3 month") - INTERVAL("1 day").
+
         return func.date_trunc(operation.value.lower(), column)
 
     @staticmethod
-    def build_sqllite(column: SqlAlchemyColumn, operation: DateOperation) -> SqlAlchemyColumn:
+    def build_sqlite(column: SqlAlchemyColumn, operation: DateOperation) -> SqlAlchemyColumn:
         if operation == DateOperation.WEEK:
             return func.DATE(column, "weekday 1", "-7 days")
+        elif operation == DateOperation.QUARTER:
+            # floor(
+            #     (
+            #         CAST(
+            #             strftime('%m',column) AS int
+            #         ) + 2
+            #     ) / 3
+            # )
+            # SELECT
+            #     date(strftime('%Y', ordered_at) || '-' ||
+            #             printf('%02d', (floor((CAST(strftime('%m', ordered_at) AS INTEGER) - 1) / 3) + 1) * 3) || '-01',
+            #             'start of month', "+1 month", '-1 day') AS quarter_end,
+            # ordered_at
+            # FROM app_order;
+
+            return func.date(
+                func.strftime("%Y", column)
+                + "-"
+                + func.printf("%02d", (func.floor((func.cast(func.strftime("%m", column), Integer) - 1) / 3) + 1) * 3)
+                + "-01",
+                "start of month",
+                "+1 month",
+                "-1 day",
+            )
         elif operation == DateOperation.YEAR:
             format = "%Y-01-01"
         elif operation == DateOperation.MONTH:
@@ -107,6 +135,15 @@ class DateAggregation:
             format = "%Y-%m-01"
         elif operation == DateOperation.WEEK:
             return cast(func.date_sub(column, text(f"INTERVAL(WEEKDAY({column})) DAY")), DATE)
+        elif operation == DateOperation.QUARTER:
+            return func.last_day(
+                func.str_to_date(
+                    func.concat(
+                        func.year(column), "-", func.lpad(func.ceiling(extract("month", column) / 3) * 3, 2, "0"), "-01"
+                    ),
+                    "%Y-%m-%d",
+                )
+            )
         elif operation == DateOperation.DAY:
             format = "%Y-%m-%d"
         else:
@@ -121,6 +158,15 @@ class DateAggregation:
             return func.datefromparts(func.extract("year", column), func.extract("month", column), "01")
         elif operation == DateOperation.WEEK:
             return cast(func.dateadd(text("day"), -func.extract("dw", column) + 2, column), DATE)
+        elif operation == DateOperation.QUARTER:
+            return func.eomonth(
+                func.datefromparts(
+                    func.extract("YEAR", column),
+                    func.datepart(text("QUARTER"), column) * text("3"),
+                    text("1"),
+                )
+            )
+            # docker run -e "ACCEPT_EULA=Y" -e "MSSQL_SA_PASSWORD=Forestadmin1*" -p 1433:1433 --name mssql --hostname mssql -d mcr.microsoft.com/mssql/server:2022-latest
         elif operation == DateOperation.DAY:
             return func.datefromparts(
                 func.extract("year", column),
@@ -131,12 +177,13 @@ class DateAggregation:
     @classmethod
     def build(cls, dialect: Dialect, column: SqlAlchemyColumn, operation: DateOperation) -> SqlAlchemyColumn:
         if dialect.name == "sqlite":
-            return cls.build_sqllite(column, operation)
+            return cls.build_sqlite(column, operation)
         elif dialect.name in ["mysql", "mariadb"]:
             return cls.build_mysql(column, operation)
         elif dialect.name == "postgresql":
             return cls.build_postgres(column, operation)
         elif dialect.name == "mssql":
             return cls.build_mssql(column, operation)
+        # TODO: oracle ???
         else:
             raise AggregationFactoryException(f"The dialect {dialect.name} is not handled")

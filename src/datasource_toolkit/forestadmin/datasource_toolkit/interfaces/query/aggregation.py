@@ -30,12 +30,13 @@ PlainAggregator = Literal["Count", "Sum", "Avg", "Max", "Min"]
 
 class DateOperation(enum.Enum):
     YEAR = "Year"
+    QUARTER = "Quarter"
     MONTH = "Month"
     WEEK = "Week"
     DAY = "Day"
 
 
-DateOperationLiteral = Literal["Year", "Month", "Week", "Day"]
+DateOperationLiteral = Literal["Year", "Quarter", "Month", "Week", "Day"]
 
 
 class AggregateResult(TypedDict):
