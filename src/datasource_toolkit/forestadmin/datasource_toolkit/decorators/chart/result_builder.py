@@ -1,6 +1,6 @@
 import enum
 from datetime import date, datetime
-from typing import Dict, List, Optional, TypedDict, Union
+from typing import Callable, Dict, List, Optional, TypedDict, Union
 
 import pandas as pd
 from forestadmin.datasource_toolkit.interfaces.chart import (
@@ -21,6 +21,7 @@ class _DateRangeFrequency(enum.Enum):
     Day: str = "days"
     Week: str = "weeks"
     Month: str = "months"
+    Quarter: str = "quarters"
     Year: str = "years"
 
 
@@ -37,27 +38,40 @@ def _parse_date(date_input: Union[str, date, datetime]) -> date:
 
 
 def _make_formatted_date_range(
-    first: Union[date, datetime], last: Union[date, datetime], frequency: _DateRangeFrequency, format_: str
+    first: Union[date, datetime],
+    last: Union[date, datetime],
+    frequency: _DateRangeFrequency,
+    format_fn: Callable[[Union[date, datetime]], str],
 ):
     current = first
     used = set()
     while current <= last:
-        yield current.strftime(format_)
-        used.add(current.strftime(format_))
-        current = (current + pd.DateOffset(**{frequency.value: 1})).date()
+        yield format_fn(current)
+        used.add(format_fn(current))
+        if frequency == _DateRangeFrequency.Quarter:
+            current = (current + pd.DateOffset(months=3)).date()
+        else:
+            current = (current + pd.DateOffset(**{frequency.value: 1})).date()
 
-    if last.strftime(format_) not in used:
-        yield last.strftime(format_)
+    if format_fn(last) not in used:
+        yield format_fn(last)
 
 
 class ResultBuilder:
-    FREQUENCIES = {"Day": Frequency.DAY, "Week": Frequency.WEEK, "Month": Frequency.MONTH, "Year": Frequency.YEAR}
+    FREQUENCIES = {
+        "Day": Frequency.DAY,
+        "Week": Frequency.WEEK,
+        "Month": Frequency.MONTH,
+        "Year": Frequency.YEAR,
+        "Quarter": Frequency.QUARTER,
+    }
 
-    FORMATS: Dict[DateOperation, str] = {
-        DateOperation.DAY: "%d/%m/%Y",
-        DateOperation.WEEK: "W%V-%G",
-        DateOperation.MONTH: "%b %Y",
-        DateOperation.YEAR: "%Y",
+    FORMATS: Dict[DateOperation, Callable[[date], str]] = {
+        DateOperation.DAY: lambda d: d.strftime("%d/%m/%Y"),
+        DateOperation.WEEK: lambda d: d.strftime("W%V-%G"),
+        DateOperation.MONTH: lambda d: d.strftime("%b %Y"),
+        DateOperation.QUARTER: lambda d: f"{d.year}-Q{pd.Timestamp(d).quarter}",
+        DateOperation.YEAR: lambda d: d.strftime("%Y"),
     }
 
     @staticmethod
@@ -182,11 +196,11 @@ class ResultBuilder:
         if len(points) == 0:
             return []
         points_in_date_time = [{"date": _parse_date(point["date"]), "value": point["value"]} for point in points]
-        format_ = ResultBuilder.FORMATS[DateOperation(time_range)]
+        format_fn = ResultBuilder.FORMATS[DateOperation(time_range)]
 
         formatted = {}
         for point in points_in_date_time:
-            label = point["date"].strftime(format_)
+            label = format_fn(point["date"])
             if point["value"] is not None:
                 formatted[label] = formatted.get(label, 0) + point["value"]
 
@@ -195,7 +209,7 @@ class ResultBuilder:
         first = dates[0]
         last = dates[-1]
         for label in _make_formatted_date_range(
-            first, last, _DateRangeFrequency[DateOperation(time_range).value], format_
+            first, last, _DateRangeFrequency[DateOperation(time_range).value], format_fn
         ):
             data_points.append({"label": label, "values": {"value": formatted.get(label, 0)}})
         return data_points

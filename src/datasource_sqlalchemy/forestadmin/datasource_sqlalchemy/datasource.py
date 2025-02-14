@@ -15,7 +15,7 @@ class SqlAlchemyDatasource(BaseSqlAlchemyDatasource):
         self._base = Base
         self.__is_using_flask_sqlalchemy = hasattr(Base, "Model")
 
-        bind = create_engine(db_uri, echo=False) if db_uri is not None else self._find_db_uri(Base)
+        bind = create_engine(db_uri, echo=True) if db_uri is not None else self._find_db_uri(Base)
         if bind is None:
             raise SqlAlchemyDatasourceException(
                 "Cannot find database uri in your SQLAlchemy Base class. "
