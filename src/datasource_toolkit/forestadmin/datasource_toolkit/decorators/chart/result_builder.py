@@ -70,7 +70,7 @@ class ResultBuilder:
         DateOperation.DAY: lambda d: d.strftime("%d/%m/%Y"),
         DateOperation.WEEK: lambda d: d.strftime("W%V-%G"),
         DateOperation.MONTH: lambda d: d.strftime("%b %Y"),
-        DateOperation.QUARTER: lambda d: f"{d.year}-Q{pd.Timestamp(d).quarter}",
+        DateOperation.QUARTER: lambda d: f"Q{pd.Timestamp(d).quarter}-{d.year}",
         DateOperation.YEAR: lambda d: d.strftime("%Y"),
     }
 
