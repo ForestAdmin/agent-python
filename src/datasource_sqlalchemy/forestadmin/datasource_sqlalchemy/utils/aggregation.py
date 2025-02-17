@@ -84,6 +84,8 @@ class DateAggregation:
     @staticmethod
     def build_postgres(column: SqlAlchemyColumn, operation: DateOperation) -> SqlAlchemyColumn:
         # if operation == DateOperation.QUARTER:
+        #     # TODO: adapt to the end of quarter like other SGBD ?
+        #     # is it necessary, or the aggregation result is the same ?
         #     return func.date_trunc(text("'quarter'"), column) + INTERVAL("3 month") - INTERVAL("1 day").
 
         return func.date_trunc(operation.value.lower(), column)
@@ -93,26 +95,12 @@ class DateAggregation:
         if operation == DateOperation.WEEK:
             return func.DATE(column, "weekday 1", "-7 days")
         elif operation == DateOperation.QUARTER:
-            # floor(
-            #     (
-            #         CAST(
-            #             strftime('%m',column) AS int
-            #         ) + 2
-            #     ) / 3
-            # )
-            # SELECT
-            #     date(strftime('%Y', ordered_at) || '-' ||
-            #             printf('%02d', (floor((CAST(strftime('%m', ordered_at) AS INTEGER) - 1) / 3) + 1) * 3) || '-01',
-            #             'start of month', "+1 month", '-1 day') AS quarter_end,
-            # ordered_at
-            # FROM app_order;
-
             return func.date(
                 func.strftime("%Y", column)
                 + "-"
                 + func.printf("%02d", (func.floor((func.cast(func.strftime("%m", column), Integer) - 1) / 3) + 1) * 3)
                 + "-01",
-                "start of month",
+                "start of month",  # TODO: is this one necessary ? we just said the day of the date is "01"
                 "+1 month",
                 "-1 day",
             )
@@ -166,7 +154,6 @@ class DateAggregation:
                     text("1"),
                 )
             )
-            # docker run -e "ACCEPT_EULA=Y" -e "MSSQL_SA_PASSWORD=Forestadmin1*" -p 1433:1433 --name mssql --hostname mssql -d mcr.microsoft.com/mssql/server:2022-latest
         elif operation == DateOperation.DAY:
             return func.datefromparts(
                 func.extract("year", column),
@@ -184,6 +171,5 @@ class DateAggregation:
             return cls.build_postgres(column, operation)
         elif dialect.name == "mssql":
             return cls.build_mssql(column, operation)
-        # TODO: oracle ???
         else:
             raise AggregationFactoryException(f"The dialect {dialect.name} is not handled")
