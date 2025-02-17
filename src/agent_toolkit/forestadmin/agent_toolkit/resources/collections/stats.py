@@ -30,7 +30,7 @@ class StatsResource(BaseCollectionResource, ContextVariableInjectorResourceMixin
 
     FORMAT: Dict[str, Callable[[Union[date, datetime]], str]] = {
         "Day": lambda d: d.strftime("%d/%m/%Y"),
-        "Week": lambda d: d.strftime("W%V-%Y"),
+        "Week": lambda d: d.strftime("W%V-%G"),
         "Month": lambda d: d.strftime("%b %Y"),
         "Year": lambda d: d.strftime("%Y"),
         "Quarter": lambda d: f"{d.year}-Q{pd.Timestamp(d).quarter}",
