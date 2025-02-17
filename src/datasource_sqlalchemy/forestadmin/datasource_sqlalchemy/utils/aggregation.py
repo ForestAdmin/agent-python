@@ -9,7 +9,6 @@ from forestadmin.datasource_toolkit.interfaces.query.projections import Projecti
 from sqlalchemy import DATE, Integer, cast
 from sqlalchemy import column as SqlAlchemyColumn
 from sqlalchemy import extract, func, text
-from sqlalchemy.dialects.postgresql import INTERVAL
 from sqlalchemy.engine import Dialect
 
 
