@@ -141,7 +141,7 @@ class TestSqlAlchemyCollection(TestCase):
         assert projection == Projection("city", "customers:first_name")
 
 
-class TestSqlAlchemyCollectionWithModels(TestCase):
+class BaseTestSqlAlchemyCollectionWithModels(TestCase):
     @classmethod
     def setUpClass(cls):
         cls.loop = asyncio.new_event_loop()
@@ -168,6 +168,8 @@ class TestSqlAlchemyCollectionWithModels(TestCase):
         os.remove(cls.sql_alchemy_base.metadata.file_path)
         cls.loop.close()
 
+
+class TestSqlAlchemyCollectionWithModels(BaseTestSqlAlchemyCollectionWithModels):
     def test_get_columns(self):
         collection = self.datasource.get_collection("order")
         columns, relationships = collection.get_columns(Projection("amount", "status", "customer:first_name"))
@@ -345,6 +347,33 @@ class TestSqlAlchemyCollectionWithModels(TestCase):
         assert [*filter(lambda item: item["group"]["customer_id"] == 9, results)][0]["value"] == 4984.5
         assert [*filter(lambda item: item["group"]["customer_id"] == 10, results)][0]["value"] == 3408.5
 
+    def test_aggregate_by_date(self):
+        filter_ = PaginatedFilter({"condition_tree": ConditionTreeLeaf("id", Operator.LESS_THAN, 11)})
+        collection = self.datasource.get_collection("order")
+
+        results = self.loop.run_until_complete(
+            collection.aggregate(
+                self.mocked_caller,
+                filter_,
+                Aggregation(
+                    {
+                        "operation": "Avg",
+                        "field": "amount",
+                        "groups": [{"field": "created_at", "operation": "Quarter"}],
+                    }
+                ),
+            )
+        )
+
+        self.assertEqual(len(results), 7)
+        self.assertIn({"value": 9744.0, "group": {"created_at": "2021-09-30"}}, results)
+        self.assertIn({"value": 7676.0, "group": {"created_at": "2022-09-30"}}, results)
+        self.assertIn({"value": 5285.0, "group": {"created_at": "2022-06-30"}}, results)
+        self.assertIn({"value": 5278.5, "group": {"created_at": "2023-03-31"}}, results)
+        self.assertIn({"value": 4753.5, "group": {"created_at": "2021-03-31"}}, results)
+        self.assertIn({"value": 4684.0, "group": {"created_at": "2022-12-31"}}, results)
+        self.assertIn({"value": 1459.0, "group": {"created_at": "2021-06-30"}}, results)
+
     def test_get_native_driver_should_return_connection(self):
         with self.datasource.get_collection("order").get_native_driver() as connection:
             self.assertIsInstance(connection, Session)
@@ -360,6 +389,781 @@ class TestSqlAlchemyCollectionWithModels(TestCase):
 
             rows = connection.execute('select id,amount from "order"  where id =  3').all()
         self.assertEqual(rows, [(3, 5285)])
+
+
+class TestSQLAlchemyOnSQLite(BaseTestSqlAlchemyCollectionWithModels):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.dialect = "sqlite"
+
+    def test_can_aggregate_date_by_year(self):
+        with patch.object(self.datasource.Session, "begin") as mock_begin:
+            mock_session = Mock()
+            mock_session.execute = Mock(return_value=[])
+            mock_session.bind.dialect.name = self.dialect
+            mock_begin.return_value.__enter__.return_value = mock_session
+
+            filter_ = PaginatedFilter({})
+            collection = self.datasource.get_collection("order")
+            self.loop.run_until_complete(
+                collection.aggregate(
+                    self.mocked_caller,
+                    filter_,
+                    Aggregation(
+                        {
+                            "operation": "Avg",
+                            "field": "amount",
+                            "groups": [{"field": "created_at", "operation": "Year"}],
+                        }
+                    ),
+                )
+            )
+            query = mock_session.execute.call_args.args[0]
+            sql_query = str(query)
+            self.assertEqual(
+                sql_query,
+                'SELECT avg("order".amount) AS __aggregate__, '
+                'strftime(:strftime_1, "order".created_at) AS created_at__grouped__ \n'
+                'FROM "order" GROUP BY strftime(:strftime_1, "order".created_at) '
+                "ORDER BY __aggregate__ DESC",
+            )
+            self.assertEqual(
+                [p.value for p in query._get_embedded_bindparams()],
+                ["%Y-01-01"],
+            )
+
+    def test_can_aggregate_date_by_quarter(self):
+        with patch.object(self.datasource.Session, "begin") as mock_begin:
+            mock_session = Mock()
+            mock_session.execute = Mock(return_value=[])
+            mock_session.bind.dialect.name = self.dialect
+            mock_begin.return_value.__enter__.return_value = mock_session
+
+            filter_ = PaginatedFilter({})
+            collection = self.datasource.get_collection("order")
+            self.loop.run_until_complete(
+                collection.aggregate(
+                    self.mocked_caller,
+                    filter_,
+                    Aggregation(
+                        {
+                            "operation": "Avg",
+                            "field": "amount",
+                            "groups": [{"field": "created_at", "operation": "Quarter"}],
+                        }
+                    ),
+                )
+            )
+            query = mock_session.execute.call_args.args[0]
+            sql_query = str(query)
+            self.assertEqual(
+                sql_query,
+                'SELECT avg("order".amount) AS __aggregate__, date(strftime(:strftime_1, "order".created_at) || '
+                ':strftime_2 || printf(:printf_1, (floor((CAST(strftime(:strftime_3, "order".created_at) AS INTEGER) '
+                "- :param_1) / CAST(:param_2 AS NUMERIC)) + :floor_1) * :param_3) || :param_4, :date_1, :date_2) "
+                "AS created_at__grouped__ \n"
+                'FROM "order" GROUP BY date(strftime(:strftime_1, "order".created_at) || :strftime_2 || '
+                'printf(:printf_1, (floor((CAST(strftime(:strftime_3, "order".created_at) AS INTEGER) - :param_1) / '
+                "CAST(:param_2 AS NUMERIC)) + :floor_1) * :param_3) || :param_4, :date_1, :date_2) "
+                "ORDER BY __aggregate__ DESC",
+            )
+            self.assertEqual(
+                [p.value for p in query._get_embedded_bindparams()],
+                ["%Y", "-", "%02d", "%m", 1, 3, 1, 3, "-01", "+1 month", "-1 day"],
+            )
+
+    def test_can_aggregate_date_by_month(self):
+        with patch.object(self.datasource.Session, "begin") as mock_begin:
+            mock_session = Mock()
+            mock_session.execute = Mock(return_value=[])
+            mock_session.bind.dialect.name = self.dialect
+            mock_begin.return_value.__enter__.return_value = mock_session
+
+            filter_ = PaginatedFilter({})
+            collection = self.datasource.get_collection("order")
+            self.loop.run_until_complete(
+                collection.aggregate(
+                    self.mocked_caller,
+                    filter_,
+                    Aggregation(
+                        {
+                            "operation": "Avg",
+                            "field": "amount",
+                            "groups": [{"field": "created_at", "operation": "Month"}],
+                        }
+                    ),
+                )
+            )
+            query = mock_session.execute.call_args.args[0]
+            sql_query = str(query)
+            self.assertEqual(
+                sql_query,
+                'SELECT avg("order".amount) AS __aggregate__, strftime(:strftime_1, "order".created_at) '
+                "AS created_at__grouped__ \n"
+                'FROM "order" GROUP BY strftime(:strftime_1, "order".created_at) ORDER BY __aggregate__ DESC',
+            )
+            self.assertEqual(
+                [p.value for p in query._get_embedded_bindparams()],
+                ["%Y-%m-01"],
+            )
+
+    def test_can_aggregate_date_by_week(self):
+        with patch.object(self.datasource.Session, "begin") as mock_begin:
+            mock_session = Mock()
+            mock_session.execute = Mock(return_value=[])
+            mock_session.bind.dialect.name = self.dialect
+            mock_begin.return_value.__enter__.return_value = mock_session
+
+            filter_ = PaginatedFilter({})
+            collection = self.datasource.get_collection("order")
+            self.loop.run_until_complete(
+                collection.aggregate(
+                    self.mocked_caller,
+                    filter_,
+                    Aggregation(
+                        {
+                            "operation": "Avg",
+                            "field": "amount",
+                            "groups": [{"field": "created_at", "operation": "Week"}],
+                        }
+                    ),
+                )
+            )
+            query = mock_session.execute.call_args.args[0]
+            sql_query = str(query)
+            self.assertEqual(
+                sql_query,
+                'SELECT avg("order".amount) AS __aggregate__, DATE("order".created_at, :DATE_1, :DATE_2) AS '
+                'created_at__grouped__ \nFROM "order" '
+                'GROUP BY DATE("order".created_at, :DATE_1, :DATE_2) '
+                "ORDER BY __aggregate__ DESC",
+            )
+            self.assertEqual(
+                [p.value for p in query._get_embedded_bindparams()],
+                ["weekday 1", "-7 days"],
+            )
+
+    def test_can_aggregate_date_by_day(self):
+        with patch.object(self.datasource.Session, "begin") as mock_begin:
+            mock_session = Mock()
+            mock_session.execute = Mock(return_value=[])
+            mock_session.bind.dialect.name = self.dialect
+            mock_begin.return_value.__enter__.return_value = mock_session
+
+            filter_ = PaginatedFilter({})
+            collection = self.datasource.get_collection("order")
+            self.loop.run_until_complete(
+                collection.aggregate(
+                    self.mocked_caller,
+                    filter_,
+                    Aggregation(
+                        {
+                            "operation": "Avg",
+                            "field": "amount",
+                            "groups": [{"field": "created_at", "operation": "Day"}],
+                        }
+                    ),
+                )
+            )
+            query = mock_session.execute.call_args.args[0]
+            sql_query = str(query)
+            self.assertEqual(
+                sql_query,
+                'SELECT avg("order".amount) AS __aggregate__, strftime(:strftime_1, "order".created_at) '
+                "AS created_at__grouped__ \n"
+                'FROM "order" GROUP BY strftime(:strftime_1, "order".created_at) ORDER BY __aggregate__ DESC',
+            )
+            self.assertEqual(
+                [p.value for p in query._get_embedded_bindparams()],
+                ["%Y-%m-%d"],
+            )
+
+
+class TestSQLAlchemyOnPostgres(BaseTestSqlAlchemyCollectionWithModels):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.dialect = "postgresql"
+
+    def test_can_aggregate_date_by_year(self):
+        with patch.object(self.datasource.Session, "begin") as mock_begin:
+            mock_session = Mock()
+            mock_session.execute = Mock(return_value=[])
+            mock_session.bind.dialect.name = self.dialect
+            mock_begin.return_value.__enter__.return_value = mock_session
+
+            filter_ = PaginatedFilter({})
+            collection = self.datasource.get_collection("order")
+            self.loop.run_until_complete(
+                collection.aggregate(
+                    self.mocked_caller,
+                    filter_,
+                    Aggregation(
+                        {
+                            "operation": "Avg",
+                            "field": "amount",
+                            "groups": [{"field": "created_at", "operation": "Year"}],
+                        }
+                    ),
+                )
+            )
+            query = mock_session.execute.call_args.args[0]
+            sql_query = str(query)
+            self.assertEqual(
+                sql_query,
+                'SELECT avg("order".amount) AS __aggregate__, date_trunc(:date_trunc_1, "order".created_at) '
+                "AS created_at__grouped__ \n"
+                'FROM "order" '
+                'GROUP BY date_trunc(:date_trunc_1, "order".created_at) ORDER BY __aggregate__ DESC NULLS LAST',
+            )
+            self.assertEqual(
+                [p.value for p in query._get_embedded_bindparams()],
+                ["year"],
+            )
+
+    def test_can_aggregate_date_by_quarter(self):
+        with patch.object(self.datasource.Session, "begin") as mock_begin:
+            mock_session = Mock()
+            mock_session.execute = Mock(return_value=[])
+            mock_session.bind.dialect.name = self.dialect
+            mock_begin.return_value.__enter__.return_value = mock_session
+
+            filter_ = PaginatedFilter({})
+            collection = self.datasource.get_collection("order")
+            self.loop.run_until_complete(
+                collection.aggregate(
+                    self.mocked_caller,
+                    filter_,
+                    Aggregation(
+                        {
+                            "operation": "Avg",
+                            "field": "amount",
+                            "groups": [{"field": "created_at", "operation": "Quarter"}],
+                        }
+                    ),
+                )
+            )
+            query = mock_session.execute.call_args.args[0]
+            sql_query = str(query)
+            self.assertEqual(
+                sql_query,
+                'SELECT avg("order".amount) AS __aggregate__, date_trunc(:date_trunc_1, "order".created_at) '
+                "AS created_at__grouped__ \n"
+                'FROM "order" '
+                'GROUP BY date_trunc(:date_trunc_1, "order".created_at) ORDER BY __aggregate__ DESC NULLS LAST',
+            )
+            self.assertEqual(
+                [p.value for p in query._get_embedded_bindparams()],
+                ["quarter"],
+            )
+
+    def test_can_aggregate_date_by_month(self):
+        with patch.object(self.datasource.Session, "begin") as mock_begin:
+            mock_session = Mock()
+            mock_session.execute = Mock(return_value=[])
+            mock_session.bind.dialect.name = self.dialect
+            mock_begin.return_value.__enter__.return_value = mock_session
+
+            filter_ = PaginatedFilter({})
+            collection = self.datasource.get_collection("order")
+            self.loop.run_until_complete(
+                collection.aggregate(
+                    self.mocked_caller,
+                    filter_,
+                    Aggregation(
+                        {
+                            "operation": "Avg",
+                            "field": "amount",
+                            "groups": [{"field": "created_at", "operation": "Month"}],
+                        }
+                    ),
+                )
+            )
+            query = mock_session.execute.call_args.args[0]
+            sql_query = str(query)
+            self.assertEqual(
+                sql_query,
+                'SELECT avg("order".amount) AS __aggregate__, date_trunc(:date_trunc_1, "order".created_at) '
+                "AS created_at__grouped__ \n"
+                'FROM "order" '
+                'GROUP BY date_trunc(:date_trunc_1, "order".created_at) ORDER BY __aggregate__ DESC NULLS LAST',
+            )
+            self.assertEqual(
+                [p.value for p in query._get_embedded_bindparams()],
+                ["month"],
+            )
+
+    def test_can_aggregate_date_by_week(self):
+        with patch.object(self.datasource.Session, "begin") as mock_begin:
+            mock_session = Mock()
+            mock_session.execute = Mock(return_value=[])
+            mock_session.bind.dialect.name = self.dialect
+            mock_begin.return_value.__enter__.return_value = mock_session
+
+            filter_ = PaginatedFilter({})
+            collection = self.datasource.get_collection("order")
+            self.loop.run_until_complete(
+                collection.aggregate(
+                    self.mocked_caller,
+                    filter_,
+                    Aggregation(
+                        {
+                            "operation": "Avg",
+                            "field": "amount",
+                            "groups": [{"field": "created_at", "operation": "Week"}],
+                        }
+                    ),
+                )
+            )
+            query = mock_session.execute.call_args.args[0]
+            sql_query = str(query)
+            self.assertEqual(
+                sql_query,
+                'SELECT avg("order".amount) AS __aggregate__, date_trunc(:date_trunc_1, "order".created_at) AS '
+                "created_at__grouped__ \n"
+                'FROM "order" '
+                'GROUP BY date_trunc(:date_trunc_1, "order".created_at) '
+                "ORDER BY __aggregate__ DESC NULLS LAST",
+            )
+            self.assertEqual(
+                [p.value for p in query._get_embedded_bindparams()],
+                ["week"],
+            )
+
+    def test_can_aggregate_date_by_day(self):
+        with patch.object(self.datasource.Session, "begin") as mock_begin:
+            mock_session = Mock()
+            mock_session.execute = Mock(return_value=[])
+            mock_session.bind.dialect.name = self.dialect
+            mock_begin.return_value.__enter__.return_value = mock_session
+
+            filter_ = PaginatedFilter({})
+            collection = self.datasource.get_collection("order")
+            self.loop.run_until_complete(
+                collection.aggregate(
+                    self.mocked_caller,
+                    filter_,
+                    Aggregation(
+                        {
+                            "operation": "Avg",
+                            "field": "amount",
+                            "groups": [{"field": "created_at", "operation": "Day"}],
+                        }
+                    ),
+                )
+            )
+            query = mock_session.execute.call_args.args[0]
+            sql_query = str(query)
+            self.assertEqual(
+                sql_query,
+                'SELECT avg("order".amount) AS __aggregate__, date_trunc(:date_trunc_1, "order".created_at) AS '
+                "created_at__grouped__ \n"
+                'FROM "order" '
+                'GROUP BY date_trunc(:date_trunc_1, "order".created_at) '
+                "ORDER BY __aggregate__ DESC NULLS LAST",
+            )
+            self.assertEqual(
+                [p.value for p in query._get_embedded_bindparams()],
+                ["day"],
+            )
+
+
+class TestSQLAlchemyOnMySQL(BaseTestSqlAlchemyCollectionWithModels):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.dialect = "mysql"  # same as 'mariadb'
+
+    def test_can_aggregate_date_by_year(self):
+        with patch.object(self.datasource.Session, "begin") as mock_begin:
+            mock_session = Mock()
+            mock_session.execute = Mock(return_value=[])
+            mock_session.bind.dialect.name = self.dialect
+            mock_begin.return_value.__enter__.return_value = mock_session
+
+            filter_ = PaginatedFilter({})
+            collection = self.datasource.get_collection("order")
+            self.loop.run_until_complete(
+                collection.aggregate(
+                    self.mocked_caller,
+                    filter_,
+                    Aggregation(
+                        {
+                            "operation": "Avg",
+                            "field": "amount",
+                            "groups": [{"field": "created_at", "operation": "Year"}],
+                        }
+                    ),
+                )
+            )
+            query = mock_session.execute.call_args.args[0]
+            sql_query = str(query)
+            self.assertEqual(
+                sql_query,
+                'SELECT avg("order".amount) AS __aggregate__, date_format("order".created_at, :date_format_1) '
+                "AS created_at__grouped__ \n"
+                'FROM "order" '
+                'GROUP BY date_format("order".created_at, :date_format_1) '
+                "ORDER BY __aggregate__ DESC",
+            )
+            self.assertEqual(
+                [p.value for p in query._get_embedded_bindparams()],
+                ["%Y-01-01"],
+            )
+
+    def test_can_aggregate_date_by_quarter(self):
+        with patch.object(self.datasource.Session, "begin") as mock_begin:
+            mock_session = Mock()
+            mock_session.execute = Mock(return_value=[])
+            mock_session.bind.dialect.name = self.dialect
+            mock_begin.return_value.__enter__.return_value = mock_session
+
+            filter_ = PaginatedFilter({})
+            collection = self.datasource.get_collection("order")
+            self.loop.run_until_complete(
+                collection.aggregate(
+                    self.mocked_caller,
+                    filter_,
+                    Aggregation(
+                        {
+                            "operation": "Avg",
+                            "field": "amount",
+                            "groups": [{"field": "created_at", "operation": "Quarter"}],
+                        }
+                    ),
+                )
+            )
+            query = mock_session.execute.call_args.args[0]
+            sql_query = str(query)
+            self.assertEqual(
+                sql_query,
+                'SELECT avg("order".amount) AS __aggregate__, last_day(str_to_date(concat(year("order".created_at), '
+                ':concat_1, lpad(ceiling(EXTRACT(month FROM "order".created_at) / CAST(:param_1 AS NUMERIC)'
+                ") * :ceiling_1, :lpad_1, :lpad_2), :concat_2), :str_to_date_1)) AS created_at__grouped__ \n"
+                'FROM "order" '
+                'GROUP BY last_day(str_to_date(concat(year("order".created_at), :concat_1, '
+                'lpad(ceiling(EXTRACT(month FROM "order".created_at) / CAST(:param_1 AS NUMERIC)'
+                ") * :ceiling_1, :lpad_1, :lpad_2), :concat_2), :str_to_date_1)) "
+                "ORDER BY __aggregate__ DESC",
+            )
+            self.assertEqual(
+                [p.value for p in query._get_embedded_bindparams()],
+                ["-", 3, 3, 2, "0", "-01", "%Y-%m-%d"],
+            )
+
+    def test_can_aggregate_date_by_month(self):
+        with patch.object(self.datasource.Session, "begin") as mock_begin:
+            mock_session = Mock()
+            mock_session.execute = Mock(return_value=[])
+            mock_session.bind.dialect.name = self.dialect
+            mock_begin.return_value.__enter__.return_value = mock_session
+
+            filter_ = PaginatedFilter({})
+            collection = self.datasource.get_collection("order")
+            self.loop.run_until_complete(
+                collection.aggregate(
+                    self.mocked_caller,
+                    filter_,
+                    Aggregation(
+                        {
+                            "operation": "Avg",
+                            "field": "amount",
+                            "groups": [{"field": "created_at", "operation": "Month"}],
+                        }
+                    ),
+                )
+            )
+            query = mock_session.execute.call_args.args[0]
+            sql_query = str(query)
+            self.assertEqual(
+                sql_query,
+                'SELECT avg("order".amount) AS __aggregate__, date_format("order".created_at, :date_format_1) '
+                "AS created_at__grouped__ \n"
+                'FROM "order" '
+                'GROUP BY date_format("order".created_at, :date_format_1) '
+                "ORDER BY __aggregate__ DESC",
+            )
+            self.assertEqual(
+                [p.value for p in query._get_embedded_bindparams()],
+                ["%Y-%m-01"],
+            )
+
+    def test_can_aggregate_date_by_week(self):
+        with patch.object(self.datasource.Session, "begin") as mock_begin:
+            mock_session = Mock()
+            mock_session.execute = Mock(return_value=[])
+            mock_session.bind.dialect.name = self.dialect
+            mock_begin.return_value.__enter__.return_value = mock_session
+
+            filter_ = PaginatedFilter({})
+            collection = self.datasource.get_collection("order")
+            self.loop.run_until_complete(
+                collection.aggregate(
+                    self.mocked_caller,
+                    filter_,
+                    Aggregation(
+                        {
+                            "operation": "Avg",
+                            "field": "amount",
+                            "groups": [{"field": "created_at", "operation": "Week"}],
+                        }
+                    ),
+                )
+            )
+            query = mock_session.execute.call_args.args[0]
+            sql_query = str(query)
+            self.assertEqual(
+                sql_query,
+                'SELECT avg("order".amount) AS __aggregate__, CAST(date_sub("order".created_at, '
+                "INTERVAL(WEEKDAY(order.created_at)) DAY) AS DATE) AS created_at__grouped__ \n"
+                'FROM "order" '
+                'GROUP BY CAST(date_sub("order".created_at, INTERVAL(WEEKDAY(order.created_at)) DAY) AS DATE) '
+                "ORDER BY __aggregate__ DESC",
+            )
+            self.assertEqual(
+                [p.value for p in query._get_embedded_bindparams()],
+                [],
+            )
+
+    def test_can_aggregate_date_by_day(self):
+        with patch.object(self.datasource.Session, "begin") as mock_begin:
+            mock_session = Mock()
+            mock_session.execute = Mock(return_value=[])
+            mock_session.bind.dialect.name = self.dialect
+            mock_begin.return_value.__enter__.return_value = mock_session
+
+            filter_ = PaginatedFilter({})
+            collection = self.datasource.get_collection("order")
+            self.loop.run_until_complete(
+                collection.aggregate(
+                    self.mocked_caller,
+                    filter_,
+                    Aggregation(
+                        {
+                            "operation": "Avg",
+                            "field": "amount",
+                            "groups": [{"field": "created_at", "operation": "Day"}],
+                        }
+                    ),
+                )
+            )
+            query = mock_session.execute.call_args.args[0]
+            sql_query = str(query)
+            self.assertEqual(
+                sql_query,
+                'SELECT avg("order".amount) AS __aggregate__, date_format("order".created_at, :date_format_1) '
+                "AS created_at__grouped__ \n"
+                'FROM "order" '
+                'GROUP BY date_format("order".created_at, :date_format_1) '
+                "ORDER BY __aggregate__ DESC",
+            )
+            self.assertEqual(
+                [p.value for p in query._get_embedded_bindparams()],
+                ["%Y-%m-%d"],
+            )
+
+
+class TestSQLAlchemyOnMSSQL(BaseTestSqlAlchemyCollectionWithModels):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.dialect = "mssql"
+
+    def test_can_aggregate_date_by_year(self):
+        with patch.object(self.datasource.Session, "begin") as mock_begin:
+            mock_session = Mock()
+            mock_session.execute = Mock(return_value=[])
+            mock_session.bind.dialect.name = self.dialect
+            mock_begin.return_value.__enter__.return_value = mock_session
+
+            filter_ = PaginatedFilter({})
+            collection = self.datasource.get_collection("order")
+            self.loop.run_until_complete(
+                collection.aggregate(
+                    self.mocked_caller,
+                    filter_,
+                    Aggregation(
+                        {
+                            "operation": "Avg",
+                            "field": "amount",
+                            "groups": [{"field": "created_at", "operation": "Year"}],
+                        }
+                    ),
+                )
+            )
+            query = mock_session.execute.call_args.args[0]
+            sql_query = str(query)
+            self.assertEqual(
+                sql_query,
+                'SELECT avg("order".amount) AS __aggregate__, '
+                'datefromparts(EXTRACT(year FROM "order".created_at), '
+                ":datefromparts_1, :datefromparts_2) "
+                "AS created_at__grouped__ \n"
+                'FROM "order" '
+                'GROUP BY datefromparts(EXTRACT(year FROM "order".created_at), :datefromparts_1, :datefromparts_2) '
+                "ORDER BY __aggregate__ DESC",
+            )
+            self.assertEqual(
+                [p.value for p in query._get_embedded_bindparams()],
+                ["01", "01"],
+            )
+
+    def test_can_aggregate_date_by_quarter(self):
+        with patch.object(self.datasource.Session, "begin") as mock_begin:
+            mock_session = Mock()
+            mock_session.execute = Mock(return_value=[])
+            mock_session.bind.dialect.name = self.dialect
+            mock_begin.return_value.__enter__.return_value = mock_session
+
+            filter_ = PaginatedFilter({})
+            collection = self.datasource.get_collection("order")
+            self.loop.run_until_complete(
+                collection.aggregate(
+                    self.mocked_caller,
+                    filter_,
+                    Aggregation(
+                        {
+                            "operation": "Avg",
+                            "field": "amount",
+                            "groups": [{"field": "created_at", "operation": "Quarter"}],
+                        }
+                    ),
+                )
+            )
+            query = mock_session.execute.call_args.args[0]
+            sql_query = str(query)
+            self.assertEqual(
+                sql_query,
+                'SELECT avg("order".amount) AS __aggregate__, '
+                'eomonth(datefromparts(EXTRACT(YEAR FROM "order".created_at), '
+                'datepart(QUARTER, "order".created_at) * 3, 1)) AS created_at__grouped__ \n'
+                'FROM "order" '
+                'GROUP BY eomonth(datefromparts(EXTRACT(YEAR FROM "order".created_at), '
+                'datepart(QUARTER, "order".created_at) * 3, 1)) '
+                "ORDER BY __aggregate__ DESC",
+            )
+            self.assertEqual(
+                [p.value for p in query._get_embedded_bindparams()],
+                [],
+            )
+
+    def test_can_aggregate_date_by_month(self):
+        with patch.object(self.datasource.Session, "begin") as mock_begin:
+            mock_session = Mock()
+            mock_session.execute = Mock(return_value=[])
+            mock_session.bind.dialect.name = self.dialect
+            mock_begin.return_value.__enter__.return_value = mock_session
+
+            filter_ = PaginatedFilter({})
+            collection = self.datasource.get_collection("order")
+            self.loop.run_until_complete(
+                collection.aggregate(
+                    self.mocked_caller,
+                    filter_,
+                    Aggregation(
+                        {
+                            "operation": "Avg",
+                            "field": "amount",
+                            "groups": [{"field": "created_at", "operation": "Month"}],
+                        }
+                    ),
+                )
+            )
+            query = mock_session.execute.call_args.args[0]
+            sql_query = str(query)
+            self.assertEqual(
+                sql_query,
+                'SELECT avg("order".amount) AS __aggregate__, '
+                'datefromparts(EXTRACT(year FROM "order".created_at), EXTRACT(month FROM "order".created_at), '
+                ":datefromparts_1) AS created_at__grouped__ \n"
+                'FROM "order" '
+                'GROUP BY datefromparts(EXTRACT(year FROM "order".created_at), EXTRACT(month FROM "order".created_at), '
+                ":datefromparts_1) "
+                "ORDER BY __aggregate__ DESC",
+            )
+            self.assertEqual(
+                [p.value for p in query._get_embedded_bindparams()],
+                ["01"],
+            )
+
+    def test_can_aggregate_date_by_week(self):
+        with patch.object(self.datasource.Session, "begin") as mock_begin:
+            mock_session = Mock()
+            mock_session.execute = Mock(return_value=[])
+            mock_session.bind.dialect.name = self.dialect
+            mock_begin.return_value.__enter__.return_value = mock_session
+
+            filter_ = PaginatedFilter({})
+            collection = self.datasource.get_collection("order")
+            self.loop.run_until_complete(
+                collection.aggregate(
+                    self.mocked_caller,
+                    filter_,
+                    Aggregation(
+                        {
+                            "operation": "Avg",
+                            "field": "amount",
+                            "groups": [{"field": "created_at", "operation": "Week"}],
+                        }
+                    ),
+                )
+            )
+            query = mock_session.execute.call_args.args[0]
+            sql_query = str(query)
+            self.assertEqual(
+                sql_query,
+                'SELECT avg("order".amount) AS __aggregate__, '
+                'CAST(dateadd(day, -EXTRACT(dw FROM "order".created_at) + :param_1, "order".created_at) AS DATE) AS '
+                "created_at__grouped__ \n"
+                'FROM "order" '
+                'GROUP BY CAST(dateadd(day, -EXTRACT(dw FROM "order".created_at) + :param_1, "order".created_at) '
+                "AS DATE) "
+                "ORDER BY __aggregate__ DESC",
+            )
+            self.assertEqual(
+                [p.value for p in query._get_embedded_bindparams()],
+                [2],
+            )
+
+    def test_can_aggregate_date_by_day(self):
+        with patch.object(self.datasource.Session, "begin") as mock_begin:
+            mock_session = Mock()
+            mock_session.execute = Mock(return_value=[])
+            mock_session.bind.dialect.name = self.dialect
+            mock_begin.return_value.__enter__.return_value = mock_session
+
+            filter_ = PaginatedFilter({})
+            collection = self.datasource.get_collection("order")
+            self.loop.run_until_complete(
+                collection.aggregate(
+                    self.mocked_caller,
+                    filter_,
+                    Aggregation(
+                        {
+                            "operation": "Avg",
+                            "field": "amount",
+                            "groups": [{"field": "created_at", "operation": "Day"}],
+                        }
+                    ),
+                )
+            )
+            query = mock_session.execute.call_args.args[0]
+            sql_query = str(query)
+            self.assertEqual(
+                sql_query,
+                'SELECT avg("order".amount) AS __aggregate__, '
+                'datefromparts(EXTRACT(year FROM "order".created_at), EXTRACT(month FROM "order".created_at), '
+                'EXTRACT(day FROM "order".created_at)) AS created_at__grouped__ \n'
+                'FROM "order" '
+                'GROUP BY datefromparts(EXTRACT(year FROM "order".created_at), EXTRACT(month FROM "order".created_at), '
+                'EXTRACT(day FROM "order".created_at)) '
+                "ORDER BY __aggregate__ DESC",
+            )
+            self.assertEqual(
+                [p.value for p in query._get_embedded_bindparams()],
+                [],
+            )
 
 
 class testSqlAlchemyCollectionFactory(TestCase):

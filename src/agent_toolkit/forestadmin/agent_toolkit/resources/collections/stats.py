@@ -26,14 +26,14 @@ from forestadmin.datasource_toolkit.utils.schema import SchemaUtils
 
 
 class StatsResource(BaseCollectionResource, ContextVariableInjectorResourceMixin):
-    FREQUENCIES = {"Day": "d", "Week": "W-MON", "Month": "BMS", "Year": "BYS", "Quarter": "QS"}
+    FREQUENCIES = {"Day": "d", "Week": "W-MON", "Month": "BMS", "Year": "BYS", "Quarter": "Q"}
 
     FORMAT: Dict[str, Callable[[Union[date, datetime]], str]] = {
         "Day": lambda d: d.strftime("%d/%m/%Y"),
         "Week": lambda d: d.strftime("W%V-%G"),
         "Month": lambda d: d.strftime("%b %Y"),
         "Year": lambda d: d.strftime("%Y"),
-        "Quarter": lambda d: f"{d.year}-Q{pd.Timestamp(d).quarter}",
+        "Quarter": lambda d: f"Q{pd.Timestamp(d).quarter}-{d.year}",
     }
 
     def stats_method(self, type: str):
@@ -173,16 +173,21 @@ class StatsResource(BaseCollectionResource, ContextVariableInjectorResourceMixin
         end = dates[-1]
         start = dates[0]
         data_points: List[Dict[str, Union[date, Dict[str, int]]]] = []
-        for dt in pd.date_range(  # type: ignore
-            start=start, end=end, freq=self.FREQUENCIES[request.body["timeRange"]]
-        ).to_pydatetime():
-            label = self.FORMAT[request.body["timeRange"]](dt)
+
+        current = start
+        while current <= end:
+            label = self.FORMAT[request.body["timeRange"]](current)
             data_points.append(
                 {
                     "label": label,
                     "values": {"value": values_label.get(label, 0)},
                 }
             )
+            if request.body["timeRange"] == "Quarter":
+                current = (current + pd.DateOffset(months=3)).date()
+            else:
+                current = (current + pd.DateOffset(**{f'{request.body["timeRange"].lower()}s': 1})).date()
+
         return self._build_success_response(data_points)
 
     @check_method(RequestMethod.POST)

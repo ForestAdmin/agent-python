@@ -109,6 +109,23 @@ class TestResultBuilderTimeBased(TestCase):
             {"label": "W02-1986", "values": {"value": 7}},
         ]
 
+    def test_time_based_should_return_correct_format_quarter(self):
+        result = ResultBuilder.time_based(
+            DateOperation.QUARTER,
+            {
+                "2023-01-07": 3,
+                "2023-01-08": 4,
+                "2023-07-26": 1,
+                "2023-12-31": 1,
+            },
+        )
+        assert result == [
+            {"label": "Q1-2023", "values": {"value": 7}},
+            {"label": "Q2-2023", "values": {"value": 0}},
+            {"label": "Q3-2023", "values": {"value": 1}},
+            {"label": "Q4-2023", "values": {"value": 1}},
+        ]
+
     def test_time_based_should_return_correct_format_week_iso_year(self):
         result = ResultBuilder.time_based(
             DateOperation.WEEK,

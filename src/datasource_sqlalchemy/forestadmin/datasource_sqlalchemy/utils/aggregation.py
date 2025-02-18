@@ -82,10 +82,6 @@ class AggregationFactory:
 class DateAggregation:
     @staticmethod
     def build_postgres(column: SqlAlchemyColumn, operation: DateOperation) -> SqlAlchemyColumn:
-        # if operation == DateOperation.QUARTER:
-        #     # TODO: adapt to the end of quarter like other SGBD ?
-        #     # is it necessary, or the aggregation result is the same ?
-        #     return func.date_trunc(text("'quarter'"), column) + INTERVAL("3 month") - INTERVAL("1 day").
 
         return func.date_trunc(operation.value.lower(), column)
 
@@ -99,7 +95,6 @@ class DateAggregation:
                 + "-"
                 + func.printf("%02d", (func.floor((func.cast(func.strftime("%m", column), Integer) - 1) / 3) + 1) * 3)
                 + "-01",
-                "start of month",  # TODO: is this one necessary ? we just said the day of the date is "01"
                 "+1 month",
                 "-1 day",
             )
