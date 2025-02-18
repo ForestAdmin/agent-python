@@ -686,6 +686,54 @@ class TestLineStatsResource(TestStatResource):
             {"label": "Feb 2022", "values": {"value": 15}},
         )
 
+    def test_line_should_return_chart_with_quarter_filter(self):
+        request = self.mk_request("Quarter")
+        with patch.object(
+            self.book_collection,
+            "aggregate",
+            new_callable=AsyncMock,
+            return_value=[
+                {"value": 10, "group": {"date": "2022-03-31 00:00:00"}},
+                {"value": 20, "group": {"date": "2022-06-30 00:00:00"}},
+                {"value": 30, "group": {"date": "2022-09-30 00:00:00"}},
+                {"value": 40, "group": {"date": "2022-12-31 00:00:00"}},
+            ],
+        ):
+            response = self.loop.run_until_complete(self.stat_resource.line(request))
+
+        content_body = json.loads(response.body)
+        self.assertEqual(response.status, 200)
+        self.assertEqual(content_body["data"]["type"], "stats")
+        self.assertEqual(len(content_body["data"]["attributes"]["value"]), 4)
+        self.assertEqual(content_body["data"]["attributes"]["value"][0], {"label": "Q1-2022", "values": {"value": 10}})
+        self.assertEqual(content_body["data"]["attributes"]["value"][1], {"label": "Q2-2022", "values": {"value": 20}})
+        self.assertEqual(content_body["data"]["attributes"]["value"][2], {"label": "Q3-2022", "values": {"value": 30}})
+        self.assertEqual(content_body["data"]["attributes"]["value"][3], {"label": "Q4-2022", "values": {"value": 40}})
+
+    def test_line_should_return_chart_with_quarter_filter_should_also_work_with_date_as_quarter_start(self):
+        request = self.mk_request("Quarter")
+        with patch.object(
+            self.book_collection,
+            "aggregate",
+            new_callable=AsyncMock,
+            return_value=[
+                {"value": 10, "group": {"date": "2022-01-01 00:00:00"}},
+                {"value": 20, "group": {"date": "2022-04-01 00:00:00"}},
+                {"value": 30, "group": {"date": "2022-07-01 00:00:00"}},
+                {"value": 40, "group": {"date": "2022-10-01 00:00:00"}},
+            ],
+        ):
+            response = self.loop.run_until_complete(self.stat_resource.line(request))
+
+        content_body = json.loads(response.body)
+        self.assertEqual(response.status, 200)
+        self.assertEqual(content_body["data"]["type"], "stats")
+        self.assertEqual(len(content_body["data"]["attributes"]["value"]), 4)
+        self.assertEqual(content_body["data"]["attributes"]["value"][0], {"label": "Q1-2022", "values": {"value": 10}})
+        self.assertEqual(content_body["data"]["attributes"]["value"][1], {"label": "Q2-2022", "values": {"value": 20}})
+        self.assertEqual(content_body["data"]["attributes"]["value"][2], {"label": "Q3-2022", "values": {"value": 30}})
+        self.assertEqual(content_body["data"]["attributes"]["value"][3], {"label": "Q4-2022", "values": {"value": 40}})
+
     def test_line_should_return_chart_with_year_filter(self):
         request = self.mk_request("Year")
         with patch.object(
