@@ -59,14 +59,6 @@ def make_formatted_date_range(
 
 
 class ResultBuilder:
-    FREQUENCIES = {
-        "Day": Frequency.DAY,
-        "Week": Frequency.WEEK,
-        "Month": Frequency.MONTH,
-        "Year": Frequency.YEAR,
-        "Quarter": Frequency.QUARTER,
-    }
-
     FORMATS: Dict[DateOperation, Callable[[date], str]] = {
         DateOperation.DAY: lambda d: d.strftime("%d/%m/%Y"),
         DateOperation.WEEK: lambda d: d.strftime("W%V-%G"),

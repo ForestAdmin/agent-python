@@ -31,7 +31,7 @@ from forestadmin.datasource_toolkit.utils.schema import SchemaUtils
 
 
 class StatsResource(BaseCollectionResource, ContextVariableInjectorResourceMixin):
-    FREQUENCIES = {"Day": "d", "Week": "W-MON", "Month": "BMS", "Year": "BYS", "Quarter": "Q"}
+    # FREQUENCIES = {"Day": "d", "Week": "W-MON", "Month": "BMS", "Year": "BYS", "Quarter": "Q"}
 
     FORMAT: Dict[str, Callable[[Union[date, datetime]], str]] = {
         "Day": lambda d: d.strftime("%d/%m/%Y"),
