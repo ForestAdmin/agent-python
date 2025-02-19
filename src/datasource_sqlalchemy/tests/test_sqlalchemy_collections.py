@@ -18,6 +18,7 @@ from forestadmin.datasource_sqlalchemy.datasource import SqlAlchemyDatasource
 from forestadmin.datasource_sqlalchemy.exceptions import SqlAlchemyCollectionException
 from forestadmin.datasource_toolkit.interfaces.fields import Operator
 from forestadmin.datasource_toolkit.interfaces.query.aggregation import Aggregation
+from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.branch import ConditionTreeBranch
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.leaf import ConditionTreeLeaf
 from forestadmin.datasource_toolkit.interfaces.query.filter.paginated import PaginatedFilter
 from forestadmin.datasource_toolkit.interfaces.query.projections import Projection
@@ -256,6 +257,102 @@ class TestSqlAlchemyCollectionWithModels(BaseTestSqlAlchemyCollectionWithModels)
         self.assertEqual(len(results), 1)
         self.assertEqual(results[0]["customer"]["id"], 1)
 
+    def test_list_with_filter_with_aggregator(self):
+        collection = self.datasource.get_collection("order")
+        filter_ = PaginatedFilter(
+            {
+                "condition_tree": ConditionTreeBranch(
+                    "and",
+                    [ConditionTreeLeaf("id", Operator.LESS_THAN, 6), ConditionTreeLeaf("id", Operator.GREATER_THAN, 1)],
+                ),
+            }
+        )
+
+        results = self.loop.run_until_complete(
+            collection.list(self.mocked_caller, filter_, Projection("id", "created_at"))
+        )
+        self.assertEqual(len(results), 4)
+
+        filter_ = PaginatedFilter(
+            {
+                "condition_tree": ConditionTreeBranch(
+                    "or", [ConditionTreeLeaf("id", "equal", 6), ConditionTreeLeaf("id", "equal", 1)]
+                ),
+            }
+        )
+        results = self.loop.run_until_complete(
+            collection.list(self.mocked_caller, filter_, Projection("id", "created_at"))
+        )
+        self.assertEqual(len(results), 2)
+
+    def test_list_should_handle_sort(self):
+        collection = self.datasource.get_collection("order")
+        filter_ = PaginatedFilter(
+            {
+                "condition_tree": ConditionTreeBranch(
+                    "and",
+                    [ConditionTreeLeaf("id", Operator.LESS_THAN, 6), ConditionTreeLeaf("id", Operator.GREATER_THAN, 1)],
+                ),
+                "sort": [{"field": "id", "ascending": True}],
+            }
+        )
+
+        results = self.loop.run_until_complete(
+            collection.list(self.mocked_caller, filter_, Projection("id", "created_at"))
+        )
+        self.assertEqual(len(results), 4)
+        for i in range(2, 6):
+            self.assertEqual(results[i - 2]["id"], i)
+
+        filter_ = PaginatedFilter(
+            {
+                "condition_tree": ConditionTreeBranch(
+                    "and",
+                    [ConditionTreeLeaf("id", Operator.LESS_THAN, 6), ConditionTreeLeaf("id", Operator.GREATER_THAN, 1)],
+                ),
+                "sort": [{"field": "id", "ascending": False}],
+            }
+        )
+
+        results = self.loop.run_until_complete(
+            collection.list(self.mocked_caller, filter_, Projection("id", "created_at"))
+        )
+        self.assertEqual(len(results), 4)
+        self.assertEqual(results[0]["id"], 5)
+        self.assertEqual(results[1]["id"], 4)
+        self.assertEqual(results[2]["id"], 3)
+        self.assertEqual(results[3]["id"], 2)
+
+    def test_list_should_handle_multiple_sort(self):
+        collection = self.datasource.get_collection("order")
+        filter_ = PaginatedFilter(
+            {
+                "condition_tree": ConditionTreeBranch(
+                    "and",
+                    [ConditionTreeLeaf("id", Operator.LESS_THAN, 6), ConditionTreeLeaf("id", Operator.GREATER_THAN, 1)],
+                ),
+                "sort": [
+                    {"field": "status", "ascending": True},
+                    {"field": "customer:id", "ascending": True},
+                    {"field": "amount", "ascending": False},
+                ],
+            }
+        )
+
+        results = self.loop.run_until_complete(
+            collection.list(self.mocked_caller, filter_, Projection("id", "customer:id", "status", "amount"))
+        )
+        self.assertEqual(len(results), 4)
+        self.assertEqual(
+            results,
+            [
+                {"id": 5, "status": models.ORDER_STATUS.DELIVERED, "amount": 9526, "customer": {"id": 8}},
+                {"id": 3, "status": models.ORDER_STATUS.DELIVERED, "amount": 5285, "customer": {"id": 9}},
+                {"id": 4, "status": models.ORDER_STATUS.DELIVERED, "amount": 4684, "customer": {"id": 9}},
+                {"id": 2, "status": models.ORDER_STATUS.DELIVERED, "amount": 2664, "customer": {"id": 10}},
+            ],
+        )
+
     def test_create(self):
         order = {
             "id": 11,
@@ -347,7 +444,30 @@ class TestSqlAlchemyCollectionWithModels(BaseTestSqlAlchemyCollectionWithModels)
         assert [*filter(lambda item: item["group"]["customer_id"] == 9, results)][0]["value"] == 4984.5
         assert [*filter(lambda item: item["group"]["customer_id"] == 10, results)][0]["value"] == 3408.5
 
-    def test_aggregate_by_date(self):
+    def test_aggregate_by_date_year(self):
+        filter_ = PaginatedFilter({"condition_tree": ConditionTreeLeaf("id", Operator.LESS_THAN, 11)})
+        collection = self.datasource.get_collection("order")
+
+        results = self.loop.run_until_complete(
+            collection.aggregate(
+                self.mocked_caller,
+                filter_,
+                Aggregation(
+                    {
+                        "operation": "Avg",
+                        "field": "amount",
+                        "groups": [{"field": "created_at", "operation": "Year"}],
+                    }
+                ),
+            )
+        )
+
+        self.assertEqual(len(results), 3)
+        self.assertIn({"value": 5881.666666666667, "group": {"created_at": "2022-01-01"}}, results)
+        self.assertIn({"value": 5278.5, "group": {"created_at": "2023-01-01"}}, results)
+        self.assertIn({"value": 4433.8, "group": {"created_at": "2021-01-01"}}, results)
+
+    def test_aggregate_by_date_quarter(self):
         filter_ = PaginatedFilter({"condition_tree": ConditionTreeLeaf("id", Operator.LESS_THAN, 11)})
         collection = self.datasource.get_collection("order")
 
@@ -373,6 +493,80 @@ class TestSqlAlchemyCollectionWithModels(BaseTestSqlAlchemyCollectionWithModels)
         self.assertIn({"value": 4753.5, "group": {"created_at": "2021-03-31"}}, results)
         self.assertIn({"value": 4684.0, "group": {"created_at": "2022-12-31"}}, results)
         self.assertIn({"value": 1459.0, "group": {"created_at": "2021-06-30"}}, results)
+
+    def test_aggregate_by_date_month(self):
+        filter_ = PaginatedFilter(
+            {
+                "condition_tree": ConditionTreeBranch(
+                    "and",
+                    [
+                        ConditionTreeLeaf("id", Operator.LESS_THAN, 11),
+                        ConditionTreeLeaf("id", Operator.GREATER_THAN, 4),
+                    ],
+                )
+            }
+        )
+        collection = self.datasource.get_collection("order")
+
+        results = self.loop.run_until_complete(
+            collection.aggregate(
+                self.mocked_caller,
+                filter_,
+                Aggregation(
+                    {
+                        "operation": "Avg",
+                        "field": "amount",
+                        "groups": [{"field": "created_at", "operation": "Month"}],
+                    }
+                ),
+            )
+        )
+
+        self.assertEqual(len(results), 6)
+        self.assertIn({"value": 9744.0, "group": {"created_at": "2021-07-01"}}, results)
+        self.assertIn({"value": 9526.0, "group": {"created_at": "2023-02-01"}}, results)
+        self.assertIn({"value": 7676.0, "group": {"created_at": "2022-08-01"}}, results)
+        self.assertIn({"value": 5354.0, "group": {"created_at": "2021-01-01"}}, results)
+        self.assertIn({"value": 4153.0, "group": {"created_at": "2021-03-01"}}, results)
+        self.assertIn({"value": 254.0, "group": {"created_at": "2021-05-01"}}, results)
+
+    # TODO: test week
+
+    def test_aggregate_by_date_day(self):
+        filter_ = PaginatedFilter(
+            {
+                "condition_tree": ConditionTreeBranch(
+                    "and",
+                    [
+                        ConditionTreeLeaf("id", Operator.LESS_THAN, 11),
+                        ConditionTreeLeaf("id", Operator.GREATER_THAN, 4),
+                    ],
+                )
+            }
+        )
+        collection = self.datasource.get_collection("order")
+
+        results = self.loop.run_until_complete(
+            collection.aggregate(
+                self.mocked_caller,
+                filter_,
+                Aggregation(
+                    {
+                        "operation": "Avg",
+                        "field": "amount",
+                        "groups": [{"field": "created_at", "operation": "Day"}],
+                    }
+                ),
+            )
+        )
+
+        self.assertEqual(len(results), 6)
+        self.assertIn({"value": 9744.0, "group": {"created_at": "2021-07-05"}}, results)
+        self.assertIn({"value": 9526.0, "group": {"created_at": "2023-02-27"}}, results)
+        self.assertIn({"value": 7676.0, "group": {"created_at": "2022-08-07"}}, results)
+        self.assertIn({"value": 5354.0, "group": {"created_at": "2021-01-13"}}, results)
+        self.assertIn({"value": 4153.0, "group": {"created_at": "2021-03-13"}}, results)
+        self.assertIn({"value": 254.0, "group": {"created_at": "2021-05-30"}}, results)
 
     def test_get_native_driver_should_return_connection(self):
         with self.datasource.get_collection("order").get_native_driver() as connection:
