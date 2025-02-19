@@ -1,8 +1,7 @@
-from datetime import date, datetime
-from typing import Any, Callable, Dict, List, Literal, Optional, Union, cast
+from datetime import date
+from typing import Any, Dict, List, Literal, Optional, Union, cast
 from uuid import uuid1
 
-import pandas as pd
 from forestadmin.agent_toolkit.forest_logger import ForestLogger
 from forestadmin.agent_toolkit.resources.collections.base_collection_resource import BaseCollectionResource
 from forestadmin.agent_toolkit.resources.collections.decorators import (
@@ -15,32 +14,22 @@ from forestadmin.agent_toolkit.resources.collections.filter import build_filter
 from forestadmin.agent_toolkit.resources.collections.requests import RequestCollection, RequestCollectionException
 from forestadmin.agent_toolkit.resources.context_variable_injector_mixin import ContextVariableInjectorResourceMixin
 from forestadmin.agent_toolkit.utils.context import FileResponse, HttpResponseBuilder, Request, RequestMethod, Response
-from forestadmin.datasource_toolkit.decorators.chart.result_builder import (
-    DateRangeFrequency,
-    make_formatted_date_range,
-    parse_date,
-)
 from forestadmin.datasource_toolkit.exceptions import ForbiddenError, ForestException
-from forestadmin.datasource_toolkit.interfaces.query.aggregation import Aggregation
+from forestadmin.datasource_toolkit.interfaces.query.aggregation import Aggregation, DateOperation
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.base import ConditionTree
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.branch import Aggregator, ConditionTreeBranch
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.leaf import ConditionTreeLeaf
 from forestadmin.datasource_toolkit.interfaces.query.filter.factory import FilterFactory
 from forestadmin.datasource_toolkit.interfaces.query.filter.unpaginated import Filter
+from forestadmin.datasource_toolkit.utils.date_utils import (
+    DATE_OPERATION_STR_FORMAT_FN,
+    make_formatted_date_range,
+    parse_date,
+)
 from forestadmin.datasource_toolkit.utils.schema import SchemaUtils
 
 
 class StatsResource(BaseCollectionResource, ContextVariableInjectorResourceMixin):
-    # FREQUENCIES = {"Day": "d", "Week": "W-MON", "Month": "BMS", "Year": "BYS", "Quarter": "Q"}
-
-    FORMAT: Dict[str, Callable[[Union[date, datetime]], str]] = {
-        "Day": lambda d: d.strftime("%d/%m/%Y"),
-        "Week": lambda d: d.strftime("W%V-%G"),
-        "Month": lambda d: d.strftime("%b %Y"),
-        "Year": lambda d: d.strftime("%Y"),
-        "Quarter": lambda d: f"Q{pd.Timestamp(d).quarter}-{d.year}",
-    }
-
     def stats_method(self, type: str):
         return {
             "Value": self.value,
@@ -146,12 +135,13 @@ class StatsResource(BaseCollectionResource, ContextVariableInjectorResourceMixin
             if key not in request.body:
                 raise ForestException(f"The parameter {key} is not defined")
 
+        date_operation = DateOperation(request.body["timeRange"])
         current_filter = await self._get_filter(request)
         aggregation = Aggregation(
             {
                 "operation": request.body["aggregator"],
                 "field": request.body.get("aggregateFieldName"),
-                "groups": [{"field": request.body["groupByFieldName"], "operation": request.body["timeRange"]}],
+                "groups": [{"field": request.body["groupByFieldName"], "operation": date_operation}],
             }
         )
         rows = await request.collection.aggregate(request.user, current_filter, aggregation)
@@ -162,16 +152,14 @@ class StatsResource(BaseCollectionResource, ContextVariableInjectorResourceMixin
             if label is not None:
                 label = parse_date(label)
                 dates.append(label)
-                values_label[self.FORMAT[request.body["timeRange"]](label)] = row["value"]
+                values_label[DATE_OPERATION_STR_FORMAT_FN[date_operation](label)] = row["value"]
 
         dates.sort()
         end = dates[-1]
         start = dates[0]
         data_points: List[Dict[str, Union[date, Dict[str, int], str]]] = []
 
-        for label in make_formatted_date_range(
-            start, end, DateRangeFrequency[request.body["timeRange"]], self.FORMAT[request.body["timeRange"]]
-        ):
+        for label in make_formatted_date_range(start, end, date_operation):
             data_points.append(
                 {
                     "label": label,
