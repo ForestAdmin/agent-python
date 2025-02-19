@@ -15,6 +15,11 @@ from forestadmin.agent_toolkit.resources.collections.filter import build_filter
 from forestadmin.agent_toolkit.resources.collections.requests import RequestCollection, RequestCollectionException
 from forestadmin.agent_toolkit.resources.context_variable_injector_mixin import ContextVariableInjectorResourceMixin
 from forestadmin.agent_toolkit.utils.context import FileResponse, HttpResponseBuilder, Request, RequestMethod, Response
+from forestadmin.datasource_toolkit.decorators.chart.result_builder import (
+    DateRangeFrequency,
+    make_formatted_date_range,
+    parse_date,
+)
 from forestadmin.datasource_toolkit.exceptions import ForbiddenError, ForestException
 from forestadmin.datasource_toolkit.interfaces.query.aggregation import Aggregation
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.base import ConditionTree
@@ -155,38 +160,24 @@ class StatsResource(BaseCollectionResource, ContextVariableInjectorResourceMixin
         for row in rows:
             label = row["group"][request.body["groupByFieldName"]]
             if label is not None:
-                if isinstance(label, str):
-                    label = datetime.fromisoformat(label).date()
-                elif isinstance(label, datetime):
-                    label = label.date()
-                elif isinstance(label, date):
-                    pass
-                else:
-                    ForestLogger.log(
-                        "warning",
-                        f"The time chart label type must be 'str' or 'date', not {type(label)}. Skipping this record.",
-                    )
+                label = parse_date(label)
                 dates.append(label)
                 values_label[self.FORMAT[request.body["timeRange"]](label)] = row["value"]
 
         dates.sort()
         end = dates[-1]
         start = dates[0]
-        data_points: List[Dict[str, Union[date, Dict[str, int]]]] = []
+        data_points: List[Dict[str, Union[date, Dict[str, int], str]]] = []
 
-        current = start
-        while current <= end:
-            label = self.FORMAT[request.body["timeRange"]](current)
+        for label in make_formatted_date_range(
+            start, end, DateRangeFrequency[request.body["timeRange"]], self.FORMAT[request.body["timeRange"]]
+        ):
             data_points.append(
                 {
                     "label": label,
                     "values": {"value": values_label.get(label, 0)},
                 }
             )
-            if request.body["timeRange"] == "Quarter":
-                current = (current + pd.DateOffset(months=3)).date()
-            else:
-                current = (current + pd.DateOffset(**{f'{request.body["timeRange"].lower()}s': 1})).date()
 
         return self._build_success_response(data_points)
 
