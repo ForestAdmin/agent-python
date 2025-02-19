@@ -1,6 +1,6 @@
 import enum
 from datetime import date, datetime
-from typing import Callable, Dict, List, Optional, TypedDict, Union
+from typing import Callable, Dict, Iterator, List, Optional, TypedDict, Union
 
 import pandas as pd
 from forestadmin.datasource_toolkit.interfaces.chart import (
@@ -17,18 +17,18 @@ from forestadmin.datasource_toolkit.interfaces.query.aggregation import DateOper
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.transforms.time import Frequency
 
 
-class _DateRangeFrequency(enum.Enum):
-    Day: str = "days"
-    Week: str = "weeks"
-    Month: str = "months"
-    Quarter: str = "quarters"
-    Year: str = "years"
+class DateRangeFrequency(enum.Enum):
+    Day = "days"
+    Week = "weeks"
+    Month = "months"
+    Quarter = "quarters"
+    Year = "years"
 
 
 MultipleTimeBasedLines = List[TypedDict("Line", {"label": str, "values": List[Union[int, float, None]]})]
 
 
-def _parse_date(date_input: Union[str, date, datetime]) -> date:
+def parse_date(date_input: Union[str, date, datetime]) -> date:
     if isinstance(date_input, str):
         return datetime.fromisoformat(date_input).date()
     elif isinstance(date_input, datetime):
@@ -37,18 +37,19 @@ def _parse_date(date_input: Union[str, date, datetime]) -> date:
         return date_input
 
 
-def _make_formatted_date_range(
+def make_formatted_date_range(
     first: Union[date, datetime],
     last: Union[date, datetime],
-    frequency: _DateRangeFrequency,
+    frequency: DateRangeFrequency,
     format_fn: Callable[[Union[date, datetime]], str],
-):
+) -> Iterator[str]:
     current = first
     used = set()
     while current <= last:
-        yield format_fn(current)
-        used.add(format_fn(current))
-        if frequency == _DateRangeFrequency.Quarter:
+        formatted = format_fn(current)
+        yield formatted
+        used.add(formatted)
+        if frequency == DateRangeFrequency.Quarter:
             current = (current + pd.DateOffset(months=3)).date()
         else:
             current = (current + pd.DateOffset(**{frequency.value: 1})).date()
@@ -195,7 +196,7 @@ class ResultBuilder:
         """
         if len(points) == 0:
             return []
-        points_in_date_time = [{"date": _parse_date(point["date"]), "value": point["value"]} for point in points]
+        points_in_date_time = [{"date": parse_date(point["date"]), "value": point["value"]} for point in points]
         format_fn = ResultBuilder.FORMATS[DateOperation(time_range)]
 
         formatted = {}
@@ -208,8 +209,8 @@ class ResultBuilder:
         dates = sorted([p["date"] for p in points_in_date_time])
         first = dates[0]
         last = dates[-1]
-        for label in _make_formatted_date_range(
-            first, last, _DateRangeFrequency[DateOperation(time_range).value], format_fn
+        for label in make_formatted_date_range(
+            first, last, DateRangeFrequency[DateOperation(time_range).value], format_fn
         ):
             data_points.append({"label": label, "values": {"value": formatted.get(label, 0)}})
         return data_points
