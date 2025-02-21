@@ -37,10 +37,7 @@ class ConditionTreeFactory:
                 collection,
                 ConditionTreeBranch(
                     "or",
-                    [
-                        ConditionTreeLeaf(leaf.field, Operator.EQUAL, None),
-                        ConditionTreeLeaf(leaf.field, Operator.EQUAL, ""),
-                    ],
+                    [ConditionTreeLeaf(leaf.field, Operator.EQUAL, v) for v in leaf.value],
                 ),
             )
             return (

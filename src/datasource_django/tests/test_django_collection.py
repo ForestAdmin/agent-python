@@ -181,6 +181,53 @@ class TestDjangoCollectionCRUDList(TestCase):
             ],
         )
 
+    async def test_in_and_not_in_should_works_contains_none(self):
+        ret = await self.rating_collection.list(
+            self.mocked_caller,
+            PaginatedFilter({"condition_tree": ConditionTreeLeaf("rating_pk", Operator.IN, [1, None])}),
+            Projection("rating_pk", "rated_at", "rating", "book:author:birth_date"),
+        )
+
+        self.assertEqual(
+            ret,
+            [
+                {
+                    "rating_pk": 1,
+                    "rating": 1,
+                    "rated_at": datetime.datetime(2022, 12, 25, 10, 10, 10, tzinfo=datetime.timezone.utc),
+                    "book": {"author": {"birth_date": datetime.date(1920, 2, 1)}},
+                },
+            ],
+        )
+
+        ret = await self.rating_collection.list(
+            self.mocked_caller,
+            PaginatedFilter(
+                {
+                    "condition_tree": ConditionTreeBranch(
+                        "and",
+                        [
+                            ConditionTreeLeaf("rating_pk", Operator.IN, [1, 2]),
+                            ConditionTreeLeaf("rating_pk", Operator.NOT_IN, [2, None]),
+                        ],
+                    )
+                }
+            ),
+            Projection("rating_pk", "rated_at", "rating", "book:author:birth_date"),
+        )
+
+        self.assertEqual(
+            ret,
+            [
+                {
+                    "rating_pk": 1,
+                    "rating": 1,
+                    "rated_at": datetime.datetime(2022, 12, 25, 10, 10, 10, tzinfo=datetime.timezone.utc),
+                    "book": {"author": {"birth_date": datetime.date(1920, 2, 1)}},
+                },
+            ],
+        )
+
 
 class TestDjangoCollectionCRUDListPolymorphism(TestDjangoCollectionCRUDList):
     def setUp(self) -> None:
