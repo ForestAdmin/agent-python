@@ -121,7 +121,6 @@ class TestDjangoFieldFactory(TestCase):
         self.assertEqual(
             field_schema["filter_operators"],
             {
-                Operator.BLANK,
                 Operator.EQUAL,
                 Operator.MISSING,
                 Operator.NOT_EQUAL,
@@ -141,7 +140,6 @@ class TestDjangoFieldFactory(TestCase):
         self.assertEqual(
             field_schema["filter_operators"],
             {
-                Operator.BLANK,
                 Operator.EQUAL,
                 Operator.MISSING,
                 Operator.NOT_EQUAL,
@@ -323,7 +321,6 @@ class TestDjangoCollectionFactory(TestCase):
                     Operator.NOT_EQUAL,
                     Operator.ENDS_WITH,
                     Operator.PRESENT,
-                    Operator.BLANK,
                     Operator.EQUAL,
                     Operator.NOT_IN,
                     Operator.IN,
