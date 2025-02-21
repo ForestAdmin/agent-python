@@ -5,7 +5,6 @@ from forestadmin.datasource_toolkit.interfaces.fields import ColumnAlias, Operat
 
 class BaseFilterOperator:
     COMMON_OPERATORS: Set[Operator] = {
-        Operator.BLANK,
         Operator.EQUAL,
         Operator.MISSING,
         Operator.NOT_EQUAL,

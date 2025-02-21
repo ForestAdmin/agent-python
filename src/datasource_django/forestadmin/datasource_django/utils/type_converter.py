@@ -107,7 +107,6 @@ class FilterOperator(BaseFilterOperator):
         # operator:  (lookup_expr, negate needed)
         Operator.EQUAL: ("__exact", False),
         Operator.NOT_EQUAL: ("__exact", True),
-        Operator.BLANK: ("__isnull", False),
         Operator.CONTAINS: ("__icontains", False),
         Operator.NOT_CONTAINS: ("__icontains", True),
         Operator.STARTS_WITH: ("__istartswith", False),

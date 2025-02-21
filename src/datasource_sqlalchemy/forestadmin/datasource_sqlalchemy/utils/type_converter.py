@@ -68,7 +68,6 @@ class FilterOperator(BaseFilterOperator):
     OPERATORS = {
         Operator.EQUAL: "_equal_operator",
         Operator.NOT_EQUAL: "_not_equal_operator",
-        Operator.BLANK: "_blank_operator",
         Operator.CONTAINS: "_contains_operator",
         Operator.NOT_CONTAINS: "_not_contains_operator",
         Operator.STARTS_WITH: "_starts_with_operator",
@@ -92,13 +91,6 @@ class FilterOperator(BaseFilterOperator):
     @staticmethod
     def _not_equal_operator(column: SqlAlchemyColumn):
         return column.__ne__
-
-    @staticmethod
-    def _blank_operator(column: SqlAlchemyColumn):
-        def wrapped(_: str):
-            return or_([column.is_(None), column.__eq__("")])
-
-        return wrapped
 
     @staticmethod
     def _contains_operator(column: SqlAlchemyColumn):
