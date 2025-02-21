@@ -3,9 +3,9 @@ from typing import Any, Callable, Dict, Optional, Type
 from forestadmin.datasource_toolkit.exceptions import DatasourceToolkitException
 from forestadmin.datasource_toolkit.interfaces.fields import ColumnAlias, Operator, PrimitiveType
 from forestadmin.datasource_toolkit.utils.operators import BaseFilterOperator
-from sqlalchemy import ARRAY  # type: ignore
-from sqlalchemy import column as SqlAlchemyColumn  # type: ignore
-from sqlalchemy import func, not_, or_  # type: ignore
+from sqlalchemy import ARRAY
+from sqlalchemy import column as SqlAlchemyColumn
+from sqlalchemy import func, not_
 from sqlalchemy import types as sqltypes
 from sqlalchemy.dialects.postgresql import UUID
 
