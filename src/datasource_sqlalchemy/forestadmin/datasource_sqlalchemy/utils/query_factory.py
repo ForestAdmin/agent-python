@@ -6,6 +6,7 @@ from forestadmin.datasource_sqlalchemy.utils.aggregation import AggregationFacto
 from forestadmin.datasource_sqlalchemy.utils.relationships import Relationships, merge_relationships
 from forestadmin.datasource_sqlalchemy.utils.type_converter import FilterOperator
 from forestadmin.datasource_toolkit.exceptions import DatasourceToolkitException
+from forestadmin.datasource_toolkit.interfaces.fields import Operator
 from forestadmin.datasource_toolkit.interfaces.query.aggregation import Aggregation
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.base import ConditionTree
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.branch import Aggregator, ConditionTreeBranch
@@ -17,7 +18,7 @@ from forestadmin.datasource_toolkit.interfaces.query.sort import PlainSortClause
 from forestadmin.datasource_toolkit.interfaces.records import RecordsDataAlias
 from sqlalchemy import and_
 from sqlalchemy import column as SqlAlchemyColumn
-from sqlalchemy import delete, or_, select, update
+from sqlalchemy import delete, not_, or_, select, update
 from sqlalchemy.engine import Dialect
 from sqlalchemy.sql.elements import BooleanClauseList, UnaryExpression
 
@@ -31,6 +32,22 @@ class ConditionTreeFactory:
 
     @classmethod
     def _build_leaf_condition(cls, collection: BaseSqlAlchemyCollection, leaf: ConditionTreeLeaf) -> Tuple[Any, Any]:
+        if leaf.operator in [Operator.IN, Operator.NOT_IN] and isinstance(leaf.value, list) and None in leaf.value:
+            operator, relationships = cls._build_branch_condition(
+                collection,
+                ConditionTreeBranch(
+                    "or",
+                    [
+                        ConditionTreeLeaf(leaf.field, Operator.EQUAL, None),
+                        ConditionTreeLeaf(leaf.field, Operator.EQUAL, ""),
+                    ],
+                ),
+            )
+            return (
+                operator if leaf.operator == Operator.IN else not_(operator),
+                relationships,
+            )
+
         projection = leaf.projection
         columns, relationships = collection.get_columns(projection)
         operator = FilterOperator.get_operator(columns, leaf.operator)

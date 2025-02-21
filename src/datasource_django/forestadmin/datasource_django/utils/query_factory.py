@@ -248,6 +248,11 @@ class DjangoQueryConditionTreeBuilder:
         value = leaf.value
         if key == "__isnull":
             value = True
+
+        if key == "__in" and isinstance(value, list) and None in value:
+            q_obj = cls.build(ConditionTreeBranch("or", [ConditionTreeLeaf(leaf.field, "equal", v) for v in value]))
+            return ~q_obj if should_negate else q_obj
+
         if should_negate:
             return ~models.Q(**{f"{field}{key}": value})
         else:
