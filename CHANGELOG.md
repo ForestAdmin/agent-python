@@ -1,3 +1,10 @@
+## [1.22.7](https://github.com/ForestAdmin/agent-python/compare/v1.22.6...v1.22.7) (2025-02-25)
+
+
+### Bug Fixes
+
+* **sqlalchemy:** blank operator on sqlalchemy ([#317](https://github.com/ForestAdmin/agent-python/issues/317)) ([dc15466](https://github.com/ForestAdmin/agent-python/commit/dc15466d3a63bcf6cc33dd0e0f9f255da6f9cc43))
+
 ## [1.22.6](https://github.com/ForestAdmin/agent-python/compare/v1.22.5...v1.22.6) (2025-02-13)
 
 
