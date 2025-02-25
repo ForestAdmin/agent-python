@@ -26,7 +26,6 @@ class TestColumnFactory(TestCase):
                 "validations": [],
                 "filter_operators": {
                     Operator.NOT_IN,
-                    Operator.BLANK,
                     Operator.EQUAL,
                     Operator.PRESENT,
                     Operator.MISSING,

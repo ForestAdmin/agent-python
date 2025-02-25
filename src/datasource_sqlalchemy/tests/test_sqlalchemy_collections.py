@@ -5,6 +5,8 @@ from datetime import datetime
 from unittest import TestCase
 from unittest.mock import Mock, patch
 
+from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.branch import ConditionTreeBranch
+
 if sys.version_info >= (3, 9):
     import zoneinfo
 else:
@@ -212,6 +214,34 @@ class TestSqlAlchemyCollectionWithModels(TestCase):
             collection.list(self.mocked_caller, filter_, Projection("id", "created_at"))
         )
         assert len(results) == 2
+
+    def test_list_filter_in_and_not_in_with_null_in_values_should_work(self):
+        collection = self.datasource.get_collection("order")
+        filter_ = PaginatedFilter({"condition_tree": ConditionTreeLeaf("id", Operator.IN, [1, None])})
+
+        results = self.loop.run_until_complete(
+            collection.list(self.mocked_caller, filter_, Projection("id", "created_at"))
+        )
+
+        self.assertEqual(len(results), 1)
+        self.assertEqual(results[0]["id"], 1)
+
+        collection = self.datasource.get_collection("order")
+        filter_ = PaginatedFilter(
+            {
+                "condition_tree": ConditionTreeBranch(
+                    "and",
+                    [ConditionTreeLeaf("id", Operator.IN, [1, 2]), ConditionTreeLeaf("id", Operator.NOT_IN, [2, None])],
+                )
+            }
+        )
+
+        results = self.loop.run_until_complete(
+            collection.list(self.mocked_caller, filter_, Projection("id", "created_at"))
+        )
+
+        self.assertEqual(len(results), 1)
+        self.assertEqual(results[0]["id"], 1)
 
     def test_create(self):
         order = {

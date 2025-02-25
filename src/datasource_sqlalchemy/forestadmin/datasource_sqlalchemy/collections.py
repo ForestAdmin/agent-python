@@ -23,7 +23,7 @@ from forestadmin.datasource_sqlalchemy.utils.record_serializer import (
     projections_to_records,
 )
 from forestadmin.datasource_sqlalchemy.utils.relationships import Relationships, merge_relationships
-from forestadmin.datasource_toolkit.interfaces.fields import PrimitiveType, RelationAlias
+from forestadmin.datasource_toolkit.interfaces.fields import Column, PrimitiveType, RelationAlias
 from forestadmin.datasource_toolkit.interfaces.query.aggregation import AggregateResult, Aggregation
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.base import ConditionTree
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.leaf import ConditionTreeLeaf
@@ -31,7 +31,6 @@ from forestadmin.datasource_toolkit.interfaces.query.filter.paginated import Pag
 from forestadmin.datasource_toolkit.interfaces.query.filter.unpaginated import Filter
 from forestadmin.datasource_toolkit.interfaces.query.projections import Projection
 from forestadmin.datasource_toolkit.interfaces.records import RecordsDataAlias
-from forestadmin.datasource_toolkit.validations.type_getter import TypeGetter
 from sqlalchemy import Table
 from sqlalchemy import column as SqlAlchemyColumn
 from sqlalchemy import text
@@ -208,7 +207,7 @@ class SqlAlchemyCollection(BaseSqlAlchemyCollection):
 
     def _cast_condition_tree(self, tree: ConditionTree) -> ConditionTree:
         if isinstance(tree, ConditionTreeLeaf):
-            if TypeGetter.get(tree.value, None) == PrimitiveType.DATE:
+            if cast(Column, self.schema["fields"][tree.field])["column_type"] == PrimitiveType.DATE:
                 iso_format = tree.value
                 if isinstance(iso_format, str):
                     if iso_format[-1] == "Z":
