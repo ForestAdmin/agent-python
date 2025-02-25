@@ -1,17 +1,10 @@
-from datetime import date, datetime, timezone
-from typing import cast
-from unittest import TestCase
-from unittest.mock import patch
+from datetime import date, datetime, time, timezone
+from unittest import TestCase, skip
+from uuid import UUID
 
-from forestadmin.agent_toolkit.services.serializers.json_api import (
-    JsonApiException,
-    JsonApiSerializer,
-    _create_relationship,
-    _map_attribute_to_marshmallow,
-    create_json_api_schema,
-    refresh_json_api_schema,
-    schema_name,
-)
+from forestadmin.agent_toolkit.services.serializers.exceptions import JsonApiDeserializerException
+from forestadmin.agent_toolkit.services.serializers.json_api_deserializer import JsonApiDeserializer
+from forestadmin.agent_toolkit.services.serializers.json_api_serializer import JsonApiSerializer
 from forestadmin.datasource_toolkit.collections import Collection
 from forestadmin.datasource_toolkit.datasources import Datasource
 from forestadmin.datasource_toolkit.interfaces.fields import (
@@ -26,7 +19,6 @@ from forestadmin.datasource_toolkit.interfaces.fields import (
     PolymorphicOneToMany,
     PolymorphicOneToOne,
     PrimitiveType,
-    RelationAlias,
 )
 from forestadmin.datasource_toolkit.interfaces.query.projections import Projection
 from forestadmin.datasource_toolkit.interfaces.query.projections.factory import ProjectionFactory
@@ -36,9 +28,9 @@ class TestJsonApi(TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         cls.datasource: Datasource = Datasource()
-        Collection.__abstractmethods__ = set()  # to instantiate abstract class
+        Collection.__abstractmethods__ = set()  # to instantiate abstract class # type:ignore
 
-        cls.collection_person = Collection("Person", cls.datasource)
+        cls.collection_person = Collection("Person", cls.datasource)  # type:ignore
         cls.collection_person.add_fields(
             {
                 "person_pk": Column(
@@ -100,7 +92,7 @@ class TestJsonApi(TestCase):
             }
         )
 
-        cls.collection_profile = Collection("Profile", cls.datasource)
+        cls.collection_profile = Collection("Profile", cls.datasource)  # type:ignore
         cls.collection_profile.add_fields(
             {
                 "profile_pk": Column(
@@ -161,7 +153,7 @@ class TestJsonApi(TestCase):
             }
         )
 
-        cls.collection_order = Collection("Order", cls.datasource)
+        cls.collection_order = Collection("Order", cls.datasource)  # type:ignore
         cls.collection_order.add_fields(
             {
                 "order_pk": Column(
@@ -211,7 +203,7 @@ class TestJsonApi(TestCase):
             }
         )
 
-        cls.collection_order_products = Collection("OrderProducts", cls.datasource)
+        cls.collection_order_products = Collection("OrderProducts", cls.datasource)  # type:ignore
         cls.collection_order_products.add_fields(
             {
                 "order_id": Column(
@@ -245,7 +237,7 @@ class TestJsonApi(TestCase):
             }
         )
 
-        cls.collection_product = Collection("Product", cls.datasource)
+        cls.collection_product = Collection("Product", cls.datasource)  # type:ignore
         cls.collection_product.add_fields(
             {
                 "product_pk": Column(
@@ -321,7 +313,7 @@ class TestJsonApi(TestCase):
             }
         )
 
-        cls.collection_picture = Collection("Picture", cls.datasource)
+        cls.collection_picture = Collection("Picture", cls.datasource)  # type:ignore
         cls.collection_picture.add_fields(
             {
                 "picture_pk": Column(
@@ -378,7 +370,7 @@ class TestJsonApi(TestCase):
             }
         )
 
-        cls.collection_comment = Collection("Comment", cls.datasource)
+        cls.collection_comment = Collection("Comment", cls.datasource)  # type:ignore
         cls.collection_comment.add_fields(
             {
                 "comment_pk": Column(
@@ -435,6 +427,35 @@ class TestJsonApi(TestCase):
             }
         )
 
+        cls.collection_all_types = Collection("AllTypes", cls.datasource)  # type:ignore
+        cls.collection_all_types.add_fields(
+            {
+                "all_types_pk": Column(
+                    column_type=PrimitiveType.UUID,
+                    is_primary_key=True,
+                    type=FieldType.COLUMN,
+                    is_read_only=False,
+                    default_value=None,
+                    enum_values=None,
+                    filter_operators=set([Operator.EQUAL, Operator.IN]),
+                    is_sortable=True,
+                    validations=[],
+                ),
+                "comment": Column(column_type=PrimitiveType.STRING, type=FieldType.COLUMN),
+                "enum": Column(column_type="Enum", type="Column", enum_values=["a", "b", "c"]),
+                "bool": Column(column_type="Boolean", type="Column"),
+                "int": Column(column_type="Number", type="Column"),
+                "float": Column(column_type="Number", type="Column"),
+                "datetime": Column(column_type="Date", type="Column"),
+                "dateonly": Column(column_type="Dateonly", type="Column"),
+                "time_only": Column(column_type="Timeonly", type="Column"),
+                "point": Column(column_type="Point", type="Column"),
+                "binary": Column(column_type="String", type="Column"),
+                "json": Column(column_type="Json", type="Column"),
+                "custom": Column(column_type=[{"id": "Number"}], type="Column"),
+            }
+        )
+
         cls.datasource.add_collection(cls.collection_order)
         cls.datasource.add_collection(cls.collection_order_products)
         cls.datasource.add_collection(cls.collection_product)
@@ -442,218 +463,302 @@ class TestJsonApi(TestCase):
         cls.datasource.add_collection(cls.collection_profile)
         cls.datasource.add_collection(cls.collection_picture)
         cls.datasource.add_collection(cls.collection_comment)
+        cls.datasource.add_collection(cls.collection_all_types)
 
 
-class TestJsonApiSchemaCreation(TestJsonApi):
-    @patch.object(JsonApiSerializer, "schema", dict())
-    def test_create_should_create_and_register_schema(self):
-        create_json_api_schema(self.collection_product)
-        self.assertIn(schema_name(self.collection_product), JsonApiSerializer.schema.keys())
-        schema = JsonApiSerializer.schema[schema_name(self.collection_product)]
-        self.assertIsNotNone(schema)
-        self.assertEqual(schema.Meta.type_, self.collection_product.name)
-        self.assertEqual(schema.Meta.fcollection, self.collection_product)
-        self.assertEqual(schema.Meta.fcollection, self.collection_product)
-        self.assertEqual(schema.Meta.self_url, "/forest/Product/{product_id}")
+class TestJsonApiDeserializer(TestJsonApi):
+    def test_should_correctly_load_attributes(self):
+        request_body = {
+            "data": {
+                "id": "43661dae-97c3-4ea9-bd43-a6d8ac3f4ca7",
+                "attributes": {
+                    "price": 2.23,
+                    "label": "strawberries",
+                    "date_online": "2023-10-10T10:10:10+00:00",
+                },
+                "type": "Product",
+            }
+        }
 
-        for name, field_schema in self.collection_product.schema["fields"].items():
-            if name == "pk":
-                self.assertIsNotNone(schema.attributes["product_schema"].get("id"))
-                # pk is name as original and also "id"
-            self.assertIsNotNone(schema.attributes["product_schema"].get(name))
+        data = JsonApiDeserializer(self.datasource).deserialize(request_body, self.collection_product)
+        self.assertEqual(
+            data,
+            {
+                "price": 2.23,
+                "label": "strawberries",
+                "date_online": datetime(2023, 10, 10, 10, 10, 10, tzinfo=timezone.utc),
+            },
+        )
 
-    @patch.object(JsonApiSerializer, "schema", dict())
-    def test_create_should_raise_if_schema_already_exists(self):
-        create_json_api_schema(self.collection_product)
+    def test_should_correctly_load_all_types_of_data(self):
+        deserializer = JsonApiDeserializer(self.datasource)
 
+        request_body = {
+            "data": {
+                "id": "b2f47557-8518-4e55-a02b-ed92d113d42d",
+                "attributes": {
+                    "all_types_pk": "b2f47557-8518-4e55-a02b-ed92d113d42f",
+                    "comment": "record 1",
+                    "enum": "a",
+                    "bool": True,
+                    "int": 10,
+                    "float": 22,
+                    "datetime": "2025-02-03T14:54:56.000255+00:00",
+                    "dateonly": "2025-02-01",
+                    "time_only": "15:35:25",
+                    "point": "12,14",
+                    "binary": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElE"
+                    "QVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO9TXL0Y4OHwAAAABJRU5ErkJggg==",
+                    "custom": [{"id": 1}],
+                    "json": {"a": "a", "b": 2, "c": []},
+                },
+                "type": "AllTypes",
+            }
+        }
+        data = deserializer.deserialize(request_body, self.collection_all_types)
+        self.assertEqual(
+            data,
+            {
+                "all_types_pk": UUID("b2f47557-8518-4e55-a02b-ed92d113d42f"),
+                "comment": "record 1",
+                "enum": "a",
+                "bool": True,
+                "int": 10,
+                "float": 22,
+                "datetime": datetime(2025, 2, 3, 14, 54, 56, 255, timezone.utc),
+                "dateonly": date(2025, 2, 1),
+                "time_only": time(15, 35, 25),
+                "point": [12, 14],
+                "binary": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElE"
+                "QVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO9TXL0Y4OHwAAAABJRU5ErkJggg==",
+                "custom": [{"id": 1}],
+                "json": {"a": "a", "b": 2, "c": []},
+            },
+        )
+
+    def test_should_correctly_load_int_or_float_from_string_value(self):
+        deserializer = JsonApiDeserializer(self.datasource)
+        request_body = {
+            "data": {
+                "id": "43661dae-97c3-4ea9-bd43-a6d8ac3f4ca7",
+                "attributes": {
+                    "price": "2.23",
+                },
+                "type": "Product",
+            }
+        }
+        data = deserializer.deserialize(request_body, self.collection_product)
+        self.assertEqual(
+            data,
+            {
+                "price": 2.23,
+            },
+        )
+
+        request_body = {
+            "data": {
+                "id": "43661dae-97c3-4ea9-bd43-a6d8ac3f4ca7",
+                "attributes": {
+                    "price": "10",
+                    "label": None,
+                },
+                "type": "Product",
+            }
+        }
+
+        data = deserializer.deserialize(request_body, self.collection_product)
+        self.assertEqual(
+            data,
+            {
+                "price": 10,
+                "label": None,
+            },
+        )
+
+    def test_should_correctly_load_many_to_one_relationship(self):
+        deserializer = JsonApiDeserializer(self.datasource)
+
+        request_body = {
+            "data": {
+                "id": "43661dae-97c3-4ea9-bd43-a6d8ac3f4ca7",
+                "attributes": {},
+                "type": "Orders",
+                "relationships": {"customer": {"data": {"id": "12", "type": "Persons"}}},
+            }
+        }
+        data = deserializer.deserialize(request_body, self.collection_order)
+        self.assertEqual(
+            data,
+            {
+                "customer": 12,
+            },
+        )
+
+    @skip("Front end never send toMany relationships")
+    def test_should_correctly_load_to_many_relations(self):
+        deserializer = JsonApiDeserializer(self.datasource)
+
+        request_body = {
+            "data": {
+                "id": "43661dae-97c3-4ea9-bd43-a6d8ac3f4ca7",
+                "attributes": {},
+                "type": "Orders",
+                "relationships": {
+                    "products": {
+                        "data": [
+                            {"type": "Products", "id": "0086ebe0-3452-4779-91de-26d14850998c"},
+                            {"type": "Products", "id": "68dcab0f-2dec-468f-8ebd-ff2752d24b81"},
+                        ]
+                    },
+                    "order_products": {
+                        "data": [
+                            {
+                                "type": "OrderProducts",
+                                "id": "43661dae-97c3-4ea9-bd43-a6d8ac3f4ca7|833a6308-da81-4363-9448-d101eb593d94",
+                            },
+                            {
+                                "type": "OrderProducts",
+                                "id": "43661dae-97c3-4ea9-bd43-a6d8ac3f4ca7|9f9348fe-3d2d-43be-b0be-ff58313b137e",
+                            },
+                        ]
+                    },
+                },
+            }
+        }
+        data = deserializer.deserialize(request_body, self.collection_order)
+        self.assertEqual(
+            data,
+            {
+                "products": ["0086ebe0-3452-4779-91de-26d14850998c", "68dcab0f-2dec-468f-8ebd-ff2752d24b81"],
+                "order_products": ["833a6308-da81-4363-9448-d101eb593d94", "9f9348fe-3d2d-43be-b0be-ff58313b137e"],
+                "order_pk": UUID("43661dae-97c3-4ea9-bd43-a6d8ac3f4ca7"),
+                # "id": "43661dae-97c3-4ea9-bd43-a6d8ac3f4ca7",
+            },
+        )
+
+    def test_should_not_deserialize_toMany_relations(self):
+        deserializer = JsonApiDeserializer(self.datasource)
+
+        request_body = {
+            "data": {
+                "id": "43661dae-97c3-4ea9-bd43-a6d8ac3f4ca7",
+                "attributes": {},
+                "type": "Orders",
+                "relationships": {
+                    "products": {
+                        "data": [
+                            {"type": "Products", "id": "0086ebe0-3452-4779-91de-26d14850998c"},
+                        ]
+                    }
+                },
+            }
+        }
         self.assertRaisesRegex(
-            JsonApiException,
-            r"The schema has already been created for this collection",
-            create_json_api_schema,
-            self.collection_product,
+            JsonApiDeserializerException,
+            "We shouldn't deserialize toMany relations",
+            deserializer.deserialize,
+            request_body,
+            self.collection_order,
         )
 
-    @patch.object(JsonApiSerializer, "schema", dict())
-    def test_refresh_json_api_schema_should_replace_current_schema(self):
-        with patch.object(JsonApiSerializer, "schema", dict()):
-            create_json_api_schema(self.collection_product)
-            existing_schema = JsonApiSerializer.schema[schema_name(self.collection_product)]
-            refresh_json_api_schema(self.collection_product)
-            replaced_schema = JsonApiSerializer.schema[schema_name(self.collection_product)]
-            self.assertNotEqual(existing_schema, replaced_schema)
+    def test_should_correctly_load_polymorphic_many_to_one_relation(self):
+        deserializer = JsonApiDeserializer(self.datasource)
+        request_body = {
+            "data": {
+                "type": "Comments",
+                "attributes": {
+                    "comment": "I like it a lot.",
+                },
+                "relationships": {
+                    "target_object": {
+                        "data": {
+                            "type": "Product",
+                            "id": "1806bdb7-5db4-46a1-acca-9a00f8a670dd",
+                        },
+                    }
+                },
+            }
+        }
 
-    @patch.object(JsonApiSerializer, "schema", dict())
-    def test_refresh_json_api_schema_should_raise_if_schema_does_not_exists(self):
-        self.assertRaisesRegex(
-            JsonApiException, r"The schema doesn't exist", refresh_json_api_schema, self.collection_product
+        data = deserializer.deserialize(request_body, self.collection_comment)
+        self.assertEqual(
+            data,
+            {
+                "target_id": UUID("1806bdb7-5db4-46a1-acca-9a00f8a670dd"),
+                "target_type": "Product",
+                "comment": "I like it a lot.",
+            },
         )
 
-    def test_map_attribute_to_marshmallow_should_correctly_handled_allow_none(self):
-        res = _map_attribute_to_marshmallow(
-            Column(
-                column_type=PrimitiveType.STRING,
-                type=FieldType.COLUMN,
-                is_sortable=True,
-                default_value=None,
-                enum_values=None,
-                is_primary_key=False,
-                filter_operators=set([Operator.EQUAL, Operator.IN]),
-                is_read_only=False,
-                validations=[],
-            ),
-        )
-        self.assertEqual(res.allow_none, True)
+    def test_should_ignore_null_many_to_one_relations(self):
+        deserializer = JsonApiDeserializer(self.datasource)
+        request_body = {
+            "data": {
+                "id": "43661dae-97c3-4ea9-bd43-a6d8ac3f4ca7",
+                "attributes": {},
+                "type": "Orders",
+                "relationships": {"customer": {"data": None}},
+            }
+        }
+        data = deserializer.deserialize(request_body, self.collection_order)
+        self.assertEqual(data, {"customer": None})
 
-        res = _map_attribute_to_marshmallow(
-            Column(
-                column_type=PrimitiveType.STRING,
-                type=FieldType.COLUMN,
-                is_sortable=True,
-                default_value=None,
-                enum_values=None,
-                is_primary_key=False,
-                filter_operators=set([Operator.EQUAL, Operator.IN]),
-                is_read_only=True,
-                validations=[],
-            ),
-        )
-        self.assertEqual(res.allow_none, True)
+        request_body = {
+            "data": {
+                "id": "43661dae-97c3-4ea9-bd43-a6d8ac3f4ca7",
+                "attributes": {},
+                "type": "Orders",
+                "relationships": {"customer": {"data": {}}},
+            }
+        }
+        data = deserializer.deserialize(request_body, self.collection_order)
+        self.assertEqual(data, {"customer": None})
 
-        res = _map_attribute_to_marshmallow(
-            Column(
-                column_type=PrimitiveType.STRING,
-                type=FieldType.COLUMN,
-                is_sortable=True,
-                default_value=None,
-                enum_values=None,
-                is_primary_key=False,
-                filter_operators=set([Operator.EQUAL, Operator.IN]),
-                is_read_only=False,
-                validations=[{"operator": Operator.PRESENT}],
-            ),
-        )
-        self.assertEqual(res.allow_none, False)
+    def test_should_correctly_load_polymorphic_one_to_one_relation(self):
+        deserializer = JsonApiDeserializer(self.datasource)
 
-    def test_create_relationship_should_handle_many_to_one(self):
-        ret = _create_relationship(
-            self.collection_order, "customer", cast(RelationAlias, self.collection_order.schema["fields"]["customer"])
+        request_body = {
+            "data": {
+                "id": "43661dae-97c3-4ea9-bd43-a6d8ac3f4ca7",
+                "attributes": {},
+                "type": "Profile",
+                "relationships": {
+                    "picture": {"data": {"id": "34d0adfe-823d-4fb4-9c3e-ac241887aa1c", "type": "Picture"}}
+                },
+            }
+        }
+        data = deserializer.deserialize(request_body, self.collection_profile)
+        self.assertEqual(
+            data,
+            {
+                "picture": UUID("34d0adfe-823d-4fb4-9c3e-ac241887aa1c"),
+            },
         )
 
-        self.assertEqual(ret.collection, self.collection_order)
-        self.assertEqual(ret.related_collection_name, "Person")
-        self.assertEqual(ret.forest_is_polymorphic, False)
-        self.assertEqual(ret.id_field, "person_pk")
-        self.assertEqual(ret.many, False)
-        self.assertEqual(ret.type_, "Person")
-        self.assertEqual(ret._Relationship__schema, "Person_schema")
+    def test_should_correctly_load_one_to_one_relation(self):
+        deserializer = JsonApiDeserializer(self.datasource)
 
-    @patch.object(JsonApiSerializer, "schema", dict())
-    def test_create_relationship_should_handle_many_to_many(self):
-        create_json_api_schema(self.collection_product)
-        ret = _create_relationship(
-            self.collection_order, "products", cast(RelationAlias, self.collection_order.schema["fields"]["products"])
+        request_body = {
+            "data": {
+                "id": "43661dae-97c3-4ea9-bd43-a6d8ac3f4ca7",
+                "attributes": {},
+                "type": "person",
+                "relationships": {"profile": {"data": {"id": "12", "type": "Profile"}}},
+            }
+        }
+        data = deserializer.deserialize(request_body, self.collection_person)
+        self.assertEqual(
+            data,
+            {
+                "profile": 12,
+            },
         )
 
-        self.assertEqual(ret.collection, self.collection_order)
-        self.assertEqual(ret.related_collection_name, "Product")
-        self.assertEqual(ret.forest_is_polymorphic, False)
-        self.assertEqual(ret.id_field, "product_pk")  # it should be pk; but jsonapi always use id
-        self.assertEqual(ret.many, True)
-        self.assertEqual(ret.type_, "Product")
-        self.assertEqual(ret._Relationship__schema, "Product_schema")
 
-    @patch.object(JsonApiSerializer, "schema", dict())
-    def test_create_relationship_should_handle_one_to_many(self):
-        create_json_api_schema(self.collection_order)
-        ret = _create_relationship(
-            self.collection_person, "orders", cast(RelationAlias, self.collection_person.schema["fields"]["orders"])
-        )
-
-        self.assertEqual(ret.collection, self.collection_person)
-        self.assertEqual(ret.related_collection_name, "Order")
-        self.assertEqual(ret.forest_is_polymorphic, False)
-        self.assertEqual(ret.id_field, "order_pk")
-        self.assertEqual(ret.many, True)
-        self.assertEqual(ret.type_, "Order")
-        self.assertEqual(ret._Relationship__schema, "Order_schema")
-
-    @patch.object(JsonApiSerializer, "schema", dict())
-    def test_create_relationship_should_handle_one_to_one(self):
-        create_json_api_schema(self.collection_profile)
-        ret = _create_relationship(
-            self.collection_person, "profile", cast(RelationAlias, self.collection_person.schema["fields"]["profile"])
-        )
-
-        self.assertEqual(ret.collection, self.collection_person)
-        self.assertEqual(ret.related_collection_name, "Profile")
-        self.assertEqual(ret.forest_is_polymorphic, False)
-        self.assertEqual(ret.id_field, "profile_pk")
-        self.assertEqual(ret.many, False)
-        self.assertEqual(ret.type_, "Profile")
-        self.assertEqual(ret._Relationship__schema, "Profile_schema")
-
-    @patch.object(JsonApiSerializer, "schema", dict())
-    def test_create_relationship_should_handle_polymorphic_many_to_one(self):
-        create_json_api_schema(self.collection_profile)
-        create_json_api_schema(self.collection_product)
-        ret = _create_relationship(
-            self.collection_picture,
-            "target_object",
-            cast(RelationAlias, self.collection_picture.schema["fields"]["target_object"]),
-        )
-
-        self.assertEqual(ret.collection, self.collection_picture)
-        self.assertEqual(ret.related_collection_name, ["Product", "Profile"])
-        self.assertEqual(ret.forest_is_polymorphic, True)
-        # self.assertEqual(ret.id_field, "id")
-        self.assertEqual(ret.many, False)
-        self.assertEqual(ret.forest_relation, self.collection_picture.schema["fields"]["target_object"])
-        self.assertEqual(ret.type_, ["Product", "Profile"])
-        self.assertEqual(ret._Relationship__schema, "['Product', 'Profile']_schema")
-
-    @patch.object(JsonApiSerializer, "schema", dict())
-    def test_create_relationship_should_handle_polymorphic_one_to_one(self):
-        create_json_api_schema(self.collection_picture)
-        create_json_api_schema(self.collection_product)
-        ret = _create_relationship(
-            self.collection_profile,
-            "picture",
-            cast(RelationAlias, self.collection_profile.schema["fields"]["picture"]),
-        )
-
-        self.assertEqual(ret.collection, self.collection_profile)
-        self.assertEqual(ret.related_collection_name, "Picture")
-        self.assertEqual(ret.forest_is_polymorphic, False)
-        self.assertEqual(ret.id_field, "picture_pk")
-        self.assertEqual(ret.many, False)
-        self.assertEqual(ret.type_, "Picture")
-        self.assertEqual(ret._Relationship__schema, "Picture_schema")
-
-    @patch.object(JsonApiSerializer, "schema", dict())
-    def test_create_relationship_should_handle_polymorphic_one_to_many(self):
-        create_json_api_schema(self.collection_picture)
-        create_json_api_schema(self.collection_product)
-        ret = _create_relationship(
-            self.collection_profile,
-            "comments",
-            cast(RelationAlias, self.collection_profile.schema["fields"]["comments"]),
-        )
-
-        self.assertEqual(ret.collection, self.collection_profile)
-        self.assertEqual(ret.related_collection_name, "Comment")
-        self.assertEqual(ret.forest_is_polymorphic, False)
-        self.assertEqual(ret.id_field, "comment_pk")
-        self.assertEqual(ret.many, True)
-        self.assertEqual(ret.type_, "Comment")
-        self.assertEqual(ret._Relationship__schema, "Comment_schema")
-
-
-class TestJsonApiSchemaDump(TestJsonApi):
+class TestJsonApiSerializer(TestJsonApi):
     @classmethod
-    def setUpClass(cls):
+    def setUpClass(cls) -> None:
         super().setUpClass()
-        for collection in cls.datasource.collections:
-            create_json_api_schema(collection)
 
         cls.person_records = [
             {
@@ -713,17 +818,45 @@ class TestJsonApiSchemaDump(TestJsonApi):
                 },
             },
         ]
-
-    @classmethod
-    def tearDownClass(cls) -> None:
-        JsonApiSerializer.schema = dict()
-        return super().tearDownClass()
+        cls.all_types_records = [
+            {
+                "all_types_pk": UUID("b2f47557-8518-4e55-a02b-ed92d113d42f"),
+                "comment": "record 1",
+                "enum": "a",
+                "bool": True,
+                "int": 10,
+                "float": 22.3,
+                "datetime": datetime(2025, 2, 3, 14, 54, 56, 255, timezone.utc),
+                "dateonly": date(2025, 2, 1),
+                "time_only": time(15, 35, 25),
+                "point": [12, 14],
+                "json": [{"a": "a", "b": 2, "c": []}],
+                "binary": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/"
+                "w38GIAXDIBKE0DHxgljNBAAO9TXL0Y4OHwAAAABJRU5ErkJggg==",
+                "custom": [{"id": 1}],
+            },
+            {
+                "all_types_pk": "c578ccd6-3dd0-4315-87f3-e200d80dd6f9",
+                "comment": "record 1",
+                "enum": "b",
+                "bool": False,
+                "int": None,
+                "float": None,
+                "datetime": datetime(2025, 2, 3, 14, 54, 56, 255, timezone.utc).isoformat(),
+                "dateonly": date(2025, 2, 1).isoformat(),
+                "time_only": time(15, 35, 25).isoformat(),
+                "point": (12, 14),
+                "json": {"a": "a", "b": 2, "c": []},
+                "binary": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/"
+                "w38GIAXDIBKE0DHxgljNBAAO9TXL0Y4OHwAAAABJRU5ErkJggg==",
+                "custom": [{"id": 2}],
+            },
+        ]
 
     def test_should_correctly_dump_attributes_according_to_projection(self):
         projection = ProjectionFactory.all(self.collection_product, allow_nested=False)
-        schema = JsonApiSerializer.get(self.collection_product)(projections=projection)
+        dumped = JsonApiSerializer(self.datasource, projection).serialize(self.product_records, self.collection_product)
 
-        dumped = schema.dump(self.product_records, many=True)
         self.assertEqual(
             dumped,
             {
@@ -754,9 +887,63 @@ class TestJsonApiSchemaDump(TestJsonApi):
             },
         )
 
+    def test_should_correctly_dump_all_data_types(self):
+        projection = ProjectionFactory.all(self.collection_all_types, allow_nested=False)
+        serializer = JsonApiSerializer(self.datasource, projection)
+        dumped = serializer.serialize(self.all_types_records, self.collection_all_types)
+        self.assertEqual(
+            dumped,
+            {
+                "data": [
+                    {
+                        "type": "AllTypes",
+                        "id": "b2f47557-8518-4e55-a02b-ed92d113d42f",
+                        "attributes": {
+                            "all_types_pk": "b2f47557-8518-4e55-a02b-ed92d113d42f",
+                            "comment": "record 1",
+                            "enum": "a",
+                            "bool": True,
+                            "int": 10,
+                            "float": 22.3,
+                            "datetime": "2025-02-03T14:54:56.000255+00:00",
+                            "time_only": "15:35:25",
+                            "dateonly": "2025-02-01",
+                            "point": [12, 14],
+                            "binary": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElE"
+                            "QVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO9TXL0Y4OHwAAAABJRU5ErkJggg==",
+                            "json": [{"a": "a", "b": 2, "c": []}],
+                            "custom": [{"id": 1}],
+                        },
+                        "links": {"self": "/forest/AllTypes/b2f47557-8518-4e55-a02b-ed92d113d42f"},
+                    },
+                    {
+                        "type": "AllTypes",
+                        "id": "c578ccd6-3dd0-4315-87f3-e200d80dd6f9",
+                        "attributes": {
+                            "all_types_pk": "c578ccd6-3dd0-4315-87f3-e200d80dd6f9",
+                            "comment": "record 1",
+                            "enum": "b",
+                            "bool": False,
+                            "int": None,
+                            "float": None,
+                            "datetime": "2025-02-03T14:54:56.000255+00:00",
+                            "time_only": "15:35:25",
+                            "dateonly": "2025-02-01",
+                            "point": (12, 14),
+                            "binary": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHE"
+                            "lEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO9TXL0Y4OHwAAAABJRU5ErkJggg==",
+                            "json": {"a": "a", "b": 2, "c": []},
+                            "custom": [{"id": 2}],
+                        },
+                        "links": {"self": "/forest/AllTypes/c578ccd6-3dd0-4315-87f3-e200d80dd6f9"},
+                    },
+                ]
+            },
+        )
+
     def test_should_correctly_dump_int_or_float_from_string_value(self):
         projection = ProjectionFactory.all(self.collection_product, allow_nested=False)
-        schema = JsonApiSerializer.get(self.collection_product)(projections=projection)
+        serializer = JsonApiSerializer(self.datasource, projection)
 
         records = [
             {**self.product_records[0]},
@@ -765,7 +952,7 @@ class TestJsonApiSchemaDump(TestJsonApi):
         records[0]["price"] = "2.23"
         records[1]["price"] = "10"
 
-        dumped = schema.dump(records, many=True)
+        dumped = serializer.serialize(records, self.collection_product)
         self.assertEqual(
             dumped,
             {
@@ -797,15 +984,13 @@ class TestJsonApiSchemaDump(TestJsonApi):
         )
 
     def test_should_correctly_dump_many_to_one_according_to_projection(self):
-        schema = JsonApiSerializer.get(self.collection_order)(
-            projections=Projection("order_pk", "customer_id", "customer:person_pk", "customer:first_name")
-        )
-
         record = {**self.order_records[0]}
         record["customer"] = {**self.person_records[0]}
         record["customer_id"] = record["customer"]["person_pk"]
+        dumped = JsonApiSerializer(
+            self.datasource, Projection("order_pk", "customer_id", "customer:person_pk", "customer:first_name")
+        ).serialize(record, self.collection_order)
 
-        dumped = schema.dump(record, many=False)
         self.assertEqual(
             dumped,
             {
@@ -845,23 +1030,24 @@ class TestJsonApiSchemaDump(TestJsonApi):
         toMany relations should not be serialize (and it's not by the datasource)
         the only think to do is to fill [data/relationships/$relation/links/related/href]
         """
-        schema = JsonApiSerializer.get(self.collection_order)(
-            projections=Projection(
-                "order_pk",
-                "customer_id",
-                "products:label",
-                "products:price",
-                "products:product_pk",
-                "order_products:product_id",
-            )
-        )
 
         record = {**self.order_records[0]}
         record["customer_id"] = self.person_records[0]["person_pk"]
         record["products"] = None
         record["order_products"] = None
 
-        dumped = schema.dump(record, many=False)
+        dumped = JsonApiSerializer(
+            self.datasource,
+            Projection(
+                "order_pk",
+                "customer_id",
+                "products:label",
+                "products:price",
+                "products:product_pk",
+                "order_products:product_id",
+            ),
+        ).serialize(record, self.collection_order)
+
         self.assertEqual(
             dumped,
             {
@@ -898,10 +1084,10 @@ class TestJsonApiSchemaDump(TestJsonApi):
         )
 
     def test_should_correctly_dump_polymorphic_many_to_one(self):
-        schema = JsonApiSerializer.get(self.collection_comment)(
-            projections=Projection("comment_pk", "comment", "target_id", "target_type", "target_object:*")
-        )
-        dumped = schema.dump(self.comments_records, many=True)
+        dumped = JsonApiSerializer(
+            self.datasource, Projection("comment_pk", "comment", "target_id", "target_type", "target_object:*")
+        ).serialize(self.comments_records, self.collection_comment)
+
         self.assertEqual(
             dumped,
             {
@@ -1033,18 +1219,10 @@ class TestJsonApiSchemaDump(TestJsonApi):
         )
 
     def test_should_ignore_polymorphic_many_to_one_if_type_is_unknown(self):
-        schema = JsonApiSerializer.get(self.collection_comment)(
-            projections=Projection("comment_pk", "comment", "target_id", "target_type", "target_object:*")
-        )
         records = [{**self.comments_records[0], "target_type": "Unknown"}]
-        with patch("forestadmin.agent_toolkit.services.serializers.json_api.ForestLogger.log") as log_method:
-            dumped = schema.dump(records, many=True)
-            log_method.assert_called_once_with(
-                "warning",
-                "Trying to serialize a polymorphic relationship (Comment.target_object for record "
-                "0b622590-c823-4d2f-84e6-bbbdd31c8af8) of type Unknown; but this type is not known by forest. "
-                "Ignoring and setting this relationship to None.",
-            )
+        dumped = JsonApiSerializer(
+            self.datasource, Projection("comment_pk", "comment", "target_id", "target_type", "target_object:*")
+        ).serialize(records, self.collection_comment)
 
         self.assertEqual(
             dumped,
@@ -1075,198 +1253,3 @@ class TestJsonApiSchemaDump(TestJsonApi):
                 ],
             },
         )
-
-
-class TestJsonApiSchemaLoad(TestJsonApi):
-    @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
-        for collection in cls.datasource.collections:
-            create_json_api_schema(collection)
-
-    @classmethod
-    def tearDownClass(cls) -> None:
-        JsonApiSerializer.schema = dict()
-        return super().tearDownClass()
-
-    def test_should_correctly_load_attributes(self):
-        schema = JsonApiSerializer.get(self.collection_product)()
-
-        request_body = {
-            "data": {
-                "id": "43661dae-97c3-4ea9-bd43-a6d8ac3f4ca7",
-                "attributes": {
-                    "price": 2.23,
-                    "label": "strawberries",
-                    "date_online": "2023-10-10T10:10:10+00:00",
-                },
-                "type": "Product",
-            }
-        }
-
-        data = schema.load(request_body)
-        self.assertEqual(
-            data,
-            {
-                "id": "43661dae-97c3-4ea9-bd43-a6d8ac3f4ca7",
-                "price": 2.23,
-                "label": "strawberries",
-                "date_online": datetime(2023, 10, 10, 10, 10, 10, tzinfo=timezone.utc),
-            },
-        )
-        # as this line agent_toolkit/forestadmin/agent_toolkit/resources/collections/crud.py#L245C1-L246C1
-        # it seems normal json api doesn't load the primary key in another field than id
-
-    def test_should_correctly_load_int_or_float_from_string_value(self):
-        schema = JsonApiSerializer.get(self.collection_product)()
-
-        request_body = {
-            "data": {
-                "id": "43661dae-97c3-4ea9-bd43-a6d8ac3f4ca7",
-                "attributes": {
-                    "price": "2.23",
-                },
-                "type": "Product",
-            }
-        }
-
-        data = schema.load(request_body)
-        self.assertEqual(
-            data,
-            {
-                "id": "43661dae-97c3-4ea9-bd43-a6d8ac3f4ca7",
-                "price": 2.23,
-            },
-        )
-
-        request_body = {
-            "data": {
-                "id": "43661dae-97c3-4ea9-bd43-a6d8ac3f4ca7",
-                "attributes": {
-                    "price": "10",
-                },
-                "type": "Product",
-            }
-        }
-
-        data = schema.load(request_body)
-        self.assertEqual(
-            data,
-            {
-                "id": "43661dae-97c3-4ea9-bd43-a6d8ac3f4ca7",
-                "price": 10,
-            },
-        )
-
-    def test_should_correctly_load_many_to_one_relationship(self):
-        schema = JsonApiSerializer.get(self.collection_order)()
-
-        request_body = {
-            "data": {
-                "id": "43661dae-97c3-4ea9-bd43-a6d8ac3f4ca7",
-                "attributes": {},
-                "type": "Orders",
-                "relationships": {
-                    "customer": {"data": {"id": "12", "type": "Persons"}},
-                    "products": {"data": []},
-                    "order_products": {"data": []},
-                },
-            }
-        }
-        data = schema.load(request_body)
-        self.assertEqual(
-            data,
-            {
-                "customer": 12,
-                "products": [],
-                "order_products": [],
-                "id": "43661dae-97c3-4ea9-bd43-a6d8ac3f4ca7",
-            },
-        )
-
-    def test_should_correctly_load_to_many_relations(self):
-        schema = JsonApiSerializer.get(self.collection_order)()
-
-        request_body = {
-            "data": {
-                "id": "43661dae-97c3-4ea9-bd43-a6d8ac3f4ca7",
-                "attributes": {},
-                "type": "Orders",
-                "relationships": {
-                    "products": {
-                        "data": [
-                            {"type": "Products", "id": "0086ebe0-3452-4779-91de-26d14850998c"},
-                            {"type": "Products", "id": "68dcab0f-2dec-468f-8ebd-ff2752d24b81"},
-                        ]
-                    },
-                    "order_products": {
-                        "data": [
-                            {"type": "OrderProducts", "id": "833a6308-da81-4363-9448-d101eb593d94"},
-                            {"type": "OrderProducts", "id": "9f9348fe-3d2d-43be-b0be-ff58313b137e"},
-                        ]
-                    },
-                },
-            }
-        }
-        data = schema.load(request_body)
-        self.assertEqual(
-            data,
-            {
-                "products": ["0086ebe0-3452-4779-91de-26d14850998c", "68dcab0f-2dec-468f-8ebd-ff2752d24b81"],
-                "order_products": ["833a6308-da81-4363-9448-d101eb593d94", "9f9348fe-3d2d-43be-b0be-ff58313b137e"],
-                "id": "43661dae-97c3-4ea9-bd43-a6d8ac3f4ca7",
-            },
-        )
-
-    def test_should_correctly_load_polymorphic_many_to_one_relation(self):
-        schema = JsonApiSerializer.get(self.collection_comment)()
-        request_body = {
-            "data": {
-                "type": "Comments",
-                "attributes": {
-                    "comment": "I like it a lot.",
-                },
-                "relationships": {
-                    "target_object": {
-                        "data": {
-                            "type": "Product",
-                            "id": "1806bdb7-5db4-46a1-acca-9a00f8a670dd",
-                        },
-                    }
-                },
-            }
-        }
-
-        data = schema.load(request_body)
-        self.assertEqual(
-            data,
-            {
-                "target_id": "1806bdb7-5db4-46a1-acca-9a00f8a670dd",
-                "target_type": "Product",
-                "comment": "I like it a lot.",
-            },
-        )
-
-    def test_should_ignore_null_many_to_one_relations(self):
-        schema = JsonApiSerializer.get(self.collection_order)()
-        request_body = {
-            "data": {
-                "id": "43661dae-97c3-4ea9-bd43-a6d8ac3f4ca7",
-                "attributes": {},
-                "type": "Orders",
-                "relationships": {"customer": {"data": None}},
-            }
-        }
-        data = schema.load(request_body)
-        self.assertEqual(data, {"id": "43661dae-97c3-4ea9-bd43-a6d8ac3f4ca7"})
-
-        request_body = {
-            "data": {
-                "id": "43661dae-97c3-4ea9-bd43-a6d8ac3f4ca7",
-                "attributes": {},
-                "type": "Orders",
-                "relationships": {"customer": {"data": {}}},
-            }
-        }
-        data = schema.load(request_body)
-        self.assertEqual(data, {"id": "43661dae-97c3-4ea9-bd43-a6d8ac3f4ca7"})

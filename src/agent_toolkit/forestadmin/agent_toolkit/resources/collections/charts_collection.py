@@ -4,7 +4,7 @@ from forestadmin.agent_toolkit.forest_logger import ForestLogger
 from forestadmin.agent_toolkit.resources.collections.base_collection_resource import BaseCollectionResource
 from forestadmin.agent_toolkit.resources.collections.decorators import authenticate, check_method, ip_white_list
 from forestadmin.agent_toolkit.resources.collections.requests import RequestCollection, RequestCollectionException
-from forestadmin.agent_toolkit.services.serializers import json_api
+from forestadmin.agent_toolkit.services.serializers.json_api_serializer import render_chart
 from forestadmin.agent_toolkit.utils.context import HttpResponseBuilder, Request, RequestMethod, Response
 from forestadmin.agent_toolkit.utils.id import unpack_id
 from forestadmin.datasource_toolkit.exceptions import ForestException
@@ -40,7 +40,7 @@ class ChartsCollectionResource(BaseCollectionResource):
         ids = unpack_id(request.collection.schema, request.body.get("record_id") or request.query.get("record_id"))
 
         chart = await request.collection.render_chart(request.user, request.query["chart_name"], ids)
-        return {"data": json_api.render_chart(chart)}
+        return {"data": render_chart(chart)}
 
     @check_method(RequestMethod.GET)
     @authenticate

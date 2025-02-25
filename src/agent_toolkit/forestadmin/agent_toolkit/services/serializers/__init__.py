@@ -1,18 +1,28 @@
-from typing import Any, Dict, List, Optional, TypedDict
+from typing import Any, Dict, List, Union
+
+from typing_extensions import NotRequired, TypedDict
 
 
 class Data(TypedDict):
     type: str
-    relationships: Dict[str, Any]
-    attributes: Dict[str, Any]
     id: int
+    attributes: Dict[str, Any]
+    relationships: Dict[str, Any]
     links: Dict[str, Any]
 
 
+class IncludedData(TypedDict):
+    type: str
+    id: int
+    links: Dict[str, Any]
+    attributes: NotRequired[Dict[str, Any]]
+    relationships: NotRequired[Dict[str, Any]]
+
+
 class DumpedResult(TypedDict):
-    data: List[Data]
-    included: Dict[str, Any]
-    meta: Optional[Dict[str, Any]]
+    data: Union[List[Data], Data]
+    included: NotRequired[List[IncludedData]]
+    meta: NotRequired[Dict[str, Any]]
 
 
 def add_search_metadata(dumped: DumpedResult, search_value: str):
