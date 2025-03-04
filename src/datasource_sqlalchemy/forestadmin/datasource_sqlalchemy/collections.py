@@ -31,6 +31,7 @@ from forestadmin.datasource_toolkit.interfaces.query.filter.paginated import Pag
 from forestadmin.datasource_toolkit.interfaces.query.filter.unpaginated import Filter
 from forestadmin.datasource_toolkit.interfaces.query.projections import Projection
 from forestadmin.datasource_toolkit.interfaces.records import RecordsDataAlias
+from forestadmin.datasource_toolkit.utils.collections import CollectionUtils
 from sqlalchemy import Table
 from sqlalchemy import column as SqlAlchemyColumn
 from sqlalchemy import text
@@ -207,7 +208,7 @@ class SqlAlchemyCollection(BaseSqlAlchemyCollection):
 
     def _cast_condition_tree(self, tree: ConditionTree) -> ConditionTree:
         if isinstance(tree, ConditionTreeLeaf):
-            if cast(Column, self.schema["fields"][tree.field])["column_type"] == PrimitiveType.DATE:
+            if cast(Column, CollectionUtils.get_field_schema(self, tree.field))["column_type"] == PrimitiveType.DATE:
                 iso_format = tree.value
                 if isinstance(iso_format, str):
                     if iso_format[-1] == "Z":
