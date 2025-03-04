@@ -3,6 +3,8 @@ import sys
 from unittest import TestCase
 from unittest.mock import Mock, patch
 
+from forestadmin.datasource_toolkit.decorators.action.context.single import ActionContextSingle
+
 if sys.version_info >= (3, 9):
     import zoneinfo
 else:
@@ -148,6 +150,35 @@ class BaseTestDynamicField(TestCase):
             timezone=zoneinfo.ZoneInfo("Europe/Paris"),
             request={"ip": "127.0.0.1"},
         )
+
+
+class TestStringDynamicField(BaseTestDynamicField):
+    def test_to_action_field_when_dynamic_value_it_should_not_use_default_value(self):
+        for return_dynamic_value in ["", None, "abc"]:
+            plain_dynamic_field = PlainStringDynamicField(
+                type=ActionFieldType.STRING,
+                label="string",
+                value=lambda ctx: return_dynamic_value,
+                default_value="default value",
+            )
+            dynamic_field = FormElementFactory.build(plain_dynamic_field)
+            context = ActionContextSingle(self.collection_product, None, {}, None, {}, "string")
+            action_field = self.loop.run_until_complete(dynamic_field.to_action_field(context, "current value", None))
+            self.assertEqual(action_field["value"], return_dynamic_value)
+
+    def test_to_action_field_when_value_is_static_value_it_should_not_use_default_value(self):
+        for return_value in ["", None, "abc"]:
+            plain_dynamic_field = PlainStringDynamicField(
+                type=ActionFieldType.STRING,
+                label="string",
+                value=return_value,
+                default_value="default value",
+            )
+            dynamic_field = FormElementFactory.build(plain_dynamic_field)
+            context = ActionContextSingle(self.collection_product, None, {}, None, {}, "string")
+            action_field = self.loop.run_until_complete(dynamic_field.to_action_field(context, "current value", None))
+            print(action_field["value"], return_value)
+            self.assertEqual(action_field["value"], "current value")
 
 
 class TestFileDynamicField(BaseTestDynamicField):
