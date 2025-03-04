@@ -249,7 +249,7 @@ class BaseDynamicField(BaseDynamicFormElement, Generic[Result]):
             description=await self.description(context),
             is_read_only=await self.is_read_only(context),
             is_required=await self.is_required(context),
-            value=await self.value(context) or default_value,
+            value=await self.value(context) if callable(self._value) else default_value,
             default_value=await self.default_value(context),
             collection_name=None,
             enum_values=None,
