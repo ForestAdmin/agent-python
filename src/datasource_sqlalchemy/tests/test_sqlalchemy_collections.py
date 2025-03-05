@@ -530,7 +530,41 @@ class TestSqlAlchemyCollectionWithModels(BaseTestSqlAlchemyCollectionWithModels)
         self.assertIn({"value": 4153.0, "group": {"created_at": "2021-03-01"}}, results)
         self.assertIn({"value": 254.0, "group": {"created_at": "2021-05-01"}}, results)
 
-    # TODO: test week
+    def test_aggregate_by_date_week(self):
+        filter_ = PaginatedFilter(
+            {
+                "condition_tree": ConditionTreeBranch(
+                    "and",
+                    [
+                        ConditionTreeLeaf("id", Operator.LESS_THAN, 11),
+                        ConditionTreeLeaf("id", Operator.GREATER_THAN, 4),
+                    ],
+                )
+            }
+        )
+        collection = self.datasource.get_collection("order")
+
+        results = self.loop.run_until_complete(
+            collection.aggregate(
+                self.mocked_caller,
+                filter_,
+                Aggregation(
+                    {
+                        "operation": "Avg",
+                        "field": "amount",
+                        "groups": [{"field": "created_at", "operation": "Week"}],
+                    }
+                ),
+            )
+        )
+
+        self.assertEqual(len(results), 6)
+        self.assertIn({"value": 9744.0, "group": {"created_at": "2021-06-28"}}, results)
+        self.assertIn({"value": 9526.0, "group": {"created_at": "2023-02-20"}}, results)
+        self.assertIn({"value": 7676.0, "group": {"created_at": "2022-08-01"}}, results)
+        self.assertIn({"value": 5354.0, "group": {"created_at": "2021-01-11"}}, results)
+        self.assertIn({"value": 4153.0, "group": {"created_at": "2021-03-08"}}, results)
+        self.assertIn({"value": 254.0, "group": {"created_at": "2021-05-24"}}, results)
 
     def test_aggregate_by_date_day(self):
         filter_ = PaginatedFilter(
