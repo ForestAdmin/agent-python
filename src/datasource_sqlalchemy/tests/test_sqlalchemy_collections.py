@@ -243,6 +243,17 @@ class TestSqlAlchemyCollectionWithModels(TestCase):
         self.assertEqual(len(results), 1)
         self.assertEqual(results[0]["id"], 1)
 
+    def test_list_filter_relation(self):
+        collection = self.datasource.get_collection("order")
+        filter_ = PaginatedFilter({"condition_tree": ConditionTreeLeaf("customer:id", Operator.IN, [1, None])})
+
+        results = self.loop.run_until_complete(
+            collection.list(self.mocked_caller, filter_, Projection("id", "customer:id"))
+        )
+
+        self.assertEqual(len(results), 1)
+        self.assertEqual(results[0]["customer"]["id"], 1)
+
     def test_create(self):
         order = {
             "id": 11,
