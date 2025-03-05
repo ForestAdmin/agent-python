@@ -1,3 +1,10 @@
+## [1.22.8](https://github.com/ForestAdmin/agent-python/compare/v1.22.7...v1.22.8) (2025-03-05)
+
+
+### Bug Fixes
+
+* **action_form_hook:** don't override the return value of an value handler ([#318](https://github.com/ForestAdmin/agent-python/issues/318)) ([c1fb68d](https://github.com/ForestAdmin/agent-python/commit/c1fb68d6b8fabb14d8cd8adf8e2be28d3720b551))
+
 ## [1.22.7](https://github.com/ForestAdmin/agent-python/compare/v1.22.6...v1.22.7) (2025-02-25)
 
 
