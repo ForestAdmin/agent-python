@@ -1,3 +1,10 @@
+## [1.22.9](https://github.com/ForestAdmin/agent-python/compare/v1.22.8...v1.22.9) (2025-03-05)
+
+
+### Bug Fixes
+
+* **sqlalchemy:** error when filtering through relations ([#319](https://github.com/ForestAdmin/agent-python/issues/319)) ([ee0c94e](https://github.com/ForestAdmin/agent-python/commit/ee0c94e33cc516705a6d4fdcc7261b7f23422a78))
+
 ## [1.22.8](https://github.com/ForestAdmin/agent-python/compare/v1.22.7...v1.22.8) (2025-03-05)
 
 
