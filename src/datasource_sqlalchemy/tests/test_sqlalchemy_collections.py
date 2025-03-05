@@ -5,8 +5,6 @@ from datetime import datetime
 from unittest import TestCase
 from unittest.mock import Mock, patch
 
-from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.branch import ConditionTreeBranch
-
 if sys.version_info >= (3, 9):
     import zoneinfo
 else:
