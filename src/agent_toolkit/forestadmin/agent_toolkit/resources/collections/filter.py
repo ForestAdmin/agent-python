@@ -57,7 +57,7 @@ class FilterException(AgentToolkitException):
 
 
 def _get_collection(
-    request: Union[RequestCollection, RequestRelationCollection]
+    request: Union[RequestCollection, RequestRelationCollection],
 ) -> Union[CollectionCustomizer, Collection]:
     collection = request.collection
     if isinstance(request, RequestRelationCollection):
