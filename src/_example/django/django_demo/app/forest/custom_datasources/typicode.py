@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Self
+from typing import Any, Dict, List
 
 from aiohttp import ClientSession
 from forestadmin.agent_toolkit.utils.context import User
@@ -10,6 +10,7 @@ from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.leaf i
 from forestadmin.datasource_toolkit.interfaces.query.filter.paginated import PaginatedFilter
 from forestadmin.datasource_toolkit.interfaces.query.filter.unpaginated import Filter
 from forestadmin.datasource_toolkit.interfaces.query.projections import Projection
+from typing_extensions import Self
 
 
 class TypicodeCollection(Collection):
