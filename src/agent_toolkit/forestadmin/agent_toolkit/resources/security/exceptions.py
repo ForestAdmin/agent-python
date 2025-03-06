@@ -6,8 +6,9 @@ class AuthenticationException(AgentToolkitException):
 
 
 class OpenIdException(AuthenticationException):
-    def __init__(self, message: str, error: str, error_description: str, state: str) -> None:
+    def __init__(self, message: str, error: str, error_description: str, state: str, status: int = 401) -> None:
         super().__init__(message)
         self.error = error
         self.error_description = error_description
         self.state = state
+        self.STATUS = status
