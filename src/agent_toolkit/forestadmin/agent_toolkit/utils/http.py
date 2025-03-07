@@ -5,6 +5,7 @@ from aiohttp import ClientSession, client_exceptions
 from aiohttp.web import HTTPException
 from forestadmin.agent_toolkit.exceptions import AgentToolkitException
 from forestadmin.agent_toolkit.forest_logger import ForestLogger
+from forestadmin.agent_toolkit.resources.security.exceptions import OpenIdException
 from forestadmin.agent_toolkit.utils.forest_schema.type import ForestSchema
 
 
@@ -94,6 +95,7 @@ class ForestHttpApi:
     def _parse_forest_response(error: HTTPException):
         status = error.status
         server_message = None
+        name = None
         response_content = {}
         if error.text is not None and len(error.text) > 0:
             try:
@@ -101,11 +103,12 @@ class ForestHttpApi:
                 errors = response_content.get("errors", [])
                 if len(errors) > 0:
                     status = errors[0].get("status", status)
+                    name = errors[0].get("name")
                     server_message = errors[0].get("detail")
             except Exception:
                 pass
 
-        return status, response_content, server_message
+        return status, name, response_content, server_message
 
     @staticmethod
     async def _handle_server_error(endpoint: str, error: Exception) -> Exception:
@@ -117,9 +120,13 @@ class ForestHttpApi:
             )
 
         elif isinstance(error, HTTPException):
-            status, response_content, server_message = ForestHttpApi._parse_forest_response(error)
+            status, name, response_content, server_message = ForestHttpApi._parse_forest_response(error)
             if status in [-1, 0, 502]:
                 new_error = ForestHttpApiException("Failed to reach ForestAdmin server. Are you online?")
+            elif status == 403:
+                new_error = OpenIdException(
+                    response_content, name, server_message, status, status=status  #  type:ignore
+                )
             elif status == 404:
                 new_error = ForestHttpApiException(
                     "ForestAdmin server failed to find the project related to the envSecret you configured."
