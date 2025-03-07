@@ -78,7 +78,7 @@ def _populate_addresses(session, customers: List[Customer]) -> List[Address]:
 
     for _ in range(0, 1000):
         address = Address(
-            street=fake.street_address(), city=fake.city(), country=fake.country(), zip_code=fake.postcode()
+            street=fake.street_address(), city=fake.city(), country=fake.country(), zip_code=fr_fake.postcode()
         )
         known_customer: Set[Customer] = set()
         for _ in range(1, random.randint(2, 4)):

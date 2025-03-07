@@ -3,7 +3,7 @@ from typing import Literal, Union
 from forestadmin.agent_toolkit.forest_logger import ForestLogger
 from forestadmin.agent_toolkit.resources.collections.base_collection_resource import BaseCollectionResource
 from forestadmin.agent_toolkit.resources.collections.decorators import authenticate, check_method, ip_white_list
-from forestadmin.agent_toolkit.services.serializers import json_api
+from forestadmin.agent_toolkit.services.serializers.json_api_serializer import render_chart
 from forestadmin.agent_toolkit.utils.context import FileResponse, HttpResponseBuilder, Request, RequestMethod, Response
 from forestadmin.datasource_toolkit.exceptions import ForestException
 
@@ -30,7 +30,7 @@ class ChartsDatasourceResource(BaseCollectionResource):
     @authenticate
     async def handle_api_chart(self, request: Request) -> Response:
         chart = await self.datasource.render_chart(request.user, request.query["chart_name"])
-        return {"data": json_api.render_chart(chart)}
+        return {"data": render_chart(chart)}
 
     @check_method(RequestMethod.GET)
     @authenticate

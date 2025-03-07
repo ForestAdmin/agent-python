@@ -314,12 +314,12 @@ async def time_order_number_chart(
 
 
 async def order_details(context: CollectionChartContext, result_builder: ResultBuilderChart, ids: CompositeIdAlias):
-    orders = await context.datasource.get_collection("order").list(
+    orders = await context.datasource.get_collection("app_order").list(
         context.caller,
         PaginatedFilter(
             {"condition_tree": ConditionTreeLeaf("customer_id", "in", ids)},
         ),
-        Projection("id", "customer_full_name"),
+        Projection("id", "customer_full_name", "amount"),
     )
     return result_builder.smart(orders)
 

@@ -17,22 +17,20 @@ from forestadmin.agent_toolkit.resources.collections.exceptions import Collectio
 from forestadmin.agent_toolkit.resources.collections.requests import RequestCollection, RequestCollectionException
 from forestadmin.agent_toolkit.services.permissions.ip_whitelist_service import IpWhiteListService
 from forestadmin.agent_toolkit.services.permissions.permission_service import PermissionService
-from forestadmin.agent_toolkit.services.serializers.json_api import (
-    JsonApiException,
-    JsonApiSerializer,
-    create_json_api_schema,
-)
+from forestadmin.agent_toolkit.services.serializers.exceptions import JsonApiSerializerException
+from forestadmin.agent_toolkit.services.serializers.json_api_serializer import JsonApiSerializer
 from forestadmin.agent_toolkit.utils.context import Request, RequestMethod, User
 from forestadmin.agent_toolkit.utils.csv import CsvException
-from forestadmin.datasource_toolkit.collections import Collection
+from forestadmin.datasource_toolkit.collections import Collection, CollectionException
 from forestadmin.datasource_toolkit.datasource_customizer.datasource_composite import CompositeDatasource
 from forestadmin.datasource_toolkit.datasources import Datasource, DatasourceException
 from forestadmin.datasource_toolkit.exceptions import ForbiddenError, NativeQueryException, ValidationError
 from forestadmin.datasource_toolkit.interfaces.fields import FieldType, Operator, PrimitiveType
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.branch import ConditionTreeBranch
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.leaf import ConditionTreeLeaf
+from forestadmin.datasource_toolkit.interfaces.query.filter.paginated import PaginatedFilter
+from forestadmin.datasource_toolkit.interfaces.query.filter.unpaginated import Filter
 from forestadmin.datasource_toolkit.interfaces.query.projections import Projection
-from forestadmin.datasource_toolkit.validations.records import RecordValidatorException
 
 FAKE_USER = User(
     rendering_id=1,
@@ -118,11 +116,17 @@ class TestCrudResource(TestCase):
                     "origin_key_target": "id",
                     "type": FieldType.ONE_TO_MANY,
                 },
+                "status_id": {
+                    "column_type": PrimitiveType.NUMBER,
+                    "is_primary_key": False,
+                    "type": FieldType.COLUMN,
+                    "filter_operators": set([Operator.IN, Operator.EQUAL]),
+                },
                 "status": {
                     "type": FieldType.MANY_TO_ONE,
                     "foreign_collection": "status",
                     "foreign_key_target": "id",
-                    "foreign_key": "status",
+                    "foreign_key": "status_id",
                 },
                 "cart": {
                     "type": FieldType.ONE_TO_ONE,
@@ -213,14 +217,13 @@ class TestCrudResource(TestCase):
                     "foreign_collections": ["product", "order"],
                     "foreign_key_target": {"order": "id", "product": "id"},
                     "foreign_key": "taggable_id",
-                    "foreign_type_field": "taggable_type",
+                    "foreign_key_type_field": "taggable_type",
                 },
             },
         )
 
     @classmethod
     def setUpClass(cls) -> None:
-        JsonApiSerializer.schema = {}
         cls.loop = asyncio.new_event_loop()
         cls.options = Options(
             auth_secret="fake_secret",
@@ -242,8 +245,6 @@ class TestCrudResource(TestCase):
             "tag": cls.collection_tag,
         }
         cls.datasource_composite.add_datasource(cls.datasource)
-        for collection in cls.datasource.collections:
-            create_json_api_schema(collection)
 
     def setUp(self):
         self.ip_white_list_service = Mock(IpWhiteListService)
@@ -253,11 +254,6 @@ class TestCrudResource(TestCase):
         self.permission_service.get_scope = AsyncMock(return_value=ConditionTreeLeaf("id", Operator.GREATER_THAN, 0))
         self.permission_service.can = AsyncMock(return_value=None)
         self.permission_service.can_live_query_segment = AsyncMock(return_value=None)
-
-    @classmethod
-    def tearDownClass(cls) -> None:
-        JsonApiSerializer.schema = {}
-        return super().tearDownClass()
 
     # dispatch
     def test_dispatch(self):
@@ -347,32 +343,13 @@ class TestCrudResource(TestCase):
         assert body["errors"][0] == {"name": "ValidationError", "detail": "test exception", "status": 400, "data": {}}
 
     # get
-    @patch("forestadmin.agent_toolkit.resources.collections.crud.unpack_id", return_value=[10])
-    @patch(
-        "forestadmin.agent_toolkit.resources.collections.crud.ConditionTreeFactory.match_ids",
-        return_value=ConditionTreeLeaf("id", Operator.EQUAL, 10),
-    )
-    @patch(
-        "forestadmin.agent_toolkit.resources.collections.crud.ProjectionFactory.all",
-        return_value=Projection("id", "cost"),
-    )
-    @patch(
-        "forestadmin.agent_toolkit.resources.collections.crud.JsonApiSerializer.get",
-        return_value=Mock,
-    )
-    def test_get(
-        self,
-        mocked_json_serializer_get: Mock,
-        mocked_projection_factory_all: Mock,
-        mocked_match_ids: Mock,
-        mocked_unpack_id: Mock,
-    ):
-        mock_order = {"id": 10, "cost": 200}
-        self.collection_order.list = AsyncMock(return_value=[mock_order])
+    def test_get_should_return_simple_data(self):
+        mock_order = {"id": 10, "cost": 0, "important": True}
+
         request = RequestCollection(
             RequestMethod.GET,
             self.collection_order,
-            query={"collection_name": "order", "pks": "10"},
+            query={"collection_name": "order", "pks": "10", "fields[order]": "id,cost,important"},
             headers={},
             client_ip="127.0.0.1",
         )
@@ -383,75 +360,86 @@ class TestCrudResource(TestCase):
             self.ip_white_list_service,
             self.options,
         )
-        mocked_json_serializer_get.return_value.dump = Mock(
-            return_value={"data": {"type": "order", "attributes": mock_order}}
-        )
-
-        response = self.loop.run_until_complete(crud_resource.get(request))
-
+        with patch.object(
+            self.collection_order, "list", new_callable=AsyncMock, return_value=[mock_order]
+        ) as mock_list:
+            response = self.loop.run_until_complete(crud_resource.get(request))
+            mock_list.assert_any_await(
+                request.user,
+                PaginatedFilter(
+                    {
+                        "condition_tree": ConditionTreeBranch(
+                            "and", [ConditionTreeLeaf("id", "equal", 10), ConditionTreeLeaf("id", "greater_than", 0)]
+                        )
+                    }
+                ),
+                ["id", "cost", "important"],
+            )
         self.permission_service.can.assert_any_await(request.user, request.collection, "read")
         self.permission_service.can.reset_mock()
         response_content = json.loads(response.body)
-        assert response.status == 200
-        assert isinstance(response_content["data"], dict)
-        assert response_content["data"]["attributes"]["cost"] == mock_order["cost"]
-        assert response_content["data"]["attributes"]["id"] == mock_order["id"]
-        mocked_unpack_id.assert_called_once()
-        self.collection_order.list.assert_awaited()
-
+        self.assertEqual(response.status, 200)
+        self.assertTrue(isinstance(response_content["data"], dict))
+        self.assertEqual(response_content["data"]["attributes"]["cost"], mock_order["cost"])
+        self.assertEqual(response_content["data"]["attributes"]["important"], mock_order["important"])
+        self.assertEqual(response_content["data"]["id"], mock_order["id"])
         # relations
 
-        mocked_unpack_id.reset_mock()
-        mock_order = {"id": 10, "cost": 0}
-        mocked_json_serializer_get.return_value.dump = Mock(
-            return_value={
-                "data": {
-                    "type": "order",
-                    "attributes": mock_order,
-                    "relationships": {
-                        "products": {"data": [], "links": {"related": "/forest/order/10/relationships/products"}}
-                    },
-                }
-            }
+    def test_get_should_return_simple_data_with_relation(self):
+        mock_order = {"id": 10, "cost": 200.3, "cart": {"id": 11}, "important": True}
+        request = RequestCollection(
+            RequestMethod.GET,
+            self.collection_order,
+            headers={},
+            client_ip="127.0.0.1",
+            query={"collection_name": "order", "pks": "10", "fields[order]": "id,cost,important", "fields[cart]": "id"},
+        )
+        crud_resource = CrudResource(
+            self.datasource_composite,
+            self.datasource,
+            self.permission_service,
+            self.ip_white_list_service,
+            self.options,
         )
 
-        response = self.loop.run_until_complete(crud_resource.get(request))
+        with patch(
+            "forestadmin.agent_toolkit.resources.collections.crud.JsonApiSerializer", wraps=JsonApiSerializer
+        ) as spy_jsonapi:
+            with patch.object(
+                self.collection_order, "list", new_callable=AsyncMock, return_value=[mock_order]
+            ) as mock_list:
+                response = self.loop.run_until_complete(crud_resource.get(request))
+                mock_list.assert_any_await(
+                    request.user,
+                    PaginatedFilter(
+                        {
+                            "condition_tree": ConditionTreeBranch(
+                                "and",
+                                [ConditionTreeLeaf("id", "equal", 10), ConditionTreeLeaf("id", "greater_than", 0)],
+                            )
+                        }
+                    ),
+                    ["id", "cost", "important"],
+                )
+            spy_jsonapi.assert_called_once_with(ANY, ["id", "cost", "important", "products:id"])
 
         self.permission_service.can.assert_any_await(request.user, request.collection, "read")
         self.permission_service.can.reset_mock()
         response_content = json.loads(response.body)
-        assert response.status == 200
-        assert isinstance(response_content["data"], dict)
-        assert response_content["data"]["attributes"]["cost"] == mock_order["cost"]
-        assert response_content["data"]["attributes"]["id"] == mock_order["id"]
-        mocked_unpack_id.assert_called_once()
-        self.collection_order.list.assert_awaited()
+        self.assertEqual(response.status, 200)
+        self.assertTrue(isinstance(response_content["data"], dict))
+        self.assertEqual(response_content["data"]["attributes"]["cost"], mock_order["cost"])
+        self.assertEqual(
+            response_content["data"]["relationships"]["products"],
+            {"data": [], "links": {"related": {"href": "/forest/order/10/relationships/products"}}},
+        )
+        self.assertEqual(response_content["data"]["id"], mock_order["id"])
 
-    @patch("forestadmin.agent_toolkit.resources.collections.crud.unpack_id", return_value=[10])
-    @patch(
-        "forestadmin.agent_toolkit.resources.collections.crud.ConditionTreeFactory.match_ids",
-        return_value=ConditionTreeLeaf("id", Operator.EQUAL, 10),
-    )
-    @patch(
-        "forestadmin.agent_toolkit.resources.collections.crud.ProjectionFactory.all",
-        return_value=Projection("id", "cost"),
-    )
-    @patch(
-        "forestadmin.agent_toolkit.resources.collections.crud.JsonApiSerializer.get",
-        return_value=Mock,
-    )
-    def test_get_no_data(
-        self,
-        mocked_json_serializer_get: Mock,
-        mocked_projection_factory_all: Mock,
-        mocked_match_ids: Mock,
-        mocked_unpack_id: Mock,
-    ):
-        self.collection_order.list = AsyncMock(return_value=[])
+    def test_get_no_data(self):
         request = RequestCollection(
             RequestMethod.GET,
             self.collection_order,
-            query={"collection_name": "order", "pks": "10"},
+            query={"collection_name": "order", "pks": "10", "fields[order]": "id,cost"},
             headers={},
             client_ip="127.0.0.1",
         )
@@ -463,41 +451,22 @@ class TestCrudResource(TestCase):
             self.options,
         )
 
-        response = self.loop.run_until_complete(crud_resource.get(request))
+        with patch.object(self.collection_order, "list", new_callable=AsyncMock, return_value=[]) as mock_list:
+            response = self.loop.run_until_complete(crud_resource.get(request))
+            mock_list.assert_any_await(request.user, ANY, Projection("id", "cost"))
         self.permission_service.can.assert_any_await(request.user, request.collection, "read")
         self.permission_service.can.reset_mock()
 
-        assert response.status == 404
-        assert response.body is None
-        mocked_unpack_id.assert_called_once()
-        self.collection_order.list.assert_awaited()
+        self.assertEqual(response.status, 404)
+        self.assertIsNone(response.body)
 
-    @patch("forestadmin.agent_toolkit.resources.collections.crud.unpack_id", return_value=[10])
-    @patch(
-        "forestadmin.agent_toolkit.resources.collections.crud.ConditionTreeFactory.match_ids",
-        return_value=ConditionTreeLeaf("id", Operator.EQUAL, 10),
-    )
-    @patch(
-        "forestadmin.agent_toolkit.resources.collections.crud.ProjectionFactory.all",
-        return_value=Projection("id", "cost"),
-    )
-    @patch(
-        "forestadmin.agent_toolkit.resources.collections.crud.JsonApiSerializer.get",
-        return_value=Mock,
-    )
-    def test_get_errors(
-        self,
-        mocked_json_serializer_get: Mock,
-        mocked_projection_factory_all: Mock,
-        mocked_match_ids: Mock,
-        mocked_unpack_id: Mock,
-    ):
+    def test_get_projection_error(self):
         mock_order = {"id": 10, "costt": 200}
         self.collection_order.list = AsyncMock(return_value=[mock_order])
         request = RequestCollection(
             RequestMethod.GET,
             self.collection_order,
-            query={"collection_name": "order", "pks": "10"},
+            query={"collection_name": "order", "pks": "10", "fields[order]": "id,costt"},
             headers={},
             client_ip="127.0.0.1",
         )
@@ -508,35 +477,50 @@ class TestCrudResource(TestCase):
             self.ip_white_list_service,
             self.options,
         )
-        mocked_json_serializer_get.return_value.dump = Mock(side_effect=JsonApiException)
-
-        response = self.loop.run_until_complete(crud_resource.get(request))
+        with patch.object(self.collection_order, "list", new_callable=AsyncMock, return_value=[]) as mock_list:
+            self.assertRaisesRegex(
+                CollectionException,
+                r"🌳🌳🌳Field not found 'order\.costt'",
+                self.loop.run_until_complete,
+                crud_resource.get(request),
+            )
+            mock_list.assert_not_awaited()
 
         self.permission_service.can.assert_any_await(request.user, request.collection, "read")
         self.permission_service.can.reset_mock()
-        assert response.status == 500
-        response_content = json.loads(response.body)
-        assert response_content["errors"][0] == {
-            "name": "JsonApiException",
-            "detail": "🌳🌳🌳",
-            "status": 500,
-        }
-        mocked_unpack_id.assert_called_once()
-        self.collection_order.list.assert_awaited()
 
-        mocked_unpack_id.reset_mock()
+    def test_get_error_on_unpacking_id(self):
+        request = RequestCollection(
+            RequestMethod.GET,
+            self.collection_order,
+            query={"collection_name": "order", "pks": "10", "fields[order]": "id,costt"},
+            headers={},
+            client_ip="127.0.0.1",
+        )
+        crud_resource = CrudResource(
+            self.datasource_composite,
+            self.datasource,
+            self.permission_service,
+            self.ip_white_list_service,
+            self.options,
+        )
 
-        mocked_unpack_id.side_effect = CollectionResourceException
-        response = self.loop.run_until_complete(crud_resource.get(request))
+        with patch(
+            "forestadmin.agent_toolkit.resources.collections.crud.unpack_id", side_effect=CollectionResourceException
+        ) as mocked_unpack_id:
+            response = self.loop.run_until_complete(crud_resource.get(request))
         self.permission_service.can.assert_any_await(request.user, request.collection, "read")
         self.permission_service.can.reset_mock()
-        assert response.status == 500
+        self.assertEqual(response.status, 500)
         response_content = json.loads(response.body)
-        assert response_content["errors"][0] == {
-            "name": "CollectionResourceException",
-            "detail": "🌳🌳🌳",
-            "status": 500,
-        }
+        self.assertEqual(
+            response_content["errors"][0],
+            {
+                "name": "CollectionResourceException",
+                "detail": "🌳🌳🌳",
+                "status": 500,
+            },
+        )
         mocked_unpack_id.assert_called_once()
 
     def test_get_should_return_to_many_relations_as_link(self):
@@ -576,11 +560,7 @@ class TestCrudResource(TestCase):
             },
         )
 
-    @patch(
-        "forestadmin.agent_toolkit.resources.collections.crud.JsonApiSerializer.get",
-        return_value=Mock,
-    )
-    def test_get_with_polymorphic_relation_should_add_projection_star(self, mocked_json_serializer_get: Mock):
+    def test_get_with_polymorphic_relation_should_add_projection_star(self):
         request = RequestCollection(
             RequestMethod.GET,
             self.collection_tag,
@@ -595,12 +575,6 @@ class TestCrudResource(TestCase):
             self.ip_white_list_service,
             self.options,
         )
-        mocked_json_serializer_get.return_value.dump = Mock(
-            return_value={
-                "data": {"type": "tag", "attributes": {"id": 10, "taggable_id": 10, "taggable_type": "product"}},
-                "included": [{"id": 10, "attributes": {"name": "my product"}}],
-            }
-        )
         with patch.object(
             self.collection_tag,
             "list",
@@ -609,27 +583,50 @@ class TestCrudResource(TestCase):
                 {"id": 10, "taggable_id": 10, "taggable_type": "product", "taggable": {"id": 10, "name": "my product"}}
             ],
         ) as mock_list:
-            self.loop.run_until_complete(crud_resource.get(request))
+            response = self.loop.run_until_complete(crud_resource.get(request))
+            mock_list.assert_awaited_with(
+                request.user, ANY, ["id", "tag", "taggable_id", "taggable_type", "taggable:*"]
+            )
 
-            mock_list.assert_awaited_with(ANY, ANY, ["id", "tag", "taggable_id", "taggable_type", "taggable:*"])
+        response_content = json.loads(response.body)
+        self.assertEqual(
+            response_content,
+            {
+                "data": {
+                    "id": 10,
+                    "attributes": {"id": 10, "taggable_id": 10, "taggable_type": "product"},
+                    "links": {"self": "/forest/tag/10"},
+                    "relationships": {
+                        "taggable": {
+                            "data": {"id": "10", "type": "product"},
+                            "links": {"related": {"href": "/forest/tag/10/relationships/taggable"}},
+                        }
+                    },
+                    "type": "tag",
+                },
+                "links": {"self": "/forest/tag/10"},
+                "included": [
+                    {
+                        "type": "product",
+                        "id": 10,
+                        "attributes": {"id": 10, "name": "my product"},
+                        "links": {"self": "/forest/product/10"},
+                        "relationships": {
+                            "tags": {"links": {"related": {"href": "/forest/product/10/relationships/tags"}}}
+                        },
+                    }
+                ],
+            },
+        )
 
     # add
-    @patch("forestadmin.agent_toolkit.resources.collections.crud.RecordValidator.validate")
-    @patch(
-        "forestadmin.agent_toolkit.resources.collections.crud.JsonApiSerializer.get",
-        return_value=Mock,
-    )
-    def test_add(
-        self,
-        mocked_json_serializer_get: Mock,
-        mocked_record_validator_validate: Mock,
-    ):
-        mock_order = {"id": 10, "cost": 200}
+    def test_simple_add(self):
+        mock_order = {"cost": 200}
 
         request = RequestCollection(
             RequestMethod.POST,
             self.collection_order,
-            body=mock_order,
+            body={"data": {"attributes": mock_order}, "type": "order"},
             query={"collection_name": "order"},
             headers={},
             client_ip="127.0.0.1",
@@ -641,45 +638,28 @@ class TestCrudResource(TestCase):
             self.ip_white_list_service,
             self.options,
         )
-        mocked_json_serializer_get.return_value.load = Mock(return_value=mock_order)
-        mocked_json_serializer_get.return_value.dump = Mock(
-            return_value={"data": {"type": "order", "attributes": mock_order}}
-        )
 
-        crud_resource.extract_data = AsyncMock(return_value=(mock_order, []))
-
-        # with patch.object(self.collection_order, "get_field", new_callable=AsyncMock, return_value=(mock_order, [])):
         with patch.object(
-            self.collection_order, "create", new_callable=AsyncMock, return_value=[mock_order]
+            self.collection_order, "create", new_callable=AsyncMock, return_value=[{**mock_order, "id": 10}]
         ) as mock_collection_create:
             response = self.loop.run_until_complete(crud_resource.add(request))
 
-            mock_collection_create.assert_awaited()
+            mock_collection_create.assert_any_await(request.user, [mock_order])
         self.permission_service.can.assert_any_await(request.user, request.collection, "add")
         self.permission_service.can.reset_mock()
 
-        mocked_record_validator_validate.assert_called()
         response_content = json.loads(response.body)
-        assert response.status == 200
-        assert isinstance(response_content["data"], dict)
-        assert response_content["data"]["attributes"]["cost"] == mock_order["cost"]
-        assert response_content["data"]["attributes"]["id"] == mock_order["id"]
-        assert response_content["data"]["type"] == "order"
+        self.assertEqual(response.status, 200)
+        self.assertTrue(isinstance(response_content["data"], dict))
+        self.assertEqual(response_content["data"]["attributes"]["cost"], mock_order["cost"])
+        self.assertEqual(response_content["data"]["id"], 10)
+        self.assertEqual(response_content["data"]["type"], "order")
 
-    @patch(
-        "forestadmin.agent_toolkit.resources.collections.crud.JsonApiSerializer.get",
-        return_value=Mock,
-    )
-    def test_add_errors(
-        self,
-        mocked_json_serializer_get: Mock,
-    ):
-        mock_order = {"id": 10, "cost": 200}
-
+    def test_add_error_on_json_api(self):
         request = RequestCollection(
             RequestMethod.POST,
             self.collection_order,
-            body=mock_order,
+            body={"data": {"attributes": {"costtt": 399}}, "type": "order"},
             query={"collection_name": "order"},
             headers={},
             client_ip="127.0.0.1",
@@ -691,93 +671,147 @@ class TestCrudResource(TestCase):
             self.ip_white_list_service,
             self.options,
         )
-        crud_resource.extract_data = AsyncMock(return_value=(mock_order, []))
 
         # JsonApiException
-        mocked_json_serializer_get.return_value.load = Mock(side_effect=JsonApiException)
-
         response = self.loop.run_until_complete(crud_resource.add(request))
         self.permission_service.can.assert_any_await(request.user, request.collection, "add")
         self.permission_service.can.reset_mock()
 
-        assert response.status == 500
+        self.assertEqual(response.status, 500)
         response_content = json.loads(response.body)
-        assert response_content["errors"][0] == {
-            "name": "JsonApiException",
-            "detail": "🌳🌳🌳",
-            "status": 500,
-        }
+        self.assertEqual(
+            response_content["errors"][0],
+            {
+                "name": "JsonApiDeserializerException",
+                "detail": "🌳🌳🌳Field costtt doesn't exists in collection order.",
+                "status": 500,
+            },
+        )
 
-        mocked_json_serializer_get.return_value.load = Mock(return_value=mock_order)
-
-        # RecordValidatorException
-        with patch(
-            "forestadmin.agent_toolkit.resources.collections.crud.RecordValidator.validate",
-            side_effect=RecordValidatorException,
-        ):
-            response = self.loop.run_until_complete(crud_resource.add(request))
-        assert response.status == 500
-        response_content = json.loads(response.body)
-        assert response_content["errors"][0] == {
-            "name": "RecordValidatorException",
-            "detail": "🌳🌳🌳",
-            "status": 500,
-        }
-
-        # DatasourceException
-        with patch(
-            "forestadmin.agent_toolkit.resources.collections.crud.RecordValidator.validate",
-        ):
-            with patch.object(self.collection_order, "create", new_callable=AsyncMock, side_effect=DatasourceException):
-                response = self.loop.run_until_complete(crud_resource.add(request))
-        self.permission_service.can.assert_any_await(request.user, request.collection, "add")
-        self.permission_service.can.reset_mock()
-        assert response.status == 500
-        response_content = json.loads(response.body)
-        assert response_content["errors"][0] == {
-            "name": "DatasourceException",
-            "detail": "🌳🌳🌳",
-            "status": 500,
-        }
-
-        # CollectionResourceException
-        with patch(
-            "forestadmin.agent_toolkit.resources.collections.crud.RecordValidator.validate",
-        ):
-            with patch.object(self.collection_order, "create", new_callable=AsyncMock, return_value=[mock_order]):
-                with patch.object(crud_resource, "_link_one_to_one_relations", side_effect=CollectionResourceException):
-                    response = self.loop.run_until_complete(crud_resource.add(request))
-        self.permission_service.can.assert_any_await(request.user, request.collection, "add")
-        self.permission_service.can.reset_mock()
-        assert response.status == 500
-        response_content = json.loads(response.body)
-        assert response_content["errors"][0] == {
-            "name": "CollectionResourceException",
-            "detail": "🌳🌳🌳",
-            "status": 500,
-        }
-
-    @patch(
-        "forestadmin.agent_toolkit.resources.collections.crud.ConditionTreeFactory.match_ids",
-        return_value=ConditionTreeLeaf("id", Operator.EQUAL, 1),
-    )
-    @patch("forestadmin.agent_toolkit.resources.collections.crud.RecordValidator.validate")
-    @patch(
-        "forestadmin.agent_toolkit.resources.collections.crud.JsonApiSerializer.get",
-        return_value=Mock,
-    )
-    def test_add_with_relation(
-        self,
-        mocked_json_serializer_get: Mock,
-        mocked_record_validator_validate: Mock,
-        mock_match_ids: Mock,
-    ):
-        mock_order = {"id": 10, "cost": 200, "status": 1, "cart": 1}
-
+    def test_add_error_record_validation(self):
         request = RequestCollection(
             RequestMethod.POST,
             self.collection_order,
-            body=mock_order,
+            body={"data": {"attributes": {}}, "type": "order"},
+            query={"collection_name": "order"},
+            headers={},
+            client_ip="127.0.0.1",
+        )
+        crud_resource = CrudResource(
+            self.datasource_composite,
+            self.datasource,
+            self.permission_service,
+            self.ip_white_list_service,
+            self.options,
+        )
+
+        # RecordValidatorException
+        response = self.loop.run_until_complete(crud_resource.add(request))
+        self.assertEqual(response.status, 500)
+        response_content = json.loads(response.body)
+        self.assertEqual(
+            response_content["errors"][0],
+            {
+                "name": "RecordValidatorException",
+                "detail": "🌳🌳🌳The record data is empty",
+                "status": 500,
+            },
+        )
+
+    def test_add_error_on_datasource_create(self):
+        request = RequestCollection(
+            RequestMethod.POST,
+            self.collection_order,
+            body={"data": {"attributes": {"cost": 399}}, "type": "order"},
+            query={"collection_name": "order"},
+            headers={},
+            client_ip="127.0.0.1",
+        )
+        crud_resource = CrudResource(
+            self.datasource_composite,
+            self.datasource,
+            self.permission_service,
+            self.ip_white_list_service,
+            self.options,
+        )
+
+        # DatasourceException
+        with patch.object(self.collection_order, "create", new_callable=AsyncMock, side_effect=DatasourceException):
+            response = self.loop.run_until_complete(crud_resource.add(request))
+        self.permission_service.can.assert_any_await(request.user, request.collection, "add")
+        self.permission_service.can.reset_mock()
+        self.assertEqual(response.status, 500)
+        response_content = json.loads(response.body)
+        self.assertEqual(
+            response_content["errors"][0],
+            {
+                "name": "DatasourceException",
+                "detail": "🌳🌳🌳",
+                "status": 500,
+            },
+        )
+
+    def test_add_error_on_link_one_to_one_relations(self):
+        request = RequestCollection(
+            RequestMethod.POST,
+            self.collection_order,
+            body={
+                "data": {
+                    "attributes": {"cost": 399},
+                    "relationships": {
+                        "cart": {"data": {"type": "cart", "id": "11"}},
+                    },
+                },
+                "type": "order",
+            },
+            query={"collection_name": "order"},
+            headers={},
+            client_ip="127.0.0.1",
+        )
+        crud_resource = CrudResource(
+            self.datasource_composite,
+            self.datasource,
+            self.permission_service,
+            self.ip_white_list_service,
+            self.options,
+        )
+        # CollectionResourceException
+        with patch.object(
+            self.collection_order, "create", new_callable=AsyncMock, return_value=[{"cost": 399, "id": 1}]
+        ):
+            with patch.object(
+                self.collection_cart,
+                "update",
+                new_callable=AsyncMock,
+            ):
+                response = self.loop.run_until_complete(crud_resource.add(request))
+        self.permission_service.can.assert_any_await(request.user, request.collection, "add")
+        self.permission_service.can.reset_mock()
+        self.assertEqual(response.status, 500)
+        response_content = json.loads(response.body)
+        self.assertEqual(
+            response_content["errors"][0],
+            {
+                "name": "CollectionResourceException",
+                "detail": "🌳🌳🌳Missing timezone",
+                "status": 500,
+            },
+        )
+
+    def test_add_with_relation(self):
+        request = RequestCollection(
+            RequestMethod.POST,
+            self.collection_order,
+            body={
+                "data": {
+                    "attributes": {"cost": 200},
+                    "relationships": {
+                        "cart": {"data": {"type": "cart", "id": "11"}},
+                        "status": {"data": {"type": "status", "id": "11"}},
+                    },
+                },
+                "type": "order",
+            },
             query={
                 "collection_name": "order",
                 "timezone": "Europe/Paris",
@@ -792,83 +826,79 @@ class TestCrudResource(TestCase):
             self.ip_white_list_service,
             self.options,
         )
-        mocked_json_serializer_get.return_value.load = Mock(return_value=mock_order)
-        mocked_json_serializer_get.return_value.dump = Mock(
-            return_value={"data": {"type": "order", "attributes": mock_order}}
-        )
 
+        mock_order = {"id": 10, "cost": 200, "status_id": 11}
         with patch.object(
-            self.collection_order, "create", new_callable=AsyncMock, return_value=[mock_order]
-        ) as mock_collection_create:
-            response = self.loop.run_until_complete(crud_resource.add(request))
-
-            mock_collection_create.assert_awaited()
-        self.permission_service.can.assert_any_await(request.user, request.collection, "add")
-        self.permission_service.can.reset_mock()
-
-        mocked_record_validator_validate.assert_called()
-        response_content = json.loads(response.body)
-        assert response.status == 200
-        assert isinstance(response_content["data"], dict)
-        assert response_content["data"]["attributes"]["cost"] == mock_order["cost"]
-        assert response_content["data"]["attributes"]["id"] == mock_order["id"]
-        assert response_content["data"]["attributes"]["status"] == mock_order["status"]
-        assert response_content["data"]["attributes"]["cart"] == mock_order["cart"]
-        assert response_content["data"]["type"] == "order"
-        self.collection_cart.update.assert_awaited()
-
-        request = RequestCollection(
-            RequestMethod.POST,
             self.collection_order,
-            body=mock_order,
-            query={
-                "collection_name": "order",
-            },
-            headers={},
-            client_ip="127.0.0.1",
-        )
-        with patch.object(
-            self.collection_order, "create", new_callable=AsyncMock, return_value=[mock_order]
-        ) as mock_collection_create:
-            response = self.loop.run_until_complete(crud_resource.add(request))
-            mock_collection_create.assert_awaited()
+            "create",
+            new_callable=AsyncMock,
+            return_value=[mock_order],
+        ) as mock_collection_order_create:
+            with patch.object(
+                self.collection_cart,
+                "update",
+                new_callable=AsyncMock,
+            ) as mock_collection_cart_update:
+                response = self.loop.run_until_complete(crud_resource.add(request))
+
+                mock_collection_order_create.assert_any_await(request.user, [{"cost": 200, "status_id": 11}])
+                mock_collection_cart_update.assert_any_await(
+                    request.user,
+                    Filter(
+                        {
+                            "condition_tree": ConditionTreeBranch(
+                                "and",
+                                [
+                                    ConditionTreeLeaf("order_id", "equal", 10),
+                                    ConditionTreeLeaf("id", "greater_than", 0),
+                                ],
+                            ),
+                            "timezone": zoneinfo.ZoneInfo(key="Europe/Paris"),
+                        }
+                    ),
+                    {"order_id": None},
+                )
+                mock_collection_cart_update.assert_any_await(
+                    request.user,
+                    Filter(
+                        {
+                            "condition_tree": ConditionTreeBranch(
+                                "and",
+                                [ConditionTreeLeaf("id", "equal", 11), ConditionTreeLeaf("id", "greater_than", 0)],
+                            ),
+                            "timezone": zoneinfo.ZoneInfo(key="Europe/Paris"),
+                        }
+                    ),
+                    {"order_id": 10},
+                )
         self.permission_service.can.assert_any_await(request.user, request.collection, "add")
         self.permission_service.can.reset_mock()
 
-        assert response.status == 500
         response_content = json.loads(response.body)
-        assert response_content["errors"][0] == {
-            "name": "CollectionResourceException",
-            "detail": "🌳🌳🌳Missing timezone",
-            "status": 500,
-        }
+        self.assertEqual(response.status, 200)
+        self.assertTrue(isinstance(response_content["data"], dict))
+        self.assertEqual(response_content["data"]["attributes"]["cost"], mock_order["cost"])
+        self.assertEqual(response_content["data"]["id"], mock_order["id"])
+        self.assertEqual(response_content["data"]["type"], "order")
+        self.assertEqual(response_content["data"]["attributes"]["status_id"], mock_order["status_id"])
 
-    @patch(
-        "forestadmin.agent_toolkit.resources.collections.crud.JsonApiSerializer.get",
-        return_value=Mock,
-    )
-    def test_add_should_create_and_associate_polymorphic_many_to_one(self, mocked_json_serializer_get: Mock):
+    def test_add_should_create_and_associate_polymorphic_many_to_one(self):
         request = RequestCollection(
             RequestMethod.POST,
             self.collection_tag,
             body={
                 "data": {
                     "attributes": {"tag": "Good"},
-                    "relationships": {"taggable": {"data": [{"type": "order", "id": "14"}]}},
+                    "relationships": {"taggable": {"data": {"type": "order", "id": "14"}}},
                 },
             },  # body
             query={
-                "collection_name": "order",
-                "relation_name": "tags",
+                "collection_name": "tag",
                 "timezone": "Europe/Paris",
             },  # query
             headers={},
             client_ip="127.0.0.1",
         )
-        mocked_json_serializer_get.return_value.load = Mock(
-            return_value={"taggable_id": 14, "taggable_type": "order", "tag": "aaaaa"}
-        )
-        mocked_json_serializer_get.return_value.dump = Mock(return_value={})
         crud_resource = CrudResource(
             self.datasource_composite,
             self.datasource,
@@ -878,76 +908,15 @@ class TestCrudResource(TestCase):
         )
 
         with patch.object(
-            self.collection_tag, "create", new_callable=AsyncMock, return_value=[{}]
+            self.collection_tag,
+            "create",
+            new_callable=AsyncMock,
+            return_value=[{"taggable_id": 14, "taggable_type": "order", "tag": "Good", "id": 1}],
         ) as mock_collection_create:
             self.loop.run_until_complete(crud_resource.add(request))
             mock_collection_create.assert_awaited_once_with(
-                ANY, [{"taggable_id": 14, "taggable_type": "order", "tag": "aaaaa"}]
+                ANY, [{"taggable_id": 14, "taggable_type": "order", "tag": "Good"}]
             )
-
-    @patch(
-        "forestadmin.agent_toolkit.resources.collections.crud.JsonApiSerializer.get",
-        return_value=Mock,
-    )
-    def test_add_should_create_and_associate_polymorphic_one_to_one(self, mocked_json_serializer_get: Mock):
-        request = RequestCollection(
-            RequestMethod.POST,
-            self.collection_order,
-            body={
-                "data": {
-                    "attributes": {"cost": 12.3, "important": True},
-                    "relationships": {"tags": {"data": {"type": "tag", "id": "22"}}},
-                },
-            },  # body
-            query={
-                "collection_name": "order",
-                "relation_name": "tags",
-                "timezone": "Europe/Paris",
-            },  # query
-            headers={},
-            client_ip="127.0.0.1",
-        )
-
-        mocked_json_serializer_get.return_value.load = Mock(return_value={"cost": 12.3, "important": True, "tags": 22})
-        mocked_json_serializer_get.return_value.dump = Mock(return_value={})
-
-        crud_resource = CrudResource(
-            self.datasource_composite,
-            self.datasource,
-            self.permission_service,
-            self.ip_white_list_service,
-            self.options,
-        )
-        with patch.object(
-            self.collection_order,
-            "create",
-            new_callable=AsyncMock,
-            return_value=[{"cost": 12.3, "important": True, "id": 12}],
-        ) as mock_collection_order_create:
-            with patch.object(self.collection_tag, "update", new_callable=AsyncMock) as mock_collection_tag_update:
-                self.loop.run_until_complete(crud_resource.add(request))
-                mock_collection_order_create.assert_awaited_once_with(ANY, [{"cost": 12.3, "important": True}])
-
-                # first update to break potential old link to current record (should do nothing)
-                first_call_update_args = mock_collection_tag_update.await_args_list[0].args
-                self.assertIn(
-                    ConditionTreeLeaf("taggable_id", "equal", 12),
-                    first_call_update_args[1].condition_tree.conditions,
-                )
-                self.assertIn(
-                    ConditionTreeLeaf("taggable_type", "equal", "order"),
-                    first_call_update_args[1].condition_tree.conditions,
-                )
-                self.assertEqual(first_call_update_args[2], {"taggable_id": None, "taggable_type": None})
-
-                # second update to link the 1 to 1
-                second_call_update_args = mock_collection_tag_update.await_args_list[1].args
-
-                self.assertIn(
-                    ConditionTreeLeaf("id", "equal", 22),
-                    second_call_update_args[1].condition_tree.conditions,
-                )
-                self.assertEqual(second_call_update_args[2], {"taggable_id": 12, "taggable_type": "order"})
 
     def test_add_should_return_to_many_relations_as_link(self):
         mock_orders = [{"cost": 12.3, "important": True, "id": 10}]
@@ -961,7 +930,6 @@ class TestCrudResource(TestCase):
             },  # body
             query={
                 "collection_name": "order",
-                "relation_name": "tags",
                 "timezone": "Europe/Paris",
             },
             headers={},
@@ -990,11 +958,7 @@ class TestCrudResource(TestCase):
         )
 
     # list
-    @patch(
-        "forestadmin.agent_toolkit.resources.collections.crud.JsonApiSerializer.get",
-        return_value=Mock,
-    )
-    def test_list(self, mocked_json_serializer_get: Mock):
+    def test_list(self):
         mock_orders = [{"id": 10, "cost": 200}, {"id": 11, "cost": 201}]
 
         request = RequestCollection(
@@ -1016,33 +980,26 @@ class TestCrudResource(TestCase):
             self.ip_white_list_service,
             self.options,
         )
-        mocked_json_serializer_get.return_value.dump = Mock(
-            return_value={
-                "data": [
-                    {"type": "order", "attributes": mock_order, "id": mock_order["id"]} for mock_order in mock_orders
-                ]
-            }
-        )
         self.collection_order.list = AsyncMock(return_value=mock_orders)
 
         response = self.loop.run_until_complete(crud_resource.list(request))
         self.permission_service.can.assert_any_await(request.user, request.collection, "browse")
         self.permission_service.can.reset_mock()
 
-        assert response.status == 200
+        self.assertEqual(response.status, 200)
         response_content = json.loads(response.body)
-        assert isinstance(response_content["data"], list)
-        assert len(response_content["data"]) == 2
-        assert response_content["data"][0]["type"] == "order"
-        assert response_content["data"][0]["attributes"]["cost"] == mock_orders[0]["cost"]
-        assert response_content["data"][0]["attributes"]["id"] == mock_orders[0]["id"]
-        assert response_content["data"][1]["type"] == "order"
-        assert response_content["data"][1]["attributes"]["cost"] == mock_orders[1]["cost"]
-        assert response_content["data"][1]["attributes"]["id"] == mock_orders[1]["id"]
+        self.assertTrue(isinstance(response_content["data"], list))
+        self.assertEqual(len(response_content["data"]), 2)
+        self.assertEqual(response_content["data"][0]["type"], "order")
+        self.assertEqual(response_content["data"][0]["attributes"]["cost"], mock_orders[0]["cost"])
+        self.assertEqual(response_content["data"][0]["id"], mock_orders[0]["id"])
+        self.assertEqual(response_content["data"][1]["type"], "order")
+        self.assertEqual(response_content["data"][1]["attributes"]["cost"], mock_orders[1]["cost"])
+        self.assertEqual(response_content["data"][1]["id"], mock_orders[1]["id"])
         self.collection_order.list.assert_awaited()
 
-        assert response_content["meta"]["decorators"]["0"] == {"id": 10, "search": ["cost"]}
-        assert response_content["meta"]["decorators"]["1"] == {"id": 11, "search": ["cost"]}
+        self.assertEqual(response_content["meta"]["decorators"]["0"], {"id": 10, "search": ["cost"]})
+        self.assertEqual(response_content["meta"]["decorators"]["1"], {"id": 11, "search": ["cost"]})
 
     def test_list_should_return_to_many_relations_as_link(self):
         mock_orders = [{"id": 10, "cost": 200}, {"id": 11, "cost": 201}]
@@ -1080,61 +1037,13 @@ class TestCrudResource(TestCase):
                 },
             )
 
-    @patch(
-        "forestadmin.agent_toolkit.resources.collections.crud.JsonApiSerializer.get",
-        return_value=Mock,
-    )
-    def test_list_with_polymorphic_many_to_one_should_query_all_relation_record_columns(
-        self, mocked_json_serializer_get: Mock
-    ):
+    def test_list_with_polymorphic_many_to_one_should_query_all_relation_record_columns(self):
         crud_resource = CrudResource(
             self.datasource_composite,
             self.datasource,
             self.permission_service,
             self.ip_white_list_service,
             self.options,
-        )
-        mocked_json_serializer_get.return_value.dump = Mock(
-            return_value={
-                "data": [
-                    {
-                        "type": "tag",
-                        "attributes": {
-                            "taggable_id": 11,
-                            "taggable_type": "order",
-                        },
-                        "id": 1,
-                        "relationships": {
-                            "taggable": {
-                                "data": {
-                                    "id": 10,
-                                    "type": "order",
-                                },
-                                "links": {"related": {"href": "/forest/tag/1/relationships/taggable"}},
-                            }
-                        },
-                    },
-                ],
-                "included": [
-                    {
-                        "type": "order",
-                        "id": 11,
-                        "attributes": {
-                            "id": 11,
-                            "cost": 201,
-                            "important": True,
-                        },
-                        "relationships": [
-                            {
-                                "tags": {"link": {"related": {"href": "/forest/order/11/relationships/tags"}}},
-                                "cart": {"link": {"related": {"href": "/forest/order/11/relationships/cart"}}},
-                                "status": {"link": {"related": {"href": "/forest/order/11/relationships/status"}}},
-                                "products": {"link": {"related": {"href": "/forest/order/11/relationships/products"}}},
-                            }
-                        ],
-                    }
-                ],
-            }
         )
         request = RequestCollection(
             RequestMethod.GET,
@@ -1153,7 +1062,7 @@ class TestCrudResource(TestCase):
             "list",
             new_callable=AsyncMock,
             return_value=[
-                {"id": 1, "taggable_id": 11, "taggable_type": "order", "taggable": {}},
+                {"id": 1, "taggable_id": 11, "taggable_type": "order", "taggable": {"id": 12, "cost": 12.3}},
             ],
         ) as mock_list:
             self.loop.run_until_complete(crud_resource.list(request))
@@ -1161,11 +1070,7 @@ class TestCrudResource(TestCase):
             list_args = mock_list.await_args_list[0].args
             self.assertIn("taggable:*", list_args[2])
 
-    @patch(
-        "forestadmin.agent_toolkit.resources.collections.crud.JsonApiSerializer.get",
-        return_value=Mock,
-    )
-    def test_list_should_parse_multi_field_sorting(self, mocked_json_serializer_get: Mock):
+    def test_list_should_parse_multi_field_sorting(self):
         mock_orders = [
             {"id": 10, "cost": 200, "important": True},
             {"id": 11, "cost": 201, "important": True},
@@ -1190,13 +1095,6 @@ class TestCrudResource(TestCase):
             self.permission_service,
             self.ip_white_list_service,
             self.options,
-        )
-        mocked_json_serializer_get.return_value.dump = Mock(
-            return_value={
-                "data": [
-                    {"type": "order", "attributes": mock_order, "id": mock_order["id"]} for mock_order in mock_orders
-                ]
-            }
         )
         self.collection_order.list = AsyncMock(return_value=mock_orders)
         self.loop.run_until_complete(crud_resource.list(request))
@@ -1241,12 +1139,7 @@ class TestCrudResource(TestCase):
             self.loop.run_until_complete(crud_resource.list(request))
             mock_handle_live_queries.assert_awaited_once_with(request, ConditionTreeLeaf("id", "greater_than", 0))
 
-    @patch(
-        "forestadmin.agent_toolkit.resources.collections.crud.JsonApiSerializer.get",
-        return_value=Mock,
-    )
-    def test_list_errors(self, mocked_json_serializer_get: Mock):
-        mock_orders = [{"id": 10, "cost": 200}, {"id": 11, "cost": 201}]
+    def test_list_errors_filter_error(self):
         request = RequestCollection(
             RequestMethod.GET,
             self.collection_order,
@@ -1278,6 +1171,24 @@ class TestCrudResource(TestCase):
             "status": 500,
         }
 
+    def test_list_errors_datasource_error(self):
+        request = RequestCollection(
+            RequestMethod.GET,
+            self.collection_order,
+            query={
+                "collection_name": "order",
+                "fields[order]": "id,cost",
+            },
+            headers={},
+            client_ip="127.0.0.1",
+        )
+        crud_resource = CrudResource(
+            self.datasource_composite,
+            self.datasource,
+            self.permission_service,
+            self.ip_white_list_service,
+            self.options,
+        )
         # DatasourceException
         request = RequestCollection(
             RequestMethod.GET,
@@ -1304,18 +1215,42 @@ class TestCrudResource(TestCase):
             "status": 500,
         }
 
+    def test_list_errors_jsonapi_error(self):
+        mock_orders = [{"id": 10, "cost": 200}, {"id": 11, "cost": 201}]
+        request = RequestCollection(
+            RequestMethod.GET,
+            self.collection_order,
+            query={
+                "collection_name": "order",
+                "fields[order]": "id,cost",
+                "timezone": "Europe/Paris",
+            },
+            headers={},
+            client_ip="127.0.0.1",
+        )
+        crud_resource = CrudResource(
+            self.datasource_composite,
+            self.datasource,
+            self.permission_service,
+            self.ip_white_list_service,
+            self.options,
+        )
         # JsonApiException
-        self.collection_order.list = AsyncMock(return_value=mock_orders)
-        mocked_json_serializer_get.return_value.dump = Mock(side_effect=JsonApiException)
 
-        response = self.loop.run_until_complete(crud_resource.list(request))
+        self.collection_order.list = AsyncMock(return_value=mock_orders)
+        with patch(
+            "forestadmin.agent_toolkit.resources.collections.crud.JsonApiSerializer.serialize",
+            side_effect=JsonApiSerializerException,
+        ) as mock_serialize:
+            response = self.loop.run_until_complete(crud_resource.list(request))
+            mock_serialize.assert_called()
         self.permission_service.can.assert_any_await(request.user, request.collection, "browse")
         self.permission_service.can.reset_mock()
 
         assert response.status == 500
         response_content = json.loads(response.body)
         assert response_content["errors"][0] == {
-            "name": "JsonApiException",
+            "name": "JsonApiSerializerException",
             "detail": "🌳🌳🌳",
             "status": 500,
         }
@@ -1416,23 +1351,7 @@ class TestCrudResource(TestCase):
         assert response_content["meta"]["count"] == "deactivated"
 
     # edit
-    @patch(
-        "forestadmin.agent_toolkit.resources.collections.crud.ConditionTreeFactory.match_ids",
-        return_value=ConditionTreeLeaf("id", Operator.EQUAL, 10),
-    )
-    @patch("forestadmin.agent_toolkit.resources.collections.crud.RecordValidator.validate")
-    @patch("forestadmin.agent_toolkit.resources.collections.crud.unpack_id", return_value=[10])
-    @patch(
-        "forestadmin.agent_toolkit.resources.collections.crud.JsonApiSerializer.get",
-        return_value=Mock,
-    )
-    def test_edit(
-        self,
-        mocked_json_serializer_get: Mock,
-        mocked_unpack_id: Mock,
-        mocked_record_validator_validate: Mock,
-        mocked_match_ids: Mock,
-    ):
+    def test_edit(self):
         mock_order = {"id": 10, "cost": 201}
         request = RequestCollection(
             RequestMethod.PUT,
@@ -1456,41 +1375,103 @@ class TestCrudResource(TestCase):
         )
         self.collection_order.list = AsyncMock(return_value=[mock_order])
         self.collection_order.update = AsyncMock()
-        mocked_json_serializer_get.return_value.load = Mock(return_value=mock_order)
-        mocked_json_serializer_get.return_value.dump = Mock(
-            return_value={"data": {"type": "order", "attributes": mock_order}}
-        )
-
         response = self.loop.run_until_complete(crud_resource.update(request))
         self.permission_service.can.assert_any_await(request.user, request.collection, "edit")
         self.permission_service.can.reset_mock()
 
-        assert response.status == 200
+        self.assertEqual(response.status, 200)
         response_content = json.loads(response.body)
-        assert isinstance(response_content["data"], dict)
-        assert response_content["data"]["attributes"]["id"] == 10
-        assert response_content["data"]["attributes"]["cost"] == 201
+        self.assertTrue(isinstance(response_content["data"], dict))
+        self.assertEqual(response_content["data"]["id"], 10)
+        self.assertEqual(response_content["data"]["attributes"]["cost"], 201)
         self.collection_order.update.assert_awaited()
 
-    @patch(
-        "forestadmin.agent_toolkit.resources.collections.crud.ConditionTreeFactory.match_ids",
-        return_value=ConditionTreeLeaf("id", Operator.EQUAL, 10),
-    )
-    @patch("forestadmin.agent_toolkit.resources.collections.crud.RecordValidator.validate")
-    @patch("forestadmin.agent_toolkit.resources.collections.crud.unpack_id", return_value=[10])
-    @patch(
-        "forestadmin.agent_toolkit.resources.collections.crud.JsonApiSerializer.get",
-        return_value=Mock,
-    )
-    def test_edit_errors(
-        self,
-        mocked_json_serializer_get: Mock,
-        mocked_unpack_id: Mock,
-        mocked_record_validator_validate: Mock,
-        mocked_match_ids: Mock,
-    ):
+    def test_edit_error_no_pk(self):
         mock_order = {"id": 10, "cost": 201}
         self.collection_order.update = AsyncMock()
+        self.collection_order.list = AsyncMock(return_value=[mock_order])
+        request = RequestCollection(
+            RequestMethod.PUT,
+            self.collection_order,
+            body={"data": {"attributes": {"cost": 201}, "relationships": {}}},
+            query={
+                "collection_name": "order",
+                "timezone": "Europe/Paris",
+                "pks": "10|é",
+                "fields[order]": "id,cost",
+            },
+            headers={},
+            client_ip="127.0.0.1",
+        )
+        crud_resource = CrudResource(
+            self.datasource_composite,
+            self.datasource,
+            self.permission_service,
+            self.ip_white_list_service,
+            self.options,
+        )
+
+        # IdException
+        response = self.loop.run_until_complete(crud_resource.update(request))
+        self.permission_service.can.assert_any_await(request.user, request.collection, "edit")
+        self.permission_service.can.reset_mock()
+        self.assertEqual(response.status, 500)
+        response_content = json.loads(response.body)
+        self.assertEqual(
+            response_content["errors"][0],
+            {
+                "detail": "🌳🌳🌳Unable to unpack the id",
+                "name": "IdException",
+                "status": 500,
+            },
+        )
+
+    def test_edit_error_jsonapi_deserialization(self):
+        self.collection_order.update = AsyncMock()
+        request = RequestCollection(
+            RequestMethod.PUT,
+            self.collection_order,
+            body={"data": {"attributes": {"cost": 201}, "relationships": {}}},
+            query={
+                "collection_name": "order",
+                "timezone": "Europe/Paris",
+                "pks": "10",
+                "fields[order]": "id,cost",
+            },
+            headers={},
+            client_ip="127.0.0.1",
+        )
+        crud_resource = CrudResource(
+            self.datasource_composite,
+            self.datasource,
+            self.permission_service,
+            self.ip_white_list_service,
+            self.options,
+        )
+
+        # JsonApiException
+        with patch(
+            "forestadmin.agent_toolkit.resources.collections.crud.JsonApiDeserializer.deserialize",
+            side_effect=JsonApiSerializerException,
+        ) as mock_deserialize:
+            response = self.loop.run_until_complete(crud_resource.update(request))
+            mock_deserialize.assert_called()
+
+        self.permission_service.can.assert_any_await(request.user, request.collection, "edit")
+        self.permission_service.can.reset_mock()
+        self.assertEqual(response.status, 500)
+        response_content = json.loads(response.body)
+        self.assertEqual(
+            response_content["errors"][0],
+            {
+                "detail": "🌳🌳🌳",
+                "name": "JsonApiSerializerException",
+                "status": 500,
+            },
+        )
+
+    def test_edit_error_jsonapi_serialization(self):
+        mock_order = {"id": 10, "cost": 201}
         self.collection_order.list = AsyncMock(return_value=[mock_order])
         request = RequestCollection(
             RequestMethod.PUT,
@@ -1513,38 +1494,20 @@ class TestCrudResource(TestCase):
             self.options,
         )
 
-        # CollectionResourceException
+        # JsonApiException
         with patch(
-            "forestadmin.agent_toolkit.resources.collections.crud.unpack_id", side_effect=CollectionResourceException
-        ):
+            "forestadmin.agent_toolkit.resources.collections.crud.JsonApiSerializer.serialize",
+            side_effect=JsonApiSerializerException,
+        ) as mock_serialize:
             response = self.loop.run_until_complete(crud_resource.update(request))
+            mock_serialize.assert_called()
         self.permission_service.can.assert_any_await(request.user, request.collection, "edit")
         self.permission_service.can.reset_mock()
-        assert response.status == 500
+        self.assertEqual(response.status, 500)
         response_content = json.loads(response.body)
-        assert response_content["errors"][0] == {
-            "detail": "🌳🌳🌳",
-            "name": "CollectionResourceException",
-            "status": 500,
-        }
-
-        # JsonApiException
-        mocked_json_serializer_get.return_value.load = Mock(side_effect=JsonApiException)
-        response = self.loop.run_until_complete(crud_resource.update(request))
-        self.permission_service.can.assert_any_await(request.user, request.collection, "edit")
-        self.permission_service.can.reset_mock()
-        assert response.status == 500
-        response_content = json.loads(response.body)
-        assert response_content["errors"][0] == {"detail": "🌳🌳🌳", "name": "JsonApiException", "status": 500}
-
-        # JsonApiException
-        mocked_json_serializer_get.return_value.dump = Mock(side_effect=JsonApiException)
-        response = self.loop.run_until_complete(crud_resource.update(request))
-        self.permission_service.can.assert_any_await(request.user, request.collection, "edit")
-        self.permission_service.can.reset_mock()
-        assert response.status == 500
-        response_content = json.loads(response.body)
-        assert response_content["errors"][0] == {"detail": "🌳🌳🌳", "name": "JsonApiException", "status": 500}
+        self.assertEqual(
+            response_content["errors"][0], {"detail": "🌳🌳🌳", "name": "JsonApiSerializerException", "status": 500}
+        )
 
     def test_edit_should_not_throw_and_do_nothing_on_empty_record(self):
         request = RequestCollection(
@@ -1678,21 +1641,7 @@ class TestCrudResource(TestCase):
         )
 
     # delete
-    @patch(
-        "forestadmin.agent_toolkit.resources.collections.crud.JsonApiSerializer.get",
-        return_value=Mock,
-    )
-    @patch(
-        "forestadmin.agent_toolkit.resources.collections.crud.ConditionTreeFactory.match_ids",
-        return_value=ConditionTreeLeaf("id", Operator.EQUAL, 10),
-    )
-    @patch("forestadmin.agent_toolkit.resources.collections.crud.unpack_id", return_value=[10])
-    def test_delete(
-        self,
-        mocked_json_serializer_get: Mock,
-        mocked_unpack_id: Mock,
-        mocked_match_ids: Mock,
-    ):
+    def test_delete(self):
         request = RequestCollection(
             RequestMethod.DELETE,
             self.collection_order,
@@ -1747,14 +1696,7 @@ class TestCrudResource(TestCase):
             "status": 500,
         }
 
-    @patch(
-        "forestadmin.agent_toolkit.resources.collections.crud.ConditionTreeFactory.match_ids",
-        return_value=ConditionTreeLeaf("id", Operator.NOT_EQUAL, 10),
-    )
-    def test_delete_list(
-        self,
-        mocked_match_ids: Mock,
-    ):
+    def test_delete_list(self):
         request = RequestCollection(
             RequestMethod.DELETE,
             self.collection_order,
@@ -2142,7 +2084,6 @@ class TestCrudResource(TestCase):
         )
 
     def test_handle_native_query_should_raise_error_if_not_permission(self):
-
         request = RequestCollection(
             RequestMethod.GET,
             self.collection_order,

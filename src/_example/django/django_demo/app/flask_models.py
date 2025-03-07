@@ -23,7 +23,7 @@ class FlaskAddress(models.Model):
 
 
 class FlaskCustomer(models.Model):
-    id = models.BinaryField(primary_key=True, db_column="pk")
+    id = models.UUIDField(primary_key=True, db_column="pk")
     first_name = models.CharField(max_length=255)
     last_name = models.CharField(max_length=255)
     birthday_date = models.DateTimeField(blank=True, null=True)
