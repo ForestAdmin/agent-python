@@ -6,6 +6,7 @@ from unittest.mock import AsyncMock, Mock, call, patch
 import aiohttp
 from aiohttp import client_exceptions
 from aiohttp.web import HTTPException
+from forestadmin.agent_toolkit.resources.security.exceptions import OpenIdException
 from forestadmin.agent_toolkit.utils.http import ForestHttpApi, ForestHttpApiException, HttpOptions
 
 
@@ -350,3 +351,32 @@ class TestHandleError(TestCase):
                 error_mock,
             ),
         )
+
+    def test_handle_error_should_wrap_openid_error_for_2fa_error(self):
+        error_mock = Mock(HTTPException)
+        error_mock.status = 403
+        error_mock.text = (
+            '{"errors":[{"status":403,"detail":"Two factor authentication is required to access this '
+            + 'project","name":"TwoFactorAuthenticationRequiredForbiddenError"}]}'
+        )
+        try:
+            self.loop.run_until_complete(
+                ForestHttpApi._handle_server_error(
+                    "http://endpoint.fr",
+                    error_mock,
+                )
+            )
+        except OpenIdException as exc:
+            self.assertEqual(exc.STATUS, 403)
+            self.assertEqual(exc.state, 403)
+            self.assertEqual(
+                exc.args[0],
+                (
+                    "🌳🌳🌳{'errors': [{'status': 403, 'detail': 'Two factor authentication is required to access this "
+                    + "project', 'name': 'TwoFactorAuthenticationRequiredForbiddenError'}]}"
+                ),
+            )
+            self.assertEqual(exc.error, "TwoFactorAuthenticationRequiredForbiddenError")
+            self.assertEqual(exc.error_description, "Two factor authentication is required to access this project")
+        else:
+            raise Exception("should have been in except block")
