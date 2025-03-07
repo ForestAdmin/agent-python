@@ -1,3 +1,10 @@
+## [1.22.10](https://github.com/ForestAdmin/agent-python/compare/v1.22.9...v1.22.10) (2025-03-07)
+
+
+### Bug Fixes
+
+* **2fa_authentication:** adapt error response for a pretty message in front ([#320](https://github.com/ForestAdmin/agent-python/issues/320)) ([186311c](https://github.com/ForestAdmin/agent-python/commit/186311c53f9a9a924481485e1eb2cc0ca2bbe5ed))
+
 ## [1.22.9](https://github.com/ForestAdmin/agent-python/compare/v1.22.8...v1.22.9) (2025-03-05)
 
 
