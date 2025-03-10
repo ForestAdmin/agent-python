@@ -1,3 +1,10 @@
+## [1.22.11](https://github.com/ForestAdmin/agent-python/compare/v1.22.10...v1.22.11) (2025-03-10)
+
+
+### Bug Fixes
+
+* replace marshmallow_jsonapi which is now unmaintained ([#312](https://github.com/ForestAdmin/agent-python/issues/312)) ([a101d6c](https://github.com/ForestAdmin/agent-python/commit/a101d6c3b94c3b99e654db10ab9c2802b710121b))
+
 ## [1.22.10](https://github.com/ForestAdmin/agent-python/compare/v1.22.9...v1.22.10) (2025-03-07)
 
 
