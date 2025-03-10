@@ -20,6 +20,13 @@ typing-extensions = "~=4.2"
 django = ">=3.2,<5.2"
 forestadmin-datasource-toolkit = "1.22.11"
 forestadmin-agent-toolkit = "1.22.11"
+[[tool.poetry.dependencies.pandas]]
+version = ">=1.4.0"
+python = "<3.13.0"
+
+[[tool.poetry.dependencies.pandas]]
+version = ">=2.2.3"
+python = ">=3.13.0"
 
 [tool.pytest.ini_options]
 DJANGO_SETTINGS_MODULE = "test_project_datasource.settings"

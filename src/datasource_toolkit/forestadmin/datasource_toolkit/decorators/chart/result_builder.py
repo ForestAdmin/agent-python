@@ -1,8 +1,6 @@
-import enum
 from datetime import date, datetime
 from typing import Dict, List, Optional, TypedDict, Union
 
-import pandas as pd
 from forestadmin.datasource_toolkit.interfaces.chart import (
     DistributionChart,
     LeaderboardChart,
@@ -14,52 +12,16 @@ from forestadmin.datasource_toolkit.interfaces.chart import (
     ValueChart,
 )
 from forestadmin.datasource_toolkit.interfaces.query.aggregation import DateOperation, DateOperationLiteral
-from forestadmin.datasource_toolkit.interfaces.query.condition_tree.transforms.time import Frequency
-
-
-class _DateRangeFrequency(enum.Enum):
-    Day: str = "days"
-    Week: str = "weeks"
-    Month: str = "months"
-    Year: str = "years"
-
+from forestadmin.datasource_toolkit.utils.date_utils import (
+    DATE_OPERATION_STR_FORMAT_FN,
+    make_formatted_date_range,
+    parse_date,
+)
 
 MultipleTimeBasedLines = List[TypedDict("Line", {"label": str, "values": List[Union[int, float, None]]})]
 
 
-def _parse_date(date_input: Union[str, date, datetime]) -> date:
-    if isinstance(date_input, str):
-        return datetime.fromisoformat(date_input).date()
-    elif isinstance(date_input, datetime):
-        return date_input.date()
-    elif isinstance(date_input, date):
-        return date_input
-
-
-def _make_formatted_date_range(
-    first: Union[date, datetime], last: Union[date, datetime], frequency: _DateRangeFrequency, format_: str
-):
-    current = first
-    used = set()
-    while current <= last:
-        yield current.strftime(format_)
-        used.add(current.strftime(format_))
-        current = (current + pd.DateOffset(**{frequency.value: 1})).date()
-
-    if last.strftime(format_) not in used:
-        yield last.strftime(format_)
-
-
 class ResultBuilder:
-    FREQUENCIES = {"Day": Frequency.DAY, "Week": Frequency.WEEK, "Month": Frequency.MONTH, "Year": Frequency.YEAR}
-
-    FORMATS: Dict[DateOperation, str] = {
-        DateOperation.DAY: "%d/%m/%Y",
-        DateOperation.WEEK: "W%V-%G",
-        DateOperation.MONTH: "%b %Y",
-        DateOperation.YEAR: "%Y",
-    }
-
     @staticmethod
     def value(value: Union[int, float], previous_value: Optional[Union[int, float]] = None) -> ValueChart:
         return ValueChart(countCurrent=value, countPrevious=previous_value)
@@ -181,12 +143,12 @@ class ResultBuilder:
         """
         if len(points) == 0:
             return []
-        points_in_date_time = [{"date": _parse_date(point["date"]), "value": point["value"]} for point in points]
-        format_ = ResultBuilder.FORMATS[DateOperation(time_range)]
+        points_in_date_time = [{"date": parse_date(point["date"]), "value": point["value"]} for point in points]
+        format_fn = DATE_OPERATION_STR_FORMAT_FN[DateOperation(time_range)]
 
         formatted = {}
         for point in points_in_date_time:
-            label = point["date"].strftime(format_)
+            label = format_fn(point["date"])
             if point["value"] is not None:
                 formatted[label] = formatted.get(label, 0) + point["value"]
 
@@ -194,8 +156,6 @@ class ResultBuilder:
         dates = sorted([p["date"] for p in points_in_date_time])
         first = dates[0]
         last = dates[-1]
-        for label in _make_formatted_date_range(
-            first, last, _DateRangeFrequency[DateOperation(time_range).value], format_
-        ):
+        for label in make_formatted_date_range(first, last, DateOperation(time_range)):
             data_points.append({"label": label, "values": {"value": formatted.get(label, 0)}})
         return data_points

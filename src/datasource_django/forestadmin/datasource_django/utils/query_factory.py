@@ -2,6 +2,7 @@ from collections import defaultdict
 from datetime import date, datetime
 from typing import Any, Dict, List, Optional, Set, Tuple
 
+import pandas as pd
 from django.db import models
 from forestadmin.datasource_django.exception import DjangoDatasourceException
 from forestadmin.datasource_django.interface import BaseDjangoCollection
@@ -311,6 +312,7 @@ class DjangoQueryGroupByHelper:
         DateOperation.DAY: "__day",
         DateOperation.WEEK: "__week",
         DateOperation.MONTH: "__month",
+        DateOperation.QUARTER: "__quarter",
         DateOperation.YEAR: "__year",
     }
 
@@ -330,6 +332,11 @@ class DjangoQueryGroupByHelper:
             return [
                 cls.DATE_OPERATION_SUFFIX_MAPPING[DateOperation.YEAR],
                 cls.DATE_OPERATION_SUFFIX_MAPPING[DateOperation.WEEK],
+            ]
+        if group["operation"] == DateOperation.QUARTER:
+            return [
+                cls.DATE_OPERATION_SUFFIX_MAPPING[DateOperation.YEAR],
+                cls.DATE_OPERATION_SUFFIX_MAPPING[DateOperation.QUARTER],
             ]
         if group["operation"] == DateOperation.DAY:
             return [
@@ -379,6 +386,12 @@ class DjangoQueryGroupByHelper:
             str_year_week = f'{row[f"{date_field}__year"]}-W{row[f"{date_field}__week"]}'
             row_date = datetime.strptime(str_year_week + "-1", "%Y-W%W-%w")
             return row_date.date()
+
+        if date_operation == DateOperation.QUARTER:
+            end_of_quarter_date = (
+                pd.Timestamp(row[f"{date_field}__year"], (row[f"{date_field}__quarter"] * 3), 1) + pd.offsets.MonthEnd()
+            )
+            return end_of_quarter_date.date()
 
         if date_operation == DateOperation.DAY:
             return date(row[f"{date_field}__year"], row[f"{date_field}__month"], row[f"{date_field}__day"])

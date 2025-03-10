@@ -512,6 +512,21 @@ class TestDjangoCollectionCRUDAggregateByDate(TestDjangoCollectionCRUDAggregateB
             ],
         )
 
+    async def test_should_work_by_quarter(self):
+        ret = await self.rating_collection.aggregate(
+            self.mocked_caller,
+            Filter({}),
+            Aggregation(
+                {
+                    "operation": "Sum",
+                    "field": "rating",
+                    "groups": [{"field": "rated_at", "operation": DateOperation.QUARTER}],
+                }
+            ),
+        )
+        self.assertIn({"value": 16, "group": {"rated_at": datetime.date(2023, 3, 31)}}, ret)
+        self.assertIn({"value": 1, "group": {"rated_at": datetime.date(2022, 12, 31)}}, ret)
+
     async def test_should_work_by_month(self):
         ret = await self.rating_collection.aggregate(
             self.mocked_caller,
