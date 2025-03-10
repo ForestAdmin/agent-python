@@ -5,7 +5,7 @@ build-backend = "poetry.core.masonry.api"
 [tool.poetry]
 name = "forestadmin-agent-toolkit"
 description = "agent toolkit for forestadmin python agent"
-version = "1.22.11"
+version = "1.23.0"
 authors = [ "Valentin Monté <valentinm@forestadmin.com>", "Julien Barreau <julien.barreau@forestadmin.com>",]
 readme = "README.md"
 repository = "https://github.com/ForestAdmin/agent-python"
@@ -22,8 +22,7 @@ oic = "~=1.4"
 pyjwt = "^2"
 cachetools = "~=5.2"
 sseclient-py = "^1.5"
-forestadmin-datasource-toolkit = "1.22.11"
-
+forestadmin-datasource-toolkit = "1.23.0"
 
 [tool.poetry.dependencies."backports.zoneinfo"]
 version = "~0.2.1"

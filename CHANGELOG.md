@@ -1,3 +1,10 @@
+# [1.23.0](https://github.com/ForestAdmin/agent-python/compare/v1.22.11...v1.23.0) (2025-03-10)
+
+
+### Features
+
+* **chart:** add quarter aggregation ([#315](https://github.com/ForestAdmin/agent-python/issues/315)) ([f0ac657](https://github.com/ForestAdmin/agent-python/commit/f0ac657e29d57f4c2677e5fc01579a1ad386e122))
+
 ## [1.22.11](https://github.com/ForestAdmin/agent-python/compare/v1.22.10...v1.22.11) (2025-03-10)
 
 
