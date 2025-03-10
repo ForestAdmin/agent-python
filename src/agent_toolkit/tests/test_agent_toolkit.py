@@ -252,10 +252,8 @@ class TestAgent(TestCase):
 
         agent.customizer.customize_collection.assert_called_once_with(collection_name)
 
-    @patch("forestadmin.agent_toolkit.agent.create_json_api_schema")
     def test_start(
         self,
-        mocked_create_json_api_schema,
         mocked_schema_emitter__get_serialized_schema,
         mocked_forest_http_api__send_schema,
         mocked_native_query_resource,
@@ -283,12 +281,10 @@ class TestAgent(TestCase):
                 self.loop.run_until_complete(agent._start())
             self.assertEqual(logger.output, ["DEBUG:forestadmin:Starting agent", "DEBUG:forestadmin:Agent started"])
 
-        mocked_create_json_api_schema.assert_called_once_with("fake_collection")
         mocked_schema_emitter__get_serialized_schema.assert_called_once()
         mocked_forest_http_api__send_schema.assert_called_once()
 
         # test we can only launch start once
-        mocked_create_json_api_schema.reset_mock()
         mocked_schema_emitter__get_serialized_schema.reset_mock()
         mocked_forest_http_api__send_schema.reset_mock()
 
@@ -296,7 +292,6 @@ class TestAgent(TestCase):
             self.loop.run_until_complete(agent._start())
             self.assertEqual(logger.output, ["DEBUG:forestadmin:Agent already started."])
 
-        mocked_create_json_api_schema.assert_not_called()
         mocked_schema_emitter__get_serialized_schema.assert_not_called()
         mocked_forest_http_api__send_schema.assert_not_called()
 

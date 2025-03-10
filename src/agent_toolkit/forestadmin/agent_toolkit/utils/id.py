@@ -2,6 +2,7 @@ from ast import literal_eval
 from typing import Any, List, cast
 from uuid import UUID
 
+from forestadmin.agent_toolkit.exceptions import AgentToolkitException
 from forestadmin.datasource_toolkit.collections import CollectionSchema
 from forestadmin.datasource_toolkit.interfaces.fields import Column, PrimitiveType
 from forestadmin.datasource_toolkit.interfaces.records import CompositeIdAlias, RecordsDataAlias
@@ -9,7 +10,7 @@ from forestadmin.datasource_toolkit.utils.schema import SchemaUtils
 from forestadmin.datasource_toolkit.validations.field import FieldValidator, FieldValidatorException
 
 
-class IdException(BaseException):
+class IdException(AgentToolkitException):
     pass
 
 

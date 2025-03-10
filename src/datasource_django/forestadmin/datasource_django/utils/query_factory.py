@@ -184,7 +184,7 @@ class DjangoQueryBuilder:
                 }
 
             qs = qs.aggregate(**aggregate_kwargs)
-            value = float(qs[aggregated_field])
+            value = float(qs.get(aggregated_field, 0))
             return [{"value": value, "group": {}}]
 
         else:

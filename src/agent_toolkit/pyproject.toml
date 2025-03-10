@@ -21,8 +21,6 @@ aiohttp = "~=3.9"
 oic = "~=1.4"
 pyjwt = "^2"
 cachetools = "~=5.2"
-marshmallow-jsonapi = ">=0.24.0, <1.0"
-marshmallow = "<3.24.0"
 sseclient-py = "^1.5"
 forestadmin-datasource-toolkit = "1.22.10"
 [[tool.poetry.dependencies.pandas]]

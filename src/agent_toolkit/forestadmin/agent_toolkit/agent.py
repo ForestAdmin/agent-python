@@ -15,7 +15,6 @@ from forestadmin.agent_toolkit.resources.security.resources import Authenticatio
 from forestadmin.agent_toolkit.services.permissions.ip_whitelist_service import IpWhiteListService
 from forestadmin.agent_toolkit.services.permissions.permission_service import PermissionService
 from forestadmin.agent_toolkit.services.permissions.sse_cache_invalidation import SSECacheInvalidation
-from forestadmin.agent_toolkit.services.serializers.json_api import create_json_api_schema
 from forestadmin.agent_toolkit.utils.context import HttpResponseBuilder
 from forestadmin.agent_toolkit.utils.forest_schema.emitter import SchemaEmitter
 from forestadmin.agent_toolkit.utils.forest_schema.type import AgentMeta
@@ -234,9 +233,6 @@ class Agent:
                 ForestLogger.log("warning", "Cannot send the apimap to Forest. Are you online?")
         else:
             ForestLogger.log("warning", 'Schema update was skipped (caused by options["skip_schema_update"]=True)')
-
-        for collection in (await self.customizer.get_datasource()).collections:
-            create_json_api_schema(collection)
 
         if self.options["instant_cache_refresh"]:
             self._sse_thread.start()
