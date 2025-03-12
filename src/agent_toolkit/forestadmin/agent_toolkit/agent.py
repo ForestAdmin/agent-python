@@ -71,6 +71,20 @@ class Agent:
         if hasattr(self, "_sse_thread") and self._sse_thread.is_alive():
             self._sse_thread.stop()
 
+    async def reload(self):
+        try:
+            await self.customizer._reload()
+        except Exception as exc:
+            ForestLogger.log("error", f"Error reloading agent: {exc}")
+            return
+
+        self._resources = None
+        Agent.__IS_INITIALIZED = False
+        if hasattr(self, "_sse_thread") and self._sse_thread.is_alive():
+            self._sse_thread.stop()
+        self._sse_thread = SSECacheInvalidation(self._permission_service, self.options)
+        await self._start()
+
     async def __mk_resources(self):
         self._resources: Resources = {
             "capabilities": CapabilitiesResource(
