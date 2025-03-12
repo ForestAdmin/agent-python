@@ -1,0 +1,24 @@
+[build-system]
+requires = [ "poetry-core",]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry]
+name = "forestadmin-rpc-common"
+description = "common files for rpc server and client"
+version = "1.23.0"
+authors = [ "Julien Barreau <julien.barreau@forestadmin.com>",]
+readme = "README.md"
+repository = "https://github.com/ForestAdmin/agent-python"
+documentation = "https://docs.forestadmin.com/developer-guide-agents-python/"
+homepage = "https://www.forestadmin.com"
+[[tool.poetry.packages]]
+include = "forestadmin"
+
+[tool.poetry.dependencies]
+python = ">=3.8,<3.14"
+grpcio = ">1.7.0"
+grpcio-tools = { version = "*", optional = true }
+
+[tool.poe.tasks]
+cleanup  = { shell = "find forestadmin/rpc_common/proto -name '*.py*' -exec rm -f {} \\;" }
+build  = { shell = "python -m grpc_tools.protoc -I./ --python_out=. --pyi_out=.  --grpc_python_out=. forestadmin/rpc_common/proto/*.proto" }

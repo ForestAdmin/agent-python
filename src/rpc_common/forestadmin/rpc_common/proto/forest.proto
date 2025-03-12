@@ -1,0 +1,49 @@
+syntax = "proto3";
+
+package datasource_rpc;
+import "google/protobuf/any.proto";
+import "google/protobuf/struct.proto";
+
+message Caller {
+    int32 RendererId = 1;
+    int32 UserId = 2;
+    map<string, string> Tags = 3;
+    string Email = 4;
+    string FirstName = 5;
+    string LastName = 6;
+    string Team = 7;
+    string Timezone = 8;
+    message Request{
+        string Ip = 1;
+    }
+}
+
+
+
+enum ActionScope{
+    GLOBAL = 0;
+    SINGLE = 1;
+    BULK = 2;
+}
+// message ActionFormSchema{}
+message ActionSchema{
+    ActionScope scope = 1;
+    bool generateFile = 2;
+    optional string description = 3;
+    optional string submitButtonLabel = 3;
+}
+
+message CollectionSchema{
+    string name = 1;
+    map<string, ActionSchema> actions = 2;
+    map<string, google.protobuf.Struct> fields = 3;
+    repeated string charts = 4;
+    bool searchable = 5;
+    bool countable = 6;
+    repeated string segments = 7;
+}
+message DataSourceSchema {
+    repeated string Charts = 1;
+    repeated string ConnectionNames = 2;
+    repeated CollectionSchema Collections = 3;
+}
