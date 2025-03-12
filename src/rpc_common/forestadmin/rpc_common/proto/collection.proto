@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+package datasource_rpc;
+import "google/protobuf/any.proto";
+import "google/protobuf/struct.proto";
+import "forestadmin/rpc_common/proto/forest.proto";
+
+
+
+service Collection {
+    // Define your RPC methods here
+    rpc RenderChart (CollectionChartRequest) returns (google.protobuf.Any);
+    // crud
+    rpc Create (CreateRequest) returns (google.protobuf.Any);
+}
+
+message CollectionChartRequest{
+    Caller caller = 1;
+    string ChartName = 2;
+    google.protobuf.Any RecordId = 3;
+}
+
+message CreateRequest{
+    Caller Caller = 1;
+    repeated google.protobuf.Struct RecordData = 2;
+}
