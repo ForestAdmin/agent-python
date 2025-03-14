@@ -49,19 +49,22 @@ class DatasourceCustomizer:
             options (DataSourceOptions, optional): the options
         """
         _options: DataSourceOptions = DataSourceOptions() if options is None else options
-        _datasource = datasource
-        if "include" in _options or "exclude" in _options:
-            publication_decorator = PublicationDataSourceDecorator(_datasource)
-            publication_decorator.keep_collections_matching(_options.get("include", []), _options.get("exclude", []))
-            _datasource = publication_decorator
-
-        if "rename" in _options:
-            rename_decorator = RenameCollectionDataSourceDecorator(_datasource)
-            rename_decorator.rename_collections(_options.get("rename", {}))
-            _datasource = rename_decorator
 
         async def _add_datasource():
-            nonlocal _datasource
+            nonlocal datasource
+            _datasource = datasource
+
+            if "include" in _options or "exclude" in _options:
+                publication_decorator = PublicationDataSourceDecorator(_datasource)
+                publication_decorator.keep_collections_matching(
+                    _options.get("include", []), _options.get("exclude", [])
+                )
+                _datasource = publication_decorator
+
+            if "rename" in _options:
+                rename_decorator = RenameCollectionDataSourceDecorator(_datasource)
+                rename_decorator.rename_collections(_options.get("rename", {}))
+                _datasource = rename_decorator
 
             self.composite_datasource.add_datasource(_datasource)
 
