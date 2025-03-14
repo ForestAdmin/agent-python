@@ -106,7 +106,7 @@ class DecoratorStack:
             setattr(self, decorator_name, instance)
 
     async def _reload(self, datasource: Datasource):
-        stack_backup = self._backup_stack()
+        backup_stack = self._backup_stack()
 
         self._customizations: List = self._applied_customizations
         self._applied_customizations: List = list()
@@ -115,7 +115,7 @@ class DecoratorStack:
             await self.apply_queue_customization()
         except Exception as e:
             ForestLogger.log("exception", f"Error while reloading customizations: {e}, restoring previous state")
-            self._restore_stack(stack_backup)
+            self._restore_stack(backup_stack)
             raise e
 
     def queue_customization(self, customization: Callable[[], Awaitable[None]]):
