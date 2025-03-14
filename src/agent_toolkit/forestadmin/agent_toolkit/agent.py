@@ -79,11 +79,8 @@ class Agent:
             return
 
         self._resources = None
-        Agent.__IS_INITIALIZED = False
-        if hasattr(self, "_sse_thread") and self._sse_thread.is_alive():
-            self._sse_thread.stop()
-        self._sse_thread = SSECacheInvalidation(self._permission_service, self.options)
-        await self._start()
+        await self.__mk_resources()
+        await self.send_schema()
 
     async def __mk_resources(self):
         self._resources: Resources = {
@@ -233,6 +230,15 @@ class Agent:
             return
         ForestLogger.log("debug", "Starting agent")
 
+        await self.send_schema()
+
+        if self.options["instant_cache_refresh"]:
+            self._sse_thread.start()
+
+        ForestLogger.log("debug", "Agent started")
+        Agent.__IS_INITIALIZED = True
+
+    async def send_schema(self):
         if self.options["skip_schema_update"] is False:
             try:
                 api_map = await SchemaEmitter.get_serialized_schema(
