@@ -59,6 +59,7 @@ LITERAL_OPERATORS = Literal[
     "starts_with",
     "ends_with",
     "contains",
+    "match",
     "not_contains",
     "longer_than",
     "shorter_than",
