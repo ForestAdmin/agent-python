@@ -253,9 +253,3 @@ class Agent:
                 ForestLogger.log("warning", "Cannot send the apimap to Forest. Are you online?")
         else:
             ForestLogger.log("warning", 'Schema update was skipped (caused by options["skip_schema_update"]=True)')
-
-        if self.options["instant_cache_refresh"]:
-            self._sse_thread.start()
-
-        ForestLogger.log("debug", "Agent started")
-        Agent.__IS_INITIALIZED = True
