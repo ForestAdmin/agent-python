@@ -1,0 +1,77 @@
+[build-system]
+requires = [ "poetry-core",]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry]
+name = "forestadmin-agent-rpc"
+description = "server for datasource rpc"
+version = "1.23.0"
+authors = [  "Julien Barreau <julien.barreau@forestadmin.com>",]
+readme = "README.md"
+repository = "https://github.com/ForestAdmin/agent-python"
+documentation = "https://docs.forestadmin.com/developer-guide-agents-python/"
+homepage = "https://www.forestadmin.com"
+[[tool.poetry.packages]]
+include = "forestadmin"
+
+[tool.poetry.dependencies]
+python = ">=3.8,<3.14"
+typing-extensions = "~=4.2"
+forestadmin-agent-toolkit = "1.23.0"
+forestadmin-datasource-toolkit = "1.23.0"
+forestadmin-rpc-common = "1.23.0"
+
+[tool.poetry.dependencies."backports.zoneinfo"]
+version = "~=0.2.1"
+python = "<3.9"
+extras = [ "tzdata",]
+
+[tool.poetry.group.test]
+optional = true
+
+[tool.poetry.group.linter]
+optional = true
+
+[tool.poetry.group.formatter]
+optional = true
+
+[tool.poetry.group.sorter]
+optional = true
+
+[tool.poetry.group.test.dependencies]
+pytest = "~=7.1"
+pytest-asyncio = "~=0.18"
+coverage = "~=6.5"
+pytest-cov = "^4.0.0"
+sqlalchemy = ">=1.4.0"
+
+[tool.poetry.group.linter.dependencies]
+[[tool.poetry.group.linter.dependencies.flake8]]
+version = "~=5.0"
+python = "<3.8.1"
+
+[[tool.poetry.group.linter.dependencies.flake8]]
+version = "~=6.0"
+python = ">=3.8.1"
+
+[tool.poetry.group.formatter.dependencies]
+black = "~=22.10"
+
+[tool.poetry.group.sorter.dependencies]
+isort = "~=3.6"
+
+[tool.poetry.group.test.dependencies.forestadmin-datasource-toolkit]
+path = "../datasource_toolkit"
+develop = true
+
+[tool.poetry.group.test.dependencies.forestadmin-datasource-sqlalchemy]
+path = "../datasource_sqlalchemy"
+develop = true
+
+[tool.poetry.group.test.dependencies.forestadmin-agent-toolkit]
+path = "../agent_toolkit"
+develop = true
+
+[tool.poetry.group.test.dependencies.forestadmin-rpc-common]
+path = "../rpc_common"
+develop = true
