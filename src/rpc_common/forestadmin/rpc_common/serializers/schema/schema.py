@@ -4,7 +4,6 @@ from typing import Any, Union, cast
 
 from forestadmin.datasource_toolkit.collections import Collection
 from forestadmin.datasource_toolkit.datasources import Datasource
-from forestadmin.datasource_toolkit.interfaces.actions import ActionFieldType, ActionsScope
 from forestadmin.datasource_toolkit.interfaces.fields import (
     Column,
     FieldAlias,
@@ -20,7 +19,8 @@ from forestadmin.datasource_toolkit.interfaces.fields import (
     is_polymorphic_one_to_many,
     is_polymorphic_one_to_one,
 )
-from forestadmin.rpc_common.serializers.utils import OperatorSerializer, enum_to_str_or_value, snake_to_camel_case
+from forestadmin.rpc_common.serializers.actions import ActionSerializer
+from forestadmin.rpc_common.serializers.utils import OperatorSerializer, enum_to_str_or_value
 
 
 def serialize_column_type(column_type: Union[Enum, Any]) -> Union[str, dict, list]:
@@ -70,7 +70,7 @@ class SchemaSerializer:
                 for field in sorted(collection.schema["fields"].keys())
             },
             "actions": {
-                action_name: await self._serialize_action(action_name, collection)
+                action_name: await ActionSerializer.serialize(action_name, collection)
                 for action_name in sorted(collection.schema["actions"].keys())
             },
             "segments": sorted(collection.schema["segments"]),
@@ -162,50 +162,6 @@ class SchemaSerializer:
             )
         return serialized_field
 
-    async def _serialize_action(self, action_name: str, collection: Collection) -> dict:
-        action = collection.schema["actions"][action_name]
-        if not action.static_form:
-            form = None
-        else:
-            form = await collection.get_form(None, action_name, None, None)  # type:ignore
-            # fields, layout = SchemaActionGenerator.extract_fields_and_layout(form)
-            # fields = [
-            #     await SchemaActionGenerator.build_field_schema(collection.datasource, field) for field in fields
-            # ]
-
-        return {
-            "scope": action.scope.value,
-            "generateFile": action.generate_file or False,
-            "staticForm": action.static_form or False,
-            "description": action.description,
-            "submitButtonLabel": action.submit_button_label,
-            "form": await self._serialize_action_form(form) if form is not None else None,
-        }
-
-    async def _serialize_action_form(self, form) -> list[dict]:
-        serialized_form = []
-
-        for field in form:
-            if field["type"] == ActionFieldType.LAYOUT:
-                if field["component"] == "Page":
-                    serialized_form.append(
-                        {**field, "type": "Layout", "elements": await self._serialize_action_form(field["elements"])}
-                    )
-
-                if field["component"] == "Row":
-                    serialized_form.append(
-                        {**field, "type": "Layout", "fields": await self._serialize_action_form(field["fields"])}
-                    )
-            else:
-                serialized_form.append(
-                    {
-                        **{snake_to_camel_case(k): v for k, v in field.items()},
-                        "type": enum_to_str_or_value(field["type"]),
-                    }
-                )
-
-        return serialized_form
-
 
 class SchemaDeserializer:
     VERSION = "1.0"
@@ -228,7 +184,8 @@ class SchemaDeserializer:
         return {
             "fields": {field: self._deserialize_field(collection["fields"][field]) for field in collection["fields"]},
             "actions": {
-                action_name: self._deserialize_action(action) for action_name, action in collection["actions"].items()
+                action_name: ActionSerializer.deserialize(action)
+                for action_name, action in collection["actions"].items()
             },
             "segments": collection["segments"],
             "countable": collection["countable"],
@@ -308,45 +265,3 @@ class SchemaDeserializer:
                 "through_collection": relation["throughCollection"],
             }
         raise ValueError(f"Unsupported relation type {relation['type']}")
-
-    def _deserialize_action(self, action: dict) -> dict:
-        return {
-            "scope": ActionsScope(action["scope"]),
-            "generate_file": action["generateFile"],
-            "static_form": action["staticForm"],
-            "description": action["description"],
-            "submit_button_label": action["submitButtonLabel"],
-            "form": self._deserialize_action_form(action["form"]) if action["form"] is not None else None,
-        }
-
-    def _deserialize_action_form(self, form: list) -> list[dict]:
-        deserialized_form = []
-
-        for field in form:
-            if field["type"] == "Layout":
-                if field["component"] == "Page":
-                    deserialized_form.append(
-                        {
-                            **field,
-                            "type": ActionFieldType("Layout"),
-                            "elements": self._deserialize_action_form(field["elements"]),
-                        }
-                    )
-
-                if field["component"] == "Row":
-                    deserialized_form.append(
-                        {
-                            **field,
-                            "type": ActionFieldType("Layout"),
-                            "fields": self._deserialize_action_form(field["fields"]),
-                        }
-                    )
-            else:
-                deserialized_form.append(
-                    {
-                        **{snake_to_camel_case(k): v for k, v in field.items()},
-                        "type": ActionFieldType(field["type"]),
-                    }
-                )
-
-        return deserialized_form
