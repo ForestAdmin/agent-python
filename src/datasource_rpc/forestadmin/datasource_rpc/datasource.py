@@ -4,6 +4,7 @@ import os
 import signal
 import time
 from threading import Thread, Timer
+from typing import Any, Dict
 
 import grpc
 import urllib3
@@ -11,8 +12,13 @@ from forestadmin.agent_toolkit.utils.context import User
 from forestadmin.datasource_rpc.collection import RPCCollection
 from forestadmin.datasource_rpc.reloadable_datasource import ReloadableDatasource
 from forestadmin.datasource_toolkit.datasources import Datasource
+from forestadmin.datasource_toolkit.decorators.action.collections import ActionCollectionDecorator
+from forestadmin.datasource_toolkit.interfaces.actions import Action, ActionsScope
 from forestadmin.datasource_toolkit.interfaces.chart import Chart
+from forestadmin.rpc_common.hmac import generate_hmac
+from forestadmin.rpc_common.serializers.aes import aes_decrypt, aes_encrypt
 from forestadmin.rpc_common.serializers.schema.schema import SchemaDeserializer
+from forestadmin.rpc_common.serializers.utils import CallerSerializer
 from sseclient import SSEClient
 
 # from forestadmin.rpc_common.proto import datasource_pb2_grpc
@@ -20,9 +26,12 @@ from sseclient import SSEClient
 
 
 class RPCDatasource(Datasource, ReloadableDatasource):
-    def __init__(self, connection_uri: str):
+    def __init__(self, connection_uri: str, secret_key: str):
         super().__init__([])
         self.connection_uri = connection_uri
+        self.secret_key = secret_key
+        self.aes_key = secret_key[:16].encode()
+        self.aes_iv = secret_key[-16:].encode()
         # res = asyncio.run(self.connect_sse())
         # Timer(5, self.internal_reload).start()
         # self.trigger_reload()
@@ -45,9 +54,17 @@ class RPCDatasource(Datasource, ReloadableDatasource):
         self._live_query_connections = schema_data["live_query_connections"]
 
     def create_collection(self, collection_name, collection_schema):
-        collection = RPCCollection(collection_name, self, self.connection_uri)
+        collection = RPCCollection(collection_name, self, self.connection_uri, self.secret_key)
         for name, field in collection_schema["fields"].items():
             collection.add_field(name, field)
+
+        if len(collection_schema["actions"]) > 0:
+            # collection = ActionCollectionDecorator(collection, self)
+            for action_name, action_schema in collection_schema["actions"].items():
+                collection.add_rpc_action(action_name, action_schema)
+
+        collection._schema["charts"] = {name: None for name in collection_schema["charts"]}
+
         self.add_collection(collection)
 
     def run(self):
@@ -103,5 +120,49 @@ class RPCDatasource(Datasource, ReloadableDatasource):
 
     # def reload_agent(self):
     #     os.kill(os.getpid(), signal.SIGUSR1)
+
+    async def execute_native_query(self, connection_name: str, native_query: str, parameters: Dict[str, str]) -> Any:
+        body = aes_encrypt(
+            json.dumps(
+                {
+                    "connectionName": connection_name,
+                    "nativeQuery": native_query,
+                    "parameters": parameters,
+                }
+            ),
+            self.aes_key,
+            self.aes_iv,
+        )
+        response = self.http.request(
+            "POST",
+            f"http://{self.connection_uri}/execute-native-query",
+            body=body,
+            headers={"X-FOREST-HMAC": generate_hmac(self.secret_key.encode("utf-8"), body.encode("utf-8"))},
+        )
+        ret = aes_decrypt(response.data.decode("utf-8"), self.aes_key, self.aes_iv)
+        ret = json.loads(ret)
+        return ret
+
     async def render_chart(self, caller: User, name: str) -> Chart:
-        raise Exception("Not implemented")
+        if name not in self._schema["charts"].keys():
+            raise ValueError(f"Chart {name} does not exist in this datasource")
+
+        body = aes_encrypt(
+            json.dumps(
+                {
+                    "caller": CallerSerializer.serialize(caller) if caller is not None else None,
+                    "name": name,
+                }
+            ),
+            self.aes_key,
+            self.aes_iv,
+        )
+        response = self.http.request(
+            "POST",
+            f"http://{self.connection_uri}/render-chart",
+            body=body,
+            headers={"X-FOREST-HMAC": generate_hmac(self.secret_key.encode("utf-8"), body.encode("utf-8"))},
+        )
+        ret = aes_decrypt(response.data.decode("utf-8"), self.aes_key, self.aes_iv)
+        ret = json.loads(ret)
+        return ret
