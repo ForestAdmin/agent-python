@@ -49,7 +49,7 @@ class SchemaSerializer:
     def __init__(self, datasource: Datasource) -> None:
         self.datasource = datasource
 
-    async def serialize(self) -> str:
+    async def serialize(self) -> dict:
         value = {
             "version": self.VERSION,
             "data": {
@@ -61,7 +61,7 @@ class SchemaSerializer:
                 },
             },
         }
-        return json.dumps(value)
+        return value
 
     async def _serialize_collection(self, collection: Collection) -> dict:
         return {
@@ -166,8 +166,7 @@ class SchemaSerializer:
 class SchemaDeserializer:
     VERSION = "1.0"
 
-    def deserialize(self, json_schema) -> dict:
-        schema = json.loads(json_schema)
+    def deserialize(self, schema) -> dict:
         if schema["version"] != self.VERSION:
             raise ValueError(f"Unsupported schema version {schema['version']}")
 
