@@ -1,14 +1,12 @@
 import asyncio
 import hashlib
 import json
-import os
-import signal
 import time
-from threading import Thread, Timer
+from threading import Thread
 from typing import Any, Dict
 
-import grpc
 import urllib3
+from forestadmin.agent_toolkit.agent import Agent
 from forestadmin.agent_toolkit.forest_logger import ForestLogger
 from forestadmin.agent_toolkit.utils.context import User
 from forestadmin.datasource_rpc.collection import RPCCollection
