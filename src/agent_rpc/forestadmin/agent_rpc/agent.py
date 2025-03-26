@@ -14,7 +14,11 @@ from forestadmin.agent_toolkit.agent import Agent
 from forestadmin.datasource_toolkit.interfaces.fields import PrimitiveType
 from forestadmin.datasource_toolkit.utils.schema import SchemaUtils
 from forestadmin.rpc_common.hmac import is_valid_hmac
-from forestadmin.rpc_common.serializers.actions import ActionFormSerializer, ActionResultSerializer
+from forestadmin.rpc_common.serializers.actions import (
+    ActionFormSerializer,
+    ActionFormValuesSerializer,
+    ActionResultSerializer,
+)
 from forestadmin.rpc_common.serializers.aes import aes_decrypt, aes_encrypt
 from forestadmin.rpc_common.serializers.collection.aggregation import AggregationSerializer
 from forestadmin.rpc_common.serializers.collection.filter import (
@@ -108,7 +112,7 @@ class RpcAgent(Agent):
     async def schema(self, request):
         await self.customizer.get_datasource()
 
-        return web.Response(text=await SchemaSerializer(await self.customizer.get_datasource()).serialize())
+        return web.Response(text=json.dumps(await SchemaSerializer(await self.customizer.get_datasource()).serialize()))
 
     async def collection_list(self, request: web.Request):
         body_params = await request.json()
@@ -183,7 +187,7 @@ class RpcAgent(Agent):
         caller = CallerSerializer.deserialize(body_params["caller"]) if body_params["caller"] else None
         action_name = body_params["actionName"]
         filter_ = FilterSerializer.deserialize(body_params["filter"], collection) if body_params["filter"] else None
-        data = body_params["data"]
+        data = ActionFormValuesSerializer.deserialize(body_params["data"])
         meta = body_params["meta"]
 
         form = await collection.get_form(caller, action_name, data, filter_, meta)
@@ -202,7 +206,7 @@ class RpcAgent(Agent):
         caller = CallerSerializer.deserialize(body_params["caller"]) if body_params["caller"] else None
         action_name = body_params["actionName"]
         filter_ = FilterSerializer.deserialize(body_params["filter"], collection) if body_params["filter"] else None
-        data = body_params["data"]
+        data = ActionFormValuesSerializer.deserialize(body_params["data"])
 
         result = await collection.execute(caller, action_name, data, filter_)
         return web.Response(
