@@ -7,6 +7,7 @@ from forestadmin.datasource_toolkit.interfaces.actions import (
     ActionResult,
     ActionsScope,
     ErrorResult,
+    File,
     FileResult,
     RedirectResult,
     SuccessResult,
@@ -75,14 +76,72 @@ class ActionFormSerializer:
                         }
                     )
             else:
-                serialized_form.append(
-                    {
-                        **{snake_to_camel_case(k): v for k, v in field.items()},
-                        "type": enum_to_str_or_value(field["type"]),
-                    }
-                )
+                tmp_field = {
+                    **{snake_to_camel_case(k): v for k, v in field.items()},
+                    "type": enum_to_str_or_value(field["type"]),
+                }
+                if field["type"] == ActionFieldType.FILE:
+                    tmp_field.update(ActionFormSerializer._serialize_file_field(tmp_field))
+                    print(tmp_field.keys())
+                if field["type"] == ActionFieldType.FILE_LIST:
+                    tmp_field.update(ActionFormSerializer._serialize_file_list_field(tmp_field))
+                serialized_form.append(tmp_field)
 
         return serialized_form
+
+    @staticmethod
+    def _serialize_file_list_field(field: dict) -> dict:
+        ret = {}
+        if field.get("defaultValue"):
+            ret["defaultValue"] = [ActionFormSerializer._serialize_file_obj(v) for v in field["defaultValue"]]
+        if field.get("value"):
+            ret["value"] = [ActionFormSerializer._serialize_file_obj(v) for v in field["value"]]
+        return ret
+
+    @staticmethod
+    def _serialize_file_field(field: dict) -> dict:
+        ret = {}
+        if field.get("defaultValue"):
+            ret["defaultValue"] = ActionFormSerializer._serialize_file_obj(field["defaultValue"])
+        if field.get("value"):
+            ret["value"] = ActionFormSerializer._serialize_file_obj(field["value"])
+        return ret
+
+    @staticmethod
+    def _serialize_file_obj(f: File) -> dict:
+        return {
+            "mimeType": f.mime_type,
+            "name": f.name,
+            "stream": b64encode(f.buffer).decode("utf-8"),
+            "charset": f.charset,
+        }
+
+    @staticmethod
+    def _deserialize_file_obj(f: dict) -> File:
+        return File(
+            mime_type=f["mimeType"],
+            name=f["name"],
+            buffer=b64decode(f["stream"].encode("utf-8")),
+            charset=f["charset"],
+        )
+
+    @staticmethod
+    def _deserialize_file_field(field: dict) -> dict:
+        ret = {}
+        if field.get("default_value"):
+            ret["default_value"] = ActionFormSerializer._deserialize_file_obj(field["default_value"])
+        if field.get("value"):
+            ret["value"] = ActionFormSerializer._deserialize_file_obj(field["value"])
+        return ret
+
+    @staticmethod
+    def _deserialize_file_list_field(field: dict) -> dict:
+        ret = {}
+        if field.get("default_value"):
+            ret["default_value"] = [ActionFormSerializer._deserialize_file_obj(v) for v in field["default_value"]]
+        if field.get("value"):
+            ret["value"] = [ActionFormSerializer._deserialize_file_obj(v) for v in field["value"]]
+        return ret
 
     @staticmethod
     def deserialize(form: list) -> list[dict]:
@@ -108,14 +167,43 @@ class ActionFormSerializer:
                         }
                     )
             else:
-                deserialized_form.append(
-                    {
-                        **{camel_to_snake_case(k): v for k, v in field.items()},
-                        "type": ActionFieldType(field["type"]),
-                    }
-                )
+                tmp_field = {
+                    **{camel_to_snake_case(k): v for k, v in field.items()},
+                    "type": ActionFieldType(field["type"]),
+                }
+                if tmp_field["type"] == ActionFieldType.FILE:
+                    tmp_field.update(ActionFormSerializer._deserialize_file_field(tmp_field))
+                if tmp_field["type"] == ActionFieldType.FILE_LIST:
+                    tmp_field.update(ActionFormSerializer._deserialize_file_list_field(tmp_field))
+                deserialized_form.append(tmp_field)
 
         return deserialized_form
+
+
+class ActionFormValuesSerializer:
+    @staticmethod
+    def serialize(form_values: dict) -> dict:
+        ret = {}
+        for key, value in form_values.items():
+            if isinstance(value, File):
+                ret[key] = ActionFormSerializer._serialize_file_obj(value)
+            elif isinstance(value, list) and all(isinstance(v, File) for v in value):
+                ret[key] = [ActionFormSerializer._serialize_file_obj(v) for v in value]
+            else:
+                ret[key] = value
+        return ret
+
+    @staticmethod
+    def deserialize(form_values: dict) -> dict:
+        ret = {}
+        for key, value in form_values.items():
+            if isinstance(value, dict) and "mimeType" in value:
+                ret[key] = ActionFormSerializer._deserialize_file_obj(value)
+            elif isinstance(value, list) and all(isinstance(v, dict) and "mimeType" in v for v in value):
+                ret[key] = [ActionFormSerializer._deserialize_file_obj(v) for v in value]
+            else:
+                ret[key] = value
+        return ret
 
 
 class ActionResultSerializer:
