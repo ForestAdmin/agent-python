@@ -16,9 +16,3 @@ include = "forestadmin"
 
 [tool.poetry.dependencies]
 python = ">=3.8,<3.14"
-grpcio = ">1.7.0"
-grpcio-tools = { version = "*", optional = true }
-
-[tool.poe.tasks]
-cleanup  = { shell = "find forestadmin/rpc_common/proto -name '*.py*' -exec rm -f {} \\;" }
-build  = { shell = "python -m grpc_tools.protoc -I./ --python_out=. --pyi_out=.  --grpc_python_out=. forestadmin/rpc_common/proto/*.proto" }
