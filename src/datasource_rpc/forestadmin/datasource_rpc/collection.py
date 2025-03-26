@@ -16,7 +16,11 @@ from forestadmin.datasource_toolkit.interfaces.query.projections import Projecti
 from forestadmin.datasource_toolkit.interfaces.records import RecordsDataAlias
 from forestadmin.datasource_toolkit.utils.schema import SchemaUtils
 from forestadmin.rpc_common.hmac import generate_hmac
-from forestadmin.rpc_common.serializers.actions import ActionFormSerializer, ActionResultSerializer
+from forestadmin.rpc_common.serializers.actions import (
+    ActionFormSerializer,
+    ActionFormValuesSerializer,
+    ActionResultSerializer,
+)
 from forestadmin.rpc_common.serializers.aes import aes_decrypt, aes_encrypt
 from forestadmin.rpc_common.serializers.collection.aggregation import AggregationSerializer
 from forestadmin.rpc_common.serializers.collection.filter import (
@@ -158,7 +162,7 @@ class RPCCollection(Collection):
                 {
                     "caller": CallerSerializer.serialize(caller) if caller is not None else None,
                     "filter": FilterSerializer.serialize(filter_, self) if filter_ is not None else None,
-                    "data": data,
+                    "data": ActionFormValuesSerializer.serialize(data),
                     "meta": meta,
                     "collectionName": self.name,
                     "actionName": name,
@@ -192,7 +196,7 @@ class RPCCollection(Collection):
                 {
                     "caller": CallerSerializer.serialize(caller) if caller is not None else None,
                     "filter": FilterSerializer.serialize(filter_, self) if filter_ is not None else None,
-                    "data": data,
+                    "data": ActionFormValuesSerializer.serialize(data),
                     "collectionName": self.name,
                     "actionName": name,
                 }
