@@ -70,6 +70,8 @@ class RPCDatasource(Datasource):
                 collection.add_rpc_action(action_name, action_schema)
 
         collection._schema["charts"] = {name: None for name in collection_schema["charts"]}
+        collection._schema["searchable"] = collection_schema["searchable"]
+        collection._schema["countable"] = collection_schema["countable"]
         collection.add_segments(collection_schema["segments"])
 
         self.add_collection(collection)

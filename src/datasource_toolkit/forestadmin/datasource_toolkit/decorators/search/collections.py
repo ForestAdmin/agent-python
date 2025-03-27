@@ -33,9 +33,14 @@ class SearchCollectionDecorator(CollectionDecorator):
         super().__init__(collection, datasource)
         self._replacer: SearchDefinition = None
         self._searchable = len(self._get_searchable_fields(self.child_collection, False)) > 0
+        self._bypass_searchable = False
 
     def disable_search(self):
         self._searchable = False
+        self.mark_schema_as_dirty()
+
+    def bypass_search(self):
+        self._bypass_searchable = True
         self.mark_schema_as_dirty()
 
     def replace_search(self, replacer: SearchDefinition):
@@ -46,7 +51,7 @@ class SearchCollectionDecorator(CollectionDecorator):
     def _refine_schema(self, sub_schema: CollectionSchema) -> CollectionSchema:
         return {
             **sub_schema,
-            "searchable": self._searchable,
+            "searchable": self._searchable if self._bypass_searchable is False else sub_schema["searchable"],
         }
 
     def _default_replacer(self, search: str, extended: bool) -> ConditionTree:
@@ -58,7 +63,7 @@ class SearchCollectionDecorator(CollectionDecorator):
     async def _refine_filter(
         self, caller: User, _filter: Union[Optional[PaginatedFilter], Optional[Filter]]
     ) -> Optional[Union[PaginatedFilter, Filter]]:
-        if _filter is None:
+        if _filter is None or self._bypass_searchable:
             return _filter
 
         # Search string is not significant
