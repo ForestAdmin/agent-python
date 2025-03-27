@@ -40,6 +40,7 @@ class SearchCollectionDecorator(CollectionDecorator):
         self.mark_schema_as_dirty()
 
     def bypass_search(self):
+        # only used when a disable search was done on server RPC
         self._bypass_searchable = True
         self.mark_schema_as_dirty()
 
@@ -49,9 +50,11 @@ class SearchCollectionDecorator(CollectionDecorator):
         self.mark_schema_as_dirty()
 
     def _refine_schema(self, sub_schema: CollectionSchema) -> CollectionSchema:
+        if sub_schema["searchable"] is True:
+            self._bypass_searchable = True
         return {
             **sub_schema,
-            "searchable": self._searchable if self._bypass_searchable is False else sub_schema["searchable"],
+            "searchable": self._searchable if self._bypass_searchable is False else True,
         }
 
     def _default_replacer(self, search: str, extended: bool) -> ConditionTree:
