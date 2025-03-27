@@ -550,13 +550,6 @@ class CollectionCustomizer:
         self.stack.queue_customization(_disable_count)
         return self
 
-    def bypass_search(self) -> Self:
-        async def _bypass_search():
-            cast(SearchCollectionDecorator, self.stack.search.get_collection(self.collection_name)).bypass_search()
-
-        self.stack.queue_customization(_bypass_search)
-        return self
-
     def replace_search(self, definition: SearchDefinition) -> Self:
         """Replace the behavior of the search bar
         Args:
