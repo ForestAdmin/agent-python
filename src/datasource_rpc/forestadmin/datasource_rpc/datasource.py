@@ -70,9 +70,11 @@ class RPCDatasource(Datasource):
                 collection.add_rpc_action(action_name, action_schema)
 
         collection._schema["charts"] = {name: None for name in collection_schema["charts"]}
-        collection._schema["searchable"] = collection_schema["searchable"]
-        collection._schema["countable"] = collection_schema["countable"]
         collection.add_segments(collection_schema["segments"])
+
+        if collection_schema["countable"]:
+            collection.enable_count()
+        collection.enable_search()
 
         self.add_collection(collection)
 
@@ -87,8 +89,10 @@ class RPCDatasource(Datasource):
 
     async def internal_reload(self):
         has_changed = self.introspect()
-        if has_changed and self.reload_method is not None:
-            await call_user_function(self.reload_method)
+        if has_changed:
+            await Agent.get_instance().reload()
+        # if has_changed and self.reload_method is not None:
+        #     await call_user_function(self.reload_method)
 
     async def run(self):
         self.wait_for_connection()
