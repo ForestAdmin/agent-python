@@ -859,3 +859,10 @@ class TestActionCollectionCustomizer(TestCase):
             ],
         )
         if_fn.assert_not_called()
+
+    def test_should_schema_should_contains_actions_define_in_custom_datasource(self):
+        with patch.dict(self.collection_product.schema, {"actions": {"action_test": {}}}):
+            self.assertIn(
+                "action_test",
+                self.datasource_decorator.get_collection("Product").schema["actions"],
+            )

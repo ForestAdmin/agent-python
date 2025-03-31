@@ -1,6 +1,7 @@
 import asyncio
 import sys
 from unittest import TestCase
+from unittest.mock import patch
 
 if sys.version_info >= (3, 9):
     import zoneinfo
@@ -26,8 +27,8 @@ class TestSegmentCollectionDecorator(TestCase):
         cls.datasource: Datasource = Datasource()
 
         Collection.__abstractmethods__ = set()  # to instantiate abstract class
-        cls.collection_book = Collection("Product", cls.datasource)
-        cls.collection_book.add_fields(
+        cls.collection_product = Collection("Product", cls.datasource)
+        cls.collection_product.add_fields(
             {
                 "id": Column(column_type=PrimitiveType.NUMBER, is_primary_key=True, type=FieldType.COLUMN),
                 "name": Column(column_type=PrimitiveType.STRING, type=FieldType.COLUMN),
@@ -38,7 +39,7 @@ class TestSegmentCollectionDecorator(TestCase):
             }
         )
 
-        cls.datasource.add_collection(cls.collection_book)
+        cls.datasource.add_collection(cls.collection_product)
         cls.datasource_decorator = DatasourceDecorator(cls.datasource, SegmentCollectionDecorator)
 
         cls.mocked_caller = User(
@@ -121,3 +122,10 @@ class TestSegmentCollectionDecorator(TestCase):
             self.decorated_collection_product._refine_filter(self.mocked_caller, filter_)
         )
         assert returned_filter == Filter({"condition_tree": ConditionTreeLeaf("name", Operator.EQUAL, "a_name_value")})
+
+    def test_should_schema_should_contains_segments_define_in_custom_datasource(self):
+        with patch.dict(self.collection_product._schema, {"segments": ["segment_test"]}):
+            self.assertIn(
+                "segment_test",
+                self.decorated_collection_product.schema["segments"],
+            )

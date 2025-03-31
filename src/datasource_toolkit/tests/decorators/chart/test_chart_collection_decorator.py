@@ -24,8 +24,8 @@ class TestChartCollectionDecorator(TestCase):
         cls.datasource: Datasource = Datasource()
         Collection.__abstractmethods__ = set()  # to instantiate abstract class
 
-        cls.collection_book = Collection("Product", cls.datasource)
-        cls.collection_book.add_fields(
+        cls.collection_product = Collection("Product", cls.datasource)
+        cls.collection_product.add_fields(
             {
                 "id": {
                     "column_type": PrimitiveType.NUMBER,
@@ -35,7 +35,7 @@ class TestChartCollectionDecorator(TestCase):
                 },
             }
         )
-        cls.datasource.add_collection(cls.collection_book)
+        cls.datasource.add_collection(cls.collection_product)
 
         cls.mocked_caller = User(
             rendering_id=1,
@@ -54,7 +54,7 @@ class TestChartCollectionDecorator(TestCase):
         self.decorated_collection: ChartCollectionDecorator = self.decorated_datasource.get_collection("Product")
 
     def test_schema_should_not_change(self):
-        assert self.decorated_collection.schema["charts"] == self.collection_book.schema["charts"]
+        assert self.decorated_collection.schema["charts"] == self.collection_product.schema["charts"]
 
     def test_add_chart_should_raise_if_chart_name_already_exists(self):
         self.decorated_collection.add_chart("test_chart", lambda ctx, result_builder: True)
@@ -67,7 +67,7 @@ class TestChartCollectionDecorator(TestCase):
         )
 
     def test_render_chart_should_call_child_collection(self):
-        with patch.object(self.collection_book, "render_chart", new_callable=AsyncMock) as mock_render_chart:
+        with patch.object(self.collection_product, "render_chart", new_callable=AsyncMock) as mock_render_chart:
             self.loop.run_until_complete(self.decorated_collection.render_chart(self.mocked_caller, "child_chart", [1]))
 
             mock_render_chart.assert_awaited_once_with(self.mocked_caller, "child_chart", [1])
@@ -82,3 +82,10 @@ class TestChartCollectionDecorator(TestCase):
         )
 
         assert result == {"countCurrent": 1, "countPrevious": None}
+
+    def test_should_schema_should_contains_charts_define_in_custom_datasource(self):
+        with patch.dict(self.collection_product._schema, {"charts": {"chart_test": None}}):
+            self.assertIn(
+                "chart_test",
+                self.decorated_collection.schema["charts"],
+            )
