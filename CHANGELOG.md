@@ -1,3 +1,10 @@
+## [1.23.1](https://github.com/ForestAdmin/agent-python/compare/v1.23.0...v1.23.1) (2025-03-31)
+
+
+### Bug Fixes
+
+* **custom_datasources:** custom datasources actions charts and segments are no longer ignored ([#322](https://github.com/ForestAdmin/agent-python/issues/322)) ([dd801be](https://github.com/ForestAdmin/agent-python/commit/dd801be00041d1eb10b0d42a3d34ff6c21167f99))
+
 # [1.23.0](https://github.com/ForestAdmin/agent-python/compare/v1.22.11...v1.23.0) (2025-03-10)
 
 
