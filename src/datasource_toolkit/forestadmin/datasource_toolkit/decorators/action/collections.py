@@ -160,7 +160,7 @@ class ActionCollectionDecorator(CollectionDecorator):
                 self._set_watch_changes_attr(element["elements"], context)  # type:ignore
 
     def _refine_schema(self, sub_schema: CollectionSchema) -> CollectionSchema:
-        actions_schema = {}
+        actions_schema = {**sub_schema["actions"]}
         for name, action in self._actions.items():
             dynamics: List[bool] = []
             for field in action.get("form", []):

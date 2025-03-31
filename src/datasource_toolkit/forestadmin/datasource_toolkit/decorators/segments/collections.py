@@ -24,7 +24,7 @@ class SegmentCollectionDecorator(CollectionDecorator):
         self.mark_schema_as_dirty()
 
     def _refine_schema(self, sub_schema: CollectionSchema) -> CollectionSchema:
-        return {**sub_schema, "segments": [*self._segments.keys()]}
+        return {**sub_schema, "segments": [*sub_schema["segments"], *self._segments.keys()]}
 
     async def _refine_filter(
         self, caller: User, _filter: Union[Optional[PaginatedFilter], Optional[Filter]]

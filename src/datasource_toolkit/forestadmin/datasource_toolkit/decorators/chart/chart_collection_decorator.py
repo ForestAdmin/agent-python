@@ -37,7 +37,7 @@ class ChartCollectionDecorator(CollectionDecorator):
         return await self.child_collection.render_chart(caller, name, record_id)
 
     def _refine_schema(self, sub_schema: CollectionSchema) -> CollectionSchema:
-        charts = {}
+        charts = {**sub_schema["charts"]}
         for name, chart in self._charts.items():
             charts[name] = chart
 
