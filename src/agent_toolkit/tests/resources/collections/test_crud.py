@@ -5,6 +5,7 @@ import json
 import sys
 from unittest import TestCase
 from unittest.mock import ANY, AsyncMock, Mock, patch
+from uuid import UUID
 
 if sys.version_info >= (3, 9):
     import zoneinfo
@@ -222,6 +223,53 @@ class TestCrudResource(TestCase):
             },
         )
 
+        # to test with uuid
+        cls.collection_book = cls._create_collection(
+            "book",
+            {
+                "id": {
+                    "column_type": PrimitiveType.UUID,
+                    "is_primary_key": True,
+                    "type": FieldType.COLUMN,
+                    "filter_operators": {Operator.IN, Operator.EQUAL},
+                },
+                "name": {
+                    "column_type": PrimitiveType.STRING,
+                    "is_primary_key": False,
+                    "type": FieldType.COLUMN,
+                    "filter_operators": {Operator.IN, Operator.EQUAL},
+                },
+                "author_id": {
+                    "column_type": PrimitiveType.UUID,
+                    "type": FieldType.COLUMN,
+                    "filter_operators": {Operator.IN, Operator.EQUAL},
+                },
+                "author": {
+                    "type": FieldType.MANY_TO_ONE,
+                    "foreign_collection": "author",
+                    "foreign_key_target": "id",
+                    "foreign_key": "author_id",
+                },
+            },
+        )
+        cls.collection_author = cls._create_collection(
+            "Author",
+            {
+                "id": {
+                    "column_type": PrimitiveType.UUID,
+                    "is_primary_key": True,
+                    "type": FieldType.COLUMN,
+                    "filter_operators": {Operator.IN, Operator.EQUAL},
+                },
+                "name": {
+                    "column_type": PrimitiveType.STRING,
+                    "is_primary_key": False,
+                    "type": FieldType.COLUMN,
+                    "filter_operators": {Operator.IN, Operator.EQUAL},
+                },
+            },
+        )
+
     @classmethod
     def setUpClass(cls) -> None:
         cls.loop = asyncio.new_event_loop()
@@ -243,6 +291,8 @@ class TestCrudResource(TestCase):
             "cart": cls.collection_cart,
             "product": cls.collection_product,
             "tag": cls.collection_tag,
+            # for uuid
+            "author": cls.collection_author,
         }
         cls.datasource_composite.add_datasource(cls.datasource)
 
@@ -956,6 +1006,50 @@ class TestCrudResource(TestCase):
                 }
             },
         )
+
+    def test_add_with_uuid_should_work_with_uuid_as_obj_or_str(self):
+        for uuid in ["123e4567-e89b-12d3-a456-426614174000", UUID("123e4567-e89b-12d3-a456-426614174000")]:
+            request = RequestCollection(
+                RequestMethod.POST,
+                self.collection_book,
+                body={
+                    "data": {
+                        "attributes": {"name": "Foundation", "id": uuid, "author_id": uuid},
+                        "relationships": {},
+                    },
+                    "type": "book",
+                },
+                query={
+                    "collection_name": "book",
+                    "timezone": "Europe/Paris",
+                },
+                headers={},
+                client_ip="127.0.0.1",
+            )
+            crud_resource = CrudResource(
+                self.datasource_composite,
+                self.datasource,
+                self.permission_service,
+                self.ip_white_list_service,
+                self.options,
+            )
+            with patch.object(
+                self.collection_book,
+                "create",
+                new_callable=AsyncMock,
+                return_value=[{"name": "Foundation", "id": str(uuid), "author_id": str(uuid)}],
+            ) as mock_create:
+                self.loop.run_until_complete(crud_resource.add(request))
+                mock_create.assert_any_await(
+                    FAKE_USER,
+                    [
+                        {
+                            "name": "Foundation",
+                            "id": UUID("123e4567-e89b-12d3-a456-426614174000"),
+                            "author_id": UUID("123e4567-e89b-12d3-a456-426614174000"),
+                        }
+                    ],
+                )
 
     # list
     def test_list(self):
