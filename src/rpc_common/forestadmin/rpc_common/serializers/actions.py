@@ -183,6 +183,8 @@ class ActionFormSerializer:
 class ActionFormValuesSerializer:
     @staticmethod
     def serialize(form_values: dict) -> dict:
+        if form_values is None:
+            return {}
         ret = {}
         for key, value in form_values.items():
             if isinstance(value, File):

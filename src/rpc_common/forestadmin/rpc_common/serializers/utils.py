@@ -114,6 +114,8 @@ class CallerSerializer:
 
     @staticmethod
     def deserialize(caller: Dict) -> User:
+        if caller is None:
+            return None
         return User(
             rendering_id=caller["renderingId"],
             user_id=caller["userId"],
