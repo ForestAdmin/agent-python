@@ -52,9 +52,7 @@ class ValidationCollectionDecorator(CollectionDecorator):
     def _refine_schema(self, sub_schema: CollectionSchema) -> CollectionSchema:
         fields_schema = {**sub_schema["fields"]}
         for name, rules in self.validations.items():
-            if fields_schema[name].get("validations") is None:
-                fields_schema[name]["validations"] = []
-            fields_schema[name]["validations"].extend(rules)
+            fields_schema[name]["validations"] = [*fields_schema[name].get("validations", []), *rules]
 
         return {**sub_schema, "fields": fields_schema}
 

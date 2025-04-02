@@ -71,6 +71,17 @@ class Agent:
         if hasattr(self, "_sse_thread") and self._sse_thread.is_alive():
             self._sse_thread.stop()
 
+    async def reload(self):
+        try:
+            await self.customizer._reload()
+        except Exception as exc:
+            ForestLogger.log("error", f"Error reloading agent: {exc}")
+            return
+
+        self._resources = None
+        await self.__mk_resources()
+        await self.send_schema()
+
     async def __mk_resources(self):
         self._resources: Resources = {
             "capabilities": CapabilitiesResource(
@@ -219,6 +230,15 @@ class Agent:
             return
         ForestLogger.log("debug", "Starting agent")
 
+        await self.send_schema()
+
+        if self.options["instant_cache_refresh"]:
+            self._sse_thread.start()
+
+        ForestLogger.log("debug", "Agent started")
+        Agent.__IS_INITIALIZED = True
+
+    async def send_schema(self):
         if self.options["skip_schema_update"] is False:
             try:
                 api_map = await SchemaEmitter.get_serialized_schema(
@@ -233,9 +253,3 @@ class Agent:
                 ForestLogger.log("warning", "Cannot send the apimap to Forest. Are you online?")
         else:
             ForestLogger.log("warning", 'Schema update was skipped (caused by options["skip_schema_update"]=True)')
-
-        if self.options["instant_cache_refresh"]:
-            self._sse_thread.start()
-
-        ForestLogger.log("debug", "Agent started")
-        Agent.__IS_INITIALIZED = True
