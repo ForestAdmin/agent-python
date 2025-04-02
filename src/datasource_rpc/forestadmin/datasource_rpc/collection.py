@@ -1,11 +1,9 @@
 import json
-from typing import Any, Dict, List, Optional
+from typing import TYPE_CHECKING, Any, Dict, List, Optional
 
-import urllib3
 from forestadmin.agent_toolkit.forest_logger import ForestLogger
 from forestadmin.agent_toolkit.utils.context import User
 from forestadmin.datasource_toolkit.collections import Collection
-from forestadmin.datasource_toolkit.datasources import Datasource
 from forestadmin.datasource_toolkit.interfaces.actions import Action, ActionFormElement, ActionResult, ActionsScope
 from forestadmin.datasource_toolkit.interfaces.chart import Chart
 from forestadmin.datasource_toolkit.interfaces.fields import PrimitiveType
@@ -15,13 +13,11 @@ from forestadmin.datasource_toolkit.interfaces.query.filter.unpaginated import F
 from forestadmin.datasource_toolkit.interfaces.query.projections import Projection
 from forestadmin.datasource_toolkit.interfaces.records import RecordsDataAlias
 from forestadmin.datasource_toolkit.utils.schema import SchemaUtils
-from forestadmin.rpc_common.hmac import generate_hmac
 from forestadmin.rpc_common.serializers.actions import (
     ActionFormSerializer,
     ActionFormValuesSerializer,
     ActionResultSerializer,
 )
-from forestadmin.rpc_common.serializers.aes import aes_decrypt, aes_encrypt
 from forestadmin.rpc_common.serializers.collection.aggregation import AggregationSerializer
 from forestadmin.rpc_common.serializers.collection.filter import (
     FilterSerializer,
@@ -31,16 +27,19 @@ from forestadmin.rpc_common.serializers.collection.filter import (
 from forestadmin.rpc_common.serializers.collection.record import RecordSerializer
 from forestadmin.rpc_common.serializers.utils import CallerSerializer
 
+if TYPE_CHECKING:
+    from forestadmin.datasource_rpc.datasource import RPCDatasource
+
 
 class RPCCollection(Collection):
-    def __init__(self, name: str, datasource: Datasource, connection_uri: str, secret_key: str):
+    def __init__(self, name: str, datasource: "RPCDatasource"):
         super().__init__(name, datasource)
-        self.connection_uri = connection_uri
-        self.secret_key = secret_key
-        self.aes_key = secret_key[:16].encode()
-        self.aes_iv = secret_key[-16:].encode()
-        self.http = urllib3.PoolManager()
         self._rpc_actions = {}
+        self._datasource = datasource
+
+    @property
+    def datasource(self) -> "RPCDatasource":
+        return self._datasource
 
     def add_rpc_action(self, name: str, action: Dict[str, Any]) -> None:
         if name in self._schema["actions"]:
@@ -50,98 +49,59 @@ class RPCCollection(Collection):
             description=action.get("description"),
             submit_button_label=action.get("submit_button_label"),
             generate_file=action.get("generate_file", False),
-            # form=action.get("form"),
             static_form=action["static_form"],
         )
         self._rpc_actions[name] = {"form": action["form"]}
 
     async def list(self, caller: User, filter_: PaginatedFilter, projection: Projection) -> List[RecordsDataAlias]:
-        body = json.dumps(
-            {
-                "caller": CallerSerializer.serialize(caller),
-                "filter": PaginatedFilterSerializer.serialize(filter_, self),
-                "projection": ProjectionSerializer.serialize(projection),
-                "collectionName": self.name,
-            }
-        )
-        response = self.http.request(
-            "POST",
-            f"http://{self.connection_uri}/collection/list",
-            body=body,
-            headers={"X-FOREST-HMAC": generate_hmac(self.secret_key.encode("utf-8"), body.encode("utf-8"))},
-        )
-        ret = aes_decrypt(response.data.decode("utf-8"), self.aes_key, self.aes_iv)
-
-        return [RecordSerializer.deserialize(record, self) for record in json.loads(ret)]
+        body = {
+            "caller": CallerSerializer.serialize(caller),
+            "filter": PaginatedFilterSerializer.serialize(filter_, self),
+            "projection": ProjectionSerializer.serialize(projection),
+            "collectionName": self.name,
+        }
+        ret = await self.datasource.requester.list(body=body)
+        return [RecordSerializer.deserialize(record, self) for record in ret]
 
     async def create(self, caller: User, data: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-        body = json.dumps(
-            {
-                "caller": CallerSerializer.serialize(caller),
-                "data": [RecordSerializer.serialize(r) for r in data],
-                "collectionName": self.name,
-            }
-        )
-        body = aes_encrypt(body, self.aes_key, self.aes_iv)
-        response = self.http.request(
-            "POST",
-            f"http://{self.connection_uri}/collection/create",
-            body=body,
-            headers={"X-FOREST-HMAC": generate_hmac(self.secret_key.encode("utf-8"), body.encode("utf-8"))},
-        )
-        return [RecordSerializer.deserialize(record, self) for record in json.loads(response.data.decode("utf-8"))]
+        body = {
+            "caller": CallerSerializer.serialize(caller),
+            "data": [RecordSerializer.serialize(r) for r in data],
+            "collectionName": self.name,
+        }
+        response = await self.datasource.requester.create(body)
+        return [RecordSerializer.deserialize(record, self) for record in response]
 
     async def update(self, caller: User, filter_: Optional[Filter], patch: Dict[str, Any]) -> None:
-        body = json.dumps(
-            {
-                "caller": CallerSerializer.serialize(caller),
-                "filter": FilterSerializer.serialize(filter_, self),
-                "patch": RecordSerializer.serialize(patch),
-                "collectionName": self.name,
-            }
-        )
-        body = aes_encrypt(body, self.aes_key, self.aes_iv)
-        self.http.request(
-            "POST",
-            f"http://{self.connection_uri}/collection/update",
-            body=body,
-            headers={"X-FOREST-HMAC": generate_hmac(self.secret_key.encode("utf-8"), body.encode("utf-8"))},
-        )
+        body = {
+            "caller": CallerSerializer.serialize(caller),
+            "filter": FilterSerializer.serialize(filter_, self),  # type: ignore
+            "patch": RecordSerializer.serialize(patch),
+            "collectionName": self.name,
+        }
+        await self.datasource.requester.update(body)
 
     async def delete(self, caller: User, filter_: Filter | None) -> None:
         body = json.dumps(
             {
                 "caller": CallerSerializer.serialize(caller),
-                "filter": FilterSerializer.serialize(filter_, self),
+                "filter": FilterSerializer.serialize(filter_, self),  # type: ignore
                 "collectionName": self.name,
             }
         )
-        self.http.request(
-            "POST",
-            f"http://{self.connection_uri}/collection/delete",
-            body=body,
-            headers={"X-FOREST-HMAC": generate_hmac(self.secret_key.encode("utf-8"), body.encode("utf-8"))},
-        )
+        await self.datasource.requester.delete(body)
 
     async def aggregate(
         self, caller: User, filter_: Filter | None, aggregation: Aggregation, limit: int | None = None
     ) -> List[AggregateResult]:
-        body = json.dumps(
-            {
-                "caller": CallerSerializer.serialize(caller),
-                "filter": FilterSerializer.serialize(filter_, self),
-                "aggregation": AggregationSerializer.serialize(aggregation),
-                "collectionName": self.name,
-            }
-        )
-        response = self.http.request(
-            "POST",
-            f"http://{self.connection_uri}/collection/aggregate",
-            body=body,
-            headers={"X-FOREST-HMAC": generate_hmac(self.secret_key.encode("utf-8"), body.encode("utf-8"))},
-        )
-        ret = aes_decrypt(response.data.decode("utf-8"), self.aes_key, self.aes_iv)
-        return json.loads(ret)
+        body = {
+            "caller": CallerSerializer.serialize(caller),
+            "filter": FilterSerializer.serialize(filter_, self),  # type: ignore
+            "aggregation": AggregationSerializer.serialize(aggregation),
+            "collectionName": self.name,
+        }
+        response = await self.datasource.requester.aggregate(body)
+        return response
 
     async def get_form(
         self,
@@ -157,29 +117,16 @@ class RPCCollection(Collection):
         if self._schema["actions"][name].static_form:
             return self._rpc_actions[name]["form"]
 
-        body = aes_encrypt(
-            json.dumps(
-                {
-                    "caller": CallerSerializer.serialize(caller) if caller is not None else None,
-                    "filter": FilterSerializer.serialize(filter_, self) if filter_ is not None else None,
-                    "data": ActionFormValuesSerializer.serialize(data),
-                    "meta": meta,
-                    "collectionName": self.name,
-                    "actionName": name,
-                }
-            ),
-            self.aes_key,
-            self.aes_iv,
-        )
-        response = self.http.request(
-            "POST",
-            f"http://{self.connection_uri}/collection/get-form",
-            body=body,
-            headers={"X-FOREST-HMAC": generate_hmac(self.secret_key.encode("utf-8"), body.encode("utf-8"))},
-        )
-        ret = aes_decrypt(response.data.decode("utf-8"), self.aes_key, self.aes_iv)
-        ret = ActionFormSerializer.deserialize(json.loads(ret))
-        return ret
+        body = {
+            "caller": CallerSerializer.serialize(caller) if caller is not None else None,
+            "filter": FilterSerializer.serialize(filter_, self) if filter_ is not None else None,
+            "data": ActionFormValuesSerializer.serialize(data),  # type: ignore
+            "meta": meta,
+            "collectionName": self.name,
+            "actionName": name,
+        }
+        response = await self.datasource.requester.get_form(body)
+        return ActionFormSerializer.deserialize(response)  # type: ignore
 
     async def execute(
         self,
@@ -191,29 +138,15 @@ class RPCCollection(Collection):
         if name not in self._schema["actions"]:
             raise ValueError(f"Action {name} does not exist in collection {self.name}")
 
-        body = aes_encrypt(
-            json.dumps(
-                {
-                    "caller": CallerSerializer.serialize(caller) if caller is not None else None,
-                    "filter": FilterSerializer.serialize(filter_, self) if filter_ is not None else None,
-                    "data": ActionFormValuesSerializer.serialize(data),
-                    "collectionName": self.name,
-                    "actionName": name,
-                }
-            ),
-            self.aes_key,
-            self.aes_iv,
-        )
-        response = self.http.request(
-            "POST",
-            f"http://{self.connection_uri}/collection/execute",
-            body=body,
-            headers={"X-FOREST-HMAC": generate_hmac(self.secret_key.encode("utf-8"), body.encode("utf-8"))},
-        )
-        ret = aes_decrypt(response.data.decode("utf-8"), self.aes_key, self.aes_iv)
-        ret = json.loads(ret)
-        ret = ActionResultSerializer.deserialize(ret)
-        return ret
+        body = {
+            "caller": CallerSerializer.serialize(caller) if caller is not None else None,
+            "filter": FilterSerializer.serialize(filter_, self) if filter_ is not None else None,
+            "data": ActionFormValuesSerializer.serialize(data),
+            "collectionName": self.name,
+            "actionName": name,
+        }
+        response = await self.datasource.requester.execute(body)
+        return ActionResultSerializer.deserialize(response)
 
     async def render_chart(self, caller: User, name: str, record_id: List) -> Chart:
         if name not in self._schema["charts"].keys():
@@ -221,7 +154,8 @@ class RPCCollection(Collection):
 
         ret = []
         for i, value in enumerate(record_id):
-            type_record_id = self.schema["fields"][SchemaUtils.get_primary_keys(self.schema)[i]]["column_type"]
+            pk_field = SchemaUtils.get_primary_keys(self.schema)[i]
+            type_record_id = self.schema["fields"][pk_field]["column_type"]  # type: ignore
 
             if type_record_id == PrimitiveType.DATE:
                 ret.append(value.isoformat())
@@ -236,27 +170,13 @@ class RPCCollection(Collection):
             else:
                 ret.append(value)
 
-        body = aes_encrypt(
-            json.dumps(
-                {
-                    "caller": CallerSerializer.serialize(caller) if caller is not None else None,
-                    "name": name,
-                    "collectionName": self.name,
-                    "recordId": ret,
-                }
-            ),
-            self.aes_key,
-            self.aes_iv,
-        )
-        response = self.http.request(
-            "POST",
-            f"http://{self.connection_uri}/collection/render-chart",
-            body=body,
-            headers={"X-FOREST-HMAC": generate_hmac(self.secret_key.encode("utf-8"), body.encode("utf-8"))},
-        )
-        ret = aes_decrypt(response.data.decode("utf-8"), self.aes_key, self.aes_iv)
-        ret = json.loads(ret)
-        return ret
+        body = {
+            "caller": CallerSerializer.serialize(caller) if caller is not None else None,
+            "name": name,
+            "collectionName": self.name,
+            "recordId": ret,
+        }
+        return await self.datasource.requester.collection_render_chart(body)
 
     def get_native_driver(self):
         ForestLogger.log(
