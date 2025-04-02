@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, cast
+from typing import Any, Dict, List
 
 from forestadmin.datasource_toolkit.collections import Collection
 from forestadmin.datasource_toolkit.interfaces.fields import PrimitiveType

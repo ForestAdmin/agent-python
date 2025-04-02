@@ -60,7 +60,7 @@ class RPCCollection(Collection):
             "projection": ProjectionSerializer.serialize(projection),
             "collectionName": self.name,
         }
-        ret = await self.datasource.requester.list(body=body)
+        ret = await self.datasource.requester.list(self.name, body)
         return [RecordSerializer.deserialize(record, self) for record in ret]
 
     async def create(self, caller: User, data: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
@@ -69,7 +69,7 @@ class RPCCollection(Collection):
             "data": [RecordSerializer.serialize(r) for r in data],
             "collectionName": self.name,
         }
-        response = await self.datasource.requester.create(body)
+        response = await self.datasource.requester.create(self.name, body)
         return [RecordSerializer.deserialize(record, self) for record in response]
 
     async def update(self, caller: User, filter_: Optional[Filter], patch: Dict[str, Any]) -> None:
@@ -79,7 +79,7 @@ class RPCCollection(Collection):
             "patch": RecordSerializer.serialize(patch),
             "collectionName": self.name,
         }
-        await self.datasource.requester.update(body)
+        await self.datasource.requester.update(self.name, body)
 
     async def delete(self, caller: User, filter_: Filter | None) -> None:
         body = json.dumps(
@@ -89,7 +89,7 @@ class RPCCollection(Collection):
                 "collectionName": self.name,
             }
         )
-        await self.datasource.requester.delete(body)
+        await self.datasource.requester.delete(self.name, body)
 
     async def aggregate(
         self, caller: User, filter_: Filter | None, aggregation: Aggregation, limit: int | None = None
@@ -100,7 +100,7 @@ class RPCCollection(Collection):
             "aggregation": AggregationSerializer.serialize(aggregation),
             "collectionName": self.name,
         }
-        response = await self.datasource.requester.aggregate(body)
+        response = await self.datasource.requester.aggregate(self.name, body)
         return response
 
     async def get_form(
@@ -125,7 +125,7 @@ class RPCCollection(Collection):
             "collectionName": self.name,
             "actionName": name,
         }
-        response = await self.datasource.requester.get_form(body)
+        response = await self.datasource.requester.get_form(self.name, body)
         return ActionFormSerializer.deserialize(response)  # type: ignore
 
     async def execute(
@@ -145,7 +145,7 @@ class RPCCollection(Collection):
             "collectionName": self.name,
             "actionName": name,
         }
-        response = await self.datasource.requester.execute(body)
+        response = await self.datasource.requester.execute(self.name, body)
         return ActionResultSerializer.deserialize(response)
 
     async def render_chart(self, caller: User, name: str, record_id: List) -> Chart:
@@ -176,7 +176,7 @@ class RPCCollection(Collection):
             "collectionName": self.name,
             "recordId": ret,
         }
-        return await self.datasource.requester.collection_render_chart(body)
+        return await self.datasource.requester.collection_render_chart(self.name, body)
 
     def get_native_driver(self):
         ForestLogger.log(

@@ -15,7 +15,6 @@ from forestadmin.rpc_common.serializers.actions import (
     ActionFormValuesSerializer,
     ActionResultSerializer,
 )
-from forestadmin.rpc_common.serializers.aes import aes_decrypt, aes_encrypt
 from forestadmin.rpc_common.serializers.collection.aggregation import AggregationSerializer
 from forestadmin.rpc_common.serializers.collection.filter import (
     FilterSerializer,
@@ -42,6 +41,7 @@ class RpcAgent(Agent):
 
     @web.middleware
     async def hmac_middleware(self, request: web.Request, handler):
+        # TODO: handle HMAC like ruby agent
         if request.method == "POST":
             body = await request.read()
             if not is_valid_hmac(
@@ -51,20 +51,21 @@ class RpcAgent(Agent):
         return await handler(request)
 
     def setup_routes(self):
+        self.app.router.add_route("GET", "/", lambda _: web.Response(text="OK"))  # type: ignore
         self.app.router.add_route("GET", "/sse", self.sse_handler)
         self.app.router.add_route("GET", "/schema", self.schema)
-        self.app.router.add_route("POST", "/collection/list", self.collection_list)
-        self.app.router.add_route("POST", "/collection/create", self.collection_create)
-        self.app.router.add_route("POST", "/collection/update", self.collection_update)
-        self.app.router.add_route("POST", "/collection/delete", self.collection_delete)
-        self.app.router.add_route("POST", "/collection/aggregate", self.collection_aggregate)
-        self.app.router.add_route("POST", "/collection/get-form", self.collection_get_form)
-        self.app.router.add_route("POST", "/collection/execute", self.collection_execute)
-        self.app.router.add_route("POST", "/collection/render-chart", self.collection_render_chart)
 
-        self.app.router.add_route("POST", "/execute-native-query", self.native_query)
-        self.app.router.add_route("POST", "/render-chart", self.render_chart)
-        self.app.router.add_route("GET", "/", lambda _: web.Response(text="OK"))  # type: ignore
+        # self.app.router.add_route("POST", "/execute-native-query", self.native_query)
+        self.app.router.add_route("POST", "/forest/rpc/datasource-chart", self.render_chart)
+
+        self.app.router.add_route("POST", "/forest/rpc/{collection_name}/list", self.collection_list)
+        self.app.router.add_route("POST", "/forest/rpc/{collection_name}/create", self.collection_create)
+        self.app.router.add_route("POST", "/forest/rpc/{collection_name}/update", self.collection_update)
+        self.app.router.add_route("POST", "/forest/rpc/{collection_name}/delete", self.collection_delete)
+        self.app.router.add_route("POST", "/forest/rpc/{collection_name}/aggregate", self.collection_aggregate)
+        self.app.router.add_route("POST", "/forest/rpc/{collection_name}/action-form", self.collection_get_form)
+        self.app.router.add_route("POST", "/forest/rpc/{collection_name}/action-execute", self.collection_execute)
+        self.app.router.add_route("POST", "/forest/rpc/{collection_name}/chart", self.collection_render_chart)
 
     async def sse_handler(self, request: web.Request) -> web.StreamResponse:
         async with sse_response(request) as resp:
@@ -83,7 +84,7 @@ class RpcAgent(Agent):
     async def collection_list(self, request: web.Request):
         body_params = await request.json()
         ds = await self.customizer.get_datasource()
-        collection = ds.get_collection(body_params["collectionName"])
+        collection = ds.get_collection(request.match_info["collection_name"])
         caller = CallerSerializer.deserialize(body_params["caller"])
         filter_ = PaginatedFilterSerializer.deserialize(body_params["filter"], collection)  # type:ignore
         projection = ProjectionSerializer.deserialize(body_params["projection"])
@@ -97,7 +98,7 @@ class RpcAgent(Agent):
         body_params = json.loads(body_params)
         ds = await self.customizer.get_datasource()
 
-        collection = ds.get_collection(body_params["collectionName"])
+        collection = ds.get_collection(request.match_info["collection_name"])
         caller = CallerSerializer.deserialize(body_params["caller"])
         data = [RecordSerializer.deserialize(r, collection) for r in body_params["data"]]  # type:ignore
 
@@ -110,7 +111,7 @@ class RpcAgent(Agent):
         body_params = json.loads(body_params)
 
         ds = await self.customizer.get_datasource()
-        collection = ds.get_collection(body_params["collectionName"])
+        collection = ds.get_collection(request.match_info["collection_name"])
         caller = CallerSerializer.deserialize(body_params["caller"])
         filter_ = FilterSerializer.deserialize(body_params["filter"], collection)  # type:ignore
         patch = RecordSerializer.deserialize(body_params["patch"], collection)  # type:ignore
@@ -121,7 +122,7 @@ class RpcAgent(Agent):
     async def collection_delete(self, request: web.Request):
         body_params = await request.json()
         ds = await self.customizer.get_datasource()
-        collection = ds.get_collection(body_params["collectionName"])
+        collection = ds.get_collection(request.match_info["collection_name"])
         caller = CallerSerializer.deserialize(body_params["caller"])
         filter_ = FilterSerializer.deserialize(body_params["filter"], collection)  # type:ignore
 
@@ -131,7 +132,7 @@ class RpcAgent(Agent):
     async def collection_aggregate(self, request: web.Request):
         body_params = await request.json()
         ds = await self.customizer.get_datasource()
-        collection = ds.get_collection(body_params["collectionName"])
+        collection = ds.get_collection(request.match_info["collection_name"])
         caller = CallerSerializer.deserialize(body_params["caller"])
         filter_ = FilterSerializer.deserialize(body_params["filter"], collection)  # type:ignore
         aggregation = AggregationSerializer.deserialize(body_params["aggregation"])
@@ -144,7 +145,7 @@ class RpcAgent(Agent):
         body_params = json.loads(body_params)
 
         ds = await self.customizer.get_datasource()
-        collection = ds.get_collection(body_params["collectionName"])
+        collection = ds.get_collection(request.match_info["collection_name"])
 
         caller = CallerSerializer.deserialize(body_params["caller"])
         action_name = body_params["actionName"]
@@ -163,7 +164,7 @@ class RpcAgent(Agent):
         body_params = json.loads(body_params)
 
         ds = await self.customizer.get_datasource()
-        collection = ds.get_collection(body_params["collectionName"])
+        collection = ds.get_collection(request.match_info["collection_name"])
 
         caller = CallerSerializer.deserialize(body_params["caller"])
         action_name = body_params["actionName"]
@@ -181,7 +182,7 @@ class RpcAgent(Agent):
         body_params = json.loads(body_params)
 
         ds = await self.customizer.get_datasource()
-        collection = ds.get_collection(body_params["collectionName"])
+        collection = ds.get_collection(request.match_info["collection_name"])
 
         caller = CallerSerializer.deserialize(body_params["caller"])
         name = body_params["name"]
@@ -220,17 +221,18 @@ class RpcAgent(Agent):
         result = await ds.render_chart(caller, name)
         return web.json_response(result)
 
-    async def native_query(self, request: web.Request):
-        body_params = await request.text()
-        body_params = json.loads(body_params)
+    # TODO: speak about; it's currently not implemented in ruby
+    # async def native_query(self, request: web.Request):
+    #     body_params = await request.text()
+    #     body_params = json.loads(body_params)
 
-        ds = await self.customizer.get_datasource()
-        connection_name = body_params["connectionName"]
-        native_query = body_params["nativeQuery"]
-        parameters = body_params["parameters"]
+    #     ds = await self.customizer.get_datasource()
+    #     connection_name = body_params["connectionName"]
+    #     native_query = body_params["nativeQuery"]
+    #     parameters = body_params["parameters"]
 
-        result = await ds.execute_native_query(connection_name, native_query, parameters)
-        return web.json_response(result)
+    #     result = await ds.execute_native_query(connection_name, native_query, parameters)
+    #     return web.json_response(result)
 
     def start(self):
         web.run_app(self.app, host=self.listen_addr, port=int(self.listen_port))

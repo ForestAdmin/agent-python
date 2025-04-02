@@ -53,25 +53,27 @@ class RPCRequester:
                 else:
                     raise Exception(f"Failed to get schema: {response.status}")
 
-    async def native_query(self, body):
-        """Execute a native query."""
-        async with aiohttp.ClientSession() as session:
-            async with session.post(
-                f"http://{self.connection_uri}/execute-native-query",
-                json=body,
-                headers={"X-FOREST-HMAC": generate_hmac(self.secret_key.encode("utf-8"), body.encode("utf-8"))},
-            ) as response:
-                if response.status == 200:
-                    return await response.json()
-                else:
-                    raise Exception(f"Failed to execute native query: {response.status}")
+    # TODO: speak about; it's currently not implemented in ruby
+    # async def native_query(self, body):
+    #     """Execute a native query."""
+    #     async with aiohttp.ClientSession() as session:
+    #         async with session.post(
+    #             f"http://{self.connection_uri}/execute-native-query",
+    #             json=body,
+    #             headers={"X-FOREST-HMAC": generate_hmac(self.secret_key.encode("utf-8"), body.encode("utf-8"))},
+    #         ) as response:
+    #             if response.status == 200:
+    #                 return await response.json()
+    #             else:
+    #                 raise Exception(f"Failed to execute native query: {response.status}")
 
     async def datasource_render_chart(self, body):
         """Render a chart."""
         async with aiohttp.ClientSession() as session:
             async with session.post(
-                f"http://{self.connection_uri}/render-chart",
+                f"http://{self.connection_uri}/forest/rpc/datasource-chart",
                 json=body,
+                # TODO: handle HMAC like ruby agent
                 headers={"X-FOREST-HMAC": generate_hmac(self.secret_key.encode("utf-8"), body.encode("utf-8"))},
             ) as response:
                 if response.status == 200:
@@ -81,11 +83,11 @@ class RPCRequester:
 
     # methods for collection
 
-    async def list(self, body) -> list[dict]:
+    async def list(self, collection_name, body) -> list[dict]:
         """List records in a collection."""
         async with aiohttp.ClientSession() as session:
             async with session.post(
-                f"http://{self.connection_uri}/collection/list",
+                f"http://{self.connection_uri}/forest/rpc/{collection_name}/list",
                 json=body,
                 headers={"X-FOREST-HMAC": generate_hmac(self.secret_key.encode("utf-8"), body.encode("utf-8"))},
             ) as response:
@@ -107,11 +109,11 @@ class RPCRequester:
                 else:
                     raise Exception(f"Failed to create query: {response.status}")
 
-    async def update(self, body):
+    async def update(self, collection_name, body):
         """Update records in a collection."""
         async with aiohttp.ClientSession() as session:
             async with session.post(
-                f"http://{self.connection_uri}/collection/update",
+                f"http://{self.connection_uri}/forest/rpc/{collection_name}/update",
                 json=body,
                 headers={"X-FOREST-HMAC": generate_hmac(self.secret_key.encode("utf-8"), body.encode("utf-8"))},
             ) as response:
@@ -120,11 +122,11 @@ class RPCRequester:
                 else:
                     raise Exception(f"Failed to update query: {response.status}")
 
-    async def delete(self, body):
+    async def delete(self, collection_name, body):
         """Delete records in a collection."""
         async with aiohttp.ClientSession() as session:
             async with session.post(
-                f"http://{self.connection_uri}/collection/delete",
+                f"http://{self.connection_uri}/forest/rpc/{collection_name}/delete",
                 json=body,
                 headers={"X-FOREST-HMAC": generate_hmac(self.secret_key.encode("utf-8"), body.encode("utf-8"))},
             ) as response:
@@ -133,11 +135,11 @@ class RPCRequester:
                 else:
                     raise Exception(f"Failed to delete query: {response.status}")
 
-    async def aggregate(self, body):
+    async def aggregate(self, collection_name, body):
         """Aggregate records in a collection."""
         async with aiohttp.ClientSession() as session:
             async with session.post(
-                f"http://{self.connection_uri}/collection/aggregate",
+                f"http://{self.connection_uri}/forest/rpc/{collection_name}/aggregate",
                 json=body,
                 headers={"X-FOREST-HMAC": generate_hmac(self.secret_key.encode("utf-8"), body.encode("utf-8"))},
             ) as response:
@@ -146,11 +148,11 @@ class RPCRequester:
                 else:
                     raise Exception(f"Failed to aggregate query: {response.status}")
 
-    async def get_form(self, body):
+    async def get_form(self, collection_name, body):
         """Get the form for an action."""
         async with aiohttp.ClientSession() as session:
             async with session.post(
-                f"http://{self.connection_uri}/collection/get-form",
+                f"http://{self.connection_uri}/forest/rpc/{collection_name}/action-form",
                 json=body,
                 headers={"X-FOREST-HMAC": generate_hmac(self.secret_key.encode("utf-8"), body.encode("utf-8"))},
             ) as response:
@@ -159,11 +161,11 @@ class RPCRequester:
                 else:
                     raise Exception(f"Failed to aggregate query: {response.status}")
 
-    async def execute(self, body):
+    async def execute(self, collection_name, body):
         """Execute an action."""
         async with aiohttp.ClientSession() as session:
             async with session.post(
-                f"http://{self.connection_uri}/collection/execute",
+                f"http://{self.connection_uri}/forest/rpc/{collection_name}/action-execute",
                 json=body,
                 headers={"X-FOREST-HMAC": generate_hmac(self.secret_key.encode("utf-8"), body.encode("utf-8"))},
             ) as response:
@@ -172,11 +174,11 @@ class RPCRequester:
                 else:
                     raise Exception(f"Failed to execute query: {response.status}")
 
-    async def collection_render_chart(self, body):
+    async def collection_render_chart(self, collection_name, body):
         """Render a chart."""
         async with aiohttp.ClientSession() as session:
             async with session.post(
-                f"http://{self.connection_uri}/render-chart",
+                f"http://{self.connection_uri}/forest/rpc/{collection_name}/chart",
                 json=body,
                 headers={"X-FOREST-HMAC": generate_hmac(self.secret_key.encode("utf-8"), body.encode("utf-8"))},
             ) as response:

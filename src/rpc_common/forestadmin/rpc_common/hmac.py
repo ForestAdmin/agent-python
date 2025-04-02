@@ -3,6 +3,7 @@ import hmac
 
 
 def generate_hmac(key: bytes, message: bytes) -> str:
+    # TODO: handle HMAC like ruby agent
     return hmac.new(key, message, hashlib.sha256).hexdigest()
 
 

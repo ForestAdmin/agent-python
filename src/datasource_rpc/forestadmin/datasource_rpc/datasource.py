@@ -104,14 +104,17 @@ class RPCDatasource(Datasource):
         )
         self.thread.start()
 
+    # TODO: speak about; it's currently not implemented in ruby
+    # async def execute_native_query(self, connection_name: str, native_query: str, parameters: Dict[str, str]) -> Any:
+    #     return await self.requester.native_query(
+    #         {
+    #             "connectionName": connection_name,
+    #             "nativeQuery": native_query,
+    #             "parameters": parameters,
+    #         }
+    #     )
     async def execute_native_query(self, connection_name: str, native_query: str, parameters: Dict[str, str]) -> Any:
-        return await self.requester.native_query(
-            {
-                "connectionName": connection_name,
-                "nativeQuery": native_query,
-                "parameters": parameters,
-            }
-        )
+        raise NotImplementedError
 
     async def render_chart(self, caller: User, name: str) -> Chart:
         if name not in self._schema["charts"].keys():
