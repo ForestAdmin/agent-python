@@ -402,7 +402,7 @@ class CrudResource(BaseCollectionResource, ContextVariableInjectorResourceMixin)
             field = collection.get_field(field_name)
             if is_column(field):
                 if field["column_type"] == PrimitiveType.UUID:
-                    record[field_name] = UUID(value)
+                    record[field_name] = UUID(value) if isinstance(value, str) else value
                 else:
                     record[field_name] = value
             elif (
