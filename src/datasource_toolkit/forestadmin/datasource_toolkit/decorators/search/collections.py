@@ -44,7 +44,10 @@ class SearchCollectionDecorator(CollectionDecorator):
         self.mark_schema_as_dirty()
 
     def _refine_schema(self, sub_schema: CollectionSchema) -> CollectionSchema:
-        return {**sub_schema, "searchable": self._searchable}
+        return {
+            **sub_schema,
+            "searchable": self._searchable,
+        }
 
     def _default_replacer(self, search: str, extended: bool) -> ConditionTree:
         searchable_fields = self._get_searchable_fields(self.child_collection, extended)
