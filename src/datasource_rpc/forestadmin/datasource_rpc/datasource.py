@@ -61,7 +61,7 @@ class RPCDatasource(Datasource):
             self.create_collection(collection_name, collection)
 
         self._schema["charts"] = {name: None for name in schema_data["charts"]}  # type: ignore
-        self._live_query_connections = schema_data["live_query_connections"]
+        self._live_query_connections = schema_data.get("live_query_connections", [])
         return True
 
     def create_collection(self, collection_name, collection_schema):
