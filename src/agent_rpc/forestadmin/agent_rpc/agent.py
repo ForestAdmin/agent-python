@@ -4,12 +4,12 @@ from uuid import UUID
 
 from aiohttp import web
 from aiohttp_sse import sse_response
+from forestadmin.agent_rpc.hmac_middleware import HmacValidationError, HmacValidator
 from forestadmin.agent_rpc.options import RpcOptions
 from forestadmin.agent_toolkit.agent import Agent
 from forestadmin.agent_toolkit.options import Options
 from forestadmin.datasource_toolkit.interfaces.fields import PrimitiveType
 from forestadmin.datasource_toolkit.utils.schema import SchemaUtils
-from forestadmin.rpc_common.hmac import is_valid_hmac
 from forestadmin.rpc_common.serializers.actions import (
     ActionFormSerializer,
     ActionFormValuesSerializer,
@@ -35,25 +35,29 @@ class RpcAgent(Agent):
         agent_options["server_url"] = "http://fake"
         agent_options["schema_path"] = "./.forestadmin-schema.json"
         super().__init__(agent_options)
+        self.hmac_validator = HmacValidator(options["auth_secret"])
 
         self.app = web.Application(middlewares=[self.hmac_middleware])
         self.setup_routes()
 
     @web.middleware
     async def hmac_middleware(self, request: web.Request, handler):
-        # TODO: handle HMAC like ruby agent
-        if request.method == "POST":
-            body = await request.read()
-            if not is_valid_hmac(
-                self.options["auth_secret"].encode(), body, request.headers.get("X-FOREST-HMAC", "").encode("utf-8")
-            ):
-                return web.Response(status=401, text="Unauthorized from HMAC verification")
+        # TODO: hmc on SSE ?
+        if request.url.path in ["/", "/forest/rpc/sse"]:
+            return await handler(request)
+
+        header_sign = request.headers.get("X_SIGNATURE")
+        header_timestamp = request.headers.get("X_TIMESTAMP")
+        try:
+            self.hmac_validator.validate_hmac(header_sign, header_timestamp)
+        except HmacValidationError:
+            return web.Response(status=401, text="Unauthorized from HMAC verification")
         return await handler(request)
 
     def setup_routes(self):
         self.app.router.add_route("GET", "/", lambda _: web.Response(text="OK"))  # type: ignore
-        self.app.router.add_route("GET", "/sse", self.sse_handler)
-        self.app.router.add_route("GET", "/schema", self.schema)
+        self.app.router.add_route("GET", "/forest/rpc/sse", self.sse_handler)
+        self.app.router.add_route("GET", "/forest/rpc-schema", self.schema)
 
         # self.app.router.add_route("POST", "/execute-native-query", self.native_query)
         self.app.router.add_route("POST", "/forest/rpc/datasource-chart", self.render_chart)

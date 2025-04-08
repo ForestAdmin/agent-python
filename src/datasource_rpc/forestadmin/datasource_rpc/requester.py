@@ -1,4 +1,5 @@
 import asyncio
+import datetime
 from typing import List
 
 import aiohttp
@@ -13,12 +14,19 @@ class RPCRequester:
         self.aes_key = secret_key[:16].encode()
         self.aes_iv = secret_key[-16:].encode()
 
+    def mk_hmac_headers(self):
+        timestamp = datetime.datetime.now(datetime.UTC).isoformat()
+        return {
+            "X_SIGNATURE": generate_hmac(self.secret_key.encode("utf-8"), timestamp.encode("utf-8")),
+            "X_TIMESTAMP": timestamp,
+        }
+
     async def sse_connect(self, callback):
         """Connect to the SSE stream."""
         await self.wait_for_connection()
 
         async with sse_client.EventSource(
-            f"http://{self.connection_uri}/sse",
+            f"http://{self.connection_uri}/forest/rpc/sse",
         ) as event_source:
             try:
                 async for event in event_source:
@@ -47,7 +55,10 @@ class RPCRequester:
     async def schema(self) -> dict:
         """Get the schema of the datasource."""
         async with aiohttp.ClientSession() as session:
-            async with session.get(f"http://{self.connection_uri}/schema") as response:
+            async with session.get(
+                f"http://{self.connection_uri}/forest/rpc-schema",
+                headers=self.mk_hmac_headers(),
+            ) as response:
                 if response.status == 200:
                     return await response.json()
                 else:
@@ -60,7 +71,7 @@ class RPCRequester:
     #         async with session.post(
     #             f"http://{self.connection_uri}/execute-native-query",
     #             json=body,
-    #             headers={"X-FOREST-HMAC": generate_hmac(self.secret_key.encode("utf-8"), body.encode("utf-8"))},
+    #             headers=self.mk_hmac_headers(),
     #         ) as response:
     #             if response.status == 200:
     #                 return await response.json()
@@ -73,8 +84,7 @@ class RPCRequester:
             async with session.post(
                 f"http://{self.connection_uri}/forest/rpc/datasource-chart",
                 json=body,
-                # TODO: handle HMAC like ruby agent
-                headers={"X-FOREST-HMAC": generate_hmac(self.secret_key.encode("utf-8"), body.encode("utf-8"))},
+                headers=self.mk_hmac_headers(),
             ) as response:
                 if response.status == 200:
                     return await response.json()
@@ -89,7 +99,7 @@ class RPCRequester:
             async with session.post(
                 f"http://{self.connection_uri}/forest/rpc/{collection_name}/list",
                 json=body,
-                headers={"X-FOREST-HMAC": generate_hmac(self.secret_key.encode("utf-8"), body.encode("utf-8"))},
+                headers=self.mk_hmac_headers(),
             ) as response:
                 if response.status == 200:
                     return await response.json()
@@ -102,7 +112,7 @@ class RPCRequester:
             async with session.post(
                 f"http://{self.connection_uri}/collection/create",
                 json=body,
-                headers={"X-FOREST-HMAC": generate_hmac(self.secret_key.encode("utf-8"), body.encode("utf-8"))},
+                headers=self.mk_hmac_headers(),
             ) as response:
                 if response.status == 200:
                     return await response.json()
@@ -115,7 +125,7 @@ class RPCRequester:
             async with session.post(
                 f"http://{self.connection_uri}/forest/rpc/{collection_name}/update",
                 json=body,
-                headers={"X-FOREST-HMAC": generate_hmac(self.secret_key.encode("utf-8"), body.encode("utf-8"))},
+                headers=self.mk_hmac_headers(),
             ) as response:
                 if response.status == 200:
                     return
@@ -128,7 +138,7 @@ class RPCRequester:
             async with session.post(
                 f"http://{self.connection_uri}/forest/rpc/{collection_name}/delete",
                 json=body,
-                headers={"X-FOREST-HMAC": generate_hmac(self.secret_key.encode("utf-8"), body.encode("utf-8"))},
+                headers=self.mk_hmac_headers(),
             ) as response:
                 if response.status == 200:
                     return
@@ -141,7 +151,7 @@ class RPCRequester:
             async with session.post(
                 f"http://{self.connection_uri}/forest/rpc/{collection_name}/aggregate",
                 json=body,
-                headers={"X-FOREST-HMAC": generate_hmac(self.secret_key.encode("utf-8"), body.encode("utf-8"))},
+                headers=self.mk_hmac_headers(),
             ) as response:
                 if response.status == 200:
                     return await response.json()
@@ -154,7 +164,7 @@ class RPCRequester:
             async with session.post(
                 f"http://{self.connection_uri}/forest/rpc/{collection_name}/action-form",
                 json=body,
-                headers={"X-FOREST-HMAC": generate_hmac(self.secret_key.encode("utf-8"), body.encode("utf-8"))},
+                headers=self.mk_hmac_headers(),
             ) as response:
                 if response.status == 200:
                     return await response.json()
@@ -167,7 +177,7 @@ class RPCRequester:
             async with session.post(
                 f"http://{self.connection_uri}/forest/rpc/{collection_name}/action-execute",
                 json=body,
-                headers={"X-FOREST-HMAC": generate_hmac(self.secret_key.encode("utf-8"), body.encode("utf-8"))},
+                headers=self.mk_hmac_headers(),
             ) as response:
                 if response.status == 200:
                     return await response.json()
@@ -180,7 +190,7 @@ class RPCRequester:
             async with session.post(
                 f"http://{self.connection_uri}/forest/rpc/{collection_name}/chart",
                 json=body,
-                headers={"X-FOREST-HMAC": generate_hmac(self.secret_key.encode("utf-8"), body.encode("utf-8"))},
+                headers=self.mk_hmac_headers(),
             ) as response:
                 if response.status == 200:
                     return await response.json()
