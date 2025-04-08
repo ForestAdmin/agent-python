@@ -1,3 +1,10 @@
+## [1.23.2](https://github.com/ForestAdmin/agent-python/compare/v1.23.1...v1.23.2) (2025-04-08)
+
+
+### Bug Fixes
+
+* **uuid:** record containing uuid doesn't crash at create anymore ([#324](https://github.com/ForestAdmin/agent-python/issues/324)) ([ab3201b](https://github.com/ForestAdmin/agent-python/commit/ab3201bd4e68a33639936acdb32d484728a5163e))
+
 ## [1.23.1](https://github.com/ForestAdmin/agent-python/compare/v1.23.0...v1.23.1) (2025-03-31)
 
 
