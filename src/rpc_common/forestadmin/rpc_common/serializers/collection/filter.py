@@ -89,13 +89,13 @@ class FilterSerializer:
     @staticmethod
     def serialize(filter_: Filter, collection: Collection) -> Dict:
         return {
-            "conditionTree": (
+            "condition_tree": (
                 ConditionTreeSerializer.serialize(filter_.condition_tree, collection)
                 if filter_.condition_tree is not None
                 else None
             ),
             "search": filter_.search,
-            "searchExtended": filter_.search_extended,
+            "search_extended": filter_.search_extended,
             "segment": filter_.segment,
             "timezone": TimezoneSerializer.serialize(filter_.timezone),
         }
@@ -105,12 +105,12 @@ class FilterSerializer:
         return Filter(
             {
                 "condition_tree": (
-                    ConditionTreeSerializer.deserialize(filter_["conditionTree"], collection)
-                    if filter_.get("conditionTree") is not None
+                    ConditionTreeSerializer.deserialize(filter_["condition_tree"], collection)
+                    if filter_.get("condition_tree") is not None
                     else None
                 ),  # type: ignore
                 "search": filter_["search"],
-                "search_extended": filter_["searchExtended"],
+                "search_extended": filter_["search_extended"],
                 "segment": filter_["segment"],
                 "timezone": TimezoneSerializer.deserialize(filter_["timezone"]),
             }

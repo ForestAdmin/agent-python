@@ -50,21 +50,21 @@ class SchemaSerializer:
         self.datasource = datasource
 
     async def serialize(self) -> dict:
-        value = {
-            "version": self.VERSION,
-            "data": {
+        value = (
+            {
                 "charts": sorted(self.datasource.schema["charts"].keys()),
                 "live_query_connections": sorted(self.datasource.get_native_query_connections()),
-                "collections": {
-                    c.name: await self._serialize_collection(c)
+                "collections": [
+                    await self._serialize_collection(c)
                     for c in sorted(self.datasource.collections, key=lambda c: c.name)
-                },
+                ],
             },
-        }
+        )
         return value
 
     async def _serialize_collection(self, collection: Collection) -> dict:
         return {
+            "name": collection.name,
             "fields": {
                 field: await self._serialize_field(collection.schema["fields"][field])
                 for field in sorted(collection.schema["fields"].keys())
@@ -88,13 +88,13 @@ class SchemaSerializer:
     async def _serialize_column(self, column: Column) -> dict:
         return {
             "type": "Column",
-            "columnType": (serialize_column_type(column["column_type"])),
-            "filterOperators": sorted([OperatorSerializer.serialize(op) for op in column.get("filter_operators", [])]),
-            "defaultValue": column.get("default_value"),
-            "enumValues": column.get("enum_values"),
-            "isPrimaryKey": column.get("is_primary_key", False),
-            "isReadOnly": column.get("is_read_only", False),
-            "isSortable": column.get("is_sortable", False),
+            "column_type": (serialize_column_type(column["column_type"])),
+            "filter_operators": sorted([OperatorSerializer.serialize(op) for op in column.get("filter_operators", [])]),
+            "default_value": column.get("default_value"),
+            "enum_values": column.get("enum_values"),
+            "is_primary_key": column.get("is_primary_key", False),
+            "is_read_only": column.get("is_read_only", False),
+            "is_sortable": column.get("is_sortable", False),
             "validations": [
                 {
                     "operator": OperatorSerializer.serialize(v["operator"]),
@@ -113,51 +113,51 @@ class SchemaSerializer:
             serialized_field.update(
                 {
                     "type": "PolymorphicManyToOne",
-                    "foreignCollections": relation["foreign_collections"],
-                    "foreignKey": relation["foreign_key"],
-                    "foreignKeyTypeField": relation["foreign_key_type_field"],
-                    "foreignKeyTargets": relation["foreign_key_targets"],
+                    "foreign_collections": relation["foreign_collections"],
+                    "foreign_key": relation["foreign_key"],
+                    "foreign_key_type_field": relation["foreign_key_type_field"],
+                    "foreign_key_targets": relation["foreign_key_targets"],
                 }
             )
         elif is_many_to_one(relation):
             serialized_field.update(
                 {
                     "type": "ManyToOne",
-                    "foreignCollection": relation["foreign_collection"],
-                    "foreignKey": relation["foreign_key"],
-                    "foreignKeyTarget": relation["foreign_key_target"],
+                    "foreign_collection": relation["foreign_collection"],
+                    "foreign_key": relation["foreign_key"],
+                    "foreign_key_target": relation["foreign_key_target"],
                 }
             )
         elif is_one_to_one(relation) or is_one_to_many(relation):
             serialized_field.update(
                 {
                     "type": "OneToMany" if is_one_to_many(relation) else "OneToOne",
-                    "foreignCollection": relation["foreign_collection"],
-                    "originKey": relation["origin_key"],
-                    "originKeyTarget": relation["origin_key_target"],
+                    "foreign_collection": relation["foreign_collection"],
+                    "origin_key": relation["origin_key"],
+                    "origin_key_target": relation["origin_key_target"],
                 }
             )
         elif is_polymorphic_one_to_one(relation) or is_polymorphic_one_to_many(relation):
             serialized_field.update(
                 {
                     "type": "PolymorphicOneToMany" if is_polymorphic_one_to_many(relation) else "PolymorphicOneToOne",
-                    "foreignCollection": relation["foreign_collection"],
-                    "originKey": relation["origin_key"],
-                    "originKeyTarget": relation["origin_key_target"],
-                    "originTypeField": relation["origin_type_field"],
-                    "originTypeValue": relation["origin_type_value"],
+                    "foreign_collection": relation["foreign_collection"],
+                    "origin_key": relation["origin_key"],
+                    "origin_key_target": relation["origin_key_target"],
+                    "origin_type_field": relation["origin_type_field"],
+                    "origin_type_value": relation["origin_type_value"],
                 }
             )
         elif is_many_to_many(relation):
             serialized_field.update(
                 {
                     "type": "ManyToMany",
-                    "foreignCollections": relation["foreign_collection"],
-                    "foreignKey": relation["foreign_key"],
-                    "foreignKeyTargets": relation["foreign_key_target"],
-                    "originKey": relation["origin_key"],
-                    "originKeyTarget": relation["origin_key_target"],
-                    "throughCollection": relation["through_collection"],
+                    "foreign_collections": relation["foreign_collection"],
+                    "foreign_key": relation["foreign_key"],
+                    "foreign_key_targets": relation["foreign_key_target"],
+                    "origin_key": relation["origin_key"],
+                    "origin_key_target": relation["origin_key_target"],
+                    "through_collection": relation["through_collection"],
                 }
             )
         return serialized_field
@@ -167,15 +167,11 @@ class SchemaDeserializer:
     VERSION = "1.0"
 
     def deserialize(self, schema) -> dict:
-        if schema["version"] != self.VERSION:
-            raise ValueError(f"Unsupported schema version {schema['version']}")
-
         return {
-            "charts": schema["data"]["charts"],
-            "live_query_connections": schema["data"]["live_query_connections"],
+            "charts": schema["charts"],
+            # "live_query_connections": schema["data"]["live_query_connections"],
             "collections": {
-                name: self._deserialize_collection(collection)
-                for name, collection in schema["data"]["collections"].items()
+                collection["name"]: self._deserialize_collection(collection) for collection in schema["collections"]
             },
         }
 
@@ -201,13 +197,13 @@ class SchemaDeserializer:
     def _deserialize_column(self, column: dict) -> dict:
         return {
             "type": FieldType.COLUMN,
-            "column_type": deserialize_column_type(column["columnType"]),
-            "filter_operators": [OperatorSerializer.deserialize(op) for op in column["filterOperators"]],
-            "default_value": column.get("defaultValue"),
-            "enum_values": column.get("enumValues"),
-            "is_primary_key": column.get("isPrimaryKey", False),
-            "is_read_only": column.get("isReadOnly", False),
-            "is_sortable": column.get("isSortable", False),
+            "column_type": deserialize_column_type(column["column_type"]),
+            "filter_operators": [OperatorSerializer.deserialize(op) for op in column["filter_operators"]],
+            "default_value": column.get("default_value"),
+            "enum_values": column.get("enum_values"),
+            "is_primary_key": column.get("is_primary_key", False),
+            "is_read_only": column.get("is_read_only", False),
+            "is_sortable": column.get("is_sortable", False),
             "validations": [
                 {
                     "operator": OperatorSerializer.deserialize(op["operator"]),
@@ -221,24 +217,24 @@ class SchemaDeserializer:
         if relation["type"] == "PolymorphicManyToOne":
             return {
                 "type": FieldType("PolymorphicManyToOne"),
-                "foreign_collections": relation["foreignCollections"],
-                "foreign_key": relation["foreignKey"],
-                "foreign_key_type_field": relation["foreignKeyTypeField"],
-                "foreign_key_targets": relation["foreignKeyTargets"],
+                "foreign_collections": relation["foreign_collections"],
+                "foreign_key": relation["foreign_key"],
+                "foreign_key_type_field": relation["foreign_key_type_field"],
+                "foreign_key_targets": relation["foreign_key_targets"],
             }
         elif relation["type"] == "ManyToOne":
             return {
                 "type": FieldType("ManyToOne"),
-                "foreign_collection": relation["foreignCollection"],
-                "foreign_key": relation["foreignKey"],
-                "foreign_key_target": relation["foreignKeyTarget"],
+                "foreign_collection": relation["foreign_collection"],
+                "foreign_key": relation["foreign_key"],
+                "foreign_key_target": relation["foreign_key_target"],
             }
         elif relation["type"] in ["OneToMany", "OneToOne"]:
             return {
                 "type": FieldType("OneToOne") if relation["type"] == "OneToOne" else FieldType("OneToMany"),
-                "foreign_collection": relation["foreignCollection"],
-                "origin_key": relation["originKey"],
-                "origin_key_target": relation["originKeyTarget"],
+                "foreign_collection": relation["foreign_collection"],
+                "origin_key": relation["origin_key"],
+                "origin_key_target": relation["origin_key_target"],
             }
         elif relation["type"] in ["PolymorphicOneToMany", "PolymorphicOneToOne"]:
             return {
@@ -247,20 +243,20 @@ class SchemaDeserializer:
                     if relation["type"] == "PolymorphicOneToOne"
                     else FieldType("PolymorphicOneToMany")
                 ),
-                "foreign_collection": relation["foreignCollection"],
-                "origin_key": relation["originKey"],
-                "origin_key_target": relation["originKeyTarget"],
-                "origin_type_field": relation["originTypeField"],
-                "origin_type_value": relation["originTypeValue"],
+                "foreign_collection": relation["foreign_collection"],
+                "origin_key": relation["origin_key"],
+                "origin_key_target": relation["origin_key_target"],
+                "origin_type_field": relation["origin_type_field"],
+                "origin_type_value": relation["origin_type_value"],
             }
         elif relation["type"] == "ManyToMany":
             return {
                 "type": FieldType("ManyToMany"),
-                "foreign_collection": relation["foreignCollections"],
-                "foreign_key": relation["foreignKey"],
-                "foreign_key_target": relation["foreignKeyTargets"],
-                "origin_key": relation["originKey"],
-                "origin_key_target": relation["originKeyTarget"],
-                "through_collection": relation["throughCollection"],
+                "foreign_collection": relation["foreign_collections"],
+                "foreign_key": relation["foreign_key"],
+                "foreign_key_target": relation["foreign_key_targets"],
+                "origin_key": relation["origin_key"],
+                "origin_key_target": relation["origin_key_target"],
+                "through_collection": relation["through_collection"],
             }
         raise ValueError(f"Unsupported relation type {relation['type']}")

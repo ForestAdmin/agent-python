@@ -13,7 +13,7 @@ from forestadmin.datasource_toolkit.interfaces.actions import (
     SuccessResult,
     WebHookResult,
 )
-from forestadmin.rpc_common.serializers.utils import camel_to_snake_case, enum_to_str_or_value, snake_to_camel_case
+from forestadmin.rpc_common.serializers.utils import enum_to_str_or_value
 
 
 class ActionSerializer:
@@ -31,22 +31,23 @@ class ActionSerializer:
             # ]
 
         return {
-            "scope": action.scope.value,
-            "generateFile": action.generate_file or False,
-            "staticForm": action.static_form or False,
+            "scope": action.scope.value.lower(),
+            "is_generate_file": action.generate_file or False,
+            "static_form": action.static_form or False,
             "description": action.description,
-            "submitButtonLabel": action.submit_button_label,
+            "submit_button_label": action.submit_button_label,
             "form": ActionFormSerializer.serialize(form) if form is not None else [],
+            "execute": {},  # TODO: I'm pretty sure this is not needed
         }
 
     @staticmethod
     def deserialize(action: dict) -> dict:
         return {
-            "scope": ActionsScope(action["scope"]),
-            "generate_file": action["generateFile"],
-            "static_form": action["staticForm"],
+            "scope": ActionsScope(action["scope"].capitalize()),
+            "generate_file": action["is_generate_file"],
+            "static_form": action["static_form"],
             "description": action["description"],
-            "submit_button_label": action["submitButtonLabel"],
+            "submit_button_label": action["submit_button_label"],
             "form": ActionFormSerializer.deserialize(action["form"]) if action["form"] is not None else [],
         }
 
@@ -57,35 +58,35 @@ class ActionFormSerializer:
         serialized_form = []
 
         for field in form:
+            tmp_field = {}
             if field["type"] == ActionFieldType.LAYOUT:
                 if field["component"] == "Page":
-                    serialized_form.append(
-                        {
-                            **field,
-                            "type": "Layout",
-                            "elements": ActionFormSerializer.serialize(field["elements"]),
-                        }
-                    )
+                    tmp_field = {
+                        **field,
+                        "type": "Layout",
+                        "elements": ActionFormSerializer.serialize(field["elements"]),
+                    }
 
                 if field["component"] == "Row":
-                    serialized_form.append(
-                        {
-                            **field,
-                            "type": "Layout",
-                            "fields": ActionFormSerializer.serialize(field["fields"]),
-                        }
-                    )
+                    tmp_field = {
+                        **field,
+                        "type": "Layout",
+                        "fields": ActionFormSerializer.serialize(field["fields"]),
+                    }
             else:
                 tmp_field = {
-                    **{snake_to_camel_case(k): v for k, v in field.items()},
+                    **{k: v for k, v in field.items()},
                     "type": enum_to_str_or_value(field["type"]),
                 }
                 if field["type"] == ActionFieldType.FILE:
                     tmp_field.update(ActionFormSerializer._serialize_file_field(tmp_field))
-                    print(tmp_field.keys())
                 if field["type"] == ActionFieldType.FILE_LIST:
                     tmp_field.update(ActionFormSerializer._serialize_file_list_field(tmp_field))
-                serialized_form.append(tmp_field)
+
+            if "if_" in tmp_field:
+                tmp_field["if_condition"] = tmp_field["if_"]
+                del tmp_field["if_"]
+            serialized_form.append(tmp_field)
 
         return serialized_form
 
@@ -105,7 +106,6 @@ class ActionFormSerializer:
             ret["defaultValue"] = ActionFormSerializer._serialize_file_obj(field["defaultValue"])
         if field.get("value"):
             ret["value"] = ActionFormSerializer._serialize_file_obj(field["value"])
-        return ret
 
     @staticmethod
     def _serialize_file_obj(f: File) -> dict:
@@ -148,34 +148,35 @@ class ActionFormSerializer:
         deserialized_form = []
 
         for field in form:
+            tmp_field = {}
             if field["type"] == "Layout":
                 if field["component"] == "Page":
-                    deserialized_form.append(
-                        {
-                            **field,
-                            "type": ActionFieldType("Layout"),
-                            "elements": ActionFormSerializer.deserialize(field["elements"]),
-                        }
-                    )
+                    tmp_field = {
+                        **field,
+                        "type": ActionFieldType("Layout"),
+                        "elements": ActionFormSerializer.deserialize(field["elements"]),
+                    }
 
                 if field["component"] == "Row":
-                    deserialized_form.append(
-                        {
-                            **field,
-                            "type": ActionFieldType("Layout"),
-                            "fields": ActionFormSerializer.deserialize(field["fields"]),
-                        }
-                    )
+                    tmp_field = {
+                        **field,
+                        "type": ActionFieldType("Layout"),
+                        "fields": ActionFormSerializer.deserialize(field["fields"]),
+                    }
             else:
                 tmp_field = {
-                    **{camel_to_snake_case(k): v for k, v in field.items()},
+                    **{k: v for k, v in field.items()},
                     "type": ActionFieldType(field["type"]),
                 }
                 if tmp_field["type"] == ActionFieldType.FILE:
                     tmp_field.update(ActionFormSerializer._deserialize_file_field(tmp_field))
                 if tmp_field["type"] == ActionFieldType.FILE_LIST:
                     tmp_field.update(ActionFormSerializer._deserialize_file_list_field(tmp_field))
-                deserialized_form.append(tmp_field)
+
+            if "if_condition" in tmp_field:
+                tmp_field["if_"] = tmp_field["if_condition"]
+                del tmp_field["if_condition"]
+            deserialized_form.append(tmp_field)
 
         return deserialized_form
 

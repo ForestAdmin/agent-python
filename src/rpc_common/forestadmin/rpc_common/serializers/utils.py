@@ -68,7 +68,11 @@ class OperatorSerializer:
 
     @staticmethod
     def deserialize(operator: str) -> Operator:
-        return Operator(camel_to_snake_case(operator))
+        _operator = operator
+        if operator.startswith("i_"):
+            _operator = operator[2:]
+        return Operator(_operator)
+        # return Operator(camel_to_snake_case(operator))
         # for value, serialized in OperatorSerializer.OPERATOR_MAPPING.items():
         #     if serialized == operator:
         #         return Operator(value)
@@ -79,7 +83,8 @@ class OperatorSerializer:
         value = operator
         if isinstance(value, Enum):
             value = value.value
-        return snake_to_camel_case(value)
+        return value
+        # return snake_to_camel_case(value)
         # return OperatorSerializer.OPERATOR_MAPPING[value]
 
 
@@ -101,12 +106,12 @@ class CallerSerializer:
     @staticmethod
     def serialize(caller: User) -> Dict:
         return {
-            "renderingId": caller.rendering_id,
-            "userId": caller.user_id,
+            "rendering_id": caller.rendering_id,
+            "user_id": caller.user_id,
             "tags": caller.tags,
             "email": caller.email,
-            "firstName": caller.first_name,
-            "lastName": caller.last_name,
+            "first_name": caller.first_name,
+            "last_name": caller.last_name,
             "team": caller.team,
             "timezone": TimezoneSerializer.serialize(caller.timezone),
             "request": {"ip": caller.request["ip"]},
@@ -117,12 +122,12 @@ class CallerSerializer:
         if caller is None:
             return None
         return User(
-            rendering_id=caller["renderingId"],
-            user_id=caller["userId"],
+            rendering_id=caller["rendering_id"],
+            user_id=caller["user_id"],
             tags=caller["tags"],
             email=caller["email"],
-            first_name=caller["firstName"],
-            last_name=caller["lastName"],
+            first_name=caller["first_name"],
+            last_name=caller["last_name"],
             team=caller["team"],
             timezone=TimezoneSerializer.deserialize(caller["timezone"]),  # type:ignore
             request={"ip": caller["request"]["ip"]},
