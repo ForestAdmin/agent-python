@@ -97,6 +97,7 @@ class DecoratorStack:
             "binary",
             "publication",
             "rename_field",
+            "datasource",
         ]:
             backup_stack[decorator_name] = getattr(self, decorator_name)
         return backup_stack
