@@ -11,8 +11,6 @@ class RPCRequester:
     def __init__(self, connection_uri: str, secret_key: str):
         self.connection_uri = connection_uri
         self.secret_key = secret_key
-        self.aes_key = secret_key[:16].encode()
-        self.aes_iv = secret_key[-16:].encode()
 
     def mk_hmac_headers(self):
         timestamp = datetime.datetime.now(datetime.UTC).isoformat()
