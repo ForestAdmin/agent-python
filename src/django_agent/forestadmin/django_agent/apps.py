@@ -1,4 +1,3 @@
-import asyncio
 import importlib
 import sys
 import threading
@@ -8,6 +7,7 @@ from django.apps import AppConfig, apps
 from django.conf import settings
 from forestadmin.agent_toolkit.forest_logger import ForestLogger
 from forestadmin.datasource_django.datasource import DjangoDatasource
+from forestadmin.datasource_toolkit.utils.user_callable import call_user_function
 from forestadmin.django_agent.agent import DjangoAgent, create_agent
 
 
@@ -24,17 +24,16 @@ def is_launch_as_server() -> bool:
 def init_app_agent() -> Optional[DjangoAgent]:
     if not is_launch_as_server():
         return None
-    agent = create_agent()
     if not hasattr(settings, "FOREST_AUTO_ADD_DJANGO_DATASOURCE") or settings.FOREST_AUTO_ADD_DJANGO_DATASOURCE:
-        agent.add_datasource(DjangoDatasource())
+        DjangoAgentApp._DJANGO_AGENT.add_datasource(DjangoDatasource())
 
     customize_fn = getattr(settings, "FOREST_CUSTOMIZE_FUNCTION", None)
     if customize_fn:
-        agent = _call_user_customize_function(customize_fn, agent)
+        _call_user_customize_function(customize_fn, DjangoAgentApp._DJANGO_AGENT)
 
-    if agent:
-        agent.start()
-    return agent
+    if DjangoAgentApp._DJANGO_AGENT:
+        DjangoAgentApp._DJANGO_AGENT.start()
+    return DjangoAgentApp._DJANGO_AGENT
 
 
 def _call_user_customize_function(customize_fn: Union[str, Callable[[DjangoAgent], None]], agent: DjangoAgent):
@@ -44,21 +43,16 @@ def _call_user_customize_function(customize_fn: Union[str, Callable[[DjangoAgent
             module = importlib.import_module(module_name)
             customize_fn = getattr(module, fn_name)
         except Exception as exc:
-            ForestLogger.log("error", f"cannot import {customize_fn} : {exc}. Quitting forest.")
+            ForestLogger.log("exception", f"cannot import {customize_fn} : {exc}. Quitting forest.")
             return
-
-    if callable(customize_fn):
         try:
-            ret = customize_fn(agent)
-            if asyncio.iscoroutine(ret):
-                agent.loop.run_until_complete(ret)
+            agent.loop.run_until_complete(call_user_function(customize_fn, agent))
         except Exception as exc:
             ForestLogger.log(
-                "error",
+                "exception",
                 f'error executing "FOREST_CUSTOMIZE_FUNCTION" ({customize_fn}): {exc}. Quitting forest.',
             )
             return
-    return agent
 
 
 class DjangoAgentApp(AppConfig):
@@ -81,6 +75,9 @@ class DjangoAgentApp(AppConfig):
     def ready(self):
         # we need to wait for other apps to be ready, for this forest app must be ready
         # that's why we need another thread waiting for every app to be ready
+        if not is_launch_as_server():
+            return
+        DjangoAgentApp._DJANGO_AGENT = create_agent()
         t = threading.Thread(name="forest.wait_and_launch_agent", target=self._wait_for_all_apps_ready_and_launch_agent)
         t.start()
 

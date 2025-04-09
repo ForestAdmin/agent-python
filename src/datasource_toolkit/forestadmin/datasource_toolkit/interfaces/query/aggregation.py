@@ -65,7 +65,7 @@ class AggregationGroup(TypedDict):
 
 class PlainAggregation(TypedDict):
     field: NotRequired[Optional[str]]
-    operation: PlainAggregator
+    operation: Union[PlainAggregator, Aggregator]
     groups: NotRequired[List[PlainAggregationGroup]]
 
 
