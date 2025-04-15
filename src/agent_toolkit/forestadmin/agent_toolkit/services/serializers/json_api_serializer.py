@@ -240,7 +240,7 @@ class JsonApiSerializer:
         except DatasourceException:
             return {"data": None, "links": {"related": {"href": f"{current_link}/relationships/{name}"}}}, None
 
-        packed_id = quote(pack_id(foreign_collection.schema, data), safe="")
+        packed_id = quote(pack_id(foreign_collection.schema, sub_data), safe="")
         relation = {
             "data": {
                 "id": packed_id,  # TODO: validate
