@@ -1,6 +1,7 @@
 from ast import literal_eval
 from datetime import date, datetime, time
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union, cast
+from urllib.parse import quote
 from uuid import uuid4
 
 from forestadmin.agent_toolkit.forest_logger import ForestLogger
@@ -84,6 +85,8 @@ class JsonApiSerializer:
     ) -> DumpedResult:
         projection = projection if projection is not None else self.projection
         pk_value = self._get_id(collection, data)
+        if isinstance(pk_value, str):
+            pk_value = quote(pk_value, safe="")
         ret = {
             "data": {
                 "id": pk_value,
@@ -190,10 +193,11 @@ class JsonApiSerializer:
     ) -> Tuple[Dict[str, Any], IncludedData]:
         """return (relationships, included)"""
         foreign_collection = self.datasource.get_collection(schema["foreign_collection"])
+        packed_id = quote(pack_id(foreign_collection.schema, data), safe="")
 
         relation = {
             "data": {
-                "id": pack_id(foreign_collection.schema, data),
+                "id": packed_id,
                 # "id": self._get_id(foreign_collection, data),
                 "type": schema["foreign_collection"],
             },
@@ -207,10 +211,14 @@ class JsonApiSerializer:
                 continue
             included_attributes[key] = self._serialize_value(value, foreign_collection.schema["fields"][key])
 
+        id_ = self._get_id(foreign_collection, data)
+        if isinstance(id_, str):
+            id_ = quote(id_, safe="")
+
         included = {
-            "id": self._get_id(foreign_collection, data),
+            "id": id_,
             "links": {
-                "self": f"/forest/{foreign_collection.name}/{self._get_id(foreign_collection, data)}",
+                "self": f"/forest/{foreign_collection.name}/{id_}",
             },
             "type": foreign_collection.name,
         }
@@ -232,9 +240,10 @@ class JsonApiSerializer:
         except DatasourceException:
             return {"data": None, "links": {"related": {"href": f"{current_link}/relationships/{name}"}}}, None
 
+        packed_id = quote(pack_id(foreign_collection.schema, data), safe="")
         relation = {
             "data": {
-                "id": pack_id(foreign_collection.schema, sub_data),  # TODO: validate
+                "id": packed_id,  # TODO: validate
                 # "id": self._get_id(foreign_collection, sub_data),
                 "type": data[schema["foreign_key_type_field"]],
             },
