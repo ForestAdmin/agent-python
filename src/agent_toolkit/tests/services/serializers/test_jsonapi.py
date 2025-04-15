@@ -456,6 +456,49 @@ class TestJsonApi(TestCase):
             }
         )
 
+        cls.collection_str_pk = Collection("StrPK", cls.datasource)  # type:ignore
+        cls.collection_str_pk.add_fields(
+            {
+                "pk": Column(
+                    column_type=PrimitiveType.STRING,
+                    is_primary_key=True,
+                    type=FieldType.COLUMN,
+                    is_read_only=False,
+                    default_value=None,
+                    enum_values=None,
+                    filter_operators=set([Operator.EQUAL, Operator.IN]),
+                    is_sortable=True,
+                    validations=[],
+                ),
+                "name": Column(column_type="String", type="Column"),
+                "relation_pk": Column(column_type="String", type="Column"),
+                "relation": ManyToOne(
+                    foreign_collection="StrPKRelation",
+                    foreign_key="relation_pk",
+                    foreign_key_target="pk",
+                    type=FieldType.MANY_TO_ONE,
+                ),
+            }
+        )
+
+        cls.collection_str_pk_relation = Collection("StrPKRelation", cls.datasource)  # type:ignore
+        cls.collection_str_pk_relation.add_fields(
+            {
+                "pk": Column(
+                    column_type=PrimitiveType.STRING,
+                    is_primary_key=True,
+                    type=FieldType.COLUMN,
+                    is_read_only=False,
+                    default_value=None,
+                    enum_values=None,
+                    filter_operators=set([Operator.EQUAL, Operator.IN]),
+                    is_sortable=True,
+                    validations=[],
+                ),
+                "name": Column(column_type="String", type="Column"),
+            }
+        )
+
         cls.datasource.add_collection(cls.collection_order)
         cls.datasource.add_collection(cls.collection_order_products)
         cls.datasource.add_collection(cls.collection_product)
@@ -464,6 +507,8 @@ class TestJsonApi(TestCase):
         cls.datasource.add_collection(cls.collection_picture)
         cls.datasource.add_collection(cls.collection_comment)
         cls.datasource.add_collection(cls.collection_all_types)
+        cls.datasource.add_collection(cls.collection_str_pk)
+        cls.datasource.add_collection(cls.collection_str_pk_relation)
 
 
 class TestJsonApiDeserializer(TestJsonApi):
@@ -1250,6 +1295,61 @@ class TestJsonApiSerializer(TestJsonApi):
                         },
                         "links": {"self": "/forest/Comment/0b622590-c823-4d2f-84e6-bbbdd31c8af8"},
                     },
+                ],
+            },
+        )
+
+    def test_string_primary_keys_should_be_url_encoded(self):
+        serializer = JsonApiSerializer(self.datasource, Projection("pk", "name"))
+        record = {"pk": "hello/world", "name": "hello world"}
+        dumped = serializer.serialize(record, self.collection_str_pk)
+        self.assertEqual(
+            dumped,
+            {
+                "data": {
+                    "type": "StrPK",
+                    "id": "hello%2Fworld",
+                    "attributes": {"pk": "hello/world", "name": "hello world"},
+                    "links": {"self": "/forest/StrPK/hello%2Fworld"},
+                },
+                "links": {"self": "/forest/StrPK/hello%2Fworld"},
+            },
+        )
+
+    def test_string_foreign_keys_should_be_url_encoded_so_foreign_pk(self):
+        serializer = JsonApiSerializer(
+            self.datasource, Projection("pk", "name", "relation_pk", "relation:pk", "relation:name")
+        )
+        record = {
+            "pk": "hello/world",
+            "name": "hello world",
+            "relation_pk": "hello/other/people",
+            "relation": {"pk": "hello/other/people", "name": "hello other people"},
+        }
+        dumped = serializer.serialize(record, self.collection_str_pk)
+        self.assertEqual(
+            dumped,
+            {
+                "data": {
+                    "type": "StrPK",
+                    "id": "hello%2Fworld",
+                    "attributes": {"pk": "hello/world", "name": "hello world", "relation_pk": "hello/other/people"},
+                    "links": {"self": "/forest/StrPK/hello%2Fworld"},
+                    "relationships": {
+                        "relation": {
+                            "data": {"id": "hello%2Fother%2Fpeople", "type": "StrPKRelation"},
+                            "links": {"related": {"href": "/forest/StrPK/hello%2Fworld/relationships/relation"}},
+                        }
+                    },
+                },
+                "links": {"self": "/forest/StrPK/hello%2Fworld"},
+                "included": [
+                    {
+                        "id": "hello%2Fother%2Fpeople",
+                        "links": {"self": "/forest/StrPKRelation/hello%2Fother%2Fpeople"},
+                        "type": "StrPKRelation",
+                        "attributes": {"pk": "hello/other/people", "name": "hello other people"},
+                    }
                 ],
             },
         )
