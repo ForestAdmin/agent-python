@@ -694,7 +694,6 @@ class TestCrudResource(TestCase):
         )
 
     def test_get_should_work_when_primary_key_is_url_encoded(self):
-
         request = RequestCollection(
             RequestMethod.GET,
             self.collection_str_pk,
@@ -736,7 +735,7 @@ class TestCrudResource(TestCase):
             body_content,
             {
                 "data": {
-                    "id": "hello%2Fworld",
+                    "id": "hello/world",
                     "attributes": {"pk": "hello/world"},
                     "links": {"self": "/forest/StrPK/hello%2Fworld"},
                     "type": "StrPK",

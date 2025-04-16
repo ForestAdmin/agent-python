@@ -1308,7 +1308,7 @@ class TestJsonApiSerializer(TestJsonApi):
             {
                 "data": {
                     "type": "StrPK",
-                    "id": "hello%2Fworld",
+                    "id": "hello/world",
                     "attributes": {"pk": "hello/world", "name": "hello world"},
                     "links": {"self": "/forest/StrPK/hello%2Fworld"},
                 },
@@ -1332,12 +1332,12 @@ class TestJsonApiSerializer(TestJsonApi):
             {
                 "data": {
                     "type": "StrPK",
-                    "id": "hello%2Fworld",
+                    "id": "hello/world",
                     "attributes": {"pk": "hello/world", "name": "hello world", "relation_pk": "hello/other/people"},
                     "links": {"self": "/forest/StrPK/hello%2Fworld"},
                     "relationships": {
                         "relation": {
-                            "data": {"id": "hello%2Fother%2Fpeople", "type": "StrPKRelation"},
+                            "data": {"id": "hello/other/people", "type": "StrPKRelation"},
                             "links": {"related": {"href": "/forest/StrPK/hello%2Fworld/relationships/relation"}},
                         }
                     },
@@ -1345,7 +1345,7 @@ class TestJsonApiSerializer(TestJsonApi):
                 "links": {"self": "/forest/StrPK/hello%2Fworld"},
                 "included": [
                     {
-                        "id": "hello%2Fother%2Fpeople",
+                        "id": "hello/other/people",
                         "links": {"self": "/forest/StrPKRelation/hello%2Fother%2Fpeople"},
                         "type": "StrPKRelation",
                         "attributes": {"pk": "hello/other/people", "name": "hello other people"},
