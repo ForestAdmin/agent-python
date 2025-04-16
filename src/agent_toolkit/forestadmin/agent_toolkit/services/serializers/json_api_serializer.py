@@ -85,18 +85,18 @@ class JsonApiSerializer:
     ) -> DumpedResult:
         projection = projection if projection is not None else self.projection
         pk_value = self._get_id(collection, data)
-        if isinstance(pk_value, str):
-            pk_value = quote(pk_value, safe="")
+
+        encoded_pk_value = quote(pk_value, safe="") if isinstance(pk_value, str) else pk_value
         ret = {
             "data": {
                 "id": pk_value,
                 "attributes": {},
-                "links": {"self": f"/forest/{collection.name}/{pk_value}"},
+                "links": {"self": f"/forest/{collection.name}/{encoded_pk_value}"},
                 "relationships": {},
                 "type": collection.name,
             },
             "included": [],
-            "links": {"self": f"/forest/{collection.name}/{pk_value}"},
+            "links": {"self": f"/forest/{collection.name}/{encoded_pk_value}"},
         }
 
         first_level_projection = [*projection.relations.keys(), *projection.columns]
@@ -112,7 +112,7 @@ class JsonApiSerializer:
                     key,
                     data,
                     cast(RelationAlias, collection.schema["fields"][key]),
-                    f"/forest/{collection.name}/{pk_value}",
+                    f"/forest/{collection.name}/{encoded_pk_value}",
                 )
                 ret["data"]["relationships"][key] = relation
                 if included is not None and not self._is_in_included(ret["included"], included):
@@ -193,11 +193,10 @@ class JsonApiSerializer:
     ) -> Tuple[Dict[str, Any], IncludedData]:
         """return (relationships, included)"""
         foreign_collection = self.datasource.get_collection(schema["foreign_collection"])
-        packed_id = quote(pack_id(foreign_collection.schema, data), safe="")
 
         relation = {
             "data": {
-                "id": packed_id,
+                "id": pack_id(foreign_collection.schema, data),
                 # "id": self._get_id(foreign_collection, data),
                 "type": schema["foreign_collection"],
             },
@@ -212,13 +211,12 @@ class JsonApiSerializer:
             included_attributes[key] = self._serialize_value(value, foreign_collection.schema["fields"][key])
 
         id_ = self._get_id(foreign_collection, data)
-        if isinstance(id_, str):
-            id_ = quote(id_, safe="")
+        encoded_id = quote(id_, safe="") if isinstance(id_, str) else id_
 
         included = {
             "id": id_,
             "links": {
-                "self": f"/forest/{foreign_collection.name}/{id_}",
+                "self": f"/forest/{foreign_collection.name}/{encoded_id}",
             },
             "type": foreign_collection.name,
         }
@@ -240,10 +238,9 @@ class JsonApiSerializer:
         except DatasourceException:
             return {"data": None, "links": {"related": {"href": f"{current_link}/relationships/{name}"}}}, None
 
-        packed_id = quote(pack_id(foreign_collection.schema, sub_data), safe="")
         relation = {
             "data": {
-                "id": packed_id,  # TODO: validate
+                "id": pack_id(foreign_collection.schema, sub_data),  # TODO: validate
                 # "id": self._get_id(foreign_collection, sub_data),
                 "type": data[schema["foreign_key_type_field"]],
             },
