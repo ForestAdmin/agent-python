@@ -1,3 +1,10 @@
+## [1.23.3](https://github.com/ForestAdmin/agent-python/compare/v1.23.2...v1.23.3) (2025-04-17)
+
+
+### Bug Fixes
+
+* **json_api:** null belongs_to are correctly serialized ([#328](https://github.com/ForestAdmin/agent-python/issues/328)) ([e59c5ff](https://github.com/ForestAdmin/agent-python/commit/e59c5ff7a6137fc1547b93daf911cf581a21c9c6))
+
 ## [1.23.2](https://github.com/ForestAdmin/agent-python/compare/v1.23.1...v1.23.2) (2025-04-08)
 
 
