@@ -163,7 +163,10 @@ class JsonApiSerializer:
             return {
                 "data": (
                     None
-                    if is_polymorphic_many_to_one(schema) or is_polymorphic_one_to_one(schema) or is_one_to_one(schema)
+                    if is_polymorphic_many_to_one(schema)
+                    or is_polymorphic_one_to_one(schema)
+                    or is_one_to_one(schema)
+                    or is_many_to_one(schema)
                     else []
                 ),
                 "links": {"related": {"href": f"{current_link}/relationships/{name}"}},
