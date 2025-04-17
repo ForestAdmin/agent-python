@@ -1,10 +1,8 @@
 from typing import Any, Dict, Optional, TypedDict, TypeVar, Union
-from urllib.parse import unquote
 
 from forestadmin.agent_toolkit.exceptions import AgentToolkitException
 from forestadmin.agent_toolkit.resources.collections.exceptions import CollectionResourceException
 from forestadmin.agent_toolkit.utils.context import Request, RequestMethod, User
-from forestadmin.agent_toolkit.utils.id import pack_id, unpack_id
 from forestadmin.datasource_toolkit.collections import Collection, CollectionException
 from forestadmin.datasource_toolkit.datasource_customizer.collection_customizer import CollectionCustomizer
 from forestadmin.datasource_toolkit.datasource_customizer.datasource_customizer import DatasourceCustomizer
@@ -14,12 +12,10 @@ from forestadmin.datasource_toolkit.interfaces.fields import (
     ManyToOne,
     OneToMany,
     OneToOne,
-    PrimitiveType,
     is_polymorphic_many_to_one,
     is_reverse_polymorphic_relation,
     is_straight_relation,
 )
-from forestadmin.datasource_toolkit.utils.schema import SchemaUtils
 from typing_extensions import Self
 
 BoundCollection = TypeVar("BoundCollection", bound=Collection)
