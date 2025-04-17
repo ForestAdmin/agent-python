@@ -92,16 +92,6 @@ class RequestCollection(Request):
             raise CollectionResourceException("")
         try:
             pks = self.query["pks"]
-            unpacked_pks = unpack_id(self.collection.schema, pks)
-            pks_names = SchemaUtils.get_primary_keys(self.collection.schema)
-            record_like_pks = {}
-            for i, pk_name in enumerate(pks_names):
-                pk_schema = self.collection.schema["fields"][pk_name]
-                if pk_schema["column_type"] == PrimitiveType.STRING:
-                    unpacked_pks[i] = unquote(unpacked_pks[i])
-                record_like_pks[pk_name] = unpacked_pks[i]
-            pks = pack_id(self.collection.schema, record_like_pks)
-
         except KeyError:
             raise CollectionResourceException("primary keys are missing")
         return pks

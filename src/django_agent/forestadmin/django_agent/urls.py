@@ -1,5 +1,5 @@
 from django.conf import settings
-from django.urls import path
+from django.urls import path, re_path
 
 from .views import actions, authentication, capabilities, charts, crud, crud_related, index, native_query, stats
 
@@ -52,24 +52,24 @@ urlpatterns = [
     # stats
     path(f"{prefix}forest/stats/<str:collection_name>", stats.stats, name="stats"),
     # crud related
-    path(
-        f"{prefix}forest/<str:collection_name>/<str:pks>/relationships/<str:relation_name>/count",
+    re_path(
+        f"{prefix}forest/(?P<collection_name>[^/]+)/(?P<pks>.*)/relationships/(?P<relation_name>[^/]+)/count",
         crud_related.count,
         name="crud_related_count",
     ),
-    path(
-        f"{prefix}forest/<str:collection_name>/<str:pks>/relationships/<str:relation_name>.csv",
+    re_path(
+        f"{prefix}forest/(?P<collection_name>[^/]+)/(?P<pks>.*)/relationships/(?P<relation_name>[^/]+).csv",
         crud_related.csv,
         name="crud_related_csv",
     ),
-    path(
-        f"{prefix}forest/<str:collection_name>/<str:pks>/relationships/<str:relation_name>",
+    re_path(
+        f"{prefix}forest/(?P<collection_name>[^/]+)/(?P<pks>.*)/relationships/(?P<relation_name>[^/]+)",
         crud_related.list_,
         name="crud_related_list",
     ),
     # crud
     path(f"{prefix}forest/<str:collection_name>.csv", crud.csv, name="crud_csv"),
     path(f"{prefix}forest/<str:collection_name>/count", crud.count, name="crud_count"),
-    path(f"{prefix}forest/<str:collection_name>/<str:pks>", crud.detail, name="crud_detail"),
+    re_path(f"{prefix}forest/(?P<collection_name>[^/]+)/(?P<pks>.+)", crud.detail, name="crud_detail"),
     path(f"{prefix}forest/<str:collection_name>", crud.list_, name="crud_list"),
 ]
