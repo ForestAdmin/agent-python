@@ -754,6 +754,24 @@ class TestJsonApiDeserializer(TestJsonApi):
             },
         )
 
+    def test_should_work_if_attribute_not_present(self):
+        deserializer = JsonApiDeserializer(self.datasource)
+
+        request_body = {
+            "data": {
+                "id": "43661dae-97c3-4ea9-bd43-a6d8ac3f4ca7",
+                "type": "Orders",
+                "relationships": {"customer": {"data": {"id": "12", "type": "Persons"}}},
+            }
+        }
+        data = deserializer.deserialize(request_body, self.collection_order)
+        self.assertEqual(
+            data,
+            {
+                "customer": 12,
+            },
+        )
+
 
 class TestJsonApiSerializer(TestJsonApi):
     @classmethod
