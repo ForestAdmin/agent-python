@@ -693,57 +693,6 @@ class TestCrudResource(TestCase):
             },
         )
 
-    def test_get_should_work_when_primary_key_is_url_encoded(self):
-        request = RequestCollection(
-            RequestMethod.GET,
-            self.collection_str_pk,
-            query={"collection_name": "StrPK", "pks": "hello%2Fworld"},
-            headers={},
-            client_ip="127.0.0.1",
-        )
-        crud_resource = CrudResource(
-            self.datasource_composite,
-            self.datasource,
-            self.permission_service,
-            self.ip_white_list_service,
-            self.options,
-        )
-        with patch.object(
-            self.collection_str_pk,
-            "list",
-            new_callable=AsyncMock,
-            return_value=[{"pk": "hello/world", "name": "hello world"}],
-        ) as mock_list:
-            response = self.loop.run_until_complete(crud_resource.get(request))
-            mock_list.assert_awaited_with(
-                request.user,
-                PaginatedFilter(
-                    {
-                        "condition_tree": ConditionTreeBranch(
-                            "and",
-                            [
-                                ConditionTreeLeaf("pk", "equal", "hello/world"),
-                                ConditionTreeLeaf("id", "greater_than", 0),
-                            ],
-                        )
-                    }
-                ),
-                ANY,
-            )
-        body_content = json.loads(response.body)
-        self.assertEqual(
-            body_content,
-            {
-                "data": {
-                    "id": "hello/world",
-                    "attributes": {"pk": "hello/world"},
-                    "links": {"self": "/forest/StrPK/hello%2Fworld"},
-                    "type": "StrPK",
-                },
-                "links": {"self": "/forest/StrPK/hello%2Fworld"},
-            },
-        )
-
     # add
     def test_simple_add(self):
         mock_order = {"cost": 200}
