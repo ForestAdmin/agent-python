@@ -1,6 +1,7 @@
 from ast import literal_eval
 from datetime import date, datetime, time
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union, cast
+from urllib.parse import quote
 from uuid import uuid4
 
 from forestadmin.agent_toolkit.forest_logger import ForestLogger
@@ -84,16 +85,18 @@ class JsonApiSerializer:
     ) -> DumpedResult:
         projection = projection if projection is not None else self.projection
         pk_value = self._get_id(collection, data)
+
+        encoded_pk_value = quote(pk_value, safe="") if isinstance(pk_value, str) else pk_value
         ret = {
             "data": {
                 "id": pk_value,
                 "attributes": {},
-                "links": {"self": f"/forest/{collection.name}/{pk_value}"},
+                "links": {"self": f"/forest/{collection.name}/{encoded_pk_value}"},
                 "relationships": {},
                 "type": collection.name,
             },
             "included": [],
-            "links": {"self": f"/forest/{collection.name}/{pk_value}"},
+            "links": {"self": f"/forest/{collection.name}/{encoded_pk_value}"},
         }
 
         first_level_projection = [*projection.relations.keys(), *projection.columns]
@@ -109,7 +112,7 @@ class JsonApiSerializer:
                     key,
                     data,
                     cast(RelationAlias, collection.schema["fields"][key]),
-                    f"/forest/{collection.name}/{pk_value}",
+                    f"/forest/{collection.name}/{encoded_pk_value}",
                 )
                 ret["data"]["relationships"][key] = relation
                 if included is not None and not self._is_in_included(ret["included"], included):
@@ -210,10 +213,13 @@ class JsonApiSerializer:
                 continue
             included_attributes[key] = self._serialize_value(value, foreign_collection.schema["fields"][key])
 
+        id_ = self._get_id(foreign_collection, data)
+        encoded_id = quote(id_, safe="") if isinstance(id_, str) else id_
+
         included = {
-            "id": self._get_id(foreign_collection, data),
+            "id": id_,
             "links": {
-                "self": f"/forest/{foreign_collection.name}/{self._get_id(foreign_collection, data)}",
+                "self": f"/forest/{foreign_collection.name}/{encoded_id}",
             },
             "type": foreign_collection.name,
         }

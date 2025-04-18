@@ -270,6 +270,29 @@ class TestCrudResource(TestCase):
             },
         )
 
+        # str as pk for url encoding
+
+        cls.collection_str_pk = cls._create_collection(
+            "StrPK",
+            {
+                "pk": {
+                    "column_type": PrimitiveType.STRING,
+                    "is_primary_key": True,
+                    "type": FieldType.COLUMN,
+                    "is_read_only": False,
+                    "default_value": None,
+                    "enum_values": None,
+                    "filter_operators": set([Operator.EQUAL, Operator.IN]),
+                    "is_sortable": True,
+                    "validations": [],
+                },
+                "name": {
+                    "column_type": "String",
+                    "type": "Column",
+                },
+            },
+        )
+
     @classmethod
     def setUpClass(cls) -> None:
         cls.loop = asyncio.new_event_loop()
@@ -293,6 +316,7 @@ class TestCrudResource(TestCase):
             "tag": cls.collection_tag,
             # for uuid
             "author": cls.collection_author,
+            "StrPK": cls.collection_str_pk,
         }
         cls.datasource_composite.add_datasource(cls.datasource)
 
@@ -1348,6 +1372,27 @@ class TestCrudResource(TestCase):
             "detail": "🌳🌳🌳",
             "status": 500,
         }
+
+        request = RequestCollection(
+            RequestMethod.GET,
+            self.collection_order,
+            query={
+                "collection_name": "order",
+                "timezone": "Europe/Paris",
+                "fields[order]": "id,cost",
+            },
+            headers={},
+            client_ip="127.0.0.1",
+        )
+        crud_resource = CrudResource(
+            self.datasource_composite,
+            self.datasource,
+            self.permission_service,
+            self.ip_white_list_service,
+            self.options,
+        )
+        with patch.object(self.collection_order, "list", new_callable=AsyncMock, return_value=mock_orders):
+            response = self.loop.run_until_complete(crud_resource.list(request))
 
     # count
     def test_count(self):
