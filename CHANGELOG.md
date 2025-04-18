@@ -1,3 +1,10 @@
+## [1.23.4](https://github.com/ForestAdmin/agent-python/compare/v1.23.3...v1.23.4) (2025-04-18)
+
+
+### Bug Fixes
+
+* **foreignKey:** in str primary keys slashes are now working ([#326](https://github.com/ForestAdmin/agent-python/issues/326)) ([067a416](https://github.com/ForestAdmin/agent-python/commit/067a416d1b4c182584a4026ed8ccb9a2091acbc6))
+
 ## [1.23.3](https://github.com/ForestAdmin/agent-python/compare/v1.23.2...v1.23.3) (2025-04-17)
 
 
