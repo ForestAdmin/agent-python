@@ -29,7 +29,7 @@ class JsonApiDeserializer:
         ret = {}
         data["data"] = cast(Data, data["data"])
 
-        for key, value in data["data"]["attributes"].items():
+        for key, value in data["data"].get("attributes", {}).items():
             if key not in collection.schema["fields"]:
                 raise JsonApiDeserializerException(f"Field {key} doesn't exists in collection {collection.name}.")
             ret[key] = self._deserialize_value(value, cast(Column, collection.schema["fields"][key]))
