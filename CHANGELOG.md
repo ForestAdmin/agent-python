@@ -1,3 +1,10 @@
+## [1.23.5](https://github.com/ForestAdmin/agent-python/compare/v1.23.4...v1.23.5) (2025-04-25)
+
+
+### Bug Fixes
+
+* **creation:** create a record with relation only ([#327](https://github.com/ForestAdmin/agent-python/issues/327)) ([877a5b6](https://github.com/ForestAdmin/agent-python/commit/877a5b633c17ec24665c41ed704d9b6dbee16b0f))
+
 ## [1.23.4](https://github.com/ForestAdmin/agent-python/compare/v1.23.3...v1.23.4) (2025-04-18)
 
 
