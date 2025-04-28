@@ -1353,3 +1353,138 @@ class TestJsonApiSerializer(TestJsonApi):
                 ],
             },
         )
+
+    def test_datetime_should_also_serialize_dates_and_times(self):
+        serializer = JsonApiSerializer(self.datasource, Projection("all_types_pk", "datetime"))
+        record = {
+            "all_types_pk": "c578ccd6-3dd0-4315-87f3-e200d80dd6f9",
+            "datetime": date(2023, 10, 10),
+        }
+        # date
+        dumped = serializer.serialize(record, self.collection_all_types)
+        self.assertEqual(
+            dumped,
+            {
+                "data": {
+                    "type": "AllTypes",
+                    "id": "c578ccd6-3dd0-4315-87f3-e200d80dd6f9",
+                    "attributes": {
+                        "all_types_pk": "c578ccd6-3dd0-4315-87f3-e200d80dd6f9",
+                        "datetime": "2023-10-10",
+                    },
+                    "links": {"self": "/forest/AllTypes/c578ccd6-3dd0-4315-87f3-e200d80dd6f9"},
+                },
+                "links": {"self": "/forest/AllTypes/c578ccd6-3dd0-4315-87f3-e200d80dd6f9"},
+            },
+        )
+        # time
+        record = {
+            "all_types_pk": "c578ccd6-3dd0-4315-87f3-e200d80dd6f9",
+            "datetime": time(12, 12, 12),
+        }
+        dumped = serializer.serialize(record, self.collection_all_types)
+        self.assertEqual(
+            dumped,
+            {
+                "data": {
+                    "type": "AllTypes",
+                    "id": "c578ccd6-3dd0-4315-87f3-e200d80dd6f9",
+                    "attributes": {
+                        "all_types_pk": "c578ccd6-3dd0-4315-87f3-e200d80dd6f9",
+                        "datetime": "12:12:12",
+                    },
+                    "links": {"self": "/forest/AllTypes/c578ccd6-3dd0-4315-87f3-e200d80dd6f9"},
+                },
+                "links": {"self": "/forest/AllTypes/c578ccd6-3dd0-4315-87f3-e200d80dd6f9"},
+            },
+        )
+
+    def test_date_should_also_serialize_datetimes_and_times(self):
+        serializer = JsonApiSerializer(self.datasource, Projection("all_types_pk", "dateonly"))
+        record = {
+            "all_types_pk": "c578ccd6-3dd0-4315-87f3-e200d80dd6f9",
+            "dateonly": datetime(2023, 10, 10, 12, 12, 12),
+        }
+        # datetime
+        dumped = serializer.serialize(record, self.collection_all_types)
+        self.assertEqual(
+            dumped,
+            {
+                "data": {
+                    "type": "AllTypes",
+                    "id": "c578ccd6-3dd0-4315-87f3-e200d80dd6f9",
+                    "attributes": {
+                        "all_types_pk": "c578ccd6-3dd0-4315-87f3-e200d80dd6f9",
+                        "dateonly": "2023-10-10T12:12:12",
+                    },
+                    "links": {"self": "/forest/AllTypes/c578ccd6-3dd0-4315-87f3-e200d80dd6f9"},
+                },
+                "links": {"self": "/forest/AllTypes/c578ccd6-3dd0-4315-87f3-e200d80dd6f9"},
+            },
+        )
+        # time
+        record = {
+            "all_types_pk": "c578ccd6-3dd0-4315-87f3-e200d80dd6f9",
+            "dateonly": time(12, 12, 12),
+        }
+        dumped = serializer.serialize(record, self.collection_all_types)
+        self.assertEqual(
+            dumped,
+            {
+                "data": {
+                    "type": "AllTypes",
+                    "id": "c578ccd6-3dd0-4315-87f3-e200d80dd6f9",
+                    "attributes": {
+                        "all_types_pk": "c578ccd6-3dd0-4315-87f3-e200d80dd6f9",
+                        "dateonly": "12:12:12",
+                    },
+                    "links": {"self": "/forest/AllTypes/c578ccd6-3dd0-4315-87f3-e200d80dd6f9"},
+                },
+                "links": {"self": "/forest/AllTypes/c578ccd6-3dd0-4315-87f3-e200d80dd6f9"},
+            },
+        )
+
+    def test_time_only_should_also_serialize_dates_and_datetimes(self):
+        serializer = JsonApiSerializer(self.datasource, Projection("all_types_pk", "time_only"))
+        record = {
+            "all_types_pk": "c578ccd6-3dd0-4315-87f3-e200d80dd6f9",
+            "time_only": datetime(2023, 10, 10, 12, 12, 12),
+        }
+        # datetime
+        dumped = serializer.serialize(record, self.collection_all_types)
+        self.assertEqual(
+            dumped,
+            {
+                "data": {
+                    "type": "AllTypes",
+                    "id": "c578ccd6-3dd0-4315-87f3-e200d80dd6f9",
+                    "attributes": {
+                        "all_types_pk": "c578ccd6-3dd0-4315-87f3-e200d80dd6f9",
+                        "time_only": "2023-10-10T12:12:12",
+                    },
+                    "links": {"self": "/forest/AllTypes/c578ccd6-3dd0-4315-87f3-e200d80dd6f9"},
+                },
+                "links": {"self": "/forest/AllTypes/c578ccd6-3dd0-4315-87f3-e200d80dd6f9"},
+            },
+        )
+        # date
+        record = {
+            "all_types_pk": "c578ccd6-3dd0-4315-87f3-e200d80dd6f9",
+            "time_only": date(2023, 10, 10),
+        }
+        dumped = serializer.serialize(record, self.collection_all_types)
+        self.assertEqual(
+            dumped,
+            {
+                "data": {
+                    "type": "AllTypes",
+                    "id": "c578ccd6-3dd0-4315-87f3-e200d80dd6f9",
+                    "attributes": {
+                        "all_types_pk": "c578ccd6-3dd0-4315-87f3-e200d80dd6f9",
+                        "time_only": "2023-10-10",
+                    },
+                    "links": {"self": "/forest/AllTypes/c578ccd6-3dd0-4315-87f3-e200d80dd6f9"},
+                },
+                "links": {"self": "/forest/AllTypes/c578ccd6-3dd0-4315-87f3-e200d80dd6f9"},
+            },
+        )
