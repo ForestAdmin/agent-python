@@ -1,5 +1,4 @@
 from ast import literal_eval
-from datetime import date, datetime, time
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union, cast
 from urllib.parse import quote
 from uuid import uuid4
@@ -134,15 +133,18 @@ class JsonApiSerializer:
             elif isinstance(val, str):
                 return literal_eval(str(value))
 
+        def date_types_dump(val):
+            return val if isinstance(val, str) else val.isoformat()
+
         parser_map: Dict[PrimitiveType, Callable] = {
             PrimitiveType.STRING: str,
             PrimitiveType.ENUM: str,
             PrimitiveType.BOOLEAN: bool,
             PrimitiveType.NUMBER: number_dump,
             PrimitiveType.UUID: str,
-            PrimitiveType.DATE_ONLY: lambda v: v if isinstance(v, str) else date.isoformat(v),
-            PrimitiveType.TIME_ONLY: lambda v: v if isinstance(v, str) else time.isoformat(v),
-            PrimitiveType.DATE: lambda v: v if isinstance(v, str) else datetime.isoformat(v),
+            PrimitiveType.DATE_ONLY: date_types_dump,
+            PrimitiveType.TIME_ONLY: date_types_dump,
+            PrimitiveType.DATE: date_types_dump,
             PrimitiveType.POINT: lambda v: v,
             PrimitiveType.BINARY: lambda v: v,  # should not be called, because of binary decorator this type
             # is transformed to string
