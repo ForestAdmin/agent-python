@@ -1,3 +1,10 @@
+## [1.23.6](https://github.com/ForestAdmin/agent-python/compare/v1.23.5...v1.23.6) (2025-04-30)
+
+
+### Bug Fixes
+
+* **jsonapi_serializer:** allow date, datetime and time for both of theses types ([#329](https://github.com/ForestAdmin/agent-python/issues/329)) ([64a569c](https://github.com/ForestAdmin/agent-python/commit/64a569c3ebe23cf32aff051337649e99f55f8b2e))
+
 ## [1.23.5](https://github.com/ForestAdmin/agent-python/compare/v1.23.4...v1.23.5) (2025-04-25)
 
 
