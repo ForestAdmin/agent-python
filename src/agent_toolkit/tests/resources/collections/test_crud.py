@@ -1075,6 +1075,53 @@ class TestCrudResource(TestCase):
                     ],
                 )
 
+    def test_add_should_not_change_json_api_deserialization_data(self):
+        request = RequestCollection(
+            RequestMethod.POST,
+            self.collection_book,
+            body={
+                "data": {
+                    "attributes": {
+                        "name": "Foundation",
+                    },
+                    "relationships": {
+                        "author": {"data": {"type": "author", "id": "123e4567-e89b-12d3-a456-426614174000"}}
+                    },
+                },
+                "type": "book",
+            },
+            query={
+                "collection_name": "book",
+                "timezone": "Europe/Paris",
+            },
+            headers={},
+            client_ip="127.0.0.1",
+        )
+        crud_resource = CrudResource(
+            self.datasource_composite,
+            self.datasource,
+            self.permission_service,
+            self.ip_white_list_service,
+            self.options,
+        )
+        with patch.object(
+            self.collection_book,
+            "create",
+            new_callable=AsyncMock,
+            return_value=[
+                {
+                    "name": "Foundation",
+                    "id": "123e4567-e89b-12d3-a456-42661417400a",
+                    "author_id": "123e4567-e89b-12d3-a456-426614174000",
+                }
+            ],
+        ) as mock_create:
+            self.loop.run_until_complete(crud_resource.add(request))
+            mock_create.assert_awaited_with(
+                FAKE_USER, [{"name": "Foundation", "author_id": UUID("123e4567-e89b-12d3-a456-426614174000")}]
+            )
+            mock_create.assert_awaited_once()
+
     # list
     def test_list(self):
         mock_orders = [{"id": 10, "cost": 200}, {"id": 11, "cost": 201}]
