@@ -421,10 +421,6 @@ class CrudResource(BaseCollectionResource, ContextVariableInjectorResourceMixin)
                     value = await CollectionUtils.get_value(
                         caller, cast(Collection, foreign_collection), [value], field["foreign_key_target"]
                     )
-                    try:
-                        value = int(value)
-                    except ValueError:
-                        pass
                     record[field["foreign_key"]] = value
 
         return record, one_to_one_relations
