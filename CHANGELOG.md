@@ -1,3 +1,10 @@
+## [1.23.7](https://github.com/ForestAdmin/agent-python/compare/v1.23.6...v1.23.7) (2025-05-02)
+
+
+### Bug Fixes
+
+* **create:** bad type for data when setting a many to one ([#330](https://github.com/ForestAdmin/agent-python/issues/330)) ([ea51f51](https://github.com/ForestAdmin/agent-python/commit/ea51f5138d2fc9f038d44a1a79a543c3a65721f8))
+
 ## [1.23.6](https://github.com/ForestAdmin/agent-python/compare/v1.23.5...v1.23.6) (2025-04-30)
 
 
