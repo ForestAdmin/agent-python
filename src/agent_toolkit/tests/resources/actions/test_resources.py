@@ -31,6 +31,7 @@ from forestadmin.datasource_toolkit.decorators.datasource_decorator import Datas
 from forestadmin.datasource_toolkit.exceptions import ForbiddenError
 from forestadmin.datasource_toolkit.interfaces.actions import ActionFieldType, ActionsScope
 from forestadmin.datasource_toolkit.interfaces.fields import FieldType, Operator, PrimitiveType
+from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.branch import Aggregator
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.leaf import ConditionTreeLeaf
 
 
@@ -145,6 +146,32 @@ class BaseTestActionResource(TestCase):
         )
         cls.datasource.add_collection(cls.category_collection)
 
+        # Add a User collection with UUID primary key for GUID testing
+        cls.user_collection = Collection("User", cls.datasource)
+        cls.user_collection.add_fields(
+            {
+                "uuid": {
+                    "column_type": PrimitiveType.UUID,
+                    "is_primary_key": True,
+                    "type": FieldType.COLUMN,
+                    "filter_operators": set([Operator.IN, Operator.EQUAL]),
+                },
+                "email": {
+                    "column_type": PrimitiveType.STRING,
+                    "is_primary_key": False,
+                    "type": FieldType.COLUMN,
+                    "filter_operators": set([Operator.IN, Operator.EQUAL]),
+                },
+                "name": {
+                    "column_type": PrimitiveType.STRING,
+                    "is_primary_key": False,
+                    "type": FieldType.COLUMN,
+                    "filter_operators": set([Operator.IN, Operator.EQUAL]),
+                },
+            }
+        )
+        cls.datasource.add_collection(cls.user_collection)
+
         cls.mocked_caller = User(
             rendering_id=1,
             user_id=1,
@@ -161,6 +188,7 @@ class BaseTestActionResource(TestCase):
         self.datasource_decorator = DatasourceDecorator(self.datasource, ActionCollectionDecorator)
         self.decorated_collection_book = self.datasource_decorator.get_collection("Book")
         self.decorated_collection_category = self.datasource_decorator.get_collection("Category")
+        self.decorated_collection_user = self.datasource_decorator.get_collection("User")
 
         self.action_resource = ActionResource(
             self.datasource_decorator, self.permission_service, self.ip_white_list_service, self.options
@@ -1034,3 +1062,530 @@ class TestExecuteActionResource(BaseTestActionResource):
             response.body,
             '{"success": "hidden_value"}',
         )
+
+    def test_parse_selection_ids_with_minimal_all_records_subset_query(self):
+        """Test that parse_selection_ids correctly extracts GUID from minimal all_records_subset_query"""
+        from forestadmin.agent_toolkit.resources.collections.filter import parse_selection_ids
+        from uuid import UUID
+
+        # Request from detailed record with GUID (User uses UUID primary key)
+        guid = "3077e8cc-4371-4a43-99dd-c0eae1b1781b"
+        body_params = {
+            "data": {
+                "attributes": {
+                    "values": {},
+                    "ids": [guid],
+                    "collection_name": "User",
+                    "all_records": False,
+                    "all_records_subset_query": {
+                        "timezone": "Europe/Paris",
+                    },
+                    "all_records_ids_excluded": [],
+                }
+            }
+        }
+        request = ActionRequest(
+            method=RequestMethod.POST,
+            action_name="test_action",
+            collection=self.decorated_collection_user,
+            body=body_params,
+            query={"timezone": "Europe/Paris"},
+            headers={},
+            user=self.mocked_caller,
+            client_ip="127.0.0.1",
+        )
+
+        ids, exclude_ids = parse_selection_ids(self.user_collection.schema, request)
+
+        # Verify the GUID is correctly extracted and parsed as UUID
+        self.assertEqual(len(ids), 1)
+        self.assertEqual(ids[0], [UUID(guid)])  # UUID object, not string
+        self.assertFalse(exclude_ids)
+
+    def test_parse_selection_ids_with_full_all_records_subset_query(self):
+        """Test that parse_selection_ids correctly extracts GUID from full all_records_subset_query"""
+        from forestadmin.agent_toolkit.resources.collections.filter import parse_selection_ids
+        from uuid import UUID
+
+        # Request from workspace with GUID and full subset query
+        guid = "3077e8cc-4371-4a43-99dd-c0eae1b1781b"
+        body_params = {
+            "data": {
+                "attributes": {
+                    "values": {},
+                    "ids": [guid],
+                    "collection_name": "User",
+                    "all_records": False,
+                    "all_records_subset_query": {
+                        "fields[User]": "uuid,email,name",
+                        "page[number]": 1,
+                        "page[size]": 1,
+                        "filters": '{"field":"uuid","operator":"equal","value":"3077e8cc-4371-4a43-99dd-c0eae1b1781b"}',
+                        "sort": "-uuid",
+                        "timezone": "Europe/Paris",
+                    },
+                    "all_records_ids_excluded": [],
+                }
+            }
+        }
+        request = ActionRequest(
+            method=RequestMethod.POST,
+            action_name="test_action",
+            collection=self.decorated_collection_user,
+            body=body_params,
+            query={"timezone": "Europe/Paris"},
+            headers={},
+            user=self.mocked_caller,
+            client_ip="127.0.0.1",
+        )
+
+        ids, exclude_ids = parse_selection_ids(self.user_collection.schema, request)
+
+        # Verify the GUID is correctly extracted regardless of all_records_subset_query contents
+        self.assertEqual(len(ids), 1)
+        self.assertEqual(ids[0], [UUID(guid)])  # UUID object, not string
+        self.assertFalse(exclude_ids)
+
+    def test_get_records_ids_with_guid_from_minimal_subset_query(self):
+        """Test that get_records_ids() returns correct GUID from minimal all_records_subset_query"""
+        from uuid import UUID
+
+        guid = "3077e8cc-4371-4a43-99dd-c0eae1b1781b"
+        captured_ids = None
+
+        async def execute_action(context, result_builder):
+            nonlocal captured_ids
+            # Call get_records_ids() to verify it returns the GUID
+            captured_ids = await context.get_records_ids()
+            return result_builder.success(f"Got {len(captured_ids)} records")
+
+        self.decorated_collection_user.add_action("test_action_bulk", {
+            "scope": ActionsScope.BULK,
+            "execute": execute_action
+        })
+
+        body_params = {
+            "data": {
+                "attributes": {
+                    "values": {},
+                    "ids": [guid],
+                    "collection_name": "User",
+                    "all_records": False,
+                    "all_records_subset_query": {
+                        "timezone": "Europe/Paris",
+                    },
+                    "all_records_ids_excluded": [],
+                    "smart_action_id": "User-test_action_bulk",
+                    "signed_approval_request": None,
+                },
+                "type": "custom-action-requests",
+            }
+        }
+
+        request = ActionRequest(
+            method=RequestMethod.POST,
+            action_name="test_action_bulk",
+            collection=self.decorated_collection_user,
+            body=body_params,
+            query={"timezone": "Europe/Paris"},
+            headers={},
+            user=self.mocked_caller,
+            client_ip="127.0.0.1",
+        )
+
+        # Mock the collection's list method to return a record with the GUID
+        async def mock_list(caller, filter_, projection):
+            return [{"uuid": UUID(guid), "email": "test@example.com", "name": "Test User"}]
+
+        with patch.object(self.user_collection, "list", new_callable=AsyncMock, side_effect=mock_list):
+            response = self.loop.run_until_complete(self.action_resource.execute(request))
+
+        # Verify the action executed successfully
+        self.assertEqual(response.status, 200)
+
+        # Verify get_records_ids() returned the correct GUID
+        self.assertIsNotNone(captured_ids)
+        self.assertEqual(len(captured_ids), 1)
+        self.assertEqual(captured_ids[0], UUID(guid))
+
+    def test_get_records_ids_with_guid_from_full_subset_query(self):
+        """Test that get_records_ids() returns correct GUID from full all_records_subset_query"""
+        from uuid import UUID
+
+        guid = "3077e8cc-4371-4a43-99dd-c0eae1b1781b"
+        captured_ids = None
+
+        async def execute_action(context, result_builder):
+            nonlocal captured_ids
+            # Call get_records_ids() to verify it returns the GUID
+            captured_ids = await context.get_records_ids()
+            return result_builder.success(f"Got {len(captured_ids)} records")
+
+        self.decorated_collection_user.add_action("test_action_bulk", {
+            "scope": ActionsScope.BULK,
+            "execute": execute_action
+        })
+
+        body_params = {
+            "data": {
+                "attributes": {
+                    "values": {},
+                    "ids": [guid],
+                    "collection_name": "User",
+                    "all_records": False,
+                    "all_records_subset_query": {
+                        "fields[User]": "uuid,email,name",
+                        "page[number]": 1,
+                        "page[size]": 1,
+                        "filters": '{"field":"uuid","operator":"equal","value":"3077e8cc-4371-4a43-99dd-c0eae1b1781b"}',
+                        "sort": "-uuid",
+                        "timezone": "Europe/Paris",
+                    },
+                    "all_records_ids_excluded": [],
+                    "smart_action_id": "User-test_action_bulk",
+                    "signed_approval_request": None,
+                },
+                "type": "custom-action-requests",
+            }
+        }
+
+        request = ActionRequest(
+            method=RequestMethod.POST,
+            action_name="test_action_bulk",
+            collection=self.decorated_collection_user,
+            body=body_params,
+            query={"timezone": "Europe/Paris"},
+            headers={},
+            user=self.mocked_caller,
+            client_ip="127.0.0.1",
+        )
+
+        # Mock the collection's list method to return a record with the GUID
+        async def mock_list(caller, filter_, projection):
+            return [{"uuid": UUID(guid), "email": "test@example.com", "name": "Test User"}]
+
+        with patch.object(self.user_collection, "list", new_callable=AsyncMock, side_effect=mock_list):
+            response = self.loop.run_until_complete(self.action_resource.execute(request))
+
+        # Verify the action executed successfully
+        self.assertEqual(response.status, 200)
+
+        # Verify get_records_ids() returned the correct GUID regardless of subset query contents
+        self.assertIsNotNone(captured_ids)
+        self.assertEqual(len(captured_ids), 1)
+        self.assertEqual(captured_ids[0], UUID(guid))
+
+    def test_get_record_id_with_guid_from_minimal_subset_query(self):
+        """Test that get_record_id() returns correct GUID from minimal all_records_subset_query"""
+        from uuid import UUID
+
+        guid = "3077e8cc-4371-4a43-99dd-c0eae1b1781b"
+        captured_id = None
+
+        async def execute_action(context, result_builder):
+            nonlocal captured_id
+            # Call get_record_id() to verify it returns the GUID (singular for SINGLE actions)
+            captured_id = await context.get_record_id()
+            return result_builder.success(f"Got record with ID: {captured_id}")
+
+        self.decorated_collection_user.add_action("test_action_single", {
+            "scope": ActionsScope.SINGLE,
+            "execute": execute_action
+        })
+
+        body_params = {
+            "data": {
+                "attributes": {
+                    "values": {},
+                    "ids": [guid],
+                    "collection_name": "User",
+                    "all_records": False,
+                    "all_records_subset_query": {
+                        "timezone": "Europe/Paris",
+                    },
+                    "all_records_ids_excluded": [],
+                    "smart_action_id": "User-test_action_single",
+                    "signed_approval_request": None,
+                },
+                "type": "custom-action-requests",
+            }
+        }
+
+        request = ActionRequest(
+            method=RequestMethod.POST,
+            action_name="test_action_single",
+            collection=self.decorated_collection_user,
+            body=body_params,
+            query={"timezone": "Europe/Paris"},
+            headers={},
+            user=self.mocked_caller,
+            client_ip="127.0.0.1",
+        )
+
+        # Mock the collection's list method to return a record with the GUID
+        async def mock_list(caller, filter_, projection):
+            return [{"uuid": UUID(guid), "email": "test@example.com", "name": "Test User"}]
+
+        with patch.object(self.user_collection, "list", new_callable=AsyncMock, side_effect=mock_list):
+            response = self.loop.run_until_complete(self.action_resource.execute(request))
+
+        # Verify the action executed successfully
+        self.assertEqual(response.status, 200)
+
+        # Verify get_record_id() returned the correct GUID (singular for SINGLE action)
+        self.assertIsNotNone(captured_id)
+        self.assertEqual(captured_id, UUID(guid))
+
+    def test_get_record_id_with_guid_from_full_subset_query(self):
+        """Test that get_record_id() returns correct GUID from full all_records_subset_query"""
+        from uuid import UUID
+
+        guid = "3077e8cc-4371-4a43-99dd-c0eae1b1781b"
+        captured_id = None
+
+        async def execute_action(context, result_builder):
+            nonlocal captured_id
+            # Call get_record_id() to verify it returns the GUID (singular for SINGLE actions)
+            captured_id = await context.get_record_id()
+            return result_builder.success(f"Got record with ID: {captured_id}")
+
+        self.decorated_collection_user.add_action("test_action_single", {
+            "scope": ActionsScope.SINGLE,
+            "execute": execute_action
+        })
+
+        body_params = {
+            "data": {
+                "attributes": {
+                    "values": {},
+                    "ids": [guid],
+                    "collection_name": "User",
+                    "all_records": False,
+                    "all_records_subset_query": {
+                        "fields[User]": "uuid,email,name",
+                        "page[number]": 1,
+                        "page[size]": 1,
+                        "filters": '{"field":"uuid","operator":"equal","value":"3077e8cc-4371-4a43-99dd-c0eae1b1781b"}',
+                        "sort": "-uuid",
+                        "timezone": "Europe/Paris",
+                    },
+                    "all_records_ids_excluded": [],
+                    "smart_action_id": "User-test_action_single",
+                    "signed_approval_request": None,
+                },
+                "type": "custom-action-requests",
+            }
+        }
+
+        request = ActionRequest(
+            method=RequestMethod.POST,
+            action_name="test_action_single",
+            collection=self.decorated_collection_user,
+            body=body_params,
+            query={"timezone": "Europe/Paris"},
+            headers={},
+            user=self.mocked_caller,
+            client_ip="127.0.0.1",
+        )
+
+        # Mock the collection's list method to return a record with the GUID
+        async def mock_list(caller, filter_, projection):
+            return [{"uuid": UUID(guid), "email": "test@example.com", "name": "Test User"}]
+
+        with patch.object(self.user_collection, "list", new_callable=AsyncMock, side_effect=mock_list):
+            response = self.loop.run_until_complete(self.action_resource.execute(request))
+
+        # Verify the action executed successfully
+        self.assertEqual(response.status, 200)
+
+        # Verify get_record_id() returned the correct GUID regardless of subset query contents
+        self.assertIsNotNone(captured_id)
+        self.assertEqual(captured_id, UUID(guid))
+
+    def test_execute_should_handle_minimal_all_records_subset_query(self):
+        """Test action with minimal all_records_subset_query (from detailed record)"""
+        self.decorated_collection_book.add_action(
+            "test_action_single", {"scope": ActionsScope.SINGLE, "execute": lambda ctx, rb: rb.success()}
+        )
+        body_params = {
+            "data": {
+                "attributes": {
+                    "values": {},
+                    "ids": ["1"],
+                    "collection_name": "Book",
+                    "parent_collection_name": None,
+                    "parent_collection_id": None,
+                    "parent_association_name": None,
+                    "all_records": False,
+                    "all_records_subset_query": {
+                        "timezone": "Europe/Paris",
+                    },
+                    "all_records_ids_excluded": [],
+                    "smart_action_id": "Book-test_action_single",
+                    "signed_approval_request": None,
+                },
+                "type": "custom-action-requests",
+            }
+        }
+        request = ActionRequest(
+            method=RequestMethod.POST,
+            action_name="test_action_single",
+            collection=self.decorated_collection_book,
+            body=body_params,
+            query={
+                "timezone": "Europe/Paris",
+                "collection_name": "Book",
+                "action_name": 0,
+                "slug": "test_action_single",
+            },
+            headers={},
+            user=self.mocked_caller,
+            client_ip="127.0.0.1",
+        )
+
+        # Capture the filter that gets passed to the execute method
+        captured_filter = None
+
+        async def capture_execute(caller, action_name, data, filter_):
+            nonlocal captured_filter
+            captured_filter = filter_
+            return ResultBuilder().success("bravo")
+
+        with patch.object(
+            self.decorated_collection_book, "execute", new_callable=AsyncMock, side_effect=capture_execute
+        ) as mocked_execute:
+            response = self.loop.run_until_complete(self.action_resource.execute(request))
+            mocked_execute.assert_awaited_once()
+
+            # Verify the filter includes the ID from the request
+            self.assertIsNotNone(captured_filter)
+            self.assertIsNotNone(captured_filter.condition_tree)
+            self.assertEqual(captured_filter.timezone.key, "Europe/Paris")
+
+            # For SINGLE action with ids=["1"], the filter should include id condition
+            # The condition tree should contain a condition matching id=1
+            condition_tree = captured_filter.condition_tree
+
+            # Helper function to find ID conditions recursively
+            def find_id_conditions(tree, conditions_found=None):
+                if conditions_found is None:
+                    conditions_found = []
+                if hasattr(tree, 'field'):
+                    # It's a leaf node
+                    if tree.field == 'id':
+                        conditions_found.append((tree.field, tree.operator, tree.value))
+                elif hasattr(tree, 'conditions'):
+                    # It's a branch node - recurse
+                    for cond in tree.conditions:
+                        find_id_conditions(cond, conditions_found)
+                return conditions_found
+
+            id_conditions = find_id_conditions(condition_tree)
+            # Should have at least one condition on the id field with value 1
+            self.assertTrue(
+                any(field == 'id' and value == 1 for field, _op, value in id_conditions),
+                f"Expected id=1 condition in filter. Found ID conditions: {id_conditions}"
+            )
+
+        self.assertEqual(response.status, 200)
+
+    def test_execute_should_handle_full_all_records_subset_query(self):
+        """Test action with full all_records_subset_query (from workspace)"""
+        self.decorated_collection_book.add_action(
+            "test_action_single", {"scope": ActionsScope.SINGLE, "execute": lambda ctx, rb: rb.success()}
+        )
+        body_params = {
+            "data": {
+                "attributes": {
+                    "values": {},
+                    "ids": ["1"],
+                    "collection_name": "Book",
+                    "parent_collection_name": None,
+                    "parent_collection_id": None,
+                    "parent_association_name": None,
+                    "all_records": False,
+                    "all_records_subset_query": {
+                        "fields[Book]": "id,name,cost",
+                        "page[number]": 1,
+                        "page[size]": 1,
+                        "filters": '{"field":"id","operator":"equal","value":"1"}',
+                        "sort": "-id",
+                        "timezone": "Europe/Paris",
+                    },
+                    "all_records_ids_excluded": [],
+                    "smart_action_id": "Book-test_action_single",
+                    "signed_approval_request": None,
+                },
+                "type": "custom-action-requests",
+            }
+        }
+        request = ActionRequest(
+            method=RequestMethod.POST,
+            action_name="test_action_single",
+            collection=self.decorated_collection_book,
+            body=body_params,
+            query={
+                "timezone": "Europe/Paris",
+                "collection_name": "Book",
+                "action_name": 0,
+                "slug": "test_action_single",
+            },
+            headers={},
+            user=self.mocked_caller,
+            client_ip="127.0.0.1",
+        )
+
+        # Capture the filter that gets passed to the execute method
+        captured_filter = None
+
+        async def capture_execute(caller, action_name, data, filter_):
+            nonlocal captured_filter
+            captured_filter = filter_
+            return ResultBuilder().success("bravo")
+
+        with patch.object(
+            self.decorated_collection_book, "execute", new_callable=AsyncMock, side_effect=capture_execute
+        ) as mocked_execute:
+            response = self.loop.run_until_complete(self.action_resource.execute(request))
+            mocked_execute.assert_awaited_once()
+
+            # Verify the filter includes both the ID and the filter from all_records_subset_query
+            self.assertIsNotNone(captured_filter)
+            self.assertIsNotNone(captured_filter.condition_tree)
+            self.assertEqual(captured_filter.timezone.key, "Europe/Paris")
+
+            # The filter should have a condition tree that includes both:
+            # 1. The ID from ids array (id = 1)
+            # 2. The filter from all_records_subset_query.filters (id = 1)
+            # Both conditions should be combined with AND
+            condition_tree = captured_filter.condition_tree
+            self.assertEqual(condition_tree.aggregator, Aggregator.AND)
+            # Should have multiple conditions combined
+            self.assertGreaterEqual(len(condition_tree.conditions), 2)
+
+            # Helper function to find ID conditions recursively
+            def find_id_conditions(tree, conditions_found=None):
+                if conditions_found is None:
+                    conditions_found = []
+                if hasattr(tree, 'field'):
+                    # It's a leaf node
+                    if tree.field == 'id':
+                        conditions_found.append((tree.field, tree.operator, tree.value))
+                elif hasattr(tree, 'conditions'):
+                    # It's a branch node - recurse
+                    for cond in tree.conditions:
+                        find_id_conditions(cond, conditions_found)
+                return conditions_found
+
+            id_conditions = find_id_conditions(condition_tree)
+            # Should have ID conditions with value 1 (from both ids array AND filters)
+            # Since both the ids array and the filters specify id=1, we should see this
+            self.assertTrue(
+                any(field == 'id' and value == 1 for field, _op, value in id_conditions),
+                f"Expected id=1 condition in filter. Found ID conditions: {id_conditions}"
+            )
+            # Since we have both sources specifying id=1, we might have 2 conditions
+            # (one from ids array, one from subset_query.filters)
+            self.assertGreaterEqual(len(id_conditions), 1, "Should have at least one ID condition")
+
+        self.assertEqual(response.status, 200)
