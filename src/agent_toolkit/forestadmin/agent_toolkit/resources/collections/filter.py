@@ -77,11 +77,15 @@ def _subset_or_query(request: Request, key: str) -> Optional[str]:
     res = None
     if request.body:
         # Only use all_records_subset_query when all_records is true
-        attributes = request.body.get("data", {}).get("attributes", {})
-        if attributes.get("all_records", False):
-            sub_res = _all_records_subset_query(request).get(key)
-            if sub_res:
-                res = str(sub_res)
+        try:
+            attributes = request.body.get("data", {}).get("attributes", {})
+            if attributes.get("all_records", False):
+                sub_res = _all_records_subset_query(request).get(key)
+                if sub_res:
+                    res = str(sub_res)
+        except AttributeError:
+            # data may be a list
+            pass
     if not res and request.query:
         res = request.query.get(key)
         if res:
