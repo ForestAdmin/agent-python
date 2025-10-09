@@ -1034,3 +1034,78 @@ class TestExecuteActionResource(BaseTestActionResource):
             response.body,
             '{"success": "hidden_value"}',
         )
+
+    def test_execute_should_ignore_all_records_subset_query_filters_when_all_records_is_false(self):
+        """Test that when all_records is false, filters from all_records_subset_query are ignored."""
+        collected_filter = None
+
+        async def execute_with_filter_capture(ctx, rb):
+            nonlocal collected_filter
+            collected_filter = ctx.filter
+            return rb.success("done")
+
+        self.decorated_collection_book.add_action(
+            "test_bulk_action",
+            {
+                "scope": ActionsScope.BULK,
+                "execute": execute_with_filter_capture,
+            },
+        )
+
+        body_params = {
+            "data": {
+                "attributes": {
+                    "values": {},
+                    "ids": ["1", "2"],
+                    "collection_name": "Book",
+                    "parent_collection_name": None,
+                    "parent_collection_id": None,
+                    "parent_association_name": None,
+                    "all_records": False,
+                    "all_records_subset_query": {
+                        "fields[Book]": "id,name,cost",
+                        "page[number]": 1,
+                        "page[size]": 15,
+                        "sort": "-id",
+                        "timezone": "Europe/Paris",
+                        # This filter should be IGNORED when all_records is false
+                        "filters": '{"field":"id","operator":"greater_than","value":"100"}',
+                    },
+                    "all_records_ids_excluded": [],
+                    "smart_action_id": "Book-test_bulk_action",
+                    "signed_approval_request": None,
+                },
+                "type": "custom-action-requests",
+            }
+        }
+
+        request = ActionRequest(
+            method=RequestMethod.POST,
+            action_name="test_bulk_action",
+            collection=self.decorated_collection_book,
+            body=body_params,
+            query={
+                "timezone": "Europe/Paris",
+                "collection_name": "Book",
+                "action_name": 0,
+                "slug": "test_bulk_action",
+            },
+            headers={},
+            user=self.mocked_caller,
+            client_ip="127.0.0.1",
+        )
+
+        response = self.loop.run_until_complete(self.action_resource.execute(request))
+        self.assertEqual(response.status, 200)
+
+        # The filter should NOT contain the "greater_than" condition from all_records_subset_query
+        # It should only contain the ID match condition for ids [1, 2]
+        self.assertIsNotNone(collected_filter)
+        if collected_filter.condition_tree:
+            filter_str = str(collected_filter.condition_tree)
+            # Should not contain the greater_than filter from all_records_subset_query
+            self.assertNotIn("greater_than", filter_str.lower())
+            self.assertNotIn(">", filter_str)
+            # Should contain the selected IDs (1 and 2)
+            self.assertIn("1", filter_str)
+            self.assertIn("2", filter_str)
