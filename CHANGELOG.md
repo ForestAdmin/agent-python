@@ -1,3 +1,10 @@
+## [1.23.8](https://github.com/ForestAdmin/agent-python/compare/v1.23.7...v1.23.8) (2025-10-09)
+
+
+### Bug Fixes
+
+* **get_records_ids:** exclude filters when getting the ids if all_rec… ([#332](https://github.com/ForestAdmin/agent-python/issues/332)) ([9f3beb9](https://github.com/ForestAdmin/agent-python/commit/9f3beb94b41e8889ab6754caef78126961935eaf))
+
 ## [1.23.7](https://github.com/ForestAdmin/agent-python/compare/v1.23.6...v1.23.7) (2025-05-02)
 
 
