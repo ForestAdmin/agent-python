@@ -45,8 +45,54 @@ def test_shift_period_filter(mock_time_transform: mock.MagicMock):
         mock_replacer.assert_called_once_with(leaf, "UTC")
 
     with mock.patch("forestadmin.datasource_toolkit.interfaces.query.filter.factory.SHIFTED_OPERATORS", {}):
-        with pytest.raises(FilterFactoryException):
-            shift_period_filter_replacer(leaf)
+        assert shift_period_filter_replacer(leaf) == leaf
+
+
+@mock.patch("forestadmin.datasource_toolkit.interfaces.query.filter.factory.time_transforms")
+def test_shift_period_filter_with_complex_condition_tree(mock_time_transform: mock.MagicMock):
+    tz = zoneinfo.ZoneInfo("UTC")
+    shift_period_filter_replacer = FilterFactory._shift_period_filter(tz)
+
+    leaf_previous_year = ConditionTreeLeaf(field="date_field", operator=Operator.PREVIOUS_YEAR)
+    leaf_equal = ConditionTreeLeaf(field="name", operator=Operator.EQUAL, value="test")
+    leaf_greater_than = ConditionTreeLeaf(field="age", operator=Operator.GREATER_THAN, value=18)
+    leaf_previous_month = ConditionTreeLeaf(field="created_at", operator=Operator.PREVIOUS_MONTH)
+
+    mock_replacer_year = mock.MagicMock(return_value=ConditionTreeLeaf(field="date_field", operator=Operator.EQUAL, value="replaced_year"))
+    mock_replacer_month = mock.MagicMock(return_value=ConditionTreeLeaf(field="created_at", operator=Operator.EQUAL, value="replaced_month"))
+
+    mock_time_transform.return_value = {
+        Operator.PREVIOUS_YEAR: [{"replacer": mock_replacer_year}],
+        Operator.PREVIOUS_MONTH: [{"replacer": mock_replacer_month}],
+    }
+
+    with mock.patch(
+        "forestadmin.datasource_toolkit.interfaces.query.filter.factory.SHIFTED_OPERATORS",
+        {Operator.PREVIOUS_YEAR, Operator.PREVIOUS_MONTH}
+    ):
+        complex_tree = ConditionTreeBranch(
+            aggregator=Aggregator.AND,
+            conditions=[
+                leaf_previous_year,
+                leaf_equal,
+                leaf_greater_than,
+                leaf_previous_month,
+            ]
+        )
+
+        result = complex_tree.replace(shift_period_filter_replacer)
+
+        mock_replacer_year.assert_called_once_with(leaf_previous_year, tz)
+        mock_replacer_month.assert_called_once_with(leaf_previous_month, tz)
+
+        assert isinstance(result, ConditionTreeBranch)
+        assert result.aggregator == Aggregator.AND
+        assert len(result.conditions) == 4
+
+        assert result.conditions[0] == ConditionTreeLeaf(field="date_field", operator=Operator.EQUAL, value="replaced_year")
+        assert result.conditions[1] == leaf_equal  # EQUAL should remain unchanged
+        assert result.conditions[2] == leaf_greater_than  # GREATER_THAN should remain unchanged
+        assert result.conditions[3] == ConditionTreeLeaf(field="created_at", operator=Operator.EQUAL, value="replaced_month")
 
 
 @mock.patch("forestadmin.datasource_toolkit.interfaces.query.filter.factory.FilterFactory._shift_period_filter")
