@@ -10,11 +10,25 @@ else:
 import pytest
 from forestadmin.agent_toolkit.utils.context import User
 from forestadmin.datasource_toolkit.collections import Collection
-from forestadmin.datasource_toolkit.interfaces.fields import FieldType, ManyToMany, Operator
-from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.branch import Aggregator, ConditionTreeBranch
-from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.leaf import ConditionTreeLeaf
-from forestadmin.datasource_toolkit.interfaces.query.filter.factory import FilterFactory, FilterFactoryException
-from forestadmin.datasource_toolkit.interfaces.query.filter.paginated import PaginatedFilter
+from forestadmin.datasource_toolkit.interfaces.fields import (
+    FieldType,
+    ManyToMany,
+    Operator,
+)
+from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.branch import (
+    Aggregator,
+    ConditionTreeBranch,
+)
+from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.leaf import (
+    ConditionTreeLeaf,
+)
+from forestadmin.datasource_toolkit.interfaces.query.filter.factory import (
+    FilterFactory,
+    FilterFactoryException,
+)
+from forestadmin.datasource_toolkit.interfaces.query.filter.paginated import (
+    PaginatedFilter,
+)
 from forestadmin.datasource_toolkit.interfaces.query.filter.unpaginated import Filter
 from forestadmin.datasource_toolkit.interfaces.query.projections import Projection
 
@@ -31,35 +45,61 @@ mocked_caller = User(
 )
 
 
-@mock.patch("forestadmin.datasource_toolkit.interfaces.query.filter.factory.time_transforms")
+@mock.patch(
+    "forestadmin.datasource_toolkit.interfaces.query.filter.factory.time_transforms"
+)
 def test_shift_period_filter(mock_time_transform: mock.MagicMock):
     shift_period_filter_replacer = FilterFactory._shift_period_filter("UTC")  # type: ignore
     leaf = ConditionTreeLeaf(field="test", operator=Operator.PREVIOUS_YEAR)
     mock_replacer = mock.MagicMock(return_value="fake_replacer")
-    mock_time_transform.return_value = {Operator.PREVIOUS_YEAR: [{"replacer": mock_replacer}]}
+    mock_time_transform.return_value = {
+        Operator.PREVIOUS_YEAR: [{"replacer": mock_replacer}]
+    }
     with mock.patch(
-        "forestadmin.datasource_toolkit.interfaces.query.filter.factory.SHIFTED_OPERATORS", {Operator.PREVIOUS_YEAR}
+        "forestadmin.datasource_toolkit.interfaces.query.filter.factory.SHIFTED_OPERATORS",
+        {Operator.PREVIOUS_YEAR},
     ):
         assert shift_period_filter_replacer(leaf) == "fake_replacer"
         mock_time_transform.assert_called_once_with(1)
         mock_replacer.assert_called_once_with(leaf, "UTC")
 
-    with mock.patch("forestadmin.datasource_toolkit.interfaces.query.filter.factory.SHIFTED_OPERATORS", {}):
+    with mock.patch(
+        "forestadmin.datasource_toolkit.interfaces.query.filter.factory.SHIFTED_OPERATORS",
+        {},
+    ):
         assert shift_period_filter_replacer(leaf) == leaf
 
 
-@mock.patch("forestadmin.datasource_toolkit.interfaces.query.filter.factory.time_transforms")
-def test_shift_period_filter_with_complex_condition_tree(mock_time_transform: mock.MagicMock):
+@mock.patch(
+    "forestadmin.datasource_toolkit.interfaces.query.filter.factory.time_transforms"
+)
+def test_shift_period_filter_with_complex_condition_tree(
+    mock_time_transform: mock.MagicMock,
+):
     tz = zoneinfo.ZoneInfo("UTC")
     shift_period_filter_replacer = FilterFactory._shift_period_filter(tz)
 
-    leaf_previous_year = ConditionTreeLeaf(field="date_field", operator=Operator.PREVIOUS_YEAR)
+    leaf_previous_year = ConditionTreeLeaf(
+        field="date_field", operator=Operator.PREVIOUS_YEAR
+    )
     leaf_equal = ConditionTreeLeaf(field="name", operator=Operator.EQUAL, value="test")
-    leaf_greater_than = ConditionTreeLeaf(field="age", operator=Operator.GREATER_THAN, value=18)
-    leaf_previous_month = ConditionTreeLeaf(field="created_at", operator=Operator.PREVIOUS_MONTH)
+    leaf_greater_than = ConditionTreeLeaf(
+        field="age", operator=Operator.GREATER_THAN, value=18
+    )
+    leaf_previous_month = ConditionTreeLeaf(
+        field="created_at", operator=Operator.PREVIOUS_MONTH
+    )
 
-    mock_replacer_year = mock.MagicMock(return_value=ConditionTreeLeaf(field="date_field", operator=Operator.EQUAL, value="replaced_year"))
-    mock_replacer_month = mock.MagicMock(return_value=ConditionTreeLeaf(field="created_at", operator=Operator.EQUAL, value="replaced_month"))
+    mock_replacer_year = mock.MagicMock(
+        return_value=ConditionTreeLeaf(
+            field="date_field", operator=Operator.EQUAL, value="replaced_year"
+        )
+    )
+    mock_replacer_month = mock.MagicMock(
+        return_value=ConditionTreeLeaf(
+            field="created_at", operator=Operator.EQUAL, value="replaced_month"
+        )
+    )
 
     mock_time_transform.return_value = {
         Operator.PREVIOUS_YEAR: [{"replacer": mock_replacer_year}],
@@ -68,7 +108,7 @@ def test_shift_period_filter_with_complex_condition_tree(mock_time_transform: mo
 
     with mock.patch(
         "forestadmin.datasource_toolkit.interfaces.query.filter.factory.SHIFTED_OPERATORS",
-        {Operator.PREVIOUS_YEAR, Operator.PREVIOUS_MONTH}
+        {Operator.PREVIOUS_YEAR, Operator.PREVIOUS_MONTH},
     ):
         complex_tree = ConditionTreeBranch(
             aggregator=Aggregator.AND,
@@ -77,7 +117,7 @@ def test_shift_period_filter_with_complex_condition_tree(mock_time_transform: mo
                 leaf_equal,
                 leaf_greater_than,
                 leaf_previous_month,
-            ]
+            ],
         )
 
         result = complex_tree.replace(shift_period_filter_replacer)
@@ -89,16 +129,26 @@ def test_shift_period_filter_with_complex_condition_tree(mock_time_transform: mo
         assert result.aggregator == Aggregator.AND
         assert len(result.conditions) == 4
 
-        assert result.conditions[0] == ConditionTreeLeaf(field="date_field", operator=Operator.EQUAL, value="replaced_year")
+        assert result.conditions[0] == ConditionTreeLeaf(
+            field="date_field", operator=Operator.EQUAL, value="replaced_year"
+        )
         assert result.conditions[1] == leaf_equal  # EQUAL should remain unchanged
-        assert result.conditions[2] == leaf_greater_than  # GREATER_THAN should remain unchanged
-        assert result.conditions[3] == ConditionTreeLeaf(field="created_at", operator=Operator.EQUAL, value="replaced_month")
+        assert (
+            result.conditions[2] == leaf_greater_than
+        )  # GREATER_THAN should remain unchanged
+        assert result.conditions[3] == ConditionTreeLeaf(
+            field="created_at", operator=Operator.EQUAL, value="replaced_month"
+        )
 
 
-@mock.patch("forestadmin.datasource_toolkit.interfaces.query.filter.factory.FilterFactory._shift_period_filter")
+@mock.patch(
+    "forestadmin.datasource_toolkit.interfaces.query.filter.factory.FilterFactory._shift_period_filter"
+)
 def test_get_previous_period_filter(mock_shifted_period: mock.MagicMock):
     leaf = ConditionTreeLeaf(field="test", operator=Operator.PREVIOUS_MONTH)
-    filter = Filter({"condition_tree": leaf, "timezone": zoneinfo.ZoneInfo("Europe/Paris")})
+    filter = Filter(
+        {"condition_tree": leaf, "timezone": zoneinfo.ZoneInfo("Europe/Paris")}
+    )
     with mock.patch.object(filter, "override") as override_mock:
         with mock.patch.object(leaf, "replace") as replace_override:
             override_mock.return_value = "fake_override"
@@ -152,7 +202,11 @@ async def test_make_through_filter():
 
                 mock_collection = mock.MagicMock()
                 mock_collection.list = mock.AsyncMock(return_value=[{"id": 1}])
-                with mock.patch.object(collection.datasource, "get_collection", return_value=mock_collection):
+                with mock.patch.object(
+                    collection.datasource,
+                    "get_collection",
+                    return_value=mock_collection,
+                ):
                     res = await FilterFactory.make_through_filter(
                         mocked_caller,
                         collection,
@@ -166,10 +220,18 @@ async def test_make_through_filter():
                     )
 
                 assert res.condition_tree.aggregator == Aggregator.AND
-                assert ConditionTreeLeaf("child_id", Operator.EQUAL, "fake_value") in res.condition_tree.conditions
-                assert ConditionTreeLeaf("parent_id", Operator.IN, [1]) in res.condition_tree.conditions
+                assert (
+                    ConditionTreeLeaf("child_id", Operator.EQUAL, "fake_value")
+                    in res.condition_tree.conditions
+                )
+                assert (
+                    ConditionTreeLeaf("parent_id", Operator.IN, [1])
+                    in res.condition_tree.conditions
+                )
 
-                mock_get_value.assert_called_once_with(mocked_caller, collection, [1], "id")
+                mock_get_value.assert_called_once_with(
+                    mocked_caller, collection, [1], "id"
+                )
                 mock_get_value.reset_mock()
 
                 # test with unnestable PaginatedFilter
@@ -182,7 +244,9 @@ async def test_make_through_filter():
                 )
 
                 fake_datasource = mock.MagicMock()
-                fake_datasource.get_collection = mock.MagicMock(return_value=fake_collection)
+                fake_datasource.get_collection = mock.MagicMock(
+                    return_value=fake_collection
+                )
                 collection._datasource = fake_datasource  # type: ignore
 
                 mock_make_foreign_filter.reset_mock()
@@ -205,7 +269,9 @@ async def test_make_through_filter():
                             }
                         ),
                     )
-                mock_get_value.assert_called_once_with(mocked_caller, collection, [1], "id")
+                mock_get_value.assert_called_once_with(
+                    mocked_caller, collection, [1], "id"
+                )
                 fake_datasource.get_collection.assert_called_once_with("parent")  # type: ignore
                 mock_make_foreign_filter.assert_called_once_with(
                     mocked_caller,
@@ -227,8 +293,14 @@ async def test_make_through_filter():
                         "condition_tree": ConditionTreeBranch(
                             Aggregator.AND,
                             conditions=[
-                                ConditionTreeLeaf("child_id", Operator.EQUAL, "fake_value"),
-                                ConditionTreeLeaf("parent_id", Operator.IN, ["fake_record_1", "fake_record_2"]),
+                                ConditionTreeLeaf(
+                                    "child_id", Operator.EQUAL, "fake_value"
+                                ),
+                                ConditionTreeLeaf(
+                                    "parent_id",
+                                    Operator.IN,
+                                    ["fake_record_1", "fake_record_2"],
+                                ),
                             ],
                         )
                     }
