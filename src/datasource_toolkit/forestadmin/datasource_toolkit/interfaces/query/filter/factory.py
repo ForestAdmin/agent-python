@@ -45,7 +45,7 @@ class FilterFactory:
             leaf = cast(ConditionTreeLeaf, leaf)
             time_transform = time_transforms(1)
             if leaf.operator not in SHIFTED_OPERATORS:
-                raise FilterFactoryException(f"'{leaf.operator}' is not shiftable ")
+                return leaf
 
             alternative: Alternative = time_transform[leaf.operator][0]
             leaf = alternative["replacer"](leaf, tz)
