@@ -1,3 +1,10 @@
+## [1.23.9](https://github.com/ForestAdmin/agent-python/compare/v1.23.8...v1.23.9) (2025-10-20)
+
+
+### Bug Fixes
+
+* **filter:** return leaf unchanged for non-shiftable operator ([#333](https://github.com/ForestAdmin/agent-python/issues/333)) ([d54beff](https://github.com/ForestAdmin/agent-python/commit/d54beff5c4bea9221be35f91bc80db376b31f64b))
+
 ## [1.23.8](https://github.com/ForestAdmin/agent-python/compare/v1.23.7...v1.23.8) (2025-10-09)
 
 
