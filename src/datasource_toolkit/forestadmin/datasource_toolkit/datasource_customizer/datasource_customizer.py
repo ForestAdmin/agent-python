@@ -25,6 +25,17 @@ class DatasourceCustomizer:
         await self.stack.apply_queue_customization()
         return self.stack.datasource
 
+    async def _reload(self):
+        old_composite_ds = self.composite_datasource
+
+        try:
+            self.composite_datasource = CompositeDatasource()
+            await self.stack._reload(self.composite_datasource)
+        except Exception as e:
+            self.composite_datasource = old_composite_ds
+            raise e
+        await self.get_datasource()
+
     @property
     def collections(self):
         """Get list of customizable collections"""
@@ -41,19 +52,21 @@ class DatasourceCustomizer:
 
         async def _add_datasource():
             nonlocal datasource
+            _datasource = datasource
+
             if "include" in _options or "exclude" in _options:
-                publication_decorator = PublicationDataSourceDecorator(datasource)
+                publication_decorator = PublicationDataSourceDecorator(_datasource)
                 publication_decorator.keep_collections_matching(
                     _options.get("include", []), _options.get("exclude", [])
                 )
-                datasource = publication_decorator
+                _datasource = publication_decorator
 
             if "rename" in _options:
-                rename_decorator = RenameCollectionDataSourceDecorator(datasource)
+                rename_decorator = RenameCollectionDataSourceDecorator(_datasource)
                 rename_decorator.rename_collections(_options.get("rename", {}))
-                datasource = rename_decorator
+                _datasource = rename_decorator
 
-            self.composite_datasource.add_datasource(datasource)
+            self.composite_datasource.add_datasource(_datasource)
 
         self.stack.queue_customization(_add_datasource)
         return self

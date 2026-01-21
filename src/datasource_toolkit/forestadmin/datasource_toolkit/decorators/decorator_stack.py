@@ -1,5 +1,6 @@
 from typing import Awaitable, Callable, List
 
+from forestadmin.agent_toolkit.forest_logger import ForestLogger
 from forestadmin.datasource_toolkit.decorators.action.collections import ActionCollectionDecorator
 from forestadmin.datasource_toolkit.decorators.binary.collection import BinaryCollectionDecorator
 from forestadmin.datasource_toolkit.decorators.chart.chart_datasource_decorator import ChartDataSourceDecorator
@@ -28,10 +29,12 @@ from forestadmin.datasource_toolkit.interfaces.models.collections import Datasou
 class DecoratorStack:
     def __init__(self, datasource: Datasource) -> None:
         self._customizations: List = list()
-        last = datasource
+        self._applied_customizations: List = list()
+        self._init_stack(datasource)
 
+    def _init_stack(self, datasource: Datasource):
         # Step 0: Do not query datasource when we know the result with yield an empty set.
-        last = self.override = DatasourceDecorator(last, OverrideCollectionDecorator)  # type: ignore
+        last = self.override = DatasourceDecorator(datasource, OverrideCollectionDecorator)  # type: ignore
         last = self.empty = DatasourceDecorator(last, EmptyCollectionDecorator)  # type: ignore
 
         # Step 1: Computed-Relation-Computed sandwich (needed because some emulated relations depend
@@ -67,10 +70,59 @@ class DecoratorStack:
 
         self.datasource = last
 
+    def _backup_stack(self):
+        backup_stack = {}
+        for decorator_name in [
+            "_customizations",
+            "_applied_customizations",
+            "override",
+            "empty",
+            "early_computed",
+            "early_op_emulate",
+            "early_op_equivalence",
+            "relation",
+            "lazy_joins",
+            "late_computed",
+            "late_op_emulate",
+            "late_op_equivalence",
+            "search",
+            "segment",
+            "sort_emulate",
+            "chart",
+            "action",
+            "schema",
+            "write",
+            "hook",
+            "validation",
+            "binary",
+            "publication",
+            "rename_field",
+            "datasource",
+        ]:
+            backup_stack[decorator_name] = getattr(self, decorator_name)
+        return backup_stack
+
+    def _restore_stack(self, backup_stack):
+        for decorator_name, instance in backup_stack.items():
+            setattr(self, decorator_name, instance)
+
+    async def _reload(self, datasource: Datasource):
+        backup_stack = self._backup_stack()
+
+        self._customizations: List = self._applied_customizations
+        self._applied_customizations: List = list()
+        try:
+            self._init_stack(datasource)
+            await self.apply_queue_customization()
+        except Exception as e:
+            ForestLogger.log("exception", f"Error while reloading customizations: {e}, restoring previous state")
+            self._restore_stack(backup_stack)
+            raise e
+
     def queue_customization(self, customization: Callable[[], Awaitable[None]]):
         self._customizations.append(customization)
 
-    async def apply_queue_customization(self):
+    async def apply_queue_customization(self, store_customizations=True):
         queued_customization = self._customizations.copy()
         self._customizations = []
 
@@ -78,4 +130,6 @@ class DecoratorStack:
         while len(queued_customization) > 0:
             customization = queued_customization.pop()
             await customization()
-            await self.apply_queue_customization()
+            if store_customizations:
+                self._applied_customizations.append(customization)
+            await self.apply_queue_customization(False)
