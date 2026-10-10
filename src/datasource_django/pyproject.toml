@@ -4,7 +4,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 name = "forestadmin-datasource-django"
-version = "1.23.9"
+version = "1.23.10"
 description = "django datasource for forestadmin python agent"
 license = "Apache-2.0"
 authors = [ "Julien Barreau <julien.barreau@forestadmin.com>",]
@@ -19,8 +19,8 @@ include = "forestadmin"
 python = ">=3.8,<3.14"
 typing-extensions = "~=4.2"
 django = ">=3.2,<5.2"
-forestadmin-datasource-toolkit = "1.23.9"
-forestadmin-agent-toolkit = "1.23.9"
+forestadmin-datasource-toolkit = "1.23.10"
+forestadmin-agent-toolkit = "1.23.10"
 [[tool.poetry.dependencies.pandas]]
 version = ">=1.4.0"
 python = "<3.13.0"

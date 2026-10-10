@@ -1,3 +1,10 @@
+## [1.23.10](https://github.com/ForestAdmin/agent-python/compare/v1.23.9...v1.23.10) (2026-10-10)
+
+
+### Bug Fixes
+
+* **license:** relicense from GPL-3.0 to Apache-2.0 ([#335](https://github.com/ForestAdmin/agent-python/issues/335)) ([fd5a4f9](https://github.com/ForestAdmin/agent-python/commit/fd5a4f97e3f37ae4015af8e83cde764253341c7e))
+
 ## [1.23.9](https://github.com/ForestAdmin/agent-python/compare/v1.23.8...v1.23.9) (2025-10-20)
 
 
