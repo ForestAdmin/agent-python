@@ -15,7 +15,7 @@ runs:
       shell: bash
       run: |
         pipx install poetry
-        pipx inject poetry "virtualenv<21.7"
+        pipx inject --force poetry "virtualenv<21"
     - name: Set up Python ${{ inputs.python-version }}
       uses: actions/setup-python@v4
       with:
