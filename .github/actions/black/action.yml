@@ -26,5 +26,6 @@ runs:
       run: poetry install --only formatter
     - uses: psf/black@stable
       with:
+        version: "25.9.0"
         options: "--line-length=120 --check --verbose"
         src: ${{ inputs.current_package }}
