@@ -1,3 +1,10 @@
+## [1.23.11](https://github.com/ForestAdmin/agent-python/compare/v1.23.10...v1.23.11) (2026-10-10)
+
+
+### Bug Fixes
+
+* **pypi:** give every published package a README so the description renders ([#336](https://github.com/ForestAdmin/agent-python/issues/336)) ([c53626b](https://github.com/ForestAdmin/agent-python/commit/c53626b502807bd62277039a498cb19bddfb6e5c))
+
 ## [1.23.10](https://github.com/ForestAdmin/agent-python/compare/v1.23.9...v1.23.10) (2026-10-10)
 
 
