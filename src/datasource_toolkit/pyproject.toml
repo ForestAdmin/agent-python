@@ -5,6 +5,7 @@ build-backend = "poetry.core.masonry.api"
 [tool.poetry]
 name = "forestadmin-datasource-toolkit"
 description = "datasource toolkit for forestadmin python agent"
+license = "Apache-2.0"
 version = "1.23.9"
 authors = [ "Valentin Monté <valentinm@forestadmin.com>", "Julien Barreau <julien.barreau@forestadmin.com>",]
 readme = "README.md"
