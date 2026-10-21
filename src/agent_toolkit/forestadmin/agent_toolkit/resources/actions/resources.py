@@ -16,7 +16,7 @@ from forestadmin.agent_toolkit.utils.forest_schema.generator_action import Schem
 from forestadmin.agent_toolkit.utils.forest_schema.type import ForestServerActionField
 from forestadmin.agent_toolkit.utils.id import unpack_id
 from forestadmin.datasource_toolkit.decorators.action.result_builder import ResultBuilder
-from forestadmin.datasource_toolkit.exceptions import BusinessError
+from forestadmin.datasource_toolkit.exceptions import BusinessError, UnprocessableError
 from forestadmin.datasource_toolkit.interfaces.actions import ActionsScope
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.factory import ConditionTreeFactory
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.base import ConditionTree
@@ -164,8 +164,14 @@ class ActionResource(BaseCollectionResource):
         filter_ = build_filter(request, condition_tree)
 
         # Restrict the filter to the selected records for single or bulk actions.
-        if request.collection.schema["actions"][request.action_name].scope != ActionsScope.GLOBAL:
+        action_scope = request.collection.schema["actions"][request.action_name].scope
+        if action_scope != ActionsScope.GLOBAL:
             selection_ids, exclude_ids = parse_selection_ids(request.collection.schema, request)
+
+            # A single action runs on the first record it reads: refuse anything but exactly one id.
+            if action_scope == ActionsScope.SINGLE and (exclude_ids or len(selection_ids) != 1):
+                raise UnprocessableError("This action can only be triggered on one record at a time.")
+
             selected_ids = ConditionTreeFactory.match_ids(request.collection.schema, selection_ids)
             if exclude_ids:
                 selected_ids = selected_ids.inverse()
