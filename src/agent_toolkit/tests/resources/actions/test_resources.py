@@ -1177,6 +1177,12 @@ class TestSingleActionGivenSeveralRecords(BaseTestActionResource):
         self.assertIn(self.message, str(error))
         mocked_execute.assert_not_awaited()
 
+    def test_execute_should_refuse_an_empty_selection_and_run_nothing(self):
+        mocked_execute, error = self._execute(self._request(ids=[]))
+
+        self.assertIn(self.message, str(error))
+        mocked_execute.assert_not_awaited()
+
     def test_hook_should_refuse_two_ids_and_compute_no_form(self):
         with patch.object(
             self.decorated_collection_book, "get_form", new_callable=AsyncMock, return_value=[]

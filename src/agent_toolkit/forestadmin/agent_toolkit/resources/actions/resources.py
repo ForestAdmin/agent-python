@@ -168,8 +168,9 @@ class ActionResource(BaseCollectionResource):
         if action_scope != ActionsScope.GLOBAL:
             selection_ids, exclude_ids = parse_selection_ids(request.collection.schema, request)
 
-            # A single action only ever runs on the first record: refuse rather than skip the others.
-            if action_scope == ActionsScope.SINGLE and (exclude_ids or len(selection_ids) > 1):
+            # A single action runs on the first record it reads, and an empty selection below restricts nothing:
+            # refuse anything but exactly one id rather than run on a record nobody chose.
+            if action_scope == ActionsScope.SINGLE and (exclude_ids or len(selection_ids) != 1):
                 raise UnprocessableError("This action can only be triggered on one record at a time.")
 
             selected_ids = ConditionTreeFactory.match_ids(request.collection.schema, selection_ids)
