@@ -28,7 +28,7 @@ from forestadmin.datasource_toolkit.decorators.action.context.single import Acti
 from forestadmin.datasource_toolkit.decorators.action.result_builder import ResultBuilder
 from forestadmin.datasource_toolkit.decorators.action.types.actions import ActionDict
 from forestadmin.datasource_toolkit.decorators.datasource_decorator import DatasourceDecorator
-from forestadmin.datasource_toolkit.exceptions import ForbiddenError
+from forestadmin.datasource_toolkit.exceptions import ForbiddenError, UnprocessableError
 from forestadmin.datasource_toolkit.interfaces.actions import ActionFieldType, ActionsScope
 from forestadmin.datasource_toolkit.interfaces.fields import FieldType, Operator, PrimitiveType
 from forestadmin.datasource_toolkit.interfaces.query.condition_tree.nodes.leaf import ConditionTreeLeaf
@@ -1109,3 +1109,90 @@ class TestExecuteActionResource(BaseTestActionResource):
             # Should contain the selected IDs (1 and 2)
             self.assertIn("1", filter_str)
             self.assertIn("2", filter_str)
+
+
+class TestSingleActionGivenSeveralRecords(BaseTestActionResource):
+    """A single action context only ever reads the first record, so a selection naming more than one
+    would run on that record alone and still answer success."""
+
+    message = "This action can only be triggered on one record at a time."
+
+    def setUp(self) -> None:
+        super().setUp()
+        self.permission_service.can_smart_action.reset_mock()
+        self.decorated_collection_book.add_action(
+            "test_action_single", {"scope": ActionsScope.SINGLE, "execute": lambda ctx, rb: rb.success()}
+        )
+
+    def _request(self, **attributes):
+        body = {"data": {"attributes": {"values": {}, "collection_name": "Book", **attributes}}}
+        return ActionRequest(
+            method=RequestMethod.POST,
+            action_name="test_action_single",
+            collection=self.decorated_collection_book,
+            body=body,
+            query={
+                "timezone": "Europe/Paris",
+                "collection_name": "Book",
+                "action_name": 0,
+                "slug": "test_action_single",
+            },
+            headers={},
+            user=self.mocked_caller,
+            client_ip="127.0.0.1",
+        )
+
+    def _execute(self, request):
+        with patch.object(
+            self.decorated_collection_book, "execute", new_callable=AsyncMock, return_value=ResultBuilder().success()
+        ) as mocked_execute:
+            with self.assertRaises(UnprocessableError) as raised:
+                self.loop.run_until_complete(self.action_resource.execute(request))
+        return mocked_execute, raised.exception
+
+    def test_execute_should_refuse_two_ids_and_run_nothing(self):
+        mocked_execute, error = self._execute(self._request(ids=["1", "2"]))
+
+        self.assertIn(self.message, str(error))
+        mocked_execute.assert_not_awaited()
+
+    def test_execute_should_refuse_two_ids_before_checking_the_permissions(self):
+        self._execute(self._request(ids=["1", "2"]))
+
+        self.permission_service.can_smart_action.assert_not_awaited()
+
+    def test_execute_should_refuse_the_approval_of_a_request_naming_two_ids(self):
+        signed = jwt.encode(
+            {"data": {"attributes": {"values": {}, "collection_name": "Book", "ids": ["1", "2"]}}},
+            self.options["env_secret"],
+        )
+        mocked_execute, error = self._execute(self._request(ids=["1", "2"], signed_approval_request=signed))
+
+        self.assertIn(self.message, str(error))
+        mocked_execute.assert_not_awaited()
+
+    def test_execute_should_refuse_a_select_all_selection(self):
+        mocked_execute, error = self._execute(self._request(ids=[], all_records=True, all_records_ids_excluded=[]))
+
+        self.assertIn(self.message, str(error))
+        mocked_execute.assert_not_awaited()
+
+    def test_hook_should_refuse_two_ids_and_compute_no_form(self):
+        with patch.object(
+            self.decorated_collection_book, "get_form", new_callable=AsyncMock, return_value=[]
+        ) as mocked_get_form:
+            with self.assertRaises(UnprocessableError) as raised:
+                self.loop.run_until_complete(self.action_resource.hook(self._request(ids=["1", "2"])))
+
+        self.assertIn(self.message, str(raised.exception))
+        mocked_get_form.assert_not_awaited()
+
+    def test_execute_should_still_run_on_exactly_one_id(self):
+        with patch.object(
+            self.decorated_collection_book, "execute", new_callable=AsyncMock, return_value=ResultBuilder().success()
+        ) as mocked_execute:
+            response = self.loop.run_until_complete(self.action_resource.execute(self._request(ids=["1"])))
+
+        self.assertEqual(response.status, 200)
+        mocked_execute.assert_awaited_once_with(self.mocked_caller, "test_action_single", {}, ANY)
+        self.assertEqual(mocked_execute.await_args.args[3].condition_tree, ConditionTreeLeaf("id", Operator.EQUAL, 1))
