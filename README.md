@@ -31,6 +31,8 @@ The agent plugs in through your settings, not a constructor:
 
 ```python
 # settings.py
+import os
+
 INSTALLED_APPS = [
     # ...
     "forestadmin.django_agent",
@@ -38,29 +40,42 @@ INSTALLED_APPS = [
 
 FOREST_AUTH_SECRET = os.environ.get("FOREST_AUTH_SECRET")
 FOREST_ENV_SECRET = os.environ.get("FOREST_ENV_SECRET")
-FOREST_CUSTOMIZE_FUNCTION = "app.forest_admin.customize_forest"
 ```
 
 ```python
 # urls.py
+from django.urls import include, path
+
 urlpatterns = [
     path("", include("forestadmin.django_agent.urls")),
 ]
 ```
 
+Your Django models are exposed automatically. To add computed fields, actions or segments, point `FOREST_CUSTOMIZE_FUNCTION` to a function that receives the agent (e.g. `"myapp.forest_admin.customize_forest"`). The module must exist: if it cannot be imported, the agent does not start.
+
 ### Flask + SQLAlchemy
 
 ```bash
-pip install forestadmin-agent-flask forestadmin-datasource-sqlalchemy
+pip install forestadmin-agent-flask forestadmin-datasource-sqlalchemy flask-sqlalchemy
 ```
 
 ```python
+import os
+
 from flask import Flask
+from flask_sqlalchemy import SQLAlchemy
 from forestadmin.datasource_sqlalchemy.datasource import SqlAlchemyDatasource
 from forestadmin.flask_agent.agent import create_agent
 
+db = SQLAlchemy()  # your models are declared on this instance
+
 def create_app():
     app = Flask(__name__)
+    app.config["SQLALCHEMY_DATABASE_URI"] = os.environ["DATABASE_URL"]
+    # the agent reads its settings from app.config, not from the environment
+    app.config["FOREST_ENV_SECRET"] = os.environ["FOREST_ENV_SECRET"]
+    app.config["FOREST_AUTH_SECRET"] = os.environ["FOREST_AUTH_SECRET"]
+
     agent = create_agent(app)
     with app.app_context():
         db.init_app(app)
