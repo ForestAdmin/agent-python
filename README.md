@@ -1,145 +1,134 @@
-# agent-python
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="./assets/header-agent-python-dark.svg">
+    <img alt="Forest agent for Python: Django and Flask, your data and workflows running on your infrastructure." src="./assets/header-agent-python-light.svg" width="100%">
+  </picture>
+</p>
 
-## In a nutshell
+<p align="center">
+  <a href="https://pypi.org/project/forestadmin-agent-django/"><img alt="PyPI Django" src="https://img.shields.io/pypi/v/forestadmin-agent-django?label=agent-django&color=3f5b1e&labelColor=262d1e"></a>
+  <a href="https://pypi.org/project/forestadmin-agent-flask/"><img alt="PyPI Flask" src="https://img.shields.io/pypi/v/forestadmin-agent-flask?label=agent-flask&color=3f5b1e&labelColor=262d1e"></a>
+  <a href="https://github.com/ForestAdmin/agent-python/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/ForestAdmin/agent-python/actions/workflows/ci.yml/badge.svg?branch=main"></a>
+  <a href="./LICENSE"><img alt="License" src="https://img.shields.io/github/license/ForestAdmin/agent-python?color=3f5b1e&labelColor=262d1e"></a>
+</p>
 
-Forest Admin provides an off-the-shelf administration panel based on a highly-extensible API plugged into your application.
+**Forest is the back office for operations teams in regulated companies.** Ops teams review, decide and act on your data from one interface, or let AI agents do it, within the roles, permissions and audit logs you define.
 
-This project has been designed with scalability in mind to fit requirements from small projects to mature companies.
+This repository is the **Python agent** for **Django** and **Flask**: the part of Forest that runs inside your application, connects to your databases, and exposes them to the Forest interface. Your business data never goes through Forest.
 
-## Who Uses Forest Admin
+> [!NOTE]
+> **Forest v2.** This is the current Python SDK. Using `django-forestadmin`? You are on v1: see the [migration guide](https://docs.forest.app/guides/migration/from-v1/overview).
 
-- [Apartmentlist](https://www.apartmentlist.com)
-- [Carbon Health](https://carbonhealth.com)
-- [Ebanx](https://www.ebanx.com)
-- [First circle](https://www.firstcircle.ph)
-- [Forest Admin](https://www.forestadmin.com) of course :-)
-- [Heetch](https://www.heetch.com)
-- [Swile](https://www.swile.co)
-- [Pillow](https://www.pillow.com)
-- [Qonto](https://www.qonto.eu)
-- [Shadow](https://shadow.tech)
-- And hundreds more…
+## Quick start
 
-## Getting Started
+### Django
 
-[https://docs.forestadmin.com/documentation/how-tos/setup/install](https://docs.forestadmin.com/documentation/how-tos/setup/install)
+```bash
+pip install forestadmin-agent-django
+```
 
-## Documentation
+The agent plugs in through your settings, not a constructor:
 
-[https://docs.forestadmin.com/developer-guide-agents-python](https://docs.forestadmin.com/developer-guide-agents-python)
+```python
+# settings.py
+INSTALLED_APPS = [
+    # ...
+    "forestadmin.django_agent",
+]
+
+FOREST_AUTH_SECRET = os.environ.get("FOREST_AUTH_SECRET")
+FOREST_ENV_SECRET = os.environ.get("FOREST_ENV_SECRET")
+FOREST_CUSTOMIZE_FUNCTION = "app.forest_admin.customize_forest"
+```
+
+```python
+# urls.py
+urlpatterns = [
+    path("", include("forestadmin.django_agent.urls")),
+]
+```
+
+### Flask + SQLAlchemy
+
+```bash
+pip install forestadmin-agent-flask forestadmin-datasource-sqlalchemy
+```
+
+```python
+from flask import Flask
+from forestadmin.datasource_sqlalchemy.datasource import SqlAlchemyDatasource
+from forestadmin.flask_agent.agent import create_agent
+
+def create_app():
+    app = Flask(__name__)
+    agent = create_agent(app)
+    with app.app_context():
+        db.init_app(app)
+        agent.add_datasource(SqlAlchemyDatasource(db))
+    agent.start()
+    return app
+```
+
+Full guide: [docs.forest.app/get-started/quickstart](https://docs.forest.app/get-started/quickstart)
+
+## Requirements
+
+| | |
+|---|---|
+| Python | `>=3.8,<3.14` (CI tests 3.8 to 3.13) |
+| Django | `>=3.2,<5.2` |
+| Flask | `>=2.0.0` (`async` extra) |
+| SQLAlchemy | `>=1.4.0` |
+
+## What the agent gives you
+
+| | |
+|---|---|
+| **Data** | Your Django models or SQLAlchemy tables, introspected and exposed to Forest. |
+| **Customization** | Computed fields, actions, segments and hooks in Python, from your customize function. |
+| **Permissions and audit** | Roles, scopes and activity logs defined in Forest, enforced on every request. |
 
 ## How it works
 
-<p align="center" style="margin: 60px 0">
-  <img width="100%" src="https://forest-assets.s3.amazonaws.com/Github+README+assets/howitworks.png" alt="Howitworks">
-</p>
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="./assets/arch-agent-python-dark.svg">
+  <img alt="The Python agent runs on your infrastructure. Forest calls it over HTTPS; the agent queries your databases and services." src="./assets/arch-agent-python-light.svg" width="100%">
+</picture>
 
-Forest Admin consists of two components:
+The agent runs **on your infrastructure**. The Forest interface calls your agent, and your agent queries your sources: Forest does not store your business data.
 
-- The Admin Frontend is the user interface where you'll manage your data and configuration.
-- The Admin Backend API hosted on your servers where you can find and extend your data models and all the business logic (routes, actions, …) related to your admin panel.
+## Documentation
 
-The Forest Admin gem (aka Forest Liana) introspects all your data model
-and dynamically generates the Admin API hosted on your servers. The Forest Admin
-interface is a web application that handles communication between the admin
-user and your application data through the Admin API.
+| | |
+|---|---|
+| Get started | https://docs.forest.app/get-started/quickstart |
+| Connect a data source | https://docs.forest.app/get-started/connect/data-sources/overview |
+| Migrating from v1 | https://docs.forest.app/guides/migration/from-v1/overview |
 
-## Features
+<details>
+<summary><b>Packages in this monorepo</b></summary>
 
-### CRUD
+| PyPI package | Role |
+|---|---|
+| `forestadmin-agent-django` | Agent for Django |
+| `forestadmin-agent-flask` | Agent for Flask |
+| `forestadmin-agent-toolkit` | Agent core (transport, auth, permissions) |
+| `forestadmin-datasource-toolkit` | Data source contracts, queries, types |
+| `forestadmin-datasource-django` | Django ORM data source |
+| `forestadmin-datasource-sqlalchemy` | SQLAlchemy data source |
 
-All of your CRUD operations are natively supported. The API automatically
-supports your data models' validation and allows you to easily extend or
-override any API routes' with your very own custom logic.
+All packages install into the shared `forestadmin.*` namespace. Complete demo applications live in [`src/_example/`](./src/_example).
 
-<img src="https://forest-assets.s3.amazonaws.com/Github+README+assets/crud.jpeg" alt="CRUD">
+</details>
 
-### Search & Filters
+## Contributing
 
-Forest Admin has a built-in search allowing you to run basic queries to
-retrieve your application's data. Set advanced filters based on fields and
-relationships to handle complex search use cases.
+Bug reports and pull requests are welcome. See [CONTRIBUTING.md](./CONTRIBUTING.md) for setup, tests and commit conventions.
 
-<img src="https://forest-assets.s3.amazonaws.com/Github+README+assets/search+filters.jpeg" alt="Search and Filters">
+```bash
+./launch_tests_ci_like.sh   # runs the CI locally
+```
 
-### Sorting & Pagination
+## License
 
-Sorting and pagination features are natively handled by the Admin API. We're
-continuously optimizing how queries are run in order to display results faster
-and reduce the load of your servers.
-
-<img src="https://forest-assets.s3.amazonaws.com/Github+README+assets/sorting+pagination.jpeg" alt="Sorting and Pagination">
-
-### Custom action
-
-A custom action is a button which allows you to trigger an API call to execute
-a custom logic. With virtually no limitations, you can extend the way you
-manipulate data and trigger actions (e.g. refund a customer, apply a coupon,
-ban a user, etc.)
-
-<img src="https://forest-assets.s3.amazonaws.com/Github+README+assets/custom+actions.jpeg" alt="Custom action">
-
-### Export
-
-Sometimes you need to export your data to a good old fashioned CSV. Yes, we
-know this can come in handy sometimes :-)
-
-<img src="https://forest-assets.s3.amazonaws.com/Github+README+assets/exports.jpeg" alt="Export">
-
-### Segments
-
-Get in app access to a subset of your application data by doing a basic search
-or typing an SQL query or implementing an API route.
-
-<img src="https://forest-assets.s3.amazonaws.com/Github+README+assets/segments.jpeg" alt="Segments">
-
-### Dashboards
-
-Forest Admin is able to tap into your actual data to chart out your metrics
-using a simple UI panel, a SQL query or a custom API call.
-
-<img src="https://forest-assets.s3.amazonaws.com/Github+README+assets/dashboards.jpeg" alt="Dashboard">
-
-### WYSIWYG
-
-The WYSIWYG interface saves you a tremendous amount of frontend development
-time using drag'n'drop as well as advanced widgets to build customizable views.
-
-<img src="https://forest-assets.s3.amazonaws.com/Github+README+assets/wysiwyg.jpeg" alt="WYSIWYG">
-
-### Custom HTML/JS/CSS
-
-Code your own views using JS, HTML, and CSS to display your application data in
-a more appropriate way (e.g. Kanban, Map, Calendar, Gallery, etc.).
-
-<img src="https://forest-assets.s3.amazonaws.com/Github+README+assets/smart+views.jpeg" alt="Custom views">
-
-### Team-based permissions
-
-Without any lines of code, manage directly from the UI who has access or can
-act on which data using a team-based permission system.
-
-<img src="https://forest-assets.s3.amazonaws.com/Github+README+assets/teams.jpeg" alt="Team based permissions">
-
-### Third-party integrations
-
-Leverage data from third-party services by reconciling it with your
-application’s data and providing it directly to your Admin Panel. All your
-actions can be performed at the same place, bringing additional intelligence to
-your Admin Panel and ensuring consistency.
-
-<img src="https://forest-assets.s3.amazonaws.com/Github+README+assets/integrations.jpeg" alt="Third-party integrations">
-
-### Notes & Comments
-
-Assign your teammates to specific tasks, leave a note or simply comment a
-record, thereby simplifying collaboration all across your organization.
-
-<img src="https://forest-assets.s3.amazonaws.com/Github+README+assets/notes+comments.jpeg" alt="Notes and Comments">
-
-### Activity logs
-
-Monitor each action executed and follow the trail of modification on any data
-with an extensive activity log system.
-
-<img src="https://forest-assets.s3.amazonaws.com/Github+README+assets/activity+logs.jpeg" alt="Activity logs">
+Apache 2.0. See [LICENSE](./LICENSE).
